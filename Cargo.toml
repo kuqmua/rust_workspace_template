@@ -46,6 +46,8 @@ utoipa-swagger-ui = { version = "=9.0.2", default-features = false, features = [
 
 [workspace.lints.rust]
 unsafe_code = "deny"
+deprecated_safe = { level = "deny", priority = -1 }
+unknown_or_malformed_diagnostic_attributes = { level = "deny", priority = -1 }
 absolute_paths_not_starting_with_crate = "deny"
 deprecated_in_future = "deny"
 elided_lifetimes_in_paths = "deny"
@@ -603,7 +605,7 @@ mem_forget = "deny"
 mem_replace_option_with_none = "deny"
 mem_replace_with_default = "deny"
 mem_replace_with_uninit = "deny"
-min_ident_chars = "allow"
+min_ident_chars = "deny"
 min_max = "deny"
 mismatching_type_param_order = "deny"
 misnamed_getters = "deny"
@@ -629,7 +631,7 @@ module_name_repetitions = "deny"
 modulo_arithmetic = "deny"
 modulo_one = "deny"
 multi_assignments = "deny"
-multiple_crate_versions = "allow"
+multiple_crate_versions = "deny"
 multiple_inherent_impl = "deny"
 multiple_unsafe_ops_per_block = "deny"
 must_use_candidate = "deny"
