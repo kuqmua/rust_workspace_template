@@ -1,8 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-  "server",
-  "integration_tests",
+  "server"
 ]
 exclude = []
 
@@ -44,6 +43,7 @@ reqwest = { version = "=0.12.19", default-features = false, features = ["json", 
 rust_xlsxwriter = { version = "=0.82.0", default-features = false }
 utoipa = { version = "=5.4.0", default-features = false, features = ["axum_extras", "chrono"] }
 utoipa-swagger-ui = { version = "=9.0.2", default-features = false, features = ["axum"] }
+thiserror = { version = "=2.0.11", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
