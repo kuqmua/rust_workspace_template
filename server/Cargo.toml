@@ -4,6 +4,11 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
+description = "Server application"
+repository = "https://github.com/user/repo"
+readme = "README.md"
+keywords = ["server"]
+categories = ["web-programming"]
 
 [lints]
 workspace = true

@@ -5,6 +5,12 @@ members = [
 ]
 exclude = []
 
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+
 [workspace.dependencies]
 argon2 = { version = "=0.5.3", default-features = false, features = ["alloc", "password-hash"] }
 axum = { version = "=0.8.8", features = ["multipart"] }
