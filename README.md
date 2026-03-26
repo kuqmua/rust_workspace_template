@@ -1,0 +1,1 @@
+# rust_workspace_template
