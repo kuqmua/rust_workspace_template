@@ -19,12 +19,17 @@
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
 - Keep public API minimal.
+- Default to `pub(crate)` visibility; use `pub` only with explicit external API justification.
 - Add unit tests for public logic.
+- For public APIs, add both contract tests and round-trip tests.
 - Use test helpers for repeated setup.
 - Keep tests deterministic.
+- Keep tests deterministic: do not use `sleep` and do not depend on wall-clock time or timezone without explicit time injection.
 - For route tests, always reuse the corresponding `call_*_route_client` function (directly or via shared test helpers); do not build route paths independently when a client route function exists.
 - If error message contains 8 random symbols then search workspace for that id.
 - Avoid allocations inside hot loops.
+- Do not add allocations in hot paths unless performance impact is justified in a nearby comment.
+- Preserve and propagate error sources; avoid `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
 - Preserve behavior unless change is requested.
 - Do not use cursor/keyset pagination. Always use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
 - In SQL queries, always reuse table and column name constants (`table_names::*`, `COLUMN_*`, `FIELD_*`, `TABLE_*`) instead of hardcoded string literals for schema identifiers. For every new or edited SQL query (including idempotency, auth, handlers, models, and tests), do not inline table/column identifiers in query text; add or reuse a shared constant first and then reference it in `format!`.
@@ -49,6 +54,8 @@
 - Do not change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
 - Before completion, run checks in this exact order: `cargo fmt` -> `cargo clippy --all-targets --all-features -- -D warnings` -> `cargo test`. If full `cargo test` is not feasible, run affected test targets and explicitly report what was skipped and why.
+- For each new feature flag, run and pass `cargo hack` feature-matrix checks.
+- Prevent hidden breaking changes: run semver checks and update changelog entries for externally visible changes.
 - In the final report, always list executed verification commands and their outcomes; if any required check was skipped, state it explicitly with reason.
 - Do not use indexing access like `[0]` or `[1]` even in tests; use `first()`/`get()` with explicit handling.
 - Do not mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors; prefer `Result` propagation and explicit `expect()` with 8-char id.
@@ -65,9 +72,12 @@
 - Leave commented dead code.
 - Commit debug prints.
 - Use `unwrap()`.
+- Use `todo!()` or `unimplemented!()` in non-test code.
+- Use `panic!()` or `assert!()` in runtime/library code paths (tests are allowed).
 - Do not use `expect()` or `panic!()` in library/runtime code except in `proc-macro` or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.
 - Use or write `unsafe`.
+- Use global mutable/singleton state (`static mut`, lazy singletons) without explicit RFC-level justification.
 - Assume `Send` or `Sync` without proof.
 - Use outdated versions in case of adding new crate.
 - Block async executors.
