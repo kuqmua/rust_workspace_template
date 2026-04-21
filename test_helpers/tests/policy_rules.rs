@@ -1,5 +1,6 @@
 use std::{
     fs,
+    io::ErrorKind,
     path::{Path, PathBuf},
 };
 
@@ -53,6 +54,27 @@ fn read_file(path: &Path) -> String {
     fs::read_to_string(path).expect("9be35a17")
 }
 
+fn workflow_file_paths(workspace_root: &Path) -> Vec<PathBuf> {
+    let workflows_directory_path = workspace_root.join(".github").join("workflows");
+    fs::read_dir(&workflows_directory_path)
+        .and_then(|directory_entries| {
+            directory_entries
+                .map(|directory_entry_result| directory_entry_result.map(|entry| entry.path()))
+                .collect()
+        })
+        .or_else(|error| {
+            if error.kind() == ErrorKind::NotFound {
+                Ok(Vec::new())
+            } else {
+                Err(error)
+            }
+        })
+        .expect("7cf34bd1")
+        .into_iter()
+        .filter(|path| path.extension().is_some_and(|extension| extension == "yml"))
+        .collect()
+}
+
 fn rust_source_files(workspace_files: &[PathBuf]) -> Vec<&PathBuf> {
     workspace_files
         .iter()
@@ -62,9 +84,11 @@ fn rust_source_files(workspace_files: &[PathBuf]) -> Vec<&PathBuf> {
 
 #[cfg(test)]
 mod policy_tests {
+    use std::path::PathBuf;
+
     use super::{
-        collect_workspace_files, non_test_source_segment, read_file, rust_source_files,
-        workspace_root_path,
+        collect_workspace_files, fs, non_test_source_segment, read_file, rust_source_files,
+        workflow_file_paths, workspace_root_path,
     };
 
     #[test]
@@ -249,6 +273,32 @@ mod policy_tests {
             "CHANGELOG.md exists but is empty: {}",
             changelog_path.display()
         );
+    }
+
+    #[test]
+    fn enforces_server_cli_tests_to_use_shared_command_helpers() {
+        let workspace_root = workspace_root_path();
+        let server_tests_directory_path = workspace_root.join("server").join("tests");
+        let server_test_paths = fs::read_dir(&server_tests_directory_path)
+            .expect("9f2b1c7d")
+            .map(|directory_entry_result| directory_entry_result.expect("4d1a8c7e").path())
+            .filter(|path| path.extension().is_some_and(|extension| extension == "rs"))
+            .collect::<Vec<PathBuf>>();
+
+        for server_test_path in server_test_paths {
+            let server_test_content = read_file(&server_test_path);
+            assert!(
+                server_test_content.contains("run_server_command(")
+                    || server_test_content.contains("run_server_command_with_report_format("),
+                "server cli tests must use shared command helpers in {}",
+                server_test_path.display()
+            );
+            assert!(
+                !server_test_content.contains("Command::new("),
+                "server cli tests must not invoke Command::new directly in {}",
+                server_test_path.display()
+            );
+        }
     }
 
     #[test]
@@ -565,6 +615,218 @@ mod policy_tests {
                 "found forbidden axum from_fn layer in {}",
                 rust_file.display()
             );
+        }
+    }
+
+    #[test]
+    fn enforces_hardened_release_profile_configuration() {
+        let workspace_root = workspace_root_path();
+        let root_manifest_path = workspace_root.join("Cargo.toml");
+        let root_manifest_content = read_file(&root_manifest_path);
+
+        assert!(
+            root_manifest_content.contains("[profile.release]"),
+            "missing [profile.release] section in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("lto = \"fat\""),
+            "release profile must enable fat LTO in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("codegen-units = 1"),
+            "release profile must use codegen-units = 1 in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("panic = \"abort\""),
+            "release profile must use panic = \"abort\" in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("strip = \"symbols\""),
+            "release profile must strip symbols in {}",
+            root_manifest_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_workspace_verify_alias_order() {
+        let workspace_root = workspace_root_path();
+        let cargo_config_path = workspace_root.join(".cargo").join("config.toml");
+        let cargo_config_content = read_file(&cargo_config_path);
+        let expected_verify_alias = "workspace-verify = \"!cargo fmt && cargo clippy \
+                                     --all-targets --all-features -- -D warnings && cargo test\"";
+
+        assert!(
+            cargo_config_content.contains(expected_verify_alias),
+            "workspace-verify alias must execute fmt -> clippy -> test in {}",
+            cargo_config_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_nightly_toolchain_channel() {
+        let workspace_root = workspace_root_path();
+        let rust_toolchain_path = workspace_root.join("rust-toolchain.toml");
+        let rust_toolchain_content = read_file(&rust_toolchain_path);
+
+        assert!(
+            rust_toolchain_content.contains("channel = \"nightly\""),
+            "workspace template requires nightly toolchain in {}",
+            rust_toolchain_path.display()
+        );
+    }
+
+    #[test]
+    fn forbids_debug_print_macros_in_non_test_code_except_entrypoint_output() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+        let server_main_path = workspace_root.join("server").join("src").join("main.rs");
+
+        for rust_file in rust_files {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            let path_is_server_main = rust_file == &server_main_path;
+            if !path_is_server_main {
+                assert!(
+                    !source_segment.contains("println!("),
+                    "found println! in non-test non-entrypoint code: {}",
+                    rust_file.display()
+                );
+                assert!(
+                    !source_segment.contains("eprintln!("),
+                    "found eprintln! in non-test non-entrypoint code: {}",
+                    rust_file.display()
+                );
+            }
+            assert!(
+                !source_segment.contains("dbg!("),
+                "found dbg! in non-test code: {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_workspace_alias_set_for_daily_workflows() {
+        let workspace_root = workspace_root_path();
+        let cargo_config_path = workspace_root.join(".cargo").join("config.toml");
+        let cargo_config_content = read_file(&cargo_config_path);
+
+        let required_aliases = [
+            "workspace-format = ",
+            "workspace-lint = ",
+            "workspace-test = ",
+            "workspace-check-no-default-features = ",
+            "workspace-doc = ",
+            "workspace-verify = ",
+        ];
+
+        for required_alias in required_aliases {
+            assert!(
+                cargo_config_content.contains(required_alias),
+                "missing required cargo alias `{}` in {}",
+                required_alias,
+                cargo_config_path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_fast_ci_test_commands_presence() {
+        let workspace_root = workspace_root_path();
+        let ci_workflow_path = workspace_root
+            .join(".github")
+            .join("workflows")
+            .join("ci.yml");
+        let ci_workflow_content = read_file(&ci_workflow_path);
+
+        assert!(
+            ci_workflow_content
+                .contains("cargo nextest run --all-targets --all-features --profile ci"),
+            "fast CI must run nextest in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            ci_workflow_content.contains("cargo test --doc --all-features"),
+            "fast CI must run doc tests in {}",
+            ci_workflow_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_documented_local_verification_order() {
+        let workspace_root = workspace_root_path();
+        let readme_path = workspace_root.join("README.md");
+        let readme_content = read_file(&readme_path);
+        let contributing_path = workspace_root.join("CONTRIBUTING.md");
+        let contributing_content = read_file(&contributing_path);
+        let required_verification_sequence =
+            "cargo fmt\ncargo clippy --all-targets --all-features -- -D warnings\ncargo test";
+
+        assert!(
+            readme_content.contains(required_verification_sequence),
+            "README must document fmt -> clippy -> test order in {}",
+            readme_path.display()
+        );
+        assert!(
+            contributing_content.contains(required_verification_sequence),
+            "CONTRIBUTING must document fmt -> clippy -> test order in {}",
+            contributing_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_workflow_level_minimal_permissions() {
+        let workspace_root = workspace_root_path();
+        let workflows = workflow_file_paths(&workspace_root);
+
+        for workflow_file_path in workflows {
+            let workflow_content = read_file(&workflow_file_path);
+            assert!(
+                workflow_content.contains("permissions:\n  contents: read"),
+                "workflow must define top-level minimal permissions in {}",
+                workflow_file_path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_marketplace_actions_to_be_pinned_by_full_commit_sha() {
+        let workspace_root = workspace_root_path();
+        let workflows = workflow_file_paths(&workspace_root);
+
+        for workflow_file_path in workflows {
+            let workflow_content = read_file(&workflow_file_path);
+            for workflow_line in workflow_content.lines() {
+                let Some((_, action_reference_value)) = workflow_line.split_once("uses:") else {
+                    continue;
+                };
+                let action_reference = action_reference_value.trim();
+                if action_reference.starts_with("./") || action_reference.starts_with("docker://") {
+                    continue;
+                }
+                let Some((action_name, action_version_reference)) =
+                    action_reference.split_once('@')
+                else {
+                    continue;
+                };
+                if !action_name.contains('/') {
+                    continue;
+                }
+                assert!(
+                    action_version_reference.len() == 40
+                        && action_version_reference
+                            .chars()
+                            .all(|character| character.is_ascii_hexdigit()),
+                    "GitHub Action must be pinned by full 40-char SHA in {}: {}",
+                    workflow_file_path.display(),
+                    workflow_line.trim()
+                );
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "shared_logic",
+ "test_helpers",
 ]
 
 [[package]]

@@ -1060,3 +1060,9 @@ manual_take = "deny"
 manual_checked_ops = "deny"
 disallowed_fields = "deny"
 unnecessary_trailing_comma = "deny"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+strip = "symbols"

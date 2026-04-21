@@ -353,6 +353,17 @@ mod unit_tests {
     }
 
     #[test]
+    fn preserves_malformed_wire_format_error_message_contract() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("1|+|2|extra").expect_err("4be9d2a1");
+
+        assert_eq!(
+            calculation_error.to_string(),
+            "wire format must contain exactly 3 parts separated by '|': 1|+|2|extra"
+        );
+    }
+
+    #[test]
     fn returns_unknown_operation_error_for_invalid_symbol() {
         let calculation_error = ArithmeticOperation::from_str("^").expect_err("6e2b9f1d");
 

@@ -12,6 +12,8 @@ use shared_logic::{
     CalculationError, CalculationReportFormat, build_calculation_request_from_text_parts,
     deserialize_calculation_request_from_wire_format, render_calculation_report_with_format,
 };
+#[cfg(test)]
+use test_helpers as _;
 
 const EXIT_CODE_FAILURE: u8 = 2;
 const ARGUMENT_FLAG_HELP_LONG: &str = "--help";

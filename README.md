@@ -49,6 +49,17 @@ Cargo aliases are configured in `.cargo/config.toml`:
 - `cargo workspace-doc`
 - `cargo workspace-verify` (runs `fmt -> clippy -> test` in required order)
 
+## Production build defaults
+
+Release profile is hardened in workspace root `Cargo.toml`:
+
+- `lto = "fat"`
+- `codegen-units = 1`
+- `panic = "abort"`
+- `strip = "symbols"`
+
+These settings optimize for smaller and more predictable production binaries.
+
 ## Server usage examples
 
 Show help:
@@ -97,3 +108,34 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 - Release process: `RELEASE.md`
 - Security policy: `SECURITY.md`
 - Changelog template: `CHANGELOG.md`
+
+## Policy tests
+
+`test_helpers/tests/policy_rules.rs` enforces template rules, including:
+
+- workspace dependencies and disabled default features
+- no forbidden runtime shortcuts (`unwrap`, `todo!`, source-dropping `map_err`)
+- deterministic testing constraints
+- hardened release profile and `workspace-verify` command order
+- nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
+- no `dbg!` and no ad-hoc `println!`/`eprintln!` outside entrypoint runtime path
+- CLI contract tests in `server/tests` must use shared `test_helpers::run_server_command*` wrappers and must not call `Command::new` directly
+
+## CLI test helper
+
+`test_helpers` provides reusable helpers for CLI integration tests:
+
+- `run_server_command`
+- `run_server_command_with_report_format`
+- `stdout_as_utf8` / `stderr_as_utf8`
+
+These helpers keep test code concise and make edge-case assertions (including non-unicode environment values) consistent across new tests.
+
+When adding a new CLI test, prefer this pattern:
+
+```rust
+let output = run_server_command(SERVER_BINARY_PATH, &["10", "+", "5"]).expect("1a2b3c4d");
+let standard_output = stdout_as_utf8(&output).expect("5e6f7a8b");
+assert!(output.status.success());
+assert!(standard_output.contains("result=15"));
+```

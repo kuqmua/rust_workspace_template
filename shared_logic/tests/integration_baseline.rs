@@ -122,4 +122,94 @@ mod integration_tests {
             provided_wire_format: build_invalid_wire_format_with_extra_parts().to_owned(),
         });
     }
+
+    #[test]
+    fn report_format_parsing_has_stable_contract() {
+        let text_report_format = "text".parse::<CalculationReportFormat>().expect("2d9c7a1e");
+        let json_report_format = "json".parse::<CalculationReportFormat>().expect("6a1e4d9c");
+        let unknown_report_format_error = "yaml"
+            .parse::<CalculationReportFormat>()
+            .expect_err("8f2c1a7d");
+
+        assert_eq!(text_report_format, CalculationReportFormat::Text);
+        assert_eq!(json_report_format, CalculationReportFormat::Json);
+        assert_eq!(
+            unknown_report_format_error,
+            shared_logic::CalculationError::UnknownReportFormat {
+                provided_format: "yaml".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn default_report_renderer_matches_explicit_text_format() {
+        let calculation_request = build_calculation_request(15, 4, ArithmeticOperation::Division);
+        let default_rendered_report =
+            render_calculation_report(&calculation_request).expect("4c2d9a1f");
+        let explicitly_rendered_text_report = render_calculation_report_with_format(
+            &calculation_request,
+            CalculationReportFormat::Text,
+        )
+        .expect("1a7d6c3e");
+
+        assert_eq!(default_rendered_report, explicitly_rendered_text_report);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_addition_contract() {
+        let calculation_request =
+            build_calculation_request(i64::MAX, 1, ArithmeticOperation::Addition);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("1f9d4a7c");
+        assert_eq!(calculation_error, shared_logic::CalculationError::Overflow);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_division_contract() {
+        let calculation_request =
+            build_calculation_request(i64::MIN, -1, ArithmeticOperation::Division);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("5d2b8e1a");
+        assert_eq!(calculation_error, shared_logic::CalculationError::Overflow);
+    }
+
+    #[test]
+    fn rejects_unknown_operation_with_stable_error_payload() {
+        let calculation_error =
+            build_calculation_request_from_text_parts("10", "%", "3").expect_err("3d7a1c9e");
+
+        assert_eq!(calculation_error, shared_logic::CalculationError::UnknownOperation {
+            provided_operation: "%".to_owned(),
+        });
+    }
+
+    #[test]
+    fn rejects_invalid_left_operand_with_stable_error_payload() {
+        let calculation_error =
+            build_calculation_request_from_text_parts("invalid", "+", "3").expect_err("2c7e1d9a");
+
+        assert_eq!(calculation_error, shared_logic::CalculationError::InvalidIntegerValue {
+            provided_value: "invalid".to_owned(),
+        });
+    }
+
+    #[test]
+    fn rejects_invalid_right_operand_from_wire_format_with_stable_error_payload() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("10|+|invalid").expect_err("7f1d3a8c");
+
+        assert_eq!(calculation_error, shared_logic::CalculationError::InvalidIntegerValue {
+            provided_value: "invalid".to_owned(),
+        });
+    }
+
+    #[test]
+    fn arithmetic_operation_display_symbols_are_stable() {
+        assert_eq!(ArithmeticOperation::Addition.to_string(), "+");
+        assert_eq!(ArithmeticOperation::Subtraction.to_string(), "-");
+        assert_eq!(ArithmeticOperation::Multiplication.to_string(), "*");
+        assert_eq!(ArithmeticOperation::Division.to_string(), "/");
+    }
 }

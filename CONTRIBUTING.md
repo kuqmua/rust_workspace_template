@@ -45,3 +45,7 @@ This template uses two CI modes in `.github/workflows/ci.yml`:
 - Keep `text` output stable by default.
 - If machine-readable output is needed, use `CALCULATION_REPORT_FORMAT=json`.
 - Do not remove or repurpose existing CLI arguments without explicit agreement.
+
+## Integration test ergonomics
+- Reuse helper functions from `test_helpers` for CLI process execution and UTF-8 decoding.
+- Cover environment edge-cases in contract tests (for example, non-unicode variable values on Unix).

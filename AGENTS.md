@@ -14,6 +14,7 @@
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
 - Use domain-specific error enums per module/route/service boundary; do not centralize all failures into one global shared error type.
+- Use `#[must_use]` on `Result`, `Option`, and domain return types where ignoring the value can hide failures or behavior.
 - Use enums instead of `bool` for domain logic and API contracts.
 - Prefer enums over `bool` values when the meaning is domain-specific or unclear at call sites.
 - Use a single async runtime across workspace.
@@ -21,6 +22,7 @@
 - Use trait objects only when dynamic dispatch is required.
 - Keep public API minimal.
 - Default to `pub(crate)` visibility; use `pub` only with explicit external API justification.
+- Do not expose public struct fields in API types without explicit boundary-level justification; prefer constructors and methods.
 - Add unit tests for public logic.
 - For public APIs, add both contract tests and round-trip tests.
 - Use test helpers for repeated setup.
@@ -31,6 +33,7 @@
 - Avoid allocations inside hot loops.
 - Use iterator-based style instead of regular loops in Rust code.
 - Do not add allocations in hot paths unless performance impact is justified in a nearby comment.
+- Enforce performance budgets for hot paths and fail CI on benchmark regressions above agreed thresholds.
 - Preserve and propagate error sources; avoid `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
 - Preserve behavior unless change is requested.
 - Do not use cursor/keyset pagination. Always use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
@@ -57,7 +60,14 @@
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
 - Before completion, run checks in this exact order: `cargo fmt` -> `cargo clippy --all-targets --all-features -- -D warnings` -> `cargo test`. If full `cargo test` is not feasible, run affected test targets and explicitly report what was skipped and why.
 - For each new feature flag, run and pass `cargo hack` feature-matrix checks.
+- For every PR that changes `Cargo.toml` or `cfg(feature)` usage, run and pass `cargo hack` feature-matrix checks.
 - Prevent hidden breaking changes: run semver checks and update changelog entries for externally visible changes.
+- For externally visible API changes, run `cargo-semver-checks` locally before merge (not only in CI).
+- Enforce `cargo deny` policy for licenses/sources with unknown registries and unknown git sources denied by default.
+- Run `cargo udeps` on nightly on a schedule and before release.
+- Require property-based tests (`proptest`) for parsers, validators, and domain invariants.
+- Require compile-fail tests (`trybuild`) for critical type-level contracts.
+- Require golden/snapshot tests for stable text/JSON CLI or API output contracts.
 - In the final report, always list executed verification commands and their outcomes; if any required check was skipped, state it explicitly with reason.
 - Do not use indexing access like `[0]` or `[1]` even in tests; use `first()`/`get()` with explicit handling.
 - Do not mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors; prefer `Result` propagation and explicit `expect()` with 8-char id.
@@ -76,7 +86,15 @@
 - Use `unwrap()`.
 - Use `todo!()` or `unimplemented!()` in non-test code.
 - Use `panic!()` or `assert!()` in runtime/library code paths (tests are allowed).
+- Use `expect()` outside tests.
+- Write documentation prose/doc comments unless explicitly requested; avoid adding docs by default.
 - Use one common error type for all routes/services in an application.
+- Use `anyhow::Error` or `Box<dyn Error>` as public library API boundary error types.
+- Add a crate default feature without explicit RFC-level justification.
+- Use `std::env::*` or `std::fs::*` directly in domain logic instead of adapters/abstractions.
+- Use `tokio::spawn` or `std::thread::spawn` without explicit error-ownership and cancellation policy.
+- Use `Arc<Mutex<_>>` in single-thread scenarios without explicit synchronization justification.
+- Allow unbounded collection growth in long-lived structures without limits/eviction policy.
 - Do not use `expect()` or `panic!()` in library/runtime code except in `proc-macro` or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.
 - Use or write `unsafe`.

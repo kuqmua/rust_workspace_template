@@ -13,5 +13,8 @@ categories = ["web-programming"]
 [dependencies]
 shared_logic.workspace = true
 
+[dev-dependencies]
+test_helpers.workspace = true
+
 [lints]
 workspace = true
