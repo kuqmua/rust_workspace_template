@@ -13,6 +13,7 @@
 - Prefer immutable data.
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
+- Use domain-specific error enums per module/route/service boundary; do not centralize all failures into one global shared error type.
 - Use enums instead of `bool` for domain logic and API contracts.
 - Prefer enums over `bool` values when the meaning is domain-specific or unclear at call sites.
 - Use a single async runtime across workspace.
@@ -28,6 +29,7 @@
 - For route tests, always reuse the corresponding `call_*_route_client` function (directly or via shared test helpers); do not build route paths independently when a client route function exists.
 - If error message contains 8 random symbols then search workspace for that id.
 - Avoid allocations inside hot loops.
+- Use iterator-based style instead of regular loops in Rust code.
 - Do not add allocations in hot paths unless performance impact is justified in a nearby comment.
 - Preserve and propagate error sources; avoid `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
 - Preserve behavior unless change is requested.
@@ -74,6 +76,7 @@
 - Use `unwrap()`.
 - Use `todo!()` or `unimplemented!()` in non-test code.
 - Use `panic!()` or `assert!()` in runtime/library code paths (tests are allowed).
+- Use one common error type for all routes/services in an application.
 - Do not use `expect()` or `panic!()` in library/runtime code except in `proc-macro` or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.
 - Use or write `unsafe`.
