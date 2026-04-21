@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+ --> tests/ui/arithmetic_operation_type_contract_rejects_boolean_argument.rs:4:52
+  |
+4 |     let _invalid_request = CalculationRequest::new(true, 1, 2);
+  |                            ----------------------- ^^^^ expected `ArithmeticOperation`, found `bool`
+  |                            |
+  |                            arguments to this function are incorrect
+  |
+note: associated function defined here
+ --> src/lib.rs
+  |
+  |     pub const fn new(
+  |                  ^^^

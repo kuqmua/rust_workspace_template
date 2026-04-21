@@ -61,72 +61,77 @@ impl From<CalculationError> for StartupError {
 
 fn main() -> impl Termination {
     let command_line_arguments: Vec<String> = env::args().skip(1).collect();
-    let calculation_report_format_result = {
-        let environment_value_result = env::var(ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT);
-        match environment_value_result {
-            Ok(environment_value) => {
-                CalculationReportFormat::from_str(&environment_value).map_err(StartupError::from)
-            }
-            Err(env::VarError::NotPresent) => Ok(CalculationReportFormat::Text),
-            Err(env::VarError::NotUnicode(_non_unicode_environment_value)) => {
-                Err(StartupError::InvalidArguments {
-                    details: format!(
-                        "environment variable {ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT} \
-                         contains non-unicode data"
-                    ),
-                })
-            }
+    let startup_output_result = match command_line_arguments.as_slice() {
+        [] => Ok(StartupOutput::HelpText),
+        [first_argument]
+            if first_argument == ARGUMENT_FLAG_HELP_LONG
+                || first_argument == ARGUMENT_FLAG_HELP_SHORT =>
+        {
+            Ok(StartupOutput::HelpText)
+        }
+        _ => {
+            let calculation_report_format_result = {
+                let environment_value_result =
+                    env::var(ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT);
+                match environment_value_result {
+                    Ok(environment_value) => CalculationReportFormat::from_str(&environment_value)
+                        .map_err(StartupError::from),
+                    Err(env::VarError::NotPresent) => Ok(CalculationReportFormat::Text),
+                    Err(env::VarError::NotUnicode(_non_unicode_environment_value)) => {
+                        Err(StartupError::InvalidArguments {
+                            details: format!(
+                                "environment variable \
+                                 {ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT} contains \
+                                 non-unicode data"
+                            ),
+                        })
+                    }
+                }
+            };
+
+            calculation_report_format_result.and_then(|calculation_report_format| {
+                match command_line_arguments.as_slice() {
+                    [wire_format_flag, wire_format_value]
+                        if wire_format_flag == ARGUMENT_FLAG_WIRE_FORMAT =>
+                    {
+                        deserialize_calculation_request_from_wire_format(wire_format_value)
+                            .and_then(|calculation_request| {
+                                render_calculation_report_with_format(
+                                    &calculation_request,
+                                    calculation_report_format,
+                                )
+                            })
+                            .map(|report| StartupOutput::CalculationReport { report })
+                            .map_err(StartupError::from)
+                    }
+                    [
+                        left_operand_text,
+                        arithmetic_operation_text,
+                        right_operand_text,
+                    ] => build_calculation_request_from_text_parts(
+                        left_operand_text,
+                        arithmetic_operation_text,
+                        right_operand_text,
+                    )
+                    .and_then(|calculation_request| {
+                        render_calculation_report_with_format(
+                            &calculation_request,
+                            calculation_report_format,
+                        )
+                    })
+                    .map(|report| StartupOutput::CalculationReport { report })
+                    .map_err(StartupError::from),
+                    _ => Err(StartupError::InvalidArguments {
+                        details: format!(
+                            "expected no args, '--wire-format <value>', or exactly 3 positional \
+                             args, received {}",
+                            command_line_arguments.len()
+                        ),
+                    }),
+                }
+            })
         }
     };
-    let startup_output_result =
-        calculation_report_format_result.and_then(|calculation_report_format| {
-            match command_line_arguments.as_slice() {
-                [] => Ok(StartupOutput::HelpText),
-                [first_argument]
-                    if first_argument == ARGUMENT_FLAG_HELP_LONG
-                        || first_argument == ARGUMENT_FLAG_HELP_SHORT =>
-                {
-                    Ok(StartupOutput::HelpText)
-                }
-                [wire_format_flag, wire_format_value]
-                    if wire_format_flag == ARGUMENT_FLAG_WIRE_FORMAT =>
-                {
-                    deserialize_calculation_request_from_wire_format(wire_format_value)
-                        .and_then(|calculation_request| {
-                            render_calculation_report_with_format(
-                                &calculation_request,
-                                calculation_report_format,
-                            )
-                        })
-                        .map(|report| StartupOutput::CalculationReport { report })
-                        .map_err(StartupError::from)
-                }
-                [
-                    left_operand_text,
-                    arithmetic_operation_text,
-                    right_operand_text,
-                ] => build_calculation_request_from_text_parts(
-                    left_operand_text,
-                    arithmetic_operation_text,
-                    right_operand_text,
-                )
-                .and_then(|calculation_request| {
-                    render_calculation_report_with_format(
-                        &calculation_request,
-                        calculation_report_format,
-                    )
-                })
-                .map(|report| StartupOutput::CalculationReport { report })
-                .map_err(StartupError::from),
-                _ => Err(StartupError::InvalidArguments {
-                    details: format!(
-                        "expected no args, '--wire-format <value>', or exactly 3 positional args, \
-                         received {}",
-                        command_line_arguments.len()
-                    ),
-                }),
-            }
-        });
 
     match startup_output_result {
         Ok(StartupOutput::HelpText) => {
@@ -146,10 +151,14 @@ fn main() -> impl Termination {
 }
 
 fn build_usage_message() -> String {
-    format!(
-        "{MESSAGE_USAGE_HEADER}\n{MESSAGE_USAGE_POSITIONAL}\n{MESSAGE_USAGE_WIRE_FORMAT}\\
-         n{MESSAGE_USAGE_HELP}\n{MESSAGE_USAGE_ENVIRONMENT}"
-    )
+    [
+        MESSAGE_USAGE_HEADER,
+        MESSAGE_USAGE_POSITIONAL,
+        MESSAGE_USAGE_WIRE_FORMAT,
+        MESSAGE_USAGE_HELP,
+        MESSAGE_USAGE_ENVIRONMENT,
+    ]
+    .join("\n")
 }
 
 #[cfg(test)]
@@ -164,5 +173,17 @@ mod unit_tests {
         assert!(usage_message.contains("server --wire-format <left|operation|right>"));
         assert!(usage_message.contains("server --help"));
         assert!(usage_message.contains("CALCULATION_REPORT_FORMAT=text|json"));
+    }
+
+    #[test]
+    fn usage_message_has_stable_exact_contract() {
+        let usage_message = build_usage_message();
+
+        assert_eq!(
+            usage_message,
+            "Usage:\n  server <left_operand> <operation> <right_operand>\n  server --wire-format \
+             <left|operation|right>\n  server --help\nEnvironment: \
+             CALCULATION_REPORT_FORMAT=text|json (default: text)"
+        );
     }
 }

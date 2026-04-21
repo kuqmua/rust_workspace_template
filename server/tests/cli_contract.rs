@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod integration_tests {
+    use std::process::Output;
     #[cfg(unix)]
     use std::{ffi::OsString, os::unix::ffi::OsStringExt as _};
 
@@ -10,10 +11,23 @@ mod integration_tests {
 
     const SERVER_BINARY_PATH: &str = env!("CARGO_BIN_EXE_server");
 
+    fn run_and_decode_stdout(command_line_arguments: &[&str]) -> (Output, String) {
+        let output =
+            run_server_command(SERVER_BINARY_PATH, command_line_arguments).expect("6f1b2d8a");
+        let standard_output = stdout_as_utf8(&output).expect("9c3e1a7d").to_owned();
+        (output, standard_output)
+    }
+
+    fn run_and_decode_stderr(command_line_arguments: &[&str]) -> (Output, String) {
+        let output =
+            run_server_command(SERVER_BINARY_PATH, command_line_arguments).expect("3a7d1e9c");
+        let standard_error = stderr_as_utf8(&output).expect("1d9c4a7e").to_owned();
+        (output, standard_error)
+    }
+
     #[test]
     fn prints_help_without_arguments() {
-        let output = run_server_command(SERVER_BINARY_PATH, &[]).expect("8e1c4d7a");
-        let standard_output = stdout_as_utf8(&output).expect("4d8a1f2c");
+        let (output, standard_output) = run_and_decode_stdout(&[]);
 
         assert!(output.status.success());
         assert!(standard_output.contains("Usage:"));
@@ -23,8 +37,7 @@ mod integration_tests {
 
     #[test]
     fn prints_help_for_short_help_flag() {
-        let output = run_server_command(SERVER_BINARY_PATH, &["-h"]).expect("7f1d3a9c");
-        let standard_output = stdout_as_utf8(&output).expect("3c8a1e7d");
+        let (output, standard_output) = run_and_decode_stdout(&["-h"]);
 
         assert!(output.status.success());
         assert!(standard_output.contains("Usage:"));
@@ -32,12 +45,60 @@ mod integration_tests {
 
     #[test]
     fn prints_help_for_long_help_flag() {
-        let output = run_server_command(SERVER_BINARY_PATH, &["--help"]).expect("9a7e1c3d");
-        let standard_output = stdout_as_utf8(&output).expect("5d1c8a4f");
+        let (output, standard_output) = run_and_decode_stdout(&["--help"]);
 
         assert!(output.status.success());
         assert!(standard_output.contains("Usage:"));
         assert!(standard_output.contains("server --help"));
+    }
+
+    #[test]
+    fn prints_identical_help_for_short_and_long_help_flags() {
+        let (short_help_output, short_help_standard_output) = run_and_decode_stdout(&["-h"]);
+        let (long_help_output, long_help_standard_output) = run_and_decode_stdout(&["--help"]);
+
+        assert!(short_help_output.status.success());
+        assert!(long_help_output.status.success());
+        assert_eq!(short_help_standard_output.trim_end(), long_help_standard_output.trim_end());
+    }
+
+    #[test]
+    fn prints_help_even_when_report_format_environment_variable_is_invalid() {
+        let output =
+            run_server_command_with_report_format(SERVER_BINARY_PATH, &["--help"], "yaml".as_ref())
+                .expect("1d7a3e9c");
+        let standard_output = stdout_as_utf8(&output).expect("6f2c8a1d");
+        let standard_error = stderr_as_utf8(&output).expect("4a9e1d7c");
+
+        assert!(output.status.success());
+        assert!(standard_output.contains("Usage:"));
+        assert!(standard_error.trim_end().is_empty());
+    }
+
+    #[test]
+    fn prints_help_for_short_help_flag_when_report_format_environment_variable_is_invalid() {
+        let output =
+            run_server_command_with_report_format(SERVER_BINARY_PATH, &["-h"], "yaml".as_ref())
+                .expect("2e9a4d1c");
+        let standard_output = stdout_as_utf8(&output).expect("4f1c8a7d");
+        let standard_error = stderr_as_utf8(&output).expect("7a3d1e9c");
+
+        assert!(output.status.success());
+        assert!(standard_output.contains("Usage:"));
+        assert!(standard_error.trim_end().is_empty());
+    }
+
+    #[test]
+    fn prints_exact_help_contract() {
+        let (output, standard_output) = run_and_decode_stdout(&["--help"]);
+
+        assert!(output.status.success());
+        assert_eq!(
+            standard_output.trim_end(),
+            "Usage:\n  server <left_operand> <operation> <right_operand>\n  server --wire-format \
+             <left|operation|right>\n  server --help\nEnvironment: \
+             CALCULATION_REPORT_FORMAT=text|json (default: text)"
+        );
     }
 
     #[test]
@@ -95,13 +156,34 @@ mod integration_tests {
 
     #[test]
     fn returns_failure_for_invalid_arguments() {
-        let output =
-            run_server_command(SERVER_BINARY_PATH, &["1", "+", "2", "extra"]).expect("2a8d4f1e");
-        let standard_error = stderr_as_utf8(&output).expect("6d1c8a3f");
+        let (output, standard_error) = run_and_decode_stderr(&["1", "+", "2", "extra"]);
 
         assert_eq!(output.status.code(), Some(2i32));
         assert!(standard_error.contains("invalid arguments:"));
         assert!(standard_error.contains("Usage:"));
+    }
+
+    #[test]
+    fn returns_failure_for_unknown_flag() {
+        let (output, standard_error) = run_and_decode_stderr(&["--unknown"]);
+
+        assert_eq!(output.status.code(), Some(2i32));
+        assert!(standard_error.contains("invalid arguments:"));
+        assert!(standard_error.contains("received 1"));
+        assert!(standard_error.contains("Usage:"));
+    }
+
+    #[test]
+    fn invalid_arguments_error_first_line_contract_is_stable() {
+        let (output, standard_error) = run_and_decode_stderr(&["1", "+", "2", "extra"]);
+        let first_error_line = standard_error.lines().next().expect("4c8e1a7d");
+
+        assert_eq!(output.status.code(), Some(2i32));
+        assert_eq!(
+            first_error_line,
+            "invalid arguments: expected no args, '--wire-format <value>', or exactly 3 \
+             positional args, received 4"
+        );
     }
 
     #[test]
@@ -117,6 +199,24 @@ mod integration_tests {
         assert_eq!(output.status.code(), Some(2i32));
         assert!(standard_error.contains("unknown calculation report format: yaml"));
         assert!(standard_error.contains("expected 'text' or 'json'"));
+    }
+
+    #[test]
+    fn unknown_report_format_error_first_line_contract_is_stable() {
+        let output = run_server_command_with_report_format(
+            SERVER_BINARY_PATH,
+            &["10", "+", "5"],
+            "yaml".as_ref(),
+        )
+        .expect("1e7c3a9d");
+        let standard_error = stderr_as_utf8(&output).expect("6a1d8c2f");
+        let first_error_line = standard_error.lines().next().expect("3b9e1d7a");
+
+        assert_eq!(output.status.code(), Some(2i32));
+        assert_eq!(
+            first_error_line,
+            "unknown calculation report format: yaml; expected 'text' or 'json'"
+        );
     }
 
     #[test]
@@ -196,5 +296,41 @@ mod integration_tests {
             )
         );
         assert!(standard_error.contains("Usage:"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn prints_help_with_non_unicode_report_format_environment_variable() {
+        let non_unicode_report_format = OsString::from_vec(vec![0xff, 0xfe]);
+        let output = run_server_command_with_report_format(
+            SERVER_BINARY_PATH,
+            &["--help"],
+            &non_unicode_report_format,
+        )
+        .expect("9b3e1a7c");
+        let standard_output = stdout_as_utf8(&output).expect("2e8d1c7a");
+        let standard_error = stderr_as_utf8(&output).expect("7d1a3e9c");
+
+        assert!(output.status.success());
+        assert!(standard_output.contains("Usage:"));
+        assert!(standard_error.trim_end().is_empty());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn prints_help_for_short_help_flag_with_non_unicode_report_format_environment_variable() {
+        let non_unicode_report_format = OsString::from_vec(vec![0xff, 0xfe]);
+        let output = run_server_command_with_report_format(
+            SERVER_BINARY_PATH,
+            &["-h"],
+            &non_unicode_report_format,
+        )
+        .expect("1c8f4a2d");
+        let standard_output = stdout_as_utf8(&output).expect("8d2e1a7c");
+        let standard_error = stderr_as_utf8(&output).expect("3f7a1d9c");
+
+        assert!(output.status.success());
+        assert!(standard_output.contains("Usage:"));
+        assert!(standard_error.trim_end().is_empty());
     }
 }

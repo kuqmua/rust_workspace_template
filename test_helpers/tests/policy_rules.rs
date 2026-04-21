@@ -247,6 +247,69 @@ mod policy_tests {
     }
 
     #[test]
+    fn requires_property_based_tests_for_shared_logic_invariants() {
+        let workspace_root = workspace_root_path();
+        let property_test_path = workspace_root
+            .join("shared_logic")
+            .join("tests")
+            .join("property_invariants.rs");
+        let property_test_content = read_file(&property_test_path);
+
+        assert!(
+            property_test_content.contains("proptest!"),
+            "missing proptest! test module in {}",
+            property_test_path.display()
+        );
+        assert!(
+            property_test_content.contains("wire_format_round_trip_preserves_request"),
+            "missing round-trip property test in {}",
+            property_test_path.display()
+        );
+        assert!(
+            property_test_content.contains("addition_commutativity_holds_for_safe_operand_range"),
+            "missing domain invariant property test in {}",
+            property_test_path.display()
+        );
+        assert!(
+            property_test_content
+                .contains("subtraction_is_inverse_of_addition_for_safe_operand_range"),
+            "missing additive-inverse property test in {}",
+            property_test_path.display()
+        );
+    }
+
+    #[test]
+    fn requires_trybuild_compile_fail_contract_for_shared_logic() {
+        let workspace_root = workspace_root_path();
+        let compile_fail_contract_path = workspace_root
+            .join("shared_logic")
+            .join("tests")
+            .join("compile_fail_contracts.rs");
+        let compile_fail_contract_content = read_file(&compile_fail_contract_path);
+        let compile_fail_case_path = workspace_root
+            .join("shared_logic")
+            .join("tests")
+            .join("ui")
+            .join("arithmetic_operation_type_contract_rejects_boolean_argument.rs");
+
+        assert!(
+            compile_fail_contract_content.contains("trybuild::TestCases::new"),
+            "missing trybuild test harness in {}",
+            compile_fail_contract_path.display()
+        );
+        assert!(
+            compile_fail_contract_content.contains("compile_fail"),
+            "missing compile_fail invocation in {}",
+            compile_fail_contract_path.display()
+        );
+        assert!(
+            compile_fail_case_path.exists(),
+            "missing compile-fail case source file: {}",
+            compile_fail_case_path.display()
+        );
+    }
+
+    #[test]
     fn requires_semver_check_and_hack_in_ci_and_changelog_file() {
         let workspace_root = workspace_root_path();
         let ci_workflow_path = workspace_root
@@ -323,6 +386,52 @@ mod policy_tests {
             assert!(
                 !source_segment.contains("unwrap_or("),
                 "found unwrap_or in non-test code: {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
+    fn forbids_expect_in_non_test_code() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("policy_rules.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            assert!(
+                !source_segment.contains("expect("),
+                "found expect in non-test code: {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
+    fn forbids_direct_command_new_outside_test_helpers_command_wrappers() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+        let command_wrapper_source_path = workspace_root
+            .join("test_helpers")
+            .join("src")
+            .join("lib.rs");
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("policy_rules.rs") {
+                continue;
+            }
+            if rust_file == &command_wrapper_source_path {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            assert!(
+                !file_content.contains("Command::new("),
+                "direct Command::new usage is forbidden outside test_helpers command wrappers: {}",
                 rust_file.display()
             );
         }
@@ -460,28 +569,49 @@ mod policy_tests {
     }
 
     #[test]
-    fn enforces_expect_message_identifier_length_when_literal_is_on_same_line() {
+    fn enforces_expect_message_identifier_format_for_single_and_multi_line_calls() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
         let rust_files = rust_source_files(&workspace_files);
 
         for rust_file in rust_files {
+            if rust_file.ends_with("policy_rules.rs") {
+                continue;
+            }
             let file_content = read_file(rust_file);
-            for line in file_content.lines() {
-                if !line.contains("expect(\"") {
-                    continue;
+            let mut message_identifiers = Vec::new();
+            let mut remaining_content = file_content.as_str();
+
+            while let Some((_before_expect_call, after_expect_call)) =
+                remaining_content.split_once("expect(")
+            {
+                let expect_argument = after_expect_call.trim_start();
+                if let Some(expect_argument_without_open_quote) = expect_argument.strip_prefix('"')
+                {
+                    if let Some((message_identifier, _remaining_after_message)) =
+                        expect_argument_without_open_quote.split_once('"')
+                    {
+                        message_identifiers.push(message_identifier);
+                    }
                 }
-                let Some((_, after_expect_open)) = line.split_once("expect(\"") else {
-                    continue;
-                };
-                let Some((message_identifier, _)) = after_expect_open.split_once("\")") else {
-                    continue;
-                };
+                remaining_content = after_expect_call;
+            }
+
+            for message_identifier in message_identifiers {
                 assert!(
                     message_identifier.len() == 8,
-                    "expect message id must be 8 chars in {}: {}",
+                    "expect message id must be exactly 8 chars in {}: {}",
                     rust_file.display(),
-                    line.trim()
+                    message_identifier
+                );
+                assert!(
+                    message_identifier
+                        .chars()
+                        .all(|character| character.is_ascii_hexdigit()
+                            && !character.is_ascii_uppercase()),
+                    "expect message id must be lowercase hex in {}: {}",
+                    rust_file.display(),
+                    message_identifier
                 );
             }
         }
@@ -722,6 +852,10 @@ mod policy_tests {
             "workspace-test = ",
             "workspace-check-no-default-features = ",
             "workspace-doc = ",
+            "workspace-nextest = ",
+            "workspace-hack = ",
+            "workspace-deny = ",
+            "workspace-udeps = ",
             "workspace-verify = ",
         ];
 
@@ -733,6 +867,70 @@ mod policy_tests {
                 cargo_config_path.display()
             );
         }
+    }
+
+    #[test]
+    fn enforces_workspace_resolver_and_member_list_contract() {
+        let workspace_root = workspace_root_path();
+        let root_manifest_path = workspace_root.join("Cargo.toml");
+        let root_manifest_content = read_file(&root_manifest_path);
+
+        assert!(
+            root_manifest_content.contains("resolver = \"2\""),
+            "workspace root must define resolver = \"2\" in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("\"server\""),
+            "workspace members must include server crate in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("\"shared_logic\""),
+            "workspace members must include shared_logic crate in {}",
+            root_manifest_path.display()
+        );
+        assert!(
+            root_manifest_content.contains("\"test_helpers\""),
+            "workspace members must include test_helpers crate in {}",
+            root_manifest_path.display()
+        );
+    }
+
+    #[test]
+    fn forbids_domain_shared_logic_from_direct_environment_or_filesystem_access() {
+        let workspace_root = workspace_root_path();
+        let shared_logic_source_path = workspace_root
+            .join("shared_logic")
+            .join("src")
+            .join("lib.rs");
+        let shared_logic_source_content = read_file(&shared_logic_source_path);
+        let non_test_shared_logic_source_segment =
+            non_test_source_segment(&shared_logic_source_content);
+
+        assert!(
+            !non_test_shared_logic_source_segment.contains("std::env::"),
+            "domain shared_logic must not access std::env directly in {}",
+            shared_logic_source_path.display()
+        );
+        assert!(
+            !non_test_shared_logic_source_segment.contains("std::fs::"),
+            "domain shared_logic must not access std::fs directly in {}",
+            shared_logic_source_path.display()
+        );
+    }
+
+    #[test]
+    fn forbids_server_from_direct_thiserror_dependency() {
+        let workspace_root = workspace_root_path();
+        let server_manifest_path = workspace_root.join("server").join("Cargo.toml");
+        let server_manifest_content = read_file(&server_manifest_path);
+
+        assert!(
+            !server_manifest_content.contains("thiserror"),
+            "server crate must not depend on thiserror directly in {}",
+            server_manifest_path.display()
+        );
     }
 
     #[test]
@@ -753,6 +951,42 @@ mod policy_tests {
         assert!(
             ci_workflow_content.contains("cargo test --doc --all-features"),
             "fast CI must run doc tests in {}",
+            ci_workflow_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_full_ci_mode_to_keep_baseline_quality_gates() {
+        let workspace_root = workspace_root_path();
+        let ci_workflow_path = workspace_root
+            .join(".github")
+            .join("workflows")
+            .join("ci.yml");
+        let ci_workflow_content = read_file(&ci_workflow_path);
+
+        assert!(
+            ci_workflow_content.contains(
+                "(needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full \
+                 == 'true')"
+            ),
+            "CI must keep baseline jobs enabled for both fast and full modes in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            ci_workflow_content.contains("run: cargo fmt --check"),
+            "CI must keep formatting gate in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            ci_workflow_content
+                .contains("run: cargo clippy --all-targets --all-features -- -D warnings"),
+            "CI must keep clippy gate in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            ci_workflow_content
+                .contains("run: cargo nextest run --all-targets --all-features --profile ci"),
+            "CI must keep test gate in {}",
             ci_workflow_path.display()
         );
     }
@@ -795,6 +1029,41 @@ mod policy_tests {
     }
 
     #[test]
+    fn enforces_workflow_concurrency_cancellation() {
+        let workspace_root = workspace_root_path();
+        let workflows = workflow_file_paths(&workspace_root);
+
+        for workflow_file_path in workflows {
+            let workflow_content = read_file(&workflow_file_path);
+            assert!(
+                workflow_content.contains("cancel-in-progress: true"),
+                "workflow must enable cancel-in-progress in {}",
+                workflow_file_path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_timeout_minutes_for_each_workflow_job() {
+        let workspace_root = workspace_root_path();
+        let workflows = workflow_file_paths(&workspace_root);
+
+        for workflow_file_path in workflows {
+            let workflow_content = read_file(&workflow_file_path);
+            let runs_on_count = workflow_content.matches("runs-on:").count();
+            let timeout_minutes_count = workflow_content.matches("timeout-minutes:").count();
+            assert!(
+                runs_on_count == timeout_minutes_count,
+                "every workflow job must define timeout-minutes in {}: runs-on={}, \
+                 timeout-minutes={}",
+                workflow_file_path.display(),
+                runs_on_count,
+                timeout_minutes_count
+            );
+        }
+    }
+
+    #[test]
     fn enforces_marketplace_actions_to_be_pinned_by_full_commit_sha() {
         let workspace_root = workspace_root_path();
         let workflows = workflow_file_paths(&workspace_root);
@@ -828,5 +1097,164 @@ mod policy_tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn enforces_must_use_annotations_for_shared_logic_public_result_apis() {
+        let workspace_root = workspace_root_path();
+        let shared_logic_source_path = workspace_root
+            .join("shared_logic")
+            .join("src")
+            .join("lib.rs");
+        let shared_logic_source_content = read_file(&shared_logic_source_path);
+        let required_signatures = [
+            "#[must_use = \"calculation evaluation result must be handled by the caller\"]\npub \
+             fn evaluate_calculation_request(",
+            "#[must_use = \"request parsing result must be handled by the caller\"]\npub fn \
+             build_calculation_request_from_text_parts(",
+            "#[must_use = \"wire-format deserialization result must be handled by the \
+             caller\"]\npub fn deserialize_calculation_request_from_wire_format(",
+            "#[must_use = \"report rendering result must be handled by the caller\"]\npub fn \
+             render_calculation_report(",
+            "#[must_use = \"report rendering result must be handled by the caller\"]\npub fn \
+             render_calculation_report_with_format(",
+        ];
+
+        for required_signature in required_signatures {
+            assert!(
+                shared_logic_source_content.contains(required_signature),
+                "missing #[must_use] annotation for shared_logic API `{}` in {}",
+                required_signature,
+                shared_logic_source_path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn forbids_public_struct_fields_in_non_test_code() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("policy_rules.rs") {
+                continue;
+            }
+
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            let mut is_inside_public_struct = false;
+            let mut public_struct_brace_depth = 0usize;
+
+            for source_line in source_segment.lines() {
+                let trimmed_line = source_line.trim_start();
+                if !is_inside_public_struct
+                    && trimmed_line.starts_with("pub struct ")
+                    && trimmed_line.contains('{')
+                {
+                    is_inside_public_struct = true;
+                    public_struct_brace_depth = source_line.matches('{').count();
+                    public_struct_brace_depth =
+                        public_struct_brace_depth.saturating_sub(source_line.matches('}').count());
+                    continue;
+                }
+
+                if is_inside_public_struct {
+                    assert!(
+                        !trimmed_line.starts_with("pub "),
+                        "found public struct field in non-test code: {}: {}",
+                        rust_file.display(),
+                        source_line.trim()
+                    );
+
+                    public_struct_brace_depth += source_line.matches('{').count();
+                    public_struct_brace_depth =
+                        public_struct_brace_depth.saturating_sub(source_line.matches('}').count());
+                    if public_struct_brace_depth == 0 {
+                        is_inside_public_struct = false;
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_help_contract_tests_for_invalid_report_format_environment_values() {
+        let workspace_root = workspace_root_path();
+        let cli_contract_test_path = workspace_root
+            .join("server")
+            .join("tests")
+            .join("cli_contract.rs");
+        let cli_contract_test_content = read_file(&cli_contract_test_path);
+
+        assert!(
+            cli_contract_test_content
+                .contains("prints_help_even_when_report_format_environment_variable_is_invalid"),
+            "missing help contract test for invalid utf-8 value in {}",
+            cli_contract_test_path.display()
+        );
+        assert!(
+            cli_contract_test_content
+                .contains("prints_help_with_non_unicode_report_format_environment_variable"),
+            "missing help contract test for non-unicode environment value in {}",
+            cli_contract_test_path.display()
+        );
+    }
+
+    #[test]
+    fn forbids_placeholder_repository_metadata_in_workspace_crates() {
+        let workspace_root = workspace_root_path();
+        let manifest_paths = [
+            workspace_root.join("server").join("Cargo.toml"),
+            workspace_root.join("shared_logic").join("Cargo.toml"),
+            workspace_root.join("test_helpers").join("Cargo.toml"),
+        ];
+
+        for manifest_path in manifest_paths {
+            let manifest_content = read_file(&manifest_path);
+            assert!(
+                !manifest_content.contains("repository = \"https://github.com/user/repo\""),
+                "placeholder repository metadata must be replaced in {}",
+                manifest_path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_nightly_full_test_run_in_ci_for_harness_parity() {
+        let workspace_root = workspace_root_path();
+        let ci_workflow_path = workspace_root
+            .join(".github")
+            .join("workflows")
+            .join("ci.yml");
+        let ci_workflow_content = read_file(&ci_workflow_path);
+
+        assert!(
+            ci_workflow_content
+                .contains("cargo +nightly test --workspace --all-targets --all-features"),
+            "CI must run nightly full cargo test for harness parity in {}",
+            ci_workflow_path.display()
+        );
+    }
+
+    #[test]
+    fn enforces_dedicated_json_snapshot_contract_test_file_for_server_cli() {
+        let workspace_root = workspace_root_path();
+        let snapshot_test_path = workspace_root
+            .join("server")
+            .join("tests")
+            .join("cli_json_snapshot.rs");
+        let snapshot_test_content = read_file(&snapshot_test_path);
+
+        assert!(
+            snapshot_test_content.contains("json_output_snapshot_contract_is_stable"),
+            "missing dedicated JSON snapshot contract test in {}",
+            snapshot_test_path.display()
+        );
+        assert!(
+            snapshot_test_content.contains("assert_eq!("),
+            "JSON snapshot contract test must assert exact output in {}",
+            snapshot_test_path.display()
+        );
     }
 }

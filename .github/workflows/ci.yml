@@ -29,6 +29,7 @@ jobs:
   changed-files:
     name: Detect changes
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     outputs:
@@ -74,8 +75,9 @@ jobs:
   fmt:
     name: Formatting
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
@@ -86,8 +88,9 @@ jobs:
   clippy:
     name: Clippy
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -108,8 +111,9 @@ jobs:
   test:
     name: Test
     needs: [changed-files, clippy]
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
@@ -124,12 +128,15 @@ jobs:
           RUSTFLAGS: "-D warnings"
       - name: Doc tests
         run: cargo test --doc --all-features
+      - name: Nightly full test harness parity
+        run: cargo +nightly test --workspace --all-targets --all-features
 
   no-default-features:
     name: No default features
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -151,8 +158,9 @@ jobs:
   taplo:
     name: Taplo
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install taplo
@@ -163,8 +171,9 @@ jobs:
   typos:
     name: Typos
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install typos
@@ -175,8 +184,9 @@ jobs:
   actionlint:
     name: Actionlint
     needs: changed-files
-    if: needs.changed-files.outputs.ci == 'true' && needs.changed-files.outputs.fast == 'true'
+    if: (needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
@@ -186,6 +196,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -216,6 +227,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
@@ -228,6 +240,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d
@@ -239,6 +252,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998
@@ -250,6 +264,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
@@ -263,6 +278,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
@@ -275,6 +291,7 @@ jobs:
     needs: changed-files
     if: github.event_name == 'pull_request' && (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true')
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -287,19 +304,21 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - name: Install cargo-hack
         uses: taiki-e/install-action@a8bfb6e9b2cf3cefc208e6a18507d78669d398ab
       - name: Check feature matrix
-        run: cargo hack check --workspace --all-targets --feature-powerset --no-dev-deps
+        run: cargo hack check --workspace --feature-powerset --no-dev-deps
 
   udeps:
     name: Unused deps (cargo udeps)
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
@@ -313,6 +332,7 @@ jobs:
     needs: changed-files
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
@@ -327,6 +347,7 @@ jobs:
     name: CI passed
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, msrv, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:
       contents: none

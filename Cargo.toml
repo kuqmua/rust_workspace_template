@@ -17,6 +17,8 @@ rust-version = "1.85"
 shared_logic = { path = "shared_logic" }
 thiserror = { version = "2.0.18", default-features = false }
 test_helpers = { path = "test_helpers" }
+proptest = { version = "1.9.0", default-features = false, features = ["std"] }
+trybuild = { version = "1.0.112", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

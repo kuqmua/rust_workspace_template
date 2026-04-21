@@ -1,5 +1,6 @@
 use std::fs;
 
+use proptest as _;
 use shared_logic::{
     ArithmeticOperation, CalculationReportFormat, build_calculation_request_from_text_parts,
     deserialize_calculation_request_from_wire_format, evaluate_calculation_request,
@@ -11,6 +12,7 @@ use test_helpers::{
     build_standard_division_operands,
 };
 use thiserror as _;
+use trybuild as _;
 
 #[cfg(test)]
 mod integration_tests {
@@ -27,11 +29,7 @@ mod integration_tests {
         right_operand: i64,
         arithmetic_operation: ArithmeticOperation,
     ) -> shared_logic::CalculationRequest {
-        shared_logic::CalculationRequest {
-            arithmetic_operation,
-            left_operand,
-            right_operand,
-        }
+        shared_logic::CalculationRequest::new(arithmetic_operation, left_operand, right_operand)
     }
 
     #[test]
@@ -40,7 +38,16 @@ mod integration_tests {
             build_calculation_request(14, 6, ArithmeticOperation::Subtraction);
         let calculation_result =
             evaluate_calculation_request(&calculation_request).expect("4d8f2a1c");
-        assert_eq!(calculation_result.value, 8);
+        assert_eq!(calculation_result.value(), 8);
+    }
+
+    #[test]
+    fn request_getters_preserve_constructor_values() {
+        let calculation_request = build_calculation_request(17, 9, ArithmeticOperation::Addition);
+
+        assert_eq!(calculation_request.arithmetic_operation(), ArithmeticOperation::Addition);
+        assert_eq!(calculation_request.left_operand(), 17);
+        assert_eq!(calculation_request.right_operand(), 9);
     }
 
     #[test]
@@ -79,6 +86,27 @@ mod integration_tests {
     }
 
     #[test]
+    fn preserves_value_on_round_trip_for_each_arithmetic_operation() {
+        let deterministic_round_trip_cases = [
+            build_calculation_request(11, 7, ArithmeticOperation::Addition),
+            build_calculation_request(11, 7, ArithmeticOperation::Subtraction),
+            build_calculation_request(11, 7, ArithmeticOperation::Multiplication),
+            build_calculation_request(21, 7, ArithmeticOperation::Division),
+        ];
+
+        deterministic_round_trip_cases
+            .iter()
+            .try_for_each(|calculation_request| {
+                let wire_format = serialize_calculation_request_to_wire_format(calculation_request);
+                let deserialized_calculation_request =
+                    deserialize_calculation_request_from_wire_format(&wire_format)?;
+                assert_eq!(&deserialized_calculation_request, calculation_request);
+                Ok::<(), shared_logic::CalculationError>(())
+            })
+            .expect("7e1d3a9c");
+    }
+
+    #[test]
     fn renders_report_deterministically_for_same_input() {
         let calculation_request = build_calculation_request(5, 8, ArithmeticOperation::Addition);
 
@@ -108,7 +136,7 @@ mod integration_tests {
 
         let calculation_result =
             evaluate_calculation_request(&calculation_request).expect("1b8d6f2a");
-        assert_eq!(calculation_result.value, 4);
+        assert_eq!(calculation_result.value(), 4);
     }
 
     #[test]
@@ -211,5 +239,33 @@ mod integration_tests {
         assert_eq!(ArithmeticOperation::Subtraction.to_string(), "-");
         assert_eq!(ArithmeticOperation::Multiplication.to_string(), "*");
         assert_eq!(ArithmeticOperation::Division.to_string(), "/");
+    }
+
+    #[test]
+    fn division_by_zero_error_message_contract_is_stable() {
+        let calculation_request = build_calculation_request(10, 0, ArithmeticOperation::Division);
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("2a1e8c7d");
+
+        assert_eq!(calculation_error.to_string(), "division by zero is not allowed");
+    }
+
+    #[test]
+    fn unknown_operation_error_message_contract_is_stable() {
+        let calculation_error =
+            build_calculation_request_from_text_parts("10", "%", "3").expect_err("4d8a1e7c");
+
+        assert_eq!(calculation_error.to_string(), "unknown arithmetic operation: %");
+    }
+
+    #[test]
+    fn malformed_wire_format_error_message_contract_for_missing_right_part_is_stable() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("10|+").expect_err("9f2b1c7d");
+
+        assert_eq!(
+            calculation_error.to_string(),
+            "wire format must contain exactly 3 parts separated by '|': 10|+"
+        );
     }
 }

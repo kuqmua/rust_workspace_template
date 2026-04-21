@@ -47,7 +47,20 @@ Cargo aliases are configured in `.cargo/config.toml`:
 - `cargo workspace-test`
 - `cargo workspace-check-no-default-features`
 - `cargo workspace-doc`
+- `cargo workspace-nextest`
+- `cargo workspace-hack`
+- `cargo workspace-deny`
+- `cargo workspace-udeps`
 - `cargo workspace-verify` (runs `fmt -> clippy -> test` in required order)
+
+Extended local validation set (parity with full CI lanes):
+
+```bash
+cargo workspace-nextest
+cargo workspace-hack
+cargo workspace-deny
+cargo workspace-udeps
+```
 
 ## Production build defaults
 
@@ -104,6 +117,7 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 ## CI and governance
 
 - Main CI: `.github/workflows/ci.yml`
+- Baseline quality gates (`fmt`, `clippy`, core tests) run in both fast and full CI modes.
 - Contribution guide: `CONTRIBUTING.md`
 - Release process: `RELEASE.md`
 - Security policy: `SECURITY.md`
@@ -120,6 +134,7 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 - nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
 - no `dbg!` and no ad-hoc `println!`/`eprintln!` outside entrypoint runtime path
 - CLI contract tests in `server/tests` must use shared `test_helpers::run_server_command*` wrappers and must not call `Command::new` directly
+- CLI help contract is locked so `-h` and `--help` stay equivalent (including invalid/non-unicode report-format environment values)
 
 ## CLI test helper
 

@@ -3,7 +3,11 @@ use core::{
     str::FromStr,
 };
 
+#[cfg(test)]
+use proptest as _;
 use thiserror::Error;
+#[cfg(test)]
+use trybuild as _;
 
 const ARITHMETIC_SYMBOL_ADDITION: &str = "+";
 const ARITHMETIC_SYMBOL_DIVISION: &str = "/";
@@ -71,14 +75,56 @@ impl FromStr for CalculationReportFormat {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CalculationRequest {
-    pub arithmetic_operation: ArithmeticOperation,
-    pub left_operand: i64,
-    pub right_operand: i64,
+    arithmetic_operation: ArithmeticOperation,
+    left_operand: i64,
+    right_operand: i64,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CalculationResult {
-    pub value: i64,
+    value: i64,
+}
+
+impl CalculationRequest {
+    #[must_use = "arithmetic operation value must be handled by the caller"]
+    pub const fn arithmetic_operation(&self) -> ArithmeticOperation {
+        self.arithmetic_operation
+    }
+
+    #[must_use = "left operand value must be handled by the caller"]
+    pub const fn left_operand(&self) -> i64 {
+        self.left_operand
+    }
+
+    #[must_use = "calculation request constructor result must be handled by the caller"]
+    pub const fn new(
+        arithmetic_operation: ArithmeticOperation,
+        left_operand: i64,
+        right_operand: i64,
+    ) -> Self {
+        Self {
+            arithmetic_operation,
+            left_operand,
+            right_operand,
+        }
+    }
+
+    #[must_use = "right operand value must be handled by the caller"]
+    pub const fn right_operand(&self) -> i64 {
+        self.right_operand
+    }
+}
+
+impl CalculationResult {
+    #[must_use = "calculation result constructor value must be handled by the caller"]
+    pub const fn new(value: i64) -> Self {
+        Self { value }
+    }
+
+    #[must_use = "calculation result value must be handled by the caller"]
+    pub const fn value(&self) -> i64 {
+        self.value
+    }
 }
 
 #[derive(Debug, Error, Eq, PartialEq)]
@@ -104,58 +150,53 @@ pub enum CalculationError {
 /// ```
 /// use shared_logic::{ArithmeticOperation, CalculationRequest, evaluate_calculation_request};
 ///
-/// let request = CalculationRequest {
-///     arithmetic_operation: ArithmeticOperation::Division,
-///     left_operand: 9,
-///     right_operand: 3,
-/// };
+/// let request = CalculationRequest::new(ArithmeticOperation::Division, 9, 3);
 ///
 /// let result = evaluate_calculation_request(&request).expect("e7d0a1c2");
-/// assert_eq!(result.value, 3);
+/// assert_eq!(result.value(), 3);
 /// ```
 ///
 /// ```compile_fail
 /// use shared_logic::{
-///     CalculationRequest, evaluate_calculation_request,
+///     ArithmeticOperation, CalculationRequest, evaluate_calculation_request,
 /// };
 ///
-/// let request = CalculationRequest {
-///     arithmetic_operation: true,
-///     left_operand: 1,
-///     right_operand: 2,
-/// };
+/// let request = CalculationRequest::new(ArithmeticOperation::Addition, 1, 2);
+/// let _invalid_operation = CalculationRequest::new(true, 1, 2);
 /// let _ = evaluate_calculation_request(&request);
 /// ```
+#[must_use = "calculation evaluation result must be handled by the caller"]
 pub fn evaluate_calculation_request(
     calculation_request: &CalculationRequest,
 ) -> Result<CalculationResult, CalculationError> {
-    let value = match calculation_request.arithmetic_operation {
+    let value = match calculation_request.arithmetic_operation() {
         ArithmeticOperation::Addition => calculation_request
-            .left_operand
-            .checked_add(calculation_request.right_operand)
+            .left_operand()
+            .checked_add(calculation_request.right_operand())
             .ok_or(CalculationError::Overflow)?,
         ArithmeticOperation::Division => {
-            if calculation_request.right_operand == 0 {
+            if calculation_request.right_operand() == 0 {
                 return Err(CalculationError::DivisionByZero);
             }
             calculation_request
-                .left_operand
-                .checked_div(calculation_request.right_operand)
+                .left_operand()
+                .checked_div(calculation_request.right_operand())
                 .ok_or(CalculationError::Overflow)?
         }
         ArithmeticOperation::Multiplication => calculation_request
-            .left_operand
-            .checked_mul(calculation_request.right_operand)
+            .left_operand()
+            .checked_mul(calculation_request.right_operand())
             .ok_or(CalculationError::Overflow)?,
         ArithmeticOperation::Subtraction => calculation_request
-            .left_operand
-            .checked_sub(calculation_request.right_operand)
+            .left_operand()
+            .checked_sub(calculation_request.right_operand())
             .ok_or(CalculationError::Overflow)?,
     };
 
-    Ok(CalculationResult { value })
+    Ok(CalculationResult::new(value))
 }
 
+#[must_use = "request parsing result must be handled by the caller"]
 pub fn build_calculation_request_from_text_parts(
     left_operand_text: &str,
     arithmetic_operation_text: &str,
@@ -173,11 +214,7 @@ pub fn build_calculation_request_from_text_parts(
         })?;
     let arithmetic_operation = ArithmeticOperation::from_str(arithmetic_operation_text)?;
 
-    Ok(CalculationRequest {
-        arithmetic_operation,
-        left_operand,
-        right_operand,
-    })
+    Ok(CalculationRequest::new(arithmetic_operation, left_operand, right_operand))
 }
 
 #[must_use]
@@ -186,14 +223,15 @@ pub fn serialize_calculation_request_to_wire_format(
 ) -> String {
     format!(
         "{}{}{}{}{}",
-        calculation_request.left_operand,
+        calculation_request.left_operand(),
         WIRE_FORMAT_DELIMITER,
-        calculation_request.arithmetic_operation,
+        calculation_request.arithmetic_operation(),
         WIRE_FORMAT_DELIMITER,
-        calculation_request.right_operand
+        calculation_request.right_operand()
     )
 }
 
+#[must_use = "wire-format deserialization result must be handled by the caller"]
 pub fn deserialize_calculation_request_from_wire_format(
     wire_format: &str,
 ) -> Result<CalculationRequest, CalculationError> {
@@ -220,12 +258,14 @@ pub fn deserialize_calculation_request_from_wire_format(
     Ok(calculation_request)
 }
 
+#[must_use = "report rendering result must be handled by the caller"]
 pub fn render_calculation_report(
     calculation_request: &CalculationRequest,
 ) -> Result<String, CalculationError> {
     render_calculation_report_with_format(calculation_request, CalculationReportFormat::Text)
 }
 
+#[must_use = "report rendering result must be handled by the caller"]
 pub fn render_calculation_report_with_format(
     calculation_request: &CalculationRequest,
     calculation_report_format: CalculationReportFormat,
@@ -234,17 +274,17 @@ pub fn render_calculation_report_with_format(
     let rendered_report = match calculation_report_format {
         CalculationReportFormat::Json => format!(
             "{{\"operation\":\"{}\",\"left\":{},\"right\":{},\"result\":{}}}",
-            calculation_request.arithmetic_operation,
-            calculation_request.left_operand,
-            calculation_request.right_operand,
-            calculation_result.value
+            calculation_request.arithmetic_operation(),
+            calculation_request.left_operand(),
+            calculation_request.right_operand(),
+            calculation_result.value()
         ),
         CalculationReportFormat::Text => format!(
             "operation={} left={} right={} result={}",
-            calculation_request.arithmetic_operation,
-            calculation_request.left_operand,
-            calculation_request.right_operand,
-            calculation_result.value
+            calculation_request.arithmetic_operation(),
+            calculation_request.left_operand(),
+            calculation_request.right_operand(),
+            calculation_result.value()
         ),
     };
 
@@ -273,25 +313,21 @@ mod unit_tests {
 
     #[test]
     fn evaluates_addition() {
-        let calculation_request = CalculationRequest {
-            arithmetic_operation: ArithmeticOperation::Addition,
-            left_operand: 8,
-            right_operand: 13,
-        };
+        let calculation_request = CalculationRequest::new(ArithmeticOperation::Addition, 8, 13);
 
         let calculation_result =
             evaluate_calculation_request(&calculation_request).expect("8d3b6f1a");
-        assert_eq!(calculation_result.value, 21);
+        assert_eq!(calculation_result.value(), 21);
     }
 
     #[test]
     fn returns_division_by_zero_error() {
         let (left_operand, right_operand) = build_standard_division_operands();
-        let calculation_request = CalculationRequest {
-            arithmetic_operation: ArithmeticOperation::Division,
+        let calculation_request = CalculationRequest::new(
+            ArithmeticOperation::Division,
             left_operand,
-            right_operand: right_operand - right_operand,
-        };
+            right_operand - right_operand,
+        );
 
         let calculation_error =
             evaluate_calculation_request(&calculation_request).expect_err("1f9a2c4e");
@@ -300,11 +336,8 @@ mod unit_tests {
 
     #[test]
     fn returns_overflow_error() {
-        let calculation_request = CalculationRequest {
-            arithmetic_operation: ArithmeticOperation::Addition,
-            left_operand: i64::MAX,
-            right_operand: 1,
-        };
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Addition, i64::MAX, 1);
 
         let calculation_error =
             evaluate_calculation_request(&calculation_request).expect_err("5b1d7e9c");
@@ -313,11 +346,8 @@ mod unit_tests {
 
     #[test]
     fn serializes_and_deserializes_wire_format() {
-        let calculation_request = CalculationRequest {
-            arithmetic_operation: ArithmeticOperation::Multiplication,
-            left_operand: -7,
-            right_operand: 5,
-        };
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Multiplication, -7, 5);
 
         let wire_format = serialize_calculation_request_to_wire_format(&calculation_request);
         let deserialized_calculation_request =
@@ -399,11 +429,8 @@ mod unit_tests {
 
     #[test]
     fn renders_json_report_when_requested() {
-        let calculation_request = CalculationRequest {
-            arithmetic_operation: ArithmeticOperation::Multiplication,
-            left_operand: 4,
-            right_operand: 6,
-        };
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Multiplication, 4, 6);
 
         let rendered_report = render_calculation_report_with_format(
             &calculation_request,
@@ -415,22 +442,78 @@ mod unit_tests {
     }
 
     #[test]
+    fn renders_text_report_with_stable_exact_contract() {
+        let calculation_request = CalculationRequest::new(ArithmeticOperation::Subtraction, 40, 15);
+
+        let rendered_report = render_calculation_report_with_format(
+            &calculation_request,
+            CalculationReportFormat::Text,
+        )
+        .expect("1f4a9c7e");
+
+        assert_eq!(rendered_report, "operation=- left=40 right=15 result=25");
+    }
+
+    #[test]
+    fn returns_malformed_wire_format_error_for_missing_parts() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("1|+").expect_err("7c2d8a1f");
+
+        assert_eq!(calculation_error, CalculationError::MalformedWireFormat {
+            provided_wire_format: "1|+".to_owned(),
+        });
+    }
+
+    #[test]
+    fn returns_invalid_integer_value_for_empty_left_operand_in_wire_format() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("|+|2").expect_err("6a3d9e1f");
+
+        assert_eq!(calculation_error, CalculationError::InvalidIntegerValue {
+            provided_value: String::new(),
+        });
+    }
+
+    #[test]
+    fn evaluates_all_operations_for_deterministic_fixture_set() {
+        let deterministic_fixture_set = [
+            (9, 4, ArithmeticOperation::Addition, 13),
+            (9, 4, ArithmeticOperation::Subtraction, 5),
+            (9, 4, ArithmeticOperation::Multiplication, 36),
+            (9, 3, ArithmeticOperation::Division, 3),
+        ];
+
+        deterministic_fixture_set
+            .iter()
+            .try_for_each(|(left_operand, right_operand, arithmetic_operation, expected_result)| {
+                let calculation_request =
+                    CalculationRequest::new(*arithmetic_operation, *left_operand, *right_operand);
+                let calculation_result = evaluate_calculation_request(&calculation_request)?;
+                assert_eq!(calculation_result.value(), *expected_result);
+                Ok::<(), CalculationError>(())
+            })
+            .expect("3d8a1f6e");
+    }
+
+    #[test]
     fn verifies_commutativity_property_for_addition() {
         for left_operand in -20i64..=20i64 {
             for right_operand in -20i64..=20i64 {
-                let left_then_right_result = evaluate_calculation_request(&CalculationRequest {
-                    arithmetic_operation: ArithmeticOperation::Addition,
-                    left_operand,
-                    right_operand,
-                })
-                .expect("7a2e5d1b");
+                let left_then_right_result =
+                    evaluate_calculation_request(&CalculationRequest::new(
+                        ArithmeticOperation::Addition,
+                        left_operand,
+                        right_operand,
+                    ))
+                    .expect("7a2e5d1b");
 
-                let right_then_left_result = evaluate_calculation_request(&CalculationRequest {
-                    arithmetic_operation: ArithmeticOperation::Addition,
-                    left_operand: right_operand,
-                    right_operand: left_operand,
-                })
-                .expect("9f3c1b6e");
+                let right_then_left_result =
+                    evaluate_calculation_request(&CalculationRequest::new(
+                        ArithmeticOperation::Addition,
+                        right_operand,
+                        left_operand,
+                    ))
+                    .expect("9f3c1b6e");
 
                 assert_eq!(left_then_right_result, right_then_left_result);
             }

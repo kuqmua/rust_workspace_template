@@ -22,13 +22,23 @@ cargo workspace-test
 cargo workspace-verify
 ```
 
+Extended local checks for full CI parity:
+
+```bash
+cargo workspace-nextest
+cargo workspace-hack
+cargo workspace-deny
+cargo workspace-udeps
+```
+
 ## CI model
 This template uses two CI modes in `.github/workflows/ci.yml`:
 
 - Fast mode: runs on pull requests and pushes to `develop`.
   - `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`
 - Full mode: runs on pushes to `main`, nightly schedule, and manual dispatch.
-  - `build`, `doc`, `msrv`, `audit`, `deny`, `machete`, `hack`, `udeps`, `llvm-cov`
+  - Baseline gates from fast mode are also executed.
+  - Additional jobs: `build`, `doc`, `msrv`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`
 
 ## Pull requests
 - Keep changes scoped.
@@ -49,3 +59,4 @@ This template uses two CI modes in `.github/workflows/ci.yml`:
 ## Integration test ergonomics
 - Reuse helper functions from `test_helpers` for CLI process execution and UTF-8 decoding.
 - Cover environment edge-cases in contract tests (for example, non-unicode variable values on Unix).
+- Keep `-h` and `--help` output behavior equivalent as a stable CLI contract.

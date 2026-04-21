@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 description = "Shared logic crate with reusable domain examples and baseline tests"
-repository = "https://github.com/user/repo"
+repository = "https://github.com/kuqmua/rust_workspace_template"
 readme = "../README.md"
 keywords = ["workspace", "template"]
 categories = ["development-tools"]
@@ -15,6 +15,8 @@ thiserror.workspace = true
 
 [dev-dependencies]
 test_helpers.workspace = true
+proptest.workspace = true
+trybuild.workspace = true
 
 [lints]
 workspace = true
