@@ -10,6 +10,8 @@ LICENSE
 .env.*
 .idea/
 .vscode/
+tasks.json
+cdx_cli_manage/
 *.swp
 *.swo
 *~

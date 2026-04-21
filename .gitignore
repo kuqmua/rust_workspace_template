@@ -21,6 +21,8 @@ debug/
 # IDE
 .idea/
 .vscode/
+tasks.json
+cdx_cli_manage/
 *.swp
 *.swo
 *~
