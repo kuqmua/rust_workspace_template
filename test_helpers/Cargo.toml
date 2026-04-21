@@ -1,0 +1,16 @@
+[package]
+name = "test_helpers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Reusable testing helpers for workspace integration tests"
+repository = "https://github.com/user/repo"
+readme = "../README.md"
+keywords = ["testing", "workspace"]
+categories = ["development-tools::testing"]
+
+[dependencies]
+
+[lints]
+workspace = true

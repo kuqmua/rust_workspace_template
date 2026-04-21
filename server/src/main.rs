@@ -1,4 +1,5 @@
-#[allow(clippy::print_stdout)]
+use std::env::var_os;
+
 fn main() {
-    println!("Hello, world!");
+    drop(var_os("RUST_WORKSPACE_TEMPLATE_ENTRYPOINT_MARKER"));
 }

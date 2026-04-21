@@ -1,0 +1,20 @@
+[package]
+name = "shared_logic"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Shared logic crate with reusable domain examples and baseline tests"
+repository = "https://github.com/user/repo"
+readme = "../README.md"
+keywords = ["workspace", "template"]
+categories = ["development-tools"]
+
+[dependencies]
+thiserror.workspace = true
+
+[dev-dependencies]
+test_helpers.workspace = true
+
+[lints]
+workspace = true

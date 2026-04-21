@@ -1,7 +1,9 @@
 [workspace]
 resolver = "2"
 members = [
-  "server"
+  "server",
+  "shared_logic",
+  "test_helpers",
 ]
 exclude = []
 
@@ -12,6 +14,8 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
+thiserror = { version = "2.0.18", default-features = false }
+test_helpers = { path = "test_helpers" }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
