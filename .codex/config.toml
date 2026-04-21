@@ -1,0 +1,22 @@
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+
+# --- Permissions (аналог allow: [...]) ---
+approval_policy = "never"              # без подтверждений вообще
+sandbox_mode = "danger-full-access"    # полный доступ к системе
+
+# --- Network access ---
+[sandbox_workspace_write]
+network_access = true                  # разрешить интернет
+
+# --- Optional (но полезно для Rust) ---
+[tools]
+bash = true
+read = true
+write = true
+edit = true
+
+# --- Поведение агента ---
+auto_fix_errors = true
+run_tests_after_edit = true

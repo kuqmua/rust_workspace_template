@@ -3,10 +3,9 @@ use core::{
     str::FromStr,
 };
 
-use thiserror::Error;
-
 #[cfg(test)]
 use test_helpers as _;
+use thiserror::Error;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ArithmeticOperation {
