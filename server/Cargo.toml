@@ -6,9 +6,12 @@ license.workspace = true
 rust-version.workspace = true
 description = "Server application"
 repository = "https://github.com/user/repo"
-readme = "README.md"
+readme = "../README.md"
 keywords = ["server"]
 categories = ["web-programming"]
+
+[dependencies]
+shared_logic.workspace = true
 
 [lints]
 workspace = true

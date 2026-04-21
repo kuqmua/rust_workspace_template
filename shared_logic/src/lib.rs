@@ -3,9 +3,15 @@ use core::{
     str::FromStr,
 };
 
-#[cfg(test)]
-use test_helpers as _;
 use thiserror::Error;
+
+const ARITHMETIC_SYMBOL_ADDITION: &str = "+";
+const ARITHMETIC_SYMBOL_DIVISION: &str = "/";
+const ARITHMETIC_SYMBOL_MULTIPLICATION: &str = "*";
+const ARITHMETIC_SYMBOL_SUBTRACTION: &str = "-";
+const CALCULATION_REPORT_FORMAT_JSON: &str = "json";
+const CALCULATION_REPORT_FORMAT_TEXT: &str = "text";
+const WIRE_FORMAT_DELIMITER: char = '|';
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ArithmeticOperation {
@@ -18,10 +24,10 @@ pub enum ArithmeticOperation {
 impl Display for ArithmeticOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let symbol = match self {
-            Self::Addition => "+",
-            Self::Division => "/",
-            Self::Multiplication => "*",
-            Self::Subtraction => "-",
+            Self::Addition => ARITHMETIC_SYMBOL_ADDITION,
+            Self::Division => ARITHMETIC_SYMBOL_DIVISION,
+            Self::Multiplication => ARITHMETIC_SYMBOL_MULTIPLICATION,
+            Self::Subtraction => ARITHMETIC_SYMBOL_SUBTRACTION,
         };
         write!(f, "{symbol}")
     }
@@ -32,12 +38,32 @@ impl FromStr for ArithmeticOperation {
 
     fn from_str(source: &str) -> Result<Self, Self::Err> {
         match source {
-            "+" => Ok(Self::Addition),
-            "/" => Ok(Self::Division),
-            "*" => Ok(Self::Multiplication),
-            "-" => Ok(Self::Subtraction),
+            ARITHMETIC_SYMBOL_ADDITION => Ok(Self::Addition),
+            ARITHMETIC_SYMBOL_DIVISION => Ok(Self::Division),
+            ARITHMETIC_SYMBOL_MULTIPLICATION => Ok(Self::Multiplication),
+            ARITHMETIC_SYMBOL_SUBTRACTION => Ok(Self::Subtraction),
             _ => Err(CalculationError::UnknownOperation {
                 provided_operation: source.to_owned(),
+            }),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CalculationReportFormat {
+    Json,
+    Text,
+}
+
+impl FromStr for CalculationReportFormat {
+    type Err = CalculationError;
+
+    fn from_str(source: &str) -> Result<Self, Self::Err> {
+        match source {
+            CALCULATION_REPORT_FORMAT_JSON => Ok(Self::Json),
+            CALCULATION_REPORT_FORMAT_TEXT => Ok(Self::Text),
+            _ => Err(CalculationError::UnknownReportFormat {
+                provided_format: source.to_owned(),
             }),
         }
     }
@@ -67,6 +93,8 @@ pub enum CalculationError {
     Overflow,
     #[error("unknown arithmetic operation: {provided_operation}")]
     UnknownOperation { provided_operation: String },
+    #[error("unknown calculation report format: {provided_format}; expected 'text' or 'json'")]
+    UnknownReportFormat { provided_format: String },
 }
 
 /// Evaluate a request using checked arithmetic.
@@ -128,55 +156,22 @@ pub fn evaluate_calculation_request(
     Ok(CalculationResult { value })
 }
 
-#[must_use]
-pub fn serialize_calculation_request_to_wire_format(
-    calculation_request: &CalculationRequest,
-) -> String {
-    format!(
-        "{}|{}|{}",
-        calculation_request.left_operand,
-        calculation_request.arithmetic_operation,
-        calculation_request.right_operand
-    )
-}
-
-pub fn deserialize_calculation_request_from_wire_format(
-    wire_format: &str,
+pub fn build_calculation_request_from_text_parts(
+    left_operand_text: &str,
+    arithmetic_operation_text: &str,
+    right_operand_text: &str,
 ) -> Result<CalculationRequest, CalculationError> {
-    let mut parts = wire_format.split('|');
-    let left_operand_part = parts
-        .next()
-        .ok_or_else(|| CalculationError::MalformedWireFormat {
-            provided_wire_format: wire_format.to_owned(),
-        })?;
-    let operation_part = parts
-        .next()
-        .ok_or_else(|| CalculationError::MalformedWireFormat {
-            provided_wire_format: wire_format.to_owned(),
-        })?;
-    let right_operand_part = parts
-        .next()
-        .ok_or_else(|| CalculationError::MalformedWireFormat {
-            provided_wire_format: wire_format.to_owned(),
-        })?;
-
-    if parts.next().is_some() {
-        return Err(CalculationError::MalformedWireFormat {
-            provided_wire_format: wire_format.to_owned(),
-        });
-    }
-
-    let left_operand = left_operand_part
+    let left_operand = left_operand_text
         .parse::<i64>()
         .map_err(|_parse_integer_error| CalculationError::InvalidIntegerValue {
-            provided_value: left_operand_part.to_owned(),
+            provided_value: left_operand_text.to_owned(),
         })?;
-    let right_operand = right_operand_part
+    let right_operand = right_operand_text
         .parse::<i64>()
         .map_err(|_parse_integer_error| CalculationError::InvalidIntegerValue {
-            provided_value: right_operand_part.to_owned(),
+            provided_value: right_operand_text.to_owned(),
         })?;
-    let arithmetic_operation = ArithmeticOperation::from_str(operation_part)?;
+    let arithmetic_operation = ArithmeticOperation::from_str(arithmetic_operation_text)?;
 
     Ok(CalculationRequest {
         arithmetic_operation,
@@ -185,26 +180,96 @@ pub fn deserialize_calculation_request_from_wire_format(
     })
 }
 
+#[must_use]
+pub fn serialize_calculation_request_to_wire_format(
+    calculation_request: &CalculationRequest,
+) -> String {
+    format!(
+        "{}{}{}{}{}",
+        calculation_request.left_operand,
+        WIRE_FORMAT_DELIMITER,
+        calculation_request.arithmetic_operation,
+        WIRE_FORMAT_DELIMITER,
+        calculation_request.right_operand
+    )
+}
+
+pub fn deserialize_calculation_request_from_wire_format(
+    wire_format: &str,
+) -> Result<CalculationRequest, CalculationError> {
+    let mut wire_format_parts = wire_format.split(WIRE_FORMAT_DELIMITER);
+    let left_operand_part = wire_format_parts
+        .next()
+        .ok_or_else(|| build_malformed_wire_format_error(wire_format))?;
+    let operation_part = wire_format_parts
+        .next()
+        .ok_or_else(|| build_malformed_wire_format_error(wire_format))?;
+    let right_operand_part = wire_format_parts
+        .next()
+        .ok_or_else(|| build_malformed_wire_format_error(wire_format))?;
+
+    if wire_format_parts.next().is_some() {
+        return Err(build_malformed_wire_format_error(wire_format));
+    }
+
+    let calculation_request = build_calculation_request_from_text_parts(
+        left_operand_part,
+        operation_part,
+        right_operand_part,
+    )?;
+    Ok(calculation_request)
+}
+
 pub fn render_calculation_report(
     calculation_request: &CalculationRequest,
 ) -> Result<String, CalculationError> {
+    render_calculation_report_with_format(calculation_request, CalculationReportFormat::Text)
+}
+
+pub fn render_calculation_report_with_format(
+    calculation_request: &CalculationRequest,
+    calculation_report_format: CalculationReportFormat,
+) -> Result<String, CalculationError> {
     let calculation_result = evaluate_calculation_request(calculation_request)?;
-    Ok(format!(
-        "operation={} left={} right={} result={}",
-        calculation_request.arithmetic_operation,
-        calculation_request.left_operand,
-        calculation_request.right_operand,
-        calculation_result.value
-    ))
+    let rendered_report = match calculation_report_format {
+        CalculationReportFormat::Json => format!(
+            "{{\"operation\":\"{}\",\"left\":{},\"right\":{},\"result\":{}}}",
+            calculation_request.arithmetic_operation,
+            calculation_request.left_operand,
+            calculation_request.right_operand,
+            calculation_result.value
+        ),
+        CalculationReportFormat::Text => format!(
+            "operation={} left={} right={} result={}",
+            calculation_request.arithmetic_operation,
+            calculation_request.left_operand,
+            calculation_request.right_operand,
+            calculation_result.value
+        ),
+    };
+
+    Ok(rendered_report)
+}
+
+fn build_malformed_wire_format_error(wire_format: &str) -> CalculationError {
+    CalculationError::MalformedWireFormat {
+        provided_wire_format: wire_format.to_owned(),
+    }
 }
 
 #[cfg(test)]
 mod unit_tests {
+    use core::str::FromStr as _;
+
+    use test_helpers::{build_standard_division_operands, build_standard_operand_text_triplet};
+
     use super::{
-        ArithmeticOperation, CalculationError, CalculationRequest,
+        ArithmeticOperation, CalculationError, CalculationReportFormat, CalculationRequest,
+        build_calculation_request_from_text_parts,
         deserialize_calculation_request_from_wire_format, evaluate_calculation_request,
-        serialize_calculation_request_to_wire_format,
+        render_calculation_report_with_format, serialize_calculation_request_to_wire_format,
     };
+    use crate::render_calculation_report;
 
     #[test]
     fn evaluates_addition() {
@@ -221,10 +286,11 @@ mod unit_tests {
 
     #[test]
     fn returns_division_by_zero_error() {
+        let (left_operand, right_operand) = build_standard_division_operands();
         let calculation_request = CalculationRequest {
             arithmetic_operation: ArithmeticOperation::Division,
-            left_operand: 21,
-            right_operand: 0,
+            left_operand,
+            right_operand: right_operand - right_operand,
         };
 
         let calculation_error =
@@ -258,6 +324,83 @@ mod unit_tests {
             deserialize_calculation_request_from_wire_format(&wire_format).expect("c4a9d2f8");
 
         assert_eq!(deserialized_calculation_request, calculation_request);
+    }
+
+    #[test]
+    fn builds_calculation_request_from_text_parts() {
+        let (left_operand_text, arithmetic_operation_text, right_operand_text) =
+            build_standard_operand_text_triplet();
+
+        let calculation_request = build_calculation_request_from_text_parts(
+            left_operand_text,
+            arithmetic_operation_text,
+            right_operand_text,
+        )
+        .expect("2f8d4c1a");
+        let rendered_report = render_calculation_report(&calculation_request).expect("3a9d7e1c");
+
+        assert_eq!(rendered_report, "operation=/ left=27 right=3 result=9");
+    }
+
+    #[test]
+    fn returns_malformed_wire_format_error_for_too_many_parts() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("1|+|2|extra").expect_err("8a1c4d7e");
+
+        assert_eq!(calculation_error, CalculationError::MalformedWireFormat {
+            provided_wire_format: "1|+|2|extra".to_owned(),
+        });
+    }
+
+    #[test]
+    fn returns_unknown_operation_error_for_invalid_symbol() {
+        let calculation_error = ArithmeticOperation::from_str("^").expect_err("6e2b9f1d");
+
+        assert_eq!(calculation_error, CalculationError::UnknownOperation {
+            provided_operation: "^".to_owned(),
+        });
+    }
+
+    #[test]
+    fn parses_text_report_format() {
+        let calculation_report_format =
+            CalculationReportFormat::from_str("text").expect("3d7a1e9c");
+
+        assert_eq!(calculation_report_format, CalculationReportFormat::Text);
+    }
+
+    #[test]
+    fn parses_json_report_format() {
+        let calculation_report_format =
+            CalculationReportFormat::from_str("json").expect("5f2c8e1a");
+
+        assert_eq!(calculation_report_format, CalculationReportFormat::Json);
+    }
+
+    #[test]
+    fn returns_unknown_report_format_error_for_invalid_value() {
+        let calculation_error = CalculationReportFormat::from_str("yaml").expect_err("2b7d4e1a");
+
+        assert_eq!(calculation_error, CalculationError::UnknownReportFormat {
+            provided_format: "yaml".to_owned(),
+        });
+    }
+
+    #[test]
+    fn renders_json_report_when_requested() {
+        let calculation_request = CalculationRequest {
+            arithmetic_operation: ArithmeticOperation::Multiplication,
+            left_operand: 4,
+            right_operand: 6,
+        };
+
+        let rendered_report = render_calculation_report_with_format(
+            &calculation_request,
+            CalculationReportFormat::Json,
+        )
+        .expect("7c2e4a1d");
+
+        assert_eq!(rendered_report, "{\"operation\":\"*\",\"left\":4,\"right\":6,\"result\":24}");
     }
 
     #[test]

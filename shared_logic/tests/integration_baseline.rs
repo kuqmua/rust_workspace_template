@@ -1,20 +1,25 @@
 use std::fs;
 
 use shared_logic::{
-    ArithmeticOperation, deserialize_calculation_request_from_wire_format,
-    evaluate_calculation_request, render_calculation_report,
+    ArithmeticOperation, CalculationReportFormat, build_calculation_request_from_text_parts,
+    deserialize_calculation_request_from_wire_format, evaluate_calculation_request,
+    render_calculation_report, render_calculation_report_with_format,
     serialize_calculation_request_to_wire_format,
 };
-use test_helpers::{build_calculation_report_golden_file_path, build_standard_division_operands};
+use test_helpers::{
+    build_calculation_report_golden_file_path, build_invalid_wire_format_with_extra_parts,
+    build_standard_division_operands,
+};
 use thiserror as _;
 
 #[cfg(test)]
 mod integration_tests {
     use super::{
-        ArithmeticOperation, build_calculation_report_golden_file_path,
+        ArithmeticOperation, CalculationReportFormat, build_calculation_report_golden_file_path,
+        build_calculation_request_from_text_parts, build_invalid_wire_format_with_extra_parts,
         build_standard_division_operands, deserialize_calculation_request_from_wire_format,
         evaluate_calculation_request, fs, render_calculation_report,
-        serialize_calculation_request_to_wire_format,
+        render_calculation_report_with_format, serialize_calculation_request_to_wire_format,
     };
 
     const fn build_calculation_request(
@@ -81,5 +86,40 @@ mod integration_tests {
         let second_report = render_calculation_report(&calculation_request).expect("2e4c8b1f");
 
         assert_eq!(first_report, second_report);
+    }
+
+    #[test]
+    fn renders_json_report_for_machine_consumers() {
+        let calculation_request = build_calculation_request(5, 8, ArithmeticOperation::Addition);
+
+        let json_report = render_calculation_report_with_format(
+            &calculation_request,
+            CalculationReportFormat::Json,
+        )
+        .expect("8d1f4e2a");
+
+        assert_eq!(json_report, "{\"operation\":\"+\",\"left\":5,\"right\":8,\"result\":13}");
+    }
+
+    #[test]
+    fn parses_text_input_for_client_usage() {
+        let calculation_request =
+            build_calculation_request_from_text_parts("11", "-", "7").expect("9a3e1c7f");
+
+        let calculation_result =
+            evaluate_calculation_request(&calculation_request).expect("1b8d6f2a");
+        assert_eq!(calculation_result.value, 4);
+    }
+
+    #[test]
+    fn rejects_malformed_wire_format_with_extra_parts() {
+        let calculation_error = deserialize_calculation_request_from_wire_format(
+            build_invalid_wire_format_with_extra_parts(),
+        )
+        .expect_err("3f9d1a7c");
+
+        assert_eq!(calculation_error, shared_logic::CalculationError::MalformedWireFormat {
+            provided_wire_format: build_invalid_wire_format_with_extra_parts().to_owned(),
+        });
     }
 }

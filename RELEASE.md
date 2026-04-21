@@ -10,8 +10,12 @@
    - `cargo fmt`
    - `cargo clippy --all-targets --all-features -- -D warnings`
    - `cargo test`
-3. Update `CHANGELOG.md` (if present).
-4. Confirm no unintended public API changes.
+3. Validate runtime contracts:
+   - `cargo run -p server -- --help`
+   - `cargo run -p server -- 10 + 5`
+   - `CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5`
+4. Update `CHANGELOG.md`.
+5. Confirm no unintended public API changes.
 
 ## Tagging
 1. Create a release commit on `main`.
