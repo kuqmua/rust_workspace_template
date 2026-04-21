@@ -1,0 +1,5 @@
+# Replace @your-org/your-team with actual owners.
+* @your-org/your-team
+/.github/workflows/ @your-org/your-team
+/Cargo.toml @your-org/your-team
+/deny.toml @your-org/your-team

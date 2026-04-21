@@ -5,6 +5,9 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,6 +31,9 @@ jobs:
     outputs:
       rust: ${{ steps.filter.outputs.rust }}
       ci: ${{ steps.filter.outputs.ci }}
+      fast: ${{ steps.modes.outputs.fast }}
+      full: ${{ steps.modes.outputs.full }}
+      force_full: ${{ steps.modes.outputs.force_full }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -44,11 +50,28 @@ jobs:
               - 'deny.toml'
             ci:
               - '.github/workflows/**'
+      - id: modes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] || { [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" = "develop" ]; }; then
+            echo "fast=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "fast=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ] || { [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" = "main" ]; }; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "full=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "force_full=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "force_full=false" >> "$GITHUB_OUTPUT"
+          fi
 
   fmt:
     name: Formatting
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +83,7 @@ jobs:
   clippy:
     name: Clippy
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -79,10 +102,86 @@ jobs:
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
+  test:
+    name: Test
+    needs: [changed-files, clippy]
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Install nextest
+        uses: taiki-e/install-action@cargo-nextest
+      - name: Test
+        run: cargo nextest run --all-targets --all-features --profile ci
+        env:
+          RUSTFLAGS: "-D warnings"
+      - name: Doc tests
+        run: cargo test --doc --all-features
+
+  no-default-features:
+    name: No default features
+    needs: changed-files
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, nightly]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+          key: no-default-features-${{ matrix.toolchain }}
+      - name: Check without default features (${{ matrix.toolchain }})
+        run: cargo check --workspace --all-targets --no-default-features
+      - name: Test without default features (${{ matrix.toolchain }})
+        run: cargo test --workspace --all-targets --no-default-features
+
+  taplo:
+    name: Taplo
+    needs: changed-files
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install taplo
+        uses: taiki-e/install-action@taplo-cli
+      - name: Check TOML formatting
+        run: taplo fmt --check
+
+  typos:
+    name: Typos
+    needs: changed-files
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install typos
+        uses: taiki-e/install-action@typos-cli
+      - name: Check typos
+        run: typos
+
+  actionlint:
+    name: Actionlint
+    needs: changed-files
+    if: needs.changed-files.outputs.ci == 'true' && needs.changed-files.outputs.fast == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/actionlint@v1
+
   build:
     name: Build
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -109,53 +208,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  test:
-    name: Test
-    needs: [changed-files, clippy]
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-      - name: Install nextest
-        uses: taiki-e/install-action@cargo-nextest
-      - name: Test
-        run: cargo nextest run --all-targets --all-features --profile ci
-        env:
-          RUSTFLAGS: "-D warnings"
-      - name: Doc tests
-        run: cargo test --doc --all-features
-
-  no-default-features:
-    name: No default features
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [stable, nightly]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v2
-        with:
-          cache-on-failure: true
-          key: no-default-features-${{ matrix.toolchain }}
-      - name: Check without default features (${{ matrix.toolchain }})
-        run: cargo check --workspace --all-targets --no-default-features
-      - name: Test without default features (${{ matrix.toolchain }})
-        run: cargo test --workspace --all-targets --no-default-features
-
   doc:
     name: Docs
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -167,7 +223,7 @@ jobs:
   msrv:
     name: MSRV
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -178,7 +234,7 @@ jobs:
   audit:
     name: Security audit
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -189,7 +245,7 @@ jobs:
   deny:
     name: Cargo deny
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -202,7 +258,7 @@ jobs:
   machete:
     name: Unused deps
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -226,7 +282,7 @@ jobs:
   hack:
     name: Feature matrix (cargo hack)
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -239,7 +295,7 @@ jobs:
   udeps:
     name: Unused deps (cargo udeps)
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -252,7 +308,7 @@ jobs:
   llvm-cov:
     name: Coverage (cargo llvm-cov)
     needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -264,44 +320,11 @@ jobs:
       - name: Coverage summary
         run: cargo llvm-cov --workspace --all-features --all-targets --summary-only
 
-  taplo:
-    name: Taplo
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install taplo
-        uses: taiki-e/install-action@taplo-cli
-      - name: Check TOML formatting
-        run: taplo fmt --check
-
-  typos:
-    name: Typos
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install typos
-        uses: taiki-e/install-action@typos-cli
-      - name: Check typos
-        run: typos
-
-  actionlint:
-    name: Actionlint
-    needs: changed-files
-    if: needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: rhysd/actionlint@v1
-
   ci-success:
     name: CI passed
     if: always()
     runs-on: ubuntu-latest
-    needs: [fmt, clippy, build, test, no-default-features, doc, msrv, audit, deny, machete, hack, udeps, llvm-cov, taplo, typos, actionlint]
+    needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, msrv, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:
       contents: none
     steps:
@@ -309,24 +332,24 @@ jobs:
         run: |
           echo "fmt:      ${{ needs.fmt.result }}"
           echo "clippy:   ${{ needs.clippy.result }}"
-          echo "build:    ${{ needs.build.result }}"
           echo "test:     ${{ needs.test.result }}"
           echo "no_def:   ${{ needs.no-default-features.result }}"
+          echo "taplo:    ${{ needs.taplo.result }}"
+          echo "typos:    ${{ needs.typos.result }}"
+          echo "actlint:  ${{ needs.actionlint.result }}"
+          echo "build:    ${{ needs.build.result }}"
           echo "doc:      ${{ needs.doc.result }}"
           echo "msrv:     ${{ needs.msrv.result }}"
           echo "audit:    ${{ needs.audit.result }}"
           echo "deny:     ${{ needs.deny.result }}"
           echo "machete:  ${{ needs.machete.result }}"
+          echo "semver:   ${{ needs.check-semver.result }}"
           echo "hack:     ${{ needs.hack.result }}"
           echo "udeps:    ${{ needs.udeps.result }}"
           echo "llvm-cov: ${{ needs.llvm-cov.result }}"
-          echo "taplo:    ${{ needs.taplo.result }}"
-          echo "typos:    ${{ needs.typos.result }}"
-          echo "actlint:  ${{ needs.actionlint.result }}"
-          # skipped jobs (no changes) count as success
-          for r in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.build.result }}" "${{ needs.test.result }}" "${{ needs.no-default-features.result }}" "${{ needs.doc.result }}" "${{ needs.msrv.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}"; do
-            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
-              echo "::error::Job with result '$r' failed"
+          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.no-default-features.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.build.result }}" "${{ needs.doc.result }}" "${{ needs.msrv.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "::error::Job with result '$result' failed"
               exit 1
             fi
           done
