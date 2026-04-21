@@ -35,8 +35,8 @@ jobs:
       full: ${{ steps.modes.outputs.full }}
       force_full: ${{ steps.modes.outputs.force_full }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050
         id: filter
         with:
           filters: |
@@ -74,8 +74,8 @@ jobs:
     if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
         with:
           components: rustfmt
       - run: cargo fmt --check
@@ -90,12 +90,12 @@ jobs:
       matrix:
         toolchain: [stable, nightly]
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
           key: clippy-${{ matrix.toolchain }}
@@ -108,13 +108,13 @@ jobs:
     if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
       - name: Install nextest
-        uses: taiki-e/install-action@cargo-nextest
+        uses: taiki-e/install-action@024e8cba30d328c34bf69b86cfaaaad61ad5c4cb
       - name: Test
         run: cargo nextest run --all-targets --all-features --profile ci
         env:
@@ -132,11 +132,11 @@ jobs:
       matrix:
         toolchain: [stable, nightly]
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
           key: no-default-features-${{ matrix.toolchain }}
@@ -151,9 +151,9 @@ jobs:
     if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install taplo
-        uses: taiki-e/install-action@taplo-cli
+        uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
       - name: Check TOML formatting
         run: taplo fmt --check
 
@@ -163,9 +163,9 @@ jobs:
     if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install typos
-        uses: taiki-e/install-action@typos-cli
+        uses: taiki-e/install-action@dc6aaebcb47625f80d5dada4c7fbf1dc3e7e257a
       - name: Check typos
         run: typos
 
@@ -175,8 +175,8 @@ jobs:
     if: needs.changed-files.outputs.ci == 'true' && needs.changed-files.outputs.fast == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: rhysd/actionlint@v1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
 
   build:
     name: Build
@@ -189,11 +189,11 @@ jobs:
         toolchain: [stable, nightly]
         profile: [dev, release]
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with:
           toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
           key: build-${{ matrix.toolchain }}-${{ matrix.profile }}
@@ -201,7 +201,7 @@ jobs:
         run: cargo build --all-targets --all-features ${{ matrix.profile == 'release' && '--release' || '' }}
       - name: Upload artifacts (release)
         if: matrix.profile == 'release' && matrix.toolchain == 'nightly'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: release-binaries
           path: target/release/*server*
@@ -214,9 +214,9 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
       - name: Check docs
         run: cargo doc --all-features --no-deps --document-private-items
 
@@ -226,8 +226,8 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d
       - name: Check MSRV
         run: cargo check --all-features
 
@@ -237,8 +237,8 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: rustsec/audit-check@v2
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -248,10 +248,10 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - name: Install cargo-deny
-        uses: taiki-e/install-action@cargo-deny
+        uses: taiki-e/install-action@43d63066c313f326186510e6e5feab4dd2391cfd
       - name: Cargo deny checks
         run: cargo deny check advisories bans licenses sources
 
@@ -261,10 +261,10 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
       - name: Install cargo-machete
-        uses: taiki-e/install-action@cargo-machete
+        uses: taiki-e/install-action@59979a424d2584f3cdeca89833d69ca54b72d84f
       - run: cargo machete
 
   check-semver:
@@ -273,11 +273,11 @@ jobs:
     if: github.event_name == 'pull_request' && (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@nightly
-      - uses: obi1kenobi/cargo-semver-checks-action@v2
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
+      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239
 
   hack:
     name: Feature matrix (cargo hack)
@@ -285,10 +285,10 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
+        uses: taiki-e/install-action@a8bfb6e9b2cf3cefc208e6a18507d78669d398ab
       - name: Check feature matrix
         run: cargo hack check --workspace --all-targets --feature-powerset --no-dev-deps
 
@@ -298,10 +298,10 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
       - name: Install cargo-udeps
-        uses: taiki-e/install-action@cargo-udeps
+        uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
       - name: Check unused dependencies
         run: cargo +nightly udeps --workspace --all-targets --all-features
 
@@ -311,12 +311,12 @@ jobs:
     if: ((needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') || needs.changed-files.outputs.force_full == 'true') && needs.changed-files.outputs.full == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with:
           components: llvm-tools-preview
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
       - name: Coverage summary
         run: cargo llvm-cov --workspace --all-features --all-targets --summary-only
 
