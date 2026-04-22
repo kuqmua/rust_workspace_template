@@ -1,1 +1,13 @@
 msrv = "1.85.0"
+
+disallowed-methods = [
+  { path = "std::env::var", reason = "var() loses non-unicode payload ownership details; use var_os() and explicit UTF-8 validation for deterministic error handling" },
+  { path = "std::env::args", reason = "args() drops non-unicode command-line data; use args_os() to preserve raw input and report deterministic validation errors" },
+  { path = "std::string::String::from_utf8_lossy", reason = "lossy UTF-8 decoding hides input corruption; preserve exact bytes and surface deterministic validation errors instead" },
+  { path = "std::mem::forget", reason = "memory leaks are forbidden in production code paths" },
+  { path = "std::boxed::Box::leak", reason = "leaking heap allocations into static lifetime is forbidden by workspace policy" },
+  { path = "std::thread::sleep", reason = "time-based blocking is forbidden; keep tests and runtime deterministic" },
+  { path = "std::thread::spawn", reason = "spawn requires explicit ownership and cancellation policy; use reviewed async/runtime orchestration" },
+  { path = "std::process::exit", reason = "prefer structured termination via return types and explicit exit-code boundaries" },
+  { path = "tokio::spawn", reason = "spawn requires explicit ownership and cancellation policy; avoid hidden detached tasks" },
+]

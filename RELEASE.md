@@ -11,9 +11,9 @@
    - `cargo clippy --all-targets --all-features -- -D warnings`
    - `cargo test`
 3. Validate runtime contracts:
-   - `cargo run -p server -- --help`
-   - `cargo run -p server -- 10 + 5`
-   - `CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5`
+   - `cargo run -p server`
+   - `CALCULATION_REPORT_FORMAT=json cargo run -p server`
+   - `CALCULATION_REPORT_FORMAT=yaml cargo run -p server` (must fail)
 4. Update `CHANGELOG.md`.
 5. Confirm no unintended public API changes.
 

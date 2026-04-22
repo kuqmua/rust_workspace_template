@@ -54,9 +54,9 @@ This template uses two CI modes in `.github/workflows/ci.yml`:
 ## Runtime output policy
 - Keep `text` output stable by default.
 - If machine-readable output is needed, use `CALCULATION_REPORT_FORMAT=json`.
-- Do not remove or repurpose existing CLI arguments without explicit agreement.
+- `server` is a non-CLI entrypoint; do not add argument parsing without explicit agreement.
 
 ## Integration test ergonomics
-- Reuse helper functions from `test_helpers` for CLI process execution and UTF-8 decoding.
+- Reuse helper functions from `test_helpers` for server process execution and UTF-8 decoding.
 - Cover environment edge-cases in contract tests (for example, non-unicode variable values on Unix).
-- Keep `-h` and `--help` output behavior equivalent as a stable CLI contract.
+- Keep startup output contracts stable for default text mode and JSON mode.

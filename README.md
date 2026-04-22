@@ -75,28 +75,16 @@ These settings optimize for smaller and more predictable production binaries.
 
 ## Server usage examples
 
-Show help:
+Run server with default text startup output:
 
 ```bash
-cargo run -p server -- --help
+cargo run -p server
 ```
 
-Positional input:
+JSON startup output for machine consumers:
 
 ```bash
-cargo run -p server -- 10 + 5
-```
-
-Wire-format input:
-
-```bash
-cargo run -p server -- --wire-format "10|*|4"
-```
-
-JSON output for machine consumers:
-
-```bash
-CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
+CALCULATION_REPORT_FORMAT=json cargo run -p server
 ```
 
 ## Output format contract
@@ -104,7 +92,7 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 - Default format is `text`.
 - Optional environment variable: `CALCULATION_REPORT_FORMAT`.
 - Supported values: `text`, `json`.
-- Unknown values fail fast with a typed error and non-zero exit code.
+- Unknown or non-unicode values fail fast with a typed error and non-zero exit code.
 
 ## Extension rules
 
@@ -133,12 +121,12 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 - hardened release profile and `workspace-verify` command order
 - nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
 - no `dbg!` and no ad-hoc `println!`/`eprintln!` outside entrypoint runtime path
-- CLI contract tests in `server/tests` must use shared `test_helpers::run_server_command*` wrappers and must not call `Command::new` directly
-- CLI help contract is locked so `-h` and `--help` stay equivalent (including invalid/non-unicode report-format environment values)
+- Server integration tests in `server/tests` must use shared `test_helpers::run_server_command*` wrappers and must not call `Command::new` directly
+- Server startup contract is locked for default launch and JSON startup snapshot output
 
-## CLI test helper
+## Server test helper
 
-`test_helpers` provides reusable helpers for CLI integration tests:
+`test_helpers` provides reusable helpers for server integration tests:
 
 - `run_server_command`
 - `run_server_command_with_report_format`
@@ -146,11 +134,11 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server -- 10 + 5
 
 These helpers keep test code concise and make edge-case assertions (including non-unicode environment values) consistent across new tests.
 
-When adding a new CLI test, prefer this pattern:
+When adding a new server test, prefer this pattern:
 
 ```rust
-let output = run_server_command(SERVER_BINARY_PATH, &["10", "+", "5"]).expect("1a2b3c4d");
+let output = run_server_command(SERVER_BINARY_PATH, &[]).expect("1a2b3c4d");
 let standard_output = stdout_as_utf8(&output).expect("5e6f7a8b");
 assert!(output.status.success());
-assert!(standard_output.contains("result=15"));
+assert_eq!(standard_output.trim_end(), "server started");
 ```

@@ -5,6 +5,7 @@ mod integration_tests {
     use test_helpers::{
         build_calculation_report_golden_file_path, build_invalid_wire_format_with_extra_parts,
         build_standard_division_operands, build_standard_operand_text_triplet,
+        build_standard_positional_and_wire_format_operation_cases,
     };
 
     #[test]
@@ -41,5 +42,17 @@ mod integration_tests {
     fn invalid_wire_format_fixture_is_stable() {
         let invalid_wire_format = build_invalid_wire_format_with_extra_parts();
         assert_eq!(invalid_wire_format, "1|+|2|extra");
+    }
+
+    #[test]
+    fn standard_positional_and_wire_format_operation_cases_fixture_is_stable() {
+        let standard_cases = build_standard_positional_and_wire_format_operation_cases();
+
+        assert_eq!(standard_cases, [
+            ("11", "+", "7", "11|+|7"),
+            ("11", "-", "7", "11|-|7"),
+            ("11", "*", "7", "11|*|7"),
+            ("21", "/", "7", "21|/|7"),
+        ]);
     }
 }

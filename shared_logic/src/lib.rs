@@ -1,7 +1,10 @@
+#![forbid(unsafe_code)]
+
 use core::{
     fmt::{self, Display, Formatter},
     str::FromStr,
 };
+use std::num::ParseIntError;
 
 #[cfg(test)]
 use proptest as _;
@@ -18,6 +21,7 @@ const CALCULATION_REPORT_FORMAT_TEXT: &str = "text";
 const WIRE_FORMAT_DELIMITER: char = '|';
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[must_use = "arithmetic operation type must be handled by the caller"]
 pub enum ArithmeticOperation {
     Addition,
     Division,
@@ -54,9 +58,20 @@ impl FromStr for ArithmeticOperation {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[must_use = "calculation report format type must be handled by the caller"]
 pub enum CalculationReportFormat {
     Json,
     Text,
+}
+
+impl Display for CalculationReportFormat {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let format_name = match self {
+            Self::Json => CALCULATION_REPORT_FORMAT_JSON,
+            Self::Text => CALCULATION_REPORT_FORMAT_TEXT,
+        };
+        write!(f, "{format_name}")
+    }
 }
 
 impl FromStr for CalculationReportFormat {
@@ -74,6 +89,7 @@ impl FromStr for CalculationReportFormat {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[must_use = "calculation request value must be handled by the caller"]
 pub struct CalculationRequest {
     arithmetic_operation: ArithmeticOperation,
     left_operand: i64,
@@ -81,6 +97,7 @@ pub struct CalculationRequest {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[must_use = "calculation result value must be handled by the caller"]
 pub struct CalculationResult {
     value: i64,
 }
@@ -132,7 +149,11 @@ pub enum CalculationError {
     #[error("division by zero is not allowed")]
     DivisionByZero,
     #[error("invalid integer value: {provided_value}")]
-    InvalidIntegerValue { provided_value: String },
+    InvalidIntegerValue {
+        provided_value: String,
+        #[source]
+        source_error: ParseIntError,
+    },
     #[error("wire format must contain exactly 3 parts separated by '|': {provided_wire_format}")]
     MalformedWireFormat { provided_wire_format: String },
     #[error("arithmetic overflow while evaluating operation")]
@@ -202,22 +223,14 @@ pub fn build_calculation_request_from_text_parts(
     arithmetic_operation_text: &str,
     right_operand_text: &str,
 ) -> Result<CalculationRequest, CalculationError> {
-    let left_operand = left_operand_text
-        .parse::<i64>()
-        .map_err(|_parse_integer_error| CalculationError::InvalidIntegerValue {
-            provided_value: left_operand_text.to_owned(),
-        })?;
-    let right_operand = right_operand_text
-        .parse::<i64>()
-        .map_err(|_parse_integer_error| CalculationError::InvalidIntegerValue {
-            provided_value: right_operand_text.to_owned(),
-        })?;
+    let left_operand = parse_integer_operand(left_operand_text)?;
+    let right_operand = parse_integer_operand(right_operand_text)?;
     let arithmetic_operation = ArithmeticOperation::from_str(arithmetic_operation_text)?;
 
     Ok(CalculationRequest::new(arithmetic_operation, left_operand, right_operand))
 }
 
-#[must_use]
+#[must_use = "wire-format serialization result must be handled by the caller"]
 pub fn serialize_calculation_request_to_wire_format(
     calculation_request: &CalculationRequest,
 ) -> String {
@@ -297,15 +310,25 @@ fn build_malformed_wire_format_error(wire_format: &str) -> CalculationError {
     }
 }
 
+fn parse_integer_operand(operand_text: &str) -> Result<i64, CalculationError> {
+    operand_text.parse::<i64>().map_err(|parse_integer_error| {
+        CalculationError::InvalidIntegerValue {
+            provided_value: operand_text.to_owned(),
+            source_error: parse_integer_error,
+        }
+    })
+}
+
 #[cfg(test)]
 mod unit_tests {
     use core::str::FromStr as _;
+    use std::error::Error as _;
 
     use test_helpers::{build_standard_division_operands, build_standard_operand_text_triplet};
 
     use super::{
         ArithmeticOperation, CalculationError, CalculationReportFormat, CalculationRequest,
-        build_calculation_request_from_text_parts,
+        WIRE_FORMAT_DELIMITER, build_calculation_request_from_text_parts,
         deserialize_calculation_request_from_wire_format, evaluate_calculation_request,
         render_calculation_report_with_format, serialize_calculation_request_to_wire_format,
     };
@@ -341,6 +364,46 @@ mod unit_tests {
 
         let calculation_error =
             evaluate_calculation_request(&calculation_request).expect_err("5b1d7e9c");
+        assert_eq!(calculation_error, CalculationError::Overflow);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_addition_underflow_boundary() {
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Addition, i64::MIN, -1);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("9f2b7c1d");
+        assert_eq!(calculation_error, CalculationError::Overflow);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_subtraction_underflow_boundary() {
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Subtraction, i64::MIN, 1);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("3c8a1e7f");
+        assert_eq!(calculation_error, CalculationError::Overflow);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_multiplication_boundary() {
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Multiplication, i64::MIN, -1);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("7d1e4a9b");
+        assert_eq!(calculation_error, CalculationError::Overflow);
+    }
+
+    #[test]
+    fn returns_overflow_error_for_division_boundary() {
+        let calculation_request =
+            CalculationRequest::new(ArithmeticOperation::Division, i64::MIN, -1);
+
+        let calculation_error =
+            evaluate_calculation_request(&calculation_request).expect_err("4a9d2c7e");
         assert_eq!(calculation_error, CalculationError::Overflow);
     }
 
@@ -403,9 +466,20 @@ mod unit_tests {
     }
 
     #[test]
+    fn unknown_operation_error_preserves_exact_input_payload_including_whitespace() {
+        let provided_operation = "  +  ";
+        let calculation_error =
+            ArithmeticOperation::from_str(provided_operation).expect_err("9b4d1e7c");
+
+        assert_eq!(calculation_error, CalculationError::UnknownOperation {
+            provided_operation: provided_operation.to_owned(),
+        });
+    }
+
+    #[test]
     fn parses_text_report_format() {
         let calculation_report_format =
-            CalculationReportFormat::from_str("text").expect("3d7a1e9c");
+            CalculationReportFormat::from_str("text").expect("3d7a1e9b");
 
         assert_eq!(calculation_report_format, CalculationReportFormat::Text);
     }
@@ -419,11 +493,60 @@ mod unit_tests {
     }
 
     #[test]
+    fn report_format_display_and_parse_round_trip_is_stable() {
+        let calculation_report_formats =
+            [CalculationReportFormat::Text, CalculationReportFormat::Json];
+
+        calculation_report_formats
+            .iter()
+            .try_for_each(|calculation_report_format| {
+                let serialized_report_format = calculation_report_format.to_string();
+                let parsed_report_format =
+                    CalculationReportFormat::from_str(&serialized_report_format)?;
+                assert_eq!(parsed_report_format, *calculation_report_format);
+                Ok::<(), CalculationError>(())
+            })
+            .expect("f7a91c3d");
+    }
+
+    #[test]
+    fn arithmetic_operation_display_and_parse_round_trip_is_stable() {
+        let arithmetic_operations = [
+            ArithmeticOperation::Addition,
+            ArithmeticOperation::Subtraction,
+            ArithmeticOperation::Multiplication,
+            ArithmeticOperation::Division,
+        ];
+
+        arithmetic_operations
+            .iter()
+            .try_for_each(|arithmetic_operation| {
+                let serialized_arithmetic_operation = arithmetic_operation.to_string();
+                let parsed_arithmetic_operation =
+                    ArithmeticOperation::from_str(&serialized_arithmetic_operation)?;
+                assert_eq!(parsed_arithmetic_operation, *arithmetic_operation);
+                Ok::<(), CalculationError>(())
+            })
+            .expect("1d7a9e4c");
+    }
+
+    #[test]
     fn returns_unknown_report_format_error_for_invalid_value() {
         let calculation_error = CalculationReportFormat::from_str("yaml").expect_err("2b7d4e1a");
 
         assert_eq!(calculation_error, CalculationError::UnknownReportFormat {
             provided_format: "yaml".to_owned(),
+        });
+    }
+
+    #[test]
+    fn unknown_report_format_error_preserves_exact_input_payload_including_whitespace() {
+        let provided_report_format = " json ";
+        let calculation_error =
+            CalculationReportFormat::from_str(provided_report_format).expect_err("5c1a7d9e");
+
+        assert_eq!(calculation_error, CalculationError::UnknownReportFormat {
+            provided_format: provided_report_format.to_owned(),
         });
     }
 
@@ -469,9 +592,66 @@ mod unit_tests {
         let calculation_error =
             deserialize_calculation_request_from_wire_format("|+|2").expect_err("6a3d9e1f");
 
-        assert_eq!(calculation_error, CalculationError::InvalidIntegerValue {
-            provided_value: String::new(),
-        });
+        assert!(matches!(
+            calculation_error,
+            CalculationError::InvalidIntegerValue {
+                provided_value,
+                ..
+            } if provided_value.is_empty()
+        ));
+    }
+
+    #[test]
+    fn invalid_integer_value_error_preserves_exact_input_payload_including_whitespace() {
+        let calculation_error =
+            build_calculation_request_from_text_parts(" 42", "+", "1").expect_err("8e4b1a7d");
+
+        assert!(matches!(
+            calculation_error,
+            CalculationError::InvalidIntegerValue {
+                provided_value,
+                ..
+            } if provided_value == " 42"
+        ));
+    }
+
+    #[test]
+    fn preserves_source_error_for_invalid_integer_value() {
+        let calculation_error =
+            build_calculation_request_from_text_parts("invalid", "+", "2").expect_err("2a6d8e1c");
+
+        let source_error_text = calculation_error
+            .source()
+            .map(ToString::to_string)
+            .expect("5d1a7c9e");
+
+        assert_eq!(source_error_text, "invalid digit found in string");
+    }
+
+    #[test]
+    fn preserves_source_error_for_invalid_right_integer_value_in_text_parts() {
+        let calculation_error =
+            build_calculation_request_from_text_parts("2", "+", "invalid").expect_err("c8a71d4f");
+
+        let source_error_text = calculation_error
+            .source()
+            .map(ToString::to_string)
+            .expect("7f3d8c1a");
+
+        assert_eq!(source_error_text, "invalid digit found in string");
+    }
+
+    #[test]
+    fn preserves_source_error_for_invalid_left_integer_value_in_wire_format() {
+        let calculation_error =
+            deserialize_calculation_request_from_wire_format("invalid|+|2").expect_err("d4b1e9a3");
+
+        let source_error_text = calculation_error
+            .source()
+            .map(ToString::to_string)
+            .expect("5e9a2c7d");
+
+        assert_eq!(source_error_text, "invalid digit found in string");
     }
 
     #[test]
@@ -497,26 +677,179 @@ mod unit_tests {
 
     #[test]
     fn verifies_commutativity_property_for_addition() {
-        for left_operand in -20i64..=20i64 {
-            for right_operand in -20i64..=20i64 {
+        (-20i64..=20i64)
+            .flat_map(|left_operand| {
+                (-20i64..=20i64).map(move |right_operand| (left_operand, right_operand))
+            })
+            .try_for_each(|(left_operand, right_operand)| {
                 let left_then_right_result =
                     evaluate_calculation_request(&CalculationRequest::new(
                         ArithmeticOperation::Addition,
                         left_operand,
                         right_operand,
-                    ))
-                    .expect("7a2e5d1b");
+                    ))?;
 
                 let right_then_left_result =
                     evaluate_calculation_request(&CalculationRequest::new(
                         ArithmeticOperation::Addition,
                         right_operand,
                         left_operand,
-                    ))
-                    .expect("9f3c1b6e");
+                    ))?;
 
                 assert_eq!(left_then_right_result, right_then_left_result);
-            }
-        }
+                Ok::<(), CalculationError>(())
+            })
+            .expect("7a2e5d1b");
+    }
+
+    #[test]
+    fn verifies_anti_commutativity_property_for_subtraction() {
+        (-200i64..=200i64)
+            .flat_map(|left_operand| {
+                (-200i64..=200i64).map(move |right_operand| (left_operand, right_operand))
+            })
+            .try_for_each(|(left_operand, right_operand)| {
+                let left_minus_right_result =
+                    evaluate_calculation_request(&CalculationRequest::new(
+                        ArithmeticOperation::Subtraction,
+                        left_operand,
+                        right_operand,
+                    ))?;
+                let right_minus_left_result =
+                    evaluate_calculation_request(&CalculationRequest::new(
+                        ArithmeticOperation::Subtraction,
+                        right_operand,
+                        left_operand,
+                    ))?;
+                let negated_right_minus_left = right_minus_left_result
+                    .value()
+                    .checked_neg()
+                    .ok_or(CalculationError::Overflow)?;
+
+                assert_eq!(left_minus_right_result.value(), negated_right_minus_left);
+                Ok::<(), CalculationError>(())
+            })
+            .expect("f1a7c3e9");
+    }
+
+    #[test]
+    fn rendered_reports_are_consistent_with_evaluated_result_contract() {
+        let deterministic_fixture_set = [
+            CalculationRequest::new(ArithmeticOperation::Addition, 12, 8),
+            CalculationRequest::new(ArithmeticOperation::Subtraction, -3, 11),
+            CalculationRequest::new(ArithmeticOperation::Multiplication, -7, 6),
+            CalculationRequest::new(ArithmeticOperation::Division, 81, 9),
+        ];
+
+        deterministic_fixture_set
+            .iter()
+            .try_for_each(|calculation_request| {
+                let calculation_result = evaluate_calculation_request(calculation_request)?;
+                let text_report = render_calculation_report(calculation_request)?;
+                let json_report = render_calculation_report_with_format(
+                    calculation_request,
+                    CalculationReportFormat::Json,
+                )?;
+
+                let expected_text_report = format!(
+                    "operation={} left={} right={} result={}",
+                    calculation_request.arithmetic_operation(),
+                    calculation_request.left_operand(),
+                    calculation_request.right_operand(),
+                    calculation_result.value()
+                );
+                let expected_json_report = format!(
+                    "{{\"operation\":\"{}\",\"left\":{},\"right\":{},\"result\":{}}}",
+                    calculation_request.arithmetic_operation(),
+                    calculation_request.left_operand(),
+                    calculation_request.right_operand(),
+                    calculation_result.value()
+                );
+
+                assert_eq!(text_report, expected_text_report);
+                assert_eq!(json_report, expected_json_report);
+                Ok::<(), CalculationError>(())
+            })
+            .expect("0c9e4a7d");
+    }
+
+    #[test]
+    fn non_parse_calculation_errors_do_not_expose_source_chain() {
+        let non_parse_calculation_errors = [
+            CalculationError::DivisionByZero,
+            CalculationError::Overflow,
+            CalculationError::MalformedWireFormat {
+                provided_wire_format: "1|+|2|extra".to_owned(),
+            },
+            CalculationError::UnknownOperation {
+                provided_operation: "%".to_owned(),
+            },
+            CalculationError::UnknownReportFormat {
+                provided_format: "yaml".to_owned(),
+            },
+        ];
+
+        let all_errors_have_empty_source_chain = non_parse_calculation_errors
+            .iter()
+            .all(|calculation_error| calculation_error.source().is_none());
+        assert!(all_errors_have_empty_source_chain);
+    }
+
+    #[test]
+    fn serialized_wire_format_always_contains_exactly_two_delimiters() {
+        let deterministic_fixture_set = [
+            CalculationRequest::new(ArithmeticOperation::Addition, 10, 5),
+            CalculationRequest::new(ArithmeticOperation::Subtraction, -10, 5),
+            CalculationRequest::new(ArithmeticOperation::Multiplication, 0, 999),
+            CalculationRequest::new(ArithmeticOperation::Division, -27, 3),
+        ];
+
+        let all_serialized_wire_formats_have_exactly_two_delimiters = deterministic_fixture_set
+            .iter()
+            .map(serialize_calculation_request_to_wire_format)
+            .all(|serialized_wire_format| {
+                let wire_format_delimiter_count = serialized_wire_format
+                    .chars()
+                    .filter(|symbol| *symbol == WIRE_FORMAT_DELIMITER)
+                    .count();
+                wire_format_delimiter_count == 2usize
+            });
+        assert!(all_serialized_wire_formats_have_exactly_two_delimiters);
+    }
+
+    #[test]
+    fn wire_format_round_trip_preserves_i64_extreme_values_for_supported_operations() {
+        let deterministic_extreme_cases = [
+            (
+                CalculationRequest::new(ArithmeticOperation::Addition, i64::MIN, i64::MAX),
+                "-9223372036854775808|+|9223372036854775807",
+            ),
+            (
+                CalculationRequest::new(ArithmeticOperation::Subtraction, i64::MAX, i64::MIN),
+                "9223372036854775807|-|-9223372036854775808",
+            ),
+            (
+                CalculationRequest::new(ArithmeticOperation::Multiplication, i64::MIN, 1),
+                "-9223372036854775808|*|1",
+            ),
+            (
+                CalculationRequest::new(ArithmeticOperation::Division, i64::MIN, 1),
+                "-9223372036854775808|/|1",
+            ),
+        ];
+
+        let round_trip_result = deterministic_extreme_cases.iter().try_for_each(
+            |(calculation_request, expected_wire_format)| {
+                let serialized_wire_format =
+                    serialize_calculation_request_to_wire_format(calculation_request);
+                assert_eq!(serialized_wire_format, *expected_wire_format);
+                assert_eq!(
+                    deserialize_calculation_request_from_wire_format(&serialized_wire_format),
+                    Ok(*calculation_request)
+                );
+                Ok::<(), CalculationError>(())
+            },
+        );
+        assert_eq!(round_trip_result, Ok(()));
     }
 }

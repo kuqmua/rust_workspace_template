@@ -218,8 +218,10 @@ mod integration_tests {
         let calculation_error =
             build_calculation_request_from_text_parts("invalid", "+", "3").expect_err("2c7e1d9a");
 
+        let parse_integer_error = "invalid".parse::<i64>().expect_err("1c9d7a4e");
         assert_eq!(calculation_error, shared_logic::CalculationError::InvalidIntegerValue {
             provided_value: "invalid".to_owned(),
+            source_error: parse_integer_error,
         });
     }
 
@@ -228,8 +230,10 @@ mod integration_tests {
         let calculation_error =
             deserialize_calculation_request_from_wire_format("10|+|invalid").expect_err("7f1d3a8c");
 
+        let parse_integer_error = "invalid".parse::<i64>().expect_err("8d3a1f7c");
         assert_eq!(calculation_error, shared_logic::CalculationError::InvalidIntegerValue {
             provided_value: "invalid".to_owned(),
+            source_error: parse_integer_error,
         });
     }
 

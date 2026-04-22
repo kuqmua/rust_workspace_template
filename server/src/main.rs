@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use core::{
     fmt::{Display, Formatter, Result as FormattingResult},
     str::FromStr as _,
@@ -8,182 +10,151 @@ use std::{
     process::{ExitCode, Termination},
 };
 
-use shared_logic::{
-    CalculationError, CalculationReportFormat, build_calculation_request_from_text_parts,
-    deserialize_calculation_request_from_wire_format, render_calculation_report_with_format,
-};
+use shared_logic::{CalculationError, CalculationReportFormat};
 #[cfg(test)]
 use test_helpers as _;
 
-const EXIT_CODE_FAILURE: u8 = 2;
-const ARGUMENT_FLAG_HELP_LONG: &str = "--help";
-const ARGUMENT_FLAG_HELP_SHORT: &str = "-h";
-const ARGUMENT_FLAG_WIRE_FORMAT: &str = "--wire-format";
 const ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT: &str = "CALCULATION_REPORT_FORMAT";
-const MESSAGE_USAGE_HEADER: &str = "Usage:";
-const MESSAGE_USAGE_POSITIONAL: &str = "  server <left_operand> <operation> <right_operand>";
-const MESSAGE_USAGE_WIRE_FORMAT: &str = "  server --wire-format <left|operation|right>";
-const MESSAGE_USAGE_HELP: &str = "  server --help";
-const MESSAGE_USAGE_ENVIRONMENT: &str =
-    "Environment: CALCULATION_REPORT_FORMAT=text|json (default: text)";
-const MESSAGE_INVALID_ARGUMENTS_PREFIX: &str = "invalid arguments:";
+const EXIT_CODE_FAILURE: u8 = 2;
+const MESSAGE_NON_UNICODE_REPORT_FORMAT_ENVIRONMENT_VARIABLE: &str =
+    "environment variable CALCULATION_REPORT_FORMAT contains non-unicode data";
+const MESSAGE_INVALID_CONFIGURATION_PREFIX: &str = "invalid configuration:";
+const STARTUP_TEXT_MESSAGE: &str = "server started";
+const STARTUP_JSON_MESSAGE: &str = "{\"status\":\"started\"}";
 
 #[derive(Debug, Eq, PartialEq)]
 enum StartupOutput {
-    CalculationReport { report: String },
-    HelpText,
+    Json,
+    Text,
+}
+
+impl Display for StartupOutput {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormattingResult {
+        match self {
+            Self::Json => write!(f, "{STARTUP_JSON_MESSAGE}"),
+            Self::Text => write!(f, "{STARTUP_TEXT_MESSAGE}"),
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
 enum StartupError {
-    Calculation(CalculationError),
-    InvalidArguments { details: String },
+    Configuration(CalculationError),
+    InvalidConfiguration { details: String },
 }
 
 impl Display for StartupError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FormattingResult {
         match self {
-            Self::Calculation(calculation_error) => write!(f, "{calculation_error}"),
-            Self::InvalidArguments { details } => {
-                write!(f, "{MESSAGE_INVALID_ARGUMENTS_PREFIX} {details}")
+            Self::Configuration(configuration_error) => write!(f, "{configuration_error}"),
+            Self::InvalidConfiguration { details } => {
+                write!(f, "{MESSAGE_INVALID_CONFIGURATION_PREFIX} {details}")
             }
         }
     }
 }
 
-impl Error for StartupError {}
+impl Error for StartupError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Configuration(configuration_error) => Some(configuration_error),
+            Self::InvalidConfiguration { .. } => None,
+        }
+    }
+}
 
 impl From<CalculationError> for StartupError {
-    fn from(calculation_error: CalculationError) -> Self {
-        Self::Calculation(calculation_error)
+    fn from(configuration_error: CalculationError) -> Self {
+        Self::Configuration(configuration_error)
     }
 }
 
 fn main() -> impl Termination {
-    let command_line_arguments: Vec<String> = env::args().skip(1).collect();
-    let startup_output_result = match command_line_arguments.as_slice() {
-        [] => Ok(StartupOutput::HelpText),
-        [first_argument]
-            if first_argument == ARGUMENT_FLAG_HELP_LONG
-                || first_argument == ARGUMENT_FLAG_HELP_SHORT =>
-        {
-            Ok(StartupOutput::HelpText)
-        }
-        _ => {
-            let calculation_report_format_result = {
-                let environment_value_result =
-                    env::var(ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT);
-                match environment_value_result {
-                    Ok(environment_value) => CalculationReportFormat::from_str(&environment_value)
-                        .map_err(StartupError::from),
-                    Err(env::VarError::NotPresent) => Ok(CalculationReportFormat::Text),
-                    Err(env::VarError::NotUnicode(_non_unicode_environment_value)) => {
-                        Err(StartupError::InvalidArguments {
-                            details: format!(
-                                "environment variable \
-                                 {ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT} contains \
-                                 non-unicode data"
-                            ),
-                        })
-                    }
-                }
-            };
-
-            calculation_report_format_result.and_then(|calculation_report_format| {
-                match command_line_arguments.as_slice() {
-                    [wire_format_flag, wire_format_value]
-                        if wire_format_flag == ARGUMENT_FLAG_WIRE_FORMAT =>
-                    {
-                        deserialize_calculation_request_from_wire_format(wire_format_value)
-                            .and_then(|calculation_request| {
-                                render_calculation_report_with_format(
-                                    &calculation_request,
-                                    calculation_report_format,
-                                )
-                            })
-                            .map(|report| StartupOutput::CalculationReport { report })
-                            .map_err(StartupError::from)
-                    }
-                    [
-                        left_operand_text,
-                        arithmetic_operation_text,
-                        right_operand_text,
-                    ] => build_calculation_request_from_text_parts(
-                        left_operand_text,
-                        arithmetic_operation_text,
-                        right_operand_text,
-                    )
-                    .and_then(|calculation_request| {
-                        render_calculation_report_with_format(
-                            &calculation_request,
-                            calculation_report_format,
-                        )
-                    })
-                    .map(|report| StartupOutput::CalculationReport { report })
-                    .map_err(StartupError::from),
-                    _ => Err(StartupError::InvalidArguments {
-                        details: format!(
-                            "expected no args, '--wire-format <value>', or exactly 3 positional \
-                             args, received {}",
-                            command_line_arguments.len()
-                        ),
-                    }),
-                }
-            })
-        }
-    };
+    let startup_output_result = env::var_os(ENVIRONMENT_VARIABLE_CALCULATION_REPORT_FORMAT).map_or(
+        Ok(StartupOutput::Text),
+        |environment_value_os| {
+            let environment_value_text_result =
+                environment_value_os
+                    .into_string()
+                    .map_err(|_non_unicode_environment_value| StartupError::InvalidConfiguration {
+                        details: MESSAGE_NON_UNICODE_REPORT_FORMAT_ENVIRONMENT_VARIABLE.to_owned(),
+                    });
+            environment_value_text_result
+                .and_then(|environment_value_text_value| {
+                    CalculationReportFormat::from_str(&environment_value_text_value)
+                        .map_err(StartupError::from)
+                })
+                .map(|calculation_report_format| match calculation_report_format {
+                    CalculationReportFormat::Json => StartupOutput::Json,
+                    CalculationReportFormat::Text => StartupOutput::Text,
+                })
+        },
+    );
 
     match startup_output_result {
-        Ok(StartupOutput::HelpText) => {
-            println!("{}", build_usage_message());
-            ExitCode::SUCCESS
-        }
-        Ok(StartupOutput::CalculationReport { report }) => {
-            println!("{report}");
+        Ok(startup_output) => {
+            println!("{startup_output}");
             ExitCode::SUCCESS
         }
         Err(startup_error) => {
             eprintln!("{startup_error}");
-            eprintln!("{}", build_usage_message());
             ExitCode::from(EXIT_CODE_FAILURE)
         }
     }
 }
 
-fn build_usage_message() -> String {
-    [
-        MESSAGE_USAGE_HEADER,
-        MESSAGE_USAGE_POSITIONAL,
-        MESSAGE_USAGE_WIRE_FORMAT,
-        MESSAGE_USAGE_HELP,
-        MESSAGE_USAGE_ENVIRONMENT,
-    ]
-    .join("\n")
-}
-
 #[cfg(test)]
 mod unit_tests {
-    use super::build_usage_message;
+    use std::error::Error as _;
+
+    use shared_logic::CalculationError;
+
+    use super::{STARTUP_JSON_MESSAGE, STARTUP_TEXT_MESSAGE, StartupError, StartupOutput};
 
     #[test]
-    fn usage_message_contains_all_documented_forms() {
-        let usage_message = build_usage_message();
-
-        assert!(usage_message.contains("server <left_operand> <operation> <right_operand>"));
-        assert!(usage_message.contains("server --wire-format <left|operation|right>"));
-        assert!(usage_message.contains("server --help"));
-        assert!(usage_message.contains("CALCULATION_REPORT_FORMAT=text|json"));
+    fn startup_text_message_contract_is_stable() {
+        assert_eq!(StartupOutput::Text.to_string(), STARTUP_TEXT_MESSAGE);
     }
 
     #[test]
-    fn usage_message_has_stable_exact_contract() {
-        let usage_message = build_usage_message();
+    fn startup_json_message_contract_is_stable() {
+        assert_eq!(StartupOutput::Json.to_string(), STARTUP_JSON_MESSAGE);
+    }
 
+    #[test]
+    fn startup_invalid_configuration_error_does_not_expose_nested_source_contract() {
+        let startup_error = StartupError::InvalidConfiguration {
+            details: "CALCULATION_REPORT_FORMAT contains non-unicode data".to_owned(),
+        };
+
+        assert!(startup_error.source().is_none());
+    }
+
+    #[test]
+    fn startup_error_calculation_variant_preserves_source_for_report_format_error_contract() {
+        let startup_error = StartupError::Configuration(CalculationError::UnknownReportFormat {
+            provided_format: "yaml".to_owned(),
+        });
+
+        let source_error = startup_error.source().expect("8d2f1a7c");
         assert_eq!(
-            usage_message,
-            "Usage:\n  server <left_operand> <operation> <right_operand>\n  server --wire-format \
-             <left|operation|right>\n  server --help\nEnvironment: \
-             CALCULATION_REPORT_FORMAT=text|json (default: text)"
+            source_error.to_string(),
+            "unknown calculation report format: yaml; expected 'text' or 'json'"
         );
+    }
+
+    #[test]
+    fn startup_error_exposes_full_nested_parse_source_chain_contract() {
+        let parse_integer_error = "not-an-integer".parse::<i64>().expect_err("a7c1d9e4");
+        let startup_error = StartupError::Configuration(CalculationError::InvalidIntegerValue {
+            provided_value: "not-an-integer".to_owned(),
+            source_error: parse_integer_error,
+        });
+
+        let first_source_error = startup_error.source().expect("6c1a9e7d");
+        let second_source_error = first_source_error.source().expect("5a8d1e7c");
+
+        assert_eq!(first_source_error.to_string(), "invalid integer value: not-an-integer");
+        assert_eq!(second_source_error.to_string(), "invalid digit found in string");
     }
 }

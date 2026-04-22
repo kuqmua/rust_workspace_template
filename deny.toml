@@ -7,7 +7,7 @@ yanked = "deny"
 ignore = []
 
 [bans]
-multiple-versions = "warn"
+multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 

@@ -14,10 +14,10 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
-shared_logic = { path = "shared_logic" }
-thiserror = { version = "2.0.18", default-features = false }
-test_helpers = { path = "test_helpers" }
 proptest = { version = "1.9.0", default-features = false, features = ["std"] }
+shared_logic = { path = "shared_logic" }
+test_helpers = { path = "test_helpers" }
+thiserror = { version = "2.0.18", default-features = false }
 trybuild = { version = "1.0.112", default-features = false }
 
 [workspace.lints.rust]
@@ -1068,3 +1068,15 @@ codegen-units = 1
 lto = "fat"
 panic = "abort"
 strip = "symbols"
+overflow-checks = true
+incremental = false
+debug = 0
+debug-assertions = false
+
+[profile.dev]
+overflow-checks = true
+debug-assertions = true
+
+[profile.test]
+overflow-checks = true
+debug-assertions = true

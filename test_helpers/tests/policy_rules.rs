@@ -1179,7 +1179,7 @@ mod policy_tests {
     }
 
     #[test]
-    fn enforces_help_contract_tests_for_invalid_report_format_environment_values() {
+    fn enforces_non_cli_startup_contract_tests_for_server() {
         let workspace_root = workspace_root_path();
         let cli_contract_test_path = workspace_root
             .join("server")
@@ -1188,15 +1188,20 @@ mod policy_tests {
         let cli_contract_test_content = read_file(&cli_contract_test_path);
 
         assert!(
-            cli_contract_test_content
-                .contains("prints_help_even_when_report_format_environment_variable_is_invalid"),
-            "missing help contract test for invalid utf-8 value in {}",
+            cli_contract_test_content.contains("starts_without_arguments_in_default_text_mode"),
+            "missing startup contract test for default launch in {}",
             cli_contract_test_path.display()
         );
         assert!(
             cli_contract_test_content
-                .contains("prints_help_with_non_unicode_report_format_environment_variable"),
-            "missing help contract test for non-unicode environment value in {}",
+                .contains("ignores_command_line_arguments_and_keeps_startup_output_stable"),
+            "missing non-cli argument-ignoring contract test in {}",
+            cli_contract_test_path.display()
+        );
+        assert!(
+            cli_contract_test_content
+                .contains("returns_failure_for_non_unicode_report_format_environment_variable"),
+            "missing non-unicode environment contract test in {}",
             cli_contract_test_path.display()
         );
     }
@@ -1247,7 +1252,7 @@ mod policy_tests {
         let snapshot_test_content = read_file(&snapshot_test_path);
 
         assert!(
-            snapshot_test_content.contains("json_output_snapshot_contract_is_stable"),
+            snapshot_test_content.contains("json_startup_snapshot_contract_is_stable"),
             "missing dedicated JSON snapshot contract test in {}",
             snapshot_test_path.display()
         );

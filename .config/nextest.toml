@@ -3,6 +3,6 @@ fail-fast = false
 
 [profile.ci]
 fail-fast = false
-retries = { backoff = "fixed", count = 2, delay = "1s" }
+retries = 0
 status-level = "fail"
 final-status-level = "slow"
