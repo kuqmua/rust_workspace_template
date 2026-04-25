@@ -4,6 +4,7 @@ members = [
   "server",
   "shared_logic",
   "test_helpers",
+  "tests",
 ]
 exclude = []
 
@@ -14,11 +15,16 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
-proptest = { version = "1.9.0", default-features = false, features = ["std"] }
+proptest = { version = "=1.9.0", default-features = false, features = ["std"] }
+regex = { version = "=1.12.2" }
 shared_logic = { path = "shared_logic" }
+syn = { version = "=2.0.112", features = ["full", "visit", "visit-mut", "extra-traits"] }
 test_helpers = { path = "test_helpers" }
-thiserror = { version = "2.0.18", default-features = false }
-trybuild = { version = "1.0.112", default-features = false }
+thiserror = { version = "=2.0.18", default-features = false }
+toml = { version = "=0.9.8" }
+trybuild = { version = "=1.0.112", default-features = false }
+uuid = { version = "=1.19.0", features = ["v4"] }
+walkdir = { version = "=2.5.0" }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
