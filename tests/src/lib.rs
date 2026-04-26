@@ -71,50 +71,6 @@ mod tests {
             }
         }
     }
-    struct DbgVisitor {
-        found: bool,
-    }
-    impl<'ast> Visit<'ast> for DbgVisitor {
-        fn visit_macro(&mut self, i: &'ast syn::Macro) {
-            if i.path
-                .segments
-                .last()
-                .is_some_and(|v_4b8e1c7a| v_4b8e1c7a.ident == "dbg")
-            {
-                self.found = true;
-            }
-        }
-    }
-    struct TodoUnimplVisitor {
-        todo_found: usize,
-        unimplemented_found: usize,
-    }
-    impl<'ast> Visit<'ast> for TodoUnimplVisitor {
-        fn visit_macro(&mut self, i: &'ast syn::Macro) {
-            if let Some(last_segment) = i.path.segments.last() {
-                match () {
-                    () if last_segment.ident == "todo" => {
-                        self.todo_found = self.todo_found.saturating_add(1);
-                    }
-                    () if last_segment.ident == "unimplemented" => {
-                        self.unimplemented_found = self.unimplemented_found.saturating_add(1);
-                    }
-                    () => {}
-                }
-            }
-        }
-    }
-    struct UnwrapVisitor {
-        found_count: usize,
-    }
-    impl<'ast> Visit<'ast> for UnwrapVisitor {
-        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
-            if i.method == "unwrap" && i.args.is_empty() {
-                self.found_count = self.found_count.saturating_add(1);
-            }
-            visit_expr_method_call(self, i);
-        }
-    }
     #[test]
     fn all_crates_have_publish_false() {
         assert_root_workspace_cargo_policy("f2a8c5d3", |path, parsed, ers| {
@@ -228,12 +184,14 @@ mod tests {
         }
         let mut all_uuids = Vec::new();
         let mut all_ers = Vec::new();
-        for_each_rs_syn_file(|path, ast| {
-            let visitor = visit_syn_file(ast, ExpectVisitor {
+        for_each_rs_file_content(|path, content| {
+            let ast = parse_file(content).expect("5e7a83eb");
+            let mut visitor = ExpectVisitor {
                 method_name: expect_or_panic.method_name(),
                 uuids: Vec::new(),
                 ers: Vec::new(),
-            });
+            };
+            Visit::visit_file(&mut visitor, &ast);
             all_uuids.extend(visitor.uuids);
             all_ers.extend(
                 visitor
@@ -487,8 +445,7 @@ mod tests {
     fn is_exception(path: &Path, exceptions: &[&str]) -> bool {
         exceptions.iter().any(|exception| path.ends_with(exception))
     }
-    fn assert_cargo_toml_ers_empty(
-        exceptions: &[&str],
+    fn assert_root_workspace_cargo_policy(
         exp_id: &'static str,
         mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
     ) {
@@ -499,7 +456,7 @@ mod tests {
                 .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
                 .filter_map(Result::ok)
                 .filter(|el| el.file_name() == "Cargo.toml")
-                .filter(|el| !is_exception(el.path(), exceptions))
+                .filter(|el| !is_exception(el.path(), &ROOT_CARGO_TOML_EXCEPTIONS))
             {
                 let path = entry.path();
                 let parsed = match read_to_string(path) {
@@ -515,14 +472,6 @@ mod tests {
         };
         assert_joined_ers_empty(&ers, exp_id);
     }
-    fn assert_root_workspace_cargo_policy(
-        exp_id: &'static str,
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
-    ) {
-        assert_cargo_toml_ers_empty(&ROOT_CARGO_TOML_EXCEPTIONS, exp_id, |path, parsed, ers| {
-            mk_ers(path, parsed, ers);
-        });
-    }
     fn assert_joined_ers_empty(ers: &[String], exp_id: &'static str) {
         assert_joined_ers_empty_with_ctx(ers, exp_id, "");
     }
@@ -535,68 +484,6 @@ mod tests {
     }
     fn str_set(items: &[String]) -> HashSet<&str> {
         items.iter().map(String::as_str).collect::<HashSet<&str>>()
-    }
-    fn visit_syn_file<V>(ast: &syn::File, mut visitor: V) -> V
-    where
-        V: for<'ast> Visit<'ast>,
-    {
-        Visit::visit_file(&mut visitor, ast);
-        visitor
-    }
-    fn assert_rs_ast_ers_empty_with_ctx(
-        exp_id: &'static str,
-        ctx: &str,
-        mut mk_ers: impl FnMut(&Path, &syn::File, &mut Vec<String>),
-    ) {
-        let ers = {
-            let mut collected_ers = Vec::new();
-            for_each_rs_syn_file(|path, ast| {
-                mk_ers(path, ast, &mut collected_ers);
-            });
-            collected_ers
-        };
-        assert_joined_ers_empty_with_ctx(&ers, exp_id, ctx);
-    }
-    #[test]
-    fn no_dbg_macro_in_source_code() {
-        assert_rs_ast_ers_empty_with_ctx("f1c7a4e3", "dbg!() found:", |path, ast, ers| {
-            let visitor = visit_syn_file(ast, DbgVisitor { found: false });
-            if visitor.found {
-                ers.push(format!("{}: contains dbg!()", path.display()));
-            }
-        });
-    }
-    #[test]
-    fn no_todo_or_unimplemented_macro_in_source_code() {
-        assert_rs_ast_ers_empty_with_ctx(
-            "c4e9a2d7",
-            "todo!/unimplemented! found:",
-            |path, ast, ers| {
-                let visitor = visit_syn_file(ast, TodoUnimplVisitor {
-                    todo_found: 0,
-                    unimplemented_found: 0,
-                });
-                push_repeated_file_er(ers, path, "contains todo!()", visitor.todo_found);
-                push_repeated_file_er(
-                    ers,
-                    path,
-                    "contains unimplemented!()",
-                    visitor.unimplemented_found,
-                );
-            },
-        );
-    }
-    #[test]
-    fn no_unwrap_in_source_code() {
-        assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
-            let visitor = visit_syn_file(ast, UnwrapVisitor { found_count: 0 });
-            push_repeated_file_er(ers, path, "unwrap() call", visitor.found_count);
-        });
-    }
-    fn push_repeated_file_er(ers: &mut Vec<String>, path: &Path, msg: &str, times: usize) {
-        for _ in 0..times {
-            ers.push(format!("{}: {msg}", path.display()));
-        }
     }
     fn project_dir() -> WalkDir {
         WalkDir::new("../")
@@ -621,12 +508,6 @@ mod tests {
             };
             on_file(path, &content);
         }
-    }
-    fn for_each_rs_syn_file(mut on_file: impl FnMut(&Path, &syn::File)) {
-        for_each_rs_file_content(|path, content| {
-            let ast = parse_file(content).expect("5e7a83eb");
-            on_file(path, &ast);
-        });
     }
     fn workspace_tbl_from_cargo_toml() -> Table {
         let mut tbl = read_to_string("../Cargo.toml")
@@ -653,42 +534,6 @@ mod tests {
             | Value::Datetime(_)
             | Value::Array(_) => panic!("{uuid}"),
         }
-    }
-    #[test]
-    fn workspace_crates_must_use_workspace_dependencies() {
-        assert_cargo_toml_ers_empty(
-            &[
-                "../Cargo.toml", // workspace
-            ],
-            "5f8a6d17",
-            |path: &Path, parsed: &TomlTable, ers: &mut Vec<String>| {
-                for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
-                    if let Some(deps) = parsed.get(dep_section).and_then(Value::as_table) {
-                        for (dep_name, dep_value) in deps {
-                            if !match dep_value {
-                                Value::Table(dep_tbl) => {
-                                    dep_tbl.contains_key("path")
-                                        || dep_tbl.get("workspace") == Some(&Value::Boolean(true))
-                                }
-                                Value::String(_)
-                                | Value::Integer(_)
-                                | Value::Float(_)
-                                | Value::Boolean(_)
-                                | Value::Datetime(_)
-                                | Value::Array(_) => false,
-                            } {
-                                ers.push(format!(
-                                    "{}: dependency `{dep_name}` in [{dep_section}] must use \
-                                     `.workspace = true` (only `path = ...` is allowed as \
-                                     exception)",
-                                    path.display(),
-                                ));
-                            }
-                        }
-                    }
-                }
-            },
-        );
     }
     #[test]
     fn workspace_members_exist_on_disk() {

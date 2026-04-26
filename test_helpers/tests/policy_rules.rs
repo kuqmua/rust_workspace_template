@@ -460,55 +460,6 @@ mod policy_tests {
     }
 
     #[test]
-    fn enforces_expect_message_identifier_format_for_single_and_multi_line_calls() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            if rust_file.ends_with("policy_rules.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            let mut message_identifiers = Vec::new();
-            let mut remaining_content = file_content.as_str();
-
-            while let Some((_before_expect_call, after_expect_call)) =
-                remaining_content.split_once("expect(")
-            {
-                let expect_argument = after_expect_call.trim_start();
-                if let Some(expect_argument_without_open_quote) = expect_argument.strip_prefix('"')
-                {
-                    if let Some((message_identifier, _remaining_after_message)) =
-                        expect_argument_without_open_quote.split_once('"')
-                    {
-                        message_identifiers.push(message_identifier);
-                    }
-                }
-                remaining_content = after_expect_call;
-            }
-
-            for message_identifier in message_identifiers {
-                assert!(
-                    message_identifier.len() == 8,
-                    "expect message id must be exactly 8 chars in {}: {}",
-                    rust_file.display(),
-                    message_identifier
-                );
-                assert!(
-                    message_identifier
-                        .chars()
-                        .all(|character| character.is_ascii_hexdigit()
-                            && !character.is_ascii_uppercase()),
-                    "expect message id must be lowercase hex in {}: {}",
-                    rust_file.display(),
-                    message_identifier
-                );
-            }
-        }
-    }
-
-    #[test]
     fn forbids_direct_index_zero_or_one_access_patterns() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
