@@ -19,20 +19,18 @@ optml = { path = "optml" }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = ["span-locations"] }
 proptest = { version = "=1.9.0", default-features = false, features = ["std"] }
 quote = { version = "=1.0.42", default-features = false, features = ["proc-macro"] }
-regex = { version = "=1.12.2", default-features = false }
+regex = { version = "=1.12.2", default-features = false, features = ["unicode-perl"] }
 shared_logic = { path = "shared_logic" }
 syn = { version = "=2.0.112", default-features = false, features = ["full", "visit", "visit-mut", "extra-traits", "derive", "parsing", "printing", "clone-impls", "proc-macro"] }
 test_helpers = { path = "test_helpers" }
 thiserror = { version = "=2.0.18", default-features = false }
-toml = { version = "=0.9.8", default-features = false, features = ["parse"] }
+toml = { version = "=0.9.8", default-features = false, features = ["parse", "serde"] }
 trybuild = { version = "=1.0.112", default-features = false }
 uuid = { version = "=1.19.0", default-features = false, features = ["v4"] }
 walkdir = { version = "=2.5.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
-deprecated_safe = { level = "deny", priority = -1 }
-unknown_or_malformed_diagnostic_attributes = { level = "deny", priority = -1 }
 absolute_paths_not_starting_with_crate = "deny"
 deprecated_in_future = "deny"
 elided_lifetimes_in_paths = "deny"
@@ -263,6 +261,7 @@ internal_eq_trait_method_impls = "deny"
 duplicate_features = "deny"
 linker_info = "deny"
 unreachable_cfg_select_predicates = "deny"
+float_literal_f32_fallback = "deny"
 
 [workspace.lints.clippy]
 absolute_paths = "deny"

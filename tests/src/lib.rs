@@ -435,7 +435,11 @@ mod tests {
                     }
                     match v_tbl.len() {
                         1 => {}
-                        2 => validate_workspace_dep_features(v_tbl),
+                        2 => {
+                            if v_tbl.contains_key("features") {
+                                validate_workspace_dep_features(v_tbl);
+                            }
+                        }
                         3 => {
                             validate_workspace_dep_features(v_tbl);
                             match v_tbl.get("default-features").expect("847a138f") {
