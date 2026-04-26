@@ -12,9 +12,6 @@ keywords = ["workspace", "template"]
 categories = ["development-tools"]
 
 [dependencies]
-thiserror.workspace = true
-
-[dev-dependencies]
 
 [lints]
 workspace = true

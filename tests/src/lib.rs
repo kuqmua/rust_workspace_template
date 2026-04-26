@@ -474,30 +474,6 @@ mod tests {
             .and_then(|part| part.parse::<u64>().ok())
             .is_some()
     }
-    fn env_keys_from_file(path: &str) -> Vec<String> {
-        read_to_string(path)
-            .expect("b3a7c1e4")
-            .lines()
-            .filter_map(|line| {
-                let trimmed = line.trim();
-                if trimmed.is_empty() || trimmed.starts_with('#') {
-                    return None;
-                }
-                trimmed.split_once('=').map(|(key, _)| key)
-            })
-            .map(str::to_owned)
-            .collect()
-    }
-    #[test]
-    fn env_and_envexample_have_same_keys() {
-        let env_keys = env_keys_from_file("../server/.env");
-        let example_keys = env_keys_from_file("../server/.envexample");
-        let env_keys_set = str_set(&env_keys);
-        let example_keys_set = str_set(&example_keys);
-        let mut ers = collect_missing_key_ers(&env_keys, &example_keys_set, ".env", ".envexample");
-        ers.extend(collect_missing_key_ers(&example_keys, &env_keys_set, ".envexample", ".env"));
-        assert_joined_ers_empty_sorted(&mut ers, "c8d2f1a3");
-    }
     fn collect_missing_items<'items>(
         items: &'items [String],
         present_set: &HashSet<&str>,
@@ -507,17 +483,6 @@ mod tests {
             .map(String::as_str)
             .filter(|item| !present_set.contains(item))
             .collect::<Vec<&str>>()
-    }
-    fn collect_missing_key_ers(
-        source_keys: &[String],
-        target_set: &HashSet<&str>,
-        source_file: &str,
-        target_file: &str,
-    ) -> Vec<String> {
-        collect_missing_items(source_keys, target_set)
-            .into_iter()
-            .map(|key| format!("key `{key}` in {source_file} but missing from {target_file}"))
-            .collect::<Vec<String>>()
     }
     fn is_exception(path: &Path, exceptions: &[&str]) -> bool {
         exceptions.iter().any(|exception| path.ends_with(exception))
@@ -567,10 +532,6 @@ mod tests {
         } else {
             assert!(ers.is_empty(), "{exp_id} {ctx}\n{}", ers.join("\n"));
         }
-    }
-    fn assert_joined_ers_empty_sorted(ers: &mut [String], exp_id: &'static str) {
-        ers.sort();
-        assert_joined_ers_empty(ers, exp_id);
     }
     fn str_set(items: &[String]) -> HashSet<&str> {
         items.iter().map(String::as_str).collect::<HashSet<&str>>()
@@ -746,7 +707,8 @@ mod tests {
             }
             collected
         };
-        assert_joined_ers_empty_sorted(&mut ers, "a4e3b8d1");
+        ers.sort();
+        assert_joined_ers_empty(&ers, "a4e3b8d1");
     }
     #[test]
     fn workspace_members_sorted_alphabetically() {

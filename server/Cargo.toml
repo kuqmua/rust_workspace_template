@@ -12,7 +12,6 @@ keywords = ["server"]
 categories = ["web-programming"]
 
 [dependencies]
-shared_logic.workspace = true
 
 [lints]
 workspace = true
