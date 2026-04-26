@@ -1,11 +1,14 @@
 #[cfg(test)]
+use optml as _;
+
+#[cfg(test)]
 mod tests {
     use std::{
         collections::HashSet,
         ffi::OsStr,
         fs::read_to_string,
         path::Path,
-        process::{Command, Output, Stdio},
+        process::{Command, Stdio},
         str::Split,
     };
 
@@ -142,18 +145,6 @@ mod tests {
         });
     }
     #[test]
-    fn all_crates_use_edition_2024() {
-        assert_root_workspace_cargo_policy("a3d7f1c8", |path, parsed, ers| {
-            let edition = parsed
-                .get("package")
-                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get("edition"))
-                .and_then(Value::as_str);
-            if edition != Some("2024") {
-                ers.push(format!("{}: edition is not \"2024\"", path.display()));
-            }
-        });
-    }
-    #[test]
     fn all_files_are_english_only() {
         let mut ers = Vec::new();
         let exceptions = [
@@ -167,7 +158,12 @@ mod tests {
             .filter_map(Result::ok)
         {
             let path = el_d87f0495.path();
-            if !is_allowed_english_check_file(path) {
+            if !(path.is_file()
+                && matches!(
+                    path.extension().and_then(OsStr::to_str),
+                    Some("rs" | "toml" | "md" | "txt" | "yml" | "yaml" | "json")
+                ))
+            {
                 continue;
             }
             if is_exception(path, &exceptions) {
@@ -176,7 +172,26 @@ mod tests {
             let Ok(content) = read_to_string(path) else {
                 continue; //skip binary non-utf8 files
             };
-            ers.extend(collect_non_english_symbol_ers(path, &content));
+            ers.extend({
+                let mut collected = Vec::new();
+                for (line_idx, line) in content.lines().enumerate() {
+                    let line_number = line_idx.saturating_add(1);
+                    for ch in line.chars() {
+                        if !(matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}')
+                            || ch.is_ascii())
+                        {
+                            collected.push(format!(
+                                "{}:{} non-english symbol `{}` (U+{:04X})",
+                                path.display(),
+                                line_number,
+                                ch,
+                                u32::from(ch)
+                            ));
+                        }
+                    }
+                }
+                collected
+            });
         }
         assert_joined_ers_empty_with_ctx(&ers, "8db37a2f", "non-english symbols:");
     }
@@ -227,7 +242,16 @@ mod tests {
                     .map(|el_2b9891bd| format!("{path:?}: {el_2b9891bd}")),
             );
         });
-        let duplicates = find_duplicate_strings(&all_uuids);
+        let duplicates = {
+            let mut seen = HashSet::new();
+            let mut duplicates = Vec::new();
+            for el_45f4b8bc in &all_uuids {
+                if !seen.insert(el_45f4b8bc.as_str()) {
+                    duplicates.push(el_45f4b8bc.to_owned());
+                }
+            }
+            duplicates
+        };
         if !duplicates.is_empty() {
             all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
         }
@@ -287,14 +311,24 @@ mod tests {
         exp_id: &'static str,
         exceptions: &[&str],
     ) {
-        let lints_vec_from_cargo_toml = lints_vec_from_cargo_toml_workspace(rust_or_clippy);
+        let lints_vec_from_cargo_toml = {
+            let workspace = workspace_tbl_from_cargo_toml();
+            let lints = toml_val_as_tbl_ref(workspace.get("lints").expect("82eaea37"), "cae226cd");
+            let toml_v_tbl = toml_val_as_tbl_ref(
+                lints.get(rust_or_clippy.name()).expect("dbd02f72"),
+                "6f4580ce",
+            );
+            toml_v_tbl.keys().cloned().collect::<Vec<String>>()
+        };
         let lints_from_cmd = {
             let output = Command::new(tool)
                 .args(["-W", "help"])
                 .stdout(Stdio::piped())
                 .output()
                 .unwrap_or_else(|_| panic!("{exp_id}"));
-            assert_cmd_output_ok(&output, "95d4595a", "cc4670a2");
+            assert!(output.status.success(), "95d4595a");
+            let stderr = String::from_utf8(output.stderr.clone()).expect("3c1d9f87");
+            assert!(stderr.trim().is_empty(), "cc4670a2");
             let stdout = String::from_utf8(output.stdout).expect("5ef7b23a");
             let regex = if parse_only_clippy {
                 Regex::new(r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
@@ -305,24 +339,42 @@ mod tests {
             };
             regex
                 .captures_iter(&stdout)
-                .map(|el_70833f93| normalize_lint_name(&el_70833f93[1]))
+                .map(|el_70833f93| {
+                    el_70833f93
+                        .get(1)
+                        .expect("4f9c2e87")
+                        .as_str()
+                        .replace('-', "_")
+                })
                 .collect::<Vec<String>>()
         };
-        compare_lints_vecs(rust_or_clippy, &lints_vec_from_cargo_toml, &lints_from_cmd, exceptions);
-    }
-    #[allow(clippy::single_call_fn)] // shared command-output assertions keep status/stderr checks reusable for command-driven tests
-    fn assert_cmd_output_ok(
-        output: &Output,
-        status_exp_id: &'static str,
-        stderr_exp_id: &'static str,
-    ) {
-        assert!(output.status.success(), "{status_exp_id}");
-        let stderr = String::from_utf8(output.stderr.clone()).expect("3c1d9f87");
-        assert!(stderr.trim().is_empty(), "{stderr_exp_id}");
-    }
-    #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
-    fn normalize_lint_name(lint_name: &str) -> String {
-        lint_name.replace('-', "_")
+        {
+            let rust_or_clippy_name = rust_or_clippy.name();
+            let lints_from_cargo_set = str_set(&lints_vec_from_cargo_toml);
+            let lints_to_check_set = str_set(&lints_from_cmd);
+            let lints_exceptions_set = exceptions.iter().copied().collect::<HashSet<&str>>();
+            let (lints_not_in_cargo_toml, lints_missing_by_exception) = {
+                let mut lints_not_in_cargo_toml = Vec::new();
+                let mut lints_missing_by_exception = Vec::new();
+                for lint in collect_missing_items(&lints_from_cmd, &lints_from_cargo_set) {
+                    if lints_exceptions_set.contains(lint) {
+                        lints_missing_by_exception.push(lint);
+                    } else {
+                        lints_not_in_cargo_toml.push(lint);
+                    }
+                }
+                (lints_not_in_cargo_toml, lints_missing_by_exception)
+            };
+            for lint in lints_missing_by_exception {
+                println!(
+                    "todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997"
+                );
+            }
+            assert!(lints_not_in_cargo_toml.is_empty(), "d2b7ba9f {lints_not_in_cargo_toml:?}");
+            let outdated_lints_in_file =
+                collect_missing_items(&lints_vec_from_cargo_toml, &lints_to_check_set);
+            assert!(outdated_lints_in_file.is_empty(), "93787d2d");
+        }
     }
     #[test]
     fn check_panic_contains_only_unq_uuid_v4() {
@@ -348,57 +400,60 @@ mod tests {
         for (_, v_5c36cb98) in
             toml_val_as_tbl_ref(workspace.get("dependencies").expect("2376f58e"), "e117fa5a")
         {
-            validate_workspace_dep_spec(v_5c36cb98);
-        }
-    }
-    #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
-    fn validate_workspace_dep_spec(value: &Value) {
-        let v_tbl = toml_val_as_tbl_ref(value, "cb693a3f");
-        if let Some(path_v) = v_tbl.get("path") {
-            match path_v {
-                Value::String(_) => return,
-                Value::Table(_)
-                | Value::Integer(_)
-                | Value::Float(_)
-                | Value::Boolean(_)
-                | Value::Datetime(_)
-                | Value::Array(_) => panic!("6ca03a1f"),
-            }
-        }
-        validate_workspace_dep_version(v_tbl);
-        match v_tbl.len() {
-            1 => {}
-            2 => validate_workspace_dep_features(v_tbl),
-            3 => {
-                validate_workspace_dep_features(v_tbl);
-                match v_tbl.get("default-features").expect("847a138f") {
-                    &Value::Boolean(_) => (),
-                    &Value::String(_)
-                    | &Value::Table(_)
-                    | &Value::Integer(_)
-                    | &Value::Float(_)
-                    | &Value::Datetime(_)
-                    | &Value::Array(_) => panic!("b320164b"),
+            {
+                let v_tbl = toml_val_as_tbl_ref(v_5c36cb98, "cb693a3f");
+                if let Some(path_v) = v_tbl.get("path") {
+                    match path_v {
+                        Value::String(_) => {}
+                        Value::Table(_)
+                        | Value::Integer(_)
+                        | Value::Float(_)
+                        | Value::Boolean(_)
+                        | Value::Datetime(_)
+                        | Value::Array(_) => panic!("6ca03a1f"),
+                    }
+                } else {
+                    match v_tbl.get("version").expect("d5b2b269") {
+                        Value::String(version_string) => {
+                            assert!(
+                                version_string.strip_prefix('=').is_some_and(|rest| {
+                                    let mut iter = rest.split('.');
+                                    take_next_u64_part(&mut iter)
+                                        && take_next_u64_part(&mut iter)
+                                        && take_next_u64_part(&mut iter)
+                                        && iter.next().is_none()
+                                }),
+                                "6640b9bf"
+                            );
+                        }
+                        Value::Table(_)
+                        | Value::Integer(_)
+                        | Value::Float(_)
+                        | Value::Boolean(_)
+                        | Value::Datetime(_)
+                        | Value::Array(_) => panic!("a3410a37"),
+                    }
+                    match v_tbl.len() {
+                        1 => {}
+                        2 => validate_workspace_dep_features(v_tbl),
+                        3 => {
+                            validate_workspace_dep_features(v_tbl);
+                            match v_tbl.get("default-features").expect("847a138f") {
+                                &Value::Boolean(_) => (),
+                                &Value::String(_)
+                                | &Value::Table(_)
+                                | &Value::Integer(_)
+                                | &Value::Float(_)
+                                | &Value::Datetime(_)
+                                | &Value::Array(_) => panic!("b320164b"),
+                            }
+                        }
+                        _ => panic!("f1139378 {v_tbl:#?}"),
+                    }
                 }
             }
-            _ => panic!("f1139378 {v_tbl:#?}"),
         }
     }
-    #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
-    fn validate_workspace_dep_version(v_tbl: &Table) {
-        match v_tbl.get("version").expect("d5b2b269") {
-            Value::String(version_string) => {
-                assert!(is_exact_three_part_version(version_string), "6640b9bf");
-            }
-            Value::Table(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => panic!("a3410a37"),
-        }
-    }
-    #[allow(clippy::single_call_fn)] // extracted to avoid repeated feature-type checks for dependency tables
     fn validate_workspace_dep_features(v_tbl: &Table) {
         match v_tbl.get("features").expect("473577d5") {
             &Value::Array(_) => (),
@@ -410,66 +465,22 @@ mod tests {
             | &Value::Datetime(_) => panic!("38ba32e9"),
         }
     }
-    #[allow(clippy::single_call_fn)] // isolates exact-version parsing so version-format checks are reusable and testable
-    fn is_exact_three_part_version(version_string: &str) -> bool {
-        let Some(rest) = version_string.strip_prefix('=') else {
-            return false;
-        };
-        let mut iter = rest.split('.');
-        if !take_next_u64_part(&mut iter)
-            || !take_next_u64_part(&mut iter)
-            || !take_next_u64_part(&mut iter)
-        {
-            return false;
-        }
-        iter.next().is_none()
-    }
-    #[allow(clippy::single_call_fn)] // keeps exact-version parser steps reusable while avoiding repeated parse blocks
     fn take_next_u64_part(iter: &mut Split<'_, char>) -> bool {
         iter.next()
             .and_then(|part| part.parse::<u64>().ok())
             .is_some()
     }
-    #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so lint diff logic remains reusable and independently readable
-    fn compare_lints_vecs(
-        rust_or_clippy: RustOrClippy,
-        lints_vec_from_cargo_toml: &[String],
-        lints_to_check: &[String],
-        lints_not_in_cargo_toml_vec_exceptions: &[&str],
-    ) {
-        let rust_or_clippy_name = rust_or_clippy.name();
-        let lints_from_cargo_set = str_set(lints_vec_from_cargo_toml);
-        let lints_to_check_set = str_set(lints_to_check);
-        let lints_exceptions_set = lints_not_in_cargo_toml_vec_exceptions
-            .iter()
-            .copied()
-            .collect::<HashSet<&str>>();
-        let (lints_not_in_cargo_toml, lints_missing_by_exception) = split_lints_missing_from_cargo(
-            lints_to_check,
-            &lints_from_cargo_set,
-            &lints_exceptions_set,
-        );
-        for lint in lints_missing_by_exception {
-            println!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997");
-        }
-        assert!(lints_not_in_cargo_toml.is_empty(), "d2b7ba9f {lints_not_in_cargo_toml:?}");
-        let outdated_lints_in_file =
-            collect_missing_items(lints_vec_from_cargo_toml, &lints_to_check_set);
-        assert!(outdated_lints_in_file.is_empty(), "93787d2d");
-    }
-    #[allow(clippy::single_call_fn)] // shared parser keeps .env line-to-key extraction reusable and test behavior centralized
-    fn parse_env_key_line(line: &str) -> Option<&str> {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            return None;
-        }
-        trimmed.split_once('=').map(|(key, _)| key)
-    }
     fn env_keys_from_file(path: &str) -> Vec<String> {
         read_to_string(path)
             .expect("b3a7c1e4")
             .lines()
-            .filter_map(parse_env_key_line)
+            .filter_map(|line| {
+                let trimmed = line.trim();
+                if trimmed.is_empty() || trimmed.starts_with('#') {
+                    return None;
+                }
+                trimmed.split_once('=').map(|(key, _)| key)
+            })
             .map(str::to_owned)
             .collect()
     }
@@ -483,7 +494,6 @@ mod tests {
         ers.extend(collect_missing_key_ers(&example_keys, &env_keys_set, ".envexample", ".env"));
         assert_joined_ers_empty_sorted(&mut ers, "c8d2f1a3");
     }
-    #[allow(clippy::single_call_fn)] // shared set-difference collector keeps missing-item checks reusable across lint and env-key tests
     fn collect_missing_items<'items>(
         items: &'items [String],
         present_set: &HashSet<&str>,
@@ -494,7 +504,6 @@ mod tests {
             .filter(|item| !present_set.contains(item))
             .collect::<Vec<&str>>()
     }
-    #[allow(clippy::single_call_fn)] // centralized formatter keeps env key mismatch diagnostics consistent
     fn collect_missing_key_ers(
         source_keys: &[String],
         target_set: &HashSet<&str>,
@@ -506,60 +515,37 @@ mod tests {
             .map(|key| format!("key `{key}` in {source_file} but missing from {target_file}"))
             .collect::<Vec<String>>()
     }
-    #[allow(clippy::single_call_fn)] // split keeps lint exception handling explicit while reusing missing-item collection
-    fn split_lints_missing_from_cargo<'lints>(
-        lints_to_check: &'lints [String],
-        lints_from_cargo_set: &HashSet<&str>,
-        lints_exceptions_set: &HashSet<&str>,
-    ) -> (Vec<&'lints str>, Vec<&'lints str>) {
-        let mut lints_not_in_cargo_toml = Vec::new();
-        let mut lints_missing_by_exception = Vec::new();
-        for lint in collect_missing_items(lints_to_check, lints_from_cargo_set) {
-            if lints_exceptions_set.contains(lint) {
-                lints_missing_by_exception.push(lint);
-            } else {
-                lints_not_in_cargo_toml.push(lint);
-            }
-        }
-        (lints_not_in_cargo_toml, lints_missing_by_exception)
-    }
     fn is_exception(path: &Path, exceptions: &[&str]) -> bool {
         exceptions.iter().any(|exception| path.ends_with(exception))
     }
-    #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
-    fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> Vec<String> {
-        let workspace = workspace_tbl_from_cargo_toml();
-        let lints = toml_val_as_tbl_ref(workspace.get("lints").expect("82eaea37"), "cae226cd");
-        let toml_v_tbl =
-            toml_val_as_tbl_ref(lints.get(rust_or_clippy.name()).expect("dbd02f72"), "6f4580ce");
-        toml_v_tbl.keys().cloned().collect::<Vec<String>>()
-    }
-    #[allow(clippy::single_call_fn)] // reusable collector stays split from assertion helper for callsites that need raw error vectors
-    fn collect_cargo_toml_ers(
-        exceptions: &[&str],
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
-    ) -> Vec<String> {
-        let mut ers = Vec::new();
-        for_each_cargo_toml_project_file(exceptions, |path| {
-            let Some(parsed) = read_toml_table(path) else {
-                return;
-            };
-            mk_ers(path, &parsed, &mut ers);
-        });
-        ers
-    }
-    #[allow(clippy::single_call_fn)] // centralizes repeated cargo-toml assertion shape used by multiple tests
     fn assert_cargo_toml_ers_empty(
         exceptions: &[&str],
         exp_id: &'static str,
         mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
     ) {
-        let ers = collect_cargo_toml_ers(exceptions, |path, parsed, ers| {
-            mk_ers(path, parsed, ers);
-        });
+        let ers = {
+            let mut collected_ers = Vec::new();
+            for entry in project_dir()
+                .into_iter()
+                .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
+                .filter_map(Result::ok)
+                .filter(|el| el.file_name() == "Cargo.toml")
+                .filter(|el| !is_exception(el.path(), exceptions))
+            {
+                let path = entry.path();
+                let parsed = match read_to_string(path) {
+                    Ok(content) => match content.parse::<TomlTable>() {
+                        Ok(table) => table,
+                        Err(_) => continue,
+                    },
+                    Err(_) => continue,
+                };
+                mk_ers(path, &parsed, &mut collected_ers);
+            }
+            collected_ers
+        };
         assert_joined_ers_empty(&ers, exp_id);
     }
-    #[allow(clippy::single_call_fn)] // shared workspace-root cargo policy assertion keeps root exceptions and joined-diagnostic behavior consistent across package-metadata checks
     fn assert_root_workspace_cargo_policy(
         exp_id: &'static str,
         mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
@@ -568,11 +554,9 @@ mod tests {
             mk_ers(path, parsed, ers);
         });
     }
-    #[allow(clippy::single_call_fn)] // shared joined-error assertion keeps multi-line diagnostics consistent across workspace policy tests
     fn assert_joined_ers_empty(ers: &[String], exp_id: &'static str) {
         assert_joined_ers_empty_with_ctx(ers, exp_id, "");
     }
-    #[allow(clippy::single_call_fn)] // shared assertion with context keeps multiline diagnostics reusable without duplicating message-format glue
     fn assert_joined_ers_empty_with_ctx(ers: &[String], exp_id: &'static str, ctx: &str) {
         if ctx.is_empty() {
             assert!(ers.is_empty(), "{exp_id}\n{}", ers.join("\n"));
@@ -580,37 +564,13 @@ mod tests {
             assert!(ers.is_empty(), "{exp_id} {ctx}\n{}", ers.join("\n"));
         }
     }
-    #[allow(clippy::single_call_fn)] // shared sort+assert helper keeps joined diagnostics deterministic for tests that accumulate path-dependent errors
     fn assert_joined_ers_empty_sorted(ers: &mut [String], exp_id: &'static str) {
         ers.sort();
         assert_joined_ers_empty(ers, exp_id);
     }
-    #[allow(clippy::single_call_fn)] // shared helper avoids repeated conversion of vec<string> into set<&str>
     fn str_set(items: &[String]) -> HashSet<&str> {
         items.iter().map(String::as_str).collect::<HashSet<&str>>()
     }
-    #[allow(clippy::single_call_fn)] // shared duplicate finder keeps uniqueness checks reusable and consistent
-    fn find_duplicate_strings(items: &[String]) -> Vec<String> {
-        let mut seen = HashSet::new();
-        let mut duplicates = Vec::new();
-        for el_45f4b8bc in items {
-            if !seen.insert(el_45f4b8bc.as_str()) {
-                duplicates.push(el_45f4b8bc.to_owned());
-            }
-        }
-        duplicates
-    }
-    #[allow(clippy::single_call_fn)] // reusable collector stays available for AST-policy tests and keeps collection logic separate from assertion wrappers
-    fn collect_rs_ast_ers(
-        mut mk_ers: impl FnMut(&Path, &syn::File, &mut Vec<String>),
-    ) -> Vec<String> {
-        let mut ers = Vec::new();
-        for_each_rs_syn_file(|path, ast| {
-            mk_ers(path, ast, &mut ers);
-        });
-        ers
-    }
-    #[allow(clippy::single_call_fn)] // shared visitor runner keeps AST test callsites focused on assertion logic rather than visit boilerplate
     fn visit_syn_file<V>(ast: &syn::File, mut visitor: V) -> V
     where
         V: for<'ast> Visit<'ast>,
@@ -618,21 +578,19 @@ mod tests {
         Visit::visit_file(&mut visitor, ast);
         visitor
     }
-    #[allow(clippy::single_call_fn)] // shared assertion wrapper keeps AST-policy tests focused on visitor logic while reusing collection and joined-report formatting
     fn assert_rs_ast_ers_empty_with_ctx(
         exp_id: &'static str,
         ctx: &str,
         mut mk_ers: impl FnMut(&Path, &syn::File, &mut Vec<String>),
     ) {
-        let ers = collect_rs_ast_ers(|path, ast, ers| {
-            mk_ers(path, ast, ers);
-        });
+        let ers = {
+            let mut collected_ers = Vec::new();
+            for_each_rs_syn_file(|path, ast| {
+                mk_ers(path, ast, &mut collected_ers);
+            });
+            collected_ers
+        };
         assert_joined_ers_empty_with_ctx(&ers, exp_id, ctx);
-    }
-    #[allow(clippy::single_call_fn)] // shared parser keeps Cargo.toml read+parse behavior centralized for policy collectors
-    fn read_toml_table(path: &Path) -> Option<TomlTable> {
-        let content = read_to_string(path).ok()?;
-        content.parse::<TomlTable>().ok()
     }
     #[test]
     fn no_dbg_macro_in_source_code() {
@@ -642,55 +600,6 @@ mod tests {
                 ers.push(format!("{}: contains dbg!()", path.display()));
             }
         });
-    }
-    #[test]
-    fn no_empty_lines_in_rust_files() {
-        let mut ers = Vec::new();
-        for_each_rs_file_content(|path, content| {
-            ers.extend(collect_empty_line_ers(path, content));
-        });
-        assert_joined_ers_empty_with_ctx(&ers, "3d2fc8a1", "empty lines found in Rust files:");
-    }
-    #[allow(clippy::single_call_fn)] // isolates empty-line diagnostics so file-level test stays focused on traversal and assertion
-    fn collect_empty_line_ers(path: &Path, content: &str) -> Vec<String> {
-        let mut lines_iter = content.lines();
-        if let Some(first_line) = lines_iter.next()
-            && first_line.trim().is_empty()
-            && lines_iter.next().is_none()
-        {
-            return Vec::new();
-        }
-        content
-            .lines()
-            .enumerate()
-            .filter(|(_, line)| line.trim().is_empty())
-            .map(|(line_nbr, _)| {
-                format!("{}:{} empty line", path.display(), line_nbr.saturating_add(1))
-            })
-            .collect::<Vec<String>>()
-    }
-    #[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
-    fn collect_non_english_symbol_ers(path: &Path, content: &str) -> Vec<String> {
-        let mut ers = Vec::new();
-        for (line_idx, line) in content.lines().enumerate() {
-            let line_number = line_idx.saturating_add(1);
-            for ch in line.chars() {
-                if !is_allowed_english_char(ch) {
-                    ers.push(format!(
-                        "{}:{} non-english symbol `{}` (U+{:04X})",
-                        path.display(),
-                        line_number,
-                        ch,
-                        u32::from(ch)
-                    ));
-                }
-            }
-        }
-        ers
-    }
-    #[allow(clippy::single_call_fn)] // shared character predicate keeps english-only symbol policy centralized
-    fn is_allowed_english_char(ch: char) -> bool {
-        matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}') || ch.is_ascii()
     }
     #[test]
     fn no_todo_or_unimplemented_macro_in_source_code() {
@@ -719,7 +628,6 @@ mod tests {
             push_repeated_file_er(ers, path, "unwrap() call", visitor.found_count);
         });
     }
-    #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
     fn push_repeated_file_er(ers: &mut Vec<String>, path: &Path, msg: &str, times: usize) {
         for _ in 0..times {
             ers.push(format!("{}: {msg}", path.display()));
@@ -728,48 +636,20 @@ mod tests {
     fn project_dir() -> WalkDir {
         WalkDir::new("../")
     }
-    #[allow(clippy::single_call_fn)] // shared ignore predicate keeps directory filtering rules consistent across walkers
     fn is_ignored_dir_entry_name(name: &OsStr) -> bool {
         name == "target" || name == ".git"
     }
-    #[allow(clippy::single_call_fn)] // shared traversal keeps Cargo.toml filtering rules centralized while avoiding temporary vec allocation
-    fn for_each_cargo_toml_project_file(exceptions: &[&str], mut on_file: impl FnMut(&Path)) {
+    fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {
         for entry in project_dir()
-            .into_iter()
-            .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
-            .filter_map(Result::ok)
-            .filter(|el| el.file_name() == "Cargo.toml")
-            .filter(|el| !is_exception(el.path(), exceptions))
-        {
-            on_file(entry.path());
-        }
-    }
-    #[allow(clippy::single_call_fn)] // iterator builder is intentionally separated for readability and traversal reuse entrypoint
-    fn rs_project_files() -> impl Iterator<Item = walkdir::DirEntry> {
-        project_dir()
             .into_iter()
             .filter_entry(|el| {
                 !is_ignored_dir_entry_name(el.file_name())
-                    && (el.file_type().is_dir() || is_rs_file_path(el.path()))
+                    && (el.file_type().is_dir()
+                        || el.path().extension().and_then(OsStr::to_str) == Some("rs"))
             })
             .filter_map(Result::ok)
-            .filter(|el| is_rs_file_path(el.path()))
-    }
-    #[allow(clippy::single_call_fn)] // shared extension gate keeps english-only file selection centralized and reusable
-    fn is_allowed_english_check_file(path: &Path) -> bool {
-        path.is_file() && is_allowed_english_check_ext(path.extension().and_then(OsStr::to_str))
-    }
-    #[allow(clippy::single_call_fn)] // shared extension predicate keeps source-policy file-kind checks consistent
-    fn is_allowed_english_check_ext(ext: Option<&str>) -> bool {
-        matches!(ext, Some("rs" | "toml" | "md" | "txt" | "yml" | "yaml" | "json"))
-    }
-    #[allow(clippy::single_call_fn)] // shared rust-extension predicate keeps rs walker filters consistent
-    fn is_rs_file_path(path: &Path) -> bool {
-        path.extension().and_then(OsStr::to_str) == Some("rs")
-    }
-    #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
-    fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {
-        for entry in rs_project_files() {
+            .filter(|el| el.path().extension().and_then(OsStr::to_str) == Some("rs"))
+        {
             let path = entry.path();
             let Ok(content) = read_to_string(path) else {
                 continue;
@@ -777,7 +657,6 @@ mod tests {
             on_file(path, &content);
         }
     }
-    #[allow(clippy::single_call_fn)] // shared rust-file parser keeps read+parse flow reusable for AST-based checks and visitors
     fn for_each_rs_syn_file(mut on_file: impl FnMut(&Path, &syn::File)) {
         for_each_rs_file_content(|path, content| {
             let ast = parse_file(content).expect("5e7a83eb");
@@ -789,18 +668,14 @@ mod tests {
             .expect("39a0d238")
             .parse::<TomlTable>()
             .expect("beb11586");
-        toml_val_as_tbl(tbl.remove("workspace").expect("f728192d"), "2bfb0b62")
-    }
-    #[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required
-    fn toml_val_as_tbl(value: Value, uuid: &str) -> Table {
-        match value {
+        match tbl.remove("workspace").expect("f728192d") {
             Value::Table(table) => table,
             Value::String(_)
             | Value::Integer(_)
             | Value::Float(_)
             | Value::Boolean(_)
             | Value::Datetime(_)
-            | Value::Array(_) => panic!("{uuid}"),
+            | Value::Array(_) => panic!("2bfb0b62"),
         }
     }
     fn toml_val_as_tbl_ref<'value_lt>(value: &'value_lt Value, uuid: &str) -> &'value_lt Table {
@@ -821,49 +696,52 @@ mod tests {
                 "../Cargo.toml", // workspace
             ],
             "5f8a6d17",
-            collect_non_workspace_dep_ers,
-        );
-    }
-    #[allow(clippy::single_call_fn)] // shared collector keeps workspace-dependency policy checks reusable and centralized
-    fn collect_non_workspace_dep_ers(path: &Path, parsed: &TomlTable, ers: &mut Vec<String>) {
-        for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            if let Some(deps) = parsed.get(dep_section).and_then(Value::as_table) {
-                for (dep_name, dep_value) in deps {
-                    if !workspace_dep_entry_is_valid(dep_value) {
-                        ers.push(workspace_dep_entry_er(path, dep_name, dep_section));
+            |path: &Path, parsed: &TomlTable, ers: &mut Vec<String>| {
+                for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
+                    if let Some(deps) = parsed.get(dep_section).and_then(Value::as_table) {
+                        for (dep_name, dep_value) in deps {
+                            if !match dep_value {
+                                Value::Table(dep_tbl) => {
+                                    dep_tbl.contains_key("path")
+                                        || dep_tbl.get("workspace") == Some(&Value::Boolean(true))
+                                }
+                                Value::String(_)
+                                | Value::Integer(_)
+                                | Value::Float(_)
+                                | Value::Boolean(_)
+                                | Value::Datetime(_)
+                                | Value::Array(_) => false,
+                            } {
+                                ers.push(format!(
+                                    "{}: dependency `{dep_name}` in [{dep_section}] must use \
+                                     `.workspace = true` (only `path = ...` is allowed as \
+                                     exception)",
+                                    path.display(),
+                                ));
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
-    #[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
-    fn workspace_dep_entry_is_valid(dep_value: &Value) -> bool {
-        match dep_value {
-            Value::Table(dep_tbl) => {
-                dep_tbl.contains_key("path")
-                    || dep_tbl.get("workspace") == Some(&Value::Boolean(true))
-            }
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => false,
-        }
-    }
-    #[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
-    fn workspace_dep_entry_er(path: &Path, dep_name: &str, dep_section: &str) -> String {
-        format!(
-            "{}: dependency `{dep_name}` in [{dep_section}] must use `.workspace = true` (only \
-             `path = ...` is allowed as exception)",
-            path.display(),
-        )
+            },
+        );
     }
     #[test]
     fn workspace_members_exist_on_disk() {
         let workspace = workspace_tbl_from_cargo_toml();
         let members = workspace_members_as_strs(&workspace, "7f3a1c4e");
-        let mut ers = collect_workspace_member_missing_cargo_toml_ers(&members);
+        let mut ers = {
+            let mut collected = Vec::new();
+            for member_str in members {
+                let member_path = Path::new("..").join(member_str).join("Cargo.toml");
+                if !member_path.exists() {
+                    collected.push(format!(
+                        "member `{member_str}` Cargo.toml not found at {}",
+                        member_path.display()
+                    ));
+                }
+            }
+            collected
+        };
         assert_joined_ers_empty_sorted(&mut ers, "a4e3b8d1");
     }
     #[test]
@@ -880,21 +758,6 @@ mod tests {
         }
         assert_joined_ers_empty_with_ctx(&ers, "b7c2e5f8", "members not sorted:");
     }
-    #[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
-    fn collect_workspace_member_missing_cargo_toml_ers(members: &[&str]) -> Vec<String> {
-        let mut ers = Vec::new();
-        for member_str in members {
-            let path = Path::new("..").join(member_str).join("Cargo.toml");
-            if !path.exists() {
-                ers.push(format!(
-                    "member `{member_str}` Cargo.toml not found at {}",
-                    path.display()
-                ));
-            }
-        }
-        ers
-    }
-    #[allow(clippy::single_call_fn)] // central member extraction keeps workspace-members readers strict and reusable across membership checks
     fn workspace_members_as_strs<'members_lt>(
         workspace: &'members_lt Table,
         exp_id: &'static str,

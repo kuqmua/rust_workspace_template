@@ -1,5 +1,5 @@
 [package]
-name = "tests"
+name = "optml"
 version = "0.1.0"
 publish = false
 description = "description"
@@ -10,13 +10,13 @@ keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
 
-[dev-dependencies]
-optml.workspace = true
-regex.workspace = true
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+quote.workspace = true
 syn.workspace = true
-toml.workspace = true
-uuid.workspace = true
-walkdir.workspace = true
 
 [lints]
 workspace = true

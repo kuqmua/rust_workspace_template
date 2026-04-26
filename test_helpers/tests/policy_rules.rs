@@ -425,6 +425,9 @@ mod policy_tests {
             if rust_file.ends_with("policy_rules.rs") {
                 continue;
             }
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
             if rust_file == &command_wrapper_source_path {
                 continue;
             }

@@ -15,16 +15,19 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
+optml = { path = "optml" }
+proc-macro2 = { version = "=1.0.104", default-features = false, features = ["span-locations"] }
 proptest = { version = "=1.9.0", default-features = false, features = ["std"] }
-regex = { version = "=1.12.2" }
+quote = { version = "=1.0.42", default-features = false, features = ["proc-macro"] }
+regex = { version = "=1.12.2", default-features = false }
 shared_logic = { path = "shared_logic" }
-syn = { version = "=2.0.112", features = ["full", "visit", "visit-mut", "extra-traits"] }
+syn = { version = "=2.0.112", default-features = false, features = ["full", "visit", "visit-mut", "extra-traits", "derive", "parsing", "printing", "clone-impls", "proc-macro"] }
 test_helpers = { path = "test_helpers" }
 thiserror = { version = "=2.0.18", default-features = false }
-toml = { version = "=0.9.8" }
+toml = { version = "=0.9.8", default-features = false, features = ["parse"] }
 trybuild = { version = "=1.0.112", default-features = false }
-uuid = { version = "=1.19.0", features = ["v4"] }
-walkdir = { version = "=2.5.0" }
+uuid = { version = "=1.19.0", default-features = false, features = ["v4"] }
+walkdir = { version = "=2.5.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
