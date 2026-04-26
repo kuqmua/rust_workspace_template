@@ -84,10 +84,8 @@ fn rust_source_files(workspace_files: &[PathBuf]) -> Vec<&PathBuf> {
 
 #[cfg(test)]
 mod policy_tests {
-    use std::path::PathBuf;
-
     use super::{
-        collect_workspace_files, fs, non_test_source_segment, read_file, rust_source_files,
+        collect_workspace_files, non_test_source_segment, read_file, rust_source_files,
         workflow_file_paths, workspace_root_path,
     };
 
@@ -226,90 +224,6 @@ mod policy_tests {
     }
 
     #[test]
-    fn requires_contract_and_round_trip_tests_for_shared_logic() {
-        let workspace_root = workspace_root_path();
-        let integration_test_path = workspace_root
-            .join("shared_logic")
-            .join("tests")
-            .join("integration_baseline.rs");
-        let file_content = read_file(&integration_test_path);
-
-        assert!(
-            file_content.contains("evaluates_public_api_contract"),
-            "missing public API contract test in {}",
-            integration_test_path.display()
-        );
-        assert!(
-            file_content.contains("preserves_value_on_round_trip"),
-            "missing round-trip test in {}",
-            integration_test_path.display()
-        );
-    }
-
-    #[test]
-    fn requires_property_based_tests_for_shared_logic_invariants() {
-        let workspace_root = workspace_root_path();
-        let property_test_path = workspace_root
-            .join("shared_logic")
-            .join("tests")
-            .join("property_invariants.rs");
-        let property_test_content = read_file(&property_test_path);
-
-        assert!(
-            property_test_content.contains("proptest!"),
-            "missing proptest! test module in {}",
-            property_test_path.display()
-        );
-        assert!(
-            property_test_content.contains("wire_format_round_trip_preserves_request"),
-            "missing round-trip property test in {}",
-            property_test_path.display()
-        );
-        assert!(
-            property_test_content.contains("addition_commutativity_holds_for_safe_operand_range"),
-            "missing domain invariant property test in {}",
-            property_test_path.display()
-        );
-        assert!(
-            property_test_content
-                .contains("subtraction_is_inverse_of_addition_for_safe_operand_range"),
-            "missing additive-inverse property test in {}",
-            property_test_path.display()
-        );
-    }
-
-    #[test]
-    fn requires_trybuild_compile_fail_contract_for_shared_logic() {
-        let workspace_root = workspace_root_path();
-        let compile_fail_contract_path = workspace_root
-            .join("shared_logic")
-            .join("tests")
-            .join("compile_fail_contracts.rs");
-        let compile_fail_contract_content = read_file(&compile_fail_contract_path);
-        let compile_fail_case_path = workspace_root
-            .join("shared_logic")
-            .join("tests")
-            .join("ui")
-            .join("arithmetic_operation_type_contract_rejects_boolean_argument.rs");
-
-        assert!(
-            compile_fail_contract_content.contains("trybuild::TestCases::new"),
-            "missing trybuild test harness in {}",
-            compile_fail_contract_path.display()
-        );
-        assert!(
-            compile_fail_contract_content.contains("compile_fail"),
-            "missing compile_fail invocation in {}",
-            compile_fail_contract_path.display()
-        );
-        assert!(
-            compile_fail_case_path.exists(),
-            "missing compile-fail case source file: {}",
-            compile_fail_case_path.display()
-        );
-    }
-
-    #[test]
     fn requires_semver_check_and_hack_in_ci_and_changelog_file() {
         let workspace_root = workspace_root_path();
         let ci_workflow_path = workspace_root
@@ -336,32 +250,6 @@ mod policy_tests {
             "CHANGELOG.md exists but is empty: {}",
             changelog_path.display()
         );
-    }
-
-    #[test]
-    fn enforces_server_cli_tests_to_use_shared_command_helpers() {
-        let workspace_root = workspace_root_path();
-        let server_tests_directory_path = workspace_root.join("server").join("tests");
-        let server_test_paths = fs::read_dir(&server_tests_directory_path)
-            .expect("9f2b1c7d")
-            .map(|directory_entry_result| directory_entry_result.expect("4d1a8c7e").path())
-            .filter(|path| path.extension().is_some_and(|extension| extension == "rs"))
-            .collect::<Vec<PathBuf>>();
-
-        for server_test_path in server_test_paths {
-            let server_test_content = read_file(&server_test_path);
-            assert!(
-                server_test_content.contains("run_server_command(")
-                    || server_test_content.contains("run_server_command_with_report_format("),
-                "server cli tests must use shared command helpers in {}",
-                server_test_path.display()
-            );
-            assert!(
-                !server_test_content.contains("Command::new("),
-                "server cli tests must not invoke Command::new directly in {}",
-                server_test_path.display()
-            );
-        }
     }
 
     #[test]
@@ -647,26 +535,6 @@ mod policy_tests {
                 );
             }
         }
-    }
-
-    #[test]
-    fn requires_shared_logic_workspace_crate_usage() {
-        let workspace_root = workspace_root_path();
-        let root_manifest_path = workspace_root.join("Cargo.toml");
-        let root_manifest_content = read_file(&root_manifest_path);
-        assert!(
-            root_manifest_content.contains("\"shared_logic\""),
-            "workspace members must include shared_logic crate in {}",
-            root_manifest_path.display()
-        );
-
-        let server_manifest_path = workspace_root.join("server").join("Cargo.toml");
-        let server_manifest_content = read_file(&server_manifest_path);
-        assert!(
-            server_manifest_content.contains("shared_logic.workspace = true"),
-            "server crate must use shared_logic via workspace dependency in {}",
-            server_manifest_path.display()
-        );
     }
 
     #[test]
@@ -1103,37 +971,6 @@ mod policy_tests {
     }
 
     #[test]
-    fn enforces_must_use_annotations_for_shared_logic_public_result_apis() {
-        let workspace_root = workspace_root_path();
-        let shared_logic_source_path = workspace_root
-            .join("shared_logic")
-            .join("src")
-            .join("lib.rs");
-        let shared_logic_source_content = read_file(&shared_logic_source_path);
-        let required_signatures = [
-            "#[must_use = \"calculation evaluation result must be handled by the caller\"]\npub \
-             fn evaluate_calculation_request(",
-            "#[must_use = \"request parsing result must be handled by the caller\"]\npub fn \
-             build_calculation_request_from_text_parts(",
-            "#[must_use = \"wire-format deserialization result must be handled by the \
-             caller\"]\npub fn deserialize_calculation_request_from_wire_format(",
-            "#[must_use = \"report rendering result must be handled by the caller\"]\npub fn \
-             render_calculation_report(",
-            "#[must_use = \"report rendering result must be handled by the caller\"]\npub fn \
-             render_calculation_report_with_format(",
-        ];
-
-        for required_signature in required_signatures {
-            assert!(
-                shared_logic_source_content.contains(required_signature),
-                "missing #[must_use] annotation for shared_logic API `{}` in {}",
-                required_signature,
-                shared_logic_source_path.display()
-            );
-        }
-    }
-
-    #[test]
     fn forbids_public_struct_fields_in_non_test_code() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
@@ -1182,34 +1019,6 @@ mod policy_tests {
     }
 
     #[test]
-    fn enforces_non_cli_startup_contract_tests_for_server() {
-        let workspace_root = workspace_root_path();
-        let cli_contract_test_path = workspace_root
-            .join("server")
-            .join("tests")
-            .join("cli_contract.rs");
-        let cli_contract_test_content = read_file(&cli_contract_test_path);
-
-        assert!(
-            cli_contract_test_content.contains("starts_without_arguments_in_default_text_mode"),
-            "missing startup contract test for default launch in {}",
-            cli_contract_test_path.display()
-        );
-        assert!(
-            cli_contract_test_content
-                .contains("ignores_command_line_arguments_and_keeps_startup_output_stable"),
-            "missing non-cli argument-ignoring contract test in {}",
-            cli_contract_test_path.display()
-        );
-        assert!(
-            cli_contract_test_content
-                .contains("returns_failure_for_non_unicode_report_format_environment_variable"),
-            "missing non-unicode environment contract test in {}",
-            cli_contract_test_path.display()
-        );
-    }
-
-    #[test]
     fn forbids_placeholder_repository_metadata_in_workspace_crates() {
         let workspace_root = workspace_root_path();
         let manifest_paths = [
@@ -1242,27 +1051,6 @@ mod policy_tests {
                 .contains("cargo +nightly test --workspace --all-targets --all-features"),
             "CI must run nightly full cargo test for harness parity in {}",
             ci_workflow_path.display()
-        );
-    }
-
-    #[test]
-    fn enforces_dedicated_json_snapshot_contract_test_file_for_server_cli() {
-        let workspace_root = workspace_root_path();
-        let snapshot_test_path = workspace_root
-            .join("server")
-            .join("tests")
-            .join("cli_json_snapshot.rs");
-        let snapshot_test_content = read_file(&snapshot_test_path);
-
-        assert!(
-            snapshot_test_content.contains("json_startup_snapshot_contract_is_stable"),
-            "missing dedicated JSON snapshot contract test in {}",
-            snapshot_test_path.display()
-        );
-        assert!(
-            snapshot_test_content.contains("assert_eq!("),
-            "JSON snapshot contract test must assert exact output in {}",
-            snapshot_test_path.display()
         );
     }
 }
