@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
   "server",
-  "shared_logic",
   "test_helpers",
   "tests",
 ]
@@ -19,7 +18,6 @@ optml = { path = "optml" }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = ["span-locations"] }
 quote = { version = "=1.0.42", default-features = false, features = ["proc-macro"] }
 regex = { version = "=1.12.2", default-features = false, features = ["unicode-perl"] }
-shared_logic = { path = "shared_logic" }
 syn = { version = "=2.0.112", default-features = false, features = ["full", "visit", "visit-mut", "extra-traits", "derive", "parsing", "printing", "clone-impls", "proc-macro"] }
 test_helpers = { path = "test_helpers" }
 toml = { version = "=0.9.8", default-features = false, features = ["parse", "serde"] }

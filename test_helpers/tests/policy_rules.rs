@@ -365,7 +365,6 @@ mod policy_tests {
             })
             .filter(|path| {
                 path.starts_with(workspace_root.join("server"))
-                    || path.starts_with(workspace_root.join("shared_logic"))
                     || path.starts_with(workspace_root.join("test_helpers"))
             })
             .collect::<Vec<_>>();
@@ -708,37 +707,9 @@ mod policy_tests {
             root_manifest_path.display()
         );
         assert!(
-            root_manifest_content.contains("\"shared_logic\""),
-            "workspace members must include shared_logic crate in {}",
-            root_manifest_path.display()
-        );
-        assert!(
             root_manifest_content.contains("\"test_helpers\""),
             "workspace members must include test_helpers crate in {}",
             root_manifest_path.display()
-        );
-    }
-
-    #[test]
-    fn forbids_domain_shared_logic_from_direct_environment_or_filesystem_access() {
-        let workspace_root = workspace_root_path();
-        let shared_logic_source_path = workspace_root
-            .join("shared_logic")
-            .join("src")
-            .join("lib.rs");
-        let shared_logic_source_content = read_file(&shared_logic_source_path);
-        let non_test_shared_logic_source_segment =
-            non_test_source_segment(&shared_logic_source_content);
-
-        assert!(
-            !non_test_shared_logic_source_segment.contains("std::env::"),
-            "domain shared_logic must not access std::env directly in {}",
-            shared_logic_source_path.display()
-        );
-        assert!(
-            !non_test_shared_logic_source_segment.contains("std::fs::"),
-            "domain shared_logic must not access std::fs directly in {}",
-            shared_logic_source_path.display()
         );
     }
 
@@ -974,7 +945,6 @@ mod policy_tests {
         let workspace_root = workspace_root_path();
         let manifest_paths = [
             workspace_root.join("server").join("Cargo.toml"),
-            workspace_root.join("shared_logic").join("Cargo.toml"),
             workspace_root.join("test_helpers").join("Cargo.toml"),
         ];
 

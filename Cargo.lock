@@ -127,10 +127,6 @@ name = "server"
 version = "0.1.0"
 
 [[package]]
-name = "shared_logic"
-version = "0.1.0"
-
-[[package]]
 name = "syn"
 version = "2.0.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
