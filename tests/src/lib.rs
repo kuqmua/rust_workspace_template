@@ -898,29 +898,19 @@ mod tests {
     }
 
     #[test]
-    fn forbids_direct_command_new_outside_test_helpers_command_wrappers() {
+    fn forbids_direct_command_new_usage() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
         let rust_files = rust_source_files(&workspace_files);
-        let command_wrapper_source_path = workspace_root
-            .join("test_helpers")
-            .join("src")
-            .join("lib.rs");
 
         for rust_file in rust_files {
             if rust_file.ends_with("tests/src/lib.rs") {
                 continue;
             }
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            if rust_file == &command_wrapper_source_path {
-                continue;
-            }
             let file_content = read_file(rust_file);
             assert!(
                 !file_content.contains("Command::new("),
-                "direct Command::new usage is forbidden outside test_helpers command wrappers: {}",
+                "direct Command::new usage is forbidden: {}",
                 rust_file.display()
             );
         }
@@ -961,10 +951,7 @@ mod tests {
             .filter(|path| {
                 !path.ends_with("Cargo.toml") || *path != &workspace_root.join("Cargo.toml")
             })
-            .filter(|path| {
-                path.starts_with(workspace_root.join("server"))
-                    || path.starts_with(workspace_root.join("test_helpers"))
-            })
+            .filter(|path| path.starts_with(workspace_root.join("server")))
             .collect::<Vec<_>>();
 
         for manifest_path in member_manifest_paths {
@@ -1304,11 +1291,6 @@ mod tests {
             "workspace members must include server crate in {}",
             root_manifest_path.display()
         );
-        assert!(
-            root_manifest_content.contains("\"test_helpers\""),
-            "workspace members must include test_helpers crate in {}",
-            root_manifest_path.display()
-        );
     }
 
     #[test]
@@ -1541,10 +1523,7 @@ mod tests {
     #[test]
     fn forbids_placeholder_repository_metadata_in_workspace_crates() {
         let workspace_root = workspace_root_path();
-        let manifest_paths = [
-            workspace_root.join("server").join("Cargo.toml"),
-            workspace_root.join("test_helpers").join("Cargo.toml"),
-        ];
+        let manifest_paths = [workspace_root.join("server").join("Cargo.toml")];
 
         for manifest_path in manifest_paths {
             let manifest_content = read_file(&manifest_path);
