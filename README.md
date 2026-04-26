@@ -1,20 +1,17 @@
 # Rust Workspace Template
 
-Production-oriented Rust workspace template with strict linting, shared domain logic, deterministic tests, and CI gates that scale from pull requests to nightly full verification.
+Production-oriented Rust workspace template with strict linting, deterministic tests, and CI gates that scale from pull requests to nightly full verification.
 
 ## Goals
 
-- Keep architecture boundaries explicit: application crate (`server`) depends on domain/shared crate (`shared_logic`).
 - Keep dependencies controlled: workspace-level declarations, no implicit defaults.
 - Keep quality predictable: strict lint profile, deterministic tests, reproducible local verification order.
 - Keep developer onboarding fast: copy-paste commands and cargo aliases for daily workflows.
-- Keep machine integrations simple: stable text output by default plus optional JSON report format.
 
 ## Workspace layout
 
-- `shared_logic`: reusable domain logic and public API contract with unit and integration coverage.
-- `server`: minimal entrypoint crate that consumes shared logic and demonstrates startup argument validation.
-- `test_helpers`: shared deterministic test setup and fixtures.
+- `server`: minimal entrypoint crate.
+- `tests`: workspace-level policy and meta tests.
 
 ## Quick start
 
@@ -73,35 +70,6 @@ Release profile is hardened in workspace root `Cargo.toml`:
 
 These settings optimize for smaller and more predictable production binaries.
 
-## Server usage examples
-
-Run server with default text startup output:
-
-```bash
-cargo run -p server
-```
-
-JSON startup output for machine consumers:
-
-```bash
-CALCULATION_REPORT_FORMAT=json cargo run -p server
-```
-
-## Output format contract
-
-- Default format is `text`.
-- Optional environment variable: `CALCULATION_REPORT_FORMAT`.
-- Supported values: `text`, `json`.
-- Unknown or non-unicode values fail fast with a typed error and non-zero exit code.
-
-## Extension rules
-
-- Add shared/domain behavior to `shared_logic`, not to `server`.
-- Add crates.io dependencies only in `[workspace.dependencies]`.
-- Use `*.workspace = true` in crate `Cargo.toml` files.
-- Disable default features unless required by a concrete use case.
-- Preserve external contracts unless changes are explicitly requested.
-
 ## CI and governance
 
 - Main CI: `.github/workflows/ci.yml`
@@ -113,32 +81,20 @@ CALCULATION_REPORT_FORMAT=json cargo run -p server
 
 ## Policy tests
 
-`test_helpers/tests/policy_rules.rs` enforces template rules, including:
+All tests live in `tests/src/lib.rs` and enforce template rules, including:
 
-- workspace dependencies and disabled default features
+- workspace dependencies and exact version pinning
 - no forbidden runtime shortcuts (`unwrap`, `todo!`, source-dropping `map_err`)
 - deterministic testing constraints
 - hardened release profile and `workspace-verify` command order
 - nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
-- no `dbg!` and no ad-hoc `println!`/`eprintln!` outside entrypoint runtime path
-- Server integration tests in `server/tests` must use shared `test_helpers::run_server_command*` wrappers and must not call `Command::new` directly
-- Server startup contract is locked for default launch and JSON startup snapshot output
+- no debug print macros outside entrypoint
+- workflow permissions, concurrency, and timeouts
+- GitHub Actions pinned by full commit SHA
 
-## Server test helper
+## Extension rules
 
-`test_helpers` provides reusable helpers for server integration tests:
-
-- `run_server_command`
-- `run_server_command_with_report_format`
-- `stdout_as_utf8` / `stderr_as_utf8`
-
-These helpers keep test code concise and make edge-case assertions (including non-unicode environment values) consistent across new tests.
-
-When adding a new server test, prefer this pattern:
-
-```rust
-let output = run_server_command(SERVER_BINARY_PATH, &[]).expect("1a2b3c4d");
-let standard_output = stdout_as_utf8(&output).expect("5e6f7a8b");
-assert!(output.status.success());
-assert_eq!(standard_output.trim_end(), "server started");
-```
+- Add crates.io dependencies only in `[workspace.dependencies]`.
+- Use `*.workspace = true` in crate `Cargo.toml` files.
+- Disable default features unless required by a concrete use case.
+- Preserve external contracts unless changes are explicitly requested.

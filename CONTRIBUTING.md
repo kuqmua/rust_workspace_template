@@ -51,12 +51,6 @@ This template uses two CI modes in `.github/workflows/ci.yml`:
 - Add new dependencies only when necessary.
 - Keep default features disabled unless required.
 
-## Runtime output policy
-- Keep `text` output stable by default.
-- If machine-readable output is needed, use `CALCULATION_REPORT_FORMAT=json`.
-- `server` is a non-CLI entrypoint; do not add argument parsing without explicit agreement.
-
-## Integration test ergonomics
-- Reuse helper functions from `test_helpers` for server process execution and UTF-8 decoding.
-- Cover environment edge-cases in contract tests (for example, non-unicode variable values on Unix).
-- Keep startup output contracts stable for default text mode and JSON mode.
+## Test ergonomics
+- Cover edge-cases in contract tests.
+- Keep startup output contracts stable.

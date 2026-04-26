@@ -474,11 +474,7 @@ mod tests {
     #[test]
     fn enforces_english_only_in_source_files() {
         let mut ers = Vec::new();
-        let exceptions = [
-            "../pg_crud/pg_crud_cmn/src/lib.rs",
-            "../CODE_IMPROVEMENT_PLAN.md",
-            "../DEVELOPMENT_PLAN.md",
-        ];
+        let exceptions: [&str; 0] = [];
         for el_d87f0495 in project_dir()
             .into_iter()
             .filter_entry(|el_6870bc3d| !is_ignored_dir_entry_name(el_6870bc3d.file_name()))
