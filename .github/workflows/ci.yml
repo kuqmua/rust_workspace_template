@@ -184,7 +184,7 @@ jobs:
   actionlint:
     name: Actionlint
     needs: changed-files
-    if: (needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
+    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -289,7 +289,7 @@ jobs:
   check-semver:
     name: Semver check
     needs: changed-files
-    if: github.event_name == 'pull_request' && (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true')
+    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') && (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true' || needs.changed-files.outputs.force_full == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
