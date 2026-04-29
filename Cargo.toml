@@ -1,9 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-  "server",
-  "tests",
-]
+members = ["optml", "server", "tests"]
 exclude = []
 
 [workspace.package]
@@ -13,12 +10,31 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
-optml = { path = "optml" }
-proc-macro2 = { version = "=1.0.104", default-features = false, features = ["span-locations"] }
-quote = { version = "=1.0.42", default-features = false, features = ["proc-macro"] }
-regex = { version = "=1.12.2", default-features = false, features = ["unicode-perl"] }
-syn = { version = "=2.0.112", default-features = false, features = ["full", "visit", "visit-mut", "extra-traits", "derive", "parsing", "printing", "clone-impls", "proc-macro"] }
-toml = { version = "=0.9.8", default-features = false, features = ["parse", "serde"] }
+optml = { version = "=0.1.0", path = "optml", default-features = false }
+proc-macro2 = { version = "=1.0.104", default-features = false, features = [
+  "span-locations",
+] }
+quote = { version = "=1.0.42", default-features = false, features = [
+  "proc-macro",
+] }
+regex = { version = "=1.12.2", default-features = false, features = [
+  "unicode-perl",
+] }
+syn = { version = "=2.0.112", default-features = false, features = [
+  "full",
+  "visit",
+  "visit-mut",
+  "extra-traits",
+  "derive",
+  "parsing",
+  "printing",
+  "clone-impls",
+  "proc-macro",
+] }
+toml = { version = "=0.9.8", default-features = false, features = [
+  "parse",
+  "serde",
+] }
 uuid = { version = "=1.19.0", default-features = false, features = ["v4"] }
 walkdir = { version = "=2.5.0", default-features = false }
 
@@ -156,7 +172,7 @@ unused_parens = "deny"
 unused_unsafe = "deny"
 unused_variables = "deny"
 useless_ptr_null_checks = "deny"
-warnings = "warn" 
+warnings = "warn"
 while_true = "deny"
 ambiguous_associated_items = "deny"
 arithmetic_overflow = "deny"
@@ -243,7 +259,7 @@ out_of_scope_macro_calls = "deny"
 repr_transparent_non_zst_fields = "deny"
 unused_visibilities = "deny"
 aarch64_softfloat_neon = "deny"
-inline_always_mismatching_target_features = "deny" 
+inline_always_mismatching_target_features = "deny"
 improper_gpu_kernel_arg = "deny"
 missing_gpu_kernel_export_name = "deny"
 ambiguous_panic_imports = "deny"
@@ -336,7 +352,7 @@ create_dir = "deny"
 crosspointer_transmute = "deny"
 dbg_macro = "deny"
 debug_assert_with_mut_call = "deny"
-decimal_literal_representation = "allow"#dont think its more readable
+decimal_literal_representation = "allow"           #dont think its more readable
 declare_interior_mutable_const = "deny"
 default_constructed_unit_structs = "deny"
 default_instead_of_iter_empty = "deny"
@@ -887,7 +903,7 @@ unreachable = "deny"
 unreadable_literal = "deny"
 unsafe_derive_deserialize = "deny"
 unsafe_removed_from_name = "deny"
-unseparated_literal_suffix = "allow"#separated_literal_suffix deny, unseparated_literal_suffix allow
+unseparated_literal_suffix = "allow"               #separated_literal_suffix deny, unseparated_literal_suffix allow
 unsound_collection_transmute = "deny"
 unused_async = "deny"
 unused_enumerate_index = "deny"
@@ -935,7 +951,7 @@ zero_prefixed_literal = "deny"
 zero_ptr = "deny"
 zero_sized_map_values = "deny"
 zst_offset = "deny"
-infinite_loop = "deny"# didnt wasted for for order declaration(a,b,c...)
+infinite_loop = "deny"                             # didnt wasted for for order declaration(a,b,c...)
 integer_division_remainder_used = "deny"
 iter_filter_is_ok = "deny"
 iter_filter_is_some = "deny"
@@ -995,7 +1011,7 @@ infallible_try_from = "deny"
 inverted_saturating_sub = "deny"
 io_other_error = "deny"
 ip_constant = "deny"
-literal_string_with_formatting_args = "allow"#in proc macros for generating formatting content is not correct
+literal_string_with_formatting_args = "allow"      #in proc macros for generating formatting content is not correct
 manual_abs_diff = "deny"
 manual_contains = "deny"
 manual_dangling_ptr = "deny"

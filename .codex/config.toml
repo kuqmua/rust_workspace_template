@@ -3,7 +3,7 @@ model_reasoning_effort = "medium"
 personality = "pragmatic"
 
 # --- Permissions (alternative allow: [...]) ---
-approval_policy = "never" # no checks
+approval_policy = "never"           # no checks
 sandbox_mode = "danger-full-access" # full access
 
 # --- Network access ---

@@ -331,7 +331,7 @@ mod tests {
                     "todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997"
                 );
             }
-            assert!(lints_not_in_cargo_toml.is_empty(), "d2b7ba9f {lints_not_in_cargo_toml:?}");
+            assert!(lints_not_in_cargo_toml.is_empty(), "1c5a9308 {lints_not_in_cargo_toml:?}");
             let outdated_lints_in_file =
                 collect_missing_items(&lints_vec_from_cargo_toml, &lints_to_check_set);
             assert!(outdated_lints_in_file.is_empty(), "93787d2d");
@@ -346,7 +346,7 @@ mod tests {
             | &Value::Integer(_)
             | &Value::Float(_)
             | &Value::Boolean(_)
-            | &Value::Datetime(_) => panic!("38ba32e9"),
+            | &Value::Datetime(_) => panic!("27bcfb1c"),
         }
     }
 
