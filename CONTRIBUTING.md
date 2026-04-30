@@ -2,7 +2,6 @@
 
 ## Prerequisites
 - Latest Rust nightly installed (`rustup toolchain install nightly`)
-- `cargo-nextest` available for local parity with CI (optional)
 
 ## Local verification
 Run checks in this exact order before opening a pull request:
@@ -25,7 +24,6 @@ cargo workspace-verify
 Extended local checks for CI parity:
 
 ```bash
-cargo workspace-nextest
 cargo workspace-hack
 cargo workspace-deny
 cargo workspace-udeps
@@ -34,7 +32,7 @@ cargo workspace-udeps
 ## CI model
 CI runs on pull requests targeting `main` and pushes to `main`.
 
-All CI jobs run for both event types when Rust or CI files changed: `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`, `build`, `doc`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`.
+All CI jobs run for both event types when Rust or CI files changed: `fmt`, `clippy`, `test`, `taplo`, `typos`, `actionlint`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`.
 
 ## Pull requests
 - Keep changes scoped.

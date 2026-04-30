@@ -42,9 +42,6 @@ Cargo aliases are configured in `.cargo/config.toml`:
 - `cargo workspace-format`
 - `cargo workspace-lint`
 - `cargo workspace-test`
-- `cargo workspace-check-no-default-features`
-- `cargo workspace-doc`
-- `cargo workspace-nextest`
 - `cargo workspace-hack`
 - `cargo workspace-deny`
 - `cargo workspace-udeps`
@@ -53,7 +50,6 @@ Cargo aliases are configured in `.cargo/config.toml`:
 Extended local validation set (parity with CI lanes):
 
 ```bash
-cargo workspace-nextest
 cargo workspace-hack
 cargo workspace-deny
 cargo workspace-udeps

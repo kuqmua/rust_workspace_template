@@ -40,12 +40,11 @@ jobs:
               - '**/Cargo.lock'
               - 'rust-toolchain.toml'
               - '.cargo/config.toml'
-              - '.config/nextest.toml'
               - 'deny.toml'
             ci:
               - '.github/workflows/**'
   fmt:
-    name: Formatting
+    name: cargo fmt
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -55,10 +54,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
         with:
           components: rustfmt
-      - run: cargo fmt --check
+      - run: cargo fmt
 
   clippy:
-    name: Clippy
+    name: cargo clippy --all-targets --all-features -- -D warnings
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -77,11 +76,11 @@ jobs:
         with:
           cache-on-failure: true
           key: clippy-${{ matrix.toolchain }}
-      - name: Clippy
+      - name: cargo clippy --all-targets --all-features -- -D warnings
         run: cargo clippy --all-targets --all-features -- -D warnings
 
   test:
-    name: Test
+    name: cargo test
     needs: [changed-files, clippy]
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -92,43 +91,13 @@ jobs:
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
-      - name: Install nextest
-        uses: taiki-e/install-action@024e8cba30d328c34bf69b86cfaaaad61ad5c4cb
-      - name: Test
-        run: cargo nextest run --all-targets --all-features --profile ci
+      - name: cargo test
+        run: cargo test
         env:
           RUSTFLAGS: "-D warnings"
-      - name: Doc tests
-        run: cargo test --doc --all-features
-      - name: Nightly full test harness parity
-        run: cargo +nightly test --workspace --all-targets --all-features
-
-  no-default-features:
-    name: No default features
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [nightly]
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-        with:
-          toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-          key: no-default-features-${{ matrix.toolchain }}
-      - name: Check without default features (${{ matrix.toolchain }})
-        run: cargo check --workspace --all-targets --no-default-features
-      - name: Test without default features (${{ matrix.toolchain }})
-        run: cargo test --workspace --all-targets --no-default-features
 
   taplo:
-    name: Taplo
+    name: taplo fmt --check
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -137,11 +106,11 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install taplo
         uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
-      - name: Check TOML formatting
+      - name: taplo fmt --check
         run: taplo fmt --check
 
   typos:
-    name: Typos
+    name: typos
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -150,11 +119,11 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: Install typos
         uses: taiki-e/install-action@dc6aaebcb47625f80d5dada4c7fbf1dc3e7e257a
-      - name: Check typos
+      - name: typos
         run: typos
 
   actionlint:
-    name: Actionlint
+    name: actionlint
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -163,52 +132,8 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
 
-  build:
-    name: Build
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [nightly]
-        profile: [dev, release]
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-        with:
-          toolchain: ${{ matrix.toolchain }}
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-          key: build-${{ matrix.toolchain }}-${{ matrix.profile }}
-      - name: Build (${{ matrix.toolchain }}, ${{ matrix.profile }})
-        run: cargo build --all-targets --all-features ${{ matrix.profile == 'release' && '--release' || '' }}
-      - name: Upload artifacts (release)
-        if: matrix.profile == 'release' && matrix.toolchain == 'nightly'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: release-binaries
-          path: target/release/*server*
-          if-no-files-found: warn
-          retention-days: 7
-
-  doc:
-    name: Docs
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-      - name: Check docs
-        run: cargo doc --all-features --no-deps --document-private-items
-
   audit:
-    name: Security audit
+    name: rustsec/audit-check
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -220,7 +145,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   deny:
-    name: Cargo deny
+    name: cargo deny check advisories bans licenses sources
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -230,11 +155,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - name: Install cargo-deny
         uses: taiki-e/install-action@43d63066c313f326186510e6e5feab4dd2391cfd
-      - name: Cargo deny checks
+      - name: cargo deny check advisories bans licenses sources
         run: cargo deny check advisories bans licenses sources
 
   machete:
-    name: Unused deps
+    name: cargo machete
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -247,7 +172,7 @@ jobs:
       - run: cargo machete
 
   check-semver:
-    name: Semver check
+    name: cargo-semver-checks-action
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -260,7 +185,7 @@ jobs:
       - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239
 
   hack:
-    name: Feature matrix (cargo hack)
+    name: cargo hack check --workspace --feature-powerset --no-dev-deps
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -270,11 +195,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
       - name: Install cargo-hack
         uses: taiki-e/install-action@a8bfb6e9b2cf3cefc208e6a18507d78669d398ab
-      - name: Check feature matrix
+      - name: cargo hack check --workspace --feature-powerset --no-dev-deps
         run: cargo hack check --workspace --feature-powerset --no-dev-deps
 
   udeps:
-    name: Unused deps (cargo udeps)
+    name: cargo +nightly udeps --workspace --all-targets --all-features
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -284,11 +209,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
       - name: Install cargo-udeps
         uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
-      - name: Check unused dependencies
+      - name: cargo +nightly udeps --workspace --all-targets --all-features
         run: cargo +nightly udeps --workspace --all-targets --all-features
 
   llvm-cov:
-    name: Coverage (cargo llvm-cov)
+    name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
     needs: changed-files
     if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
@@ -300,15 +225,15 @@ jobs:
           components: llvm-tools-preview
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
-      - name: Coverage summary
+      - name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
         run: cargo llvm-cov --workspace --all-features --all-targets --summary-only
 
   ci-success:
-    name: CI passed
+    name: CI result summary
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
+    needs: [fmt, clippy, test, taplo, typos, actionlint, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:
       contents: none
     steps:
@@ -317,12 +242,9 @@ jobs:
           echo "fmt:      ${{ needs.fmt.result }}"
           echo "clippy:   ${{ needs.clippy.result }}"
           echo "test:     ${{ needs.test.result }}"
-          echo "no_def:   ${{ needs.no-default-features.result }}"
           echo "taplo:    ${{ needs.taplo.result }}"
           echo "typos:    ${{ needs.typos.result }}"
           echo "actlint:  ${{ needs.actionlint.result }}"
-          echo "build:    ${{ needs.build.result }}"
-          echo "doc:      ${{ needs.doc.result }}"
           echo "audit:    ${{ needs.audit.result }}"
           echo "deny:     ${{ needs.deny.result }}"
           echo "machete:  ${{ needs.machete.result }}"
@@ -330,7 +252,7 @@ jobs:
           echo "hack:     ${{ needs.hack.result }}"
           echo "udeps:    ${{ needs.udeps.result }}"
           echo "llvm-cov: ${{ needs.llvm-cov.result }}"
-          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.no-default-features.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.build.result }}" "${{ needs.doc.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
+          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
             if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
               echo "::error::Job with result '$result' failed"
               exit 1

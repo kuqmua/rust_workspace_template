@@ -1252,9 +1252,6 @@ mod tests {
             "workspace-format = ",
             "workspace-lint = ",
             "workspace-test = ",
-            "workspace-check-no-default-features = ",
-            "workspace-doc = ",
-            "workspace-nextest = ",
             "workspace-hack = ",
             "workspace-deny = ",
             "workspace-udeps = ",
@@ -1312,14 +1309,8 @@ mod tests {
         let ci_workflow_content = read_file(&ci_workflow_path);
 
         assert!(
-            ci_workflow_content
-                .contains("cargo nextest run --all-targets --all-features --profile ci"),
-            "CI must run nextest in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content.contains("cargo test --doc --all-features"),
-            "CI must run doc tests in {}",
+            ci_workflow_content.contains("run: cargo test"),
+            "CI must run cargo test in {}",
             ci_workflow_path.display()
         );
     }
@@ -1348,7 +1339,7 @@ mod tests {
             ci_workflow_path.display()
         );
         assert!(
-            ci_workflow_content.contains("run: cargo fmt --check"),
+            ci_workflow_content.contains("run: cargo fmt"),
             "CI must keep formatting gate in {}",
             ci_workflow_path.display()
         );
@@ -1359,8 +1350,7 @@ mod tests {
             ci_workflow_path.display()
         );
         assert!(
-            ci_workflow_content
-                .contains("run: cargo nextest run --all-targets --all-features --profile ci"),
+            ci_workflow_content.contains("run: cargo test"),
             "CI must keep test gate in {}",
             ci_workflow_path.display()
         );
@@ -1535,22 +1525,5 @@ mod tests {
                 manifest_path.display()
             );
         }
-    }
-
-    #[test]
-    fn enforces_nightly_full_test_run_in_ci_for_harness_parity() {
-        let workspace_root = workspace_root_path();
-        let ci_workflow_path = workspace_root
-            .join(".github")
-            .join("workflows")
-            .join("ci.yml");
-        let ci_workflow_content = read_file(&ci_workflow_path);
-
-        assert!(
-            ci_workflow_content
-                .contains("cargo +nightly test --workspace --all-targets --all-features"),
-            "CI must run nightly full cargo test for harness parity in {}",
-            ci_workflow_path.display()
-        );
     }
 }

@@ -33,7 +33,6 @@ Rust-related changes:
 **/Cargo.lock
 rust-toolchain.toml
 .cargo/config.toml
-.config/nextest.toml
 deny.toml
 ```
 
@@ -48,35 +47,28 @@ Every check below runs for both `push` and `pull_request` events when Rust or CI
 1. `fmt`.
 2. `clippy`.
 3. `test`.
-4. `no-default-features`.
-5. `taplo`.
-6. `typos`.
-7. `actionlint`.
-8. `build`.
-9. `doc`.
-10. `audit`.
-11. `deny`.
-12. `machete`.
-13. `check-semver`.
-14. `hack`.
-15. `udeps`.
-16. `llvm-cov`.
+4. `taplo`.
+5. `typos`.
+6. `actionlint`.
+7. `audit`.
+8. `deny`.
+9. `machete`.
+10. `check-semver`.
+11. `hack`.
+12. `udeps`.
+13. `llvm-cov`.
 
 ## Formatting
 
 The `fmt` job runs:
 
 ```bash
-cargo fmt --check
+cargo fmt
 ```
-
-It verifies that Rust code is already formatted. CI does not rewrite files and fails when formatting differs.
 
 ## Clippy
 
-The `clippy` job runs on `nightly`.
-
-Command:
+The `clippy` job runs on `nightly`:
 
 ```bash
 cargo clippy --all-targets --all-features -- -D warnings
@@ -86,38 +78,11 @@ It checks the whole workspace, all targets, and all features. Every warning is t
 
 ## Tests
 
-The `test` job depends on `clippy`, so tests only start after clippy succeeds.
-
-Main tests:
+The `test` job depends on `clippy`, so tests only start after clippy succeeds:
 
 ```bash
-cargo nextest run --all-targets --all-features --profile ci
+cargo test
 ```
-
-Doc tests:
-
-```bash
-cargo test --doc --all-features
-```
-
-Nightly full test harness parity:
-
-```bash
-cargo +nightly test --workspace --all-targets --all-features
-```
-
-## No Default Features
-
-The `no-default-features` job runs on `nightly`.
-
-Commands:
-
-```bash
-cargo check --workspace --all-targets --no-default-features
-cargo test --workspace --all-targets --no-default-features
-```
-
-It verifies that the workspace builds and tests without default features.
 
 ## Taplo
 
@@ -143,75 +108,23 @@ It checks spelling in code and text files.
 
 The `actionlint` job checks GitHub Actions workflows for syntax errors and invalid expressions.
 
-## Build
-
-The `build` job runs for every CI run with Rust or CI changes.
-
-Matrix:
-
-1. `nightly`, `dev`.
-2. `nightly`, `release`.
-
-Dev command:
-
-```bash
-cargo build --all-targets --all-features
-```
-
-Release command:
-
-```bash
-cargo build --all-targets --all-features --release
-```
-
-For `nightly + release`, CI also uploads this artifact path:
-
-```text
-target/release/*server*
-```
-
-The artifact is named `release-binaries` and is retained for 7 days.
-
-## Docs
-
-The `doc` job runs for every CI run with Rust or CI changes.
-
-Command:
-
-```bash
-cargo doc --all-features --no-deps --document-private-items
-```
-
-Documentation builds with `RUSTDOCFLAGS="-D warnings"`, so documentation warnings fail CI.
-
 ## Security Audit
 
-The `audit` job runs for every CI run with Rust or CI changes.
-
-It uses `rustsec/audit-check` and checks dependencies for known RustSec advisories.
+The `audit` job uses `rustsec/audit-check` and checks dependencies for known RustSec advisories.
 
 ## Cargo Deny
 
-The `deny` job runs for every CI run with Rust or CI changes.
-
-Command:
+The `deny` job runs:
 
 ```bash
 cargo deny check advisories bans licenses sources
 ```
 
-It checks:
-
-1. Security advisories.
-2. Banned dependencies.
-3. Licenses.
-4. Dependency sources.
+It checks security advisories, banned dependencies, licenses, and dependency sources.
 
 ## Cargo Machete
 
-The `machete` job runs for every CI run with Rust or CI changes.
-
-Command:
+The `machete` job runs:
 
 ```bash
 cargo machete
@@ -221,15 +134,11 @@ It detects unused dependencies.
 
 ## Semver Check
 
-The `check-semver` job runs on pull requests and pushes when Rust or CI files changed.
-
-It uses `obi1kenobi/cargo-semver-checks-action` and checks for semver-breaking changes in public APIs.
+The `check-semver` job uses `obi1kenobi/cargo-semver-checks-action` and checks for semver-breaking changes in public APIs.
 
 ## Cargo Hack Feature Matrix
 
-The `hack` job runs for every CI run with Rust or CI changes.
-
-Command:
+The `hack` job runs:
 
 ```bash
 cargo hack check --workspace --feature-powerset --no-dev-deps
@@ -239,9 +148,7 @@ It checks feature flag combinations.
 
 ## Cargo Udeps
 
-The `udeps` job runs for every CI run with Rust or CI changes.
-
-Command:
+The `udeps` job runs:
 
 ```bash
 cargo +nightly udeps --workspace --all-targets --all-features
@@ -251,9 +158,7 @@ It detects unused dependencies through `cargo-udeps`.
 
 ## Coverage
 
-The `llvm-cov` job runs for every CI run with Rust or CI changes.
-
-Command:
+The `llvm-cov` job runs:
 
 ```bash
 cargo llvm-cov --workspace --all-features --all-targets --summary-only
@@ -263,26 +168,7 @@ It prints a test coverage summary. CI currently reports the summary without enfo
 
 ## Final Gate
 
-The `ci-success` job always runs and collects the results of all jobs:
-
-1. `fmt`.
-2. `clippy`.
-3. `test`.
-4. `no-default-features`.
-5. `taplo`.
-6. `typos`.
-7. `actionlint`.
-8. `build`.
-9. `doc`.
-10. `audit`.
-11. `deny`.
-12. `machete`.
-13. `check-semver`.
-14. `hack`.
-15. `udeps`.
-16. `llvm-cov`.
-
-If any job result is `failure` or `cancelled`, the final gate fails. A `skipped` job is not treated as an error.
+The `ci-success` job always runs and collects the results of all jobs. If any job result is `failure` or `cancelled`, the final gate fails. A `skipped` job is not treated as an error.
 
 ## Local Verification
 
@@ -294,4 +180,4 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 ```
 
-This is not complete parity with GitHub CI. It does not include `nextest`, `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, semver checks, or the release build.
+This is not complete parity with GitHub CI. It does not include `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, or semver checks.
