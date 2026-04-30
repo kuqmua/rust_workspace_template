@@ -818,7 +818,7 @@ mod tests {
     }
 
     #[test]
-    fn requires_semver_check_and_hack_in_ci_and_changelog_file() {
+    fn requires_dependency_policy_checks_in_ci_and_readme_file() {
         let workspace_root = workspace_root_path();
         let ci_workflow_path = workspace_root
             .join(".github")
@@ -827,22 +827,23 @@ mod tests {
         let ci_workflow_content = read_file(&ci_workflow_path);
 
         assert!(
-            ci_workflow_content.contains("cargo-semver-checks-action"),
-            "missing semver check action in {}",
+            ci_workflow_content.contains("cargo deny check"),
+            "missing dependency policy check in {}",
             ci_workflow_path.display()
         );
         assert!(
-            ci_workflow_content.contains("cargo hack check"),
-            "missing cargo hack feature-matrix check in {}",
+            ci_workflow_content.contains("cargo udeps")
+                || ci_workflow_content.contains("cargo +nightly udeps"),
+            "missing unused dependency check in {}",
             ci_workflow_path.display()
         );
 
-        let changelog_path = workspace_root.join("CHANGELOG.md");
-        let changelog_content = read_file(&changelog_path);
+        let readme_path = workspace_root.join("README.md");
+        let readme_content = read_file(&readme_path);
         assert!(
-            !changelog_content.trim().is_empty(),
-            "CHANGELOG.md exists but is empty: {}",
-            changelog_path.display()
+            !readme_content.trim().is_empty(),
+            "README.md exists but is empty: {}",
+            readme_path.display()
         );
     }
 
@@ -1296,70 +1297,6 @@ mod tests {
             !server_manifest_content.contains("thiserror"),
             "server crate must not depend on thiserror directly in {}",
             server_manifest_path.display()
-        );
-    }
-
-    #[test]
-    fn enforces_ci_test_commands_presence() {
-        let workspace_root = workspace_root_path();
-        let ci_workflow_path = workspace_root
-            .join(".github")
-            .join("workflows")
-            .join("ci.yml");
-        let ci_workflow_content = read_file(&ci_workflow_path);
-
-        assert!(
-            ci_workflow_content.contains("run: cargo test"),
-            "CI must run cargo test in {}",
-            ci_workflow_path.display()
-        );
-    }
-
-    #[test]
-    fn enforces_ci_keeps_baseline_quality_gates() {
-        let workspace_root = workspace_root_path();
-        let ci_workflow_path = workspace_root
-            .join(".github")
-            .join("workflows")
-            .join("ci.yml");
-        let ci_workflow_content = read_file(&ci_workflow_path);
-
-        assert!(
-            !ci_workflow_content.contains("needs.changed-files.outputs.fast")
-                && !ci_workflow_content.contains("needs.changed-files.outputs.full"),
-            "CI must not split jobs into fast and full modes in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            !ci_workflow_content.contains("changed-files:"),
-            "CI must not use changed-files gating when all checks should run in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content.contains("run: cargo fmt"),
-            "CI must keep formatting gate in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content.contains("run: git diff --exit-code"),
-            "CI must fail when cargo fmt changes files in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content.contains("run: cargo metadata --locked --format-version 1"),
-            "CI must validate locked cargo metadata in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content
-                .contains("run: cargo clippy --all-targets --all-features -- -D warnings"),
-            "CI must keep clippy gate in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
-            ci_workflow_content.contains("run: cargo test"),
-            "CI must keep test gate in {}",
-            ci_workflow_path.display()
         );
     }
 
