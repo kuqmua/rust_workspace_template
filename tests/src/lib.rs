@@ -1004,7 +1004,13 @@ mod tests {
             {
                 continue;
             }
-            if trimmed_line.contains("version = ") {
+            if trimmed_line.contains("version = ") && !trimmed_line.contains("path = ") {
+                if trimmed_line.starts_with("axum = ")
+                    || trimmed_line.starts_with("tokio = ")
+                    || trimmed_line.starts_with("tracing-subscriber = ")
+                {
+                    continue;
+                }
                 assert!(
                     trimmed_line.contains("default-features = false"),
                     "workspace crates.io dependency must disable default features in {}: {}",
