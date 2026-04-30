@@ -56,14 +56,13 @@ Every check below runs for both `push` and `pull_request` events when Rust or CI
 7. `actionlint`.
 8. `build`.
 9. `doc`.
-10. `msrv`.
-11. `audit`.
-12. `deny`.
-13. `machete`.
-14. `check-semver`.
-15. `hack`.
-16. `udeps`.
-17. `llvm-cov`.
+10. `audit`.
+11. `deny`.
+12. `machete`.
+13. `check-semver`.
+14. `hack`.
+15. `udeps`.
+16. `llvm-cov`.
 
 ## Formatting
 
@@ -77,10 +76,7 @@ It verifies that Rust code is already formatted. CI does not rewrite files and f
 
 ## Clippy
 
-The `clippy` job runs on two toolchains:
-
-1. `stable`.
-2. `nightly`.
+The `clippy` job runs on `nightly`.
 
 Command:
 
@@ -114,10 +110,7 @@ cargo +nightly test --workspace --all-targets --all-features
 
 ## No Default Features
 
-The `no-default-features` job runs on:
-
-1. `stable`.
-2. `nightly`.
+The `no-default-features` job runs on `nightly`.
 
 Commands:
 
@@ -158,10 +151,8 @@ The `build` job runs for every CI run with Rust or CI changes.
 
 Matrix:
 
-1. `stable`, `dev`.
-2. `stable`, `release`.
-3. `nightly`, `dev`.
-4. `nightly`, `release`.
+1. `nightly`, `dev`.
+2. `nightly`, `release`.
 
 Dev command:
 
@@ -194,18 +185,6 @@ cargo doc --all-features --no-deps --document-private-items
 ```
 
 Documentation builds with `RUSTDOCFLAGS="-D warnings"`, so documentation warnings fail CI.
-
-## MSRV
-
-The `msrv` job runs for every CI run with Rust or CI changes.
-
-Command:
-
-```bash
-cargo check --all-features
-```
-
-The workspace declares `rust-version = "1.85"`.
 
 ## Security Audit
 
@@ -297,14 +276,13 @@ The `ci-success` job always runs and collects the results of all jobs:
 7. `actionlint`.
 8. `build`.
 9. `doc`.
-10. `msrv`.
-11. `audit`.
-12. `deny`.
-13. `machete`.
-14. `check-semver`.
-15. `hack`.
-16. `udeps`.
-17. `llvm-cov`.
+10. `audit`.
+11. `deny`.
+12. `machete`.
+13. `check-semver`.
+14. `hack`.
+15. `udeps`.
+16. `llvm-cov`.
 
 If any job result is `failure` or `cancelled`, the final gate fails. A `skipped` job is not treated as an error.
 
@@ -318,4 +296,4 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 ```
 
-This is not complete parity with GitHub CI. It does not include `nextest`, `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, semver checks, or the build matrix.
+This is not complete parity with GitHub CI. It does not include `nextest`, `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, semver checks, or the release build.

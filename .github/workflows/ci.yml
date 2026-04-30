@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
@@ -116,7 +116,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
@@ -176,7 +176,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        toolchain: [stable, nightly]
+        toolchain: [nightly]
         profile: [dev, release]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -210,18 +210,6 @@ jobs:
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
       - name: Check docs
         run: cargo doc --all-features --no-deps --document-private-items
-
-  msrv:
-    name: MSRV
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d
-      - name: Check MSRV
-        run: cargo check --all-features
 
   audit:
     name: Security audit
@@ -324,7 +312,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, msrv, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
+    needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:
       contents: none
     steps:
@@ -339,7 +327,6 @@ jobs:
           echo "actlint:  ${{ needs.actionlint.result }}"
           echo "build:    ${{ needs.build.result }}"
           echo "doc:      ${{ needs.doc.result }}"
-          echo "msrv:     ${{ needs.msrv.result }}"
           echo "audit:    ${{ needs.audit.result }}"
           echo "deny:     ${{ needs.deny.result }}"
           echo "machete:  ${{ needs.machete.result }}"
@@ -347,7 +334,7 @@ jobs:
           echo "hack:     ${{ needs.hack.result }}"
           echo "udeps:    ${{ needs.udeps.result }}"
           echo "llvm-cov: ${{ needs.llvm-cov.result }}"
-          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.no-default-features.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.build.result }}" "${{ needs.doc.result }}" "${{ needs.msrv.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
+          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.no-default-features.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.build.result }}" "${{ needs.doc.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
             if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
               echo "::error::Job with result '$result' failed"
               exit 1

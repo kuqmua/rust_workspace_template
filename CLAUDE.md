@@ -20,7 +20,7 @@ Always run `cargo fmt` and `cargo clippy --all-targets --all-features -- -D warn
 
 ## Toolchain
 
-Rust nightly, edition 2024, MSRV 1.85.
+Rust nightly, edition 2024.
 
 ## Architecture
 
