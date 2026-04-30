@@ -1404,15 +1404,15 @@ mod tests {
     }
 
     #[test]
-    fn enforces_workflow_concurrency_cancellation() {
+    fn permits_parallel_workflow_runs() {
         let workspace_root = workspace_root_path();
         let workflows = workflow_file_paths(&workspace_root);
 
         for workflow_file_path in workflows {
             let workflow_content = read_file(&workflow_file_path);
             assert!(
-                workflow_content.contains("cancel-in-progress: true"),
-                "workflow must enable cancel-in-progress in {}",
+                !workflow_content.contains("concurrency:"),
+                "workflow must not define concurrency when parallel CI runs are allowed in {}",
                 workflow_file_path.display()
             );
         }

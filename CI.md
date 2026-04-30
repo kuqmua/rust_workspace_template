@@ -7,8 +7,6 @@ CI is defined in `.github/workflows/ci.yml`.
 1. `push` to `main`.
 2. `pull_request` targeting `main`.
 
-For the same branch, an older workflow run is cancelled when a newer run starts.
-
 ## Global Settings
 
 All jobs use these defaults:

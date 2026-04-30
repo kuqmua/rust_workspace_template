@@ -89,7 +89,7 @@ All tests live in `tests/src/lib.rs` and enforce template rules, including:
 - hardened release profile and `workspace-verify` command order
 - nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
 - no debug print macros outside entrypoint
-- workflow permissions, concurrency, and timeouts
+- workflow permissions and timeouts
 - GitHub Actions pinned by full commit SHA
 
 ## Extension rules
