@@ -6,8 +6,6 @@ CI is defined in `.github/workflows/ci.yml`.
 
 1. `push` to `main`.
 2. `pull_request` targeting `main`.
-3. Nightly schedule at `02:30 UTC` every day.
-4. Manual `workflow_dispatch` runs.
 
 For the same branch, an older workflow run is cancelled when a newer run starts.
 
@@ -50,8 +48,7 @@ CI-related changes:
 This job also selects the CI mode:
 
 1. `fast=true` for pull requests.
-2. `full=true` for pushes to `main`, scheduled runs, and manual runs.
-3. `force_full=true` for scheduled runs and manual runs.
+2. `full=true` for pushes to `main`.
 
 ## Fast Mode
 
@@ -70,7 +67,7 @@ It includes:
 
 ## Full Mode
 
-Full mode runs on pushes to `main`, scheduled runs, and manual runs.
+Full mode runs on pushes to `main`.
 
 It includes all fast-mode checks plus:
 
@@ -263,7 +260,7 @@ It detects unused dependencies.
 
 ## Semver Check
 
-The `check-semver` job runs on pull requests, pushes, and manual runs when Rust or CI files changed.
+The `check-semver` job runs on pull requests and pushes when Rust or CI files changed.
 
 It uses `obi1kenobi/cargo-semver-checks-action` and checks for semver-breaking changes in public APIs.
 

@@ -36,7 +36,7 @@ This template uses two CI modes in `.github/workflows/ci.yml`:
 
 - Fast mode: runs on pull requests.
   - `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`
-- Full mode: runs on pushes to `main`, nightly schedule, and manual dispatch.
+- Full mode: runs on pushes to `main`.
   - Baseline gates from fast mode are also executed.
   - Additional jobs: `build`, `doc`, `msrv`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`
 
