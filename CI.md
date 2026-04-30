@@ -13,7 +13,7 @@ For the same branch, an older workflow run is cancelled when a newer run starts.
 
 All jobs use these defaults:
 
-1. `ubuntu-26.04`.
+1. `ubuntu-latest`.
 2. `20` minute timeout per job.
 3. Minimal permissions: `contents: read`.
 4. `CARGO_INCREMENTAL=0`.
