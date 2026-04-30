@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   schedule:
     - cron: '30 2 * * *'
   workflow_dispatch:
@@ -56,7 +56,7 @@ jobs:
               - '.github/workflows/**'
       - id: modes
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] || { [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" = "develop" ]; }; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "fast=true" >> "$GITHUB_OUTPUT"
           else
             echo "fast=false" >> "$GITHUB_OUTPUT"

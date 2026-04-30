@@ -34,7 +34,7 @@ cargo workspace-udeps
 ## CI model
 This template uses two CI modes in `.github/workflows/ci.yml`:
 
-- Fast mode: runs on pull requests and pushes to `develop`.
+- Fast mode: runs on pull requests.
   - `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`
 - Full mode: runs on pushes to `main`, nightly schedule, and manual dispatch.
   - Baseline gates from fast mode are also executed.
