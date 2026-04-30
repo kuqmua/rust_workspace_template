@@ -29,25 +29,36 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt
+      - name: git diff --exit-code
+        run: git diff --exit-code
+
+  metadata:
+    name: cargo metadata --locked --format-version 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
+      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+        with:
+          cache-on-failure: true
+      - name: cargo metadata --locked --format-version 1
+        run: cargo metadata --locked --format-version 1
 
   clippy:
     name: cargo clippy --all-targets --all-features -- -D warnings
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [nightly]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: nightly
           components: clippy
       - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
         with:
           cache-on-failure: true
-          key: clippy-${{ matrix.toolchain }}
+          key: clippy-nightly
       - name: cargo clippy --all-targets --all-features -- -D warnings
         run: cargo clippy --all-targets --all-features -- -D warnings
 
@@ -167,34 +178,3 @@ jobs:
         uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
       - name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
         run: cargo llvm-cov --workspace --all-features --all-targets --summary-only
-
-  ci-success:
-    name: CI result summary
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [fmt, clippy, test, taplo, typos, actionlint, deny, machete, check-semver, hack, udeps, llvm-cov]
-    permissions:
-      contents: none
-    steps:
-      - name: Check all jobs passed
-        run: |
-          echo "fmt:      ${{ needs.fmt.result }}"
-          echo "clippy:   ${{ needs.clippy.result }}"
-          echo "test:     ${{ needs.test.result }}"
-          echo "taplo:    ${{ needs.taplo.result }}"
-          echo "typos:    ${{ needs.typos.result }}"
-          echo "actlint:  ${{ needs.actionlint.result }}"
-          echo "deny:     ${{ needs.deny.result }}"
-          echo "machete:  ${{ needs.machete.result }}"
-          echo "semver:   ${{ needs.check-semver.result }}"
-          echo "hack:     ${{ needs.hack.result }}"
-          echo "udeps:    ${{ needs.udeps.result }}"
-          echo "llvm-cov: ${{ needs.llvm-cov.result }}"
-          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
-            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
-              echo "::error::Job with result '$result' failed"
-              exit 1
-            fi
-          done
-          echo "All checks passed"

@@ -24,17 +24,18 @@ All jobs use these defaults:
 Every check below runs for both `push` and `pull_request` events. Checks run in parallel unless a job explicitly depends on another job:
 
 1. `fmt`.
-2. `clippy`.
-3. `test`.
-4. `taplo`.
-5. `typos`.
-6. `actionlint`.
-7. `deny`.
-8. `machete`.
-9. `check-semver`.
-10. `hack`.
-11. `udeps`.
-12. `llvm-cov`.
+2. `metadata`.
+3. `clippy`.
+4. `test`.
+5. `taplo`.
+6. `typos`.
+7. `actionlint`.
+8. `deny`.
+9. `machete`.
+10. `check-semver`.
+11. `hack`.
+12. `udeps`.
+13. `llvm-cov`.
 
 ## Formatting
 
@@ -43,6 +44,24 @@ The `fmt` job runs:
 ```bash
 cargo fmt
 ```
+
+Then it runs:
+
+```bash
+git diff --exit-code
+```
+
+This fails CI if formatting changed files in the runner.
+
+## Metadata
+
+The `metadata` job runs:
+
+```bash
+cargo metadata --locked --format-version 1
+```
+
+It verifies that `Cargo.lock` and the dependency graph are consistent.
 
 ## Clippy
 
@@ -139,10 +158,6 @@ cargo llvm-cov --workspace --all-features --all-targets --summary-only
 ```
 
 It prints a test coverage summary. CI currently reports the summary without enforcing a coverage threshold.
-
-## Final Gate
-
-The `ci-success` job always runs and collects the results of all jobs. If any job result is `failure` or `cancelled`, the final gate fails. A `skipped` job is not treated as an error.
 
 ## Local Verification
 

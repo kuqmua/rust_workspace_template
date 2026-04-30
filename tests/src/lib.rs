@@ -1341,6 +1341,16 @@ mod tests {
             ci_workflow_path.display()
         );
         assert!(
+            ci_workflow_content.contains("run: git diff --exit-code"),
+            "CI must fail when cargo fmt changes files in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            ci_workflow_content.contains("run: cargo metadata --locked --format-version 1"),
+            "CI must validate locked cargo metadata in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
             ci_workflow_content
                 .contains("run: cargo clippy --all-targets --all-features -- -D warnings"),
             "CI must keep clippy gate in {}",
