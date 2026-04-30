@@ -21,28 +21,7 @@ All jobs use these defaults:
 8. `RUSTDOCFLAGS="-D warnings"`.
 9. `RUST_BACKTRACE=short`.
 
-## Detect Changes
-
-The first job is `changed-files`. It determines whether checks need to run.
-
-Rust-related changes:
-
-```text
-**/*.rs
-**/Cargo.toml
-**/Cargo.lock
-rust-toolchain.toml
-.cargo/config.toml
-deny.toml
-```
-
-CI-related changes:
-
-```text
-.github/workflows/**
-```
-
-Every check below runs for both `push` and `pull_request` events when Rust or CI files changed:
+Every check below runs for both `push` and `pull_request` events. Checks run in parallel unless a job explicitly depends on another job:
 
 1. `fmt`.
 2. `clippy`.
@@ -50,13 +29,12 @@ Every check below runs for both `push` and `pull_request` events when Rust or CI
 4. `taplo`.
 5. `typos`.
 6. `actionlint`.
-7. `audit`.
-8. `deny`.
-9. `machete`.
-10. `check-semver`.
-11. `hack`.
-12. `udeps`.
-13. `llvm-cov`.
+7. `deny`.
+8. `machete`.
+9. `check-semver`.
+10. `hack`.
+11. `udeps`.
+12. `llvm-cov`.
 
 ## Formatting
 
@@ -78,7 +56,7 @@ It checks the whole workspace, all targets, and all features. Every warning is t
 
 ## Tests
 
-The `test` job depends on `clippy`, so tests only start after clippy succeeds:
+The `test` job runs:
 
 ```bash
 cargo test
@@ -107,10 +85,6 @@ It checks spelling in code and text files.
 ## Actionlint
 
 The `actionlint` job checks GitHub Actions workflows for syntax errors and invalid expressions.
-
-## Security Audit
-
-The `audit` job uses `rustsec/audit-check` and checks dependencies for known RustSec advisories.
 
 ## Cargo Deny
 

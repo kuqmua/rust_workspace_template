@@ -19,34 +19,8 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
-  changed-files:
-    name: Detect changes
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-    outputs:
-      rust: ${{ steps.filter.outputs.rust }}
-      ci: ${{ steps.filter.outputs.ci }}
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050
-        id: filter
-        with:
-          filters: |
-            rust:
-              - '**/*.rs'
-              - '**/Cargo.toml'
-              - '**/Cargo.lock'
-              - 'rust-toolchain.toml'
-              - '.cargo/config.toml'
-              - 'deny.toml'
-            ci:
-              - '.github/workflows/**'
   fmt:
     name: cargo fmt
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -58,8 +32,6 @@ jobs:
 
   clippy:
     name: cargo clippy --all-targets --all-features -- -D warnings
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -81,8 +53,6 @@ jobs:
 
   test:
     name: cargo test
-    needs: [changed-files, clippy]
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -98,8 +68,6 @@ jobs:
 
   taplo:
     name: taplo fmt --check
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -111,8 +79,6 @@ jobs:
 
   typos:
     name: typos
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -124,30 +90,14 @@ jobs:
 
   actionlint:
     name: actionlint
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
 
-  audit:
-    name: rustsec/audit-check
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
   deny:
     name: cargo deny check advisories bans licenses sources
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -160,8 +110,6 @@ jobs:
 
   machete:
     name: cargo machete
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -173,8 +121,6 @@ jobs:
 
   check-semver:
     name: cargo-semver-checks-action
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -186,8 +132,6 @@ jobs:
 
   hack:
     name: cargo hack check --workspace --feature-powerset --no-dev-deps
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -200,8 +144,6 @@ jobs:
 
   udeps:
     name: cargo +nightly udeps --workspace --all-targets --all-features
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -214,8 +156,6 @@ jobs:
 
   llvm-cov:
     name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
-    needs: changed-files
-    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -233,7 +173,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [fmt, clippy, test, taplo, typos, actionlint, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
+    needs: [fmt, clippy, test, taplo, typos, actionlint, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:
       contents: none
     steps:
@@ -245,14 +185,13 @@ jobs:
           echo "taplo:    ${{ needs.taplo.result }}"
           echo "typos:    ${{ needs.typos.result }}"
           echo "actlint:  ${{ needs.actionlint.result }}"
-          echo "audit:    ${{ needs.audit.result }}"
           echo "deny:     ${{ needs.deny.result }}"
           echo "machete:  ${{ needs.machete.result }}"
           echo "semver:   ${{ needs.check-semver.result }}"
           echo "hack:     ${{ needs.hack.result }}"
           echo "udeps:    ${{ needs.udeps.result }}"
           echo "llvm-cov: ${{ needs.llvm-cov.result }}"
-          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.audit.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
+          for result in "${{ needs.fmt.result }}" "${{ needs.clippy.result }}" "${{ needs.test.result }}" "${{ needs.taplo.result }}" "${{ needs.typos.result }}" "${{ needs.actionlint.result }}" "${{ needs.deny.result }}" "${{ needs.machete.result }}" "${{ needs.check-semver.result }}" "${{ needs.hack.result }}" "${{ needs.udeps.result }}" "${{ needs.llvm-cov.result }}"; do
             if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
               echo "::error::Job with result '$result' failed"
               exit 1

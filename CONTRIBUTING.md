@@ -32,7 +32,7 @@ cargo workspace-udeps
 ## CI model
 CI runs on pull requests targeting `main` and pushes to `main`.
 
-All CI jobs run for both event types when Rust or CI files changed: `fmt`, `clippy`, `test`, `taplo`, `typos`, `actionlint`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`.
+All CI jobs run for both event types when Rust or CI files changed: `fmt`, `clippy`, `test`, `taplo`, `typos`, `actionlint`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`.
 
 ## Pull requests
 - Keep changes scoped.

@@ -1325,17 +1325,14 @@ mod tests {
         let ci_workflow_content = read_file(&ci_workflow_path);
 
         assert!(
-            ci_workflow_content.contains(
-                "if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci \
-                 == 'true'"
-            ),
-            "CI must run jobs when Rust or CI files changed in {}",
-            ci_workflow_path.display()
-        );
-        assert!(
             !ci_workflow_content.contains("needs.changed-files.outputs.fast")
                 && !ci_workflow_content.contains("needs.changed-files.outputs.full"),
             "CI must not split jobs into fast and full modes in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            !ci_workflow_content.contains("changed-files:"),
+            "CI must not use changed-files gating when all checks should run in {}",
             ci_workflow_path.display()
         );
         assert!(
