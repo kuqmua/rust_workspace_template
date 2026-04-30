@@ -1303,7 +1303,7 @@ mod tests {
     }
 
     #[test]
-    fn enforces_fast_ci_test_commands_presence() {
+    fn enforces_ci_test_commands_presence() {
         let workspace_root = workspace_root_path();
         let ci_workflow_path = workspace_root
             .join(".github")
@@ -1314,18 +1314,18 @@ mod tests {
         assert!(
             ci_workflow_content
                 .contains("cargo nextest run --all-targets --all-features --profile ci"),
-            "fast CI must run nextest in {}",
+            "CI must run nextest in {}",
             ci_workflow_path.display()
         );
         assert!(
             ci_workflow_content.contains("cargo test --doc --all-features"),
-            "fast CI must run doc tests in {}",
+            "CI must run doc tests in {}",
             ci_workflow_path.display()
         );
     }
 
     #[test]
-    fn enforces_full_ci_mode_to_keep_baseline_quality_gates() {
+    fn enforces_ci_keeps_baseline_quality_gates() {
         let workspace_root = workspace_root_path();
         let ci_workflow_path = workspace_root
             .join(".github")
@@ -1335,10 +1335,16 @@ mod tests {
 
         assert!(
             ci_workflow_content.contains(
-                "(needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full \
-                 == 'true')"
+                "if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci \
+                 == 'true'"
             ),
-            "CI must keep baseline jobs enabled for both fast and full modes in {}",
+            "CI must run jobs when Rust or CI files changed in {}",
+            ci_workflow_path.display()
+        );
+        assert!(
+            !ci_workflow_content.contains("needs.changed-files.outputs.fast")
+                && !ci_workflow_content.contains("needs.changed-files.outputs.full"),
+            "CI must not split jobs into fast and full modes in {}",
             ci_workflow_path.display()
         );
         assert!(

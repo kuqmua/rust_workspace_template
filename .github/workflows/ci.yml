@@ -25,15 +25,13 @@ env:
 jobs:
   changed-files:
     name: Detect changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     permissions:
       contents: read
     outputs:
       rust: ${{ steps.filter.outputs.rust }}
       ci: ${{ steps.filter.outputs.ci }}
-      fast: ${{ steps.modes.outputs.fast }}
-      full: ${{ steps.modes.outputs.full }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050
@@ -50,24 +48,11 @@ jobs:
               - 'deny.toml'
             ci:
               - '.github/workflows/**'
-      - id: modes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "fast=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "fast=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref_name }}" = "main" ]; then
-            echo "full=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "full=false" >> "$GITHUB_OUTPUT"
-          fi
-
   fmt:
     name: Formatting
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -79,8 +64,8 @@ jobs:
   clippy:
     name: Clippy
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -102,8 +87,8 @@ jobs:
   test:
     name: Test
     needs: [changed-files, clippy]
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -125,8 +110,8 @@ jobs:
   no-default-features:
     name: No default features
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -149,8 +134,8 @@ jobs:
   taplo:
     name: Taplo
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -162,8 +147,8 @@ jobs:
   typos:
     name: Typos
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -175,8 +160,8 @@ jobs:
   actionlint:
     name: Actionlint
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && (needs.changed-files.outputs.fast == 'true' || needs.changed-files.outputs.full == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -185,8 +170,8 @@ jobs:
   build:
     name: Build
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -216,8 +201,8 @@ jobs:
   doc:
     name: Docs
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -229,8 +214,8 @@ jobs:
   msrv:
     name: MSRV
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -241,8 +226,8 @@ jobs:
   audit:
     name: Security audit
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -253,8 +238,8 @@ jobs:
   deny:
     name: Cargo deny
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -267,8 +252,8 @@ jobs:
   machete:
     name: Unused deps
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -280,8 +265,8 @@ jobs:
   check-semver:
     name: Semver check
     needs: changed-files
-    if: (github.event_name == 'pull_request' || github.event_name == 'push') && (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true')
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -293,8 +278,8 @@ jobs:
   hack:
     name: Feature matrix (cargo hack)
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -307,8 +292,8 @@ jobs:
   udeps:
     name: Unused deps (cargo udeps)
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -321,8 +306,8 @@ jobs:
   llvm-cov:
     name: Coverage (cargo llvm-cov)
     needs: changed-files
-    if: (needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true') && needs.changed-files.outputs.full == 'true'
-    runs-on: ubuntu-latest
+    if: needs.changed-files.outputs.rust == 'true' || needs.changed-files.outputs.ci == 'true'
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -337,7 +322,7 @@ jobs:
   ci-success:
     name: CI passed
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     needs: [fmt, clippy, test, no-default-features, taplo, typos, actionlint, build, doc, msrv, audit, deny, machete, check-semver, hack, udeps, llvm-cov]
     permissions:

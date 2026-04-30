@@ -13,7 +13,7 @@ For the same branch, an older workflow run is cancelled when a newer run starts.
 
 All jobs use these defaults:
 
-1. `ubuntu-latest`.
+1. `ubuntu-26.04`.
 2. `20` minute timeout per job.
 3. Minimal permissions: `contents: read`.
 4. `CARGO_INCREMENTAL=0`.
@@ -45,16 +45,7 @@ CI-related changes:
 .github/workflows/**
 ```
 
-This job also selects the CI mode:
-
-1. `fast=true` for pull requests.
-2. `full=true` for pushes to `main`.
-
-## Fast Mode
-
-Fast mode runs on pull requests.
-
-It includes:
+Every check below runs for both `push` and `pull_request` events when Rust or CI files changed:
 
 1. `fmt`.
 2. `clippy`.
@@ -63,23 +54,16 @@ It includes:
 5. `taplo`.
 6. `typos`.
 7. `actionlint`.
-8. `check-semver`.
-
-## Full Mode
-
-Full mode runs on pushes to `main`.
-
-It includes all fast-mode checks plus:
-
-1. `build`.
-2. `doc`.
-3. `msrv`.
-4. `audit`.
-5. `deny`.
-6. `machete`.
-7. `hack`.
-8. `udeps`.
-9. `llvm-cov`.
+8. `build`.
+9. `doc`.
+10. `msrv`.
+11. `audit`.
+12. `deny`.
+13. `machete`.
+14. `check-semver`.
+15. `hack`.
+16. `udeps`.
+17. `llvm-cov`.
 
 ## Formatting
 
@@ -170,7 +154,7 @@ The `actionlint` job checks GitHub Actions workflows for syntax errors and inval
 
 ## Build
 
-The `build` job runs only in full mode.
+The `build` job runs for every CI run with Rust or CI changes.
 
 Matrix:
 
@@ -201,7 +185,7 @@ The artifact is named `release-binaries` and is retained for 7 days.
 
 ## Docs
 
-The `doc` job runs only in full mode.
+The `doc` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -213,7 +197,7 @@ Documentation builds with `RUSTDOCFLAGS="-D warnings"`, so documentation warning
 
 ## MSRV
 
-The `msrv` job runs only in full mode.
+The `msrv` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -225,13 +209,13 @@ The workspace declares `rust-version = "1.85"`.
 
 ## Security Audit
 
-The `audit` job runs only in full mode.
+The `audit` job runs for every CI run with Rust or CI changes.
 
 It uses `rustsec/audit-check` and checks dependencies for known RustSec advisories.
 
 ## Cargo Deny
 
-The `deny` job runs only in full mode.
+The `deny` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -248,7 +232,7 @@ It checks:
 
 ## Cargo Machete
 
-The `machete` job runs only in full mode.
+The `machete` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -266,7 +250,7 @@ It uses `obi1kenobi/cargo-semver-checks-action` and checks for semver-breaking c
 
 ## Cargo Hack Feature Matrix
 
-The `hack` job runs only in full mode.
+The `hack` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -278,7 +262,7 @@ It checks feature flag combinations.
 
 ## Cargo Udeps
 
-The `udeps` job runs only in full mode.
+The `udeps` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -290,7 +274,7 @@ It detects unused dependencies through `cargo-udeps`.
 
 ## Coverage
 
-The `llvm-cov` job runs only in full mode.
+The `llvm-cov` job runs for every CI run with Rust or CI changes.
 
 Command:
 
@@ -334,4 +318,4 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 ```
 
-This is not full parity with GitHub CI. It does not include `nextest`, `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, semver checks, or the full build matrix.
+This is not complete parity with GitHub CI. It does not include `nextest`, `taplo`, `typos`, `actionlint`, `cargo deny`, `cargo hack`, `cargo udeps`, `cargo llvm-cov`, semver checks, or the build matrix.

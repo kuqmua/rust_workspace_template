@@ -50,7 +50,7 @@ Cargo aliases are configured in `.cargo/config.toml`:
 - `cargo workspace-udeps`
 - `cargo workspace-verify` (runs `fmt -> clippy -> test` in required order)
 
-Extended local validation set (parity with full CI lanes):
+Extended local validation set (parity with CI lanes):
 
 ```bash
 cargo workspace-nextest
@@ -73,7 +73,7 @@ These settings optimize for smaller and more predictable production binaries.
 ## CI and governance
 
 - Main CI: `.github/workflows/ci.yml`
-- Baseline quality gates (`fmt`, `clippy`, core tests) run in both fast and full CI modes.
+- All CI jobs run on pull requests targeting `main` and pushes to `main` when Rust or CI files changed.
 - Contribution guide: `CONTRIBUTING.md`
 - Release process: `RELEASE.md`
 - Security policy: `SECURITY.md`

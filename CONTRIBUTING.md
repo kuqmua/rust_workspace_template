@@ -22,7 +22,7 @@ cargo workspace-test
 cargo workspace-verify
 ```
 
-Extended local checks for full CI parity:
+Extended local checks for CI parity:
 
 ```bash
 cargo workspace-nextest
@@ -32,13 +32,9 @@ cargo workspace-udeps
 ```
 
 ## CI model
-This template uses two CI modes in `.github/workflows/ci.yml`:
+CI runs on pull requests targeting `main` and pushes to `main`.
 
-- Fast mode: runs on pull requests.
-  - `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`
-- Full mode: runs on pushes to `main`.
-  - Baseline gates from fast mode are also executed.
-  - Additional jobs: `build`, `doc`, `msrv`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`
+All CI jobs run for both event types when Rust or CI files changed: `fmt`, `clippy`, `test`, `no-default-features`, `taplo`, `typos`, `actionlint`, `build`, `doc`, `msrv`, `audit`, `deny`, `machete`, `check-semver`, `hack`, `udeps`, `llvm-cov`.
 
 ## Pull requests
 - Keep changes scoped.
