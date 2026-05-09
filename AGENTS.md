@@ -36,6 +36,19 @@
 - Enforce performance budgets for hot paths and fail CI on benchmark regressions above agreed thresholds.
 - Preserve and propagate error sources; avoid `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
 - Preserve behavior unless change is requested.
+- Don't assume; if context is ambiguous, state uncertainty explicitly instead of hiding confusion.
+- Surface tradeoffs explicitly when multiple valid approaches exist.
+- If a simpler approach exists, state it and prefer it by default.
+- Push back when warranted if a request introduces unnecessary complexity or risk.
+- Write the minimum code that solves the requested problem; avoid speculative additions.
+- If an implementation is substantially larger than needed, rewrite it to a simpler smaller version.
+- Touch only what is necessary for the task; clean up only changes introduced by the current work.
+- Match the existing project style unless an explicit change request says otherwise.
+- Define concrete success criteria for the task and iterate until those criteria are verified.
+- For multi-step tasks, provide a brief plan in this format:
+  1. [Step] → verify: [check]
+  2. [Step] → verify: [check]
+  3. [Step] → verify: [check]
 - Do not use cursor/keyset pagination. Always use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
 - In SQL queries, always reuse table and column name constants (`table_names::*`, `COLUMN_*`, `FIELD_*`, `TABLE_*`) instead of hardcoded string literals for schema identifiers. For every new or edited SQL query (including idempotency, auth, handlers, models, and tests), do not inline table/column identifiers in query text; add or reuse a shared constant first and then reference it in `format!`.
 - Before adding any new string literal (including SQL text), first check existing string constants in the workspace and reuse them when possible; introduce a new constant only when no suitable reusable constant exists.
@@ -77,6 +90,7 @@
 
 - Merge unrelated crates.
 - Break architecture boundaries or introduce hidden coupling.
+- Hide confusion or uncertainty when context is ambiguous.
 - Edit Cargo.toml of unrelated crates.
 - Add new crates unless explicitly requested.
 - Silence clippy without justification.
@@ -108,6 +122,9 @@
 - Depend on external services in tests.
 - Use flaky time-based tests.
 - Change public API without instruction.
+- Add features beyond what was explicitly requested.
+- Add abstractions for single-use code.
+- Add flexibility or configurability that was not requested.
 - Leak generics to users.
 - Rename public items casually.
 - Change semantics silently.
