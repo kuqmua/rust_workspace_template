@@ -46,9 +46,9 @@
 - Match the existing project style unless an explicit change request says otherwise.
 - Define concrete success criteria for the task and iterate until those criteria are verified.
 - For multi-step tasks, provide a brief plan in this format:
-  1. [Step] → verify: [check]
-  2. [Step] → verify: [check]
-  3. [Step] → verify: [check]
+  1. [Step] -> verify: [check]
+  2. [Step] -> verify: [check]
+  3. [Step] -> verify: [check]
 - Do not use cursor/keyset pagination. Always use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
 - In SQL queries, always reuse table and column name constants (`table_names::*`, `COLUMN_*`, `FIELD_*`, `TABLE_*`) instead of hardcoded string literals for schema identifiers. For every new or edited SQL query (including idempotency, auth, handlers, models, and tests), do not inline table/column identifiers in query text; add or reuse a shared constant first and then reference it in `format!`.
 - Before adding any new string literal (including SQL text), first check existing string constants in the workspace and reuse them when possible; introduce a new constant only when no suitable reusable constant exists.
