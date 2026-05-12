@@ -71,7 +71,7 @@
 - Do not use `as` numeric conversions; use `From`/`TryFrom` and explicit bounds checks.
 - Do not change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
-- Before completion, run checks in this exact order: `cargo fmt` -> `cargo clippy --all-targets --all-features -- -D warnings` -> `cargo test`. If full `cargo test` is not feasible, run affected test targets and explicitly report what was skipped and why.
+- Before completion, run checks in this exact order: `cargo fmt` -> `cargo clippy --all-targets --all-features -- -D warnings` -> `cargo test --quiet`. If full `cargo test --quiet` is not feasible, run affected test targets and explicitly report what was skipped and why.
 - For each new feature flag, run and pass `cargo hack` feature-matrix checks.
 - For every PR that changes `Cargo.toml` or `cfg(feature)` usage, run and pass `cargo hack` feature-matrix checks.
 - Prevent hidden breaking changes: run semver checks and update changelog entries for externally visible changes.
@@ -141,7 +141,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ```bash
-cargo test
+cargo test --quiet
 ```
 
 ## Toolchain note
