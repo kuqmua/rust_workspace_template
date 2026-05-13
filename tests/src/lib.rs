@@ -3,19 +3,19 @@ use optml as _;
 
 #[cfg(test)]
 mod tests {
+    use core::str::Split;
     use std::{
         collections::HashSet,
         ffi::OsStr,
         fs::{self, read_to_string},
-        io::ErrorKind,
         path::{Path, PathBuf},
         process::{Command, Stdio},
-        str::Split,
     };
 
     use regex::Regex;
     use syn::{
-        Expr, ExprLit, ExprMethodCall, Lit, parse_file,
+        __private::ToTokens as _,
+        ExprMethodCall, parse_file,
         visit::{Visit, visit_expr_method_call},
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -129,21 +129,16 @@ mod tests {
 
     fn workflow_file_paths(workspace_root: &Path) -> Vec<PathBuf> {
         let workflows_directory_path = workspace_root.join(".github").join("workflows");
-        fs::read_dir(&workflows_directory_path)
-            .and_then(|directory_entries| {
-                directory_entries
-                    .map(|directory_entry_result| directory_entry_result.map(|entry| entry.path()))
-                    .collect()
-            })
-            .or_else(|error| {
-                if error.kind() == ErrorKind::NotFound {
-                    Ok(Vec::new())
-                } else {
-                    Err(error)
-                }
-            })
-            .unwrap_or_default()
+        if !workflows_directory_path.exists() {
+            return Vec::new();
+        }
+        let Ok(directory_entries) = fs::read_dir(&workflows_directory_path) else {
+            return Vec::new();
+        };
+        directory_entries
             .into_iter()
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
             .filter(|path| path.extension().is_some_and(|extension| extension == "yml"))
             .collect()
     }
@@ -205,15 +200,7 @@ mod tests {
         value: &'value_lt Value,
         uuid: &str,
     ) -> Result<&'value_lt Table, String> {
-        match value {
-            Value::Table(table) => Ok(table),
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => Err(uuid.to_owned()),
-        }
+        value.as_table().ok_or_else(|| uuid.to_owned())
     }
 
     fn collect_missing_items<'items>(
@@ -332,27 +319,18 @@ mod tests {
                 .collect::<Result<Vec<String>, String>>()?
         };
         {
-            let rust_or_clippy_name = rust_or_clippy.name();
             let lints_from_cargo_set = str_set(&lints_vec_from_cargo_toml);
             let lints_to_check_set = str_set(&lints_from_cmd);
             let lints_exceptions_set = exceptions.iter().copied().collect::<HashSet<&str>>();
-            let (lints_not_in_cargo_toml, lints_missing_by_exception) = {
+            let lints_not_in_cargo_toml = {
                 let mut lints_not_in_cargo_toml = Vec::new();
-                let mut lints_missing_by_exception = Vec::new();
                 for lint in collect_missing_items(&lints_from_cmd, &lints_from_cargo_set) {
-                    if lints_exceptions_set.contains(lint) {
-                        lints_missing_by_exception.push(lint);
-                    } else {
+                    if !lints_exceptions_set.contains(lint) {
                         lints_not_in_cargo_toml.push(lint);
                     }
                 }
-                (lints_not_in_cargo_toml, lints_missing_by_exception)
+                lints_not_in_cargo_toml
             };
-            for lint in lints_missing_by_exception {
-                println!(
-                    "todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997"
-                );
-            }
             if !lints_not_in_cargo_toml.is_empty() {
                 return Err(format!("1c5a9308 {lints_not_in_cargo_toml:?}"));
             }
@@ -366,15 +344,15 @@ mod tests {
     }
 
     fn validate_workspace_dep_features(v_tbl: &Table) -> Result<(), String> {
-        match v_tbl.get("features").ok_or_else(|| "473577d5".to_owned())? {
-            Value::Array(_) => Ok(()),
-            Value::String(_)
-            | Value::Table(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_) => Err("27bcfb1c".to_owned()),
+        if v_tbl
+            .get("features")
+            .ok_or_else(|| "473577d5".to_owned())?
+            .as_array()
+            .is_some()
+        {
+            return Ok(());
         }
+        Err("27bcfb1c".to_owned())
     }
 
     fn take_next_u64_part(iter: &mut Split<'_, char>) -> bool {
@@ -411,16 +389,20 @@ mod tests {
             fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
                 if i.method == self.method_name {
                     if i.args.len() == 1 {
-                        if let Some(Expr::Lit(ExprLit {
-                            lit: Lit::Str(lit_str),
-                            ..
-                        })) = i.args.first()
-                        {
-                            let value = lit_str.value();
-                            if value.len() == 8 {
-                                self.uuids.push(value);
+                        if let Some(argument_expression) = i.args.first() {
+                            let argument_token_stream =
+                                argument_expression.to_token_stream().to_string();
+                            if argument_token_stream.starts_with('\"')
+                                && argument_token_stream.ends_with('\"')
+                            {
+                                let value = argument_token_stream.trim_matches('\"').to_owned();
+                                if value.len() == 8 {
+                                    self.uuids.push(value);
+                                } else {
+                                    self.ers.push(format!("arg len is not 8: {value}"));
+                                }
                             } else {
-                                self.ers.push(format!("arg len is not 8: {value}"));
+                                self.ers.push("arg is not string literal".to_owned());
                             }
                         } else {
                             self.ers.push("arg is not string literal".to_owned());
@@ -641,18 +623,16 @@ mod tests {
             {
                 let v_tbl = toml_val_as_tbl_ref(v_5c36cb98, "cb693a3f")?;
                 if let Some(path_v) = v_tbl.get("path") {
-                    match path_v {
-                        Value::String(_) => {}
-                        Value::Table(_)
-                        | Value::Integer(_)
-                        | Value::Float(_)
-                        | Value::Boolean(_)
-                        | Value::Datetime(_)
-                        | Value::Array(_) => return Err("6ca03a1f".to_owned()),
+                    if path_v.as_str().is_none() {
+                        return Err("6ca03a1f".to_owned());
                     }
                 } else {
-                    match v_tbl.get("version").ok_or_else(|| "d5b2b269".to_owned())? {
-                        Value::String(version_string) => {
+                    match v_tbl
+                        .get("version")
+                        .ok_or_else(|| "d5b2b269".to_owned())?
+                        .as_str()
+                    {
+                        Some(version_string) => {
                             if !version_string.strip_prefix('=').is_some_and(|rest| {
                                 let mut iter = rest.split('.');
                                 take_next_u64_part(&mut iter)
@@ -663,12 +643,7 @@ mod tests {
                                 return Err("6640b9bf".to_owned());
                             }
                         }
-                        Value::Table(_)
-                        | Value::Integer(_)
-                        | Value::Float(_)
-                        | Value::Boolean(_)
-                        | Value::Datetime(_)
-                        | Value::Array(_) => return Err("a3410a37".to_owned()),
+                        None => return Err("a3410a37".to_owned()),
                     }
                     match v_tbl.len() {
                         1 => {}
@@ -1651,7 +1626,7 @@ mod tests {
             let file_content = read_file(rust_file);
             let source_segment = non_test_source_segment(&file_content);
             let mut is_inside_public_struct = false;
-            let mut public_struct_brace_depth = 0usize;
+            let mut public_struct_brace_depth = 0;
 
             for source_line in source_segment.lines() {
                 let trimmed_line = source_line.trim_start();

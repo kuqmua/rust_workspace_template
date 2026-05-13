@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 
+use core::hint::black_box;
+
 fn main() {
-    println!("server started");
+    black_box(());
 }
