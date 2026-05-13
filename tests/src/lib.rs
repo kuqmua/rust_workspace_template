@@ -1158,6 +1158,25 @@ mod tests {
     }
 
     #[test]
+    fn forbids_json_macro_usage_in_repository_rust_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            assert!(
+                !file_content.contains("json!("),
+                "found forbidden json! macro usage in {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
     fn enforces_hardened_release_profile_configuration() {
         let workspace_root = workspace_root_path();
         let root_manifest_path = workspace_root.join("Cargo.toml");
