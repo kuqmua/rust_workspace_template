@@ -98,9 +98,11 @@
 - Leave commented dead code.
 - Commit debug prints.
 - Use `unwrap()`.
-- Use `todo!()` or `unimplemented!()` in non-test code.
-- Use `panic!()` or `assert!()` in runtime/library code paths (tests are allowed).
-- Use `expect()` outside tests.
+- Use `todo!()`.
+- Use `unimplemented!()`.
+- Use `panic!()`.
+- Use`assert!()`.
+- Use `expect()`.
 - Write documentation prose/doc comments unless explicitly requested; avoid adding docs by default.
 - Use one common error type for all routes/services in an application.
 - Use `anyhow::Error` or `Box<dyn Error>` as public library API boundary error types.
@@ -109,7 +111,6 @@
 - Use `tokio::spawn` or `std::thread::spawn` without explicit error-ownership and cancellation policy.
 - Use `Arc<Mutex<_>>` in single-thread scenarios without explicit synchronization justification.
 - Allow unbounded collection growth in long-lived structures without limits/eviction policy.
-- Do not use `expect()` or `panic!()` in library/runtime code except in `proc-macro` or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.
 - Use or write `unsafe`.
 - Use global mutable/singleton state (`static mut`, lazy singletons) without explicit RFC-level justification.
