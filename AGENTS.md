@@ -101,7 +101,7 @@
 - Use `todo!()`.
 - Use `unimplemented!()`.
 - Use `panic!()`.
-- Use`assert!()`.
+- Use `assert!()`.
 - Use `expect()`.
 - Write documentation prose/doc comments unless explicitly requested; avoid adding docs by default.
 - Use one common error type for all routes/services in an application.
