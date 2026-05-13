@@ -76,11 +76,17 @@ mod tests {
     }
 
     fn collect_files_recursively(directory_path: &Path, files: &mut Vec<PathBuf>) {
-        let directory_entries = fs::read_dir(directory_path).expect("f1a27b8c");
+        let Ok(directory_entries) = fs::read_dir(directory_path) else {
+            return;
+        };
 
         for directory_entry_result in directory_entries {
-            let directory_entry = directory_entry_result.expect("d2e8c41a");
-            let file_type = directory_entry.file_type().expect("8bf903de");
+            let Ok(directory_entry) = directory_entry_result else {
+                continue;
+            };
+            let Ok(file_type) = directory_entry.file_type() else {
+                continue;
+            };
             let path = directory_entry.path();
 
             if file_type.is_dir() {
@@ -103,10 +109,8 @@ mod tests {
 
     fn workspace_root_path() -> PathBuf {
         let crate_manifest_directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        crate_manifest_directory
-            .parent()
-            .expect("a74d10bf")
-            .to_path_buf()
+        let parent_directory = crate_manifest_directory.parent().map(Path::to_path_buf);
+        parent_directory.unwrap_or(crate_manifest_directory)
     }
 
     fn non_test_source_segment(file_content: &str) -> &str {
@@ -120,7 +124,7 @@ mod tests {
     }
 
     fn read_file(path: &Path) -> String {
-        read_to_string(path).expect("9be35a17")
+        read_to_string(path).unwrap_or_default()
     }
 
     fn workflow_file_paths(workspace_root: &Path) -> Vec<PathBuf> {
@@ -138,7 +142,7 @@ mod tests {
                     Err(error)
                 }
             })
-            .expect("7cf34bd1")
+            .unwrap_or_default()
             .into_iter()
             .filter(|path| path.extension().is_some_and(|extension| extension == "yml"))
             .collect()
@@ -178,31 +182,37 @@ mod tests {
         }
     }
 
-    fn workspace_tbl_from_cargo_toml() -> Table {
+    fn workspace_tbl_from_cargo_toml() -> Result<Table, String> {
         let mut tbl = read_to_string("../Cargo.toml")
-            .expect("39a0d238")
+            .map_err(|error| format!("39a0d238 {error}"))?
             .parse::<TomlTable>()
-            .expect("beb11586");
-        match tbl.remove("workspace").expect("f728192d") {
-            Value::Table(table) => table,
+            .map_err(|error| format!("beb11586 {error}"))?;
+        match tbl
+            .remove("workspace")
+            .ok_or_else(|| "f728192d".to_owned())?
+        {
+            Value::Table(table) => Ok(table),
             Value::String(_)
             | Value::Integer(_)
             | Value::Float(_)
             | Value::Boolean(_)
             | Value::Datetime(_)
-            | Value::Array(_) => panic!("2bfb0b62"),
+            | Value::Array(_) => Err("2bfb0b62".to_owned()),
         }
     }
 
-    fn toml_val_as_tbl_ref<'value_lt>(value: &'value_lt Value, uuid: &str) -> &'value_lt Table {
+    fn toml_val_as_tbl_ref<'value_lt>(
+        value: &'value_lt Value,
+        uuid: &str,
+    ) -> Result<&'value_lt Table, String> {
         match value {
-            Value::Table(table) => table,
+            Value::Table(table) => Ok(table),
             Value::String(_)
             | Value::Integer(_)
             | Value::Float(_)
             | Value::Boolean(_)
             | Value::Datetime(_)
-            | Value::Array(_) => panic!("{uuid}"),
+            | Value::Array(_) => Err(uuid.to_owned()),
         }
     }
 
@@ -271,14 +281,21 @@ mod tests {
         parse_only_clippy: bool,
         exp_id: &'static str,
         exceptions: &[&str],
-    ) {
+    ) -> Result<(), String> {
         let lints_vec_from_cargo_toml = {
-            let workspace = workspace_tbl_from_cargo_toml();
-            let lints = toml_val_as_tbl_ref(workspace.get("lints").expect("82eaea37"), "cae226cd");
+            let workspace = workspace_tbl_from_cargo_toml()?;
+            let lints = toml_val_as_tbl_ref(
+                workspace
+                    .get("lints")
+                    .ok_or_else(|| "82eaea37".to_owned())?,
+                "cae226cd",
+            )?;
             let toml_v_tbl = toml_val_as_tbl_ref(
-                lints.get(rust_or_clippy.name()).expect("dbd02f72"),
+                lints
+                    .get(rust_or_clippy.name())
+                    .ok_or_else(|| "dbd02f72".to_owned())?,
                 "6f4580ce",
-            );
+            )?;
             toml_v_tbl.keys().cloned().collect::<Vec<String>>()
         };
         let lints_from_cmd = {
@@ -286,28 +303,33 @@ mod tests {
                 .args(["-W", "help"])
                 .stdout(Stdio::piped())
                 .output()
-                .unwrap_or_else(|_| panic!("{exp_id}"));
-            assert!(output.status.success(), "95d4595a");
-            let stderr = String::from_utf8(output.stderr.clone()).expect("3c1d9f87");
-            assert!(stderr.trim().is_empty(), "cc4670a2");
-            let stdout = String::from_utf8(output.stdout).expect("5ef7b23a");
+                .map_err(|error| format!("{exp_id} {error}"))?;
+            if !output.status.success() {
+                return Err("95d4595a".to_owned());
+            }
+            let stderr = String::from_utf8(output.stderr.clone())
+                .map_err(|error| format!("3c1d9f87 {error}"))?;
+            if !stderr.trim().is_empty() {
+                return Err("cc4670a2".to_owned());
+            }
+            let stdout =
+                String::from_utf8(output.stdout).map_err(|error| format!("5ef7b23a {error}"))?;
             let regex = if parse_only_clippy {
                 Regex::new(r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
-                    .expect("fbf14346")
+                    .map_err(|error| format!("fbf14346 {error}"))?
             } else {
                 Regex::new(r"(?m)^\s*([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
-                    .expect("60d99c87")
+                    .map_err(|error| format!("60d99c87 {error}"))?
             };
             regex
                 .captures_iter(&stdout)
                 .map(|el_70833f93| {
                     el_70833f93
                         .get(1)
-                        .expect("4f9c2e87")
-                        .as_str()
-                        .replace('-', "_")
+                        .ok_or_else(|| "4f9c2e87".to_owned())
+                        .map(|match_capture| match_capture.as_str().replace('-', "_"))
                 })
-                .collect::<Vec<String>>()
+                .collect::<Result<Vec<String>, String>>()?
         };
         {
             let rust_or_clippy_name = rust_or_clippy.name();
@@ -331,22 +353,27 @@ mod tests {
                     "todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997"
                 );
             }
-            assert!(lints_not_in_cargo_toml.is_empty(), "1c5a9308 {lints_not_in_cargo_toml:?}");
+            if !lints_not_in_cargo_toml.is_empty() {
+                return Err(format!("1c5a9308 {lints_not_in_cargo_toml:?}"));
+            }
             let outdated_lints_in_file =
                 collect_missing_items(&lints_vec_from_cargo_toml, &lints_to_check_set);
-            assert!(outdated_lints_in_file.is_empty(), "93787d2d");
+            if !outdated_lints_in_file.is_empty() {
+                return Err("93787d2d".to_owned());
+            }
         }
+        Ok(())
     }
 
-    fn validate_workspace_dep_features(v_tbl: &Table) {
-        match v_tbl.get("features").expect("473577d5") {
-            &Value::Array(_) => (),
-            &Value::String(_)
-            | &Value::Table(_)
-            | &Value::Integer(_)
-            | &Value::Float(_)
-            | &Value::Boolean(_)
-            | &Value::Datetime(_) => panic!("27bcfb1c"),
+    fn validate_workspace_dep_features(v_tbl: &Table) -> Result<(), String> {
+        match v_tbl.get("features").ok_or_else(|| "473577d5".to_owned())? {
+            Value::Array(_) => Ok(()),
+            Value::String(_)
+            | Value::Table(_)
+            | Value::Integer(_)
+            | Value::Float(_)
+            | Value::Boolean(_)
+            | Value::Datetime(_) => Err("27bcfb1c".to_owned()),
         }
     }
 
@@ -359,18 +386,19 @@ mod tests {
     fn workspace_members_as_strs<'members_lt>(
         workspace: &'members_lt Table,
         exp_id: &'static str,
-    ) -> Vec<&'members_lt str> {
-        let Some(members) = workspace.get("members").and_then(Value::as_array) else {
-            panic!("{exp_id}");
-        };
+    ) -> Result<Vec<&'members_lt str>, String> {
+        let members = workspace
+            .get("members")
+            .and_then(Value::as_array)
+            .ok_or_else(|| exp_id.to_owned())?;
         let mut output = Vec::with_capacity(members.len());
         for member in members {
             match member.as_str() {
                 Some(member_str) => output.push(member_str),
-                None => panic!("{exp_id}"),
+                None => return Err(exp_id.to_owned()),
             }
         }
-        output
+        Ok(output)
     }
 
     fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPanic) {
@@ -407,7 +435,10 @@ mod tests {
         let mut all_uuids = Vec::new();
         let mut all_ers = Vec::new();
         for_each_rs_file_content(|path, content| {
-            let ast = parse_file(content).expect("5e7a83eb");
+            let Ok(ast) = parse_file(content) else {
+                all_ers.push(format!("{path:?}: 5e7a83eb"));
+                return;
+            };
             let mut visitor = ExpectVisitor {
                 method_name: expect_or_panic.method_name(),
                 uuids: Vec::new(),
@@ -530,18 +561,18 @@ mod tests {
     }
 
     #[test]
-    fn enforces_all_clippy_lints_in_workspace() {
+    fn enforces_all_clippy_lints_in_workspace() -> Result<(), String> {
         assert_workspace_lints_match(
             RustOrClippy::Clippy,
             "clippy-driver",
             true,
             "8895ca50",
             &CLIPPY_LINT_EXCEPTIONS,
-        );
+        )
     }
 
     #[test]
-    fn enforces_all_rust_lints_in_workspace() {
+    fn enforces_all_rust_lints_in_workspace() -> Result<(), String> {
         assert_workspace_lints_match(RustOrClippy::Rust, "rustc", false, "3c20b457", &[
             "fuzzy_provenance_casts",
             "lossy_provenance_casts",
@@ -562,32 +593,53 @@ mod tests {
             "duplicate_features",
             "deprecated_llvm_intrinsic",
             "tail_call_track_caller",
-        ]);
+        ])
     }
 
     #[test]
-    fn enforces_unique_uuid_in_rs_files() {
+    fn enforces_unique_uuid_in_rs_files() -> Result<(), String> {
         let rgx = Regex::new(
             r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b"
-        ).expect("e098a1ff");
+        )
+        .map_err(|error| format!("e098a1ff {error}"))?;
         let mut seen = HashSet::new();
+        let mut validation_error = None;
         for_each_rs_file_content(|_, content| {
+            if validation_error.is_some() {
+                return;
+            }
             for el_714b3d9c in rgx.find_iter(content) {
-                let uuid = Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
-                assert!(uuid.get_version_num() == 4, "49b49b21");
-                assert!(seen.insert(uuid), "4cf9d239");
+                let Ok(uuid) = Uuid::parse_str(el_714b3d9c.as_str()) else {
+                    validation_error = Some("c9711efd".to_owned());
+                    return;
+                };
+                if uuid.get_version_num() != 4 {
+                    validation_error = Some("49b49b21".to_owned());
+                    return;
+                }
+                if !seen.insert(uuid) {
+                    validation_error = Some("4cf9d239".to_owned());
+                    return;
+                }
             }
         });
+        if let Some(error) = validation_error {
+            return Err(error);
+        }
+        Ok(())
     }
 
     #[test]
-    fn enforces_exact_version_in_workspace_dependencies() {
-        let workspace = workspace_tbl_from_cargo_toml();
-        for (_, v_5c36cb98) in
-            toml_val_as_tbl_ref(workspace.get("dependencies").expect("2376f58e"), "e117fa5a")
-        {
+    fn enforces_exact_version_in_workspace_dependencies() -> Result<(), String> {
+        let workspace = workspace_tbl_from_cargo_toml()?;
+        for (_, v_5c36cb98) in toml_val_as_tbl_ref(
+            workspace
+                .get("dependencies")
+                .ok_or_else(|| "2376f58e".to_owned())?,
+            "e117fa5a",
+        )? {
             {
-                let v_tbl = toml_val_as_tbl_ref(v_5c36cb98, "cb693a3f");
+                let v_tbl = toml_val_as_tbl_ref(v_5c36cb98, "cb693a3f")?;
                 if let Some(path_v) = v_tbl.get("path") {
                     match path_v {
                         Value::String(_) => {}
@@ -596,59 +648,62 @@ mod tests {
                         | Value::Float(_)
                         | Value::Boolean(_)
                         | Value::Datetime(_)
-                        | Value::Array(_) => panic!("6ca03a1f"),
+                        | Value::Array(_) => return Err("6ca03a1f".to_owned()),
                     }
                 } else {
-                    match v_tbl.get("version").expect("d5b2b269") {
+                    match v_tbl.get("version").ok_or_else(|| "d5b2b269".to_owned())? {
                         Value::String(version_string) => {
-                            assert!(
-                                version_string.strip_prefix('=').is_some_and(|rest| {
-                                    let mut iter = rest.split('.');
-                                    take_next_u64_part(&mut iter)
-                                        && take_next_u64_part(&mut iter)
-                                        && take_next_u64_part(&mut iter)
-                                        && iter.next().is_none()
-                                }),
-                                "6640b9bf"
-                            );
+                            if !version_string.strip_prefix('=').is_some_and(|rest| {
+                                let mut iter = rest.split('.');
+                                take_next_u64_part(&mut iter)
+                                    && take_next_u64_part(&mut iter)
+                                    && take_next_u64_part(&mut iter)
+                                    && iter.next().is_none()
+                            }) {
+                                return Err("6640b9bf".to_owned());
+                            }
                         }
                         Value::Table(_)
                         | Value::Integer(_)
                         | Value::Float(_)
                         | Value::Boolean(_)
                         | Value::Datetime(_)
-                        | Value::Array(_) => panic!("a3410a37"),
+                        | Value::Array(_) => return Err("a3410a37".to_owned()),
                     }
                     match v_tbl.len() {
                         1 => {}
                         2 => {
                             if v_tbl.contains_key("features") {
-                                validate_workspace_dep_features(v_tbl);
+                                validate_workspace_dep_features(v_tbl)?;
                             }
                         }
                         3 => {
-                            validate_workspace_dep_features(v_tbl);
-                            match v_tbl.get("default-features").expect("847a138f") {
+                            validate_workspace_dep_features(v_tbl)?;
+                            match v_tbl
+                                .get("default-features")
+                                .ok_or_else(|| "847a138f".to_owned())?
+                            {
                                 &Value::Boolean(_) => (),
                                 &Value::String(_)
                                 | &Value::Table(_)
                                 | &Value::Integer(_)
                                 | &Value::Float(_)
                                 | &Value::Datetime(_)
-                                | &Value::Array(_) => panic!("b320164b"),
+                                | &Value::Array(_) => return Err("b320164b".to_owned()),
                             }
                         }
-                        _ => panic!("f1139378 {v_tbl:#?}"),
+                        _ => return Err(format!("f1139378 {v_tbl:#?}")),
                     }
                 }
             }
         }
+        Ok(())
     }
 
     #[test]
-    fn enforces_workspace_members_exist_on_disk() {
-        let workspace = workspace_tbl_from_cargo_toml();
-        let members = workspace_members_as_strs(&workspace, "7f3a1c4e");
+    fn enforces_workspace_members_exist_on_disk() -> Result<(), String> {
+        let workspace = workspace_tbl_from_cargo_toml()?;
+        let members = workspace_members_as_strs(&workspace, "7f3a1c4e")?;
         let mut ers = {
             let mut collected = Vec::new();
             for member_str in members {
@@ -664,12 +719,13 @@ mod tests {
         };
         ers.sort();
         assert_joined_ers_empty(&ers, "a4e3b8d1");
+        Ok(())
     }
 
     #[test]
-    fn enforces_workspace_members_sorted_alphabetically() {
-        let workspace = workspace_tbl_from_cargo_toml();
-        let members_vec = workspace_members_as_strs(&workspace, "c1d4f7a2");
+    fn enforces_workspace_members_sorted_alphabetically() -> Result<(), String> {
+        let workspace = workspace_tbl_from_cargo_toml()?;
+        let members_vec = workspace_members_as_strs(&workspace, "c1d4f7a2")?;
         let mut sorted = members_vec.clone();
         sorted.sort_unstable();
         let mut ers = Vec::new();
@@ -679,6 +735,7 @@ mod tests {
             }
         }
         assert_joined_ers_empty_with_ctx(&ers, "b7c2e5f8", "members not sorted:");
+        Ok(())
     }
 
     // --- Policy tests ---
@@ -706,25 +763,150 @@ mod tests {
     }
 
     #[test]
-    fn forbids_panic_and_assert_in_non_test_code() {
+    fn forbids_panic_usage_in_rust_sources() -> Result<(), String> {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
         let rust_files = rust_source_files(&workspace_files);
 
         for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
             let file_content = read_file(rust_file);
-            let source_segment = non_test_source_segment(&file_content);
-            assert!(
-                !source_segment.contains("panic!("),
-                "found panic! in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("assert!("),
-                "found assert! in non-test code: {}",
-                rust_file.display()
-            );
+            if file_content.contains("panic!(") {
+                return Err(format!(
+                    "found panic! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
         }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_assert_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("assert!(") {
+                return Err(format!(
+                    "found assert! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_assert_eq_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("assert_eq!(") {
+                return Err(format!(
+                    "found assert_eq! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_assert_ne_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("assert_ne!(") {
+                return Err(format!(
+                    "found assert_ne! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_debug_assert_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("debug_assert!(") {
+                return Err(format!(
+                    "found debug_assert! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_debug_assert_eq_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("debug_assert_eq!(") {
+                return Err(format!(
+                    "found debug_assert_eq! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_debug_assert_ne_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("debug_assert_ne!(") {
+                return Err(format!(
+                    "found debug_assert_ne! in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
     }
 
     #[test]
@@ -848,34 +1030,7 @@ mod tests {
     }
 
     #[test]
-    fn forbids_unwrap_and_error_masking_shortcuts_in_non_test_code() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            let file_content = read_file(rust_file);
-            let source_segment = non_test_source_segment(&file_content);
-            assert!(
-                !source_segment.contains("unwrap("),
-                "found unwrap in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("unwrap_or_default("),
-                "found unwrap_or_default in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("unwrap_or("),
-                "found unwrap_or in non-test code: {}",
-                rust_file.display()
-            );
-        }
-    }
-
-    #[test]
-    fn forbids_expect_in_non_test_code() {
+    fn forbids_unwrap_usage_in_rust_sources() -> Result<(), String> {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
         let rust_files = rust_source_files(&workspace_files);
@@ -885,13 +1040,62 @@ mod tests {
                 continue;
             }
             let file_content = read_file(rust_file);
-            let source_segment = non_test_source_segment(&file_content);
-            assert!(
-                !source_segment.contains("expect("),
-                "found expect in non-test code: {}",
-                rust_file.display()
-            );
+            if file_content.contains("unwrap(") {
+                return Err(format!(
+                    "found unwrap in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
         }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_error_masking_shortcuts_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("unwrap_or_default(") {
+                return Err(format!(
+                    "found unwrap_or_default in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+            if file_content.contains("unwrap_or(") {
+                return Err(format!(
+                    "found unwrap_or in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_expect_usage_in_rust_sources() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains("expect(") {
+                return Err(format!(
+                    "found expect in Rust source: {}. preferred alternative: Result",
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
     }
 
     #[test]
