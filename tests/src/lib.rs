@@ -150,6 +150,30 @@ mod tests {
             .collect()
     }
 
+    fn forbids_pattern_usage_in_rust_sources(
+        forbidden_pattern: &str,
+        forbidden_name: &str,
+    ) -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            if file_content.contains(forbidden_pattern) {
+                return Err(format!(
+                    "found {} in Rust source: {}. preferred alternative: Result",
+                    forbidden_name,
+                    rust_file.display()
+                ));
+            }
+        }
+        Ok(())
+    }
+
     fn project_dir() -> WalkDir {
         WalkDir::new("../")
     }
@@ -1006,71 +1030,24 @@ mod tests {
 
     #[test]
     fn forbids_unwrap_usage_in_rust_sources() -> Result<(), String> {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            if file_content.contains("unwrap(") {
-                return Err(format!(
-                    "found unwrap in Rust source: {}. preferred alternative: Result",
-                    rust_file.display()
-                ));
-            }
-        }
-        Ok(())
+        forbids_pattern_usage_in_rust_sources("unwrap(", "unwrap")
     }
 
     #[test]
     fn forbids_error_masking_shortcuts_in_rust_sources() -> Result<(), String> {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            if file_content.contains("unwrap_or_default(") {
-                return Err(format!(
-                    "found unwrap_or_default in Rust source: {}. preferred alternative: Result",
-                    rust_file.display()
-                ));
-            }
-            if file_content.contains("unwrap_or(") {
-                return Err(format!(
-                    "found unwrap_or in Rust source: {}. preferred alternative: Result",
-                    rust_file.display()
-                ));
-            }
-        }
+        forbids_pattern_usage_in_rust_sources("unwrap_or_default(", "unwrap_or_default")?;
+        forbids_pattern_usage_in_rust_sources("unwrap_or(", "unwrap_or")?;
         Ok(())
     }
 
     #[test]
     fn forbids_expect_usage_in_rust_sources() -> Result<(), String> {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
+        forbids_pattern_usage_in_rust_sources("expect(", "expect")
+    }
 
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            if file_content.contains("expect(") {
-                return Err(format!(
-                    "found expect in Rust source: {}. preferred alternative: Result",
-                    rust_file.display()
-                ));
-            }
-        }
-        Ok(())
+    #[test]
+    fn forbids_abort_usage_in_rust_sources() -> Result<(), String> {
+        forbids_pattern_usage_in_rust_sources("abort(", "abort")
     }
 
     #[test]
