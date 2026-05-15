@@ -1181,6 +1181,7 @@ mod tests {
     fn forbids_makefile_justfile_and_shell_scripts() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
+        let shell_file_extensions = ["sh", "bash", "zsh", "fish"];
 
         assert!(
             !workspace_files
@@ -1195,10 +1196,20 @@ mod tests {
             "Justfile is forbidden by policy"
         );
         assert!(
-            !workspace_files
-                .iter()
-                .any(|path| path.extension().is_some_and(|extension| extension == "sh")),
-            "shell script files (*.sh) are forbidden by policy"
+            !workspace_files.iter().any(|path| {
+                path.extension()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|extension| shell_file_extensions.contains(&extension))
+            }),
+            "shell script files (*.sh, *.bash, *.zsh, *.fish) are forbidden by policy"
+        );
+        assert!(
+            !workspace_files.iter().any(|path| {
+                read_file(path).lines().next().is_some_and(|first_line| {
+                    first_line.starts_with("#!/") && first_line.contains("sh")
+                })
+            }),
+            "files with shell shebang are forbidden by policy"
         );
     }
 

@@ -73,6 +73,29 @@ jobs:
       - name: taplo fmt --check
         run: taplo fmt --check
 
+  taplo-lint:
+    name: taplo lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Install taplo
+        uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+      - name: taplo lint
+        run: taplo lint
+
+  audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@6e84c0f8f063dd58bf76f3d07fdb5f89fcd3f2e1
+      - name: cargo audit
+        run: cargo audit
+
   typos:
     name: typos
     runs-on: ubuntu-latest
