@@ -107,6 +107,7 @@
 - Write documentation prose/doc comments unless explicitly requested; avoid adding docs by default.
 - Use one common error type for all routes/services in an application.
 - Use `anyhow::Error` or `Box<dyn Error>` as public library API boundary error types.
+- Do not use `serde_json::Value` in structs or enums; prefer strict, explicit domain types to preserve type safety.
 - Add a crate default feature without explicit RFC-level justification.
 - Use `std::env::*` or `std::fs::*` directly in domain logic instead of adapters/abstractions.
 - Use `tokio::spawn` or `std::thread::spawn` without explicit error-ownership and cancellation policy.
