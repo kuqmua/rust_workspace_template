@@ -1083,6 +1083,7 @@ manual_take = "deny"
 manual_checked_ops = "deny"
 disallowed_fields = "deny"
 unnecessary_trailing_comma = "deny"
+manual_assert_eq = "deny"
 
 [profile.release]
 codegen-units = 1

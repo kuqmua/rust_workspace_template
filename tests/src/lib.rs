@@ -23,7 +23,7 @@ mod tests {
     use walkdir::WalkDir;
 
     const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
-    const CLIPPY_LINT_EXCEPTIONS: [&str; 24] = [
+    const CLIPPY_LINT_EXCEPTIONS: [&str; 23] = [
         "disallowed_fields",
         "unnecessary_trailing_comma",
         "manual_pop_if",
@@ -47,7 +47,6 @@ mod tests {
         "manual_option_zip",
         "useless_borrows_in_formatting",
         "inline_modules",
-        "manual_assert_eq",
     ];
 
     #[derive(Debug, Clone, Copy)]
