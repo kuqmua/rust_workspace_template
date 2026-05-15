@@ -23,7 +23,7 @@ mod tests {
     use walkdir::WalkDir;
 
     const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
-    const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
+    const CLIPPY_LINT_EXCEPTIONS: [&str; 24] = [
         "disallowed_fields",
         "unnecessary_trailing_comma",
         "manual_pop_if",
@@ -46,6 +46,8 @@ mod tests {
         "manual_noop_waker",
         "manual_option_zip",
         "useless_borrows_in_formatting",
+        "inline_modules",
+        "manual_assert_eq",
     ];
 
     #[derive(Debug, Clone, Copy)]
@@ -599,6 +601,7 @@ mod tests {
             "duplicate_features",
             "deprecated_llvm_intrinsic",
             "tail_call_track_caller",
+            "dead_code_pub_in_binary",
         ])
     }
 
@@ -1338,6 +1341,25 @@ mod tests {
             assert!(
                 !file_content.contains("json!("),
                 "found forbidden json! macro usage in {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
+    fn forbids_serde_json_value_usage_in_repository_rust_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            assert!(
+                !file_content.contains("serde_json::Value"),
+                "found forbidden serde_json::Value usage in {}",
                 rust_file.display()
             );
         }
