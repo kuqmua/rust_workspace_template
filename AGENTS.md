@@ -68,6 +68,7 @@
 - Do not create shell scripts when the same task can be implemented in Rust; prefer implementing automation and utilities in Rust.
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
 - Do not add lint `allow` attributes (`#[allow(...)]` or `#![allow(...)]`) to bypass workspace lints, including in tests.
+- Do not add new module-level `#[cfg_attr(...)]` or `#![cfg_attr(...)]` attributes without explicit permission in the prompt.
 - Do not use `as` numeric conversions; use `From`/`TryFrom` and explicit bounds checks.
 - Do not change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
