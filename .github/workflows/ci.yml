@@ -173,6 +173,23 @@ jobs:
       - name: cargo +nightly udeps --workspace --all-targets --all-features
         run: cargo +nightly udeps --workspace --all-targets --all-features
 
+  # miri:
+  #   name: cargo +nightly miri test --workspace --all-features
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+  #   steps:
+  #     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+  #     - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+  #       with:
+  #         toolchain: nightly
+  #         components: miri
+  #     - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+  #       with:
+  #         cache-on-failure: true
+  #         key: miri-nightly
+  #     - name: cargo +nightly miri test --workspace --all-features
+  #       run: cargo +nightly miri test --workspace --all-features
+
   llvm-cov:
     name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
     runs-on: ubuntu-latest
