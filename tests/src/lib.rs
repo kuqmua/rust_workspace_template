@@ -1053,6 +1053,11 @@ mod tests {
     }
 
     #[test]
+    fn forbids_transmute_usage_in_rust_sources() -> Result<(), String> {
+        forbids_pattern_usage_in_rust_sources("transmute(", "transmute")
+    }
+
+    #[test]
     fn forbids_direct_command_new_usage() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
