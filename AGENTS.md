@@ -99,6 +99,7 @@
 - Leave commented dead code.
 - Commit debug prints.
 - Use `unwrap()`.
+- Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
 - Use `todo!()`.
 - Use `unimplemented!()`.
 - Use `panic!()`.
