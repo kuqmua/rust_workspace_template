@@ -13,7 +13,7 @@
 - Prefer immutable data.
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
-- Use domain-specific error enums per module/route/service boundary; do not centralize all failures into one global shared error type.
+- Use domain-specific error enums per module/route/service boundary.
 - Use `#[must_use]` on `Result`, `Option`, and domain return types where ignoring the value can hide failures or behavior.
 - Use enums instead of `bool` for domain logic and API contracts.
 - Prefer enums over `bool` values when the meaning is domain-specific or unclear at call sites.
@@ -22,21 +22,18 @@
 - Use trait objects only when dynamic dispatch is required.
 - Keep public API minimal.
 - Default to `pub(crate)` visibility; use `pub` only with explicit external API justification.
-- Do not expose public struct fields in API types without explicit boundary-level justification; prefer constructors and methods.
 - Add unit tests for public logic.
 - For public APIs, add both contract tests and round-trip tests.
 - Use test helpers for repeated setup.
 - Keep tests deterministic.
-- Keep tests deterministic: do not use `sleep` and do not depend on wall-clock time or timezone without explicit time injection.
-- For route tests, always reuse the corresponding `call_*_route_client` function (directly or via shared test helpers); do not build route paths independently when a client route function exists.
+- For route tests, always reuse the corresponding `call_*_route_client` function (directly or via shared test helpers).
 - If error message contains 8 random symbols then search workspace for that id.
 - Avoid allocations inside hot loops.
 - Use iterator-based style instead of regular loops in Rust code.
-- Do not add allocations in hot paths unless performance impact is justified in a nearby comment.
 - Enforce performance budgets for hot paths and fail CI on benchmark regressions above agreed thresholds.
-- Preserve and propagate error sources; avoid `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
+- Preserve and propagate error sources.
 - Preserve behavior unless change is requested.
-- Don't assume; if context is ambiguous, state uncertainty explicitly instead of hiding confusion.
+- If context is ambiguous, state uncertainty explicitly.
 - Surface tradeoffs explicitly when multiple valid approaches exist.
 - If a simpler approach exists, state it and prefer it by default.
 - Push back when warranted if a request introduces unnecessary complexity or risk.
@@ -49,28 +46,25 @@
   1. [Step] -> verify: [check]
   2. [Step] -> verify: [check]
   3. [Step] -> verify: [check]
-- Do not use cursor/keyset pagination. Always use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
-- In SQL queries, always reuse table and column name constants (`table_names::*`, `COLUMN_*`, `FIELD_*`, `TABLE_*`) instead of hardcoded string literals for schema identifiers. For every new or edited SQL query (including idempotency, auth, handlers, models, and tests), do not inline table/column identifiers in query text; add or reuse a shared constant first and then reference it in `format!`.
+- Use only limit/offset pagination, even if cursor pagination could be more performant, because cursor pagination significantly increases code complexity.
+- In SQL queries, always reuse table and column name constants (`table_names::*`, `COLUMN_*`, `FIELD_*`, `TABLE_*`) instead of hardcoded string literals for schema identifiers.
+- For every new or edited SQL query (including idempotency, auth, handlers, models, and tests), add or reuse a shared constant first and then reference it in `format!`.
 - Before adding any new string literal (including SQL text), first check existing string constants in the workspace and reuse them when possible; introduce a new constant only when no suitable reusable constant exists.
 - Reuse shared error message constants instead of duplicating hardcoded error strings across handlers, models, and tests.
-- Reuse shared error message parts (prefixes/suffixes/field fragments) via common constants or builders; do not duplicate near-identical hardcoded error text variants.
-- Never use Axum middleware layers (`.layer(from_fn(...))`) for cross-cutting concerns like auth, rate limiting, idempotency, or validation. Instead, call a reusable function explicitly in each route handler. This keeps error types visible in the handler signature and avoids hidden control flow.
+- Reuse shared error message parts (prefixes/suffixes/field fragments) via common constants or builders.
+- For cross-cutting concerns like auth, rate limiting, idempotency, or validation, call a reusable function explicitly in each route handler to keep error types visible in the handler signature and avoid hidden control flow.
 - Keep generated functions and closures inside usage scope.
-- Do not create a separate function for logic used only once in regular code; keep it inline. Exceptions: route handlers and closely related routing code, middleware code, entrypoint code (`main` and startup wiring), and tests may use single-use helper functions when this clearly improves readability, structure, or reduces duplication.
-- `expect()` messages must contain **8 first symbols from random UUID v4**.
-- Do not use abbreviations in names for variables, functions, methods, traits, constants, structs, enums, modules, type aliases, fields, or parameters; use explicit, full names. The same rule applies to database schema names (tables, columns, enums, constraints): do not introduce abbreviated names there either. For constants, use explicit full-word prefixes/tokens: `COLUMN_` instead of `COL_`, `PERMISSION_` instead of `PERM_`, `MESSAGE_` instead of `MSG_`, `PASSWORD` instead of `PWD`, `GEOMETRY` instead of `GEOM`, `VIRTUAL_USER` instead of `VU`.
+- Keep single-use regular code logic inline.
+- Use explicit, full names for variables, functions, methods, traits, constants, structs, enums, modules, type aliases, fields, parameters, and database schema names.
+- Use explicit full-word prefixes/tokens in constants: `COLUMN_` instead of `COL_`, `PERMISSION_` instead of `PERM_`, `MESSAGE_` instead of `MSG_`, `PASSWORD` instead of `PWD`, `GEOMETRY` instead of `GEOM`, `VIRTUAL_USER` instead of `VU`.
 - Use concrete crate types from crates.io in workspace Cargo.toml.
 - Use `*CRATE NAME*.workspace = true` for workspace crate dependencies in Cargo.toml.
 - Keep validation thresholds local (`let`/local const) when they are used in a single scope, and reuse those local values in error messages.
-- Formatting is defined by `cargo fmt`; do not enforce manual formatting rules that conflict with formatter output.
-- Do not add empty lines between code lines manually; if `cargo fmt` inserts or keeps them, that is acceptable.
-- Prefer imports over absolute paths in type signatures and expressions; avoid `#[allow(clippy::absolute_paths)]` by refactoring imports.
-- Do not create shell scripts when the same task can be implemented in Rust; prefer implementing automation and utilities in Rust.
+- Follow `cargo fmt` as the source of formatting truth.
+- Prefer imports over absolute paths in type signatures and expressions.
+- Prefer implementing automation and utilities in Rust when the same task can be implemented in Rust.
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
-- Do not add lint `allow` attributes (`#[allow(...)]` or `#![allow(...)]`) to bypass workspace lints, including in tests.
-- Do not add new module-level `#[cfg_attr(...)]` or `#![cfg_attr(...)]` attributes without explicit permission in the prompt.
-- Do not use `as` numeric conversions; use `From`/`TryFrom` and explicit bounds checks.
-- Do not change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
+- Use `From`/`TryFrom` and explicit bounds checks for numeric conversions.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
 - For each new feature flag, run and pass `cargo hack` feature-matrix checks.
 - For every PR that changes `Cargo.toml` or `cfg(feature)` usage, run and pass `cargo hack` feature-matrix checks.
@@ -82,9 +76,9 @@
 - Require compile-fail tests (`trybuild`) for critical type-level contracts.
 - Require golden/snapshot tests for stable text/JSON CLI or API output contracts.
 - In the final report, always list executed verification commands and their outcomes; if any required check was skipped, state it explicitly with reason.
-- Do not use indexing access like `[0]` or `[1]` even in tests; use `first()`/`get()` with explicit handling.
-- Do not mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors; prefer `Result` propagation and explicit `expect()` with 8-char id.
-- Delete unused code immediately instead of keeping it behind `#[allow(unused_...)]`.
+- Use `first()`/`get()` with explicit handling instead of indexing access like `[0]` or `[1]`, including in tests.
+- Prefer `Result` propagation and explicit `expect()` with 8-char id instead of `unwrap_or_default()`/`unwrap_or(...)` where failures could be hidden.
+- Delete unused code immediately.
 
 ## WHAT AGENT MUST NOT DO
 
@@ -105,10 +99,10 @@
 - Use `assert!()`.
 - Use `expect()`.
 - Use `abort()`.
-- Write documentation prose/doc comments unless explicitly requested; avoid adding docs by default.
+- Write documentation prose/doc comments unless explicitly requested.
 - Use one common error type for all routes/services in an application.
 - Use `anyhow::Error` or `Box<dyn Error>` as public library API boundary error types.
-- Do not use `serde_json::Value` in structs or enums; prefer strict, explicit domain types to preserve type safety.
+- Use `serde_json::Value` in structs or enums.
 - Add a crate default feature without explicit RFC-level justification.
 - Use `std::env::*` or `std::fs::*` directly in domain logic instead of adapters/abstractions.
 - Use `tokio::spawn` or `std::thread::spawn` without explicit error-ownership and cancellation policy.
@@ -133,6 +127,26 @@
 - Rename public items casually.
 - Change semantics silently.
 - Use `Makefile` or `Justfile`.
+- Centralize all failures into one global shared error type.
+- Expose public struct fields in API types without explicit boundary-level justification.
+- Use `sleep` in tests.
+- Depend on wall-clock time or timezone in tests without explicit time injection.
+- Build route paths independently in route tests when a client route function exists.
+- Add allocations in hot paths unless performance impact is justified in a nearby comment.
+- Use `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
+- Use Axum middleware layers (`.layer(from_fn(...))`) for cross-cutting concerns like auth, rate limiting, idempotency, or validation.
+- Create a separate function for logic used only once in regular code. Exceptions: route handlers and closely related routing code, middleware code, entrypoint code (`main` and startup wiring), and tests may use single-use helper functions when this clearly improves readability, structure, or reduces duplication.
+- Use abbreviations in names for variables, functions, methods, traits, constants, structs, enums, modules, type aliases, fields, parameters, or database schema names.
+- Enforce manual formatting rules that conflict with `cargo fmt` output.
+- Add empty lines between code lines manually when `cargo fmt` does not produce them.
+- Create shell scripts when the same task can be implemented in Rust.
+- Add lint `allow` attributes (`#[allow(...)]` or `#![allow(...)]`) to bypass workspace lints, including in tests.
+- Add new module-level `#[cfg_attr(...)]` or `#![cfg_attr(...)]` attributes without explicit permission in the prompt.
+- Use cursor/keyset pagination.
+- Change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
+- Use indexing access like `[0]` or `[1]` even in tests.
+- Mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors.
+- Keep unused code behind `#[allow(unused_...)]`.
 
 ## Run before completion
 
