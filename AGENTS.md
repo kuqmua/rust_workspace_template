@@ -74,7 +74,6 @@
 - Require compile-fail tests (`trybuild`) for critical type-level contracts.
 - Require golden/snapshot tests for stable text/JSON CLI or API output contracts.
 - In the final report, always list executed verification commands and their outcomes; if any required check was skipped, state it explicitly with reason.
-- Use `first()`/`get()` with explicit handling instead of indexing access like `[0]` or `[1]`, including in tests.
 - Prefer `Result` propagation and explicit `expect()` with 8-char id instead of `unwrap_or_default()`/`unwrap_or(...)` where failures could be hidden.
 - Delete unused code immediately.
 
@@ -142,7 +141,7 @@
 - Add new module-level `#[cfg_attr(...)]` or `#![cfg_attr(...)]` attributes without explicit permission in the prompt.
 - Use cursor/keyset pagination.
 - Change external contracts without explicit request: environment variable names, HTTP header names, JSON field names, and route paths.
-- Use indexing access like `[0]` or `[1]` even in tests.
+- Use indexing access like `[0]` or `[1]` instead of `first()`/`get()` (with explicit handling), even in tests.
 - Mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors.
 - Keep unused code behind `#[allow(unused_...)]`.
 
