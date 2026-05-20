@@ -15,8 +15,7 @@
 - Use enums and `thiserror` for errors.
 - Use domain-specific error enums per module/route/service boundary.
 - Use `#[must_use]` on `Result`, `Option`, and domain return types where ignoring the value can hide failures or behavior.
-- Use enums instead of `bool` for domain logic and API contracts.
-- Prefer enums over `bool` values when the meaning is domain-specific or unclear at call sites.
+- Use enums instead of `bool` for domain logic and API contracts, especially when the meaning is domain-specific or unclear at call sites.
 - Use a single async runtime across workspace.
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
@@ -66,8 +65,7 @@
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
 - Use `From`/`TryFrom` and explicit bounds checks for numeric conversions.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
-- For each new feature flag, run and pass `cargo hack` feature-matrix checks.
-- For every PR that changes `Cargo.toml` or `cfg(feature)` usage, run and pass `cargo hack` feature-matrix checks.
+- Run and pass `cargo hack` feature-matrix checks for each new feature flag and for every PR that changes `Cargo.toml` or `cfg(feature)` usage.
 - Prevent hidden breaking changes: run semver checks and update changelog entries for externally visible changes.
 - For externally visible API changes, run `cargo-semver-checks` locally before merge (not only in CI).
 - Enforce `cargo deny` policy for licenses/sources with unknown registries and unknown git sources denied by default.
@@ -119,18 +117,18 @@
 - Ignore cancellation safety.
 - Depend on external services in tests.
 - Use flaky time-based tests.
+- Use `sleep` in tests.
+- Depend on wall-clock time or timezone in tests without explicit time injection.
 - Change public API without instruction.
+- Rename public items casually.
+- Change semantics silently.
 - Add features beyond what was explicitly requested.
 - Add abstractions for single-use code.
 - Add flexibility or configurability that was not requested.
 - Leak generics to users.
-- Rename public items casually.
-- Change semantics silently.
 - Use `Makefile` or `Justfile`.
 - Centralize all failures into one global shared error type.
 - Expose public struct fields in API types without explicit boundary-level justification.
-- Use `sleep` in tests.
-- Depend on wall-clock time or timezone in tests without explicit time injection.
 - Build route paths independently in route tests when a client route function exists.
 - Add allocations in hot paths unless performance impact is justified in a nearby comment.
 - Use `map_err(|_| ...)` and similar source-dropping conversions without explicit justification.
