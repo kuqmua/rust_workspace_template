@@ -60,7 +60,7 @@
 - Use `*CRATE NAME*.workspace = true` for workspace crate dependencies in Cargo.toml.
 - Keep validation thresholds local (`let`/local const) when they are used in a single scope, and reuse those local values in error messages.
 - Follow `cargo fmt` as the source of formatting truth.
-- Prefer imports over absolute paths in type signatures and expressions.
+- Prefer explicit paths at usage sites over `use` imports.
 - Prefer implementing automation and utilities in Rust when the same task can be implemented in Rust.
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
 - Use `From`/`TryFrom` and explicit bounds checks for numeric conversions.
