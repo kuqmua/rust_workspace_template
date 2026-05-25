@@ -175,6 +175,46 @@ mod tests {
         Ok(())
     }
 
+    fn assert_forbidden_pattern_not_in_non_test_code(
+        forbidden_pattern: &str,
+        violation_message_prefix: &str,
+    ) {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            assert!(
+                !source_segment.contains(forbidden_pattern),
+                "{violation_message_prefix}: {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    fn assert_forbidden_pattern_not_in_rust_sources_except_test_lib(
+        forbidden_pattern: &str,
+        violation_message_prefix: &str,
+    ) {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let rust_files = rust_source_files(&workspace_files);
+
+        for rust_file in rust_files {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            assert!(
+                !file_content.contains(forbidden_pattern),
+                "{violation_message_prefix}: {}",
+                rust_file.display()
+            );
+        }
+    }
+
     fn project_dir() -> WalkDir {
         WalkDir::new("../")
     }
@@ -742,25 +782,24 @@ mod tests {
     // --- Policy tests ---
 
     #[test]
-    fn forbids_todo_and_unimplemented_in_non_test_code() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
+    fn forbids_todo_in_non_test_code() {
+        assert_forbidden_pattern_not_in_non_test_code("todo!(", "found todo! in non-test code");
+    }
 
-        for rust_file in rust_files {
-            let file_content = read_file(rust_file);
-            let source_segment = non_test_source_segment(&file_content);
-            assert!(
-                !source_segment.contains("todo!("),
-                "found todo! in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("unimplemented!("),
-                "found unimplemented! in non-test code: {}",
-                rust_file.display()
-            );
-        }
+    #[test]
+    fn forbids_unimplemented_in_non_test_code() {
+        assert_forbidden_pattern_not_in_non_test_code(
+            "unimplemented!(",
+            "found unimplemented! in non-test code",
+        );
+    }
+
+    #[test]
+    fn forbids_unreachable_in_non_test_code() {
+        assert_forbidden_pattern_not_in_non_test_code(
+            "unreachable!(",
+            "found unreachable! in non-test code",
+        );
     }
 
     #[test]
@@ -929,34 +968,26 @@ mod tests {
 
     #[test]
     fn forbids_global_mutable_or_lazy_singleton_patterns() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            let file_content = read_file(rust_file);
-            let source_segment = non_test_source_segment(&file_content);
-            assert!(
-                !source_segment.contains("static mut"),
-                "found static mut in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("lazy_static!"),
-                "found lazy_static singleton in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("once_cell::sync::Lazy"),
-                "found once_cell::sync::Lazy singleton in non-test code: {}",
-                rust_file.display()
-            );
-            assert!(
-                !source_segment.contains("LazyLock::new("),
-                "found LazyLock singleton in non-test code: {}",
-                rust_file.display()
-            );
-        }
+        assert_forbidden_pattern_not_in_non_test_code(
+            "static mut",
+            "found static mut in non-test code",
+        );
+        assert_forbidden_pattern_not_in_non_test_code(
+            "lazy_static!",
+            "found lazy_static singleton in non-test code",
+        );
+        assert_forbidden_pattern_not_in_non_test_code(
+            "thread_local!(",
+            "found thread_local singleton in non-test code",
+        );
+        assert_forbidden_pattern_not_in_non_test_code(
+            "once_cell::sync::Lazy",
+            "found once_cell::sync::Lazy singleton in non-test code",
+        );
+        assert_forbidden_pattern_not_in_non_test_code(
+            "LazyLock::new(",
+            "found LazyLock singleton in non-test code",
+        );
     }
 
     #[test]
@@ -1333,40 +1364,34 @@ mod tests {
 
     #[test]
     fn forbids_json_macro_usage_in_repository_rust_sources() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
-
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            assert!(
-                !file_content.contains("json!("),
-                "found forbidden json! macro usage in {}",
-                rust_file.display()
-            );
-        }
+        assert_forbidden_pattern_not_in_rust_sources_except_test_lib(
+            "json!(",
+            "found forbidden json! macro usage in",
+        );
     }
 
     #[test]
     fn forbids_include_macro_usage_in_repository_rust_sources() {
-        let workspace_root = workspace_root_path();
-        let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
+        assert_forbidden_pattern_not_in_rust_sources_except_test_lib(
+            "include!(",
+            "found forbidden include! macro usage in",
+        );
+    }
 
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
-            let file_content = read_file(rust_file);
-            assert!(
-                !file_content.contains("include!("),
-                "found forbidden include! macro usage in {}",
-                rust_file.display()
-            );
-        }
+    #[test]
+    fn forbids_include_str_macro_usage_in_non_test_code() {
+        assert_forbidden_pattern_not_in_non_test_code(
+            "include_str!(",
+            "found forbidden include_str! macro usage in non-test code",
+        );
+    }
+
+    #[test]
+    fn forbids_include_bytes_macro_usage_in_non_test_code() {
+        assert_forbidden_pattern_not_in_non_test_code(
+            "include_bytes!(",
+            "found forbidden include_bytes! macro usage in non-test code",
+        );
     }
 
     #[test]
