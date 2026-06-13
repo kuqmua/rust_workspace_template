@@ -144,6 +144,7 @@
 - Use indexing access like `[0]` or `[1]` instead of `first()`/`get()` (with explicit handling), even in tests.
 - Mask failures with `unwrap_or_default()`/`unwrap_or(...)` where this can hide errors.
 - Keep unused code behind `#[allow(unused_...)]`.
+- use optional environment variables. default environment values must not exist.
 
 ## Run before completion
 
