@@ -14,7 +14,7 @@
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
 - Use domain-specific error enums per module/route/service boundary.
-- Use real wrapper/newtype structs for domain-specific string values in struct fields, enum payloads, and function parameters; validate them through `TryFrom<String>` and/or `TryFrom<&str>`, including at least explicit length bounds.
+- Use real wrapper/newtype structs for domain-specific values backed by potentially unbounded standard types in struct fields, enum payloads, and function parameters; validate them through `TryFrom`, including explicit length, byte-size, item-count, or capacity bounds.
 - Use `#[must_use]` on `Result`, `Option`, and domain return types where ignoring the value can hide failures or behavior.
 - Use enums instead of `bool` for domain logic and API contracts, especially when the meaning is domain-specific or unclear at call sites.
 - Use a single async runtime across workspace.
@@ -101,7 +101,7 @@
 - Use one common error type for all routes/services in an application.
 - Use `anyhow::Error` or `Box<dyn Error>` as public library API boundary error types.
 - Use `serde_json::Value` in structs or enums.
-- Use raw `String` or `type` aliases over `String`, `str`, `&str`, or `Cow<str>` for domain struct fields, enum payloads, or function parameters when the value has domain meaning or validation rules.
+- Use raw potentially unbounded standard types, or `type` aliases over them, for domain struct fields, enum payloads, or function parameters when the value has domain meaning or validation rules; examples include `String`, `str`, `Vec`, maps, sets, queues, heaps, owned paths, owned OS strings, `Cow<str>`, `Cow<[T]>`, `Box<str>`, and `Box<[T]>`.
 - Add a crate default feature without explicit RFC-level justification.
 - Use `std::env::*` or `std::fs::*` directly in domain logic instead of adapters/abstractions.
 - Use `tokio::spawn` or `std::thread::spawn` without explicit error-ownership and cancellation policy.

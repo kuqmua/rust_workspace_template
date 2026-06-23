@@ -15,8 +15,8 @@ mod tests {
     use regex::Regex;
     use syn::{
         __private::ToTokens as _,
-        ExprLit, ExprMethodCall, FnArg, ItemEnum, ItemFn, ItemStruct, ItemType, ItemUse, Lit, Type,
-        UseTree, parse_file,
+        ExprLit, ExprMethodCall, FnArg, GenericArgument, ItemEnum, ItemFn, ItemStruct, ItemType,
+        ItemUse, Lit, PathArguments, Type, UseTree, parse_file,
         visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -225,16 +225,79 @@ mod tests {
         ))
     }
 
-    fn is_raw_string_type_path(ty: &Type) -> bool {
+    fn is_str_or_slice_type_path(ty: &Type) -> bool {
         match ty.clone() {
             Type::Path(type_path) => type_path
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == "String" || segment.ident == "str"),
-            Type::Group(type_group) => is_raw_string_type_path(&type_group.elem),
-            Type::Paren(type_paren) => is_raw_string_type_path(&type_paren.elem),
-            Type::Reference(type_reference) => is_raw_string_type_path(&type_reference.elem),
+                .is_some_and(|segment| segment.ident == "str"),
+            Type::Group(type_group) => is_str_or_slice_type_path(&type_group.elem),
+            Type::Paren(type_paren) => is_str_or_slice_type_path(&type_paren.elem),
+            Type::Reference(type_reference) => is_str_or_slice_type_path(&type_reference.elem),
+            Type::Slice(_) => true,
+            Type::Array(_)
+            | Type::BareFn(_)
+            | Type::ImplTrait(_)
+            | Type::Infer(_)
+            | Type::Macro(_)
+            | Type::Never(_)
+            | Type::Ptr(_)
+            | Type::TraitObject(_)
+            | Type::Tuple(_)
+            | Type::Verbatim(_)
+            | _ => false,
+        }
+    }
+
+    fn is_forbidden_unbounded_domain_type_path(ty: &Type) -> bool {
+        match ty.clone() {
+            Type::Path(type_path) => {
+                let Some(segment) = type_path.path.segments.last() else {
+                    return false;
+                };
+                let unbounded_type_names = [
+                    "String",
+                    "str",
+                    "Vec",
+                    "HashMap",
+                    "BTreeMap",
+                    "HashSet",
+                    "BTreeSet",
+                    "PathBuf",
+                    "OsString",
+                    "VecDeque",
+                    "BinaryHeap",
+                ];
+                if unbounded_type_names
+                    .into_iter()
+                    .any(|type_name| segment.ident == type_name)
+                {
+                    return true;
+                }
+                if segment.ident == "Cow" || segment.ident == "Box" {
+                    let PathArguments::AngleBracketed(angle_bracketed_arguments) =
+                        segment.arguments.clone()
+                    else {
+                        return false;
+                    };
+                    return angle_bracketed_arguments
+                        .args
+                        .into_iter()
+                        .any(|generic_argument| {
+                            if let GenericArgument::Type(argument_type) = generic_argument {
+                                return is_str_or_slice_type_path(&argument_type);
+                            }
+                            false
+                        });
+                }
+                false
+            }
+            Type::Group(type_group) => is_forbidden_unbounded_domain_type_path(&type_group.elem),
+            Type::Paren(type_paren) => is_forbidden_unbounded_domain_type_path(&type_paren.elem),
+            Type::Reference(type_reference) => {
+                is_forbidden_unbounded_domain_type_path(&type_reference.elem)
+            }
             Type::Array(_)
             | Type::BareFn(_)
             | Type::ImplTrait(_)
@@ -250,16 +313,17 @@ mod tests {
         }
     }
 
-    fn record_forbidden_domain_string_type(
+    fn record_forbidden_unbounded_domain_type(
         errors: &mut Vec<String>,
         owner_kind: &'static str,
         owner_name: &str,
         location: &'static str,
         ty: &Type,
     ) {
-        if is_raw_string_type_path(ty) {
+        if is_forbidden_unbounded_domain_type_path(ty) {
             errors.push(format!(
-                "{owner_kind} `{owner_name}` uses raw domain string type in {location}: `{}`",
+                "{owner_kind} `{owner_name}` uses unbounded standard domain type in {location}: \
+                 `{}`",
                 ty.to_token_stream()
             ));
         }
@@ -1421,16 +1485,16 @@ mod tests {
     }
 
     #[test]
-    fn forbids_raw_domain_string_types_in_rust_apis() -> Result<(), String> {
-        struct DomainStringContractVisitor {
+    fn forbids_unbounded_standard_domain_types_in_rust_apis() -> Result<(), String> {
+        struct UnboundedDomainTypeContractVisitor {
             errors: Vec<String>,
         }
 
-        impl<'ast> Visit<'ast> for DomainStringContractVisitor {
+        impl<'ast> Visit<'ast> for UnboundedDomainTypeContractVisitor {
             fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
                 for variant in &i.variants {
                     for field in &variant.fields {
-                        record_forbidden_domain_string_type(
+                        record_forbidden_unbounded_domain_type(
                             &mut self.errors,
                             "enum variant",
                             &format!("{}::{}", i.ident, variant.ident),
@@ -1446,7 +1510,7 @@ mod tests {
                     match input.clone() {
                         FnArg::Receiver(_) => {}
                         FnArg::Typed(pat_type) => {
-                            record_forbidden_domain_string_type(
+                            record_forbidden_unbounded_domain_type(
                                 &mut self.errors,
                                 "function",
                                 &i.sig.ident.to_string(),
@@ -1460,7 +1524,7 @@ mod tests {
 
             fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
                 for field in &i.fields {
-                    record_forbidden_domain_string_type(
+                    record_forbidden_unbounded_domain_type(
                         &mut self.errors,
                         "struct",
                         &i.ident.to_string(),
@@ -1471,9 +1535,9 @@ mod tests {
             }
 
             fn visit_item_type(&mut self, i: &'ast ItemType) {
-                if is_raw_string_type_path(&i.ty) {
+                if is_forbidden_unbounded_domain_type_path(&i.ty) {
                     self.errors.push(format!(
-                        "type alias `{}` targets forbidden domain string type: `{}`",
+                        "type alias `{}` targets forbidden unbounded standard domain type: `{}`",
                         i.ident,
                         i.ty.to_token_stream()
                     ));
@@ -1483,16 +1547,12 @@ mod tests {
 
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
-        let rust_files = rust_source_files(&workspace_files);
         let mut errors = Vec::new();
 
-        for rust_file in rust_files {
-            if rust_file.ends_with("tests/src/lib.rs") {
-                continue;
-            }
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
             let ast = parse_file(&file_content).map_err(|error| format!("c52615ce {error}"))?;
-            let mut visitor = DomainStringContractVisitor { errors: Vec::new() };
+            let mut visitor = UnboundedDomainTypeContractVisitor { errors: Vec::new() };
             Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
@@ -1507,6 +1567,11 @@ mod tests {
         }
 
         Err(format!("43134d11\n{}", errors.join("\n")))
+    }
+
+    #[test]
+    fn forbids_unbounded_standard_collection_and_path_types_in_rust_apis() -> Result<(), String> {
+        forbids_unbounded_standard_domain_types_in_rust_apis()
     }
 
     #[test]
