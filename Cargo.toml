@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["optml", "server", "tests"]
+members = ["gen_quotes", "naming/naming_cmn", "optml", "server", "tests"]
 exclude = []
 
 [workspace.package]
@@ -10,6 +10,7 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
+convert_case = { version = "=0.11.0", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = [
   "span-locations",
