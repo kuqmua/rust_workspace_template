@@ -175,16 +175,16 @@ mod tests {
         Ok(())
     }
 
-    fn is_string_type_path(ty: &Type) -> bool {
+    fn is_raw_string_type_path(ty: &Type) -> bool {
         match ty.clone() {
             Type::Path(type_path) => type_path
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == "String"),
-            Type::Group(type_group) => is_string_type_path(&type_group.elem),
-            Type::Paren(type_paren) => is_string_type_path(&type_paren.elem),
-            Type::Reference(type_reference) => is_string_type_path(&type_reference.elem),
+                .is_some_and(|segment| segment.ident == "String" || segment.ident == "str"),
+            Type::Group(type_group) => is_raw_string_type_path(&type_group.elem),
+            Type::Paren(type_paren) => is_raw_string_type_path(&type_paren.elem),
+            Type::Reference(type_reference) => is_raw_string_type_path(&type_reference.elem),
             Type::Array(_)
             | Type::BareFn(_)
             | Type::ImplTrait(_)
@@ -207,7 +207,7 @@ mod tests {
         location: &'static str,
         ty: &Type,
     ) {
-        if is_string_type_path(ty) {
+        if is_raw_string_type_path(ty) {
             errors.push(format!(
                 "{owner_kind} `{owner_name}` uses raw domain string type in {location}: `{}`",
                 ty.to_token_stream()
@@ -1040,7 +1040,7 @@ mod tests {
             }
 
             fn visit_item_type(&mut self, i: &'ast ItemType) {
-                if is_string_type_path(&i.ty) {
+                if is_raw_string_type_path(&i.ty) {
                     self.errors.push(format!(
                         "type alias `{}` targets forbidden domain string type: `{}`",
                         i.ident,

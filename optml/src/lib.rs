@@ -4,6 +4,11 @@ use proc_macro::TokenStream as Ts;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use syn::{Data, DeriveInput, Field, GenericParam, Ident, parse, visit_mut::VisitMut};
+#[derive(Debug, Clone, Copy)]
+enum GeneratedItemKind {
+    Enum,
+    Struct,
+}
 struct ReplaceLts;
 impl VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
@@ -21,7 +26,7 @@ fn generate_field_identifier(field: &Field, index: usize, ident: &Ident) -> Iden
 fn generate_assertions_token_stream(
     fields: &[&Field],
     alignments_token_stream: &dyn ToTokens,
-    kind_name: &'static str,
+    generated_item_kind: GeneratedItemKind,
     variant: Option<&Ident>,
     ident: &Ident,
 ) -> Option<Ts2> {
@@ -37,6 +42,10 @@ fn generate_assertions_token_stream(
     });
     let variant_info =
         variant.map_or_else(String::new, |variant_ident| format!("variant '{variant_ident}' "));
+    let generated_item_kind_name = match generated_item_kind {
+        GeneratedItemKind::Enum => "enum",
+        GeneratedItemKind::Struct => "struct",
+    };
     let assertions_ts = fields
         .iter()
         .copied()
@@ -48,9 +57,9 @@ fn generate_assertions_token_stream(
             let fi_next = generate_field_identifier(next_field, i_plus_one, ident);
             let msg_ts = ::syn::LitStr::new(
                 &format!(
-                    "In {kind_name} '{ident}' {variant_info}align_of field '{fi}' < align_of \
-                     field '{fi_next}'. Field '{fi_next}' must be placed before '{fi}' for better \
-                     memory alignment",
+                    "In {generated_item_kind_name} '{ident}' {variant_info}align_of field '{fi}' \
+                     < align_of field '{fi_next}'. Field '{fi_next}' must be placed before '{fi}' \
+                     for better memory alignment",
                 ),
                 ::proc_macro2::Span::call_site(),
             )
@@ -134,7 +143,7 @@ pub fn optml(input_ts: Ts) -> Ts {
             match generate_assertions_token_stream(
                 &fields,
                 &quote! {alignments},
-                "struct",
+                GeneratedItemKind::Struct,
                 None,
                 &ident,
             ) {
@@ -156,7 +165,7 @@ pub fn optml(input_ts: Ts) -> Ts {
                 if let Some(assertions) = generate_assertions_token_stream(
                     &fields,
                     &gen_alignments_ident_ts(var_idx),
-                    "enum",
+                    GeneratedItemKind::Enum,
                     Some(var_ident),
                     &ident,
                 ) {
