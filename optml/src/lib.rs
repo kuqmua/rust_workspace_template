@@ -1,15 +1,17 @@
 use core::iter::repeat_n;
 
-use proc_macro::TokenStream as Ts;
-use proc_macro2::TokenStream as Ts2;
+use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{Data, DeriveInput, Field, GenericParam, Ident, parse, visit_mut::VisitMut};
+
 #[derive(Debug, Clone, Copy)]
 enum GeneratedItemKind {
     Enum,
     Struct,
 }
+
 struct ReplaceLts;
+
 impl VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
         i.ident = Ident::new("static", i.ident.span());
@@ -29,7 +31,7 @@ fn generate_assertions_token_stream(
     generated_item_kind: GeneratedItemKind,
     variant: Option<&Ident>,
     ident: &Ident,
-) -> Option<Ts2> {
+) -> Option<proc_macro2::TokenStream> {
     let fields_len = fields.len();
     if fields_len <= 1 {
         return None;
@@ -79,7 +81,11 @@ fn generate_assertions_token_stream(
     })
 }
 
-fn build_generated_token_stream(ident: &Ident, generics: &syn::Generics, ts: &Ts2) -> Ts2 {
+fn build_generated_token_stream(
+    ident: &Ident,
+    generics: &syn::Generics,
+    token_stream: &proc_macro2::TokenStream,
+) -> proc_macro2::TokenStream {
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let has_only_lifetimes = generics
         .params
@@ -102,7 +108,7 @@ fn build_generated_token_stream(ident: &Ident, generics: &syn::Generics, ts: &Ts
         #[#allow_ident(#unused_qualifications_ident)]
         impl #impl_token_stream #ident #ty_token_stream #where_clause {
             const #const_name_ts: () = {
-                #ts
+                #token_stream
             };
         }
     };
@@ -120,8 +126,8 @@ fn build_generated_token_stream(ident: &Ident, generics: &syn::Generics, ts: &Ts
 }
 
 #[proc_macro_derive(Optml)]
-pub fn optml(input_ts: Ts) -> Ts {
-    let derive_input: DeriveInput = match parse(input_ts) {
+pub fn optml(input_token_stream: TokenStream) -> TokenStream {
+    let derive_input: DeriveInput = match parse(input_token_stream) {
         Ok(derive_input) => derive_input,
         Err(err) => return err.to_compile_error().into(),
     };
@@ -131,14 +137,14 @@ pub fn optml(input_ts: Ts) -> Ts {
         data,
         ..
     } = derive_input;
-    let gen_alignments_ident_ts =
-        |i: usize| Ident::new(&format!("alignments_{i}"), ident.span()).into_token_stream();
-    let ts = match data {
+    let generate_alignments_identifier_token_stream =
+        |index: usize| Ident::new(&format!("alignments_{index}"), ident.span()).into_token_stream();
+    let token_stream = match data {
         Data::Struct(data_struct) => {
             let fields = data_struct.fields.iter().collect::<Vec<&Field>>();
             let fields_len = fields.len();
             if fields_len <= 1 {
-                return Ts::new();
+                return TokenStream::new();
             }
             match generate_assertions_token_stream(
                 &fields,
@@ -149,40 +155,40 @@ pub fn optml(input_ts: Ts) -> Ts {
             ) {
                 Some(assertions) => assertions,
                 None => {
-                    return Ts::new();
+                    return TokenStream::new();
                 }
             }
         }
         Data::Enum(data_enum) => {
-            let mut vars_ts = Vec::new();
-            for (var_idx, var) in data_enum.variants.iter().enumerate() {
-                let var_ident = &var.ident;
-                let fields = var.fields.iter().collect::<Vec<&Field>>();
+            let mut variants_token_stream = Vec::new();
+            for (variant_index, variant) in data_enum.variants.iter().enumerate() {
+                let variant_ident = &variant.ident;
+                let fields = variant.fields.iter().collect::<Vec<&Field>>();
                 let fields_len = fields.len();
                 if fields_len <= 1 {
                     continue;
                 }
                 if let Some(assertions) = generate_assertions_token_stream(
                     &fields,
-                    &gen_alignments_ident_ts(var_idx),
+                    &generate_alignments_identifier_token_stream(variant_index),
                     GeneratedItemKind::Enum,
-                    Some(var_ident),
+                    Some(variant_ident),
                     &ident,
                 ) {
-                    vars_ts.push(assertions);
+                    variants_token_stream.push(assertions);
                 }
             }
-            if vars_ts.is_empty() {
-                return Ts::new();
+            if variants_token_stream.is_empty() {
+                return TokenStream::new();
             }
-            quote! {#(#vars_ts)*}
+            quote! {#(#variants_token_stream)*}
         }
         Data::Union(_) => {
-            return Ts::new();
+            return TokenStream::new();
         }
     };
     if generics.params.is_empty() {
-        return build_generated_token_stream(&ident, &generics, &ts).into();
+        return build_generated_token_stream(&ident, &generics, &token_stream).into();
     }
-    build_generated_token_stream(&ident, &generics, &ts).into()
+    build_generated_token_stream(&ident, &generics, &token_stream).into()
 }

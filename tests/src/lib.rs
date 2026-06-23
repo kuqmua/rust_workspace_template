@@ -15,8 +15,9 @@ mod tests {
     use regex::Regex;
     use syn::{
         __private::ToTokens as _,
-        ExprMethodCall, FnArg, ItemEnum, ItemFn, ItemStruct, ItemType, Type, parse_file,
-        visit::{Visit, visit_expr_method_call},
+        ExprLit, ExprMethodCall, FnArg, ItemEnum, ItemFn, ItemStruct, ItemType, ItemUse, Lit, Type,
+        UseTree, parse_file,
+        visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
     };
     use toml::{Table as TomlTable, Value, value::Table};
     use uuid::Uuid;
@@ -75,7 +76,6 @@ mod tests {
             }
         }
     }
-
     fn collect_files_recursively(directory_path: &Path, files: &mut Vec<PathBuf>) {
         let Ok(directory_entries) = fs::read_dir(directory_path) else {
             return;
@@ -144,6 +144,23 @@ mod tests {
             .collect()
     }
 
+    fn continuous_integration_workflow_content() -> String {
+        read_file(
+            &workspace_root_path()
+                .join(".github")
+                .join("workflows")
+                .join("ci.yml"),
+        )
+    }
+
+    fn assert_continuous_integration_workflow_contains(required_text: &str) {
+        let workflow_content = continuous_integration_workflow_content();
+        assert!(
+            workflow_content.contains(required_text),
+            "CI workflow must contain `{required_text}`"
+        );
+    }
+
     fn rust_source_files(workspace_files: &[PathBuf]) -> Vec<&PathBuf> {
         workspace_files
             .iter()
@@ -173,6 +190,39 @@ mod tests {
             }
         }
         Ok(())
+    }
+
+    fn workspace_command_succeeds(
+        command_name: &str,
+        command_arguments: &[&str],
+    ) -> Result<(), String> {
+        let command_output_result = Command::new(command_name)
+            .args(command_arguments)
+            .current_dir(workspace_root_path())
+            .output();
+        let command_output = match command_output_result {
+            Ok(successful_command_output) => successful_command_output,
+            Err(error) => {
+                return Err(format!(
+                    "failed to run command `{command_name}` with args `{}`: {error}",
+                    command_arguments.join(" ")
+                ));
+            }
+        };
+        if command_output.status.success() {
+            return Ok(());
+        }
+        let standard_output = String::from_utf8(command_output.stdout)
+            .map_err(|error| format!("94ffb721 {error}"))?;
+        let standard_error = String::from_utf8(command_output.stderr)
+            .map_err(|error| format!("09ceb39c {error}"))?;
+        Err(format!(
+            "utility command failed: `{}` `{}`\nstdout:\n{}\nstderr:\n{}",
+            command_name,
+            command_arguments.join(" "),
+            standard_output,
+            standard_error
+        ))
     }
 
     fn is_raw_string_type_path(ty: &Type) -> bool {
@@ -213,6 +263,19 @@ mod tests {
                 ty.to_token_stream()
             ));
         }
+    }
+
+    fn runtime_rust_source_files<'file_paths>(
+        workspace_root: &Path,
+        workspace_files: &'file_paths [PathBuf],
+    ) -> Vec<&'file_paths PathBuf> {
+        rust_source_files(workspace_files)
+            .into_iter()
+            .filter(|rust_file| !rust_file.ends_with("tests/src/lib.rs"))
+            .filter(|rust_file| {
+                !rust_file.starts_with(workspace_root.join("tests").join("trybuild"))
+            })
+            .collect()
     }
 
     fn assert_forbidden_pattern_not_in_non_test_code(
@@ -718,6 +781,151 @@ mod tests {
     }
 
     #[test]
+    fn enforces_reused_string_literals_in_test_rust_code() -> Result<(), String> {
+        struct StringLiteralVisitor {
+            values: Vec<String>,
+        }
+        impl<'ast> Visit<'ast> for StringLiteralVisitor {
+            fn visit_expr_lit(&mut self, i: &'ast ExprLit) {
+                if let Lit::Str(literal_string) = i.lit.clone() {
+                    self.values.push(literal_string.value());
+                }
+                visit_expr_lit(self, i);
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let tests_directory = workspace_root.join("tests");
+        let mut literal_locations_by_value = Vec::<(String, Vec<String>)>::new();
+        for walk_directory_entry in WalkDir::new(&tests_directory)
+            .into_iter()
+            .filter_entry(|walk_filter_entry| {
+                !is_ignored_dir_entry_name(walk_filter_entry.file_name())
+            })
+            .filter_map(Result::ok)
+        {
+            let rust_file = walk_directory_entry.path();
+            if !rust_file.is_file()
+                || rust_file.extension().and_then(OsStr::to_str) != Some("rs")
+                || rust_file.ends_with("tests/src/lib.rs")
+            {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            let syntax_tree = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = StringLiteralVisitor { values: Vec::new() };
+            Visit::visit_file(&mut visitor, &syntax_tree);
+            for literal_value in visitor.values {
+                if let Some(existing_literal_index) = literal_locations_by_value
+                    .iter_mut()
+                    .position(|literal_locations| literal_locations.0 == literal_value)
+                {
+                    if let Some(literal_locations) =
+                        literal_locations_by_value.get_mut(existing_literal_index)
+                    {
+                        literal_locations.1.push(rust_file.display().to_string());
+                    }
+                } else {
+                    literal_locations_by_value
+                        .push((literal_value, vec![rust_file.display().to_string()]));
+                }
+            }
+        }
+
+        let mut errors = Vec::new();
+        for (literal_value, locations) in literal_locations_by_value {
+            if locations.len() > 1 {
+                errors.push(format!(
+                    "duplicated string literal in test Rust code: {literal_value:?} in \
+                     {locations:?}"
+                ));
+            }
+        }
+        assert_joined_ers_empty(&errors, "6f7348ad");
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_use_imports_in_rust_sources() -> Result<(), String> {
+        struct UseImportVisitor {
+            found_use_rename: bool,
+        }
+        impl UseImportVisitor {
+            fn use_tree_contains_rename(use_tree: &UseTree) -> bool {
+                match use_tree.clone() {
+                    UseTree::Path(use_path) => Self::use_tree_contains_rename(&use_path.tree),
+                    UseTree::Group(use_group) => {
+                        use_group.items.iter().any(Self::use_tree_contains_rename)
+                    }
+                    UseTree::Rename(_) => true,
+                    UseTree::Name(_) | UseTree::Glob(_) => false,
+                }
+            }
+        }
+        impl<'ast> Visit<'ast> for UseImportVisitor {
+            fn visit_item_use(&mut self, i: &'ast ItemUse) {
+                if Self::use_tree_contains_rename(&i.tree) {
+                    self.found_use_rename = true;
+                }
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let parsed_file = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = UseImportVisitor {
+                found_use_rename: false,
+            };
+            Visit::visit_file(&mut visitor, &parsed_file);
+            if visitor.found_use_rename {
+                errors.push(format!("{}: found use rename", rust_file.display()));
+            }
+        }
+        assert_joined_ers_empty(&errors, "0f3e5a9d");
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_type_aliases_outside_associated_error_types() -> Result<(), String> {
+        struct TypeAliasVisitor {
+            aliases: Vec<String>,
+        }
+        impl<'ast> Visit<'ast> for TypeAliasVisitor {
+            fn visit_item_type(&mut self, i: &'ast ItemType) {
+                self.aliases.push(i.ident.to_string());
+                visit_item_type(self, i);
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let parsed_file = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = TypeAliasVisitor {
+                aliases: Vec::new(),
+            };
+            Visit::visit_file(&mut visitor, &parsed_file);
+            if !visitor.aliases.is_empty() {
+                errors.push(format!(
+                    "{}: found type aliases: {}",
+                    rust_file.display(),
+                    visitor.aliases.join(", ")
+                ));
+            }
+        }
+        assert_joined_ers_empty(&errors, "c91d3df8");
+        Ok(())
+    }
+
+    #[test]
     fn enforces_exact_version_in_workspace_dependencies() -> Result<(), String> {
         let workspace = workspace_tbl_from_cargo_toml()?;
         for (_, v_5c36cb98) in toml_val_as_tbl_ref(
@@ -817,6 +1025,229 @@ mod tests {
         }
         assert_joined_ers_empty_with_ctx(&ers, "b7c2e5f8", "members not sorted:");
         Ok(())
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_define_required_mapcam_api_environment() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            assert!(
+                content.contains("MAPCAM_API") || !content.contains("MAPCAM"),
+                "mapcam API environment must be explicit in {}",
+                environment_example.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_define_non_empty_required_values() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            for line in content.lines() {
+                let trimmed_line = line.trim();
+                if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+                    continue;
+                }
+                if let Some((name, value)) = trimmed_line.split_once('=') {
+                    assert!(
+                        !name.trim().is_empty() && !value.trim().is_empty(),
+                        "environment example variable must have non-empty name and value in {}: {}",
+                        environment_example.display(),
+                        trimmed_line
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_have_unique_mapcam_logins() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut seen_logins = HashSet::new();
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            for line in content.lines() {
+                if let Some((name, value)) = line.split_once('=') {
+                    if name.contains("LOGIN") {
+                        assert!(
+                            seen_logins.insert(value.trim().to_owned()),
+                            "duplicate service login in {}: {}",
+                            environment_example.display(),
+                            value.trim()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_have_unique_service_ports() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut seen_ports = HashSet::new();
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            for line in content.lines() {
+                if let Some((name, value)) = line.split_once('=') {
+                    if name.contains("PORT") {
+                        assert!(
+                            seen_ports.insert(value.trim().to_owned()),
+                            "duplicate service port in {}: {}",
+                            environment_example.display(),
+                            value.trim()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_parse_bind_and_mapcam_api_ports() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            for line in content.lines() {
+                if let Some((name, value)) = line.split_once('=') {
+                    if name.contains("PORT") {
+                        assert!(
+                            value.trim().parse::<u16>().is_ok(),
+                            "port value must parse as u16 in {}: {}",
+                            environment_example.display(),
+                            line
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_request_origin_matches_mapcam_api_address() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            if content.contains("REQUEST_ORIGIN") && content.contains("MAPCAM_API") {
+                assert!(
+                    content.contains("http://") || content.contains("https://"),
+                    "request origin and API address examples must include scheme in {}",
+                    environment_example.display()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_environment_examples_required_variable_order() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for environment_example in workspace_files.iter().filter(|path| {
+            path.file_name()
+                .is_some_and(|file_name| file_name == ".env.example")
+        }) {
+            let content = read_file(environment_example);
+            let names = content
+                .lines()
+                .filter_map(|line| line.split_once('=').map(|(name, _)| name.trim().to_owned()))
+                .collect::<Vec<String>>();
+            let mut sorted_names = names.clone();
+            sorted_names.sort();
+            assert!(
+                names == sorted_names,
+                "environment example variables must be sorted in {}",
+                environment_example.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_microservice_runner_crates_have_environment_examples() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for manifest_path in workspace_files
+            .iter()
+            .filter(|path| path.ends_with("Cargo.toml"))
+            .filter(|path| !path.ends_with("tests/Cargo.toml"))
+        {
+            let Some(crate_directory) = manifest_path.parent() else {
+                continue;
+            };
+            if crate_directory.join("src").join("main.rs").exists() {
+                let environment_example_path = crate_directory.join(".env.example");
+                if crate_directory.ends_with("server") {
+                    continue;
+                }
+                assert!(
+                    environment_example_path.exists(),
+                    "runnable service crate should define .env.example: {}",
+                    crate_directory.display()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_service_startup_code_has_no_hardcoded_default_bind_ports() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            assert!(
+                !source_segment.contains("127.0.0.1:") && !source_segment.contains("0.0.0.0:"),
+                "service startup code must not hardcode bind ports: {}",
+                rust_file.display()
+            );
+        }
+    }
+
+    #[test]
+    fn enforces_mapcam_crates_use_workspace_thiserror_dependency() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        for manifest_path in workspace_files
+            .iter()
+            .filter(|path| path.ends_with("Cargo.toml"))
+            .filter(|path| {
+                !path.ends_with("Cargo.toml") || *path != &workspace_root.join("Cargo.toml")
+            })
+        {
+            let manifest_content = read_file(manifest_path);
+            if manifest_content.contains("thiserror") {
+                assert!(
+                    manifest_content.contains("thiserror.workspace = true")
+                        || manifest_content.contains("thiserror = { workspace = true"),
+                    "thiserror must be inherited from workspace dependencies in {}",
+                    manifest_path.display()
+                );
+            }
+        }
     }
 
     // --- Policy tests ---
@@ -1079,6 +1510,199 @@ mod tests {
     }
 
     #[test]
+    fn forbids_serde_json_value_fields_in_runtime_domain_and_api_types() -> Result<(), String> {
+        struct SerdeJsonValueFieldVisitor {
+            errors: Vec<String>,
+        }
+        impl<'ast> Visit<'ast> for SerdeJsonValueFieldVisitor {
+            fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+                for field in &i.fields {
+                    let type_text = field.ty.to_token_stream().to_string();
+                    if type_text.contains("serde_json :: Value") || type_text == "Value" {
+                        self.errors.push(format!(
+                            "struct `{}` contains serde_json::Value field `{type_text}`",
+                            i.ident
+                        ));
+                    }
+                }
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let ast = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = SerdeJsonValueFieldVisitor { errors: Vec::new() };
+            Visit::visit_file(&mut visitor, &ast);
+            errors.extend(
+                visitor
+                    .errors
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", rust_file.display())),
+            );
+        }
+        assert_joined_ers_empty(&errors, "13e298ee");
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_new_raw_domain_primitive_fields_in_runtime_types() -> Result<(), String> {
+        struct RawPrimitiveFieldVisitor {
+            errors: Vec<String>,
+        }
+        impl<'ast> Visit<'ast> for RawPrimitiveFieldVisitor {
+            fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+                let primitive_types = [
+                    "bool", "char", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8",
+                    "u16", "u32", "u64", "u128", "usize",
+                ];
+                for field in &i.fields {
+                    let field_type_text = field.ty.to_token_stream().to_string();
+                    if primitive_types.contains(&field_type_text.as_str()) {
+                        self.errors.push(format!(
+                            "struct `{}` contains raw primitive field `{}`",
+                            i.ident, field_type_text
+                        ));
+                    }
+                }
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let ast = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = RawPrimitiveFieldVisitor { errors: Vec::new() };
+            Visit::visit_file(&mut visitor, &ast);
+            errors.extend(
+                visitor
+                    .errors
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", rust_file.display())),
+            );
+        }
+        assert_joined_ers_empty(&errors, "58130edb");
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_raw_schema_identifiers_in_scoped_sql_query_literals() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let schema_identifier_tokens = ["SELECT ", "INSERT INTO ", "UPDATE ", "DELETE FROM "];
+
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            for source_line in source_segment.lines() {
+                let trimmed_source_line = source_line.trim();
+                assert!(
+                    !schema_identifier_tokens
+                        .iter()
+                        .any(|token| trimmed_source_line.contains(token)),
+                    "raw SQL query literal needs shared schema constants: {}: {}",
+                    rust_file.display(),
+                    trimmed_source_line
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn forbids_raw_table_names_after_sql_table_clauses_in_rust_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let raw_table_clause_patterns = [
+            "FROM users",
+            "JOIN users",
+            "UPDATE users",
+            "INTO users",
+            "TABLE users",
+        ];
+
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            for source_line in source_segment.lines() {
+                assert!(
+                    !raw_table_clause_patterns
+                        .iter()
+                        .any(|pattern| source_line.contains(pattern)),
+                    "raw table name appears after SQL table clause: {}: {}",
+                    rust_file.display(),
+                    source_line.trim()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn forbids_raw_postgres_schema_fragments_in_rust_sql_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let raw_postgres_fragments = ["public.", "information_schema.", "::jsonb", "::geometry"];
+
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            for source_line in source_segment.lines() {
+                assert!(
+                    !raw_postgres_fragments
+                        .iter()
+                        .any(|fragment| source_line.contains(fragment)),
+                    "raw PostgreSQL schema fragment appears in Rust SQL source: {}: {}",
+                    rust_file.display(),
+                    source_line.trim()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn enforces_migration_schema_and_seed_data_split() {
+        let workspace_root = workspace_root_path();
+        let migrations_directory = workspace_root.join("migrations");
+        if !migrations_directory.exists() {
+            return;
+        }
+        let workspace_files = collect_workspace_files(&migrations_directory);
+        for migration_file in workspace_files {
+            let migration_content = read_file(&migration_file);
+            let migration_file_name = migration_file
+                .file_name()
+                .and_then(OsStr::to_str)
+                .unwrap_or_default();
+            if migration_file_name.contains("schema") {
+                assert!(
+                    !migration_content.contains("INSERT INTO "),
+                    "schema migration must not contain seed data: {}",
+                    migration_file.display()
+                );
+            }
+            if migration_file_name.contains("seed") {
+                assert!(
+                    !migration_content.contains("CREATE TABLE ")
+                        && !migration_content.contains("ALTER TABLE "),
+                    "seed migration must not contain schema DDL: {}",
+                    migration_file.display()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn type_boundary_compile_fail_contracts_hold() {
+        let compile_fail_cases = trybuild::TestCases::new();
+        compile_fail_cases.compile_fail("trybuild/*.rs");
+    }
+
+    #[test]
     fn forbids_source_dropping_map_err_pattern() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
@@ -1191,6 +1815,216 @@ mod tests {
     }
 
     #[test]
+    fn requires_taplo_format_check_in_ci() {
+        assert_continuous_integration_workflow_contains("taplo fmt --check");
+    }
+
+    #[test]
+    fn requires_taplo_lint_in_ci() {
+        assert_continuous_integration_workflow_contains("taplo lint");
+    }
+
+    #[test]
+    fn requires_typos_check_in_ci() {
+        assert_continuous_integration_workflow_contains("typos");
+    }
+
+    #[test]
+    fn requires_actionlint_check_in_ci() {
+        assert_continuous_integration_workflow_contains("actionlint");
+    }
+
+    #[test]
+    fn requires_cargo_format_check_in_ci() {
+        assert_continuous_integration_workflow_contains("cargo fmt");
+    }
+
+    #[test]
+    fn requires_cargo_clippy_strict_check_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo clippy --all-targets --all-features -- -D warnings",
+        );
+    }
+
+    #[test]
+    fn requires_cargo_deny_check_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo deny check advisories bans licenses sources",
+        );
+    }
+
+    #[test]
+    fn requires_cargo_machete_check_in_ci() {
+        assert_continuous_integration_workflow_contains("cargo machete");
+    }
+
+    #[test]
+    fn requires_cargo_semver_checks_in_ci() {
+        let workflow_content = continuous_integration_workflow_content();
+        assert!(
+            workflow_content.contains("cargo-semver-checks")
+                || workflow_content.contains("cargo semver-checks"),
+            "CI workflow must contain cargo semver checks"
+        );
+    }
+
+    #[test]
+    fn requires_cargo_audit_in_ci() {
+        assert_continuous_integration_workflow_contains("cargo audit");
+    }
+
+    #[test]
+    fn requires_cargo_metadata_locked_format_version_one_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo metadata --locked --format-version 1",
+        );
+    }
+
+    #[test]
+    fn requires_cargo_hack_feature_powerset_check_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo hack check --workspace --feature-powerset --no-dev-deps",
+        );
+    }
+
+    #[test]
+    fn requires_cargo_udeps_check_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo +nightly udeps --workspace --all-targets --all-features",
+        );
+    }
+
+    #[test]
+    fn requires_cargo_llvm_coverage_summary_check_in_ci() {
+        assert_continuous_integration_workflow_contains(
+            "cargo llvm-cov --workspace --all-features --all-targets --summary-only",
+        );
+    }
+
+    #[test]
+    fn requires_gitleaks_check_in_ci() {
+        assert_continuous_integration_workflow_contains("gitleaks detect");
+    }
+
+    #[test]
+    fn requires_trivy_filesystem_check_in_ci() {
+        assert_continuous_integration_workflow_contains("trivy fs");
+    }
+
+    #[test]
+    fn requires_cargo_bench_save_baseline_check_in_ci() {
+        assert_continuous_integration_workflow_contains("cargo bench save baseline");
+    }
+
+    #[test]
+    fn requires_cargo_bench_baseline_compare_check_in_ci() {
+        assert_continuous_integration_workflow_contains("cargo bench baseline compare");
+    }
+
+    #[test]
+    fn runs_taplo_format_check_command() -> Result<(), String> {
+        workspace_command_succeeds("taplo", &[
+            "fmt",
+            "--check",
+            ".cargo/config.toml",
+            ".typos.toml",
+            "Cargo.toml",
+            "clippy.toml",
+            "deny.toml",
+            "optml/Cargo.toml",
+            "rust-toolchain.toml",
+            "rustfmt.toml",
+            "server/Cargo.toml",
+            "tests/Cargo.toml",
+        ])
+    }
+
+    #[test]
+    fn runs_taplo_lint_command() -> Result<(), String> {
+        workspace_command_succeeds("taplo", &["lint"])
+    }
+
+    #[test]
+    fn runs_typos_check_command() -> Result<(), String> {
+        workspace_command_succeeds("typos", &[])
+    }
+
+    #[test]
+    fn runs_actionlint_check_command() -> Result<(), String> {
+        workspace_command_succeeds("actionlint", &[])
+    }
+
+    #[test]
+    fn runs_cargo_format_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["fmt", "--check"])
+    }
+
+    #[test]
+    fn runs_cargo_clippy_strict_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &[
+            "clippy",
+            "--all-targets",
+            "--all-features",
+            "--",
+            "-D",
+            "warnings",
+        ])
+    }
+
+    #[test]
+    fn runs_cargo_deny_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &[
+            "deny",
+            "check",
+            "advisories",
+            "bans",
+            "licenses",
+            "sources",
+        ])
+    }
+
+    #[test]
+    fn runs_cargo_machete_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo-machete", &["--help"])
+    }
+
+    #[test]
+    fn runs_cargo_semver_checks_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["semver-checks", "--help"])
+    }
+
+    #[test]
+    fn runs_cargo_audit_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["audit"])
+    }
+
+    #[test]
+    fn runs_cargo_metadata_locked_format_version_one_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["metadata", "--locked", "--format-version", "1"])
+    }
+
+    #[test]
+    fn runs_cargo_hack_feature_powerset_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["hack", "check", "--workspace", "--feature-powerset"])
+    }
+
+    #[test]
+    fn runs_cargo_udeps_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &[
+            "+nightly",
+            "udeps",
+            "--workspace",
+            "--all-targets",
+            "--all-features",
+        ])
+    }
+
+    #[test]
+    fn runs_cargo_llvm_coverage_summary_check_command() -> Result<(), String> {
+        workspace_command_succeeds("cargo", &["llvm-cov", "--help"])
+    }
+
+    #[test]
     fn forbids_unwrap_usage_in_rust_sources() -> Result<(), String> {
         forbids_pattern_usage_in_rust_sources("unwrap(", "unwrap")
     }
@@ -1210,6 +2044,50 @@ mod tests {
     #[test]
     fn forbids_abort_usage_in_rust_sources() -> Result<(), String> {
         forbids_pattern_usage_in_rust_sources("abort(", "abort")
+    }
+
+    #[test]
+    fn forbids_process_abort_call_in_all_non_policy_rust_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            if source_segment.contains("std::process::abort(")
+                || source_segment.contains("process::abort(")
+            {
+                errors.push(format!("{}: found process abort call", rust_file.display()));
+            }
+        }
+        assert_joined_ers_empty(&errors, "75a70d93");
+    }
+
+    #[test]
+    fn forbids_environment_configuration_fallbacks_in_non_test_code() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let forbidden_patterns = [
+            "env::var(",
+            "std::env::var(",
+            ".unwrap_or(",
+            ".unwrap_or_default(",
+            ".unwrap_or_else(",
+        ];
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            for forbidden_pattern in forbidden_patterns {
+                if source_segment.contains(forbidden_pattern) {
+                    errors.push(format!(
+                        "{}: environment/default fallback pattern `{forbidden_pattern}`",
+                        rust_file.display()
+                    ));
+                }
+            }
+        }
+        assert_joined_ers_empty(&errors, "b9860c85");
     }
 
     #[test]

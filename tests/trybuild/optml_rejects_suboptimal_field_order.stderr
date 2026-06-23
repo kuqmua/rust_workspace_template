@@ -1,0 +1,13 @@
+error[E0080]: evaluation panicked: In struct 'SuboptimalFieldOrder' align_of field 'small_value' < align_of field 'large_value'. Field 'large_value' must be placed before 'small_value' for better memory alignment
+ --> trybuild/optml_rejects_suboptimal_field_order.rs:1:10
+  |
+1 | #[derive(optml::Optml)]
+  |          ^^^^^^^^^^^^ evaluation of `SuboptimalFieldOrder::_OPTIMAL_PACK_CHECK` failed here
+
+note: erroneous constant encountered
+ --> trybuild/optml_rejects_suboptimal_field_order.rs:1:10
+  |
+1 | #[derive(optml::Optml)]
+  |          ^^^^^^^^^^^^
+  |
+  = note: this note originates in the derive macro `optml::Optml` (in Nightly builds, run with -Z macro-backtrace for more info)
