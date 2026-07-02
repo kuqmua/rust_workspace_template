@@ -62,6 +62,7 @@
 - Keep validation thresholds local (`let`/local const) when they are used in a single scope, and reuse those local values in error messages.
 - Follow `cargo fmt` as the source of formatting truth.
 - Prefer explicit paths at usage sites over `use` imports.
+- Prefer a dedicated proc-macro workspace crate instead of `macro_rules!` when macro generation is needed.
 - Prefer implementing automation and utilities in Rust when the same task can be implemented in Rust.
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
 - Use `From`/`TryFrom` and explicit bounds checks for numeric conversions.
@@ -92,6 +93,7 @@
 - Commit debug prints.
 - Use `unwrap()`.
 - Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
+- Use `macro_rules!`; create a dedicated proc-macro crate instead.
 - Use `todo!()`.
 - Use `unimplemented!()`.
 - Use `panic!()`.
