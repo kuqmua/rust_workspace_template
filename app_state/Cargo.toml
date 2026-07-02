@@ -1,0 +1,18 @@
+[package]
+name = "app_state"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Application state traits"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../README.md"
+keywords = ["state"]
+categories = ["web-programming"]
+
+[dependencies]
+config_lib.workspace = true
+
+[lints]
+workspace = true

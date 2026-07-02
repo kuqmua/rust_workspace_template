@@ -38,7 +38,7 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 5. Config and git/meta infrastructure: [x] `config_lib/try_from_env`, [x] `config_lib`, [x] `git_info`
    -> verify: `cargo check -p try_from_env -p config_lib -p git_info`.
 
-6. Runtime foundation: `app_state`, `cmn_routes`, `server_config`
+6. Runtime foundation: [x] `app_state`, [x] `cmn_routes`, [x] `server_config`
    -> verify: `cargo check -p app_state -p cmn_routes -p server_config`.
 
 7. Location/domain layer: `loc_lib/location`, `loc_lib`

@@ -1,6 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
+  "app_state",
+  "cmn_routes",
   "config_lib",
   "config_lib/gen_getter_traits_for_struct_fields",
   "config_lib/try_from_env",
@@ -15,6 +17,7 @@ members = [
   "optml",
   "panic_loc",
   "server",
+  "server_config",
   "tests",
   "to_err_string",
   "to_err_string_macros",
@@ -29,6 +32,8 @@ license = "MIT"
 rust-version = "1.85"
 
 [workspace.dependencies]
+app_state = { version = "=0.1.0", path = "app_state", default-features = false }
+cmn_routes = { version = "=0.1.0", path = "cmn_routes", default-features = false }
 config_lib = { version = "=0.1.0", path = "config_lib", default-features = false }
 convert_case = { version = "=0.11.0", default-features = false }
 gen_derive_ts_builder = { version = "=0.1.0", path = "macros_helpers/gen_derive_ts_builder", default-features = false }
@@ -48,6 +53,7 @@ quote = { version = "=1.0.42", default-features = false, features = [
 regex = { version = "=1.12.2", default-features = false, features = [
   "unicode-perl",
 ] }
+server_config = { version = "=0.1.0", path = "server_config", default-features = false }
 syn = { version = "=2.0.112", default-features = false, features = [
   "full",
   "visit",

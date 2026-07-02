@@ -1,0 +1,19 @@
+[package]
+name = "cmn_routes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Common route metadata"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../README.md"
+keywords = ["routes"]
+categories = ["web-programming"]
+
+[dependencies]
+app_state.workspace = true
+git_info.workspace = true
+
+[lints]
+workspace = true
