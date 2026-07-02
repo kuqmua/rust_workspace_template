@@ -1,7 +1,3 @@
-const ROUTE_GIT_INFO: RoutePath = RoutePath("/git_info");
-const ROUTE_HEALTH_CHECK: RoutePath = RoutePath("/health_check");
-const ROUTE_SWAGGER_UI: RoutePath = RoutePath("/swagger-ui");
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CommonRoutes<RouteState> {
     state: RouteState,
@@ -40,20 +36,20 @@ impl AsRef<str> for RoutePath {
 #[must_use]
 pub const fn git_info_route() -> CommonRoute {
     CommonRoute::GitInfo {
-        path: ROUTE_GIT_INFO,
+        path: RoutePath(naming_constants::ROUTE_PATH_GIT_INFO),
     }
 }
 
 #[must_use]
 pub const fn health_check_route() -> CommonRoute {
     CommonRoute::HealthCheck {
-        path: ROUTE_HEALTH_CHECK,
+        path: RoutePath(naming_constants::ROUTE_PATH_HEALTH_CHECK),
     }
 }
 
 #[must_use]
 pub const fn swagger_ui_route() -> CommonRoute {
     CommonRoute::SwaggerUi {
-        path: ROUTE_SWAGGER_UI,
+        path: RoutePath(naming_constants::ROUTE_PATH_SWAGGER_UI),
     }
 }

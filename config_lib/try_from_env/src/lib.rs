@@ -16,10 +16,14 @@ pub fn try_from_env(input_token_stream: proc_macro::TokenStream) -> proc_macro::
         Err(error) => return error.to_compile_error().into(),
     };
     let syn::Data::Struct(data_struct) = derive_input.data else {
-        return compile_error_token_stream("TryFromEnv supports only structs");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_TRY_FROM_ENV_SUPPORTS_ONLY_STRUCTS,
+        );
     };
     let syn::Fields::Named(fields_named) = data_struct.fields else {
-        return compile_error_token_stream("TryFromEnv supports only named fields");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_TRY_FROM_ENV_SUPPORTS_ONLY_NAMED_FIELDS,
+        );
     };
     let struct_identifier = derive_input.ident;
     let field_initializers = fields_named.named.into_iter().map(|field| {

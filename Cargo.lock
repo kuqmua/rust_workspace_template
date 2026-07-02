@@ -21,11 +21,15 @@ version = "0.1.0"
 dependencies = [
  "app_state",
  "git_info",
+ "naming_constants",
 ]
 
 [[package]]
 name = "config_lib"
 version = "0.1.0"
+dependencies = [
+ "naming_constants",
+]
 
 [[package]]
 name = "convert_case"
@@ -55,6 +59,7 @@ name = "gen_getter_traits_for_struct_fields"
 version = "0.1.0"
 dependencies = [
  "naming_cmn",
+ "naming_constants",
  "proc-macro2",
  "quote",
  "syn",
@@ -178,6 +183,9 @@ dependencies = [
 [[package]]
 name = "panic_loc"
 version = "0.1.0"
+dependencies = [
+ "naming_constants",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -428,6 +436,7 @@ checksum = "756daf9b1013ebe47a8776667b466417e2d4c5679d441c26230efd9ef78692db"
 name = "try_from_env"
 version = "0.1.0"
 dependencies = [
+ "naming_constants",
  "quote",
  "syn",
 ]

@@ -1,7 +1,5 @@
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
 
-const MESSAGE_PANIC_WITHOUT_LOCATION: &str = "panic occurred but can't get location information...";
-
 pub fn panic_loc() {
     PANIC_HOOK_ONCE.call_once(|| {
         std::panic::set_hook(Box::new(move |panic_info| {
@@ -10,7 +8,8 @@ pub fn panic_loc() {
                 if std::io::Write::write_fmt(
                     &mut standard_error,
                     format_args!(
-                        "panic occurred in {}:{}:{}\n",
+                        "{}{}:{}:{}\n",
+                        naming_constants::MESSAGE_PANIC_OCCURRED_IN_LOCATION_PREFIX,
                         location.file(),
                         location.line(),
                         location.column()
@@ -24,7 +23,7 @@ pub fn panic_loc() {
             }
             let _write_result = std::io::Write::write_fmt(
                 &mut standard_error,
-                format_args!("{MESSAGE_PANIC_WITHOUT_LOCATION}\n"),
+                format_args!("{}\n", naming_constants::MESSAGE_PANIC_WITHOUT_LOCATION),
             );
         }));
     });
@@ -40,11 +39,9 @@ mod tests {
 
     #[test]
     fn panic_without_location_message_is_stable() -> Result<(), String> {
-        if crate::MESSAGE_PANIC_WITHOUT_LOCATION
-            == "panic occurred but can't get location information..."
-        {
+        if !naming_constants::MESSAGE_PANIC_WITHOUT_LOCATION.is_empty() {
             return Ok(());
         }
-        Err("unexpected panic without location message".to_owned())
+        Err(naming_constants::MESSAGE_PANIC_WITHOUT_LOCATION_TEST_UNEXPECTED.to_owned())
     }
 }

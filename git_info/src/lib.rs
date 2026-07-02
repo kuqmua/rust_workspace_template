@@ -1,8 +1,6 @@
 pub const PROJECT_GIT_INFO: ProjectGitInfo = ProjectGitInfo {
-    commit: ProjectGitCommitId("workspace-template"),
+    commit: ProjectGitCommitId(naming_constants::GIT_COMMIT_ID_WORKSPACE_TEMPLATE),
 };
-
-const GIT_TREE_SEGMENT: GitTreeSegment = GitTreeSegment("/tree/");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GitCommitLinkCapacity;
@@ -118,7 +116,7 @@ pub const fn project_git_commit_link() -> GitCommitLinkText {
     GitCommitLinkText {
         commit_id: PROJECT_GIT_INFO.commit,
         repository_url: GitRepositoryUrl(naming_constants::GITHUB_URL),
-        tree_segment: GIT_TREE_SEGMENT,
+        tree_segment: GitTreeSegment(naming_constants::GIT_TREE_SEGMENT),
     }
 }
 

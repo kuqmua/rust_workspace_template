@@ -15,6 +15,7 @@ categories = ["development-tools"]
 proc-macro = true
 
 [dependencies]
+naming_constants.workspace = true
 naming_cmn.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true

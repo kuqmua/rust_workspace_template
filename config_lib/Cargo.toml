@@ -11,5 +11,8 @@ readme = "../README.md"
 keywords = ["configuration", "environment"]
 categories = ["config"]
 
+[dependencies]
+naming_constants.workspace = true
+
 [lints]
 workspace = true

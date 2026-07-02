@@ -20,13 +20,15 @@ pub fn gen_getter_traits_for_struct_fields(
         Err(error) => return error.to_compile_error().into(),
     };
     let syn::Data::Struct(data_struct) = derive_input.data else {
-        return compile_error_token_stream("GenGetterTraitsForStructFields supports only structs");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_GEN_GETTER_TRAITS_FOR_STRUCT_FIELDS_SUPPORTS_ONLY_STRUCTS,
+        );
     };
     let struct_identifier = derive_input.ident;
     let generated = data_struct.fields.into_iter().map(|field| {
         let Some(field_identifier) = field.ident else {
             return proc_macro2::TokenStream::from(compile_error_token_stream(
-                "GenGetterTraitsForStructFields supports only named fields",
+                naming_constants::MESSAGE_GEN_GETTER_TRAITS_FOR_STRUCT_FIELDS_SUPPORTS_ONLY_NAMED_FIELDS,
             ));
         };
         let GetterFieldType(field_type) = GetterFieldType(field.ty);
@@ -73,16 +75,24 @@ pub fn gen_getter_trait(input_token_stream: proc_macro::TokenStream) -> proc_mac
         Err(error) => return error.to_compile_error().into(),
     };
     let syn::Data::Struct(data_struct) = derive_input.data else {
-        return compile_error_token_stream("GenGetterTrait supports only tuple structs");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_GEN_GETTER_TRAIT_SUPPORTS_ONLY_TUPLE_STRUCTS,
+        );
     };
     let syn::Fields::Unnamed(fields_unnamed) = data_struct.fields else {
-        return compile_error_token_stream("GenGetterTrait supports only tuple structs");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_GEN_GETTER_TRAIT_SUPPORTS_ONLY_TUPLE_STRUCTS,
+        );
     };
     let Some(first_field) = fields_unnamed.unnamed.first() else {
-        return compile_error_token_stream("GenGetterTrait requires one tuple field");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_GEN_GETTER_TRAIT_REQUIRES_ONE_TUPLE_FIELD,
+        );
     };
     if fields_unnamed.unnamed.len() != 1 {
-        return compile_error_token_stream("GenGetterTrait requires one tuple field");
+        return compile_error_token_stream(
+            naming_constants::MESSAGE_GEN_GETTER_TRAIT_REQUIRES_ONE_TUPLE_FIELD,
+        );
     }
     let identifier = derive_input.ident;
     let field_type = &first_field.ty;

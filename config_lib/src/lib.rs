@@ -36,18 +36,22 @@ impl EnvVarName {
         IdentifierText: AsRef<str> + ?Sized,
     {
         match identifier_text.as_ref() {
-            "cors_allow_origin" => Self::CorsAllowOrigin,
-            "database_url" => Self::DatabaseUrl,
-            "enable_api_git_commit_check" => Self::EnableApiGitCommitCheck,
-            "maximum_size_of_http_body_in_bytes" => Self::MaximumSizeOfHttpBodyInBytes,
-            "mongo_url" => Self::MongoUrl,
-            "pg_pool_max_connections" => Self::PgPoolMaxConnections,
-            "redis_url" => Self::RedisUrl,
-            "service_socket_address" => Self::ServiceSocketAddress,
-            "src_place_type" => Self::SrcPlaceType,
-            "starting_check_link" => Self::StartingCheckLink,
-            "timezone" => Self::Timezone,
-            "tracing_level" => Self::TracingLevel,
+            naming_constants::CONFIG_FIELD_CORS_ALLOW_ORIGIN => Self::CorsAllowOrigin,
+            naming_constants::CONFIG_FIELD_DATABASE_URL => Self::DatabaseUrl,
+            naming_constants::CONFIG_FIELD_ENABLE_API_GIT_COMMIT_CHECK => {
+                Self::EnableApiGitCommitCheck
+            }
+            naming_constants::CONFIG_FIELD_MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES => {
+                Self::MaximumSizeOfHttpBodyInBytes
+            }
+            naming_constants::CONFIG_FIELD_MONGO_URL => Self::MongoUrl,
+            naming_constants::CONFIG_FIELD_PG_POOL_MAX_CONNECTIONS => Self::PgPoolMaxConnections,
+            naming_constants::CONFIG_FIELD_REDIS_URL => Self::RedisUrl,
+            naming_constants::CONFIG_FIELD_SERVICE_SOCKET_ADDRESS => Self::ServiceSocketAddress,
+            naming_constants::CONFIG_FIELD_SRC_PLACE_TYPE => Self::SrcPlaceType,
+            naming_constants::CONFIG_FIELD_STARTING_CHECK_LINK => Self::StartingCheckLink,
+            naming_constants::CONFIG_FIELD_TIMEZONE => Self::Timezone,
+            naming_constants::CONFIG_FIELD_TRACING_LEVEL => Self::TracingLevel,
             _ => Self::Unknown,
         }
     }
