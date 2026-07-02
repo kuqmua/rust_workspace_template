@@ -1,71 +1,38 @@
 use core::fmt::Display;
 
-macro_rules! case_trait_pair {
-    (
-        $string_trait:ident,
-        $token_stream_trait:ident,
-        $bound:path, |
-        $self_reference:ident |
-        $body:expr
-    ) => {
-        pub trait $string_trait {
-            #[must_use]
-            fn case(&self) -> String;
-        }
-
-        impl<T> $string_trait for T
-        where
-            T: $bound,
-        {
-            fn case(&self) -> String {
-                let $self_reference = self;
-                $body
-            }
-        }
-
-        pub trait $token_stream_trait {
-            #[must_use]
-            fn case_or_panic(&self) -> proc_macro2::TokenStream;
-        }
-
-        impl<T> $token_stream_trait for T
-        where
-            T: $string_trait,
-        {
-            fn case_or_panic(&self) -> proc_macro2::TokenStream {
-                to_token_stream_or_compile_error(&$string_trait::case(self))
-            }
-        }
-    };
-}
-
-case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), convert_case::Case::UpperCamel)
-});
-case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), convert_case::Case::Snake)
-});
-case_trait_pair!(AsRefStrToUpperScStr, AsRefStrToUpperScTs, AsRef<str>, |self_reference| {
+optml::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| str_case(
+    self_reference.as_ref(),
+    convert_case::Case::UpperCamel
+));
+optml::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| str_case(
+    self_reference.as_ref(),
+    convert_case::Case::Snake
+));
+optml::case_trait_pair!(AsRefStrToUpperScStr, AsRefStrToUpperScTs, AsRef<str>, |self_reference| {
     str_case(self_reference.as_ref(), convert_case::Case::UpperSnake)
 });
-case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
+optml::case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
     display_case_str(self_reference, convert_case::Case::UpperCamel)
 });
-case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| {
-    display_case_str(self_reference, convert_case::Case::Snake)
-});
-case_trait_pair!(DisplayToUpperScStr, DisplayToUpperScTs, Display, |self_reference| {
+optml::case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| display_case_str(
+    self_reference,
+    convert_case::Case::Snake
+));
+optml::case_trait_pair!(DisplayToUpperScStr, DisplayToUpperScTs, Display, |self_reference| {
     display_case_str(self_reference, convert_case::Case::UpperSnake)
 });
-case_trait_pair!(ToTokensToUccStr, ToTokensToUccTs, quote::ToTokens, |self_reference| {
+optml::case_trait_pair!(ToTokensToUccStr, ToTokensToUccTs, quote::ToTokens, |self_reference| {
     tokenized_case_str(self_reference, convert_case::Case::UpperCamel)
 });
-case_trait_pair!(ToTokensToScStr, ToTokensToScTs, quote::ToTokens, |self_reference| {
+optml::case_trait_pair!(ToTokensToScStr, ToTokensToScTs, quote::ToTokens, |self_reference| {
     tokenized_case_str(self_reference, convert_case::Case::Snake)
 });
-case_trait_pair!(ToTokensToUpperScStr, ToTokensToUpperScTs, quote::ToTokens, |self_reference| {
-    tokenized_case_str(self_reference, convert_case::Case::UpperSnake)
-});
+optml::case_trait_pair!(
+    ToTokensToUpperScStr,
+    ToTokensToUpperScTs,
+    quote::ToTokens,
+    |self_reference| tokenized_case_str(self_reference, convert_case::Case::UpperSnake)
+);
 
 fn to_token_stream_or_compile_error<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStream
 where

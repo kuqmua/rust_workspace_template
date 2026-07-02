@@ -13,6 +13,7 @@ categories = ["development-tools"]
 
 [dependencies]
 convert_case.workspace = true
+optml.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
 

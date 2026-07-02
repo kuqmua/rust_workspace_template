@@ -2,7 +2,11 @@ use core::iter::repeat_n;
 
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{Data, DeriveInput, Field, GenericParam, Ident, parse, visit_mut::VisitMut};
+use syn::{
+    Data, DeriveInput, Expr, Field, GenericParam, Ident, Path, Result, Token, parse,
+    parse::{Parse, ParseStream},
+    visit_mut::VisitMut,
+};
 
 #[derive(Debug, Clone, Copy)]
 enum GeneratedItemKind {
@@ -15,6 +19,36 @@ struct ReplaceLts;
 impl VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
         i.ident = Ident::new("static", i.ident.span());
+    }
+}
+
+struct CaseTraitPairInput {
+    body_expression: Expr,
+    bound_path: Path,
+    self_reference_identifier: Ident,
+    string_trait_identifier: Ident,
+    token_stream_trait_identifier: Ident,
+}
+
+impl Parse for CaseTraitPairInput {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
+        let string_trait_identifier = input.parse::<Ident>()?;
+        let _first_comma_token = input.parse::<Token![,]>()?;
+        let token_stream_trait_identifier = input.parse::<Ident>()?;
+        let _second_comma_token = input.parse::<Token![,]>()?;
+        let bound_path = input.parse::<Path>()?;
+        let _third_comma_token = input.parse::<Token![,]>()?;
+        let _left_or_token = input.parse::<Token![|]>()?;
+        let self_reference_identifier = input.parse::<Ident>()?;
+        let _right_or_token = input.parse::<Token![|]>()?;
+        let body_expression = input.parse::<Expr>()?;
+        Ok(Self {
+            body_expression,
+            bound_path,
+            self_reference_identifier,
+            string_trait_identifier,
+            token_stream_trait_identifier,
+        })
     }
 }
 
@@ -195,4 +229,50 @@ pub fn optml(input_token_stream: TokenStream) -> TokenStream {
         return build_generated_token_stream(&ident, &generics, &token_stream).into();
     }
     build_generated_token_stream(&ident, &generics, &token_stream).into()
+}
+
+#[proc_macro]
+pub fn case_trait_pair(input_token_stream: TokenStream) -> TokenStream {
+    let input: CaseTraitPairInput = match parse(input_token_stream) {
+        Ok(input) => input,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let CaseTraitPairInput {
+        body_expression,
+        bound_path,
+        self_reference_identifier,
+        string_trait_identifier,
+        token_stream_trait_identifier,
+    } = input;
+    quote! {
+        pub trait #string_trait_identifier {
+            #[must_use]
+            fn case(&self) -> String;
+        }
+
+        impl<T> #string_trait_identifier for T
+        where
+            T: #bound_path,
+        {
+            fn case(&self) -> String {
+                let #self_reference_identifier = self;
+                #body_expression
+            }
+        }
+
+        pub trait #token_stream_trait_identifier {
+            #[must_use]
+            fn case_or_panic(&self) -> proc_macro2::TokenStream;
+        }
+
+        impl<T> #token_stream_trait_identifier for T
+        where
+            T: #string_trait_identifier,
+        {
+            fn case_or_panic(&self) -> proc_macro2::TokenStream {
+                to_token_stream_or_compile_error(&#string_trait_identifier::case(self))
+            }
+        }
+    }
+    .into()
 }

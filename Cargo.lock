@@ -87,6 +87,7 @@ name = "naming_cmn"
 version = "0.1.0"
 dependencies = [
  "convert_case",
+ "optml",
  "proc-macro2",
  "quote",
 ]
