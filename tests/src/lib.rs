@@ -102,6 +102,16 @@ mod tests {
     }
 
     impl BoundaryTypeVisitor<'_> {
+        fn is_external_trait_path(&self, trait_path: &syn::Path) -> bool {
+            let Some(last_segment) = trait_path.segments.last() else {
+                return true;
+            };
+            !self
+                .declared_project_type_names
+                .0
+                .contains(last_segment.ident.to_string().as_str())
+        }
+
         fn record_type(
             &mut self,
             owner_kind: &'static str,
@@ -216,9 +226,15 @@ mod tests {
                     },
                 )),
             );
+            let is_external_trait_impl =
+                i.trait_
+                    .clone()
+                    .is_some_and(|(_bang_token, trait_path, _for_token)| {
+                        self.is_external_trait_path(&trait_path)
+                    });
             let previous_is_external_trait_impl = core::mem::replace(
                 &mut self.is_external_trait_impl,
-                ExternalTraitImplState(i.trait_.is_some()),
+                ExternalTraitImplState(is_external_trait_impl),
             );
             syn::visit::visit_item_impl(self, i);
             self.is_external_trait_impl = previous_is_external_trait_impl;
@@ -237,6 +253,34 @@ mod tests {
                     &i.ident.to_string(),
                     "field",
                     &field.ty,
+                    &generic_type_parameter_names,
+                );
+            }
+        }
+
+        fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
+            if !self.checks_function_boundaries.0 {
+                return;
+            }
+            let generic_type_parameter_names = collect_type_parameter_names(&i.sig.generics);
+            for input in &i.sig.inputs {
+                match input.clone() {
+                    syn::FnArg::Receiver(_) => {}
+                    syn::FnArg::Typed(pat_type) => self.record_type(
+                        "trait method",
+                        &i.sig.ident.to_string(),
+                        "parameter",
+                        &pat_type.ty,
+                        &generic_type_parameter_names,
+                    ),
+                }
+            }
+            if let syn::ReturnType::Type(_return_arrow, return_type) = i.sig.output.clone() {
+                self.record_type(
+                    "trait method",
+                    &i.sig.ident.to_string(),
+                    "return value",
+                    &return_type,
                     &generic_type_parameter_names,
                 );
             }
@@ -538,9 +582,17 @@ mod tests {
             return;
         };
         let first_segment_name = first_segment.ident.to_string();
+        let last_segment_name = type_path
+            .path
+            .segments
+            .last()
+            .map(|segment| segment.ident.to_string());
         let allowed_interop_roots = ["proc_macro", "proc_macro2"];
         let allowed_wrapper_roots = ["Option", "Self"];
         let is_allowed_type = declared_project_type_names.contains(first_segment_name.as_str())
+            || last_segment_name
+                .as_deref()
+                .is_some_and(|name| declared_project_type_names.contains(name))
             || generic_type_parameter_names.contains(first_segment_name.as_str())
             || allowed_interop_roots.contains(&first_segment_name.as_str())
             || allowed_wrapper_roots.contains(&first_segment_name.as_str());

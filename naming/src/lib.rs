@@ -2,14 +2,14 @@ pub mod prm;
 
 pub trait AsRefStrToScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> AsRefStrToScStr for T
 where
     T: naming_cmn::AsRefStrToScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::AsRefStrToScStr::case(self)
     }
 }
@@ -30,14 +30,14 @@ where
 
 pub trait AsRefStrToUccStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> AsRefStrToUccStr for T
 where
     T: naming_cmn::AsRefStrToUccStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::AsRefStrToUccStr::case(self)
     }
 }
@@ -58,14 +58,14 @@ where
 
 pub trait AsRefStrToUpperScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> AsRefStrToUpperScStr for T
 where
     T: naming_cmn::AsRefStrToUpperScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::AsRefStrToUpperScStr::case(self)
     }
 }
@@ -86,14 +86,14 @@ where
 
 pub trait DisplayToScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> DisplayToScStr for T
 where
     T: naming_cmn::DisplayToScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::DisplayToScStr::case(self)
     }
 }
@@ -114,14 +114,14 @@ where
 
 pub trait DisplayToUccStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> DisplayToUccStr for T
 where
     T: naming_cmn::DisplayToUccStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::DisplayToUccStr::case(self)
     }
 }
@@ -142,14 +142,14 @@ where
 
 pub trait DisplayToUpperScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> DisplayToUpperScStr for T
 where
     T: naming_cmn::DisplayToUpperScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::DisplayToUpperScStr::case(self)
     }
 }
@@ -170,14 +170,14 @@ where
 
 pub trait ToTokensToScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> ToTokensToScStr for T
 where
     T: naming_cmn::ToTokensToScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::ToTokensToScStr::case(self)
     }
 }
@@ -198,14 +198,14 @@ where
 
 pub trait ToTokensToUccStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> ToTokensToUccStr for T
 where
     T: naming_cmn::ToTokensToUccStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::ToTokensToUccStr::case(self)
     }
 }
@@ -226,14 +226,14 @@ where
 
 pub trait ToTokensToUpperScStr {
     #[must_use]
-    fn case(&self) -> impl AsRef<str>;
+    fn case(&self) -> naming_cmn::ConvertedCaseText;
 }
 
 impl<T> ToTokensToUpperScStr for T
 where
     T: naming_cmn::ToTokensToUpperScStr + ?Sized,
 {
-    fn case(&self) -> impl AsRef<str> {
+    fn case(&self) -> naming_cmn::ConvertedCaseText {
         naming_cmn::ToTokensToUpperScStr::case(self)
     }
 }

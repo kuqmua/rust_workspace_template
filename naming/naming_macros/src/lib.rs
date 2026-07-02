@@ -75,14 +75,14 @@ pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macr
     quote::quote! {
         pub trait #string_trait_identifier {
             #[must_use]
-            fn case(&self) -> impl AsRef<str>;
+            fn case(&self) -> crate::ConvertedCaseText;
         }
 
         impl<T> #string_trait_identifier for T
         where
             T: #bound_token_stream,
         {
-            fn case(&self) -> impl AsRef<str> {
+            fn case(&self) -> crate::ConvertedCaseText {
                 let #self_reference_identifier = self;
                 #body_expression
             }
