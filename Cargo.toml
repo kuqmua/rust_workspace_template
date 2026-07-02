@@ -9,6 +9,8 @@ members = [
   "panic_loc",
   "server",
   "tests",
+  "to_err_string",
+  "to_err_string_macros",
 ]
 exclude = []
 
@@ -43,6 +45,7 @@ syn = { version = "=2.0.112", default-features = false, features = [
   "clone-impls",
   "proc-macro",
 ] }
+to_err_string_macros = { version = "=0.1.0", path = "to_err_string_macros", default-features = false }
 toml = { version = "=0.9.8", default-features = false, features = [
   "parse",
   "serde",

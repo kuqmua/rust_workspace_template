@@ -271,6 +271,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "to_err_string"
+version = "0.1.0"
+dependencies = [
+ "to_err_string_macros",
+]
+
+[[package]]
+name = "to_err_string_macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "toml"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -21,13 +21,15 @@ Goal: move crates by dependency layers so each step can be verified with a limit
 
 ## Migration Order
 
-1. Base independent crates: `gen_quotes`, `naming/naming_cmn`, `panic_loc`, `to_err_string`
+Status legend: `[x]` migrated and verified, `[~]` exists in target but still needs source merge audit, `[ ]` not migrated yet.
+
+1. Base independent crates: [x] `gen_quotes`, [x] `naming/naming_cmn`, [x] `panic_loc`, [x] `to_err_string`
    -> verify: each crate is added to `members`, dependencies are moved to `[workspace.dependencies]`, then run `cargo check -p <crate>`.
 
-2. Existing `optml`
+2. Existing [~] `optml`
    -> verify: merge with the current `optml` crate, do not replace the directory wholesale; then run `cargo test -p optml`.
 
-3. Macro naming layer: `token_patterns`, `naming/naming_macros`, `naming`
+3. Macro naming layer: [ ] `token_patterns`, [~] `naming/naming_macros`, [ ] `naming`
    -> verify: `cargo check -p token_patterns -p naming_macros -p naming`.
 
 4. Macro helper layer: `macros_helpers/gen_derive_ts_builder`, `config_lib/gen_getter_traits_for_struct_fields`, `macros_helpers`
@@ -66,10 +68,10 @@ Goal: move crates by dependency layers so each step can be verified with a limit
 15. Server state and example table layer: `server_app_state`, `server_tbl_example`
     -> verify: `cargo check -p server_app_state -p server_tbl_example`.
 
-16. Binary crates: first `server`, then `telegram_bot` only if needed
+16. Binary crates: first [~] `server`, then [ ] `telegram_bot` only if needed
     -> verify: `cargo check -p server`; for the bot, run `cargo check -p telegram_bot`.
 
-17. Test/support crates: `macro_clippy_check_cmn`, `loc_lib/loc_test`, every `*_test` and `*_test_cnt`, then the existing `tests`
+17. Test/support crates: [ ] `macro_clippy_check_cmn`, [ ] `loc_lib/loc_test`, every [ ] `*_test` and [ ] `*_test_cnt`, then the existing [~] `tests`
     -> verify: `cargo test --quiet`; if feature flags such as `test-utils` remain, also run `cargo test --all-features`.
 
 ## Main Risk
