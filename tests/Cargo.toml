@@ -5,11 +5,11 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 publish = false
-description = "description"
-repository = "repository"
-readme = "readme"
-keywords = ["keyword"]
-categories = ["category"]
+description = "Workspace policy and contract tests for the Rust workspace template"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../README.md"
+keywords = ["tests", "template"]
+categories = ["development-tools"]
 
 [dev-dependencies]
 optml.workspace = true

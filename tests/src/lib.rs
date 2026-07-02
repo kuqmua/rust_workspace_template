@@ -2294,6 +2294,92 @@ mod tests {
     }
 
     #[test]
+    fn enforces_direct_environment_and_filesystem_access_inventory() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut violations = Vec::new();
+
+        for rust_file in rust_source_files(&workspace_files) {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            let source_segment = non_test_source_segment(&file_content);
+            let occurrence_count = source_segment
+                .matches("std::env")
+                .count()
+                .saturating_add(source_segment.matches("std::fs").count());
+            if occurrence_count != 0 {
+                violations.push(format!(
+                    "{} has {} direct std::env/std::fs occurrence(s) in non-test code; move \
+                     access behind an adapter or add a reviewed allowlist entry with a boundary \
+                     reason",
+                    rust_file.display(),
+                    occurrence_count
+                ));
+            }
+        }
+
+        assert_joined_ers_empty(&violations, "3568c8b9");
+    }
+
+    #[test]
+    fn enforces_spawn_ownership_inventory() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut violations = Vec::new();
+
+        for rust_file in rust_source_files(&workspace_files) {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            let occurrence_count = file_content
+                .matches("tokio::spawn(")
+                .count()
+                .saturating_add(file_content.matches("std::thread::spawn(").count());
+            if occurrence_count != 0 {
+                violations.push(format!(
+                    "{} has {} direct tokio::spawn/std::thread::spawn occurrence(s); record \
+                     owner, shutdown trigger, error path, and join/abort policy",
+                    rust_file.display(),
+                    occurrence_count
+                ));
+            }
+        }
+
+        assert_joined_ers_empty(&violations, "fc367bb3");
+    }
+
+    #[test]
+    fn enforces_expect_attribute_inventory() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut violations = Vec::new();
+
+        for rust_file in rust_source_files(&workspace_files) {
+            if rust_file.ends_with("tests/src/lib.rs") {
+                continue;
+            }
+            let file_content = read_file(rust_file);
+            let occurrence_count = file_content
+                .matches("#[expect(")
+                .count()
+                .saturating_add(file_content.matches("#![expect(").count());
+            if occurrence_count != 0 {
+                violations.push(format!(
+                    "{} has {} expect attribute occurrence(s); add a reviewed inventory entry \
+                     with a boundary reason",
+                    rust_file.display(),
+                    occurrence_count
+                ));
+            }
+        }
+
+        assert_joined_ers_empty(&violations, "d1e53f57");
+    }
+
+    #[test]
     fn forbids_allow_lint_attributes_in_rust_sources() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
@@ -2907,15 +2993,30 @@ mod tests {
     #[test]
     fn forbids_placeholder_repository_metadata_in_workspace_crates() {
         let workspace_root = workspace_root_path();
-        let manifest_paths = [workspace_root.join("server").join("Cargo.toml")];
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let manifest_paths = workspace_files
+            .iter()
+            .filter(|path| path.ends_with("Cargo.toml"))
+            .filter(|path| *path != &workspace_root.join("Cargo.toml"));
+        let placeholder_patterns = [
+            "description = \"description\"",
+            "repository = \"repository\"",
+            "readme = \"readme\"",
+            "keywords = [\"keyword\"]",
+            "categories = [\"category\"]",
+            "repository = \"https://github.com/user/repo\"",
+        ];
 
         for manifest_path in manifest_paths {
-            let manifest_content = read_file(&manifest_path);
-            assert!(
-                !manifest_content.contains("repository = \"https://github.com/user/repo\""),
-                "placeholder repository metadata must be replaced in {}",
-                manifest_path.display()
-            );
+            let manifest_content = read_file(manifest_path);
+            for placeholder_pattern in placeholder_patterns {
+                assert!(
+                    !manifest_content.contains(placeholder_pattern),
+                    "placeholder repository metadata must be replaced in {}: {}",
+                    manifest_path.display(),
+                    placeholder_pattern
+                );
+            }
         }
     }
 }
