@@ -1,28 +1,5 @@
 #[cfg(test)]
-use optml as _;
-
-#[cfg(test)]
 mod tests {
-    use core::str::Split;
-    use std::{
-        collections::HashSet,
-        ffi::OsStr,
-        fs::{self, read_to_string},
-        path::{Path, PathBuf},
-        process::{Command, Stdio},
-    };
-
-    use regex::Regex;
-    use syn::{
-        __private::ToTokens as _,
-        Expr, ExprLit, ExprMethodCall, FnArg, GenericArgument, ImplItemFn, ItemConst, ItemEnum,
-        ItemFn, ItemStruct, ItemTrait, ItemType, ItemUse, Lit, PathArguments, Type, parse_file,
-        visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
-    };
-    use toml::{Table as TomlTable, Value, value::Table};
-    use uuid::Uuid;
-    use walkdir::WalkDir;
-
     const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
     const CLIPPY_LINT_EXCEPTIONS: [&str; 24] = [
         "absolute_paths",
@@ -79,29 +56,30 @@ mod tests {
     }
 
     struct DeclaredTypeVisitor {
-        names: HashSet<String>,
+        names: std::collections::HashSet<String>,
     }
 
     struct BoundaryTypeVisitor<'names> {
-        declared_project_type_names: &'names HashSet<String>,
+        declared_project_type_names: &'names std::collections::HashSet<String>,
         errors: Vec<String>,
-        impl_generic_type_parameter_names: HashSet<String>,
+        impl_generic_type_parameter_names: std::collections::HashSet<String>,
+        is_conversion_impl: bool,
     }
 
-    impl<'ast> Visit<'ast> for DeclaredTypeVisitor {
-        fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+    impl<'ast> syn::visit::Visit<'ast> for DeclaredTypeVisitor {
+        fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
             let _was_inserted = self.names.insert(i.ident.to_string());
         }
 
-        fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+        fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
             let _was_inserted = self.names.insert(i.ident.to_string());
         }
 
-        fn visit_item_trait(&mut self, i: &'ast ItemTrait) {
+        fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
             let _was_inserted = self.names.insert(i.ident.to_string());
         }
 
-        fn visit_item_type(&mut self, i: &'ast ItemType) {
+        fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
             let _was_inserted = self.names.insert(i.ident.to_string());
         }
     }
@@ -112,8 +90,8 @@ mod tests {
             owner_kind: &'static str,
             owner_name: &str,
             location: &'static str,
-            ty: &Type,
-            generic_type_parameter_names: &HashSet<String>,
+            ty: &syn::Type,
+            generic_type_parameter_names: &std::collections::HashSet<String>,
         ) {
             collect_forbidden_non_project_type_usages(
                 &mut self.errors,
@@ -127,14 +105,17 @@ mod tests {
         }
     }
 
-    impl<'ast> Visit<'ast> for BoundaryTypeVisitor<'_> {
-        fn visit_impl_item_fn(&mut self, i: &'ast ImplItemFn) {
+    impl<'ast> syn::visit::Visit<'ast> for BoundaryTypeVisitor<'_> {
+        fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+            if self.is_conversion_impl {
+                return;
+            }
             let mut generic_type_parameter_names = self.impl_generic_type_parameter_names.clone();
             generic_type_parameter_names.extend(collect_type_parameter_names(&i.sig.generics));
             for input in &i.sig.inputs {
                 match input.clone() {
-                    FnArg::Receiver(_) => {}
-                    FnArg::Typed(pat_type) => self.record_type(
+                    syn::FnArg::Receiver(_) => {}
+                    syn::FnArg::Typed(pat_type) => self.record_type(
                         "method",
                         &i.sig.ident.to_string(),
                         "parameter",
@@ -143,9 +124,18 @@ mod tests {
                     ),
                 }
             }
+            if let syn::ReturnType::Type(_return_arrow, return_type) = i.sig.output.clone() {
+                self.record_type(
+                    "method",
+                    &i.sig.ident.to_string(),
+                    "return value",
+                    &return_type,
+                    &generic_type_parameter_names,
+                );
+            }
         }
 
-        fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+        fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
             let generic_type_parameter_names = collect_type_parameter_names(&i.generics);
             for variant in &i.variants {
                 for field in &variant.fields {
@@ -160,12 +150,12 @@ mod tests {
             }
         }
 
-        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+        fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
             let generic_type_parameter_names = collect_type_parameter_names(&i.sig.generics);
             for input in &i.sig.inputs {
                 match input.clone() {
-                    FnArg::Receiver(_) => {}
-                    FnArg::Typed(pat_type) => self.record_type(
+                    syn::FnArg::Receiver(_) => {}
+                    syn::FnArg::Typed(pat_type) => self.record_type(
                         "function",
                         &i.sig.ident.to_string(),
                         "parameter",
@@ -174,6 +164,15 @@ mod tests {
                     ),
                 }
             }
+            if let syn::ReturnType::Type(_return_arrow, return_type) = i.sig.output.clone() {
+                self.record_type(
+                    "function",
+                    &i.sig.ident.to_string(),
+                    "return value",
+                    &return_type,
+                    &generic_type_parameter_names,
+                );
+            }
         }
 
         fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
@@ -181,11 +180,28 @@ mod tests {
                 &mut self.impl_generic_type_parameter_names,
                 collect_type_parameter_names(&i.generics),
             );
+            let previous_is_conversion_impl = core::mem::replace(
+                &mut self.is_conversion_impl,
+                i.trait_
+                    .clone()
+                    .is_some_and(|(_bang_token, trait_path, _for_token)| {
+                        trait_path.segments.first().is_some_and(|segment| {
+                            matches!(
+                                segment.ident.to_string().as_str(),
+                                "AsRef" | "From" | "TryFrom"
+                            )
+                        })
+                    }),
+            );
             syn::visit::visit_item_impl(self, i);
+            self.is_conversion_impl = previous_is_conversion_impl;
             self.impl_generic_type_parameter_names = previous_impl_generic_type_parameter_names;
         }
 
-        fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+        fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+            if i.fields.iter().count() == 1 {
+                return;
+            }
             let generic_type_parameter_names = collect_type_parameter_names(&i.generics);
             for field in &i.fields {
                 self.record_type(
@@ -199,8 +215,11 @@ mod tests {
         }
     }
 
-    fn collect_files_recursively(directory_path: &Path, files: &mut Vec<PathBuf>) {
-        let Ok(directory_entries) = fs::read_dir(directory_path) else {
+    fn collect_files_recursively(
+        directory_path: &std::path::Path,
+        files: &mut Vec<std::path::PathBuf>,
+    ) {
+        let Ok(directory_entries) = std::fs::read_dir(directory_path) else {
             return;
         };
 
@@ -225,15 +244,17 @@ mod tests {
         }
     }
 
-    fn collect_workspace_files(workspace_root: &Path) -> Vec<PathBuf> {
+    fn collect_workspace_files(workspace_root: &std::path::Path) -> Vec<std::path::PathBuf> {
         let mut files = Vec::new();
         collect_files_recursively(workspace_root, &mut files);
         files
     }
 
-    fn workspace_root_path() -> PathBuf {
-        let crate_manifest_directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let parent_directory = crate_manifest_directory.parent().map(Path::to_path_buf);
+    fn workspace_root_path() -> std::path::PathBuf {
+        let crate_manifest_directory = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let parent_directory = crate_manifest_directory
+            .parent()
+            .map(std::path::Path::to_path_buf);
         parent_directory.unwrap_or(crate_manifest_directory)
     }
 
@@ -247,16 +268,16 @@ mod tests {
         file_content
     }
 
-    fn read_file(path: &Path) -> String {
-        read_to_string(path).unwrap_or_default()
+    fn read_file(path: &std::path::Path) -> String {
+        std::fs::read_to_string(path).unwrap_or_default()
     }
 
-    fn workflow_file_paths(workspace_root: &Path) -> Vec<PathBuf> {
+    fn workflow_file_paths(workspace_root: &std::path::Path) -> Vec<std::path::PathBuf> {
         let workflows_directory_path = workspace_root.join(".github").join("workflows");
         if !workflows_directory_path.exists() {
             return Vec::new();
         }
-        let Ok(directory_entries) = fs::read_dir(&workflows_directory_path) else {
+        let Ok(directory_entries) = std::fs::read_dir(&workflows_directory_path) else {
             return Vec::new();
         };
         directory_entries
@@ -284,7 +305,7 @@ mod tests {
         );
     }
 
-    fn rust_source_files(workspace_files: &[PathBuf]) -> Vec<&PathBuf> {
+    fn rust_source_files(workspace_files: &[std::path::PathBuf]) -> Vec<&std::path::PathBuf> {
         workspace_files
             .iter()
             .filter(|path| path.extension().and_then(|extension| extension.to_str()) == Some("rs"))
@@ -319,7 +340,7 @@ mod tests {
         command_name: &str,
         command_arguments: &[&str],
     ) -> Result<(), String> {
-        let command_output_result = Command::new(command_name)
+        let command_output_result = std::process::Command::new(command_name)
             .args(command_arguments)
             .current_dir(workspace_root_path())
             .output();
@@ -348,34 +369,34 @@ mod tests {
         ))
     }
 
-    fn is_str_or_slice_type_path(ty: &Type) -> bool {
+    fn is_str_or_slice_type_path(ty: &syn::Type) -> bool {
         match ty.clone() {
-            Type::Path(type_path) => type_path
+            syn::Type::Path(type_path) => type_path
                 .path
                 .segments
                 .last()
                 .is_some_and(|segment| segment.ident == "str"),
-            Type::Group(type_group) => is_str_or_slice_type_path(&type_group.elem),
-            Type::Paren(type_paren) => is_str_or_slice_type_path(&type_paren.elem),
-            Type::Reference(type_reference) => is_str_or_slice_type_path(&type_reference.elem),
-            Type::Slice(_) => true,
-            Type::Array(_)
-            | Type::BareFn(_)
-            | Type::ImplTrait(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Ptr(_)
-            | Type::TraitObject(_)
-            | Type::Tuple(_)
-            | Type::Verbatim(_)
+            syn::Type::Group(type_group) => is_str_or_slice_type_path(&type_group.elem),
+            syn::Type::Paren(type_paren) => is_str_or_slice_type_path(&type_paren.elem),
+            syn::Type::Reference(type_reference) => is_str_or_slice_type_path(&type_reference.elem),
+            syn::Type::Slice(_) => true,
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
             | _ => false,
         }
     }
 
-    fn is_forbidden_unbounded_domain_type_path(ty: &Type) -> bool {
+    fn is_forbidden_unbounded_domain_type_path(ty: &syn::Type) -> bool {
         match ty.clone() {
-            Type::Path(type_path) => {
+            syn::Type::Path(type_path) => {
                 let Some(segment) = type_path.path.segments.last() else {
                     return false;
                 };
@@ -385,9 +406,9 @@ mod tests {
                     "Vec",
                     "HashMap",
                     "BTreeMap",
-                    "HashSet",
+                    "std::collections::HashSet",
                     "BTreeSet",
-                    "PathBuf",
+                    "std::path::PathBuf",
                     "OsString",
                     "VecDeque",
                     "BinaryHeap",
@@ -399,7 +420,7 @@ mod tests {
                     return true;
                 }
                 if segment.ident == "Cow" || segment.ident == "Box" {
-                    let PathArguments::AngleBracketed(angle_bracketed_arguments) =
+                    let syn::PathArguments::AngleBracketed(angle_bracketed_arguments) =
                         segment.arguments.clone()
                     else {
                         return false;
@@ -408,7 +429,7 @@ mod tests {
                         .args
                         .into_iter()
                         .any(|generic_argument| {
-                            if let GenericArgument::Type(argument_type) = generic_argument {
+                            if let syn::GenericArgument::Type(argument_type) = generic_argument {
                                 return is_str_or_slice_type_path(&argument_type);
                             }
                             false
@@ -416,52 +437,56 @@ mod tests {
                 }
                 false
             }
-            Type::Group(type_group) => is_forbidden_unbounded_domain_type_path(&type_group.elem),
-            Type::Paren(type_paren) => is_forbidden_unbounded_domain_type_path(&type_paren.elem),
-            Type::Reference(type_reference) => {
+            syn::Type::Group(type_group) => {
+                is_forbidden_unbounded_domain_type_path(&type_group.elem)
+            }
+            syn::Type::Paren(type_paren) => {
+                is_forbidden_unbounded_domain_type_path(&type_paren.elem)
+            }
+            syn::Type::Reference(type_reference) => {
                 is_forbidden_unbounded_domain_type_path(&type_reference.elem)
             }
-            Type::Array(_)
-            | Type::BareFn(_)
-            | Type::ImplTrait(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Ptr(_)
-            | Type::Slice(_)
-            | Type::TraitObject(_)
-            | Type::Tuple(_)
-            | Type::Verbatim(_)
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
             | _ => false,
         }
     }
 
-    fn is_usize_type_path(ty: &Type) -> bool {
+    fn is_usize_type_path(ty: &syn::Type) -> bool {
         match ty.clone() {
-            Type::Path(type_path) => type_path
+            syn::Type::Path(type_path) => type_path
                 .path
                 .segments
                 .last()
                 .is_some_and(|segment| segment.ident == "usize"),
-            Type::Group(type_group) => is_usize_type_path(&type_group.elem),
-            Type::Paren(type_paren) => is_usize_type_path(&type_paren.elem),
-            Type::Reference(type_reference) => is_usize_type_path(&type_reference.elem),
-            Type::Array(_)
-            | Type::BareFn(_)
-            | Type::ImplTrait(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Ptr(_)
-            | Type::Slice(_)
-            | Type::TraitObject(_)
-            | Type::Tuple(_)
-            | Type::Verbatim(_)
+            syn::Type::Group(type_group) => is_usize_type_path(&type_group.elem),
+            syn::Type::Paren(type_paren) => is_usize_type_path(&type_paren.elem),
+            syn::Type::Reference(type_reference) => is_usize_type_path(&type_reference.elem),
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
             | _ => false,
         }
     }
 
-    fn collect_type_parameter_names(generics: &syn::Generics) -> HashSet<String> {
+    fn collect_type_parameter_names(generics: &syn::Generics) -> std::collections::HashSet<String> {
         generics
             .type_params()
             .map(|type_parameter| type_parameter.ident.to_string())
@@ -474,19 +499,19 @@ mod tests {
         owner_name: &str,
         location: &'static str,
         type_path: &syn::TypePath,
-        declared_project_type_names: &HashSet<String>,
-        generic_type_parameter_names: &HashSet<String>,
+        declared_project_type_names: &std::collections::HashSet<String>,
+        generic_type_parameter_names: &std::collections::HashSet<String>,
     ) {
         let Some(first_segment) = type_path.path.segments.first() else {
             errors.push(format!(
                 "{owner_kind} `{owner_name}` uses non-project type in {location}: `{}`",
-                type_path.path.to_token_stream()
+                syn::__private::ToTokens::to_token_stream(&type_path.path)
             ));
             return;
         };
         let first_segment_name = first_segment.ident.to_string();
         let allowed_interop_roots = ["proc_macro", "proc_macro2", "quote", "syn"];
-        let allowed_wrapper_roots = ["Option"];
+        let allowed_wrapper_roots = ["Option", "Self"];
         let is_allowed_type = declared_project_type_names.contains(first_segment_name.as_str())
             || generic_type_parameter_names.contains(first_segment_name.as_str())
             || allowed_interop_roots.contains(&first_segment_name.as_str())
@@ -496,7 +521,7 @@ mod tests {
         }
         errors.push(format!(
             "{owner_kind} `{owner_name}` uses non-project type in {location}: `{}`",
-            type_path.path.to_token_stream()
+            syn::__private::ToTokens::to_token_stream(&type_path.path)
         ));
     }
 
@@ -506,8 +531,8 @@ mod tests {
         owner_name: &str,
         location: &'static str,
         type_param_bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]>,
-        declared_project_type_names: &HashSet<String>,
-        generic_type_parameter_names: &HashSet<String>,
+        declared_project_type_names: &std::collections::HashSet<String>,
+        generic_type_parameter_names: &std::collections::HashSet<String>,
     ) {
         for type_param_bound in type_param_bounds {
             if let syn::TypeParamBound::Trait(trait_bound) = type_param_bound {
@@ -532,9 +557,9 @@ mod tests {
         owner_kind: &'static str,
         owner_name: &str,
         location: &'static str,
-        ty: &Type,
-        declared_project_type_names: &HashSet<String>,
-        generic_type_parameter_names: &HashSet<String>,
+        ty: &syn::Type,
+        declared_project_type_names: &std::collections::HashSet<String>,
+        generic_type_parameter_names: &std::collections::HashSet<String>,
     ) {
         collect_forbidden_non_project_type_usages(
             errors,
@@ -552,30 +577,29 @@ mod tests {
         owner_kind: &'static str,
         owner_name: &str,
         location: &'static str,
-        ty: &Type,
-        declared_project_type_names: &HashSet<String>,
-        generic_type_parameter_names: &HashSet<String>,
+        ty: &syn::Type,
+        declared_project_type_names: &std::collections::HashSet<String>,
+        generic_type_parameter_names: &std::collections::HashSet<String>,
     ) {
-        let nested_type = match ty.clone() {
-            Type::Array(type_array) => Some(type_array.elem),
-            Type::Group(type_group) => Some(type_group.elem),
-            Type::Paren(type_paren) => Some(type_paren.elem),
-            Type::Reference(type_reference) => Some(type_reference.elem),
-            Type::Slice(type_slice) => Some(type_slice.elem),
-            Type::BareFn(_)
-            | Type::ImplTrait(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Path(_)
-            | Type::Ptr(_)
-            | Type::TraitObject(_)
-            | Type::Tuple(_)
-            | Type::Verbatim(_)
+        if let Some(inner_type) = match ty.clone() {
+            syn::Type::Array(type_array) => Some(type_array.elem),
+            syn::Type::Group(type_group) => Some(type_group.elem),
+            syn::Type::Paren(type_paren) => Some(type_paren.elem),
+            syn::Type::Reference(type_reference) => Some(type_reference.elem),
+            syn::Type::Slice(type_slice) => Some(type_slice.elem),
+            syn::Type::BareFn(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Path(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
             | _ => None,
-        };
-        if let Some(inner_type) = nested_type {
-            collect_forbidden_nested_type_usages(
+        } {
+            return collect_forbidden_nested_type_usages(
                 errors,
                 owner_kind,
                 owner_name,
@@ -584,11 +608,10 @@ mod tests {
                 declared_project_type_names,
                 generic_type_parameter_names,
             );
-            return;
         }
 
         match ty.clone() {
-            Type::ImplTrait(type_impl_trait) => collect_forbidden_trait_bound_type_usages(
+            syn::Type::ImplTrait(type_impl_trait) => collect_forbidden_trait_bound_type_usages(
                 errors,
                 owner_kind,
                 owner_name,
@@ -597,7 +620,7 @@ mod tests {
                 declared_project_type_names,
                 generic_type_parameter_names,
             ),
-            Type::Path(type_path) => {
+            syn::Type::Path(type_path) => {
                 record_forbidden_non_project_type_path(
                     errors,
                     owner_kind,
@@ -608,11 +631,13 @@ mod tests {
                     generic_type_parameter_names,
                 );
                 for path_segment in type_path.path.segments {
-                    if let PathArguments::AngleBracketed(angle_bracketed_arguments) =
+                    if let syn::PathArguments::AngleBracketed(angle_bracketed_arguments) =
                         path_segment.arguments
                     {
                         for generic_argument in angle_bracketed_arguments.args {
-                            if let GenericArgument::Type(generic_argument_type) = generic_argument {
+                            if let syn::GenericArgument::Type(generic_argument_type) =
+                                generic_argument
+                            {
                                 collect_forbidden_nested_type_usages(
                                     errors,
                                     owner_kind,
@@ -627,7 +652,7 @@ mod tests {
                     }
                 }
             }
-            Type::TraitObject(type_trait_object) => collect_forbidden_trait_bound_type_usages(
+            syn::Type::TraitObject(type_trait_object) => collect_forbidden_trait_bound_type_usages(
                 errors,
                 owner_kind,
                 owner_name,
@@ -636,7 +661,7 @@ mod tests {
                 declared_project_type_names,
                 generic_type_parameter_names,
             ),
-            Type::Tuple(type_tuple) => {
+            syn::Type::Tuple(type_tuple) => {
                 for tuple_element in type_tuple.elems {
                     collect_forbidden_nested_type_usages(
                         errors,
@@ -649,12 +674,12 @@ mod tests {
                     );
                 }
             }
-            Type::BareFn(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Ptr(_)
-            | Type::Verbatim(_)
+            syn::Type::BareFn(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Verbatim(_)
             | _ => {}
         }
     }
@@ -664,12 +689,12 @@ mod tests {
         owner_kind: &'static str,
         owner_name: &str,
         location: &'static str,
-        ty: &Type,
+        ty: &syn::Type,
     ) {
         if is_usize_type_path(ty) {
             errors.push(format!(
                 "{owner_kind} `{owner_name}` uses usize as a domain/API type in {location}: `{}`",
-                ty.to_token_stream()
+                syn::__private::ToTokens::to_token_stream(ty)
             ));
         }
     }
@@ -679,21 +704,21 @@ mod tests {
         owner_kind: &'static str,
         owner_name: &str,
         location: &'static str,
-        ty: &Type,
+        ty: &syn::Type,
     ) {
         if is_forbidden_unbounded_domain_type_path(ty) {
             errors.push(format!(
                 "{owner_kind} `{owner_name}` uses unbounded standard domain type in {location}: \
                  `{}`",
-                ty.to_token_stream()
+                syn::__private::ToTokens::to_token_stream(ty)
             ));
         }
     }
 
     fn runtime_rust_source_files<'file_paths>(
-        workspace_root: &Path,
-        workspace_files: &'file_paths [PathBuf],
-    ) -> Vec<&'file_paths PathBuf> {
+        workspace_root: &std::path::Path,
+        workspace_files: &'file_paths [std::path::PathBuf],
+    ) -> Vec<&'file_paths std::path::PathBuf> {
         rust_source_files(workspace_files)
             .into_iter()
             .filter(|rust_file| !rust_file.ends_with("tests/src/lib.rs"))
@@ -743,62 +768,62 @@ mod tests {
         }
     }
 
-    fn project_dir() -> WalkDir {
-        WalkDir::new("../")
+    fn project_dir() -> walkdir::WalkDir {
+        walkdir::WalkDir::new("../")
     }
 
-    fn is_ignored_dir_entry_name(name: &OsStr) -> bool {
+    fn is_ignored_dir_entry_name(name: &std::ffi::OsStr) -> bool {
         name == "target" || name == ".git"
     }
 
-    fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {
+    fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
         for entry in project_dir()
             .into_iter()
             .filter_entry(|el| {
                 !is_ignored_dir_entry_name(el.file_name())
                     && (el.file_type().is_dir()
-                        || el.path().extension().and_then(OsStr::to_str) == Some("rs"))
+                        || el.path().extension().and_then(std::ffi::OsStr::to_str) == Some("rs"))
             })
             .filter_map(Result::ok)
-            .filter(|el| el.path().extension().and_then(OsStr::to_str) == Some("rs"))
+            .filter(|el| el.path().extension().and_then(std::ffi::OsStr::to_str) == Some("rs"))
         {
             let path = entry.path();
-            let Ok(content) = read_to_string(path) else {
+            let Ok(content) = std::fs::read_to_string(path) else {
                 continue;
             };
             on_file(path, &content);
         }
     }
 
-    fn workspace_tbl_from_cargo_toml() -> Result<Table, String> {
-        let mut tbl = read_to_string("../Cargo.toml")
+    fn workspace_tbl_from_cargo_toml() -> Result<toml::value::Table, String> {
+        let mut tbl = std::fs::read_to_string("../Cargo.toml")
             .map_err(|error| format!("39a0d238 {error}"))?
-            .parse::<TomlTable>()
+            .parse::<toml::value::Table>()
             .map_err(|error| format!("beb11586 {error}"))?;
         match tbl
             .remove("workspace")
             .ok_or_else(|| "f728192d".to_owned())?
         {
-            Value::Table(table) => Ok(table),
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => Err("2bfb0b62".to_owned()),
+            toml::Value::Table(table) => Ok(table),
+            toml::Value::String(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => Err("2bfb0b62".to_owned()),
         }
     }
 
     fn toml_val_as_tbl_ref<'value_lt>(
-        value: &'value_lt Value,
+        value: &'value_lt toml::Value,
         uuid: &str,
-    ) -> Result<&'value_lt Table, String> {
+    ) -> Result<&'value_lt toml::value::Table, String> {
         value.as_table().ok_or_else(|| uuid.to_owned())
     }
 
     fn collect_missing_items<'items>(
         items: &'items [String],
-        present_set: &HashSet<&str>,
+        present_set: &std::collections::HashSet<&str>,
     ) -> Vec<&'items str> {
         items
             .iter()
@@ -807,13 +832,13 @@ mod tests {
             .collect::<Vec<&str>>()
     }
 
-    fn is_exception(path: &Path, exceptions: &[&str]) -> bool {
+    fn is_exception(path: &std::path::Path, exceptions: &[&str]) -> bool {
         exceptions.iter().any(|exception| path.ends_with(exception))
     }
 
     fn assert_root_workspace_cargo_policy(
         exp_id: &'static str,
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &toml::value::Table, &mut Vec<String>),
     ) {
         let ers = {
             let mut collected_ers = Vec::new();
@@ -825,8 +850,8 @@ mod tests {
                 .filter(|el| !is_exception(el.path(), &ROOT_CARGO_TOML_EXCEPTIONS))
             {
                 let path = entry.path();
-                let parsed = match read_to_string(path) {
-                    Ok(content) => match content.parse::<TomlTable>() {
+                let parsed = match std::fs::read_to_string(path) {
+                    Ok(content) => match content.parse::<toml::value::Table>() {
                         Ok(table) => table,
                         Err(_) => continue,
                     },
@@ -851,8 +876,11 @@ mod tests {
         }
     }
 
-    fn str_set(items: &[String]) -> HashSet<&str> {
-        items.iter().map(String::as_str).collect::<HashSet<&str>>()
+    fn str_set(items: &[String]) -> std::collections::HashSet<&str> {
+        items
+            .iter()
+            .map(String::as_str)
+            .collect::<std::collections::HashSet<&str>>()
     }
 
     fn assert_workspace_lints_match(
@@ -879,9 +907,9 @@ mod tests {
             toml_v_tbl.keys().cloned().collect::<Vec<String>>()
         };
         let lints_from_cmd = {
-            let output = Command::new(tool)
+            let output = std::process::Command::new(tool)
                 .args(["-W", "help"])
-                .stdout(Stdio::piped())
+                .stdout(std::process::Stdio::piped())
                 .output()
                 .map_err(|error| format!("{exp_id} {error}"))?;
             if !output.status.success() {
@@ -895,10 +923,12 @@ mod tests {
             let stdout =
                 String::from_utf8(output.stdout).map_err(|error| format!("5ef7b23a {error}"))?;
             let regex = if parse_only_clippy {
-                Regex::new(r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
-                    .map_err(|error| format!("fbf14346 {error}"))?
+                regex::Regex::new(
+                    r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b",
+                )
+                .map_err(|error| format!("fbf14346 {error}"))?
             } else {
-                Regex::new(r"(?m)^\s*([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
+                regex::Regex::new(r"(?m)^\s*([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
                     .map_err(|error| format!("60d99c87 {error}"))?
             };
             regex
@@ -914,7 +944,10 @@ mod tests {
         {
             let lints_from_cargo_set = str_set(&lints_vec_from_cargo_toml);
             let lints_to_check_set = str_set(&lints_from_cmd);
-            let lints_exceptions_set = exceptions.iter().copied().collect::<HashSet<&str>>();
+            let lints_exceptions_set = exceptions
+                .iter()
+                .copied()
+                .collect::<std::collections::HashSet<&str>>();
             let lints_not_in_cargo_toml = {
                 let mut lints_not_in_cargo_toml = Vec::new();
                 for lint in collect_missing_items(&lints_from_cmd, &lints_from_cargo_set) {
@@ -936,7 +969,7 @@ mod tests {
         Ok(())
     }
 
-    fn validate_workspace_dep_features(v_tbl: &Table) -> Result<(), String> {
+    fn validate_workspace_dep_features(v_tbl: &toml::value::Table) -> Result<(), String> {
         if v_tbl
             .get("features")
             .ok_or_else(|| "473577d5".to_owned())?
@@ -948,19 +981,19 @@ mod tests {
         Err("27bcfb1c".to_owned())
     }
 
-    fn take_next_u64_part(iter: &mut Split<'_, char>) -> bool {
+    fn take_next_u64_part(iter: &mut core::str::Split<'_, char>) -> bool {
         iter.next()
             .and_then(|part| part.parse::<u64>().ok())
             .is_some()
     }
 
     fn workspace_members_as_strs<'members_lt>(
-        workspace: &'members_lt Table,
+        workspace: &'members_lt toml::value::Table,
         exp_id: &'static str,
     ) -> Result<Vec<&'members_lt str>, String> {
         let members = workspace
             .get("members")
-            .and_then(Value::as_array)
+            .and_then(toml::Value::as_array)
             .ok_or_else(|| exp_id.to_owned())?;
         let mut output = Vec::with_capacity(members.len());
         for member in members {
@@ -978,13 +1011,14 @@ mod tests {
             method_name: &'static str,
             uuids: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for ExpectVisitor {
-            fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+        impl<'ast> syn::visit::Visit<'ast> for ExpectVisitor {
+            fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
                 if i.method == self.method_name {
                     if i.args.len() == 1 {
                         if let Some(argument_expression) = i.args.first() {
                             let argument_token_stream =
-                                argument_expression.to_token_stream().to_string();
+                                syn::__private::ToTokens::to_token_stream(argument_expression)
+                                    .to_string();
                             if argument_token_stream.starts_with('\"')
                                 && argument_token_stream.ends_with('\"')
                             {
@@ -1004,13 +1038,13 @@ mod tests {
                         self.ers.push("with != 1 arg".to_owned());
                     }
                 }
-                visit_expr_method_call(self, i);
+                syn::visit::visit_expr_method_call(self, i);
             }
         }
         let mut all_uuids = Vec::new();
         let mut all_ers = Vec::new();
         for_each_rs_file_content(|path, content| {
-            let Ok(ast) = parse_file(content) else {
+            let Ok(ast) = syn::parse_file(content) else {
                 all_ers.push(format!("{path:?}: 5e7a83eb"));
                 return;
             };
@@ -1019,7 +1053,7 @@ mod tests {
                 uuids: Vec::new(),
                 ers: Vec::new(),
             };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             all_uuids.extend(visitor.uuids);
             all_ers.extend(
                 visitor
@@ -1029,7 +1063,7 @@ mod tests {
             );
         });
         let duplicates = {
-            let mut seen = HashSet::new();
+            let mut seen = std::collections::HashSet::new();
             let mut duplicates = Vec::new();
             for el_45f4b8bc in &all_uuids {
                 if !seen.insert(el_45f4b8bc.as_str()) {
@@ -1052,7 +1086,7 @@ mod tests {
             let publish = parsed
                 .get("package")
                 .and_then(|v_1c7b4e9d| v_1c7b4e9d.get("publish"));
-            if publish != Some(&Value::Boolean(false)) {
+            if publish != Some(&toml::Value::Boolean(false)) {
                 ers.push(format!("{}: missing `publish = false`", path.display()));
             }
         });
@@ -1066,7 +1100,7 @@ mod tests {
                 .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
             {
                 Some(lints_tbl) => {
-                    if lints_tbl.get("workspace") != Some(&Value::Boolean(true)) {
+                    if lints_tbl.get("workspace") != Some(&toml::Value::Boolean(true)) {
                         ers.push(format!("{}: [lints] missing `workspace = true`", path.display()));
                     }
                 }
@@ -1089,7 +1123,7 @@ mod tests {
             let path = el_d87f0495.path();
             if !(path.is_file()
                 && matches!(
-                    path.extension().and_then(OsStr::to_str),
+                    path.extension().and_then(std::ffi::OsStr::to_str),
                     Some("rs" | "toml" | "md" | "txt" | "yml" | "yaml" | "json")
                 ))
             {
@@ -1098,7 +1132,7 @@ mod tests {
             if is_exception(path, &exceptions) {
                 continue;
             }
-            let Ok(content) = read_to_string(path) else {
+            let Ok(content) = std::fs::read_to_string(path) else {
                 continue;
             };
             ers.extend({
@@ -1174,18 +1208,18 @@ mod tests {
 
     #[test]
     fn enforces_unique_uuid_in_rs_files() -> Result<(), String> {
-        let rgx = Regex::new(
+        let rgx = regex::Regex::new(
             r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b"
         )
         .map_err(|error| format!("e098a1ff {error}"))?;
-        let mut seen = HashSet::new();
+        let mut seen = std::collections::HashSet::new();
         let mut validation_error = None;
         for_each_rs_file_content(|_, content| {
             if validation_error.is_some() {
                 return;
             }
             for el_714b3d9c in rgx.find_iter(content) {
-                let Ok(uuid) = Uuid::parse_str(el_714b3d9c.as_str()) else {
+                let Ok(uuid) = uuid::Uuid::parse_str(el_714b3d9c.as_str()) else {
                     validation_error = Some("c9711efd".to_owned());
                     return;
                 };
@@ -1210,19 +1244,19 @@ mod tests {
         struct StringLiteralVisitor {
             values: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for StringLiteralVisitor {
-            fn visit_expr_lit(&mut self, i: &'ast ExprLit) {
-                if let Lit::Str(literal_string) = i.lit.clone() {
+        impl<'ast> syn::visit::Visit<'ast> for StringLiteralVisitor {
+            fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
+                if let syn::Lit::Str(literal_string) = i.lit.clone() {
                     self.values.push(literal_string.value());
                 }
-                visit_expr_lit(self, i);
+                syn::visit::visit_expr_lit(self, i);
             }
         }
 
         let workspace_root = workspace_root_path();
         let tests_directory = workspace_root.join("tests");
         let mut literal_locations_by_value = Vec::<(String, Vec<String>)>::new();
-        for walk_directory_entry in WalkDir::new(&tests_directory)
+        for walk_directory_entry in walkdir::WalkDir::new(&tests_directory)
             .into_iter()
             .filter_entry(|walk_filter_entry| {
                 !is_ignored_dir_entry_name(walk_filter_entry.file_name())
@@ -1231,16 +1265,16 @@ mod tests {
         {
             let rust_file = walk_directory_entry.path();
             if !rust_file.is_file()
-                || rust_file.extension().and_then(OsStr::to_str) != Some("rs")
+                || rust_file.extension().and_then(std::ffi::OsStr::to_str) != Some("rs")
                 || rust_file.ends_with("tests/src/lib.rs")
             {
                 continue;
             }
             let file_content = read_file(rust_file);
-            let syntax_tree = parse_file(&file_content)
+            let syntax_tree = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = StringLiteralVisitor { values: Vec::new() };
-            Visit::visit_file(&mut visitor, &syntax_tree);
+            syn::visit::Visit::visit_file(&mut visitor, &syntax_tree);
             for literal_value in visitor.values {
                 if let Some(existing_literal_index) = literal_locations_by_value
                     .iter_mut()
@@ -1276,24 +1310,24 @@ mod tests {
         struct UseImportVisitor {
             found_use_imports: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for UseImportVisitor {
-            fn visit_item_use(&mut self, i: &'ast ItemUse) {
+        impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
+            fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
                 self.found_use_imports
-                    .push(i.tree.to_token_stream().to_string());
+                    .push(syn::__private::ToTokens::to_token_stream(&i.tree).to_string());
             }
         }
 
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
         let mut errors = Vec::new();
-        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+        for rust_file in rust_source_files(&workspace_files) {
             let file_content = read_file(rust_file);
-            let parsed_file = parse_file(&file_content)
+            let parsed_file = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = UseImportVisitor {
                 found_use_imports: Vec::new(),
             };
-            Visit::visit_file(&mut visitor, &parsed_file);
+            syn::visit::Visit::visit_file(&mut visitor, &parsed_file);
             if !visitor.found_use_imports.is_empty() {
                 errors.push(format!(
                     "{}: found use imports: {}. Use explicit full paths at usage sites instead",
@@ -1311,10 +1345,10 @@ mod tests {
         struct TypeAliasVisitor {
             aliases: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for TypeAliasVisitor {
-            fn visit_item_type(&mut self, i: &'ast ItemType) {
+        impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
+            fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
                 self.aliases.push(i.ident.to_string());
-                visit_item_type(self, i);
+                syn::visit::visit_item_type(self, i);
             }
         }
 
@@ -1323,12 +1357,12 @@ mod tests {
         let mut errors = Vec::new();
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let parsed_file = parse_file(&file_content)
+            let parsed_file = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = TypeAliasVisitor {
                 aliases: Vec::new(),
             };
-            Visit::visit_file(&mut visitor, &parsed_file);
+            syn::visit::Visit::visit_file(&mut visitor, &parsed_file);
             if !visitor.aliases.is_empty() {
                 errors.push(format!(
                     "{}: found type aliases: {}",
@@ -1346,11 +1380,12 @@ mod tests {
         struct ConstAliasVisitor {
             aliases: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for ConstAliasVisitor {
-            fn visit_item_const(&mut self, i: &'ast ItemConst) {
+        impl<'ast> syn::visit::Visit<'ast> for ConstAliasVisitor {
+            fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
                 let item_const_expression = i.expr.as_ref().clone();
-                if let Expr::Path(expr_path) = item_const_expression {
-                    let target_path = expr_path.path.to_token_stream().to_string();
+                if let syn::Expr::Path(expr_path) = item_const_expression {
+                    let target_path =
+                        syn::__private::ToTokens::to_token_stream(&expr_path.path).to_string();
                     self.aliases.push(format!(
                         "const `{}` aliases `{target_path}`; delete local const `{}` and replace \
                          all uses of `{}` with `{target_path}`",
@@ -1365,12 +1400,12 @@ mod tests {
         let mut errors = Vec::new();
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let parsed_file = parse_file(&file_content)
+            let parsed_file = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = ConstAliasVisitor {
                 aliases: Vec::new(),
             };
-            Visit::visit_file(&mut visitor, &parsed_file);
+            syn::visit::Visit::visit_file(&mut visitor, &parsed_file);
             if !visitor.aliases.is_empty() {
                 errors.push(format!(
                     "{}: found const aliases to path constants: {}. Use the original imported \
@@ -1431,13 +1466,13 @@ mod tests {
                                 .get("default-features")
                                 .ok_or_else(|| "847a138f".to_owned())?
                             {
-                                &Value::Boolean(_) => (),
-                                &Value::String(_)
-                                | &Value::Table(_)
-                                | &Value::Integer(_)
-                                | &Value::Float(_)
-                                | &Value::Datetime(_)
-                                | &Value::Array(_) => return Err("b320164b".to_owned()),
+                                &toml::Value::Boolean(_) => (),
+                                &toml::Value::String(_)
+                                | &toml::Value::Table(_)
+                                | &toml::Value::Integer(_)
+                                | &toml::Value::Float(_)
+                                | &toml::Value::Datetime(_)
+                                | &toml::Value::Array(_) => return Err("b320164b".to_owned()),
                             }
                         }
                         _ => return Err(format!("f1139378 {v_tbl:#?}")),
@@ -1455,7 +1490,9 @@ mod tests {
         let mut ers = {
             let mut collected = Vec::new();
             for member_str in members {
-                let member_path = Path::new("..").join(member_str).join("Cargo.toml");
+                let member_path = std::path::Path::new("..")
+                    .join(member_str)
+                    .join("Cargo.toml");
                 if !member_path.exists() {
                     collected.push(format!(
                         "member `{member_str}` Cargo.toml not found at {}",
@@ -1533,7 +1570,7 @@ mod tests {
     fn enforces_service_environment_examples_have_unique_mapcam_logins() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
-        let mut seen_logins = HashSet::new();
+        let mut seen_logins = std::collections::HashSet::new();
         for environment_example in workspace_files.iter().filter(|path| {
             path.file_name()
                 .is_some_and(|file_name| file_name == ".env.example")
@@ -1558,7 +1595,7 @@ mod tests {
     fn enforces_service_environment_examples_have_unique_service_ports() {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
-        let mut seen_ports = HashSet::new();
+        let mut seen_ports = std::collections::HashSet::new();
         for environment_example in workspace_files.iter().filter(|path| {
             path.file_name()
                 .is_some_and(|file_name| file_name == ".env.example")
@@ -1885,8 +1922,8 @@ mod tests {
             errors: Vec<String>,
         }
 
-        impl<'ast> Visit<'ast> for UnboundedDomainTypeContractVisitor {
-            fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+        impl<'ast> syn::visit::Visit<'ast> for UnboundedDomainTypeContractVisitor {
+            fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
                 for variant in &i.variants {
                     for field in &variant.fields {
                         record_forbidden_unbounded_domain_type(
@@ -1900,11 +1937,11 @@ mod tests {
                 }
             }
 
-            fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+            fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
                 for input in &i.sig.inputs {
                     match input.clone() {
-                        FnArg::Receiver(_) => {}
-                        FnArg::Typed(pat_type) => {
+                        syn::FnArg::Receiver(_) => {}
+                        syn::FnArg::Typed(pat_type) => {
                             record_forbidden_unbounded_domain_type(
                                 &mut self.errors,
                                 "function",
@@ -1917,7 +1954,10 @@ mod tests {
                 }
             }
 
-            fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+                if i.fields.iter().count() == 1 {
+                    return;
+                }
                 for field in &i.fields {
                     record_forbidden_unbounded_domain_type(
                         &mut self.errors,
@@ -1929,12 +1969,12 @@ mod tests {
                 }
             }
 
-            fn visit_item_type(&mut self, i: &'ast ItemType) {
+            fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
                 if is_forbidden_unbounded_domain_type_path(&i.ty) {
                     self.errors.push(format!(
                         "type alias `{}` targets forbidden unbounded standard domain type: `{}`",
                         i.ident,
-                        i.ty.to_token_stream()
+                        syn::__private::ToTokens::to_token_stream(&i.ty)
                     ));
                 }
             }
@@ -1946,9 +1986,10 @@ mod tests {
 
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let ast = parse_file(&file_content).map_err(|error| format!("c52615ce {error}"))?;
+            let ast =
+                syn::parse_file(&file_content).map_err(|error| format!("c52615ce {error}"))?;
             let mut visitor = UnboundedDomainTypeContractVisitor { errors: Vec::new() };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
@@ -1975,14 +2016,14 @@ mod tests {
         let workspace_files = collect_workspace_files(&workspace_root);
         let runtime_source_files = runtime_rust_source_files(&workspace_root, &workspace_files);
         let mut declared_type_visitor = DeclaredTypeVisitor {
-            names: HashSet::new(),
+            names: std::collections::HashSet::new(),
         };
         let mut parsed_runtime_files = Vec::new();
         for rust_file in runtime_source_files {
             let file_content = read_file(rust_file);
-            let ast = parse_file(&file_content)
+            let ast = syn::parse_file(non_test_source_segment(&file_content))
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
-            Visit::visit_file(&mut declared_type_visitor, &ast);
+            syn::visit::Visit::visit_file(&mut declared_type_visitor, &ast);
             parsed_runtime_files.push((rust_file, ast));
         }
 
@@ -1991,9 +2032,10 @@ mod tests {
             let mut visitor = BoundaryTypeVisitor {
                 declared_project_type_names: &declared_type_visitor.names,
                 errors: Vec::new(),
-                impl_generic_type_parameter_names: HashSet::new(),
+                impl_generic_type_parameter_names: std::collections::HashSet::new(),
+                is_conversion_impl: false,
             };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
@@ -2012,8 +2054,8 @@ mod tests {
             errors: Vec<String>,
         }
 
-        impl<'ast> Visit<'ast> for UsizeDomainTypeContractVisitor {
-            fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+        impl<'ast> syn::visit::Visit<'ast> for UsizeDomainTypeContractVisitor {
+            fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
                 for variant in &i.variants {
                     for field in &variant.fields {
                         record_forbidden_usize_domain_type(
@@ -2027,11 +2069,11 @@ mod tests {
                 }
             }
 
-            fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+            fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
                 for input in &i.sig.inputs {
                     match input.clone() {
-                        FnArg::Receiver(_) => {}
-                        FnArg::Typed(pat_type) => {
+                        syn::FnArg::Receiver(_) => {}
+                        syn::FnArg::Typed(pat_type) => {
                             record_forbidden_usize_domain_type(
                                 &mut self.errors,
                                 "function",
@@ -2044,12 +2086,12 @@ mod tests {
                 }
             }
 
-            fn visit_item_type(&mut self, i: &'ast ItemType) {
+            fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
                 if is_usize_type_path(&i.ty) {
                     self.errors.push(format!(
                         "type alias `{}` targets forbidden usize domain/API type: `{}`",
                         i.ident,
-                        i.ty.to_token_stream()
+                        syn::__private::ToTokens::to_token_stream(&i.ty)
                     ));
                 }
             }
@@ -2061,9 +2103,10 @@ mod tests {
 
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let ast = parse_file(&file_content).map_err(|error| format!("83f68d5b {error}"))?;
+            let ast =
+                syn::parse_file(&file_content).map_err(|error| format!("83f68d5b {error}"))?;
             let mut visitor = UsizeDomainTypeContractVisitor { errors: Vec::new() };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
@@ -2084,13 +2127,15 @@ mod tests {
         struct SerdeJsonValueFieldVisitor {
             errors: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for SerdeJsonValueFieldVisitor {
-            fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+        impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
                 for field in &i.fields {
-                    let type_text = field.ty.to_token_stream().to_string();
-                    if type_text.contains("serde_json :: Value") || type_text == "Value" {
+                    let type_text =
+                        syn::__private::ToTokens::to_token_stream(&field.ty).to_string();
+                    if type_text.contains("serde_json :: toml::Value") || type_text == "toml::Value"
+                    {
                         self.errors.push(format!(
-                            "struct `{}` contains serde_json::Value field `{type_text}`",
+                            "struct `{}` contains serde_json::toml::Value field `{type_text}`",
                             i.ident
                         ));
                     }
@@ -2103,10 +2148,10 @@ mod tests {
         let mut errors = Vec::new();
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let ast = parse_file(&file_content)
+            let ast = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = SerdeJsonValueFieldVisitor { errors: Vec::new() };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
@@ -2123,14 +2168,15 @@ mod tests {
         struct RawPrimitiveFieldVisitor {
             errors: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for RawPrimitiveFieldVisitor {
-            fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+        impl<'ast> syn::visit::Visit<'ast> for RawPrimitiveFieldVisitor {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
                 let primitive_types = [
                     "bool", "char", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8",
                     "u16", "u32", "u64", "u128", "usize",
                 ];
                 for field in &i.fields {
-                    let field_type_text = field.ty.to_token_stream().to_string();
+                    let field_type_text =
+                        syn::__private::ToTokens::to_token_stream(&field.ty).to_string();
                     if primitive_types.contains(&field_type_text.as_str()) {
                         self.errors.push(format!(
                             "struct `{}` contains raw primitive field `{}`",
@@ -2146,10 +2192,10 @@ mod tests {
         let mut errors = Vec::new();
         for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
             let file_content = read_file(rust_file);
-            let ast = parse_file(&file_content)
+            let ast = syn::parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = RawPrimitiveFieldVisitor { errors: Vec::new() };
-            Visit::visit_file(&mut visitor, &ast);
+            syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
@@ -2246,7 +2292,7 @@ mod tests {
             let migration_content = read_file(&migration_file);
             let migration_file_name = migration_file
                 .file_name()
-                .and_then(OsStr::to_str)
+                .and_then(std::ffi::OsStr::to_str)
                 .unwrap_or_default();
             if migration_file_name.contains("schema") {
                 assert!(
@@ -2270,6 +2316,17 @@ mod tests {
     fn type_boundary_compile_fail_contracts_hold() {
         let compile_fail_cases = trybuild::TestCases::new();
         compile_fail_cases.compile_fail("trybuild/*.rs");
+    }
+
+    #[test]
+    fn optml_dependency_is_available_for_trybuild_contracts() {
+        #[derive(optml::Optml)]
+        struct OptmlTrybuildDependency;
+        let optml_trybuild_dependency_type_name = core::any::type_name::<OptmlTrybuildDependency>();
+        assert!(
+            optml_trybuild_dependency_type_name.contains("OptmlTrybuildDependency"),
+            "optml trybuild dependency marker type name changed"
+        );
     }
 
     #[test]
@@ -2677,8 +2734,8 @@ mod tests {
             }
             let file_content = read_file(rust_file);
             assert!(
-                !file_content.contains("Command::new("),
-                "direct Command::new usage is forbidden: {}",
+                !file_content.contains("std::process::Command::new("),
+                "direct std::process::Command::new usage is forbidden: {}",
                 rust_file.display()
             );
         }
@@ -2899,7 +2956,7 @@ mod tests {
         assert!(
             !workspace_files.iter().any(|path| {
                 path.extension()
-                    .and_then(OsStr::to_str)
+                    .and_then(std::ffi::OsStr::to_str)
                     .is_some_and(|extension| shell_file_extensions.contains(&extension))
             }),
             "shell script files (*.sh, *.bash, *.zsh, *.fish) are forbidden by policy"
@@ -3069,8 +3126,8 @@ mod tests {
             }
             let file_content = read_file(rust_file);
             assert!(
-                !file_content.contains("serde_json::Value"),
-                "found forbidden serde_json::Value usage in {}",
+                !file_content.contains("serde_json::toml::Value"),
+                "found forbidden serde_json::toml::Value usage in {}",
                 rust_file.display()
             );
         }

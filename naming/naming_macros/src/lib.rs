@@ -55,14 +55,14 @@ pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macr
     quote::quote! {
         pub trait #string_trait_identifier {
             #[must_use]
-            fn case(&self) -> String;
+            fn case(&self) -> impl AsRef<str>;
         }
 
         impl<T> #string_trait_identifier for T
         where
             T: #bound_token_stream,
         {
-            fn case(&self) -> String {
+            fn case(&self) -> impl AsRef<str> {
                 let #self_reference_identifier = self;
                 #body_expression
             }
@@ -79,7 +79,7 @@ pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macr
         {
             fn case_or_panic(&self) -> proc_macro2::TokenStream {
                 let case_text = #string_trait_identifier::case(self);
-                match case_text.parse::<proc_macro2::TokenStream>() {
+                match case_text.as_ref().parse::<proc_macro2::TokenStream>() {
                     Ok(token_stream) => token_stream,
                     Err(parse_error) => {
                         let error_message = parse_error.to_string();

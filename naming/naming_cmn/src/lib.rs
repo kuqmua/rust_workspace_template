@@ -48,24 +48,37 @@ enum TextCase {
     UpperSnake,
 }
 
-impl TextCase {
-    const fn as_convert_case(self) -> convert_case::Case<'static> {
-        match self {
-            Self::Snake => convert_case::Case::Snake,
-            Self::UpperCamel => convert_case::Case::UpperCamel,
-            Self::UpperSnake => convert_case::Case::UpperSnake,
-        }
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct ConvertedCaseText {
+    value: String,
+}
+
+impl AsRef<str> for ConvertedCaseText {
+    fn as_ref(&self) -> &str {
+        self.value.as_ref()
     }
 }
 
-fn case_from_string<StringValue>(value: &StringValue, text_case: TextCase) -> String
+impl From<ConvertedCaseText> for String {
+    fn from(value: ConvertedCaseText) -> Self {
+        value.value
+    }
+}
+
+impl From<String> for ConvertedCaseText {
+    fn from(value: String) -> Self {
+        Self { value }
+    }
+}
+
+fn case_from_string<StringValue>(value: &StringValue, text_case: TextCase) -> ConvertedCaseText
 where
     StringValue: AsRef<str> + ?Sized,
 {
     str_case(value, text_case)
 }
 
-fn tokenized_case_str<TokenValue>(value: &TokenValue, text_case: TextCase) -> String
+fn tokenized_case_str<TokenValue>(value: &TokenValue, text_case: TextCase) -> ConvertedCaseText
 where
     TokenValue: quote::ToTokens,
 {
@@ -73,22 +86,29 @@ where
     case_from_string(&tokenized, text_case)
 }
 
-fn str_case<StringValue>(value: &StringValue, text_case: TextCase) -> String
+fn str_case<StringValue>(value: &StringValue, text_case: TextCase) -> ConvertedCaseText
 where
     StringValue: AsRef<str> + ?Sized,
 {
-    convert_case::Casing::to_case(&value.as_ref(), text_case.as_convert_case())
+    let convert_case = match text_case {
+        TextCase::Snake => convert_case::Case::Snake,
+        TextCase::UpperCamel => convert_case::Case::UpperCamel,
+        TextCase::UpperSnake => convert_case::Case::UpperSnake,
+    };
+    convert_case::Casing::to_case(&value.as_ref(), convert_case).into()
 }
 
 #[cfg(test)]
 mod tests {
-    fn assert_case_triplet<StringValue>(
-        to_upper_camel_case: StringValue,
-        to_snake_case: StringValue,
-        to_upper_snake_case: StringValue,
+    fn assert_case_triplet<UpperCamelCaseText, SnakeCaseText, UpperSnakeCaseText>(
+        to_upper_camel_case: UpperCamelCaseText,
+        to_snake_case: SnakeCaseText,
+        to_upper_snake_case: UpperSnakeCaseText,
     ) -> Result<(), String>
     where
-        StringValue: AsRef<str>,
+        UpperCamelCaseText: AsRef<str>,
+        SnakeCaseText: AsRef<str>,
+        UpperSnakeCaseText: AsRef<str>,
     {
         if to_upper_camel_case.as_ref() != "HelloWorld" {
             return Err(format!("{} != HelloWorld", to_upper_camel_case.as_ref()));
