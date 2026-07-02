@@ -15,8 +15,8 @@ mod tests {
     use regex::Regex;
     use syn::{
         __private::ToTokens as _,
-        ExprLit, ExprMethodCall, FnArg, GenericArgument, ItemEnum, ItemFn, ItemStruct, ItemType,
-        ItemUse, Lit, PathArguments, Type, UseTree, parse_file,
+        Expr, ExprLit, ExprMethodCall, FnArg, GenericArgument, ItemConst, ItemEnum, ItemFn,
+        ItemStruct, ItemType, ItemUse, Lit, PathArguments, Type, UseTree, parse_file,
         visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -1026,6 +1026,49 @@ mod tests {
             }
         }
         assert_joined_ers_empty(&errors, "c91d3df8");
+        Ok(())
+    }
+
+    #[test]
+    fn forbids_const_aliases_to_path_constants_in_runtime_sources() -> Result<(), String> {
+        struct ConstAliasVisitor {
+            aliases: Vec<String>,
+        }
+        impl<'ast> Visit<'ast> for ConstAliasVisitor {
+            fn visit_item_const(&mut self, i: &'ast ItemConst) {
+                let item_const_expression = i.expr.as_ref().clone();
+                if let Expr::Path(expr_path) = item_const_expression {
+                    let target_path = expr_path.path.to_token_stream().to_string();
+                    self.aliases.push(format!(
+                        "const `{}` aliases `{target_path}`; delete local const `{}` and replace \
+                         all uses of `{}` with `{target_path}`",
+                        i.ident, i.ident, i.ident
+                    ));
+                }
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let parsed_file = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            let mut visitor = ConstAliasVisitor {
+                aliases: Vec::new(),
+            };
+            Visit::visit_file(&mut visitor, &parsed_file);
+            if !visitor.aliases.is_empty() {
+                errors.push(format!(
+                    "{}: found const aliases to path constants: {}. Use the original imported \
+                     constant directly instead of redeclaring an alias",
+                    rust_file.display(),
+                    visitor.aliases.join(", ")
+                ));
+            }
+        }
+        assert_joined_ers_empty(&errors, "62e0a2ce");
         Ok(())
     }
 
