@@ -127,6 +127,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52ff2c0fe9bc6cb6b14a0592c2ff4fa9ceb83eea9db979b0487cd054946a2b8f"
 
 [[package]]
+name = "loc_lib"
+version = "0.1.0"
+dependencies = [
+ "git_info",
+ "naming_constants",
+]
+
+[[package]]
+name = "location"
+version = "0.1.0"
+dependencies = [
+ "syn",
+]
+
+[[package]]
 name = "macros_helpers"
 version = "0.1.0"
 dependencies = [

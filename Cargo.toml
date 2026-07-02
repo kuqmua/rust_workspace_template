@@ -8,6 +8,8 @@ members = [
   "config_lib/try_from_env",
   "gen_quotes",
   "git_info",
+  "loc_lib",
+  "loc_lib/location",
   "macros_helpers",
   "macros_helpers/gen_derive_ts_builder",
   "naming",
@@ -39,6 +41,8 @@ convert_case = { version = "=0.11.0", default-features = false }
 gen_derive_ts_builder = { version = "=0.1.0", path = "macros_helpers/gen_derive_ts_builder", default-features = false }
 gen_getter_traits_for_struct_fields = { version = "=0.1.0", path = "config_lib/gen_getter_traits_for_struct_fields", default-features = false }
 git_info = { version = "=0.1.0", path = "git_info", default-features = false }
+loc_lib = { version = "=0.1.0", path = "loc_lib", default-features = false }
+location = { version = "=0.1.0", path = "loc_lib/location", default-features = false }
 macros_helpers = { version = "=0.1.0", path = "macros_helpers", default-features = false }
 naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features = false }
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }

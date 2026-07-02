@@ -41,7 +41,7 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 6. Runtime foundation: [x] `app_state`, [x] `cmn_routes`, [x] `server_config`
    -> verify: `cargo check -p app_state -p cmn_routes -p server_config`.
 
-7. Location/domain layer: `loc_lib/location`, `loc_lib`
+7. Location/domain layer: [x] `loc_lib/location`, [x] `loc_lib`
    -> verify: `cargo check -p location -p loc_lib`.
 
 8. Shared PostgreSQL proc-macro layer: `pg_crud/pg_crud_macros_cmn`

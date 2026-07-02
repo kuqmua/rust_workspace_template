@@ -1,0 +1,21 @@
+[package]
+name = "location"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Location derive macro"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["location", "macro"]
+categories = ["development-tools"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn.workspace = true
+
+[lints]
+workspace = true
