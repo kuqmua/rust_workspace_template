@@ -84,6 +84,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
 
 [[package]]
+name = "naming"
+version = "0.1.0"
+dependencies = [
+ "naming_cmn",
+ "proc-macro2",
+]
+
+[[package]]
 name = "naming_cmn"
 version = "0.1.0"
 dependencies = [
@@ -283,6 +291,15 @@ version = "0.1.0"
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "token_patterns"
+version = "0.1.0"
+dependencies = [
+ "optml",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]

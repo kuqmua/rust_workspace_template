@@ -26,10 +26,10 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 1. Base independent crates: [x] `gen_quotes`, [x] `naming/naming_cmn`, [x] `panic_loc`, [x] `to_err_string`
    -> verify: each crate is added to `members`, dependencies are moved to `[workspace.dependencies]`, then run `cargo check -p <crate>`.
 
-2. Existing [~] `optml`
+2. Existing [x] `optml`
    -> verify: merge with the current `optml` crate, do not replace the directory wholesale; then run `cargo test -p optml`.
 
-3. Macro naming layer: [ ] `token_patterns`, [~] `naming/naming_macros`, [ ] `naming`
+3. Macro naming layer: [x] `token_patterns`, [x] `naming/naming_macros`, [x] `naming`
    -> verify: `cargo check -p token_patterns -p naming_macros -p naming`.
 
 4. Macro helper layer: `macros_helpers/gen_derive_ts_builder`, `config_lib/gen_getter_traits_for_struct_fields`, `macros_helpers`

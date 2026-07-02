@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "gen_quotes",
+  "naming",
   "naming/naming_cmn",
   "naming/naming_constants",
   "naming/naming_macros",
@@ -11,6 +12,7 @@ members = [
   "tests",
   "to_err_string",
   "to_err_string_macros",
+  "token_patterns",
 ]
 exclude = []
 
@@ -22,6 +24,7 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 convert_case = { version = "=0.11.0", default-features = false }
+naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features = false }
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
 naming_constants = { version = "=0.1.0", path = "naming/naming_constants", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
@@ -45,6 +48,7 @@ syn = { version = "=2.0.112", default-features = false, features = [
   "clone-impls",
   "proc-macro",
 ] }
+token_patterns = { version = "=0.1.0", path = "token_patterns", default-features = false }
 to_err_string_macros = { version = "=0.1.0", path = "to_err_string_macros", default-features = false }
 toml = { version = "=0.9.8", default-features = false, features = [
   "parse",
