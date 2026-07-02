@@ -49,25 +49,23 @@ enum TextCase {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct ConvertedCaseText {
-    value: String,
-}
+pub struct ConvertedCaseText(String);
 
 impl AsRef<str> for ConvertedCaseText {
     fn as_ref(&self) -> &str {
-        self.value.as_ref()
+        self.0.as_ref()
     }
 }
 
 impl From<ConvertedCaseText> for String {
     fn from(value: ConvertedCaseText) -> Self {
-        value.value
+        value.0
     }
 }
 
 impl From<String> for ConvertedCaseText {
     fn from(value: String) -> Self {
-        Self { value }
+        Self(value)
     }
 }
 

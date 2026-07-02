@@ -11,19 +11,17 @@ enum QuoteMark {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct QuotedLiteralText {
-    value: String,
-}
+pub struct QuotedLiteralText(String);
 
 impl AsRef<str> for QuotedLiteralText {
     fn as_ref(&self) -> &str {
-        self.value.as_ref()
+        self.0.as_ref()
     }
 }
 
 impl From<QuotedLiteralText> for String {
     fn from(value: QuotedLiteralText) -> Self {
-        value.value
+        value.0
     }
 }
 
@@ -49,10 +47,10 @@ where
     if write_result.is_err() {
         output.push_str(string_value);
         output.push(quote_character);
-        return QuotedLiteralText { value: output };
+        return QuotedLiteralText(output);
     }
     output.push(quote_character);
-    QuotedLiteralText { value: output }
+    QuotedLiteralText(output)
 }
 
 fn quote_literal_token_stream<DisplayValue>(

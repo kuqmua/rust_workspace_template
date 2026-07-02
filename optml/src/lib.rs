@@ -6,6 +6,26 @@ enum GeneratedItemKind {
 
 struct ReplaceLts;
 
+#[derive(Clone, Copy)]
+struct OptmlFieldReference<'field>(&'field syn::Field);
+
+#[derive(Clone, Copy)]
+struct OptmlFieldReferences<'fields>(&'fields [&'fields syn::Field]);
+
+struct OptmlFieldIdentifier(syn::Ident);
+
+#[derive(Clone, Copy)]
+struct OptmlAlignmentTokenStreamReference<'token_stream>(&'token_stream dyn quote::ToTokens);
+
+#[derive(Clone, Copy)]
+struct OptmlVariantIdentifierReference<'ident>(&'ident syn::Ident);
+
+#[derive(Clone, Copy)]
+struct OptmlItemIdentifierReference<'ident>(&'ident syn::Ident);
+
+#[derive(Clone, Copy)]
+struct OptmlGenericsReference<'generics>(&'generics syn::Generics);
+
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
         i.ident = syn::Ident::new("static", i.ident.span());
@@ -13,22 +33,28 @@ impl syn::visit_mut::VisitMut for ReplaceLts {
 }
 
 fn generate_field_identifier(
-    field: &syn::Field,
-    unnamed_field_identifier: syn::Ident,
-) -> syn::Ident {
-    field
-        .ident
-        .as_ref()
-        .map_or(unnamed_field_identifier, Clone::clone)
+    field: OptmlFieldReference<'_>,
+    unnamed_field_identifier: OptmlFieldIdentifier,
+) -> OptmlFieldIdentifier {
+    OptmlFieldIdentifier(
+        field
+            .0
+            .ident
+            .as_ref()
+            .map_or(unnamed_field_identifier.0, Clone::clone),
+    )
 }
 
 fn generate_assertions_token_stream(
-    fields: &[&syn::Field],
-    alignments_token_stream: &dyn quote::ToTokens,
+    optml_field_references: OptmlFieldReferences<'_>,
+    optml_alignments_token_stream: OptmlAlignmentTokenStreamReference<'_>,
     generated_item_kind: GeneratedItemKind,
-    variant: Option<&syn::Ident>,
-    ident: &syn::Ident,
+    variant: Option<OptmlVariantIdentifierReference<'_>>,
+    optml_item_identifier: OptmlItemIdentifierReference<'_>,
 ) -> Option<proc_macro2::TokenStream> {
+    let OptmlFieldReferences(fields) = optml_field_references;
+    let OptmlAlignmentTokenStreamReference(alignments_token_stream) = optml_alignments_token_stream;
+    let OptmlItemIdentifierReference(ident) = optml_item_identifier;
     let fields_len = fields.len();
     if fields_len <= 1 {
         return None;
@@ -40,7 +66,7 @@ fn generate_assertions_token_stream(
         quote::quote! {align_of::<#ty>()}
     });
     let variant_info =
-        variant.map_or_else(String::new, |variant_ident| format!("variant '{variant_ident}' "));
+        variant.map_or_else(String::new, |variant_ident| format!("variant '{}' ", variant_ident.0));
     let generated_item_kind_name = match generated_item_kind {
         GeneratedItemKind::Enum => "enum",
         GeneratedItemKind::Struct => "struct",
@@ -52,13 +78,13 @@ fn generate_assertions_token_stream(
         .enumerate()
         .map(|(i, (field, next_field))| {
             let i_plus_one = i.saturating_add(1);
-            let fi = generate_field_identifier(
-                field,
-                syn::Ident::new(&format!("field_{i}"), ident.span()),
+            let OptmlFieldIdentifier(fi) = generate_field_identifier(
+                OptmlFieldReference(field),
+                OptmlFieldIdentifier(syn::Ident::new(&format!("field_{i}"), ident.span())),
             );
-            let fi_next = generate_field_identifier(
-                next_field,
-                syn::Ident::new(&format!("field_{i_plus_one}"), ident.span()),
+            let OptmlFieldIdentifier(fi_next) = generate_field_identifier(
+                OptmlFieldReference(next_field),
+                OptmlFieldIdentifier(syn::Ident::new(&format!("field_{i_plus_one}"), ident.span())),
             );
             let message_literal = ::syn::LitStr::new(
                 &format!(
@@ -85,10 +111,12 @@ fn generate_assertions_token_stream(
 }
 
 fn build_generated_token_stream(
-    ident: &syn::Ident,
-    generics: &syn::Generics,
+    optml_item_identifier: OptmlItemIdentifierReference<'_>,
+    optml_generics: OptmlGenericsReference<'_>,
     token_stream: &proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
+    let OptmlItemIdentifierReference(ident) = optml_item_identifier;
+    let OptmlGenericsReference(generics) = optml_generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let has_only_lifetimes = generics
         .params
@@ -154,11 +182,11 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
                 return proc_macro::TokenStream::new();
             }
             match generate_assertions_token_stream(
-                &fields,
-                &quote::quote! {alignments},
+                OptmlFieldReferences(&fields),
+                OptmlAlignmentTokenStreamReference(&quote::quote! {alignments}),
                 GeneratedItemKind::Struct,
                 None,
-                &ident,
+                OptmlItemIdentifierReference(&ident),
             ) {
                 Some(assertions) => assertions,
                 None => {
@@ -176,11 +204,13 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
                     continue;
                 }
                 if let Some(assertions) = generate_assertions_token_stream(
-                    &fields,
-                    &generate_alignments_identifier_token_stream(variant_index),
+                    OptmlFieldReferences(&fields),
+                    OptmlAlignmentTokenStreamReference(
+                        &generate_alignments_identifier_token_stream(variant_index),
+                    ),
                     GeneratedItemKind::Enum,
-                    Some(variant_ident),
-                    &ident,
+                    Some(OptmlVariantIdentifierReference(variant_ident)),
+                    OptmlItemIdentifierReference(&ident),
                 ) {
                     variants_token_stream.push(assertions);
                 }
@@ -195,7 +225,17 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     };
     if generics.params.is_empty() {
-        return build_generated_token_stream(&ident, &generics, &token_stream).into();
+        return build_generated_token_stream(
+            OptmlItemIdentifierReference(&ident),
+            OptmlGenericsReference(&generics),
+            &token_stream,
+        )
+        .into();
     }
-    build_generated_token_stream(&ident, &generics, &token_stream).into()
+    build_generated_token_stream(
+        OptmlItemIdentifierReference(&ident),
+        OptmlGenericsReference(&generics),
+        &token_stream,
+    )
+    .into()
 }

@@ -1,9 +1,7 @@
 extern crate alloc;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct ErrorString {
-    value: String,
-}
+pub struct ErrorString(String);
 
 pub trait ToErrString {
     #[must_use]
@@ -12,19 +10,19 @@ pub trait ToErrString {
 
 impl AsRef<str> for ErrorString {
     fn as_ref(&self) -> &str {
-        self.value.as_ref()
+        self.0.as_ref()
     }
 }
 
 impl From<ErrorString> for String {
     fn from(value: ErrorString) -> Self {
-        value.value
+        value.0
     }
 }
 
 impl From<String> for ErrorString {
     fn from(value: String) -> Self {
-        Self { value }
+        Self(value)
     }
 }
 

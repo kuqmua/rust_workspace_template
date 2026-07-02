@@ -55,32 +55,49 @@ mod tests {
         }
     }
 
+    struct DeclaredProjectTypeNames(std::collections::HashSet<String>);
+
+    struct BoundaryTypeErrors(Vec<String>);
+
+    struct BoundaryGenericTypeParameterNames(std::collections::HashSet<String>);
+
+    #[derive(Clone, Copy)]
+    struct ConversionImplState(bool);
+
+    #[derive(Clone, Copy)]
+    struct ExternalTraitImplState(bool);
+
+    #[derive(Clone, Copy)]
+    struct FunctionBoundaryCheckState(bool);
+
     struct DeclaredTypeVisitor {
-        names: std::collections::HashSet<String>,
+        names: DeclaredProjectTypeNames,
     }
 
     struct BoundaryTypeVisitor<'names> {
-        declared_project_type_names: &'names std::collections::HashSet<String>,
-        errors: Vec<String>,
-        impl_generic_type_parameter_names: std::collections::HashSet<String>,
-        is_conversion_impl: bool,
+        checks_function_boundaries: FunctionBoundaryCheckState,
+        declared_project_type_names: &'names DeclaredProjectTypeNames,
+        errors: BoundaryTypeErrors,
+        impl_generic_type_parameter_names: BoundaryGenericTypeParameterNames,
+        is_conversion_impl: ConversionImplState,
+        is_external_trait_impl: ExternalTraitImplState,
     }
 
     impl<'ast> syn::visit::Visit<'ast> for DeclaredTypeVisitor {
         fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-            let _was_inserted = self.names.insert(i.ident.to_string());
+            let _was_inserted = self.names.0.insert(i.ident.to_string());
         }
 
         fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-            let _was_inserted = self.names.insert(i.ident.to_string());
+            let _was_inserted = self.names.0.insert(i.ident.to_string());
         }
 
         fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
-            let _was_inserted = self.names.insert(i.ident.to_string());
+            let _was_inserted = self.names.0.insert(i.ident.to_string());
         }
 
         fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
-            let _was_inserted = self.names.insert(i.ident.to_string());
+            let _was_inserted = self.names.0.insert(i.ident.to_string());
         }
     }
 
@@ -94,12 +111,12 @@ mod tests {
             generic_type_parameter_names: &std::collections::HashSet<String>,
         ) {
             collect_forbidden_non_project_type_usages(
-                &mut self.errors,
+                &mut self.errors.0,
                 owner_kind,
                 owner_name,
                 location,
                 ty,
-                self.declared_project_type_names,
+                &self.declared_project_type_names.0,
                 generic_type_parameter_names,
             );
         }
@@ -107,10 +124,13 @@ mod tests {
 
     impl<'ast> syn::visit::Visit<'ast> for BoundaryTypeVisitor<'_> {
         fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
-            if self.is_conversion_impl {
+            if !self.checks_function_boundaries.0 {
                 return;
             }
-            let mut generic_type_parameter_names = self.impl_generic_type_parameter_names.clone();
+            if self.is_conversion_impl.0 || self.is_external_trait_impl.0 {
+                return;
+            }
+            let mut generic_type_parameter_names = self.impl_generic_type_parameter_names.0.clone();
             generic_type_parameter_names.extend(collect_type_parameter_names(&i.sig.generics));
             for input in &i.sig.inputs {
                 match input.clone() {
@@ -151,6 +171,9 @@ mod tests {
         }
 
         fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+            if !self.checks_function_boundaries.0 {
+                return;
+            }
             let generic_type_parameter_names = collect_type_parameter_names(&i.sig.generics);
             for input in &i.sig.inputs {
                 match input.clone() {
@@ -178,28 +201,33 @@ mod tests {
         fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
             let previous_impl_generic_type_parameter_names = core::mem::replace(
                 &mut self.impl_generic_type_parameter_names,
-                collect_type_parameter_names(&i.generics),
+                BoundaryGenericTypeParameterNames(collect_type_parameter_names(&i.generics)),
             );
             let previous_is_conversion_impl = core::mem::replace(
                 &mut self.is_conversion_impl,
-                i.trait_
-                    .clone()
-                    .is_some_and(|(_bang_token, trait_path, _for_token)| {
+                ConversionImplState(i.trait_.clone().is_some_and(
+                    |(_bang_token, trait_path, _for_token)| {
                         trait_path.segments.first().is_some_and(|segment| {
                             matches!(
                                 segment.ident.to_string().as_str(),
                                 "AsRef" | "From" | "TryFrom"
                             )
                         })
-                    }),
+                    },
+                )),
+            );
+            let previous_is_external_trait_impl = core::mem::replace(
+                &mut self.is_external_trait_impl,
+                ExternalTraitImplState(i.trait_.is_some()),
             );
             syn::visit::visit_item_impl(self, i);
+            self.is_external_trait_impl = previous_is_external_trait_impl;
             self.is_conversion_impl = previous_is_conversion_impl;
             self.impl_generic_type_parameter_names = previous_impl_generic_type_parameter_names;
         }
 
         fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-            if i.fields.iter().count() == 1 {
+            if matches!(i.fields, syn::Fields::Unnamed(_)) && i.fields.iter().count() == 1 {
                 return;
             }
             let generic_type_parameter_names = collect_type_parameter_names(&i.generics);
@@ -2014,14 +2042,24 @@ mod tests {
     fn forbids_non_project_types_in_runtime_boundary_positions() -> Result<(), String> {
         let workspace_root = workspace_root_path();
         let workspace_files = collect_workspace_files(&workspace_root);
-        let runtime_source_files = runtime_rust_source_files(&workspace_root, &workspace_files);
+        let mut runtime_source_files = runtime_rust_source_files(&workspace_root, &workspace_files);
+        runtime_source_files.extend(
+            rust_source_files(&workspace_files)
+                .into_iter()
+                .filter(|rust_file| rust_file.ends_with("tests/src/lib.rs")),
+        );
         let mut declared_type_visitor = DeclaredTypeVisitor {
-            names: std::collections::HashSet::new(),
+            names: DeclaredProjectTypeNames(std::collections::HashSet::new()),
         };
         let mut parsed_runtime_files = Vec::new();
         for rust_file in runtime_source_files {
             let file_content = read_file(rust_file);
-            let ast = syn::parse_file(non_test_source_segment(&file_content))
+            let source_segment = if rust_file.ends_with("tests/src/lib.rs") {
+                file_content.as_str()
+            } else {
+                non_test_source_segment(&file_content)
+            };
+            let ast = syn::parse_file(source_segment)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             syn::visit::Visit::visit_file(&mut declared_type_visitor, &ast);
             parsed_runtime_files.push((rust_file, ast));
@@ -2030,15 +2068,22 @@ mod tests {
         let mut errors = Vec::new();
         for (rust_file, ast) in parsed_runtime_files {
             let mut visitor = BoundaryTypeVisitor {
+                checks_function_boundaries: FunctionBoundaryCheckState(
+                    !rust_file.ends_with("tests/src/lib.rs"),
+                ),
                 declared_project_type_names: &declared_type_visitor.names,
-                errors: Vec::new(),
-                impl_generic_type_parameter_names: std::collections::HashSet::new(),
-                is_conversion_impl: false,
+                errors: BoundaryTypeErrors(Vec::new()),
+                impl_generic_type_parameter_names: BoundaryGenericTypeParameterNames(
+                    std::collections::HashSet::new(),
+                ),
+                is_conversion_impl: ConversionImplState(false),
+                is_external_trait_impl: ExternalTraitImplState(false),
             };
             syn::visit::Visit::visit_file(&mut visitor, &ast);
             errors.extend(
                 visitor
                     .errors
+                    .0
                     .into_iter()
                     .map(|error| format!("{}: {error}", rust_file.display())),
             );

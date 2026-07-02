@@ -1,29 +1,25 @@
-struct TypeListInput {
-    types: syn::punctuated::Punctuated<syn::Type, syn::Token![,]>,
-}
+struct TypeListInput(syn::punctuated::Punctuated<syn::Type, syn::Token![,]>);
 
-struct TypeMessageInput {
-    pairs: syn::punctuated::Punctuated<TypeMessagePair, syn::Token![,]>,
-}
+struct TypeMessageInput(syn::punctuated::Punctuated<TypeMessagePair, syn::Token![,]>);
+
+struct TypeMessagePairMessage(syn::LitStr);
+
+struct TypeMessagePairType(syn::Type);
 
 struct TypeMessagePair {
-    message: syn::LitStr,
-    ty: syn::Type,
+    message: TypeMessagePairMessage,
+    ty: TypeMessagePairType,
 }
 
 impl syn::parse::Parse for TypeListInput {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self {
-            types: syn::punctuated::Punctuated::parse_terminated(input)?,
-        })
+        Ok(Self(syn::punctuated::Punctuated::parse_terminated(input)?))
     }
 }
 
 impl syn::parse::Parse for TypeMessageInput {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self {
-            pairs: syn::punctuated::Punctuated::parse_terminated(input)?,
-        })
+        Ok(Self(syn::punctuated::Punctuated::parse_terminated(input)?))
     }
 }
 
@@ -32,7 +28,10 @@ impl syn::parse::Parse for TypeMessagePair {
         let ty = input.parse::<syn::Type>()?;
         let _fat_arrow_token = input.parse::<syn::Token![=>]>()?;
         let message = input.parse::<syn::LitStr>()?;
-        Ok(Self { message, ty })
+        Ok(Self {
+            message: TypeMessagePairMessage(message),
+            ty: TypeMessagePairType(ty),
+        })
     }
 }
 
@@ -44,7 +43,8 @@ pub fn impl_to_err_string_with_to_string(
         Ok(input) => input,
         Err(error) => return error.to_compile_error().into(),
     };
-    let implementations = input.types.into_iter().map(|ty| {
+    let TypeListInput(types) = input;
+    let implementations = types.into_iter().map(|ty| {
         quote::quote! {
             impl crate::ToErrString for #ty {
                 fn to_err_string(&self) -> crate::ErrorString {
@@ -67,7 +67,8 @@ pub fn impl_to_err_string_with_as_ref_str(
         Ok(input) => input,
         Err(error) => return error.to_compile_error().into(),
     };
-    let implementations = input.types.into_iter().map(|ty| {
+    let TypeListInput(types) = input;
+    let implementations = types.into_iter().map(|ty| {
         quote::quote! {
             impl crate::ToErrString for #ty {
                 fn to_err_string(&self) -> crate::ErrorString {
@@ -90,9 +91,10 @@ pub fn impl_to_err_string_with_static_message(
         Ok(input) => input,
         Err(error) => return error.to_compile_error().into(),
     };
-    let implementations = input.pairs.into_iter().map(|pair| {
-        let ty = pair.ty;
-        let message = pair.message;
+    let TypeMessageInput(pairs) = input;
+    let implementations = pairs.into_iter().map(|pair| {
+        let TypeMessagePairType(ty) = pair.ty;
+        let TypeMessagePairMessage(message) = pair.message;
         quote::quote! {
             impl crate::ToErrString for #ty {
                 fn to_err_string(&self) -> crate::ErrorString {

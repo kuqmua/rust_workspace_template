@@ -47,18 +47,20 @@ pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macr
         Err(error) => return error.to_compile_error().into(),
     };
     let CaseTraitPairInput {
-        body_expression,
-        bound_path,
-        self_reference_identifier,
-        string_trait_identifier,
-        token_stream_trait_identifier,
+        body_expression: case_trait_body_expression,
+        bound_path: case_trait_bound_path,
+        self_reference_identifier: case_trait_self_reference_identifier,
+        string_trait_identifier: case_trait_string_trait_identifier,
+        token_stream_trait_identifier: case_trait_token_stream_trait_identifier,
     } = input;
-    let CaseTraitBodyExpression(body_expression) = body_expression;
-    let CaseTraitBoundPath(bound_path) = bound_path;
-    let CaseTraitSelfReferenceIdentifier(self_reference_identifier) = self_reference_identifier;
-    let CaseTraitStringTraitIdentifier(string_trait_identifier) = string_trait_identifier;
+    let CaseTraitBodyExpression(body_expression) = case_trait_body_expression;
+    let CaseTraitBoundPath(bound_path) = case_trait_bound_path;
+    let CaseTraitSelfReferenceIdentifier(self_reference_identifier) =
+        case_trait_self_reference_identifier;
+    let CaseTraitStringTraitIdentifier(string_trait_identifier) =
+        case_trait_string_trait_identifier;
     let CaseTraitTokenStreamTraitIdentifier(token_stream_trait_identifier) =
-        token_stream_trait_identifier;
+        case_trait_token_stream_trait_identifier;
     let bound_token_stream = if bound_path.leading_colon.is_none()
         && bound_path.segments.len() == 1
         && bound_path
