@@ -1,66 +1,83 @@
 naming_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), convert_case::Case::UpperCamel)
+    str_case(self_reference.as_ref(), TextCase::UpperCamel)
 });
 naming_macros::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), convert_case::Case::Snake)
+    str_case(self_reference.as_ref(), TextCase::Snake)
 });
 naming_macros::case_trait_pair!(
     AsRefStrToUpperScStr,
     AsRefStrToUpperScTs,
     AsRef<str>,
-    |self_reference| str_case(self_reference.as_ref(), convert_case::Case::UpperSnake)
+    |self_reference| str_case(self_reference.as_ref(), TextCase::UpperSnake)
 );
 naming_macros::case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
-    case_from_string(&self_reference.to_string(), convert_case::Case::UpperCamel)
+    case_from_string(&self_reference.to_string(), TextCase::UpperCamel)
 });
 naming_macros::case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| {
-    case_from_string(&self_reference.to_string(), convert_case::Case::Snake)
+    case_from_string(&self_reference.to_string(), TextCase::Snake)
 });
 naming_macros::case_trait_pair!(
     DisplayToUpperScStr,
     DisplayToUpperScTs,
     Display,
-    |self_reference| case_from_string(&self_reference.to_string(), convert_case::Case::UpperSnake)
+    |self_reference| case_from_string(&self_reference.to_string(), TextCase::UpperSnake)
 );
 naming_macros::case_trait_pair!(
     ToTokensToUccStr,
     ToTokensToUccTs,
     quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, convert_case::Case::UpperCamel)
+    |self_reference| tokenized_case_str(self_reference, TextCase::UpperCamel)
 );
 naming_macros::case_trait_pair!(
     ToTokensToScStr,
     ToTokensToScTs,
     quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, convert_case::Case::Snake)
+    |self_reference| tokenized_case_str(self_reference, TextCase::Snake)
 );
 naming_macros::case_trait_pair!(
     ToTokensToUpperScStr,
     ToTokensToUpperScTs,
     quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, convert_case::Case::UpperSnake)
+    |self_reference| tokenized_case_str(self_reference, TextCase::UpperSnake)
 );
 
-fn case_from_string<StringValue>(value: &StringValue, case: convert_case::Case<'_>) -> String
+#[derive(Debug, Clone, Copy)]
+enum TextCase {
+    Snake,
+    UpperCamel,
+    UpperSnake,
+}
+
+impl TextCase {
+    const fn as_convert_case(self) -> convert_case::Case<'static> {
+        match self {
+            Self::Snake => convert_case::Case::Snake,
+            Self::UpperCamel => convert_case::Case::UpperCamel,
+            Self::UpperSnake => convert_case::Case::UpperSnake,
+        }
+    }
+}
+
+fn case_from_string<StringValue>(value: &StringValue, text_case: TextCase) -> String
 where
     StringValue: AsRef<str> + ?Sized,
 {
-    str_case(value, case)
+    str_case(value, text_case)
 }
 
-fn tokenized_case_str<TokenValue>(value: &TokenValue, case: convert_case::Case<'_>) -> String
+fn tokenized_case_str<TokenValue>(value: &TokenValue, text_case: TextCase) -> String
 where
     TokenValue: quote::ToTokens,
 {
     let tokenized = quote::quote! {#value}.to_string();
-    case_from_string(&tokenized, case)
+    case_from_string(&tokenized, text_case)
 }
 
-fn str_case<StringValue>(value: &StringValue, case: convert_case::Case<'_>) -> String
+fn str_case<StringValue>(value: &StringValue, text_case: TextCase) -> String
 where
     StringValue: AsRef<str> + ?Sized,
 {
-    convert_case::Casing::to_case(&value.as_ref(), case)
+    convert_case::Casing::to_case(&value.as_ref(), text_case.as_convert_case())
 }
 
 #[cfg(test)]

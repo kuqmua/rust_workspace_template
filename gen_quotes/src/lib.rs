@@ -7,6 +7,12 @@ enum QuotePrefix {
     None,
 }
 
+#[derive(Debug, Clone, Copy)]
+enum QuoteMark {
+    Double,
+    Single,
+}
+
 impl QuotePrefix {
     const fn as_str(self) -> &'static str {
         match self {
@@ -16,15 +22,25 @@ impl QuotePrefix {
     }
 }
 
+impl QuoteMark {
+    const fn as_char(self) -> char {
+        match self {
+            Self::Double => DOUBLE_QUOTE,
+            Self::Single => SINGLE_QUOTE,
+        }
+    }
+}
+
 fn quote_literal<DisplayValue>(
     quote_prefix: QuotePrefix,
-    quote_character: char,
+    quote_mark: QuoteMark,
     value: &DisplayValue,
 ) -> String
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
     let prefix = quote_prefix.as_str();
+    let quote_character = quote_mark.as_char();
     let string_value = value.as_ref();
     let mut output = String::with_capacity(prefix.len().saturating_add(2));
     output.push_str(prefix);
@@ -39,13 +55,13 @@ where
 
 fn quote_literal_token_stream<DisplayValue>(
     quote_prefix: QuotePrefix,
-    quote_character: char,
+    quote_mark: QuoteMark,
     value: &DisplayValue,
 ) -> proc_macro2::TokenStream
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
-    match quote_literal(quote_prefix, quote_character, value).parse::<proc_macro2::TokenStream>() {
+    match quote_literal(quote_prefix, quote_mark, value).parse::<proc_macro2::TokenStream>() {
         Ok(token_stream) => token_stream,
         Err(parse_error) => {
             let error_message = parse_error.to_string();
@@ -63,7 +79,7 @@ pub fn single_quotes_str<DisplayValue>(value: &DisplayValue) -> String
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
-    quote_literal(QuotePrefix::None, SINGLE_QUOTE, value)
+    quote_literal(QuotePrefix::None, QuoteMark::Single, value)
 }
 
 #[must_use]
@@ -71,7 +87,7 @@ pub fn single_quotes_ts<DisplayValue>(value: &DisplayValue) -> proc_macro2::Toke
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
-    quote_literal_token_stream(QuotePrefix::None, SINGLE_QUOTE, value)
+    quote_literal_token_stream(QuotePrefix::None, QuoteMark::Single, value)
 }
 
 #[must_use]
@@ -79,7 +95,7 @@ pub fn dq_str<DisplayValue>(value: &DisplayValue) -> String
 where
     DisplayValue: core::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix::None, DOUBLE_QUOTE, &value.to_string())
+    quote_literal(QuotePrefix::None, QuoteMark::Double, &value.to_string())
 }
 
 #[must_use]
@@ -87,7 +103,7 @@ pub fn dq_ts<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStream
 where
     DisplayValue: core::fmt::Display + ?Sized,
 {
-    quote_literal_token_stream(QuotePrefix::None, DOUBLE_QUOTE, &value.to_string())
+    quote_literal_token_stream(QuotePrefix::None, QuoteMark::Double, &value.to_string())
 }
 
 #[must_use]
@@ -95,7 +111,7 @@ pub fn binary_single_quotes_str<DisplayValue>(value: &DisplayValue) -> String
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
-    quote_literal(QuotePrefix::Binary, SINGLE_QUOTE, value)
+    quote_literal(QuotePrefix::Binary, QuoteMark::Single, value)
 }
 
 #[must_use]
@@ -103,7 +119,7 @@ pub fn binary_single_quotes_ts<DisplayValue>(value: &DisplayValue) -> proc_macro
 where
     DisplayValue: AsRef<str> + ?Sized,
 {
-    quote_literal_token_stream(QuotePrefix::Binary, SINGLE_QUOTE, value)
+    quote_literal_token_stream(QuotePrefix::Binary, QuoteMark::Single, value)
 }
 
 #[must_use]
@@ -111,7 +127,7 @@ pub fn binary_dq_str<DisplayValue>(value: &DisplayValue) -> String
 where
     DisplayValue: core::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix::Binary, DOUBLE_QUOTE, &value.to_string())
+    quote_literal(QuotePrefix::Binary, QuoteMark::Double, &value.to_string())
 }
 
 #[must_use]
@@ -119,7 +135,7 @@ pub fn binary_dq_ts<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStr
 where
     DisplayValue: core::fmt::Display + ?Sized,
 {
-    quote_literal_token_stream(QuotePrefix::Binary, DOUBLE_QUOTE, &value.to_string())
+    quote_literal_token_stream(QuotePrefix::Binary, QuoteMark::Double, &value.to_string())
 }
 
 #[cfg(test)]

@@ -15,8 +15,8 @@ mod tests {
     use regex::Regex;
     use syn::{
         __private::ToTokens as _,
-        Expr, ExprLit, ExprMethodCall, FnArg, GenericArgument, ItemConst, ItemEnum, ItemFn,
-        ItemStruct, ItemType, ItemUse, Lit, PathArguments, Type, parse_file,
+        Expr, ExprLit, ExprMethodCall, FnArg, GenericArgument, ImplItemFn, ItemConst, ItemEnum,
+        ItemFn, ItemStruct, ItemTrait, ItemType, ItemUse, Lit, PathArguments, Type, parse_file,
         visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -77,6 +77,128 @@ mod tests {
             }
         }
     }
+
+    struct DeclaredTypeVisitor {
+        names: HashSet<String>,
+    }
+
+    struct BoundaryTypeVisitor<'names> {
+        declared_project_type_names: &'names HashSet<String>,
+        errors: Vec<String>,
+        impl_generic_type_parameter_names: HashSet<String>,
+    }
+
+    impl<'ast> Visit<'ast> for DeclaredTypeVisitor {
+        fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+            let _was_inserted = self.names.insert(i.ident.to_string());
+        }
+
+        fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+            let _was_inserted = self.names.insert(i.ident.to_string());
+        }
+
+        fn visit_item_trait(&mut self, i: &'ast ItemTrait) {
+            let _was_inserted = self.names.insert(i.ident.to_string());
+        }
+
+        fn visit_item_type(&mut self, i: &'ast ItemType) {
+            let _was_inserted = self.names.insert(i.ident.to_string());
+        }
+    }
+
+    impl BoundaryTypeVisitor<'_> {
+        fn record_type(
+            &mut self,
+            owner_kind: &'static str,
+            owner_name: &str,
+            location: &'static str,
+            ty: &Type,
+            generic_type_parameter_names: &HashSet<String>,
+        ) {
+            collect_forbidden_non_project_type_usages(
+                &mut self.errors,
+                owner_kind,
+                owner_name,
+                location,
+                ty,
+                self.declared_project_type_names,
+                generic_type_parameter_names,
+            );
+        }
+    }
+
+    impl<'ast> Visit<'ast> for BoundaryTypeVisitor<'_> {
+        fn visit_impl_item_fn(&mut self, i: &'ast ImplItemFn) {
+            let mut generic_type_parameter_names = self.impl_generic_type_parameter_names.clone();
+            generic_type_parameter_names.extend(collect_type_parameter_names(&i.sig.generics));
+            for input in &i.sig.inputs {
+                match input.clone() {
+                    FnArg::Receiver(_) => {}
+                    FnArg::Typed(pat_type) => self.record_type(
+                        "method",
+                        &i.sig.ident.to_string(),
+                        "parameter",
+                        &pat_type.ty,
+                        &generic_type_parameter_names,
+                    ),
+                }
+            }
+        }
+
+        fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+            let generic_type_parameter_names = collect_type_parameter_names(&i.generics);
+            for variant in &i.variants {
+                for field in &variant.fields {
+                    self.record_type(
+                        "enum variant",
+                        &format!("{}::{}", i.ident, variant.ident),
+                        "payload",
+                        &field.ty,
+                        &generic_type_parameter_names,
+                    );
+                }
+            }
+        }
+
+        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+            let generic_type_parameter_names = collect_type_parameter_names(&i.sig.generics);
+            for input in &i.sig.inputs {
+                match input.clone() {
+                    FnArg::Receiver(_) => {}
+                    FnArg::Typed(pat_type) => self.record_type(
+                        "function",
+                        &i.sig.ident.to_string(),
+                        "parameter",
+                        &pat_type.ty,
+                        &generic_type_parameter_names,
+                    ),
+                }
+            }
+        }
+
+        fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+            let previous_impl_generic_type_parameter_names = core::mem::replace(
+                &mut self.impl_generic_type_parameter_names,
+                collect_type_parameter_names(&i.generics),
+            );
+            syn::visit::visit_item_impl(self, i);
+            self.impl_generic_type_parameter_names = previous_impl_generic_type_parameter_names;
+        }
+
+        fn visit_item_struct(&mut self, i: &'ast ItemStruct) {
+            let generic_type_parameter_names = collect_type_parameter_names(&i.generics);
+            for field in &i.fields {
+                self.record_type(
+                    "struct",
+                    &i.ident.to_string(),
+                    "field",
+                    &field.ty,
+                    &generic_type_parameter_names,
+                );
+            }
+        }
+    }
+
     fn collect_files_recursively(directory_path: &Path, files: &mut Vec<PathBuf>) {
         let Ok(directory_entries) = fs::read_dir(directory_path) else {
             return;
@@ -336,6 +458,204 @@ mod tests {
             | Type::Tuple(_)
             | Type::Verbatim(_)
             | _ => false,
+        }
+    }
+
+    fn collect_type_parameter_names(generics: &syn::Generics) -> HashSet<String> {
+        generics
+            .type_params()
+            .map(|type_parameter| type_parameter.ident.to_string())
+            .collect()
+    }
+
+    fn record_forbidden_non_project_type_path(
+        errors: &mut Vec<String>,
+        owner_kind: &'static str,
+        owner_name: &str,
+        location: &'static str,
+        type_path: &syn::TypePath,
+        declared_project_type_names: &HashSet<String>,
+        generic_type_parameter_names: &HashSet<String>,
+    ) {
+        let Some(first_segment) = type_path.path.segments.first() else {
+            errors.push(format!(
+                "{owner_kind} `{owner_name}` uses non-project type in {location}: `{}`",
+                type_path.path.to_token_stream()
+            ));
+            return;
+        };
+        let first_segment_name = first_segment.ident.to_string();
+        let allowed_interop_roots = ["proc_macro", "proc_macro2", "quote", "syn"];
+        let allowed_wrapper_roots = ["Option"];
+        let is_allowed_type = declared_project_type_names.contains(first_segment_name.as_str())
+            || generic_type_parameter_names.contains(first_segment_name.as_str())
+            || allowed_interop_roots.contains(&first_segment_name.as_str())
+            || allowed_wrapper_roots.contains(&first_segment_name.as_str());
+        if is_allowed_type {
+            return;
+        }
+        errors.push(format!(
+            "{owner_kind} `{owner_name}` uses non-project type in {location}: `{}`",
+            type_path.path.to_token_stream()
+        ));
+    }
+
+    fn collect_forbidden_trait_bound_type_usages(
+        errors: &mut Vec<String>,
+        owner_kind: &'static str,
+        owner_name: &str,
+        location: &'static str,
+        type_param_bounds: syn::punctuated::Punctuated<syn::TypeParamBound, syn::Token![+]>,
+        declared_project_type_names: &HashSet<String>,
+        generic_type_parameter_names: &HashSet<String>,
+    ) {
+        for type_param_bound in type_param_bounds {
+            if let syn::TypeParamBound::Trait(trait_bound) = type_param_bound {
+                record_forbidden_non_project_type_path(
+                    errors,
+                    owner_kind,
+                    owner_name,
+                    location,
+                    &syn::TypePath {
+                        qself: None,
+                        path: trait_bound.path,
+                    },
+                    declared_project_type_names,
+                    generic_type_parameter_names,
+                );
+            }
+        }
+    }
+
+    fn collect_forbidden_nested_type_usages(
+        errors: &mut Vec<String>,
+        owner_kind: &'static str,
+        owner_name: &str,
+        location: &'static str,
+        ty: &Type,
+        declared_project_type_names: &HashSet<String>,
+        generic_type_parameter_names: &HashSet<String>,
+    ) {
+        collect_forbidden_non_project_type_usages(
+            errors,
+            owner_kind,
+            owner_name,
+            location,
+            ty,
+            declared_project_type_names,
+            generic_type_parameter_names,
+        );
+    }
+
+    fn collect_forbidden_non_project_type_usages(
+        errors: &mut Vec<String>,
+        owner_kind: &'static str,
+        owner_name: &str,
+        location: &'static str,
+        ty: &Type,
+        declared_project_type_names: &HashSet<String>,
+        generic_type_parameter_names: &HashSet<String>,
+    ) {
+        let nested_type = match ty.clone() {
+            Type::Array(type_array) => Some(type_array.elem),
+            Type::Group(type_group) => Some(type_group.elem),
+            Type::Paren(type_paren) => Some(type_paren.elem),
+            Type::Reference(type_reference) => Some(type_reference.elem),
+            Type::Slice(type_slice) => Some(type_slice.elem),
+            Type::BareFn(_)
+            | Type::ImplTrait(_)
+            | Type::Infer(_)
+            | Type::Macro(_)
+            | Type::Never(_)
+            | Type::Path(_)
+            | Type::Ptr(_)
+            | Type::TraitObject(_)
+            | Type::Tuple(_)
+            | Type::Verbatim(_)
+            | _ => None,
+        };
+        if let Some(inner_type) = nested_type {
+            collect_forbidden_nested_type_usages(
+                errors,
+                owner_kind,
+                owner_name,
+                location,
+                &inner_type,
+                declared_project_type_names,
+                generic_type_parameter_names,
+            );
+            return;
+        }
+
+        match ty.clone() {
+            Type::ImplTrait(type_impl_trait) => collect_forbidden_trait_bound_type_usages(
+                errors,
+                owner_kind,
+                owner_name,
+                location,
+                type_impl_trait.bounds,
+                declared_project_type_names,
+                generic_type_parameter_names,
+            ),
+            Type::Path(type_path) => {
+                record_forbidden_non_project_type_path(
+                    errors,
+                    owner_kind,
+                    owner_name,
+                    location,
+                    &type_path,
+                    declared_project_type_names,
+                    generic_type_parameter_names,
+                );
+                for path_segment in type_path.path.segments {
+                    if let PathArguments::AngleBracketed(angle_bracketed_arguments) =
+                        path_segment.arguments
+                    {
+                        for generic_argument in angle_bracketed_arguments.args {
+                            if let GenericArgument::Type(generic_argument_type) = generic_argument {
+                                collect_forbidden_nested_type_usages(
+                                    errors,
+                                    owner_kind,
+                                    owner_name,
+                                    location,
+                                    &generic_argument_type,
+                                    declared_project_type_names,
+                                    generic_type_parameter_names,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            Type::TraitObject(type_trait_object) => collect_forbidden_trait_bound_type_usages(
+                errors,
+                owner_kind,
+                owner_name,
+                location,
+                type_trait_object.bounds,
+                declared_project_type_names,
+                generic_type_parameter_names,
+            ),
+            Type::Tuple(type_tuple) => {
+                for tuple_element in type_tuple.elems {
+                    collect_forbidden_nested_type_usages(
+                        errors,
+                        owner_kind,
+                        owner_name,
+                        location,
+                        &tuple_element,
+                        declared_project_type_names,
+                        generic_type_parameter_names,
+                    );
+                }
+            }
+            Type::BareFn(_)
+            | Type::Infer(_)
+            | Type::Macro(_)
+            | Type::Never(_)
+            | Type::Ptr(_)
+            | Type::Verbatim(_)
+            | _ => {}
         }
     }
 
@@ -1647,6 +1967,42 @@ mod tests {
     #[test]
     fn forbids_unbounded_standard_collection_and_path_types_in_rust_apis() -> Result<(), String> {
         forbids_unbounded_standard_domain_types_in_rust_apis()
+    }
+
+    #[test]
+    fn forbids_non_project_types_in_runtime_boundary_positions() -> Result<(), String> {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let runtime_source_files = runtime_rust_source_files(&workspace_root, &workspace_files);
+        let mut declared_type_visitor = DeclaredTypeVisitor {
+            names: HashSet::new(),
+        };
+        let mut parsed_runtime_files = Vec::new();
+        for rust_file in runtime_source_files {
+            let file_content = read_file(rust_file);
+            let ast = parse_file(&file_content)
+                .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
+            Visit::visit_file(&mut declared_type_visitor, &ast);
+            parsed_runtime_files.push((rust_file, ast));
+        }
+
+        let mut errors = Vec::new();
+        for (rust_file, ast) in parsed_runtime_files {
+            let mut visitor = BoundaryTypeVisitor {
+                declared_project_type_names: &declared_type_visitor.names,
+                errors: Vec::new(),
+                impl_generic_type_parameter_names: HashSet::new(),
+            };
+            Visit::visit_file(&mut visitor, &ast);
+            errors.extend(
+                visitor
+                    .errors
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", rust_file.display())),
+            );
+        }
+        assert_joined_ers_empty(&errors, "59bfcf74");
+        Ok(())
     }
 
     #[test]
