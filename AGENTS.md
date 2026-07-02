@@ -65,6 +65,7 @@
 - Prefer implementing automation and utilities in Rust when the same task can be implemented in Rust.
 - For mass refactors (regex/sed/perl/global rename), first limit scope to an explicit file list, then review full `git diff` before completion.
 - Use `From`/`TryFrom` and explicit bounds checks for numeric conversions.
+- Do not use `usize` as a domain/API type in function parameters, enum payloads, type aliases, or externally visible contracts. Use a bounded domain newtype with `TryFrom`, or an explicit fixed-width integer type when the value is not pointer-sized by nature. `usize` is allowed only for local indexing, slice lengths, capacities, iterator internals, and direct standard-library interop.
 - When renaming constants, keep external contract string values unchanged (rename Rust identifiers only, not protocol/schema strings).
 - Run and pass `cargo hack` feature-matrix checks for each new feature flag and for every PR that changes `Cargo.toml` or `cfg(feature)` usage.
 - Prevent hidden breaking changes: run semver checks and update changelog entries for externally visible changes.

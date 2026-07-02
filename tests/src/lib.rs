@@ -313,6 +313,46 @@ mod tests {
         }
     }
 
+    fn is_usize_type_path(ty: &Type) -> bool {
+        match ty.clone() {
+            Type::Path(type_path) => type_path
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "usize"),
+            Type::Group(type_group) => is_usize_type_path(&type_group.elem),
+            Type::Paren(type_paren) => is_usize_type_path(&type_paren.elem),
+            Type::Reference(type_reference) => is_usize_type_path(&type_reference.elem),
+            Type::Array(_)
+            | Type::BareFn(_)
+            | Type::ImplTrait(_)
+            | Type::Infer(_)
+            | Type::Macro(_)
+            | Type::Never(_)
+            | Type::Ptr(_)
+            | Type::Slice(_)
+            | Type::TraitObject(_)
+            | Type::Tuple(_)
+            | Type::Verbatim(_)
+            | _ => false,
+        }
+    }
+
+    fn record_forbidden_usize_domain_type(
+        errors: &mut Vec<String>,
+        owner_kind: &'static str,
+        owner_name: &str,
+        location: &'static str,
+        ty: &Type,
+    ) {
+        if is_usize_type_path(ty) {
+            errors.push(format!(
+                "{owner_kind} `{owner_name}` uses usize as a domain/API type in {location}: `{}`",
+                ty.to_token_stream()
+            ));
+        }
+    }
+
     fn record_forbidden_unbounded_domain_type(
         errors: &mut Vec<String>,
         owner_kind: &'static str,
@@ -1572,6 +1612,80 @@ mod tests {
     #[test]
     fn forbids_unbounded_standard_collection_and_path_types_in_rust_apis() -> Result<(), String> {
         forbids_unbounded_standard_domain_types_in_rust_apis()
+    }
+
+    #[test]
+    fn forbids_usize_in_rust_api_function_parameters_enum_payloads_and_type_aliases()
+    -> Result<(), String> {
+        struct UsizeDomainTypeContractVisitor {
+            errors: Vec<String>,
+        }
+
+        impl<'ast> Visit<'ast> for UsizeDomainTypeContractVisitor {
+            fn visit_item_enum(&mut self, i: &'ast ItemEnum) {
+                for variant in &i.variants {
+                    for field in &variant.fields {
+                        record_forbidden_usize_domain_type(
+                            &mut self.errors,
+                            "enum variant",
+                            &format!("{}::{}", i.ident, variant.ident),
+                            "payload",
+                            &field.ty,
+                        );
+                    }
+                }
+            }
+
+            fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+                for input in &i.sig.inputs {
+                    match input.clone() {
+                        FnArg::Receiver(_) => {}
+                        FnArg::Typed(pat_type) => {
+                            record_forbidden_usize_domain_type(
+                                &mut self.errors,
+                                "function",
+                                &i.sig.ident.to_string(),
+                                "parameter",
+                                &pat_type.ty,
+                            );
+                        }
+                    }
+                }
+            }
+
+            fn visit_item_type(&mut self, i: &'ast ItemType) {
+                if is_usize_type_path(&i.ty) {
+                    self.errors.push(format!(
+                        "type alias `{}` targets forbidden usize domain/API type: `{}`",
+                        i.ident,
+                        i.ty.to_token_stream()
+                    ));
+                }
+            }
+        }
+
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let mut errors = Vec::new();
+
+        for rust_file in runtime_rust_source_files(&workspace_root, &workspace_files) {
+            let file_content = read_file(rust_file);
+            let ast = parse_file(&file_content).map_err(|error| format!("83f68d5b {error}"))?;
+            let mut visitor = UsizeDomainTypeContractVisitor { errors: Vec::new() };
+            Visit::visit_file(&mut visitor, &ast);
+            errors.extend(
+                visitor
+                    .errors
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", rust_file.display())),
+            );
+        }
+
+        if errors.is_empty() {
+            return Ok(());
+        }
+
+        Err(format!("546cf567\n{}", errors.join("\n")))
     }
 
     #[test]

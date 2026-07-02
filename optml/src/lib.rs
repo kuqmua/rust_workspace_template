@@ -18,11 +18,11 @@ impl VisitMut for ReplaceLts {
     }
 }
 
-fn generate_field_identifier(field: &Field, index: usize, ident: &Ident) -> Ident {
+fn generate_field_identifier(field: &Field, unnamed_field_identifier: Ident) -> Ident {
     field
         .ident
         .as_ref()
-        .map_or_else(|| Ident::new(&format!("field_{index}"), ident.span()), Clone::clone)
+        .map_or(unnamed_field_identifier, Clone::clone)
 }
 
 fn generate_assertions_token_stream(
@@ -55,8 +55,12 @@ fn generate_assertions_token_stream(
         .enumerate()
         .map(|(i, (field, next_field))| {
             let i_plus_one = i.saturating_add(1);
-            let fi = generate_field_identifier(field, i, ident);
-            let fi_next = generate_field_identifier(next_field, i_plus_one, ident);
+            let fi =
+                generate_field_identifier(field, Ident::new(&format!("field_{i}"), ident.span()));
+            let fi_next = generate_field_identifier(
+                next_field,
+                Ident::new(&format!("field_{i_plus_one}"), ident.span()),
+            );
             let msg_ts = ::syn::LitStr::new(
                 &format!(
                     "In {generated_item_kind_name} '{ident}' {variant_info}align_of field '{fi}' \
