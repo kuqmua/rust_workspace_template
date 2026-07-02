@@ -1,9 +1,19 @@
+struct CaseTraitBodyExpression(syn::Expr);
+
+struct CaseTraitBoundPath(syn::Path);
+
+struct CaseTraitSelfReferenceIdentifier(syn::Ident);
+
+struct CaseTraitStringTraitIdentifier(syn::Ident);
+
+struct CaseTraitTokenStreamTraitIdentifier(syn::Ident);
+
 struct CaseTraitPairInput {
-    body_expression: syn::Expr,
-    bound_path: syn::Path,
-    self_reference_identifier: syn::Ident,
-    string_trait_identifier: syn::Ident,
-    token_stream_trait_identifier: syn::Ident,
+    body_expression: CaseTraitBodyExpression,
+    bound_path: CaseTraitBoundPath,
+    self_reference_identifier: CaseTraitSelfReferenceIdentifier,
+    string_trait_identifier: CaseTraitStringTraitIdentifier,
+    token_stream_trait_identifier: CaseTraitTokenStreamTraitIdentifier,
 }
 
 impl syn::parse::Parse for CaseTraitPairInput {
@@ -19,11 +29,13 @@ impl syn::parse::Parse for CaseTraitPairInput {
         let _right_or_token = input.parse::<syn::Token![|]>()?;
         let body_expression = input.parse::<syn::Expr>()?;
         Ok(Self {
-            body_expression,
-            bound_path,
-            self_reference_identifier,
-            string_trait_identifier,
-            token_stream_trait_identifier,
+            body_expression: CaseTraitBodyExpression(body_expression),
+            bound_path: CaseTraitBoundPath(bound_path),
+            self_reference_identifier: CaseTraitSelfReferenceIdentifier(self_reference_identifier),
+            string_trait_identifier: CaseTraitStringTraitIdentifier(string_trait_identifier),
+            token_stream_trait_identifier: CaseTraitTokenStreamTraitIdentifier(
+                token_stream_trait_identifier,
+            ),
         })
     }
 }
@@ -41,6 +53,12 @@ pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macr
         string_trait_identifier,
         token_stream_trait_identifier,
     } = input;
+    let CaseTraitBodyExpression(body_expression) = body_expression;
+    let CaseTraitBoundPath(bound_path) = bound_path;
+    let CaseTraitSelfReferenceIdentifier(self_reference_identifier) = self_reference_identifier;
+    let CaseTraitStringTraitIdentifier(string_trait_identifier) = string_trait_identifier;
+    let CaseTraitTokenStreamTraitIdentifier(token_stream_trait_identifier) =
+        token_stream_trait_identifier;
     let bound_token_stream = if bound_path.leading_colon.is_none()
         && bound_path.segments.len() == 1
         && bound_path

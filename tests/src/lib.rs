@@ -510,7 +510,7 @@ mod tests {
             return;
         };
         let first_segment_name = first_segment.ident.to_string();
-        let allowed_interop_roots = ["proc_macro", "proc_macro2", "quote", "syn"];
+        let allowed_interop_roots = ["proc_macro", "proc_macro2"];
         let allowed_wrapper_roots = ["Option", "Self"];
         let is_allowed_type = declared_project_type_names.contains(first_segment_name.as_str())
             || generic_type_parameter_names.contains(first_segment_name.as_str())
