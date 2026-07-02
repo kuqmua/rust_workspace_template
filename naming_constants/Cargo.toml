@@ -7,7 +7,7 @@ rust-version.workspace = true
 publish = false
 description = "Naming constants for the Rust workspace template"
 repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../README.md"
+readme = "../README.md"
 keywords = ["naming", "constants"]
 categories = ["development-tools"]
 

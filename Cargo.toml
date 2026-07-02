@@ -4,8 +4,8 @@ members = [
   "gen_quotes",
   "naming",
   "naming/naming_cmn",
-  "naming/naming_constants",
   "naming/naming_macros",
+  "naming_constants",
   "optml",
   "panic_loc",
   "server",
@@ -26,7 +26,7 @@ rust-version = "1.85"
 convert_case = { version = "=0.11.0", default-features = false }
 naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features = false }
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
-naming_constants = { version = "=0.1.0", path = "naming/naming_constants", default-features = false }
+naming_constants = { version = "=0.1.0", path = "naming_constants", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = [
   "span-locations",
