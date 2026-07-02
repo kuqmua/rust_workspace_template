@@ -1,6 +1,13 @@
 [workspace]
 resolver = "2"
-members = ["gen_quotes", "naming/naming_cmn", "optml", "server", "tests"]
+members = [
+  "gen_quotes",
+  "naming/naming_cmn",
+  "naming/naming_macros",
+  "optml",
+  "server",
+  "tests",
+]
 exclude = []
 
 [workspace.package]
@@ -11,6 +18,7 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 convert_case = { version = "=0.11.0", default-features = false }
+naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = [
   "span-locations",
@@ -295,7 +303,6 @@ unreachable_cfg_select_predicates = "deny"
 float_literal_f32_fallback = "deny"
 
 [workspace.lints.clippy]
-absolute_paths = "deny"
 absurd_extreme_comparisons = "deny"
 alloc_instead_of_core = "deny"
 allow_attributes = "deny"

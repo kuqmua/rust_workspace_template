@@ -16,7 +16,7 @@ mod tests {
     use syn::{
         __private::ToTokens as _,
         Expr, ExprLit, ExprMethodCall, FnArg, GenericArgument, ItemConst, ItemEnum, ItemFn,
-        ItemStruct, ItemType, ItemUse, Lit, PathArguments, Type, UseTree, parse_file,
+        ItemStruct, ItemType, ItemUse, Lit, PathArguments, Type, parse_file,
         visit::{Visit, visit_expr_lit, visit_expr_method_call, visit_item_type},
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -24,7 +24,8 @@ mod tests {
     use walkdir::WalkDir;
 
     const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
-    const CLIPPY_LINT_EXCEPTIONS: [&str; 23] = [
+    const CLIPPY_LINT_EXCEPTIONS: [&str; 24] = [
+        "absolute_paths",
         "disallowed_fields",
         "unnecessary_trailing_comma",
         "manual_pop_if",
@@ -953,25 +954,12 @@ mod tests {
     #[test]
     fn forbids_use_imports_in_rust_sources() -> Result<(), String> {
         struct UseImportVisitor {
-            found_use_rename: bool,
-        }
-        impl UseImportVisitor {
-            fn use_tree_contains_rename(use_tree: &UseTree) -> bool {
-                match use_tree.clone() {
-                    UseTree::Path(use_path) => Self::use_tree_contains_rename(&use_path.tree),
-                    UseTree::Group(use_group) => {
-                        use_group.items.iter().any(Self::use_tree_contains_rename)
-                    }
-                    UseTree::Rename(_) => true,
-                    UseTree::Name(_) | UseTree::Glob(_) => false,
-                }
-            }
+            found_use_imports: Vec<String>,
         }
         impl<'ast> Visit<'ast> for UseImportVisitor {
             fn visit_item_use(&mut self, i: &'ast ItemUse) {
-                if Self::use_tree_contains_rename(&i.tree) {
-                    self.found_use_rename = true;
-                }
+                self.found_use_imports
+                    .push(i.tree.to_token_stream().to_string());
             }
         }
 
@@ -983,11 +971,15 @@ mod tests {
             let parsed_file = parse_file(&file_content)
                 .map_err(|error| format!("failed to parse {}: {error}", rust_file.display()))?;
             let mut visitor = UseImportVisitor {
-                found_use_rename: false,
+                found_use_imports: Vec::new(),
             };
             Visit::visit_file(&mut visitor, &parsed_file);
-            if visitor.found_use_rename {
-                errors.push(format!("{}: found use rename", rust_file.display()));
+            if !visitor.found_use_imports.is_empty() {
+                errors.push(format!(
+                    "{}: found use imports: {}. Use explicit full paths at usage sites instead",
+                    rust_file.display(),
+                    visitor.found_use_imports.join(", ")
+                ));
             }
         }
         assert_joined_ers_empty(&errors, "0f3e5a9d");

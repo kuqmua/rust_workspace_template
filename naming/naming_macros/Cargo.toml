@@ -1,21 +1,22 @@
 [package]
-name = "naming_cmn"
+name = "naming_macros"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 publish = false
-description = "Shared naming utilities for the Rust workspace template"
+description = "Procedural macros for naming utilities in the Rust workspace template"
 repository = "https://github.com/kuqmua/rust_workspace_template"
 readme = "../../README.md"
-keywords = ["naming", "template"]
+keywords = ["naming", "macros"]
 categories = ["development-tools"]
 
+[lib]
+proc-macro = true
+
 [dependencies]
-convert_case.workspace = true
-naming_macros.workspace = true
-proc-macro2.workspace = true
 quote.workspace = true
+syn.workspace = true
 
 [lints]
 workspace = true

@@ -1,69 +1,51 @@
-use core::fmt::Display;
-
-optml::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| str_case(
-    self_reference.as_ref(),
-    convert_case::Case::UpperCamel
-));
-optml::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| str_case(
-    self_reference.as_ref(),
-    convert_case::Case::Snake
-));
-optml::case_trait_pair!(AsRefStrToUpperScStr, AsRefStrToUpperScTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), convert_case::Case::UpperSnake)
+naming_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| {
+    str_case(self_reference.as_ref(), convert_case::Case::UpperCamel)
 });
-optml::case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
-    display_case_str(self_reference, convert_case::Case::UpperCamel)
+naming_macros::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| {
+    str_case(self_reference.as_ref(), convert_case::Case::Snake)
 });
-optml::case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| display_case_str(
-    self_reference,
-    convert_case::Case::Snake
-));
-optml::case_trait_pair!(DisplayToUpperScStr, DisplayToUpperScTs, Display, |self_reference| {
-    display_case_str(self_reference, convert_case::Case::UpperSnake)
+naming_macros::case_trait_pair!(
+    AsRefStrToUpperScStr,
+    AsRefStrToUpperScTs,
+    AsRef<str>,
+    |self_reference| str_case(self_reference.as_ref(), convert_case::Case::UpperSnake)
+);
+naming_macros::case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
+    case_from_string(&self_reference.to_string(), convert_case::Case::UpperCamel)
 });
-optml::case_trait_pair!(ToTokensToUccStr, ToTokensToUccTs, quote::ToTokens, |self_reference| {
-    tokenized_case_str(self_reference, convert_case::Case::UpperCamel)
+naming_macros::case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| {
+    case_from_string(&self_reference.to_string(), convert_case::Case::Snake)
 });
-optml::case_trait_pair!(ToTokensToScStr, ToTokensToScTs, quote::ToTokens, |self_reference| {
-    tokenized_case_str(self_reference, convert_case::Case::Snake)
-});
-optml::case_trait_pair!(
+naming_macros::case_trait_pair!(
+    DisplayToUpperScStr,
+    DisplayToUpperScTs,
+    Display,
+    |self_reference| case_from_string(&self_reference.to_string(), convert_case::Case::UpperSnake)
+);
+naming_macros::case_trait_pair!(
+    ToTokensToUccStr,
+    ToTokensToUccTs,
+    quote::ToTokens,
+    |self_reference| tokenized_case_str(self_reference, convert_case::Case::UpperCamel)
+);
+naming_macros::case_trait_pair!(
+    ToTokensToScStr,
+    ToTokensToScTs,
+    quote::ToTokens,
+    |self_reference| tokenized_case_str(self_reference, convert_case::Case::Snake)
+);
+naming_macros::case_trait_pair!(
     ToTokensToUpperScStr,
     ToTokensToUpperScTs,
     quote::ToTokens,
     |self_reference| tokenized_case_str(self_reference, convert_case::Case::UpperSnake)
 );
 
-fn to_token_stream_or_compile_error<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStream
-where
-    DisplayValue: Display + ?Sized,
-{
-    match value.to_string().parse::<proc_macro2::TokenStream>() {
-        Ok(token_stream) => token_stream,
-        Err(parse_error) => {
-            let error_message = parse_error.to_string();
-            let escaped_message = format!("{error_message:?}");
-            let compile_error = format!("compile_error!({escaped_message})");
-            Result::unwrap_or_else(compile_error.parse::<proc_macro2::TokenStream>(), |_| {
-                proc_macro2::TokenStream::new()
-            })
-        }
-    }
-}
-
 fn case_from_string<StringValue>(value: &StringValue, case: convert_case::Case<'_>) -> String
 where
     StringValue: AsRef<str> + ?Sized,
 {
     str_case(value, case)
-}
-
-fn display_case_str<DisplayValue>(value: &DisplayValue, case: convert_case::Case<'_>) -> String
-where
-    DisplayValue: Display,
-{
-    let stringified = value.to_string();
-    case_from_string(&stringified, case)
 }
 
 fn tokenized_case_str<TokenValue>(value: &TokenValue, case: convert_case::Case<'_>) -> String

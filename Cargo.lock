@@ -87,9 +87,17 @@ name = "naming_cmn"
 version = "0.1.0"
 dependencies = [
  "convert_case",
- "optml",
+ "naming_macros",
  "proc-macro2",
  "quote",
+]
+
+[[package]]
+name = "naming_macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

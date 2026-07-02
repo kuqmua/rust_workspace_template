@@ -1,5 +1,3 @@
-use core::fmt::{Display, Write};
-
 const SINGLE_QUOTE: char = '\'';
 const DOUBLE_QUOTE: char = '"';
 
@@ -31,7 +29,7 @@ where
     let mut output = String::with_capacity(prefix.len().saturating_add(2));
     output.push_str(prefix);
     output.push(quote_character);
-    let write_result = Write::write_fmt(&mut output, format_args!("{string_value}"));
+    let write_result = core::fmt::Write::write_fmt(&mut output, format_args!("{string_value}"));
     if write_result.is_err() {
         return format!("{prefix}{quote_character}{string_value}{quote_character}");
     }
@@ -79,7 +77,7 @@ where
 #[must_use]
 pub fn dq_str<DisplayValue>(value: &DisplayValue) -> String
 where
-    DisplayValue: Display + ?Sized,
+    DisplayValue: core::fmt::Display + ?Sized,
 {
     quote_literal(QuotePrefix::None, DOUBLE_QUOTE, &value.to_string())
 }
@@ -87,7 +85,7 @@ where
 #[must_use]
 pub fn dq_ts<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStream
 where
-    DisplayValue: Display + ?Sized,
+    DisplayValue: core::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(QuotePrefix::None, DOUBLE_QUOTE, &value.to_string())
 }
@@ -111,7 +109,7 @@ where
 #[must_use]
 pub fn binary_dq_str<DisplayValue>(value: &DisplayValue) -> String
 where
-    DisplayValue: Display + ?Sized,
+    DisplayValue: core::fmt::Display + ?Sized,
 {
     quote_literal(QuotePrefix::Binary, DOUBLE_QUOTE, &value.to_string())
 }
@@ -119,7 +117,7 @@ where
 #[must_use]
 pub fn binary_dq_ts<DisplayValue>(value: &DisplayValue) -> proc_macro2::TokenStream
 where
-    DisplayValue: Display + ?Sized,
+    DisplayValue: core::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(QuotePrefix::Binary, DOUBLE_QUOTE, &value.to_string())
 }
