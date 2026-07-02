@@ -1,19 +1,15 @@
 [package]
-name = "gen_quotes"
+name = "naming_constants"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 publish = false
-description = "Procedural quote generation helper crate for the Rust workspace template"
+description = "Naming constants for the Rust workspace template"
 repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "README.md"
-keywords = ["quote", "template"]
+readme = "../../README.md"
+keywords = ["naming", "constants"]
 categories = ["development-tools"]
-
-[dependencies]
-naming_constants.workspace = true
-proc-macro2.workspace = true
 
 [lints]
 workspace = true

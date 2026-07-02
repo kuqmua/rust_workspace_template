@@ -1,6 +1,3 @@
-const SINGLE_QUOTE: char = '\'';
-const DOUBLE_QUOTE: char = '"';
-
 #[derive(Debug, Clone, Copy)]
 enum QuotePrefix {
     Binary,
@@ -39,8 +36,8 @@ where
     DisplayValue: AsRef<str> + ?Sized,
 {
     let quote_character = match quote_mark {
-        QuoteMark::Double => DOUBLE_QUOTE,
-        QuoteMark::Single => SINGLE_QUOTE,
+        QuoteMark::Double => naming_constants::CHARACTER_DOUBLE_QUOTE,
+        QuoteMark::Single => naming_constants::CHARACTER_SINGLE_QUOTE,
     };
     let string_value = value.as_ref();
     let mut output = String::with_capacity(string_value.len().saturating_add(3));
