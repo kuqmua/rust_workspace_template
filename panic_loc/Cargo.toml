@@ -1,0 +1,15 @@
+[package]
+name = "panic_loc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Panic location hook helper for the Rust workspace template"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../README.md"
+keywords = ["panic", "location"]
+categories = ["development-tools"]
+
+[lints]
+workspace = true

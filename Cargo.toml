@@ -6,6 +6,7 @@ members = [
   "naming/naming_constants",
   "naming/naming_macros",
   "optml",
+  "panic_loc",
   "server",
   "tests",
 ]
