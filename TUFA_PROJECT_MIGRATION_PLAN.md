@@ -35,7 +35,7 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 4. Macro helper layer: [x] `macros_helpers/gen_derive_ts_builder`, [x] `config_lib/gen_getter_traits_for_struct_fields`, [x] `macros_helpers`
    -> verify: `cargo check -p gen_derive_ts_builder -p gen_getter_traits_for_struct_fields -p macros_helpers`.
 
-5. Config and git/meta infrastructure: `config_lib/try_from_env`, `config_lib`, `git_info`
+5. Config and git/meta infrastructure: [x] `config_lib/try_from_env`, [x] `config_lib`, [x] `git_info`
    -> verify: `cargo check -p try_from_env -p config_lib -p git_info`.
 
 6. Runtime foundation: `app_state`, `cmn_routes`, `server_config`

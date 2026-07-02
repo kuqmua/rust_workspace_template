@@ -1,0 +1,22 @@
+[package]
+name = "try_from_env"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Environment configuration derive macro"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["configuration", "environment"]
+categories = ["config"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote.workspace = true
+syn.workspace = true
+
+[lints]
+workspace = true
