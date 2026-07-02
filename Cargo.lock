@@ -24,6 +24,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
+name = "gen_derive_ts_builder"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "gen_getter_traits_for_struct_fields"
+version = "0.1.0"
+dependencies = [
+ "naming_cmn",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "gen_quotes"
 version = "0.1.0"
 dependencies = [
@@ -76,6 +94,15 @@ name = "libc"
 version = "0.2.185"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52ff2c0fe9bc6cb6b14a0592c2ff4fa9ceb83eea9db979b0487cd054946a2b8f"
+
+[[package]]
+name = "macros_helpers"
+version = "0.1.0"
+dependencies = [
+ "gen_derive_ts_builder",
+ "proc-macro2",
+ "quote",
+]
 
 [[package]]
 name = "memchr"

@@ -32,7 +32,7 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 3. Macro naming layer: [x] `token_patterns`, [x] `naming/naming_macros`, [x] `naming`
    -> verify: `cargo check -p token_patterns -p naming_macros -p naming`.
 
-4. Macro helper layer: `macros_helpers/gen_derive_ts_builder`, `config_lib/gen_getter_traits_for_struct_fields`, `macros_helpers`
+4. Macro helper layer: [x] `macros_helpers/gen_derive_ts_builder`, [x] `config_lib/gen_getter_traits_for_struct_fields`, [x] `macros_helpers`
    -> verify: `cargo check -p gen_derive_ts_builder -p gen_getter_traits_for_struct_fields -p macros_helpers`.
 
 5. Config and git/meta infrastructure: `config_lib/try_from_env`, `config_lib`, `git_info`

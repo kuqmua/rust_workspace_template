@@ -1,0 +1,24 @@
+[package]
+name = "gen_getter_traits_for_struct_fields"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Getter trait derive macros"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["macros", "getters"]
+categories = ["development-tools"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+naming_cmn.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+
+[lints]
+workspace = true
