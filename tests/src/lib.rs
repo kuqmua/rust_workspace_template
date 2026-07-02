@@ -3091,6 +3091,33 @@ mod tests {
     }
 
     #[test]
+    fn forbids_macro_rules_usage_in_repository_rust_sources() {
+        let workspace_root = workspace_root_path();
+        let workspace_files = collect_workspace_files(&workspace_root);
+        let forbidden_pattern = concat!("macro", "_rules!");
+        let forbidden_pattern_with_space = concat!("macro", "_rules !");
+        let mut errors = Vec::new();
+        for rust_file in rust_source_files(&workspace_files) {
+            let file_content = read_file(rust_file);
+            if file_content.contains(forbidden_pattern) {
+                errors.push(format!(
+                    "{}: found {}. Create a dedicated proc-macro crate instead",
+                    rust_file.display(),
+                    forbidden_pattern
+                ));
+            }
+            if file_content.contains(forbidden_pattern_with_space) {
+                errors.push(format!(
+                    "{}: found {}. Create a dedicated proc-macro crate instead",
+                    rust_file.display(),
+                    forbidden_pattern_with_space
+                ));
+            }
+        }
+        assert_joined_ers_empty(&errors, "991e4509");
+    }
+
+    #[test]
     fn forbids_include_macro_usage_in_repository_rust_sources() {
         assert_forbidden_pattern_not_in_rust_sources_except_test_lib(
             "include!(",
