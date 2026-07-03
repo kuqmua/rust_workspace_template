@@ -12,13 +12,25 @@ keywords = ["postgres", "crud"]
 categories = ["database"]
 
 [dependencies]
+futures.workspace = true
 pg_crud_cmn.workspace = true
 pg_json.workspace = true
 pg_json_obj.workspace = true
 pg_tbl.workspace = true
 pg_types.workspace = true
 route_validators.workspace = true
+strum_macros.workspace = true
+uuid.workspace = true
 wh_flts.workspace = true
+
+[features]
+test-utils = [
+  "pg_crud_cmn/test-utils",
+  "pg_json/test-utils",
+  "pg_tbl/test-utils",
+  "pg_types/test-utils",
+  "wh_flts/test-utils",
+]
 
 [lints]
 workspace = true

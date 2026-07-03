@@ -1,25 +1,17 @@
-#[must_use]
-pub fn gen_impl_to_err_string_ts<
-    ImplGenericsTokenStream,
-    IdentifierTokenStream,
-    IdentifierGenericsTokenStream,
-    BodyTokenStream,
->(
-    impl_generics: &ImplGenericsTokenStream,
-    identifier: &IdentifierTokenStream,
-    identifier_generics: &IdentifierGenericsTokenStream,
-    body: &BodyTokenStream,
-) -> proc_macro2::TokenStream
-where
-    ImplGenericsTokenStream: quote::ToTokens + ?Sized,
-    IdentifierTokenStream: quote::ToTokens + ?Sized,
-    IdentifierGenericsTokenStream: quote::ToTokens + ?Sized,
-    BodyTokenStream: quote::ToTokens + ?Sized,
-{
-    quote::quote! {
-        impl #impl_generics to_err_string::ToErrString for #identifier #identifier_generics {
-            fn to_err_string(&self) -> to_err_string::ErrorString {
-                #body
+use naming::{LocLibSc, SelfSc, ToErrStringSc, ToErrStringUcc};
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+use token_patterns::StringTs;
+pub fn gen_impl_to_err_string_ts(
+    impl_generics_ts: &dyn ToTokens,
+    ident_ts: &dyn ToTokens,
+    ident_generics_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> Ts2 {
+    quote! {
+        impl #impl_generics_ts #LocLibSc::#ToErrStringUcc for #ident_ts #ident_generics_ts {
+            fn #ToErrStringSc(&#SelfSc) -> #StringTs {
+                #ts
             }
         }
     }

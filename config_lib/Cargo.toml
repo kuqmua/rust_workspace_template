@@ -12,7 +12,16 @@ keywords = ["configuration", "environment"]
 categories = ["config"]
 
 [dependencies]
-naming_constants.workspace = true
+chrono.workspace = true
+dotenv.workspace = true
+gen_getter_traits_for_struct_fields.workspace = true
+optml.workspace = true
+secrecy.workspace = true
+serde.workspace = true
+strum.workspace = true
+strum_macros.workspace = true
+thiserror.workspace = true
+try_from_env.workspace = true
 
 [lints]
 workspace = true

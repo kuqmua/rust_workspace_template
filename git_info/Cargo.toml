@@ -12,7 +12,11 @@ keywords = ["git", "metadata"]
 categories = ["development-tools"]
 
 [dependencies]
-naming_constants.workspace = true
+git-version.workspace = true
+naming.workspace = true
+optml.workspace = true
+serde.workspace = true
+serde_derive.workspace = true
 
 [lints]
 workspace = true

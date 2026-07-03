@@ -12,7 +12,22 @@ keywords = ["server", "table"]
 categories = ["database"]
 
 [dependencies]
-pg_tbl.workspace = true
+axum.workspace = true
+git_info.workspace = true
+http.workspace = true
+loc_lib.workspace = true
+optml.workspace = true
+pg_crud = { workspace = true, features = ["test-utils"] }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+server_types = { workspace = true, features = ["test-utils"] }
+sqlx.workspace = true
+thiserror.workspace = true
+utoipa.workspace = true
+
+[features]
+test-utils = ["pg_crud/test-utils", "server_types/test-utils"]
 
 [lints]
 workspace = true

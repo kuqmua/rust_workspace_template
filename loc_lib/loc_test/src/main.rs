@@ -1,6 +1,184 @@
-#![forbid(unsafe_code)]
+// todo is there is no point to add extra info to enum like this
+// eo_loc_field: {
+//     eo_display_with_serde_field: v
+// }
+// https://github.com/kuqmua/tufa_project/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
+// impl display like this this
+// eo_loc_field
+// https://github.com/kuqmua/tufa_project/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
+use std::collections::HashMap;
 
+use loc_lib::{Location, ToErrString, loc, loc::Loc};
+use optml::Optml;
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+#[derive(Debug, Error, Location, Optml)]
+pub enum ErOne {
+    // use ToErrString for hashmap ks instead of Display
+    // todo even for String in serialize deserialize version of er must be using ToErrString impl
+    // instead of std::fmt::Display todo test on using only loc as pnly field in named vrt
+    Vrt {
+        #[eo_to_err_string]
+        eo_display_field: DisplayStruct, // IN SERIALIZE DESERIALIZE String
+        #[eo_to_err_string_serde]
+        eo_serde: SerdeStruct,
+        #[eo_loc]
+        eo_loc_field: ErTwo, // IN SERIALIZE DESERIALIZE nested
+        #[eo_vec_to_err_string] // todo remove w under Vec
+        eo_vec_display_field: Vec<DisplayStruct>, // IN SERIALIZE DESERIALIZE Vec<String>
+        #[eo_vec_to_err_string_serde]
+        eo_vec_serde: Vec<SerdeStruct>,
+        #[eo_vec_loc]
+        eo_vec_loc_field: Vec<ErUnnamedOne>, // IN SERIALIZE DESERIALIZE Vec<nested>
+        #[eo_hashmap_k_string_v_to_err_string]
+        hashmap_string_string: HashMap<String, DisplayStruct>,
+        #[eo_hashmap_k_string_v_to_err_string_serde]
+        hashmap_string_serde: HashMap<String, SerdeStruct>,
+        #[eo_hashmap_k_string_v_loc]
+        hashmap_string_loc: HashMap<String, ErUnnamedOne>,
+        loc: Loc,
+    },
+}
+#[derive(Debug, Error, Location, Optml)]
+pub enum ErTwo {
+    Another {
+        #[eo_to_err_string_serde]
+        sdasdasd: String,
+        loc: Loc,
+    },
+    Vrt {
+        #[eo_to_err_string_serde]
+        eo_display_with_serde_field: String,
+        loc: Loc,
+    },
+}
+#[derive(Debug, Error, Location, Optml)]
+pub enum ErUnnamedOne {
+    Something(ErTwo),
+}
+#[derive(Debug, Optml)]
+pub struct DisplayStruct {
+    pub display: String,
+    pub something: bool,
+}
+// todo or mb two different traits - display foreign type and convert into
+// serializable and deserializable type
+impl ToErrString for DisplayStruct {
+    fn to_err_string(&self) -> String {
+        format!("{self:?}")
+    }
+}
+// todo rename fields
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Serialize, Deserialize, Optml)]
+pub struct SerdeStruct {
+    pub one: String,
+    pub three: u32,
+    pub two: bool,
+}
+impl ToErrString for SerdeStruct {
+    fn to_err_string(&self) -> String {
+        format!("{self:?}")
+    }
+}
 fn main() {
-    let _location_marker: loc_lib::LocationDeriveAvailable =
-        core::hint::black_box(loc_lib::LocationDeriveAvailable);
+    let er = ErOne::Vrt {
+        eo_display_field: DisplayStruct {
+            display: String::from("v"),
+            something: true,
+        },
+        eo_serde: SerdeStruct {
+            one: String::from("v"),
+            two: true,
+            three: 42,
+        },
+        eo_loc_field: ErTwo::Vrt {
+            eo_display_with_serde_field: String::from("v"),
+            loc: loc!(),
+        },
+        eo_vec_display_field: vec![
+            DisplayStruct {
+                display: String::from("08708789"),
+                something: true,
+            },
+            DisplayStruct {
+                display: String::from("7565757"),
+                something: true,
+            },
+        ],
+        eo_vec_serde: vec![
+            SerdeStruct {
+                one: String::from("v"),
+                two: true,
+                three: 42,
+            },
+            SerdeStruct {
+                one: String::from("97697697"),
+                two: false,
+                three: 422,
+            },
+        ],
+        eo_vec_loc_field: vec![
+            ErUnnamedOne::Something(ErTwo::Vrt {
+                eo_display_with_serde_field: String::from("v"),
+                loc: loc!(),
+            }),
+            ErUnnamedOne::Something(ErTwo::Vrt {
+                eo_display_with_serde_field: String::from("123"),
+                loc: loc!(),
+            }),
+        ],
+        hashmap_string_string: HashMap::from([
+            (
+                String::from("kesdfsfdsfsd"),
+                DisplayStruct {
+                    display: String::from("vasfdsdfsdflue"),
+                    something: true,
+                },
+            ),
+            (
+                String::from("ksdfsdfsdfsdfey"),
+                DisplayStruct {
+                    display: String::from("valsfdsfdsfdsue"),
+                    something: true,
+                },
+            ),
+        ]),
+        hashmap_string_serde: HashMap::from([
+            (
+                String::from("kdfgsdfgdsfgey"),
+                SerdeStruct {
+                    one: String::from("valusdfgdsgdsfgde"),
+                    two: true,
+                    three: 42,
+                },
+            ),
+            (
+                String::from("ksdfgdsfgsdfgey"),
+                SerdeStruct {
+                    one: String::from("valsdfgdsgdue"),
+                    two: true,
+                    three: 42,
+                },
+            ),
+        ]),
+        hashmap_string_loc: HashMap::from([
+            (
+                String::from("ksdfgadsfgsdfgdfgey"),
+                ErUnnamedOne::Something(ErTwo::Vrt {
+                    eo_display_with_serde_field: String::from("vasdfgdgdfglue"),
+                    loc: loc!(),
+                }),
+            ),
+            (
+                String::from("kesdfgsdgfdfgy"),
+                ErUnnamedOne::Something(ErTwo::Vrt {
+                    eo_display_with_serde_field: String::from("valsdfgdsafgdsgue"),
+                    loc: loc!(),
+                }),
+            ),
+        ]),
+        loc: loc!(),
+    };
+    println!("{er:?}");
 }

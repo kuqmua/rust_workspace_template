@@ -13,8 +13,11 @@ categories = ["web-programming"]
 
 [dependencies]
 app_state.workspace = true
+axum.workspace = true
 git_info.workspace = true
-naming_constants.workspace = true
+optml.workspace = true
+serde.workspace = true
+sqlx.workspace = true
 
 [lints]
 workspace = true

@@ -12,6 +12,11 @@ keywords = ["telegram", "bot"]
 categories = ["command-line-utilities"]
 
 [dependencies]
+git_info.workspace = true
+log.workspace = true
+optml.workspace = true
+teloxide.workspace = true
+tokio.workspace = true
 
 [lints]
 workspace = true

@@ -1,7 +1,6 @@
+use proc_macro2::TokenStream as Ts2;
+use quote::quote;
 #[must_use]
-pub fn wrap_derive<ValueTokenStream>(value: &[&ValueTokenStream]) -> proc_macro2::TokenStream
-where
-    ValueTokenStream: quote::ToTokens + ?Sized,
-{
-    quote::quote! { #[derive(#(#value),*)] }
+pub fn wrap_derive(v: &[&Ts2]) -> Ts2 {
+    quote! {#[derive(#(#v),*)]}
 }

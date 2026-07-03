@@ -12,8 +12,16 @@ keywords = ["postgres", "filters"]
 categories = ["database"]
 
 [dependencies]
-pg_crud_cmn.workspace = true
+gen_wh_flts.workspace = true
+loc_lib.workspace = true
+optml.workspace = true
+pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 regex.workspace = true
+schemars.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+utoipa.workspace = true
 
 [features]
 test-utils = ["pg_crud_cmn/test-utils"]

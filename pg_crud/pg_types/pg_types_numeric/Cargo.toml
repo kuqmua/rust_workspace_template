@@ -12,12 +12,18 @@ keywords = ["postgres", "types"]
 categories = ["database"]
 
 [dependencies]
+gen_pg_types.workspace = true
+loc_lib.workspace = true
+optml.workspace = true
 pg_crud_cmn.workspace = true
 pg_types_cmn.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
 wh_flts.workspace = true
 
 [features]
-test-utils = ["pg_crud_cmn/test-utils", "wh_flts/test-utils"]
+test-utils = ["pg_crud_cmn/test-utils"]
 
 [lints]
 workspace = true

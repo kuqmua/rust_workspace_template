@@ -11,8 +11,13 @@ readme = "../../../README.md"
 keywords = ["postgres", "tests"]
 categories = ["development-tools"]
 
-[dependencies]
-pg_types.workspace = true
+[dev-dependencies]
+gen_pg_types_src.workspace = true
+macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
+quote.workspace = true
+
+[features]
+test-utils = ["macro_clippy_check_cmn/test-utils"]
 
 [lints]
 workspace = true

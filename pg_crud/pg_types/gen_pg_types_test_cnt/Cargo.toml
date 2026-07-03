@@ -11,8 +11,5 @@ readme = "../../../README.md"
 keywords = ["postgres", "tests"]
 categories = ["development-tools"]
 
-[dependencies]
-gen_pg_types_src.workspace = true
-
 [lints]
 workspace = true

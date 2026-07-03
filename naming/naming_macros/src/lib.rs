@@ -1,118 +1,357 @@
-struct CaseTraitBodyExpression(syn::Expr);
+use std::fmt::Write as _;
 
-struct CaseTraitBoundPath(syn::Path);
-
-struct CaseTraitSelfReferenceIdentifier(syn::Ident);
-
-struct CaseTraitStringTraitIdentifier(syn::Ident);
-
-struct CaseTraitTokenStreamTraitIdentifier(syn::Ident);
-
-struct CaseTraitPairInput {
-    body_expression: CaseTraitBodyExpression,
-    bound_path: CaseTraitBoundPath,
-    self_reference_identifier: CaseTraitSelfReferenceIdentifier,
-    string_trait_identifier: CaseTraitStringTraitIdentifier,
-    token_stream_trait_identifier: CaseTraitTokenStreamTraitIdentifier,
-}
-
-impl syn::parse::Parse for CaseTraitPairInput {
-    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
-        let string_trait_identifier = input.parse::<syn::Ident>()?;
-        let _first_comma_token = input.parse::<syn::Token![,]>()?;
-        let token_stream_trait_identifier = input.parse::<syn::Ident>()?;
-        let _second_comma_token = input.parse::<syn::Token![,]>()?;
-        let bound_path = input.parse::<syn::Path>()?;
-        let _third_comma_token = input.parse::<syn::Token![,]>()?;
-        let _left_or_token = input.parse::<syn::Token![|]>()?;
-        let self_reference_identifier = input.parse::<syn::Ident>()?;
-        let _right_or_token = input.parse::<syn::Token![|]>()?;
-        let body_expression = input.parse::<syn::Expr>()?;
-        Ok(Self {
-            body_expression: CaseTraitBodyExpression(body_expression),
-            bound_path: CaseTraitBoundPath(bound_path),
-            self_reference_identifier: CaseTraitSelfReferenceIdentifier(self_reference_identifier),
-            string_trait_identifier: CaseTraitStringTraitIdentifier(string_trait_identifier),
-            token_stream_trait_identifier: CaseTraitTokenStreamTraitIdentifier(
-                token_stream_trait_identifier,
-            ),
-        })
-    }
-}
-
-#[proc_macro]
-pub fn case_trait_pair(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input: CaseTraitPairInput = match syn::parse(input_token_stream) {
-        Ok(input) => input,
-        Err(error) => return error.to_compile_error().into(),
-    };
-    let CaseTraitPairInput {
-        body_expression: case_trait_body_expression,
-        bound_path: case_trait_bound_path,
-        self_reference_identifier: case_trait_self_reference_identifier,
-        string_trait_identifier: case_trait_string_trait_identifier,
-        token_stream_trait_identifier: case_trait_token_stream_trait_identifier,
-    } = input;
-    let CaseTraitBodyExpression(body_expression) = case_trait_body_expression;
-    let CaseTraitBoundPath(bound_path) = case_trait_bound_path;
-    let CaseTraitSelfReferenceIdentifier(self_reference_identifier) =
-        case_trait_self_reference_identifier;
-    let CaseTraitStringTraitIdentifier(string_trait_identifier) =
-        case_trait_string_trait_identifier;
-    let CaseTraitTokenStreamTraitIdentifier(token_stream_trait_identifier) =
-        case_trait_token_stream_trait_identifier;
-    let bound_token_stream = if bound_path.leading_colon.is_none()
-        && bound_path.segments.len() == 1
-        && bound_path
-            .segments
-            .first()
-            .is_some_and(|segment| segment.ident == "Display")
-    {
-        quote::quote! { core::fmt::Display }
-    } else {
-        quote::quote! { #bound_path }
-    };
-    quote::quote! {
-        pub trait #string_trait_identifier {
-            #[must_use]
-            fn case(&self) -> crate::ConvertedCaseText;
-        }
-
-        impl<T> #string_trait_identifier for T
-        where
-            T: #bound_token_stream,
-        {
-            fn case(&self) -> crate::ConvertedCaseText {
-                let #self_reference_identifier = self;
-                #body_expression
+use gen_quotes::dq_ts;
+use panic_loc::panic_loc;
+use proc_macro::TokenStream as Ts;
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+use regex::Regex;
+use serde_json::from_str;
+#[allow(unused_imports)]
+use syn::{Data, DeriveInput, Fields, Ident, Type, parse};
+use token_patterns::StringTs;
+const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
+fn gen_impl_to_tokens_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens) -> Ts2 {
+    quote! {
+        impl quote::ToTokens for #ts0 {
+            fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                #ts1
             }
         }
-
-        pub trait #token_stream_trait_identifier {
-            #[must_use]
-            fn case_or_panic(&self) -> proc_macro2::TokenStream;
-        }
-
-        impl<T> #token_stream_trait_identifier for T
-        where
-            T: #string_trait_identifier,
-        {
-            fn case_or_panic(&self) -> proc_macro2::TokenStream {
-                let case_text = #string_trait_identifier::case(self);
-                match case_text.as_ref().parse::<proc_macro2::TokenStream>() {
-                    Ok(token_stream) => token_stream,
-                    Err(parse_error) => {
-                        let error_message = parse_error.to_string();
-                        let escaped_message = format!("{error_message:?}");
-                        let compile_error = format!("compile_error!({escaped_message})");
-                        Result::unwrap_or_else(
-                            compile_error.parse::<proc_macro2::TokenStream>(),
-                            |_| proc_macro2::TokenStream::new(),
-                        )
-                    }
+    }
+}
+#[proc_macro]
+pub fn gen_ucc_and_sc_str_and_ts(input_ts: Ts) -> Ts {
+    panic_loc();
+    let ts = from_str::<Vec<Vec<String>>>(&input_ts.to_string())
+        .expect("90e5793b")
+        .into_iter()
+        .map(|el| {
+            {
+                let rgx = Regex::new(REGEX_VALUE).expect("20948d87");
+                for el0 in &el {
+                    assert!(rgx.is_match(el0), "faadba8a");
                 }
             }
+            let phrase_part_ucc_str = el.iter().fold(String::new(), |mut acc, el0| {
+                acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
+                acc
+            });
+            let phrase_part_sc_str =
+                el.iter()
+                    .enumerate()
+                    .fold(String::new(), |mut acc, (i, el0)| {
+                        let el_sc_str = naming_cmn::AsRefStrToScStr::case(el0);
+                        if i == 0 {
+                            acc.push_str(&el_sc_str);
+                        } else {
+                            assert!(write!(acc, "_{el_sc_str}").is_ok(), "ef718915");
+                        }
+                        acc
+                    });
+            let phrase_part_ucc_ucc_ts = format!("{phrase_part_ucc_str}Ucc")
+                .parse::<Ts2>()
+                .expect("4ab6a54c");
+            let phrase_part_sc_ucc_ts = format!("{phrase_part_ucc_str}Sc")
+                .parse::<Ts2>()
+                .expect("0cc47b2e");
+            let (ucc_struct_dcl_ts, sc_struct_dcl_ts) = {
+                let gen_ts = |ts: &dyn ToTokens| {
+                    quote! {
+                        #[derive(Debug, optml::Optml)]
+                        pub struct #ts;
+                    }
+                };
+                (
+                    gen_ts(&phrase_part_ucc_ucc_ts),
+                    gen_ts(&phrase_part_sc_ucc_ts),
+                )
+            };
+            let (impl_display_ucc_ts, impl_display_sc_ts) = {
+                let gen_ts = |struct_name_ts: &dyn ToTokens, write_ts: &dyn ToTokens| {
+                    quote! {
+                        impl std::fmt::Display for #struct_name_ts {
+                            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                                write!(f, #write_ts)
+                            }
+                        }
+                    }
+                };
+                (
+                    gen_ts(&phrase_part_ucc_ucc_ts, &dq_ts(&phrase_part_ucc_str)),
+                    gen_ts(&phrase_part_sc_ucc_ts, &dq_ts(&phrase_part_sc_str)),
+                )
+            };
+            let (impl_to_tokens_ucc_ts, impl_to_tokens_snake_ts) = {
+                let gen_ts = |struct_name_ts: &dyn ToTokens, quote_ts: &dyn ToTokens| {
+                    gen_impl_to_tokens_ts(
+                        struct_name_ts,
+                        &quote! {quote!{#quote_ts}.to_tokens(tokens);},
+                    )
+                };
+                (
+                    gen_ts(
+                        &phrase_part_ucc_ucc_ts,
+                        &phrase_part_ucc_str.parse::<Ts2>().expect("7cf3ffc0"),
+                    ),
+                    gen_ts(
+                        &phrase_part_sc_ucc_ts,
+                        &phrase_part_sc_str.parse::<Ts2>().expect("114a573a"),
+                    ),
+                )
+            };
+            quote! {
+                #ucc_struct_dcl_ts
+                #impl_display_ucc_ts
+                #impl_to_tokens_ucc_ts
+                #sc_struct_dcl_ts
+                #impl_display_sc_ts
+                #impl_to_tokens_snake_ts
+            }
+        });
+    let generated = quote! {#(#ts)*};
+    // println!("{generated}");
+    generated.into()
+}
+#[proc_macro]
+pub fn gen_self_ucc_and_sc_str_and_ts(input_ts: Ts) -> Ts {
+    panic_loc();
+    let ts = from_str::<Vec<Vec<String>>>(&input_ts.to_string()).expect("9d6a20af").into_iter().map(|el| {
+        {
+            let rgx = Regex::new(REGEX_VALUE).expect("cba1b5fb");
+            for el0 in &el {
+                assert!(rgx.is_match(el0), "4a12d90f {el0}");
+            }
+        }
+        let self_match_name = "self";
+        {
+            let mut is_self_exists_and_only_one = false;
+            for el0 in &el {
+                if el0 == self_match_name {
+                    is_self_exists_and_only_one = true;
+                    break;
+                }
+            }
+            assert!(is_self_exists_and_only_one, "5680dd63");
+        };
+        let (els_concat_v_ucc_dq_ts, els_concat_v_sc_dq_ts, struct_ucc_ucc_ts, struct_sc_token_ucc_ts, trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {
+            let ucc_ucc_str = "Ucc";
+            let sc_ucc_str = "Sc";
+            let els_concat_ucc_str = el.iter().fold(String::new(), |mut acc, el0| {
+                acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
+                acc
+            });
+            let els_concat_v_ucc_dq_ts = dq_ts(&el.iter().fold(String::new(), |mut acc, el0| {
+                if el0 == "self" {
+                    acc.push_str("{v}");
+                } else {
+                    acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
+                }
+                acc
+            }));
+            let els_concat_v_sc_dq_ts = dq_ts(&{
+                let mut acc = el.iter().fold(String::new(), |mut acc, el0| {
+                    let symbol = '_';
+                    if el0 == "self" {
+                        assert!(write!(acc, "{{v}}{symbol}").is_ok(), "6a02a2ff");
+                    } else {
+                        assert!(write!(acc, "{}{symbol}", naming_cmn::AsRefStrToScStr::case(el0)).is_ok(), "d915980a");
+                    }
+                    acc
+                });
+                let _: Option<char> = acc.pop();
+                acc
+            });
+            let struct_ucc_ucc_ts = format!("{els_concat_ucc_str}{ucc_ucc_str}").parse::<Ts2>().expect("82f4ac08");
+            let struct_sc_token_ucc_ts = format!("{els_concat_ucc_str}{sc_ucc_str}").parse::<Ts2>().expect("21044eba");
+            let (trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {
+                let trait_ucc_str = "Trait";
+                let trait_ucc_ucc_ts = format!("{els_concat_ucc_str}{ucc_ucc_str}{trait_ucc_str}").parse::<Ts2>().expect("1066857a");
+                let trait_sc_token_ucc_ts = format!("{els_concat_ucc_str}{sc_ucc_str}{trait_ucc_str}").parse::<Ts2>().expect("8db74cfd");
+                (trait_ucc_ucc_ts, trait_sc_token_ucc_ts)
+            };
+            (
+                els_concat_v_ucc_dq_ts,
+                els_concat_v_sc_dq_ts,
+                struct_ucc_ucc_ts,
+                struct_sc_token_ucc_ts,
+                trait_ucc_ucc_ts,
+                trait_sc_token_ucc_ts,
+            )
+        };
+        let gen_struct_ts = |els_concat_v_case_dq_ts: &dyn ToTokens, is_ucc: bool, trait_ident_ts: &dyn ToTokens| {
+            let struct_ident_ts = if is_ucc {
+                quote! {#struct_ucc_ucc_ts}
+            } else {
+                quote! {#struct_sc_token_ucc_ts}
+            };
+            let casing_ts = {
+                let ts = if is_ucc {
+                    quote! {AsRefStrToUccStr::case}
+                } else {
+                    quote! {AsRefStrToScStr::case}
+                };
+                quote!{naming_cmn::#ts}
+            };
+            let impl_to_tokens_ts = gen_impl_to_tokens_ts(
+                &struct_ident_ts,
+                &quote!{self.to_string().parse::<proc_macro2::TokenStream>().expect("71c8d26b").to_tokens(tokens);}
+            );
+            quote! {
+                #[derive(Debug, optml::Optml)]
+                pub struct #struct_ident_ts(String);
+                impl #struct_ident_ts {
+                    fn wrap(v: &dyn std::fmt::Display) -> Self {
+                        Self(Self::format(v))
+                    }
+                    fn format(v: &dyn std::fmt::Display) -> String {
+                        format!(#els_concat_v_case_dq_ts)
+                    }
+                    pub fn from_display(v: &dyn std::fmt::Display) -> Self {
+                        Self::wrap(&#casing_ts(&v.to_string()))
+                    }
+                    pub fn from_tokens(v: &dyn quote::ToTokens) -> Self {
+                        Self::wrap(&#casing_ts(&{
+                            let mut tokens = proc_macro2::TokenStream::new();
+                            quote::ToTokens::to_tokens(&v, &mut tokens);
+                            tokens
+                        }.to_string()))
+                    }
+                    pub fn from_type_last_segment(v: &syn::Type) -> Self {
+                        if let syn::Type::Path(type_path) = v {
+                            let path_before_str = type_path.path.segments.iter().take(
+                                type_path.path.segments.len().checked_sub(1).expect("e1f5a332")
+                            )
+                            .fold(String::new(), |mut acc, el| {
+                                use std::fmt::Write as _;
+                                assert!(write!(acc, "{}::", el.ident).is_ok(), "67c90ce9");
+                                acc
+                            });
+                            let last = type_path.path.segments.iter().last().expect("19f6e1a6");
+                            Self(format!("{path_before_str}{}", Self::format(&#casing_ts(&last.ident.to_string()))))
+                        }
+                        else {
+                            panic!("518933f8");
+                        }
+                    }
+                }
+                impl std::fmt::Display for #struct_ident_ts {
+                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(f, "{}", self.0)
+                    }
+                }
+                #impl_to_tokens_ts
+                pub trait #trait_ident_ts: std::fmt::Display + quote::ToTokens {}
+                impl #trait_ident_ts for #struct_ident_ts {}
+            }
+        };
+        let pub_struct_ucc_ts = gen_struct_ts(&els_concat_v_ucc_dq_ts, true, &trait_ucc_ucc_ts);
+        let pub_struct_sc_ts = gen_struct_ts(&els_concat_v_sc_dq_ts, false, &trait_sc_token_ucc_ts);
+        quote! {
+            #pub_struct_ucc_ts
+            #pub_struct_sc_ts
+        }
+    });
+    let generated = quote! {#(#ts)*};
+    // println!("{generated}");
+    generated.into()
+}
+fn gen_impl_trait_for_ident_ts(
+    name_ts: &dyn ToTokens,
+    ident: &Ident,
+    vrts_matching_ts: &[Ts2],
+) -> Ts2 {
+    quote! {
+        impl naming::#name_ts for #ident {
+            fn case(&self) -> #StringTs {//todo mb write duplicate Trait with &str instead of String
+                match self {#(#vrts_matching_ts),*}
+            }
         }
     }
-    .into()
+}
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUccStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(input_ts: Ts) -> Ts {
+    panic_loc();
+    let di: DeriveInput = parse(input_ts).expect("a8f22481");
+    let ident = &di.ident;
+    let Data::Enum(data_enum) = di.data else {
+        panic!("d26bf85e")
+    };
+    let generated = gen_impl_trait_for_ident_ts(
+        &quote! {AsRefStrToUccStr},
+        ident,
+        &data_enum
+            .variants
+            .iter()
+            .map(|el| match el.fields {
+                Fields::Unit => {
+                    let el_ident = &el.ident;
+                    let el_ident_ucc_dq_ts = dq_ts(&naming_cmn::ToTokensToUccStr::case(&el_ident));
+                    quote! {Self::#el_ident => #StringTs::from(#el_ident_ucc_dq_ts)}
+                }
+                Fields::Named(_) | Fields::Unnamed(_) => {
+                    panic!("4955c50d")
+                }
+            })
+            .collect::<Vec<Ts2>>(),
+    );
+    // println!("{generated}");
+    generated.into()
+}
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToScStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_sc_str(input_ts: Ts) -> Ts {
+    panic_loc();
+    let di: DeriveInput = parse(input_ts).expect("dea5cbcf");
+    let ident = &di.ident;
+    let Data::Enum(data_enum) = di.data else {
+        panic!("ed6efe2e");
+    };
+    let generated = gen_impl_trait_for_ident_ts(
+        &quote! {AsRefStrToScStr},
+        ident,
+        &data_enum
+            .variants
+            .iter()
+            .map(|el| match el.fields {
+                Fields::Unit => {
+                    let el_ident = &el.ident;
+                    let el_ident_sc_dq_ts = dq_ts(&naming_cmn::ToTokensToScStr::case(&el_ident));
+                    quote! {Self::#el_ident => #StringTs::from(#el_ident_sc_dq_ts)}
+                }
+                Fields::Named(_) | Fields::Unnamed(_) => {
+                    panic!("b3ef2657")
+                }
+            })
+            .collect::<Vec<Ts2>>(),
+    );
+    // println!("{generated}");
+    generated.into()
+}
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperScStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(input_ts: Ts) -> Ts {
+    panic_loc();
+    let di: DeriveInput = parse(input_ts).expect("edabbc24");
+    let ident = &di.ident;
+    let Data::Enum(data_enum) = di.data else {
+        panic!("b2263e7e");
+    };
+    let generated = gen_impl_trait_for_ident_ts(
+        &quote! {ToUpperScStr},
+        ident,
+        &data_enum
+            .variants
+            .iter()
+            .map(|el| match el.fields {
+                Fields::Unit => {
+                    let el_ident = &el.ident;
+                    let el_ident_sc_dq_ts =
+                        dq_ts(&naming_cmn::ToTokensToUpperScStr::case(&el_ident));
+                    quote! {Self::#el_ident => #StringTs::from(#el_ident_sc_dq_ts)}
+                }
+                Fields::Named(_) | Fields::Unnamed(_) => panic!("b6fedcff"),
+            })
+            .collect::<Vec<Ts2>>(),
+    );
+    // println!("{generated}");
+    generated.into()
 }

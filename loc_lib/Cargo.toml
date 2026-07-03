@@ -12,8 +12,16 @@ keywords = ["location"]
 categories = ["development-tools"]
 
 [dependencies]
+app_state.workspace = true
+chrono.workspace = true
 git_info.workspace = true
-naming_constants.workspace = true
+location.workspace = true
+naming.workspace = true
+optml.workspace = true
+schemars.workspace = true
+serde.workspace = true
+to_err_string.workspace = true
+utoipa.workspace = true
 
 [lints]
 workspace = true

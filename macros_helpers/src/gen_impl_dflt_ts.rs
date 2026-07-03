@@ -1,16 +1,10 @@
-#[must_use]
-pub fn gen_impl_dflt_ts<IdentifierTokenStream, BodyTokenStream>(
-    identifier: &IdentifierTokenStream,
-    body: &BodyTokenStream,
-) -> proc_macro2::TokenStream
-where
-    IdentifierTokenStream: quote::ToTokens + ?Sized,
-    BodyTokenStream: quote::ToTokens + ?Sized,
-{
-    quote::quote! {
-        impl Default for #identifier {
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+pub fn gen_impl_dflt_ts(ident: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+    quote! {
+        impl Default for #ident {
             fn default() -> Self {
-                #body
+                #ts
             }
         }
     }

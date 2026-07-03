@@ -12,6 +12,7 @@ keywords = ["postgres", "json"]
 categories = ["database"]
 
 [dependencies]
+gen_pg_json_obj.workspace = true
 pg_json_obj_cmn.workspace = true
 
 [lints]

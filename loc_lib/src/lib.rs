@@ -1,7 +1,8 @@
 pub mod loc;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LocationDeriveAvailable;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ToErrStringAvailable;
+pub use ::to_err_string::ToErrString;
+pub use location::Location;
+pub use optml::Optml;
+#[macro_export]
+macro_rules! loc {
+    ($($x:expr),*) => {{ loc_lib::loc::Loc::new(file!().to_owned(), line!(), column!(), None) }};
+}

@@ -1,168 +1,149 @@
-naming_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), TextCase::UpperCamel)
+use std::fmt::Display;
+
+use convert_case::{Case, Casing as _};
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+macro_rules! case_trait_pair {
+    ($str_trait:ident, $ts_trait:ident, $bound:path, | $slf:ident | $body:expr) => {
+        pub trait $str_trait {
+            fn case(&self) -> String;
+        }
+        impl<T> $str_trait for T
+        where
+            T: $bound,
+        {
+            fn case(&self) -> String {
+                let $slf = self;
+                $body
+            }
+        }
+        pub trait $ts_trait {
+            fn case_or_panic(&self) -> Ts2;
+        }
+        impl<T> $ts_trait for T
+        where
+            T: $str_trait,
+        {
+            fn case_or_panic(&self) -> Ts2 {
+                to_ts_or_panic(&$str_trait::case(self))
+            }
+        }
+    };
+}
+case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
+    str_case(self_ref.as_ref(), Case::UpperCamel)
 });
-naming_macros::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_reference| {
-    str_case(self_reference.as_ref(), TextCase::Snake)
+case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_ref| {
+    str_case(self_ref.as_ref(), Case::Snake)
 });
-naming_macros::case_trait_pair!(
+case_trait_pair!(
     AsRefStrToUpperScStr,
     AsRefStrToUpperScTs,
     AsRef<str>,
-    |self_reference| str_case(self_reference.as_ref(), TextCase::UpperSnake)
+    |self_ref| str_case(self_ref.as_ref(), Case::UpperSnake)
 );
-naming_macros::case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_reference| {
-    case_from_string(&self_reference.to_string(), TextCase::UpperCamel)
+case_trait_pair!(DisplayToUccStr, DisplayToUccTs, Display, |self_ref| {
+    display_case_str(self_ref, Case::UpperCamel)
 });
-naming_macros::case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_reference| {
-    case_from_string(&self_reference.to_string(), TextCase::Snake)
+case_trait_pair!(DisplayToScStr, DisplayToScTs, Display, |self_ref| {
+    display_case_str(self_ref, Case::Snake)
 });
-naming_macros::case_trait_pair!(
+case_trait_pair!(
     DisplayToUpperScStr,
     DisplayToUpperScTs,
     Display,
-    |self_reference| case_from_string(&self_reference.to_string(), TextCase::UpperSnake)
+    |self_ref| display_case_str(self_ref, Case::UpperSnake)
 );
-naming_macros::case_trait_pair!(
-    ToTokensToUccStr,
-    ToTokensToUccTs,
-    quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, TextCase::UpperCamel)
-);
-naming_macros::case_trait_pair!(
-    ToTokensToScStr,
-    ToTokensToScTs,
-    quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, TextCase::Snake)
-);
-naming_macros::case_trait_pair!(
+case_trait_pair!(ToTokensToUccStr, ToTokensToUccTs, ToTokens, |self_ref| {
+    tokenized_case_str(self_ref, Case::UpperCamel)
+});
+case_trait_pair!(ToTokensToScStr, ToTokensToScTs, ToTokens, |self_ref| {
+    tokenized_case_str(self_ref, Case::Snake)
+});
+case_trait_pair!(
     ToTokensToUpperScStr,
     ToTokensToUpperScTs,
-    quote::ToTokens,
-    |self_reference| tokenized_case_str(self_reference, TextCase::UpperSnake)
+    ToTokens,
+    |self_ref| tokenized_case_str(self_ref, Case::UpperSnake)
 );
-
-#[derive(Debug, Clone, Copy)]
-enum TextCase {
-    Snake,
-    UpperCamel,
-    UpperSnake,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct ConvertedCaseText(String);
-
-impl AsRef<str> for ConvertedCaseText {
-    fn as_ref(&self) -> &str {
-        self.0.as_ref()
-    }
-}
-
-impl From<ConvertedCaseText> for String {
-    fn from(value: ConvertedCaseText) -> Self {
-        value.0
-    }
-}
-
-impl From<String> for ConvertedCaseText {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-
-fn case_from_string<StringValue>(value: &StringValue, text_case: TextCase) -> ConvertedCaseText
+fn to_ts_or_panic<T>(v: &T) -> Ts2
 where
-    StringValue: AsRef<str> + ?Sized,
+    T: Display + ?Sized,
 {
-    str_case(value, text_case)
+    v.to_string().parse::<Ts2>().expect("753ce6dd")
 }
-
-fn tokenized_case_str<TokenValue>(value: &TokenValue, text_case: TextCase) -> ConvertedCaseText
-where
-    TokenValue: quote::ToTokens,
-{
-    let tokenized = quote::quote! {#value}.to_string();
-    case_from_string(&tokenized, text_case)
+fn case_from_string(v: &str, case: Case<'_>) -> String {
+    str_case(v, case)
 }
-
-fn str_case<StringValue>(value: &StringValue, text_case: TextCase) -> ConvertedCaseText
-where
-    StringValue: AsRef<str> + ?Sized,
-{
-    let convert_case = match text_case {
-        TextCase::Snake => convert_case::Case::Snake,
-        TextCase::UpperCamel => convert_case::Case::UpperCamel,
-        TextCase::UpperSnake => convert_case::Case::UpperSnake,
-    };
-    convert_case::Casing::to_case(&value.as_ref(), convert_case).into()
+fn display_case_str<T: Display>(v: &T, case: Case<'_>) -> String {
+    let stringified = v.to_string();
+    case_from_string(&stringified, case)
 }
-
+fn tokenized_case_str<T: ToTokens>(v: &T, case: Case<'_>) -> String {
+    let tokenized = quote! {#v}.to_string();
+    case_from_string(&tokenized, case)
+}
+fn str_case(v: &str, case: Case<'_>) -> String {
+    v.to_case(case)
+}
 #[cfg(test)]
 mod tests {
-    fn assert_case_triplet<UpperCamelCaseText, SnakeCaseText, UpperSnakeCaseText>(
-        to_upper_camel_case: UpperCamelCaseText,
-        to_snake_case: SnakeCaseText,
-        to_upper_snake_case: UpperSnakeCaseText,
-    ) -> Result<(), String>
+    use quote::quote;
+
+    use super::{
+        AsRefStrToScStr, AsRefStrToScTs, AsRefStrToUccStr, AsRefStrToUccTs, AsRefStrToUpperScStr,
+        AsRefStrToUpperScTs, DisplayToScStr, DisplayToScTs, DisplayToUccStr, DisplayToUccTs,
+        DisplayToUpperScStr, DisplayToUpperScTs, ToTokensToScStr, ToTokensToScTs, ToTokensToUccStr,
+        ToTokensToUccTs, ToTokensToUpperScStr, ToTokensToUpperScTs,
+    };
+    fn assert_case_triplet<S>(to_ucc: S, to_sc: S, to_upper_sc: S)
     where
-        UpperCamelCaseText: AsRef<str>,
-        SnakeCaseText: AsRef<str>,
-        UpperSnakeCaseText: AsRef<str>,
+        S: AsRef<str>,
     {
-        if to_upper_camel_case.as_ref() != "HelloWorld" {
-            return Err(format!("{} != HelloWorld", to_upper_camel_case.as_ref()));
-        }
-        if to_snake_case.as_ref() != "hello_world" {
-            return Err(format!("{} != hello_world", to_snake_case.as_ref()));
-        }
-        if to_upper_snake_case.as_ref() != "HELLO_WORLD" {
-            return Err(format!("{} != HELLO_WORLD", to_upper_snake_case.as_ref()));
-        }
-        Ok(())
+        assert_eq!(to_ucc.as_ref(), "HelloWorld");
+        assert_eq!(to_sc.as_ref(), "hello_world");
+        assert_eq!(to_upper_sc.as_ref(), "HELLO_WORLD");
     }
-
     #[test]
-    fn as_ref_case_conversions_are_expected() -> Result<(), String> {
+    fn as_ref_case_conversions_are_expected() {
         assert_case_triplet(
-            crate::AsRefStrToUccStr::case(&"hello_world"),
-            crate::AsRefStrToScStr::case(&"HelloWorld"),
-            crate::AsRefStrToUpperScStr::case(&"helloWorld"),
-        )
+            AsRefStrToUccStr::case(&"hello_world"),
+            AsRefStrToScStr::case(&"HelloWorld"),
+            AsRefStrToUpperScStr::case(&"helloWorld"),
+        );
     }
-
     #[test]
-    fn token_stream_case_conversions_are_expected() -> Result<(), String> {
+    fn ts_case_conversions_are_expected() {
         assert_case_triplet(
-            crate::AsRefStrToUccTs::case_or_panic(&"hello_world").to_string(),
-            crate::AsRefStrToScTs::case_or_panic(&"HelloWorld").to_string(),
-            crate::AsRefStrToUpperScTs::case_or_panic(&"helloWorld").to_string(),
-        )
+            AsRefStrToUccTs::case_or_panic(&"hello_world").to_string(),
+            AsRefStrToScTs::case_or_panic(&"HelloWorld").to_string(),
+            AsRefStrToUpperScTs::case_or_panic(&"helloWorld").to_string(),
+        );
     }
-
     #[test]
-    fn display_and_tokens_conversion_are_expected() -> Result<(), String> {
+    fn display_and_tokens_conversion_are_expected() {
         assert_case_triplet(
-            crate::DisplayToUccStr::case(&"hello_world"),
-            crate::DisplayToScStr::case(&"HelloWorld"),
-            crate::DisplayToUpperScStr::case(&"helloWorld"),
-        )?;
+            DisplayToUccStr::case(&"hello_world"),
+            DisplayToScStr::case(&"HelloWorld"),
+            DisplayToUpperScStr::case(&"helloWorld"),
+        );
         assert_case_triplet(
-            crate::ToTokensToUccStr::case(&quote::quote! {hello_world}),
-            crate::ToTokensToScStr::case(&quote::quote! {HelloWorld}),
-            crate::ToTokensToUpperScStr::case(&quote::quote! {helloWorld}),
-        )
+            ToTokensToUccStr::case(&quote! {hello_world}),
+            ToTokensToScStr::case(&quote! {HelloWorld}),
+            ToTokensToUpperScStr::case(&quote! {helloWorld}),
+        );
     }
-
     #[test]
-    fn display_and_tokens_token_stream_conversion_are_expected() -> Result<(), String> {
+    fn display_and_tokens_ts_conversion_are_expected() {
         assert_case_triplet(
-            crate::DisplayToUccTs::case_or_panic(&"hello_world").to_string(),
-            crate::DisplayToScTs::case_or_panic(&"HelloWorld").to_string(),
-            crate::DisplayToUpperScTs::case_or_panic(&"helloWorld").to_string(),
-        )?;
+            DisplayToUccTs::case_or_panic(&"hello_world").to_string(),
+            DisplayToScTs::case_or_panic(&"HelloWorld").to_string(),
+            DisplayToUpperScTs::case_or_panic(&"helloWorld").to_string(),
+        );
         assert_case_triplet(
-            crate::ToTokensToUccTs::case_or_panic(&quote::quote! {hello_world}).to_string(),
-            crate::ToTokensToScTs::case_or_panic(&quote::quote! {HelloWorld}).to_string(),
-            crate::ToTokensToUpperScTs::case_or_panic(&quote::quote! {helloWorld}).to_string(),
-        )
+            ToTokensToUccTs::case_or_panic(&quote! {hello_world}).to_string(),
+            ToTokensToScTs::case_or_panic(&quote! {HelloWorld}).to_string(),
+            ToTokensToUpperScTs::case_or_panic(&quote! {helloWorld}).to_string(),
+        );
     }
 }

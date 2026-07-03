@@ -15,5 +15,8 @@ categories = ["database"]
 pg_json_nbr.workspace = true
 pg_json_other.workspace = true
 
+[features]
+test-utils = ["pg_json_nbr/test-utils", "pg_json_other/test-utils"]
+
 [lints]
 workspace = true

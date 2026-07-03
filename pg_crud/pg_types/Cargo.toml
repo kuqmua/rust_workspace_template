@@ -17,5 +17,12 @@ pg_types_cmn.workspace = true
 pg_types_numeric.workspace = true
 pg_types_text_misc.workspace = true
 
+[features]
+test-utils = [
+  "pg_types_chrono_net/test-utils",
+  "pg_types_numeric/test-utils",
+  "pg_types_text_misc/test-utils",
+]
+
 [lints]
 workspace = true

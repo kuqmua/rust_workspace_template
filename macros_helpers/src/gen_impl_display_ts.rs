@@ -1,25 +1,16 @@
-#[must_use]
-pub fn gen_impl_display_ts<
-    ImplGenericsTokenStream,
-    IdentifierTokenStream,
-    IdentifierGenericsTokenStream,
-    BodyTokenStream,
->(
-    impl_generics: &ImplGenericsTokenStream,
-    identifier: &IdentifierTokenStream,
-    identifier_generics: &IdentifierGenericsTokenStream,
-    body: &BodyTokenStream,
-) -> proc_macro2::TokenStream
-where
-    ImplGenericsTokenStream: quote::ToTokens + ?Sized,
-    IdentifierTokenStream: quote::ToTokens + ?Sized,
-    IdentifierGenericsTokenStream: quote::ToTokens + ?Sized,
-    BodyTokenStream: quote::ToTokens + ?Sized,
-{
-    quote::quote! {
-        impl #impl_generics std::fmt::Display for #identifier #identifier_generics {
-            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                #body
+use naming::SelfSc;
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+pub fn gen_impl_display_ts(
+    impl_generics_ts: &dyn ToTokens,
+    ident_ts: &dyn ToTokens,
+    ident_generics_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> Ts2 {
+    quote! {
+        impl #impl_generics_ts std::fmt::Display for #ident_ts #ident_generics_ts {
+            fn fmt(&#SelfSc, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                #ts
             }
         }
     }

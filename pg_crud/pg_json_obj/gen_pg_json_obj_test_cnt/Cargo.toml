@@ -12,7 +12,19 @@ keywords = ["postgres", "tests"]
 categories = ["development-tools"]
 
 [dependencies]
-gen_pg_json_obj_src.workspace = true
+loc_lib.workspace = true
+optml.workspace = true
+pg_crud = { workspace = true, features = ["test-utils"] }
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+utoipa.workspace = true
+uuid.workspace = true
+
+[features]
+test-utils = []
 
 [lints]
 workspace = true

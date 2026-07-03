@@ -12,11 +12,18 @@ keywords = ["postgres", "json"]
 categories = ["database"]
 
 [dependencies]
+gen_pg_json.workspace = true
+loc_lib.workspace = true
+optml.workspace = true
 pg_crud_cmn.workspace = true
+schemars.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+utoipa.workspace = true
 wh_flts.workspace = true
 
 [features]
-test-utils = ["pg_crud_cmn/test-utils", "wh_flts/test-utils"]
+test-utils = ["pg_crud_cmn/test-utils"]
 
 [lints]
 workspace = true

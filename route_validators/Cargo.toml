@@ -12,6 +12,15 @@ keywords = ["routes", "validation"]
 categories = ["web-programming"]
 
 [dependencies]
+axum.workspace = true
+bytes.workspace = true
+git_info.workspace = true
+http-body.workspace = true
+loc_lib.workspace = true
+naming.workspace = true
+optml.workspace = true
+serde.workspace = true
+thiserror.workspace = true
 
 [features]
 test-utils = []

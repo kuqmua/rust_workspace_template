@@ -13,6 +13,9 @@ categories = ["development-tools"]
 
 [dependencies]
 loc_lib.workspace = true
+optml.workspace = true
+serde.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true

@@ -12,7 +12,6 @@ keywords = ["panic", "location"]
 categories = ["development-tools"]
 
 [dependencies]
-naming_constants.workspace = true
 
 [lints]
 workspace = true

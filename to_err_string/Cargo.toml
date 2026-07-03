@@ -12,7 +12,14 @@ keywords = ["error", "string"]
 categories = ["development-tools"]
 
 [dependencies]
-to_err_string_macros.workspace = true
+axum.workspace = true
+http.workspace = true
+http-body.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+time.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true

@@ -1,133 +1,244 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Loc {
-    column: SourceColumn,
-    commit_id: git_info::ProjectGitCommitId,
-    file: SourceFilePath,
-    line: SourceLine,
-    occurrence: Occurrence,
-}
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    sync::OnceLock,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use app_state::SrcPlaceType;
+use chrono::{DateTime, FixedOffset, Utc};
+use git_info::PROJECT_GIT_INFO;
+use naming::GITHUB_URL;
+use optml::Optml;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
+static SRC_PLACE_TYPE: OnceLock<SrcPlaceType> = OnceLock::new();
+static LOC_DISPLAY_TIMEZONE: OnceLock<Option<FixedOffset>> = OnceLock::new();
+const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
+const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
 pub struct Occr {
-    column: SourceColumn,
-    file: SourceFilePath,
-    line: SourceLine,
+    pub file: String,
+    pub line: u32,
+    pub col: u32,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Occurrence(Option<Occr>);
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct SourceColumn;
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct SourceFilePath;
-
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct SourceLine;
-
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+pub struct Loc {
+    #[allow(clippy::arbitrary_source_item_ordering)]
+    file: String,
+    commit: String,
+    duration: Duration,
+    occr: Option<Occr>,
+    line: u32,
+    col: u32,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
 impl Loc {
+    #[allow(clippy::single_call_fn)] // shared cached offset accessor is reused by formatter and tests
+    fn loc_display_timezone() -> Option<&'static FixedOffset> {
+        LOC_DISPLAY_TIMEZONE
+            .get_or_init(|| FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS))
+            .as_ref()
+    }
+
+    fn fmt_with_occr(
+        &self,
+        f: &mut Formatter<'_>,
+        mut fmt_primary: impl FnMut(&mut Formatter<'_>) -> FmtResult,
+        mut fmt_occr: impl FnMut(&mut Formatter<'_>, &Occr) -> FmtResult,
+    ) -> FmtResult {
+        fmt_primary(f)?;
+        if let Some(v) = self.occr.as_ref() {
+            f.write_str(" (")?;
+            fmt_occr(f, v)?;
+            f.write_str(")")
+        } else {
+            Ok(())
+        }
+    }
+
+    fn fmt_github_loc(&self, f: &mut Formatter<'_>, file: &str, line: u32) -> FmtResult {
+        write!(f, "{}/blob/{}/{}#L{}", GITHUB_URL, self.commit, file, line)
+    }
+
+    fn fmt_src_loc(f: &mut Formatter<'_>, file: &str, line: u32, col: u32) -> FmtResult {
+        write!(f, "{file}:{line}:{col}")
+    }
+
+    #[allow(clippy::single_call_fn)] // centralizes datetime + timezone composition so formatting can stay branch-light and tests can target conversion separately
+    fn datetime_with_tz(&self) -> Option<DateTime<FixedOffset>> {
+        let epoch = UNIX_EPOCH.checked_add(self.duration)?;
+        let offset = Self::loc_display_timezone()?;
+        Some(DateTime::<Utc>::from(epoch).with_timezone(offset))
+    }
+
+    fn fmt_datetime(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self.datetime_with_tz() {
+            Some(v) => write!(f, "{}", v.format("%Y-%m-%d %H:%M:%S")),
+            None => f.write_str(INCORRECT_DATETIME_MSG),
+        }
+    }
+
+    fn fmt_github_place(&self, f: &mut Formatter<'_>) -> FmtResult {
+        self.fmt_with_occr(
+            f,
+            |fmtr| self.fmt_github_loc(fmtr, &self.file, self.line),
+            |fmtr, v| self.fmt_github_loc(fmtr, &v.file, v.line),
+        )
+    }
+
+    fn fmt_place(&self, src_place_type: SrcPlaceType, f: &mut Formatter<'_>) -> FmtResult {
+        match src_place_type {
+            SrcPlaceType::Src => self.fmt_src_place(f),
+            SrcPlaceType::Github => self.fmt_github_place(f),
+        }
+    }
+
+    fn fmt_src_place(&self, f: &mut Formatter<'_>) -> FmtResult {
+        self.fmt_with_occr(
+            f,
+            |fmtr| Self::fmt_src_loc(fmtr, &self.file, self.line, self.col),
+            |fmtr, v| Self::fmt_src_loc(fmtr, &v.file, v.line, v.col),
+        )
+    }
+
     #[must_use]
-    pub const fn new(
-        file: SourceFilePath,
-        line: SourceLine,
-        column: SourceColumn,
-        occurrence: Occurrence,
-    ) -> Self {
+    pub fn new(file: String, line: u32, col: u32, occr: Option<Occr>) -> Self {
         Self {
-            column,
-            commit_id: git_info::project_git_commit_id(),
             file,
             line,
-            occurrence,
+            col,
+            commit: PROJECT_GIT_INFO.commit.to_owned(),
+            duration: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default(),
+            occr,
         }
     }
 }
-
-impl Occr {
-    #[must_use]
-    pub const fn new(file: SourceFilePath, line: SourceLine, column: SourceColumn) -> Self {
-        Self { column, file, line }
-    }
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Copy, ToSchema, Optml)] //todo check somehow what its eq to std::time::Duration
+pub struct StdTimeDuration {
+    pub secs: u64,
+    pub nanos: u32,
 }
-
-impl Occurrence {
-    #[must_use]
-    pub const fn none() -> Self {
-        Self(None)
-    }
-
-    #[must_use]
-    pub const fn some(occurrence: Occr) -> Self {
-        Self(Some(occurrence))
-    }
-}
-
-impl SourceColumn {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl SourceFilePath {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl SourceLine {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl core::fmt::Display for Loc {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        core::write!(
+impl Display for Loc {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        self.fmt_place(
+            *SRC_PLACE_TYPE.get_or_init(SrcPlaceType::from_env_or_dflt),
             f,
-            "{}{}{}{}{}{}{}{}{}",
-            naming_constants::GITHUB_URL,
-            naming_constants::GIT_BLOB_SEGMENT,
-            self.commit_id.as_ref(),
-            naming_constants::CHARACTER_SLASH,
-            self.file,
-            naming_constants::GIT_LINE_FRAGMENT_PREFIX,
-            self.line,
-            naming_constants::SOURCE_COLUMN_SEPARATOR,
-            self.column
         )?;
-        self.occurrence.0.map_or(Ok(()), |occurrence| {
-            core::write!(
-                f,
-                "{}{}{}{}{}{}",
-                naming_constants::LOCATION_OCCURRENCE_PREFIX,
-                occurrence.file,
-                naming_constants::SOURCE_LINE_SEPARATOR,
-                occurrence.line,
-                naming_constants::SOURCE_COLUMN_SEPARATOR,
-                occurrence.column
+        f.write_str(" ")?;
+        self.fmt_datetime(f)
+    }
+}
+#[cfg(test)]
+#[allow(clippy::arbitrary_source_item_ordering)]
+mod tests {
+    use std::{
+        fmt::{Display, Formatter, Result as FmtResult},
+        time::Duration,
+    };
+
+    use app_state::SrcPlaceType;
+
+    use super::{GITHUB_URL, INCORRECT_DATETIME_MSG, LOC_DISPLAY_UTC_OFFSET_SECS, Loc, Occr};
+    struct DatetimeFmt<'loc_lt> {
+        loc: &'loc_lt Loc,
+    }
+    impl Display for DatetimeFmt<'_> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            self.loc.fmt_datetime(f)
+        }
+    }
+    struct PlaceFmt<'loc_lt> {
+        loc: &'loc_lt Loc,
+        src_place_type: SrcPlaceType,
+    }
+    impl Display for PlaceFmt<'_> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            self.loc.fmt_place(self.src_place_type, f)
+        }
+    }
+    fn test_loc(duration: Duration, occr: Option<Occr>) -> Loc {
+        Loc {
+            file: String::from("src/lib.rs"),
+            commit: String::from("abc123"),
+            duration,
+            occr,
+            line: 10,
+            col: 20,
+        }
+    }
+    fn test_occr() -> Occr {
+        Occr {
+            file: String::from("src/er.rs"),
+            line: 30,
+            col: 40,
+        }
+    }
+    fn fmt_place(loc: &Loc, src_place_type: SrcPlaceType) -> String {
+        format!(
+            "{:}",
+            PlaceFmt {
+                loc,
+                src_place_type
+            }
+        )
+    }
+    #[test]
+    fn fmt_place_src_without_occr() {
+        let loc = test_loc(Duration::from_secs(0), None);
+        assert_eq!(fmt_place(&loc, SrcPlaceType::Src), "src/lib.rs:10:20");
+    }
+    #[test]
+    fn fmt_place_src_with_occr() {
+        let loc = test_loc(Duration::from_secs(0), Some(test_occr()));
+        assert_eq!(
+            fmt_place(&loc, SrcPlaceType::Src),
+            "src/lib.rs:10:20 (src/er.rs:30:40)"
+        );
+    }
+    #[test]
+    fn fmt_place_github_without_occr() {
+        let loc = test_loc(Duration::from_secs(0), None);
+        assert_eq!(
+            fmt_place(&loc, SrcPlaceType::Github),
+            format!("{GITHUB_URL}/blob/abc123/src/lib.rs#L10")
+        );
+    }
+    #[test]
+    fn fmt_place_github_with_occr() {
+        let loc = test_loc(Duration::from_secs(0), Some(test_occr()));
+        assert_eq!(
+            fmt_place(&loc, SrcPlaceType::Github),
+            format!(
+                "{GITHUB_URL}/blob/abc123/src/lib.rs#L10 ({GITHUB_URL}/blob/abc123/src/er.rs#L30)"
             )
-        })
+        );
     }
-}
-
-impl core::fmt::Display for SourceColumn {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(naming_constants::SOURCE_COLUMN_UNKNOWN)
+    #[test]
+    fn fmt_datetime_returns_fallback_for_overflowed_duration() {
+        let loc = test_loc(Duration::MAX, None);
+        assert_eq!(
+            format!("{}", DatetimeFmt { loc: &loc }),
+            INCORRECT_DATETIME_MSG
+        );
     }
-}
-
-impl core::fmt::Display for SourceFilePath {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(naming_constants::SOURCE_FILE_UNKNOWN)
+    #[test]
+    fn datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
+        let loc = test_loc(Duration::from_secs(0), None);
+        let date_time = loc.datetime_with_tz().expect("f5c41dd8");
+        assert_eq!(
+            date_time.format("%Y-%m-%d %H:%M:%S").to_string(),
+            "1970-01-01 03:00:00"
+        );
     }
-}
-
-impl core::fmt::Display for SourceLine {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(naming_constants::SOURCE_LINE_UNKNOWN)
+    #[test]
+    fn loc_display_timezone_uses_expected_offset() {
+        let offset = Loc::loc_display_timezone().expect("5c53d969");
+        assert_eq!(offset.local_minus_utc(), LOC_DISPLAY_UTC_OFFSET_SECS);
     }
 }

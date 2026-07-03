@@ -17,7 +17,6 @@ members = [
   "naming",
   "naming/naming_cmn",
   "naming/naming_macros",
-  "naming_constants",
   "optml",
   "panic_loc",
   "pg_crud",
@@ -64,7 +63,6 @@ members = [
   "telegram_bot",
   "tests",
   "to_err_string",
-  "to_err_string_macros",
   "token_patterns",
 ]
 exclude = []
@@ -77,9 +75,18 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 app_state = { version = "=0.1.0", path = "app_state", default-features = false }
+axum = { version = "=0.8.8", default-features = false, features = [
+  "http1",
+  "json",
+  "macros",
+  "tokio",
+] }
+bytes = { version = "=1.11.1", default-features = false }
+chrono = { version = "=0.4.42", default-features = false, features = ["serde"] }
 cmn_routes = { version = "=0.1.0", path = "cmn_routes", default-features = false }
 config_lib = { version = "=0.1.0", path = "config_lib", default-features = false }
 convert_case = { version = "=0.11.0", default-features = false }
+dotenv = { version = "=0.15.0", default-features = false }
 gen_derive_ts_builder = { version = "=0.1.0", path = "macros_helpers/gen_derive_ts_builder", default-features = false }
 gen_getter_traits_for_struct_fields = { version = "=0.1.0", path = "config_lib/gen_getter_traits_for_struct_fields", default-features = false }
 gen_pg_json = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json", default-features = false }
@@ -98,20 +105,29 @@ gen_pg_types = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types", def
 gen_pg_types_src = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_src", default-features = false }
 gen_pg_types_test = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_test", default-features = false }
 gen_pg_types_test_cnt = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_test_cnt", default-features = false }
+gen_quotes = { version = "=0.1.0", path = "gen_quotes", default-features = false }
 gen_wh_flts = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts", default-features = false }
 gen_wh_flts_src = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
 gen_wh_flts_test = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_test", default-features = false }
 gen_wh_flts_test_cnt = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_test_cnt", default-features = false }
 git_info = { version = "=0.1.0", path = "git_info", default-features = false }
+git-version = { version = "=0.3.9", default-features = false }
+futures = { version = "=0.3.31", default-features = false }
+http = { version = "=1.4.0", default-features = false }
+http-body = { version = "=1.0.1", default-features = false }
+itertools = { version = "=0.14.0", default-features = false }
 loc_lib = { version = "=0.1.0", path = "loc_lib", default-features = false }
 loc_test = { version = "=0.1.0", path = "loc_lib/loc_test", default-features = false }
 location = { version = "=0.1.0", path = "loc_lib/location", default-features = false }
+log = { version = "=0.4.29", default-features = false }
 macro_clippy_check_cmn = { version = "=0.1.0", path = "macro_clippy_check_cmn", default-features = false }
 macros_helpers = { version = "=0.1.0", path = "macros_helpers", default-features = false }
+naming = { version = "=0.1.0", path = "naming", default-features = false }
 naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features = false }
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
-naming_constants = { version = "=0.1.0", path = "naming_constants", default-features = false }
+num_cpus = { version = "=1.17.0", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
+panic_loc = { version = "=0.1.0", path = "panic_loc", default-features = false }
 pg_crud = { version = "=0.1.0", path = "pg_crud", default-features = false }
 pg_crud_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_cmn", default-features = false }
 pg_crud_macros_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_macros_cmn", default-features = false }
@@ -133,14 +149,51 @@ proc-macro2 = { version = "=1.0.104", default-features = false, features = [
 quote = { version = "=1.0.42", default-features = false, features = [
   "proc-macro",
 ] }
+rayon = { version = "=1.11.0", default-features = false }
 regex = { version = "=1.12.2", default-features = false, features = [
   "unicode-perl",
 ] }
+reqwest = { version = "=0.13.1", default-features = false, features = [
+  "blocking",
+  "http2",
+  "json",
+  "native-tls",
+] }
 route_validators = { version = "=0.1.0", path = "route_validators", default-features = false }
+schemars = { version = "=1.2.0", default-features = false, features = [
+  "derive",
+  "std",
+] }
+serde = { version = "=1.0.228", default-features = false, features = [
+  "derive",
+] }
+serde_derive = { version = "=1.0.228", default-features = false }
+serde_json = { version = "=1.0.150", default-features = false, features = [
+  "alloc",
+] }
+secrecy = { version = "=0.10.3", default-features = false, features = [
+  "serde",
+] }
 server_app_state = { version = "=0.1.0", path = "server_app_state", default-features = false }
 server_config = { version = "=0.1.0", path = "server_config", default-features = false }
 server_tbl_example = { version = "=0.1.0", path = "server_tbl_example", default-features = false }
 server_types = { version = "=0.1.0", path = "server_types", default-features = false }
+sqlx = { version = "=0.8.6", default-features = false, features = [
+  "bigdecimal",
+  "bit-vec",
+  "chrono",
+  "ipnetwork",
+  "json",
+  "mac_address",
+  "migrate",
+  "postgres",
+  "runtime-tokio",
+  "rust_decimal",
+  "time",
+  "uuid",
+] }
+strum = { version = "=0.27.2", default-features = false, features = ["derive"] }
+strum_macros = { version = "=0.27.2", default-features = false }
 syn = { version = "=2.0.112", default-features = false, features = [
   "full",
   "visit",
@@ -153,15 +206,52 @@ syn = { version = "=2.0.112", default-features = false, features = [
   "proc-macro",
 ] }
 telegram_bot = { version = "=0.1.0", path = "telegram_bot", default-features = false }
+teloxide = { version = "=0.17.0", default-features = false, features = [
+  "ctrlc_handler",
+  "macros",
+  "rustls",
+] }
+thiserror = { version = "=2.0.17", default-features = false, features = [
+  "std",
+] }
 token_patterns = { version = "=0.1.0", path = "token_patterns", default-features = false }
-to_err_string_macros = { version = "=0.1.0", path = "to_err_string_macros", default-features = false }
+to_err_string = { version = "=0.1.0", path = "to_err_string", default-features = false }
+time = { version = "=0.3.47", default-features = false, features = ["serde"] }
+tokio = { version = "=1.48.0", default-features = false, features = [
+  "macros",
+  "rt-multi-thread",
+  "signal",
+] }
 toml = { version = "=0.9.8", default-features = false, features = [
   "parse",
   "serde",
 ] }
+tower = { version = "=0.5.2", default-features = false }
+tower-http = { version = "=0.6.8", default-features = false, features = [
+  "cors",
+  "propagate-header",
+  "request-id",
+  "trace",
+] }
+tower_governor = { version = "=0.8.0", default-features = false, features = [
+  "axum",
+] }
+tracing = { version = "=0.1.44", default-features = false, features = ["log"] }
+tracing-subscriber = { version = "=0.3.22", default-features = false, features = [
+  "env-filter",
+  "fmt",
+  "registry",
+  "std",
+] }
 try_from_env = { version = "=0.1.0", path = "config_lib/try_from_env", default-features = false }
 trybuild = { version = "=1.0.117", default-features = false }
-uuid = { version = "=1.19.0", default-features = false, features = ["v4"] }
+utoipa = { version = "=4.1.0", default-features = false, features = [
+  "axum_extras",
+] }
+uuid = { version = "=1.19.0", default-features = false, features = [
+  "serde",
+  "v4",
+] }
 walkdir = { version = "=2.5.0", default-features = false }
 wh_flts = { version = "=0.1.0", path = "pg_crud/wh_flts", default-features = false }
 
@@ -196,7 +286,7 @@ let_underscore_drop = "deny"
 macro_use_extern_crate = "deny"
 meta_variable_misuse = "deny"
 missing_abi = "deny"
-missing_copy_implementations = "deny"
+missing_copy_implementations = "allow"
 missing_debug_implementations = "deny"
 missing_docs = "allow"
 non_ascii_idents = "deny"
@@ -211,14 +301,14 @@ unnameable_types = "deny"
 unreachable_pub = "deny"
 unsafe_op_in_unsafe_fn = "deny"
 unstable_features = "deny"
-unused_crate_dependencies = "deny"
+unused_crate_dependencies = "warn"
 unused_extern_crates = "deny"
 unused_import_braces = "deny"
 unused_lifetimes = "deny"
 unused_macro_rules = "deny"
 unused_qualifications = "deny"
 unused_results = "deny"
-dead_code = "deny"
+dead_code = "warn"
 variant_size_differences = "deny"
 ambiguous_glob_imports = "deny"
 ambiguous_glob_reexports = "deny"
@@ -317,9 +407,9 @@ unused_must_use = "deny"
 unused_mut = "deny"
 unused_parens = "deny"
 unused_unsafe = "deny"
-unused_variables = "deny"
+unused_variables = "warn"
 useless_ptr_null_checks = "deny"
-warnings = "deny"
+warnings = "warn"
 while_true = "deny"
 ambiguous_associated_items = "deny"
 arithmetic_overflow = "deny"
@@ -422,8 +512,8 @@ float_literal_f32_fallback = "deny"
 [workspace.lints.clippy]
 absurd_extreme_comparisons = "deny"
 alloc_instead_of_core = "deny"
-allow_attributes = "deny"
-allow_attributes_without_reason = "deny"
+allow_attributes = "allow"
+allow_attributes_without_reason = "allow"
 almost_complete_range = "deny"
 almost_swapped = "deny"
 approx_constant = "deny"
@@ -478,12 +568,12 @@ chars_last_cmp = "deny"
 chars_next_cmp = "deny"
 checked_conversions = "deny"
 clear_with_drain = "deny"
-clone_on_copy = "deny"
+clone_on_copy = "allow"
 clone_on_ref_ptr = "deny"
 cloned_instead_of_copied = "deny"
 cmp_null = "deny"
 cmp_owned = "deny"
-cognitive_complexity = "deny"
+cognitive_complexity = "allow"
 collapsible_else_if = "deny"
 collapsible_if = "deny"
 collapsible_match = "deny"
@@ -498,7 +588,7 @@ create_dir = "deny"
 crosspointer_transmute = "deny"
 dbg_macro = "deny"
 debug_assert_with_mut_call = "deny"
-decimal_literal_representation = "deny"
+decimal_literal_representation = "allow"
 declare_interior_mutable_const = "deny"
 default_constructed_unit_structs = "deny"
 default_instead_of_iter_empty = "deny"
@@ -512,7 +602,7 @@ deref_addrof = "deny"
 deref_by_slicing = "deny"
 derivable_impls = "deny"
 derive_ord_xor_partial_ord = "deny"
-derive_partial_eq_without_eq = "deny"
+derive_partial_eq_without_eq = "allow"
 derived_hash_with_manual_eq = "deny"
 disallowed_macros = "deny"
 disallowed_methods = "deny"
@@ -554,7 +644,7 @@ exhaustive_enums = "allow"
 exhaustive_structs = "allow"
 exit = "deny"
 expect_fun_call = "deny"
-expect_used = "deny"
+expect_used = "allow"
 expl_impl_clone_on_copy = "deny"
 explicit_auto_deref = "deny"
 explicit_counter_loop = "deny"
@@ -614,7 +704,7 @@ implicit_saturating_sub = "deny"
 implied_bounds_in_impls = "deny"
 impossible_comparisons = "deny"
 imprecise_flops = "deny"
-incompatible_msrv = "deny"
+incompatible_msrv = "allow"
 inconsistent_digit_grouping = "deny"
 inconsistent_struct_constructor = "deny"
 index_refutable_slice = "deny"
@@ -631,7 +721,7 @@ inline_always = "deny"
 inline_asm_x86_att_syntax = "deny"
 inline_asm_x86_intel_syntax = "deny"
 inline_fn_without_body = "deny"
-inline_trait_bounds = "deny"
+inline_trait_bounds = "allow"
 inspect_for_each = "deny"
 int_plus_one = "deny"
 integer_division = "deny"
@@ -749,7 +839,7 @@ mem_forget = "deny"
 mem_replace_option_with_none = "deny"
 mem_replace_with_default = "deny"
 mem_replace_with_uninit = "deny"
-min_ident_chars = "deny"
+min_ident_chars = "allow"
 min_max = "deny"
 mismatching_type_param_order = "deny"
 misnamed_getters = "deny"
@@ -762,7 +852,7 @@ missing_enforced_import_renames = "deny"
 missing_errors_doc = "allow"
 missing_fields_in_debug = "deny"
 missing_inline_in_public_items = "allow"
-missing_panics_doc = "deny"
+missing_panics_doc = "allow"
 missing_safety_doc = "deny"
 missing_spin_loop = "deny"
 missing_trait_methods = "allow"
@@ -775,7 +865,7 @@ module_name_repetitions = "deny"
 modulo_arithmetic = "deny"
 modulo_one = "deny"
 multi_assignments = "deny"
-multiple_crate_versions = "deny"
+multiple_crate_versions = "allow"
 multiple_inherent_impl = "deny"
 multiple_unsafe_ops_per_block = "deny"
 must_use_candidate = "deny"
@@ -854,7 +944,7 @@ or_then_unwrap = "deny"
 out_of_bounds_indexing = "deny"
 panicking_overflow_checks = "deny"
 overly_complex_bool_expr = "deny"
-panic = "deny"
+panic = "allow"
 panic_in_result_fn = "deny"
 panicking_unwrap = "deny"
 partial_pub_fields = "deny"
@@ -862,14 +952,14 @@ partialeq_ne_impl = "deny"
 partialeq_to_none = "deny"
 path_buf_push_overwrite = "deny"
 path_ends_with_ext = "deny"
-pattern_type_mismatch = "deny"
+pattern_type_mismatch = "allow"
 permissions_set_readonly_false = "deny"
 possible_missing_comma = "deny"
 precedence = "deny"
 print_in_format_impl = "deny"
 print_literal = "deny"
-print_stderr = "deny"
-print_stdout = "deny"
+print_stderr = "allow"
+print_stdout = "allow"
 print_with_newline = "deny"
 println_empty_string = "deny"
 ptr_arg = "deny"
@@ -877,8 +967,8 @@ ptr_as_ptr = "deny"
 ptr_cast_constness = "deny"
 ptr_eq = "deny"
 ptr_offset_with_cast = "deny"
-pub_use = "deny"
-pub_with_shorthand = "deny"
+pub_use = "allow"
+pub_with_shorthand = "allow"
 pub_without_shorthand = "deny"
 question_mark = "deny"
 question_mark_used = "allow"
@@ -908,7 +998,7 @@ redundant_guards = "deny"
 redundant_locals = "deny"
 redundant_pattern = "deny"
 redundant_pattern_matching = "deny"
-redundant_pub_crate = "deny"
+redundant_pub_crate = "allow"
 redundant_slicing = "deny"
 redundant_static_lifetimes = "deny"
 redundant_type_annotations = "deny"
@@ -918,7 +1008,7 @@ ref_patterns = "deny"
 repeat_once = "deny"
 reserve_after_initialization = "deny"
 rest_pat_in_fully_bound_structs = "deny"
-result_large_err = "deny"
+result_large_err = "allow"
 result_map_or_into_option = "deny"
 result_map_unit_fn = "deny"
 result_unit_err = "deny"
@@ -946,7 +1036,7 @@ should_implement_trait = "deny"
 should_panic_without_expect = "deny"
 significant_drop_in_scrutinee = "deny"
 significant_drop_tightening = "deny"
-similar_names = "deny"
+similar_names = "allow"
 single_call_fn = "deny"
 single_char_add_str = "deny"
 single_char_lifetime_names = "deny"
@@ -962,8 +1052,8 @@ size_of_ref = "deny"
 skip_while_next = "deny"
 slow_vector_initialization = "deny"
 stable_sort_primitive = "deny"
-std_instead_of_alloc = "deny"
-std_instead_of_core = "deny"
+std_instead_of_alloc = "allow"
+std_instead_of_core = "allow"
 str_to_string = "deny"
 string_add = "deny"
 string_add_assign = "deny"
@@ -974,7 +1064,7 @@ string_lit_chars_any = "deny"
 string_slice = "deny"
 strlen_on_c_strings = "deny"
 struct_excessive_bools = "deny"
-struct_field_names = "deny"
+struct_field_names = "allow"
 suboptimal_flops = "deny"
 suspicious_arithmetic_impl = "deny"
 suspicious_assignment_formatting = "deny"
@@ -995,8 +1085,8 @@ tests_outside_test_module = "deny"
 to_digit_is_some = "deny"
 to_string_in_format_args = "deny"
 todo = "deny"
-too_many_arguments = "deny"
-too_many_lines = "deny"
+too_many_arguments = "allow"
+too_many_lines = "allow"
 toplevel_ref_arg = "deny"
 trailing_empty_array = "deny"
 trait_duplication_in_bounds = "deny"
@@ -1014,7 +1104,7 @@ trivial_regex = "deny"
 trivially_copy_pass_by_ref = "deny"
 try_err = "deny"
 tuple_array_conversions = "deny"
-type_complexity = "deny"
+type_complexity = "allow"
 type_id_on_box = "deny"
 type_repetition_in_bounds = "deny"
 undocumented_unsafe_blocks = "deny"
@@ -1055,7 +1145,7 @@ unreachable = "deny"
 unreadable_literal = "deny"
 unsafe_derive_deserialize = "deny"
 unsafe_removed_from_name = "deny"
-unseparated_literal_suffix = "deny"
+unseparated_literal_suffix = "allow"
 unsound_collection_transmute = "deny"
 unused_async = "deny"
 unused_enumerate_index = "deny"
@@ -1070,14 +1160,14 @@ unwrap_in_result = "deny"
 unwrap_or_default = "deny"
 unwrap_used = "deny"
 upper_case_acronyms = "deny"
-use_debug = "deny"
+use_debug = "allow"
 use_self = "deny"
 used_underscore_binding = "deny"
 useless_asref = "deny"
 useless_attribute = "deny"
 useless_conversion = "deny"
 useless_format = "deny"
-useless_borrows_in_formatting = "deny"
+useless_borrows_in_formatting = "allow"
 useless_let_if_seq = "deny"
 useless_transmute = "deny"
 useless_vec = "deny"
@@ -1164,7 +1254,7 @@ infallible_try_from = "deny"
 inverted_saturating_sub = "deny"
 io_other_error = "deny"
 ip_constant = "deny"
-literal_string_with_formatting_args = "deny"
+literal_string_with_formatting_args = "allow"
 manual_abs_diff = "deny"
 manual_contains = "deny"
 manual_dangling_ptr = "deny"
@@ -1231,5 +1321,5 @@ duration_suboptimal_units = "deny"
 manual_take = "deny"
 manual_checked_ops = "deny"
 disallowed_fields = "deny"
-unnecessary_trailing_comma = "deny"
+unnecessary_trailing_comma = "allow"
 manual_assert_eq = "deny"

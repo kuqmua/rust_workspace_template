@@ -13,7 +13,12 @@ categories = ["config"]
 
 [dependencies]
 app_state.workspace = true
+chrono.workspace = true
 config_lib.workspace = true
+dotenv.workspace = true
+optml.workspace = true
+secrecy.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true

@@ -1,21 +1,17 @@
-#[must_use]
-pub fn gen_impl_try_from_ts<FromTokenStream, ForTokenStream, ErrorTokenStream, BodyTokenStream>(
-    from_type: &FromTokenStream,
-    for_type: &ForTokenStream,
-    error_type: &ErrorTokenStream,
-    body: &BodyTokenStream,
-) -> proc_macro2::TokenStream
-where
-    FromTokenStream: quote::ToTokens + ?Sized,
-    ForTokenStream: quote::ToTokens + ?Sized,
-    ErrorTokenStream: quote::ToTokens + ?Sized,
-    BodyTokenStream: quote::ToTokens + ?Sized,
-{
-    quote::quote! {
-        impl TryFrom<#from_type> for #for_type {
-            type Error = #error_type;
-            fn try_from(value: #from_type) -> Result<Self, Self::Error> {
-                #body
+use naming::VSc;
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+pub fn gen_impl_try_from_ts(
+    from_type_ts: &dyn ToTokens,
+    for_type_ts: &dyn ToTokens,
+    er_type_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> Ts2 {
+    quote! {
+        impl TryFrom<#from_type_ts> for #for_type_ts {
+            type Error = #er_type_ts;
+            fn try_from(#VSc: #from_type_ts) -> Result<Self, Self::Error> {
+                #ts
             }
         }
     }

@@ -1,59 +1,85 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AddSerdeSkipSerializingIfVecIsEmptyAnn {
-    False,
-    True,
-}
+use std::fmt::Display;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IdentPattern {
-    ArrNlWithIdentifier,
-    ArrNnWithId,
-    StdrtNlWithoutId,
-    StdrtNnWithId,
-    StdrtNnWithoutId,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use optml::Optml;
+use proc_macro2::TokenStream as Ts2;
+use quote::ToTokens;
+use strum_macros::{Display, EnumIter};
+#[derive(Debug, Clone, Copy, Display, EnumIter, Optml)]
 pub enum IsStdrtWithId {
     False,
     True,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NewTypeOrStructDcl {
-    NewType,
-    StructDcl,
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Copy)]
+pub enum IdentPattern {
+    StdrtNnWithoutId,
+    StdrtNnWithId,
+    StdrtNlWithoutId,
+    ArrNnWithId,
+    ArrNlWithIdentifier,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Copy, Display, Optml)]
 pub enum PgJsonSubtype {
+    Tt,
     Cr,
     CrForQuery,
+    Sel,
+    Wh,
     Rd,
     RdIds,
     RdInn,
-    Sel,
-    Tt,
     Upd,
     UpdForQuery,
-    Wh,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PgJsonSubtypeTtOrCr {
-    Cr,
-    Tt,
+fn display_to_tokens(v: &dyn Display, tokens: &mut Ts2) {
+    v.to_string()
+        .parse::<Ts2>()
+        .expect("43ac0b62")
+        .to_tokens(tokens);
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+impl ToTokens for PgJsonSubtype {
+    fn to_tokens(&self, tokens: &mut Ts2) {
+        display_to_tokens(self, tokens);
+    }
+}
+#[derive(Debug, Clone, Copy, Display, Optml)]
 pub enum PgTypeSubtype {
     Rd,
     Upd,
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+impl ToTokens for PgTypeSubtype {
+    fn to_tokens(&self, tokens: &mut Ts2) {
+        display_to_tokens(self, tokens);
+    }
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Copy)]
+pub enum PgJsonSubtypeTtOrCr {
+    Tt,
+    Cr,
+}
+impl From<&PgJsonSubtypeTtOrCr> for PgJsonSubtype {
+    fn from(v: &PgJsonSubtypeTtOrCr) -> Self {
+        match &v {
+            PgJsonSubtypeTtOrCr::Tt => Self::Tt,
+            PgJsonSubtypeTtOrCr::Cr => Self::Cr,
+        }
+    }
+}
+#[derive(Debug, Clone, Copy)]
 pub enum RdWithOrWithoutAnnOrInn {
     Inn,
     WithSerdeOptIsNoneAnn,
     WithoutSerdeOptIsNoneAnn,
+}
+#[derive(Debug, Clone, Copy)]
+pub enum AddSerdeSkipSerializingIfVecIsEmptyAnn {
+    False,
+    True,
+}
+#[derive(Debug, Clone, Copy)]
+pub enum NewTypeOrStructDcl {
+    NewType,
+    StructDcl,
 }

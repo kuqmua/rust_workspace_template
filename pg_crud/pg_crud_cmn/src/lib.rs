@@ -1,6 +1,48 @@
-pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
+use std::{
+    error::Error as StdErEr,
+    fmt::{Debug, Display, Formatter, Result as StdFmtResult, Write as _},
+};
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
+use loc_lib::{Location, ToErrString, loc, loc::Loc};
+use naming::{AndSc, AscUcc, DescUcc, DisplayToScStr, DisplayToUccStr, NotSc, OrSc};
+use optml::Optml;
+use proc_macro2::TokenStream as Ts2;
+use quote::{ToTokens, quote};
+use schemars::JsonSchema;
+use serde::{Deserialize, Deserializer, Serialize};
+use sqlx::{
+    Database, Decode, Encode, Postgres, Type,
+    encode::IsNull,
+    error::BoxDynError,
+    postgres::{PgArgumentBuffer, PgArguments, PgValueRef},
+    query::Query,
+    types::Json,
+};
+use strum_macros::EnumString;
+use thiserror::Error;
+use utoipa::ToSchema;
+use uuid::Uuid;
+macro_rules! trait_al {
+    ($name:ident = $($bounds:tt)+) => {
+        pub trait $name: $($bounds)+ {}
+        impl<T: $($bounds)+> $name for T {}
+    };
+}
+pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
+pub const NULL_JSONB: &str = "'null'::jsonb";
+pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
+    fn all_vrts_dflt_some_one_el() -> Vec<Self>;
+}
+pub trait AllEnumVrtsArrDfltSomeOneElMaxPageSize: Sized {
+    fn all_vrts_dflt_some_one_el_max_page_size() -> Vec<Self>;
+}
+pub trait DfltSomeOneEl: Sized {
+    fn dflt_some_one_el() -> Self;
+}
+pub trait DfltSomeOneElMaxPageSize: Sized {
+    fn dflt_some_one_el_max_page_size() -> Self;
+}
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, Eq, PartialEq, JsonSchema, Optml)]
 pub enum Oprtr {
     And,
     AndNot,
@@ -8,377 +50,1623 @@ pub enum Oprtr {
     Or,
     OrNot,
 }
-
-pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
-    fn all_vrts_dflt_some_one_el() -> Self;
-}
-
-pub trait AllEnumVrtsArrDfltSomeOneElMaxPageSize: Sized {
-    fn all_vrts_dflt_some_one_el_max_page_size() -> Self;
-}
-
-pub trait DfltSomeOneEl: Sized {
-    fn dflt_some_one_el() -> Self;
-}
-
-pub trait DfltSomeOneElMaxPageSize: Sized {
-    fn dflt_some_one_el_max_page_size() -> Self;
-}
-
 impl DfltSomeOneEl for Oprtr {
     fn dflt_some_one_el() -> Self {
         Self::default()
     }
 }
-
-impl core::fmt::Display for Oprtr {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match *self {
-            Self::And => core::write!(f, "And"),
-            Self::AndNot => core::write!(f, "AndNot"),
-            Self::Or => core::write!(f, "Or"),
-            Self::OrNot => core::write!(f, "OrNot"),
-        }
+impl Display for Oprtr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+        write!(f, "{self:?}")
     }
 }
-
 impl Oprtr {
     #[must_use]
-    pub const fn is_negative(self) -> OprtrNegativeState {
-        match self {
-            Self::And | Self::Or => OprtrNegativeState::False,
-            Self::AndNot | Self::OrNot => OprtrNegativeState::True,
+    pub fn to_qp(&self, add_oprtr: bool) -> String {
+        const SPACE: &str = " ";
+        let mut qp = String::with_capacity(8);
+        if add_oprtr {
+            let write_res = match *self {
+                Self::And | Self::AndNot => write!(&mut qp, "{AndSc}{SPACE}"),
+                Self::Or | Self::OrNot => write!(&mut qp, "{OrSc}{SPACE}"),
+            };
+            if write_res.is_err() {
+                return String::default();
+            }
         }
+        if matches!(*self, Self::AndNot | Self::OrNot) && write!(&mut qp, "{NotSc}{SPACE}").is_err()
+        {
+            return String::default();
+        }
+        qp
     }
 }
+#[cfg(test)]
+mod tests_oprtr_to_qp {
+    use naming::{AndSc, NotSc, OrSc};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum OprtrNegativeState {
-    False,
-    True,
+    use super::Oprtr;
+    #[test]
+    fn to_qp_includes_oprtr_when_requested() {
+        assert_eq!(Oprtr::And.to_qp(true), format!("{AndSc} "));
+        assert_eq!(Oprtr::Or.to_qp(true), format!("{OrSc} "));
+    }
+    #[test]
+    fn to_qp_includes_not_suffix_for_negative_variants() {
+        assert_eq!(Oprtr::AndNot.to_qp(true), format!("{AndSc} {NotSc} "));
+        assert_eq!(Oprtr::OrNot.to_qp(true), format!("{OrSc} {NotSc} "));
+    }
+    #[test]
+    fn to_qp_omits_oprtr_when_disabled_and_keeps_not_only_for_negative_variants() {
+        assert_eq!(Oprtr::And.to_qp(false), "");
+        assert_eq!(Oprtr::Or.to_qp(false), "");
+        assert_eq!(Oprtr::AndNot.to_qp(false), format!("{NotSc} "));
+        assert_eq!(Oprtr::OrNot.to_qp(false), format!("{NotSc} "));
+    }
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+impl ToTokens for Oprtr {
+    fn to_tokens(&self, tokens: &mut Ts2) {
+        match *self {
+            Self::And => quote! {And},
+            Self::Or => quote! {Or},
+            Self::AndNot => quote! {AndNot},
+            Self::OrNot => quote! {OrNot},
+        }
+        .to_tokens(tokens);
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Optml)]
 pub enum PgJsonLenGreaterThanVrt {
     EqNotLenGreaterThan,
     LenGreaterThan,
     NotLenGreaterThan,
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+impl PgJsonLenGreaterThanVrt {
+    #[must_use]
+    pub const fn oprtr(&self) -> Oprtr {
+        match *self {
+            Self::LenGreaterThan => Oprtr::Or,
+            Self::NotLenGreaterThan | Self::EqNotLenGreaterThan => Oprtr::OrNot,
+        }
+    }
+}
+impl ToTokens for PgJsonLenGreaterThanVrt {
+    fn to_tokens(&self, tokens: &mut Ts2) {
+        match *self {
+            Self::EqNotLenGreaterThan => quote! {EqNotLenGreaterThan},
+            Self::LenGreaterThan => quote! {LenGreaterThan},
+            Self::NotLenGreaterThan => quote! {NotLenGreaterThan},
+        }
+        .to_tokens(tokens);
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Optml)]
 pub enum PgTypeGreaterThanVrt {
     EqNotGreaterThan,
     GreaterThan,
     NotGreaterThan,
 }
+impl PgTypeGreaterThanVrt {
+    #[must_use]
+    pub const fn oprtr(&self) -> Oprtr {
+        match *self {
+            Self::GreaterThan => Oprtr::Or,
+            Self::NotGreaterThan | Self::EqNotGreaterThan => Oprtr::OrNot,
+        }
+    }
+}
+impl ToTokens for PgTypeGreaterThanVrt {
+    fn to_tokens(&self, tokens: &mut Ts2) {
+        match *self {
+            Self::EqNotGreaterThan => quote! {EqNotGreaterThan},
+            Self::GreaterThan => quote! {GreaterThan},
+            Self::NotGreaterThan => quote! {NotGreaterThan},
+        }
+        .to_tokens(tokens);
+    }
+}
+trait_al!(DebugClonePartialEqAl = Debug + Clone + PartialEq);
+trait_al!(DebugClonePartialEqSerializeAl = DebugClonePartialEqAl + Serialize);
+trait_al!(DebugClonePartialEqSerdeAl = DebugClonePartialEqSerializeAl + for<'__> Deserialize<'__>);
+trait_al!(DebugClonePartialEqSerdeDefaultSomeOneAl = DebugClonePartialEqSerdeAl + DfltSomeOneEl);
+trait_al!(SqlxEncodePgSqlxTypePgAl = for<'__> Encode<'__, Postgres> + Type<Postgres>);
+trait_al!(UtoipaToSchemaAndSchemarsJsonSchemaAl = for<'__> ToSchema<'__> + JsonSchema);
+trait_al!(TtAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+trait_al!(CrAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+trait_al!(CrForQueryAl = DebugClonePartialEqSerializeAl + SqlxEncodePgSqlxTypePgAl);
+trait_al!(SelAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+trait_al!(WhAl = DebugClonePartialEqSerdeAl + for<'__> PgTypeWhFlt<'__>);
+trait_al!(RdAl = DebugClonePartialEqSerdeAl);
+trait_al!(RdIdsAl = DebugClonePartialEqSerdeAl);
+trait_al!(RdInnAl = DebugClonePartialEqAl);
+trait_al!(UpdAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+trait_al!(UpdForQueryAl = DebugClonePartialEqSerializeAl);
+#[allow(clippy::arbitrary_source_item_ordering)]
+pub trait PgType {
+    // difference between Cr and Tt - Cr may not contain generated by pg id
+    type Tt: TtAl;
+    fn cr_tbl_col_qp(col: &dyn Display, _: bool) -> impl Display;
+    type Cr: CrAl;
+    fn cr_qp(v: &Self::Cr, incr: &mut u64) -> Result<String, QpEr>;
+    fn cr_qb(
+        v: Self::Cr,
+        query: Query<'_, Postgres, PgArguments>,
+    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+    type Sel: SelAl;
+    fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, QpEr>;
+    type Wh: WhAl;
+    type Rd: RdAl + for<'__> Decode<'__, Postgres> + Type<Postgres>;
+    fn normalize(v: Self::Rd) -> Self::Rd;
+    type RdIds: RdIdsAl;
+    fn sel_only_ids_qp(col: &str) -> Result<String, QpEr>;
+    type RdInn: RdInnAl;
+    fn into_inn(v: Self::Rd) -> Self::RdInn;
+    type Upd: UpdAl;
+    type UpdForQuery: UpdForQueryAl;
+    fn upd_qp(
+        v: &Self::UpdForQuery,
+        jsonb_set_accumulator: &str,
+        jsonb_set_target: &str,
+        jsonb_set_path: &str,
+        incr: &mut u64,
+    ) -> Result<String, QpEr>;
+    fn upd_qb(
+        v: Self::UpdForQuery,
+        query: Query<'_, Postgres, PgArguments>,
+    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+    fn sel_only_updd_ids_qp(
+        v: &Self::UpdForQuery,
+        col: &str,
+        incr: &mut u64,
+    ) -> Result<String, QpEr>;
+    fn sel_only_updd_ids_qb<'lt>(
+        v: &'lt Self::UpdForQuery,
+        query: Query<'lt, Postgres, PgArguments>,
+    ) -> Result<Query<'lt, Postgres, PgArguments>, String>;
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+pub trait PgJson {
+    type Tt: TtAl + UtoipaToSchemaAndSchemarsJsonSchemaAl;
+    type Cr: CrAl + UtoipaToSchemaAndSchemarsJsonSchemaAl;
+    type CrForQuery: CrForQueryAl + From<Self::Cr>;
+    type Sel: SelAl + UtoipaToSchemaAndSchemarsJsonSchemaAl;
+    fn sel_qp(
+        v: &Self::Sel,
+        fi: &str,
+        col_field: &str,
+        // todo remove this coz its used properly now
+        col_field_for_er_msg: &str,
+        is_pg_type: bool,
+    ) -> Result<String, QpEr>;
+    type Wh: WhAl
+        + UtoipaToSchemaAndSchemarsJsonSchemaAl
+        + AllEnumVrtsArrDfltSomeOneEl
+        + ToErrString;
+    // todo impl get fields from rd
+    // todo mb add Decode trait here and Type
+    type Rd: RdAl + UtoipaToSchemaAndSchemarsJsonSchemaAl + DfltSomeOneEl;
+    type RdIds: RdIdsAl;
+    fn sel_only_ids_qp(_col_field: &str) -> Result<String, QpEr> {
+        Ok(format!("jsonb_build_object('v',{NULL_JSONB})"))
+    }
+    type RdInn: RdInnAl;
+    fn into_inn(v: Self::Rd) -> Self::RdInn;
+    type Upd: UpdAl + UtoipaToSchemaAndSchemarsJsonSchemaAl;
+    type UpdForQuery: UpdForQueryAl + From<Self::Upd>;
+    fn upd_qp(
+        _v: &Self::UpdForQuery,
+        jsonb_set_accumulator: &str,
+        _jsonb_set_target: &str,
+        jsonb_set_path: &str,
+        incr: &mut u64,
+    ) -> Result<String, QpEr> {
+        pg_json_upd_qp(jsonb_set_accumulator, jsonb_set_path, incr)
+    }
+    fn upd_qb(
+        v: Self::UpdForQuery,
+        query: Query<'_, Postgres, PgArguments>,
+    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+    fn sel_only_updd_ids_qp(
+        _v: &Self::UpdForQuery,
+        fi: &str,
+        _col_field: &str,
+        _incr: &mut u64,
+    ) -> Result<String, QpEr> {
+        Ok(fi_jsonb_build_obj_v(fi))
+    }
+    fn sel_only_updd_ids_qb<'lt>(
+        _v: &'lt Self::UpdForQuery,
+        query: Query<'lt, Postgres, PgArguments>,
+    ) -> Result<Query<'lt, Postgres, PgArguments>, String> {
+        Ok(query)
+    }
+    fn sel_only_crd_ids_qp(
+        _v: &Self::CrForQuery,
+        fi: &str,
+        _col_field: &str,
+        _incr: &mut u64,
+    ) -> Result<String, QpEr> {
+        Ok(fi_jsonb_build_obj_v(fi))
+    }
+    fn sel_only_crd_ids_qb<'lt>(
+        _v: &'lt Self::CrForQuery,
+        query: Query<'lt, Postgres, PgArguments>,
+    ) -> Result<Query<'lt, Postgres, PgArguments>, String> {
+        Ok(query)
+    }
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+pub trait PgTypePk {
+    type PgType: PgType;
+    type Tt: TtAl + PartialOrd;
+    fn rd_ids_into_tt(v: <Self::PgType as PgType>::RdIds) -> <Self::PgType as PgType>::Tt;
+    fn rd_ids_into_rd(v: <Self::PgType as PgType>::RdIds) -> <Self::PgType as PgType>::Rd;
+    fn rd_ids_into_upd(v: <Self::PgType as PgType>::RdIds) -> <Self::PgType as PgType>::Upd;
+    fn rd_into_tt(v: <Self::PgType as PgType>::Rd) -> <Self::PgType as PgType>::Tt;
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+pub trait PgTypeNotPk {
+    type PgType: PgType;
+    type Cr: CrAl + SqlxEncodePgSqlxTypePgAl;
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+pub trait PgJsonObjVecElId {
+    type PgJson: PgJson;
+    type CrForQuery: CrForQueryAl
+        + From<<Self::PgJson as PgJson>::Cr>
+        + From<<Self::PgJson as PgJson>::Upd>;
+    type Upd: UpdAl + UtoipaToSchemaAndSchemarsJsonSchemaAl + ToErrString;
+    type RdInn: RdInnAl;
+    fn qb_string_as_pg_text_cr_for_query(
+        v: <Self::PgJson as PgJson>::CrForQuery,
+        query: Query<'_, Postgres, PgArguments>,
+    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+    fn qb_string_as_pg_text_upd_for_query(
+        v: <Self::PgJson as PgJson>::UpdForQuery,
+        query: Query<'_, Postgres, PgArguments>,
+    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+    fn get_inn(v: &<Self::PgJson as PgJson>::CrForQuery) -> &Self::RdInn;
+    fn incr_checked_add_one(incr: &mut u64) -> Result<u64, QpEr>;
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[cfg(feature = "test-utils")]
+pub trait PgTypeTestCases {
+    type PgType: PgType;
+    type Sel: SelAl + DfltSomeOneElMaxPageSize;
+    #[must_use]
+    fn opt_vec_cr() -> Option<Vec<<Self::PgType as PgType>::Cr>> {
+        None
+    }
+    fn rd_ids_to_2_dims_vec_rd_inn(
+        rd_ids: &<Self::PgType as PgType>::RdIds,
+    ) -> Vec<Vec<<Self::PgType as PgType>::RdInn>>;
+    fn rd_inn_into_rd_with_new_or_try_new_unwraped(
+        v: <Self::PgType as PgType>::RdInn,
+    ) -> <Self::PgType as PgType>::Rd;
+    fn rd_inn_into_upd_with_new_or_try_new_unwraped(
+        v: <Self::PgType as PgType>::RdInn,
+    ) -> <Self::PgType as PgType>::Upd;
+    fn upd_to_rd_ids(v: &<Self::PgType as PgType>::Upd) -> <Self::PgType as PgType>::RdIds;
+    fn rd_ids_to_opt_v_rd_dflt_some_one_el(
+        _v: &<Self::PgType as PgType>::RdIds,
+    ) -> Option<V<<Self::PgType as PgType>::Rd>> {
+        None
+    }
+    fn previous_rd_and_opt_upd_into_rd(
+        rd: <Self::PgType as PgType>::Rd,
+        opt_upd: Option<<Self::PgType as PgType>::Upd>,
+    ) -> <Self::PgType as PgType>::Rd;
+    fn rd_ids_and_cr_into_rd(
+        rd_ids: <Self::PgType as PgType>::RdIds,
+        cr: <Self::PgType as PgType>::Cr,
+    ) -> <Self::PgType as PgType>::Rd;
+    fn rd_ids_and_cr_into_opt_v_rd(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<V<<Self::PgType as PgType>::Rd>> {
+        None
+    }
+    fn rd_ids_and_cr_into_tt(
+        rd_ids: <Self::PgType as PgType>::RdIds,
+        cr: <Self::PgType as PgType>::Cr,
+    ) -> <Self::PgType as PgType>::Tt;
+    // todo add prefix pg_type or pg_json ?
+    fn rd_ids_and_cr_into_wh_eq(
+        rd_ids: <Self::PgType as PgType>::RdIds,
+        cr: <Self::PgType as PgType>::Cr,
+    ) -> <Self::PgType as PgType>::Wh;
+    fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
+        rd_ids: <Self::PgType as PgType>::RdIds,
+        cr: <Self::PgType as PgType>::Cr,
+    ) -> NotEmptyUnqVec<<Self::PgType as PgType>::Wh>;
+    fn rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn cr_into_pg_type_opt_vec_wh_dim_one_eq(
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    #[must_use]
+    fn pg_type_opt_vec_wh_greater_than_test()
+    -> Option<NotEmptyUnqVec<PgTypeGreaterThanTest<Self::PgType>>> {
+        None
+    }
+    fn rd_ids_and_tt_into_pg_type_opt_wh_greater_than(
+        _greater_than_vrt: PgTypeGreaterThanVrt,
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _tt: <Self::PgType as PgType>::Tt,
+    ) -> Option<<Self::PgType as PgType>::Wh> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn cr_into_pg_json_opt_vec_wh_len_eq(
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn cr_into_pg_json_opt_vec_wh_len_greater_than(
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgType as PgType>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
+        _rd_ids: <Self::PgType as PgType>::RdIds,
+        _cr: <Self::PgType as PgType>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgType as PgType>::Wh>>> {
+        None
+    }
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, PartialEq, Optml)]
+pub struct PgTypeGreaterThanTest<T: PgType> {
+    pub greater_than: <T as PgType>::Tt,
+    pub cr: <T as PgType>::Cr,
+    pub vrt: PgTypeGreaterThanVrt,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Optml)]
+pub struct PgTypeLenGreaterThanTest<T: PgType> {
+    pub cr: <T as PgType>::Cr,
+    pub vrt: PgJsonLenGreaterThanVrt,
+    pub len_greater_than: UnsignedPartOfI32,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Optml)]
+pub struct PgJsonLenGreaterThanTest<T: PgJson> {
+    pub cr: <T as PgJson>::Cr,
+    pub vrt: PgJsonLenGreaterThanVrt,
+    pub len_greater_than: UnsignedPartOfI32,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[cfg(feature = "test-utils")]
+pub trait PgJsonTestCases {
+    type PgJson: PgJson;
+    type Sel: SelAl + UtoipaToSchemaAndSchemarsJsonSchemaAl + DfltSomeOneElMaxPageSize;
+    fn opt_vec_cr() -> Option<Vec<<Self::PgJson as PgJson>::Cr>>;
+    fn rd_ids_to_2_dims_vec_rd_inn(
+        rd_ids: &<Self::PgJson as PgJson>::RdIds,
+    ) -> Vec<Vec<<Self::PgJson as PgJson>::RdInn>>;
+    fn rd_inn_into_rd_with_new_or_try_new_unwraped(
+        v: <Self::PgJson as PgJson>::RdInn,
+    ) -> <Self::PgJson as PgJson>::Rd;
+    fn rd_inn_into_upd_with_new_or_try_new_unwraped(
+        v: <Self::PgJson as PgJson>::RdInn,
+    ) -> <Self::PgJson as PgJson>::Upd;
+    fn rd_ids_into_opt_v_rd_inn(
+        v: <Self::PgJson as PgJson>::RdIds,
+    ) -> Option<V<<Self::PgJson as PgJson>::RdInn>>;
+    fn upd_to_rd_ids(v: &<Self::PgJson as PgJson>::Upd) -> <Self::PgJson as PgJson>::RdIds;
+    fn rd_ids_to_opt_v_rd_dflt_some_one_el(
+        _v: &<Self::PgJson as PgJson>::RdIds,
+    ) -> Option<V<<Self::PgJson as PgJson>::Rd>> {
+        Some(V {
+            v: DfltSomeOneEl::dflt_some_one_el(),
+        })
+    }
+    fn previous_rd_and_opt_upd_into_rd(
+        rd: <Self::PgJson as PgJson>::Rd,
+        opt_upd: Option<<Self::PgJson as PgJson>::Upd>,
+    ) -> <Self::PgJson as PgJson>::Rd;
+    fn rd_ids_and_cr_into_rd(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> <Self::PgJson as PgJson>::Rd;
+    fn rd_ids_and_cr_into_opt_v_rd(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<V<<Self::PgJson as PgJson>::Rd>> {
+        Some(V {
+            v: Self::rd_ids_and_cr_into_rd(rd_ids, cr),
+        })
+    }
+    fn rd_ids_and_cr_into_tt(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> <Self::PgJson as PgJson>::Tt;
+    fn rd_ids_and_cr_into_wh_eq(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> <Self::PgJson as PgJson>::Wh;
+    fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>;
+    fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
+        rd_ids: <Self::PgJson as PgJson>::RdIds,
+        cr: <Self::PgJson as PgJson>::Cr,
+    ) -> NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh> {
+        Self::rd_ids_and_cr_into_vec_wh_eq_using_fields(rd_ids, cr)
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn cr_into_pg_json_opt_vec_wh_len_eq(
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn cr_into_pg_json_opt_vec_wh_len_greater_than(
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<<Self::PgJson as PgJson>::Wh>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+    fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
+        _rd_ids: <Self::PgJson as PgJson>::RdIds,
+        _cr: <Self::PgJson as PgJson>::Cr,
+    ) -> Option<NotEmptyUnqVec<SingleOrMultiple<<Self::PgJson as PgJson>::Wh>>> {
+        None
+    }
+}
+pub trait PgTypeWhFlt<'query_lt> {
+    fn qb(
+        self,
+        query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String>;
+    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr>;
+}
+// todo custom deserialization - must not contain more than one el
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+pub struct NlJsonObjPgTypeWhFlt<
+    T: Debug + PartialEq + Clone + for<'lt> PgTypeWhFlt<'lt> + AllEnumVrtsArrDfltSomeOneEl,
+>(pub Option<NotEmptyUnqVec<T>>);
+impl<'query_lt, T> PgTypeWhFlt<'query_lt> for NlJsonObjPgTypeWhFlt<T>
+where
+    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+{
+    fn qb(
+        self,
+        query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        match self.0 {
+            Some(v) => v.qb(query),
+            None => Ok(query), // todo mb wrong
+        }
+    }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+        self.0.as_ref().map_or_else(
+            || Ok(format!("{col} = 'null'")),
+            |v| v.qp(incr, col, add_oprtr),
+        )
+    }
+}
+impl<T> ToErrString for NlJsonObjPgTypeWhFlt<T>
+where
+    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+{
+    fn to_err_string(&self) -> String {
+        format!("{self:#?}")
+    }
+}
+impl<T> AllEnumVrtsArrDfltSomeOneEl for NlJsonObjPgTypeWhFlt<T>
+where
+    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+{
+    fn all_vrts_dflt_some_one_el() -> Vec<Self> {
+        vec![Self(Some(DfltSomeOneEl::dflt_some_one_el()))]
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, Optml)]
+pub enum QpEr {
+    CheckedAdd { loc: Loc },
+    WriteIntoBuffer { loc: Loc },
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
+pub struct PgTypeWh<T> {
+    v: NotEmptyUnqVec<T>,
+    oprtr: Oprtr,
+}
+impl<T: PartialEq + Clone> PgTypeWh<T> {
+    #[must_use]
+    pub const fn get_oprtr(&self) -> &Oprtr {
+        &self.oprtr
+    }
+
+    #[must_use]
+    pub const fn new(oprtr: Oprtr, v: NotEmptyUnqVec<T>) -> Self {
+        Self { v, oprtr }
+    }
+
+    pub fn try_new(oprtr: Oprtr, v: Vec<T>) -> Result<Self, NotEmptyUnqVecTryNewEr<T>> {
+        match NotEmptyUnqVec::try_new(v) {
+            Ok(v0) => Ok(Self { oprtr, v: v0 }),
+            Err(er) => Err(er),
+        }
+    }
+}
+#[allow(unused_qualifications)]
+#[allow(clippy::absolute_paths)]
+#[allow(clippy::arbitrary_source_item_ordering)]
+const _: () = {
+    #[expect(clippy::useless_attribute)]
+    extern crate serde as _serde;
+    #[automatically_derived]
+    impl<'de, T: Debug + PartialEq + Clone + Deserialize<'de>> Deserialize<'de> for PgTypeWh<T> {
+        fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+        where
+            __D: Deserializer<'de>,
+        {
+            #[expect(non_camel_case_types)]
+            #[doc(hidden)]
+            enum __Field {
+                f0,
+                f1,
+                __ignore,
+            }
+            #[doc(hidden)]
+            struct __FieldVisitor;
+            impl _serde::de::Visitor<'_> for __FieldVisitor {
+                type Value = __Field;
+
+                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
+                    _serde::__private228::Formatter::write_str(__f, "field identifier")
+                }
+
+                fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
+                where
+                    __E: _serde::de::Error,
+                {
+                    match v {
+                        0u64 => Ok(__Field::f0),
+                        1u64 => Ok(__Field::f1),
+                        _ => Ok(__Field::__ignore),
+                    }
+                }
+
+                fn visit_str<__E>(self, v: &str) -> Result<Self::Value, __E>
+                where
+                    __E: _serde::de::Error,
+                {
+                    match v {
+                        "oprtr" => Ok(__Field::f0),
+                        "v" => Ok(__Field::f1),
+                        _ => Ok(__Field::__ignore),
+                    }
+                }
+
+                fn visit_bytes<__E>(self, v: &[u8]) -> Result<Self::Value, __E>
+                where
+                    __E: _serde::de::Error,
+                {
+                    match v {
+                        b"oprtr" => Ok(__Field::f0),
+                        b"v" => Ok(__Field::f1),
+                        _ => Ok(__Field::__ignore),
+                    }
+                }
+            }
+            impl<'de> Deserialize<'de> for __Field {
+                #[inline]
+                fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+                where
+                    __D: Deserializer<'de>,
+                {
+                    Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                }
+            }
+            #[doc(hidden)]
+            struct __Visitor<'de, PgTypeWh> {
+                marker: _serde::__private228::PhantomData<PgTypeWh>,
+                lt: _serde::__private228::PhantomData<&'de ()>,
+            }
+            impl<'de, T: Debug + PartialEq + Clone + Deserialize<'de>> _serde::de::Visitor<'de>
+                for __Visitor<'de, T>
+            {
+                type Value = PgTypeWh<T>;
+
+                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
+                    Formatter::write_str(__f, "struct PgTypeWh")
+                }
+
+                #[inline]
+                fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
+                where
+                    __A: _serde::de::SeqAccess<'de>,
+                {
+                    let Some(f0) = _serde::de::SeqAccess::next_element::<Oprtr>(&mut __seq)? else {
+                        return Err(_serde::de::Error::invalid_length(
+                            0usize,
+                            &"struct PgTypeWh with 2 els",
+                        ));
+                    };
+                    let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
+                    else {
+                        return Err(_serde::de::Error::invalid_length(
+                            1usize,
+                            &"struct PgTypeWh with 2 els",
+                        ));
+                    };
+                    match PgTypeWh::try_new(f0, f1) {
+                        Ok(v) => Ok(v),
+                        Err(er) => Err(serde::de::Error::custom(format!("{er:?}"))),
+                    }
+                }
+
+                #[inline]
+                fn visit_map<__A>(self, mut __map: __A) -> Result<Self::Value, __A::Error>
+                where
+                    __A: _serde::de::MapAccess<'de>,
+                {
+                    let mut f0: Option<Oprtr> = None;
+                    let mut f1: Option<Vec<T>> = None;
+                    while let Some(__k) = _serde::de::MapAccess::next_key::<__Field>(&mut __map)? {
+                        match __k {
+                            __Field::f0 => {
+                                if Option::is_some(&f0) {
+                                    return Err(
+                                        <__A::Error as _serde::de::Error>::duplicate_field("oprtr"),
+                                    );
+                                }
+                                f0 = Some(_serde::de::MapAccess::next_value::<Oprtr>(&mut __map)?);
+                            }
+                            __Field::f1 => {
+                                if Option::is_some(&f1) {
+                                    return Err(
+                                        <__A::Error as _serde::de::Error>::duplicate_field("v"),
+                                    );
+                                }
+                                f1 = Some(_serde::de::MapAccess::next_value::<Vec<T>>(&mut __map)?);
+                            }
+                            __Field::__ignore => {
+                                let _: serde::de::IgnoredAny =
+                                    _serde::de::MapAccess::next_value::<_serde::de::IgnoredAny>(
+                                        &mut __map,
+                                    )?;
+                            }
+                        }
+                    }
+                    let f0_v = match f0 {
+                        Some(v) => v,
+                        None => _serde::__private228::de::missing_field("oprtr")?,
+                    };
+                    let f1_v = match f1 {
+                        Some(v) => v,
+                        None => _serde::__private228::de::missing_field("v")?,
+                    };
+                    match PgTypeWh::try_new(f0_v, f1_v) {
+                        Ok(v) => Ok(v),
+                        Err(er) => Err(serde::de::Error::custom(format!("{er:?}"))),
+                    }
+                }
+            }
+            #[doc(hidden)]
+            const FIELDS: &[&str] = &["oprtr", "v"];
+            Deserializer::deserialize_struct(
+                __deserializer,
+                "PgTypeWh",
+                FIELDS,
+                __Visitor {
+                    marker: _serde::__private228::PhantomData::<T>,
+                    lt: _serde::__private228::PhantomData,
+                },
+            )
+        }
+    }
+};
+impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T> {
+    fn qb(
+        self,
+        mut query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        for el in self.v.0 {
+            match PgTypeWhFlt::qb(el, query) {
+                Ok(v) => {
+                    query = v;
+                }
+                Err(er) => {
+                    return Err(er);
+                }
+            }
+        }
+        Ok(query)
+    }
+
+    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+        let mut acc = String::default();
+        let mut add_oprtr_inn_h = false;
+        for el in &self.v.0 {
+            match PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h) {
+                Ok(v) => {
+                    use std::fmt::Write as _;
+                    if write!(acc, "{v} ").is_err() {
+                        return Err(QpEr::WriteIntoBuffer { loc: loc!() });
+                    }
+                    add_oprtr_inn_h = true;
+                }
+                Err(er) => {
+                    return Err(er);
+                }
+            }
+        }
+        let _: Option<char> = acc.pop();
+        Ok(format!("{}({acc})", &self.oprtr.to_qp(add_oprtr)))
+    }
+}
+impl<T: Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl for PgTypeWh<T> {
+    fn dflt_some_one_el() -> Self {
+        Self {
+            oprtr: DfltSomeOneEl::dflt_some_one_el(),
+            v: NotEmptyUnqVec::try_new(AllEnumVrtsArrDfltSomeOneEl::all_vrts_dflt_some_one_el())
+                .expect("a918b427"),
+        }
+    }
+}
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, EnumString, Optml)]
+#[strum(serialize_all = "snake_case")]
 pub enum Order {
+    #[serde(rename(serialize = "asc", deserialize = "asc"))]
+    #[default]
     Asc,
+    #[serde(rename(serialize = "desc", deserialize = "desc"))]
     Desc,
 }
-
+impl Display for Order {
+    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+        match self {
+            Self::Asc => write!(f, "{AscUcc}"),
+            Self::Desc => write!(f, "{DescUcc}"),
+        }
+    }
+}
 impl DfltSomeOneEl for Order {
     fn dflt_some_one_el() -> Self {
-        Self::Asc
+        Self::default()
     }
 }
-
-impl core::fmt::Display for Order {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match *self {
-            Self::Asc => core::write!(f, "asc"),
-            Self::Desc => core::write!(f, "desc"),
-        }
-    }
-}
-
-pub trait PgType {}
-
-pub trait PgJson {}
-
-pub trait PgTypePk {}
-
-pub trait PgTypeNotPk {}
-
-pub trait PgJsonObjVecElId {}
-
-pub trait PgTypeTestCases {}
-
-pub trait PgJsonTestCases {}
-
-pub trait PgTypeWhFlt<'query> {}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum QpEr {
-    CheckedAdd,
-    WriteIntoBuffer,
-}
-
-impl core::fmt::Display for QpEr {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match *self {
-            Self::CheckedAdd => core::write!(f, "CheckedAdd"),
-            Self::WriteIntoBuffer => core::write!(f, "WriteIntoBuffer"),
-        }
-    }
-}
-
-impl core::error::Error for QpEr {}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct QueryParameterIndex;
-
-impl From<QueryParameterIndex> for u64 {
-    fn from(_value: QueryParameterIndex) -> Self {
-        Self::from(true)
-    }
-}
-
-impl TryFrom<u64> for QueryParameterIndex {
-    type Error = QpEr;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        if value == u64::MIN {
-            return Err(QpEr::CheckedAdd);
-        }
-        Ok(Self)
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
-pub struct QueryParameterCounter;
-
-impl QueryParameterCounter {
+impl Order {
     #[must_use]
-    pub const fn increment(&mut self) -> QueryParameterIncrementResult {
-        QueryParameterIncrementResult::Incremented(QueryParameterIndex)
+    pub fn to_sc_str(&self) -> String {
+        DisplayToScStr::case(&self)
+    }
+
+    #[must_use]
+    pub fn to_ucc_str(&self) -> String {
+        DisplayToUccStr::case(&self)
     }
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum QueryParameterIncrementResult {
-    CheckedAdd,
-    Incremented(QueryParameterIndex),
+#[derive(Debug, Serialize, Deserialize, Optml)]
+pub struct OrderBy<ColGeneric> {
+    pub col: ColGeneric,
+    pub order: Option<Order>,
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct PgnLimit;
-
-impl From<PgnLimit> for i64 {
-    fn from(_value: PgnLimit) -> Self {
-        DEFAULT_PAGINATION_LIMIT
-    }
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct PgnOffset;
-
-impl From<PgnOffset> for i64 {
-    fn from(_value: PgnOffset) -> Self {
-        Self::from(false)
-    }
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml,
+)]
 pub struct PgnBase {
-    limit: PgnLimit,
-    offset: PgnOffset,
+    limit: i64,
+    offset: i64,
 }
-
 impl PgnBase {
     #[must_use]
-    pub const fn new_unchecked(limit: PgnLimit, offset: PgnOffset) -> Self {
+    pub const fn end(&self) -> i64 {
+        self.offset.checked_add(self.limit).expect("8a297b66")
+    }
+
+    #[must_use]
+    pub const fn new_unchecked(limit: i64, offset: i64) -> Self {
         Self { limit, offset }
     }
-}
 
+    #[must_use]
+    pub const fn start(&self) -> i64 {
+        self.offset
+    }
+}
+impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
+    fn qb(
+        self,
+        mut query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        if let Err(er) = query.try_bind(self.limit) {
+            return Err(er.to_string());
+        }
+        if let Err(er) = query.try_bind(self.offset) {
+            return Err(er.to_string());
+        }
+        Ok(query)
+    }
+
+    fn qp(&self, incr: &mut u64, _: &dyn Display, _: bool) -> Result<String, QpEr> {
+        let limit_incr = match incr_checked_add_one_returning_incr(incr) {
+            Ok(v) => v,
+            Err(er) => {
+                return Err(er);
+            }
+        };
+        let offset_incr = match incr_checked_add_one_returning_incr(incr) {
+            Ok(v) => v,
+            Err(er) => {
+                return Err(er);
+            }
+        };
+        Ok(format!("limit ${limit_incr} offset ${offset_incr}"))
+    }
+}
 impl Default for PgnBase {
     fn default() -> Self {
-        Self::new_unchecked(PgnLimit, PgnOffset)
+        Self::new_unchecked(DEFAULT_PAGINATION_LIMIT, 0)
     }
 }
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct NotEmptyUnqVec<T>(Vec<T>);
-
-impl<T> From<NotEmptyUnqVec<T>> for Vec<T> {
-    fn from(value: NotEmptyUnqVec<T>) -> Self {
-        value.0
-    }
+#[derive(Debug, Deserialize, JsonSchema, Optml)]
+struct PgnStartsWithZeroRaw {
+    limit: i64,
+    offset: i64,
 }
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, ToSchema, JsonSchema, Optml,
+)]
+#[serde(try_from = "PgnStartsWithZeroRaw")]
+pub struct PgnStartsWithZero(PgnBase);
+#[derive(Debug, Serialize, Deserialize, Error, Location, Optml)]
+pub enum PgnStartsWithZeroTryNewEr {
+    LimitIsLessThanOrEqToZero {
+        #[eo_to_err_string_serde]
+        limit: i64,
+        loc: Loc,
+    },
+    OffsetIsLessThanZero {
+        #[eo_to_err_string_serde]
+        offset: i64,
+        loc: Loc,
+    },
+    OffsetPlusLimitIsIntOverflow {
+        #[eo_to_err_string_serde]
+        limit: i64,
+        #[eo_to_err_string_serde]
+        offset: i64,
+        loc: Loc,
+    },
+}
+impl PgnStartsWithZero {
+    #[must_use]
+    pub const fn end(&self) -> i64 {
+        self.0.end()
+    }
 
-impl<T: PartialEq> TryFrom<Vec<T>> for NotEmptyUnqVec<T> {
-    type Error = NotEmptyUnqVecTryNewEr<T>;
+    #[must_use]
+    pub const fn start(&self) -> i64 {
+        self.0.start()
+    }
 
-    fn try_from(mut value: Vec<T>) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(NotEmptyUnqVecTryNewEr::Empty);
-        }
-        match first_duplicate_index(value.as_slice()) {
-            DuplicateIndexSearchResult::Found(duplicate_index) => {
-                Err(NotEmptyUnqVecTryNewEr::NotUnq(value.swap_remove(duplicate_index.0.get())))
+    pub fn try_new(limit: i64, offset: i64) -> Result<Self, PgnStartsWithZeroTryNewEr> {
+        if limit <= 0 || offset < 0 {
+            if limit <= 0 {
+                Err(PgnStartsWithZeroTryNewEr::LimitIsLessThanOrEqToZero { limit, loc: loc!() })
+            } else {
+                Err(PgnStartsWithZeroTryNewEr::OffsetIsLessThanZero {
+                    offset,
+                    loc: loc!(),
+                })
             }
-            DuplicateIndexSearchResult::NotFound => Ok(Self(value)),
+        } else if offset.checked_add(limit).is_some() {
+            Ok(Self(PgnBase::new_unchecked(limit, offset)))
+        } else {
+            Err(PgnStartsWithZeroTryNewEr::OffsetPlusLimitIsIntOverflow {
+                limit,
+                offset,
+                loc: loc!(),
+            })
         }
     }
 }
+impl TryFrom<PgnStartsWithZeroRaw> for PgnStartsWithZero {
+    type Error = PgnStartsWithZeroTryNewEr;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum NotEmptyUnqVecTryNewEr<T> {
-    Empty,
-    NotUnq(T),
+    fn try_from(v: PgnStartsWithZeroRaw) -> Result<Self, Self::Error> {
+        Self::try_new(v.limit, v.offset)
+    }
 }
+impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnStartsWithZero {
+    fn qb(
+        self,
+        query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        self.0.qb(query)
+    }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct JsonFieldRights;
+    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+        self.0.qp(incr, col, add_oprtr)
+    }
+}
+impl DfltSomeOneEl for PgnStartsWithZero {
+    #[inline]
+    fn dflt_some_one_el() -> Self {
+        Self(PgnBase::new_unchecked(DEFAULT_PAGINATION_LIMIT, 0))
+    }
+}
+impl DfltSomeOneElMaxPageSize for PgnStartsWithZero {
+    #[inline]
+    fn dflt_some_one_el_max_page_size() -> Self {
+        Self(PgnBase::new_unchecked(i32::MAX.into(), 0))
+    }
+}
+// this needed coz serde Option<Opt<T>> #[serde(skip_serializing_if =
+// "Option::is_none")] - if both opts: inn and parent is null then it skip - its
+// not correct
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+pub struct V<T> {
+    pub v: T,
+}
+// todo ExactSizeIterator now is not a solution. er[E0658]: use of unstable
+// library feature `exact_size_is_empty`. mb rewrite it later
+pub trait IsStringEmpty {
+    fn is_string_empty(&self) -> bool;
+}
+#[derive(Debug, Serialize, Deserialize, Error, Location, Optml)]
+pub enum NotEmptyUnqVecTryNewEr<T> {
+    IsEmpty {
+        loc: Loc,
+    },
+    NotUnq {
+        #[eo_to_err_string_serde]
+        v: T,
+        loc: Loc,
+    },
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
+pub struct NotEmptyUnqVec<T>(Vec<T>);
+impl<T> NotEmptyUnqVec<T> {
+    #[must_use]
+    pub const fn as_slice(&self) -> &[T] {
+        self.0.as_slice()
+    }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct NonPkPgTypeRdIds;
+    #[must_use]
+    pub fn into_vec(self) -> Vec<T> {
+        self.0
+    }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+    #[must_use]
+    pub const fn to_vec(&self) -> &Vec<T> {
+        &self.0
+    }
+}
+impl<T: PartialEq> NotEmptyUnqVec<T> {
+    pub fn try_new(mut values: Vec<T>) -> Result<Self, NotEmptyUnqVecTryNewEr<T>> {
+        if values.is_empty() {
+            return Err(NotEmptyUnqVecTryNewEr::IsEmpty { loc: loc!() });
+        }
+        if let Some(duplicate) = take_fst_dup(&mut values) {
+            return Err(NotEmptyUnqVecTryNewEr::NotUnq {
+                v: duplicate,
+                loc: loc!(),
+            });
+        }
+        Ok(Self(values))
+    }
+}
+#[allow(unused_qualifications)]
+#[allow(clippy::absolute_paths)]
+#[allow(clippy::arbitrary_source_item_ordering)]
+const _: () = {
+    #[expect(clippy::useless_attribute)]
+    extern crate serde as _serde;
+    #[automatically_derived]
+    impl<'de, T: Debug + PartialEq + Deserialize<'de>> Deserialize<'de> for NotEmptyUnqVec<T> {
+        fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
+        where
+            __D: Deserializer<'de>,
+        {
+            #[doc(hidden)]
+            struct __Visitor<'de, T>
+            where
+                T: Deserialize<'de>,
+            {
+                marker: _serde::__private228::PhantomData<NotEmptyUnqVec<T>>,
+                lt: _serde::__private228::PhantomData<&'de ()>,
+            }
+            #[automatically_derived]
+            impl<'de, T: Debug + PartialEq + Deserialize<'de>> _serde::de::Visitor<'de> for __Visitor<'de, T> {
+                type Value = NotEmptyUnqVec<T>;
+
+                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
+                    Formatter::write_str(__f, "tuple struct NotEmptyUnqVec")
+                }
+
+                #[inline]
+                fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
+                where
+                    __E: Deserializer<'de>,
+                {
+                    let f0: Vec<T> = <Vec<T> as Deserialize>::deserialize(__e)?;
+                    Ok(NotEmptyUnqVec(f0))
+                }
+
+                #[inline]
+                fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
+                where
+                    __A: _serde::de::SeqAccess<'de>,
+                {
+                    let Some(f0) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
+                    else {
+                        return Err(_serde::de::Error::invalid_length(
+                            0usize,
+                            &"tuple struct NotEmptyUnqVec with 1 el",
+                        ));
+                    };
+                    match NotEmptyUnqVec::try_new(f0) {
+                        Ok(v) => Ok(v),
+                        Err(er) => Err(_serde::de::Error::custom(format!("{er:?}"))),
+                    }
+                }
+            }
+            Deserializer::deserialize_newtype_struct(
+                __deserializer,
+                "NotEmptyUnqVec",
+                __Visitor {
+                    marker: _serde::__private228::PhantomData::<Self>,
+                    lt: _serde::__private228::PhantomData,
+                },
+            )
+        }
+    }
+};
+impl<T: AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl for NotEmptyUnqVec<T> {
+    fn dflt_some_one_el() -> Self {
+        Self(AllEnumVrtsArrDfltSomeOneEl::all_vrts_dflt_some_one_el())
+    }
+}
+impl<T: AllEnumVrtsArrDfltSomeOneElMaxPageSize> DfltSomeOneElMaxPageSize for NotEmptyUnqVec<T> {
+    fn dflt_some_one_el_max_page_size() -> Self {
+        Self(AllEnumVrtsArrDfltSomeOneElMaxPageSize::all_vrts_dflt_some_one_el_max_page_size())
+    }
+}
+impl<T> Default for NotEmptyUnqVec<T> {
+    fn default() -> Self {
+        Self(Vec::default())
+    }
+}
+impl<T> From<NotEmptyUnqVec<T>> for Vec<T> {
+    fn from(v: NotEmptyUnqVec<T>) -> Self {
+        v.0
+    }
+}
+impl<T1> NotEmptyUnqVec<T1> {
+    pub fn from_t1_impl_from_t2<T2: From<T1>>(v: Self) -> NotEmptyUnqVec<T2> {
+        NotEmptyUnqVec(v.0.into_iter().map(T2::from).collect::<Vec<T2>>())
+    }
+}
+#[cfg(test)]
+mod tests_not_empty_unq_vec {
+    use super::{NotEmptyUnqVec, NotEmptyUnqVecTryNewEr, first_duplicate_idx, take_fst_dup};
+    #[derive(Debug, PartialEq, Eq)]
+    struct NonClone(u8);
+    #[test]
+    fn not_empty_unq_vec_try_new_supports_non_clone_values() {
+        let er = NotEmptyUnqVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
+            .expect_err("adf2b8c1");
+        match er {
+            NotEmptyUnqVecTryNewEr::NotUnq { v, .. } => assert_eq!(v, NonClone(1)),
+            NotEmptyUnqVecTryNewEr::IsEmpty { .. } => panic!("9f5e2a34"),
+        }
+    }
+    #[test]
+    fn not_empty_unq_vec_try_new_returns_is_empty_for_empty_vec() {
+        let er = NotEmptyUnqVec::<u8>::try_new(Vec::new()).expect_err("3b41de7f");
+        assert!(matches!(er, NotEmptyUnqVecTryNewEr::IsEmpty { .. }));
+    }
+    #[test]
+    fn first_duplicate_idx_returns_none_for_unq_input() {
+        let values = vec![1u8, 2u8, 3u8];
+        assert!(first_duplicate_idx(&values).is_none());
+    }
+    #[test]
+    fn first_duplicate_idx_returns_none_for_empty_and_single_input() {
+        assert!(first_duplicate_idx::<u8>(&[]).is_none());
+        assert!(first_duplicate_idx(&[1u8]).is_none());
+    }
+    #[test]
+    fn first_duplicate_idx_returns_first_repeated_value_index() {
+        let values = vec![7u8, 8u8, 8u8, 7u8];
+        assert_eq!(first_duplicate_idx(&values), Some(2usize));
+    }
+    #[test]
+    fn take_fst_dup_returns_none_for_unq_input() {
+        let mut values = vec![1u8, 2u8, 3u8];
+        let actual = take_fst_dup(&mut values);
+        assert!(actual.is_none());
+        assert_eq!(values, vec![1u8, 2u8, 3u8]);
+    }
+    #[test]
+    fn take_fst_dup_returns_first_duplicate_value() {
+        let mut values = vec![7u8, 8u8, 8u8, 7u8];
+        let actual = take_fst_dup(&mut values);
+        assert_eq!(actual, Some(8u8));
+        assert_eq!(values.len(), 3usize);
+    }
+    #[test]
+    fn as_slice_matches_to_vec_view() {
+        let values = NotEmptyUnqVec::try_new(vec![1u8, 2u8, 3u8]).expect("3f6e8a12");
+        assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
+        assert_eq!(values.as_slice(), values.to_vec().as_slice());
+    }
+}
+impl<'query_lt, T> PgTypeWhFlt<'query_lt> for NotEmptyUnqVec<T>
+where
+    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+{
+    fn qb(
+        self,
+        mut query: Query<'query_lt, Postgres, PgArguments>,
+    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        for el in self.0 {
+            query = el.qb(query)?;
+        }
+        Ok(query)
+    }
+
+    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+        let mut acc = String::default();
+        for (i, el) in self.0.iter().enumerate() {
+            let v = el.qp(incr, col, if i == 0 { add_oprtr } else { true })?;
+            acc.push_str(&v);
+        }
+        Ok(acc)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Optml)]
+pub struct JsonFieldRights {
+    can_cr: bool,
+    can_rd: bool,
+    can_upd: bool,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Optml)]
+pub struct NonPkPgTypeRdIds(pub V<Option<()>>);
+impl Decode<'_, Postgres> for NonPkPgTypeRdIds {
+    fn decode(value: PgValueRef<'_>) -> Result<Self, BoxDynError> {
+        <Json<Self> as Decode<Postgres>>::decode(value).map(|v0| v0.0)
+    }
+}
+impl Type<Postgres> for NonPkPgTypeRdIds {
+    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
+        <Json<Self> as Type<Postgres>>::compatible(ty)
+    }
+
+    fn type_info() -> <Postgres as Database>::TypeInfo {
+        <Json<Self> as Type<Postgres>>::type_info()
+    }
+}
+impl Default for NonPkPgTypeRdIds {
+    fn default() -> Self {
+        Self(V { v: None })
+    }
+}
+#[derive(Debug, Clone, Copy, Optml)]
 pub enum EqOprtr {
     Eq,
-    NotEq,
+    IsNull,
 }
-
-pub trait PgTypeEqOprtr {}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct UnsignedPartOfI32;
-
+impl EqOprtr {
+    #[must_use]
+    pub const fn to_query_str(&self) -> &'static str {
+        match &self {
+            Self::Eq => "=",
+            Self::IsNull => "is null",
+        }
+    }
+}
+pub trait PgTypeEqOprtr {
+    fn oprtr(&self) -> EqOprtr;
+}
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    Optml,
+)]
+#[serde(try_from = "i32")]
+pub struct UnsignedPartOfI32(i32); //todo why exactly i32? mb different types for pg type and pg json type
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, JsonSchema, Optml,
+)]
+pub enum UnsignedPartOfI32TryFromI32Er {
+    LessThanZero {
+        loc: Loc,
+        #[eo_to_err_string_serde]
+        v: i32,
+    },
+}
 impl TryFrom<i32> for UnsignedPartOfI32 {
     type Error = UnsignedPartOfI32TryFromI32Er;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value < i32::from(false) {
-            return Err(UnsignedPartOfI32TryFromI32Er::Negative);
+    fn try_from(v: i32) -> Result<Self, Self::Error> {
+        if v >= 0 {
+            Ok(Self(v))
+        } else {
+            Err(Self::Error::LessThanZero { v, loc: loc!() })
         }
-        Ok(Self)
     }
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum UnsignedPartOfI32TryFromI32Er {
-    Negative,
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
-
-impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
-    type Error = NotZeroUnsignedPartOfI32TryFromI32Er;
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if value == i32::from(false) {
-            return Err(NotZeroUnsignedPartOfI32TryFromI32Er::Zero);
-        }
-        UnsignedPartOfI32::try_from(value)
-            .map(Self)
-            .map_err(|source_error| match source_error {
-                UnsignedPartOfI32TryFromI32Er::Negative => {
-                    NotZeroUnsignedPartOfI32TryFromI32Er::Negative
-                }
-            })
+impl ToErrString for UnsignedPartOfI32 {
+    fn to_err_string(&self) -> String {
+        self.0.to_string()
     }
 }
+impl Type<Postgres> for UnsignedPartOfI32 {
+    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
+        <i32 as Type<Postgres>>::compatible(ty)
+    }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum NotZeroUnsignedPartOfI32TryFromI32Er {
-    Negative,
-    Zero,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum SingleOrMultiple<T> {
-    Multiple(NotEmptyUnqVec<T>),
-    Single(T),
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct DuplicateSearchValues<T>(Vec<T>);
-
-impl<T> From<Vec<T>> for DuplicateSearchValues<T> {
-    fn from(value: Vec<T>) -> Self {
-        Self(value)
+    fn type_info() -> <Postgres as Database>::TypeInfo {
+        <i32 as Type<Postgres>>::type_info()
     }
 }
-
-impl<T> From<DuplicateFreeValues<T>> for Vec<T> {
-    fn from(value: DuplicateFreeValues<T>) -> Self {
-        value.0
+impl Encode<'_, Postgres> for UnsignedPartOfI32 {
+    fn encode_by_ref(
+        &self,
+        buf: &mut PgArgumentBuffer,
+    ) -> Result<IsNull, Box<dyn StdErEr + Send + Sync>> {
+        <i32 as Encode<Postgres>>::encode_by_ref(&self.0, buf)
     }
 }
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct DuplicateFreeValues<T>(Vec<T>);
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct DuplicateValue<T>(T);
-
-impl<T> From<DuplicateValue<T>> for Option<T> {
-    fn from(value: DuplicateValue<T>) -> Self {
-        Some(value.0)
-    }
-}
-
-impl<T> DuplicateValue<T> {
+impl UnsignedPartOfI32 {
     #[must_use]
-    pub fn into_inner(self) -> T {
+    pub const fn get(&self) -> i32 {
         self.0
     }
 }
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-struct DuplicateIndex(core::num::NonZeroUsize);
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-enum DuplicateIndexSearchResult {
-    Found(DuplicateIndex),
-    NotFound,
+impl DfltSomeOneEl for UnsignedPartOfI32 {
+    fn dflt_some_one_el() -> Self {
+        Self(0)
+    }
 }
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum DuplicateSearchResult<T> {
-    Duplicate(DuplicateValue<T>),
-    Unique(DuplicateFreeValues<T>),
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Serialize,
+    Deserialize,
+    JsonSchema,
+    Optml,
+)]
+#[serde(try_from = "i32")]
+pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
+#[derive(
+    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, JsonSchema, Optml,
+)]
+pub enum NotZeroUnsignedPartOfI32TryFromI32Er {
+    IsZero {
+        loc: Loc,
+    },
+    UnsignedPartOfI32TryFromI32Er {
+        #[eo_loc]
+        v: UnsignedPartOfI32TryFromI32Er,
+        loc: Loc,
+    },
 }
+impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
+    type Error = NotZeroUnsignedPartOfI32TryFromI32Er;
 
-fn first_duplicate_index<T>(values: &[T]) -> DuplicateIndexSearchResult
-where
-    T: PartialEq,
-{
-    let found_duplicate_index = values
-        .iter()
-        .enumerate()
-        .find_map(|(index, current_value)| {
-            values
-                .iter()
-                .take(index)
-                .any(|previous_value| previous_value == current_value)
-                .then(|| {
-                    core::num::NonZeroUsize::new(index)
-                        .map(DuplicateIndex)
-                        .map(DuplicateIndexSearchResult::Found)
-                })
-                .flatten()
-        });
-    found_duplicate_index
-        .map_or(DuplicateIndexSearchResult::NotFound, |duplicate_index| duplicate_index)
-}
-
-#[must_use]
-pub fn take_fst_dup<T>(values: DuplicateSearchValues<T>) -> DuplicateSearchResult<T>
-where
-    T: PartialEq,
-{
-    let mut inner_values = values.0;
-    match first_duplicate_index(inner_values.as_slice()) {
-        DuplicateIndexSearchResult::Found(duplicate_index) => DuplicateSearchResult::Duplicate(
-            DuplicateValue(inner_values.swap_remove(duplicate_index.0.get())),
-        ),
-        DuplicateIndexSearchResult::NotFound => {
-            DuplicateSearchResult::Unique(DuplicateFreeValues(inner_values))
+    fn try_from(v: i32) -> Result<Self, Self::Error> {
+        let v0 = UnsignedPartOfI32::try_from(v)
+            .map_err(|er| Self::Error::UnsignedPartOfI32TryFromI32Er { v: er, loc: loc!() })?;
+        if v0.0 == 0 {
+            Err(Self::Error::IsZero { loc: loc!() })
+        } else {
+            Ok(Self(v0))
         }
     }
+}
+impl ToErrString for NotZeroUnsignedPartOfI32 {
+    fn to_err_string(&self) -> String {
+        self.0.to_err_string()
+    }
+}
+impl Type<Postgres> for NotZeroUnsignedPartOfI32 {
+    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
+        <UnsignedPartOfI32 as Type<Postgres>>::compatible(ty)
+    }
+
+    fn type_info() -> <Postgres as Database>::TypeInfo {
+        <UnsignedPartOfI32 as Type<Postgres>>::type_info()
+    }
+}
+impl Encode<'_, Postgres> for NotZeroUnsignedPartOfI32 {
+    fn encode_by_ref(
+        &self,
+        buf: &mut PgArgumentBuffer,
+    ) -> Result<IsNull, Box<dyn StdErEr + Send + Sync>> {
+        <UnsignedPartOfI32 as Encode<Postgres>>::encode_by_ref(&self.0, buf)
+    }
+}
+impl NotZeroUnsignedPartOfI32 {
+    #[must_use]
+    pub const fn get(&self) -> i32 {
+        self.0.get()
+    }
+}
+impl DfltSomeOneEl for NotZeroUnsignedPartOfI32 {
+    fn dflt_some_one_el() -> Self {
+        Self(DfltSomeOneEl::dflt_some_one_el())
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+pub enum SingleOrMultiple<T: Debug + PartialEq + Clone> {
+    Multiple(NotEmptyUnqVec<T>),
+    Single(T),
+}
+pub fn incr_checked_add_one_returning_incr(incr: &mut u64) -> Result<u64, QpEr> {
+    incr.checked_add(1).map_or_else(
+        || Err(QpEr::CheckedAdd { loc: loc!() }),
+        |v| {
+            *incr = v;
+            Ok(v)
+        },
+    )
+}
+#[must_use]
+pub fn fi_jsonb_build_obj_v(fi: &str) -> String {
+    format!("'{fi}',jsonb_build_object('v',{NULL_JSONB}),")
+}
+pub fn pg_json_upd_qp(
+    jsonb_set_accumulator: &str,
+    jsonb_set_path: &str,
+    incr: &mut u64,
+) -> Result<String, QpEr> {
+    let v = incr_checked_add_one_returning_incr(incr)?;
+    Ok(format!(
+        "jsonb_set({jsonb_set_accumulator},'{{{jsonb_set_path}}}',${v})"
+    ))
+}
+#[must_use]
+pub fn case_jsonb_typeof_null(target: &dyn Display, else_expr: &dyn Display) -> String {
+    format!("case when jsonb_typeof({target}) = 'null' then {NULL_JSONB} else ({else_expr}) end")
+}
+#[must_use]
+pub const fn i8_test_cases_vec() -> [i8; 3] {
+    [i8::MIN, 0, i8::MAX]
+}
+#[must_use]
+pub const fn i16_test_cases_vec() -> [i16; 3] {
+    [i16::MIN, 0, i16::MAX]
+}
+#[must_use]
+pub const fn i32_test_cases_vec() -> [i32; 3] {
+    [i32::MIN, 0, i32::MAX]
+}
+#[must_use]
+pub const fn i64_test_cases_vec() -> [i64; 3] {
+    [i64::MIN, 0, i64::MAX]
+}
+#[must_use]
+pub const fn u8_test_cases_vec() -> [u8; 3] {
+    [u8::MIN, 0, u8::MAX]
+}
+#[must_use]
+pub const fn u16_test_cases_vec() -> [u16; 3] {
+    [u16::MIN, 0, u16::MAX]
+}
+#[must_use]
+pub const fn u32_test_cases_vec() -> [u32; 3] {
+    [u32::MIN, 0, u32::MAX]
+}
+#[must_use]
+pub const fn u64_test_cases_vec() -> [u64; 3] {
+    [u64::MIN, 0, u64::MAX]
+}
+#[must_use]
+pub const fn f32_test_cases_vec() -> [f32; 18] {
+    [
+        f32::EPSILON,
+        f32::MAX,
+        f32::MIN,
+        f32::MIN_POSITIVE,
+        -1e30,
+        -1e-30,
+        -16_777_214.0,
+        -100.0,
+        -10.0,
+        -1.0,
+        -0.0,
+        0.0,
+        1.0,
+        10.0,
+        100.0,
+        16_777_214.0,
+        1e-30,
+        1e30,
+    ]
+}
+#[must_use]
+pub const fn f64_test_cases_vec() -> [f64; 18] {
+    [
+        f64::EPSILON,
+        f64::MAX,
+        f64::MIN,
+        f64::MIN_POSITIVE,
+        -1e300,
+        -1e-300,
+        -9_007_199_254_740_990.0,
+        -100.0,
+        -10.0,
+        -1.0,
+        -0.0,
+        0.0,
+        1.0,
+        10.0,
+        100.0,
+        9_007_199_254_740_990.0,
+        1e-300,
+        1e300,
+    ]
+}
+#[must_use]
+pub const fn bool_test_cases_vec() -> [bool; 2] {
+    [true, false]
+}
+#[must_use]
+pub fn string_test_cases_vec() -> [String; 12] {
+    #[allow(clippy::non_ascii_literal)]
+    [
+        String::new(),
+        "a".to_owned(),
+        "Hello, world!".to_owned(),
+        "   ".to_owned(),
+        "\n\r\t".to_owned(),
+        "1234567890".to_owned(),
+        "😀".to_owned(),
+        "こんにちは".to_owned(),
+        "🌍🚀✨ Rust 💖🦀".to_owned(),
+        "a".repeat(1024),
+        "line1\nline2\nline3".to_owned(),
+        "💖".to_owned(),
+    ]
+}
+#[must_use]
+pub fn uuid_uuid_test_cases_vec() -> [Uuid; 1] {
+    [Uuid::new_v4()]
+}
+#[must_use]
+pub fn first_duplicate_idx<T: PartialEq>(values: &[T]) -> Option<usize> {
+    for (idx, current) in values.iter().enumerate() {
+        if values.iter().take(idx).any(|prev| prev == current) {
+            return Some(idx);
+        }
+    }
+    None
+}
+#[must_use]
+pub fn take_fst_dup<T: PartialEq>(values: &mut Vec<T>) -> Option<T> {
+    let duplicate_idx = first_duplicate_idx(values.as_slice())?;
+    Some(values.swap_remove(duplicate_idx))
 }

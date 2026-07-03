@@ -1,522 +1,517 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PgJsonFilterDimension {
-    Four,
-    One,
-    Three,
-    Two,
-    Zero,
+use naming::{
+    AdjacentWithRangeUcc, AllElsEqUcc, AllElsGreaterThanUcc, AllElsRgxUcc, BeforeUcc, BtwnUcc,
+    ContainsAllElsOfArrUcc, ContainsElGreaterThanUcc, ContainsElRgxUcc, CrntDateUcc, CrntTimeUcc,
+    CrntTimestampUcc, DimFourAllElsEqUcc, DimFourAllElsGreaterThanUcc, DimFourAllElsRgxUcc,
+    DimFourBtwnUcc, DimFourContainsAllElsOfArrUcc, DimFourContainsElGreaterThanUcc,
+    DimFourContainsElRgxUcc, DimFourEqUcc, DimFourGreaterThanUcc, DimFourInUcc, DimFourLenEqUcc,
+    DimFourLenGreaterThanUcc, DimFourOverlapsWithArrUcc, DimFourRgxUcc, DimOneAdjacentWithRangeUcc,
+    DimOneAllElsEqUcc, DimOneAllElsGreaterThanUcc, DimOneAllElsRgxUcc, DimOneBeforeUcc,
+    DimOneBtwnUcc, DimOneContainsAllElsOfArrUcc, DimOneContainsElGreaterThanUcc,
+    DimOneContainsElRgxUcc, DimOneCrntDateUcc, DimOneCrntTimeUcc, DimOneCrntTimestampUcc,
+    DimOneEqToEncodedStringRepresentationUcc, DimOneEqUcc, DimOneExcludedUpperBoundUcc,
+    DimOneFindRangesThatFullyContainTheGivenRangeUcc, DimOneFindRangesWithinGivenRangeUcc,
+    DimOneGreaterThanCrntDateUcc, DimOneGreaterThanCrntTimeUcc, DimOneGreaterThanCrntTimestampUcc,
+    DimOneGreaterThanExcludedUpperBoundUcc, DimOneGreaterThanIncludedLowerBoundUcc,
+    DimOneGreaterThanUcc, DimOneInUcc, DimOneIncludedLowerBoundUcc, DimOneLenEqUcc,
+    DimOneLenGreaterThanUcc, DimOneOverlapWithRangeUcc, DimOneOverlapsWithArrUcc,
+    DimOneRangeLenUcc, DimOneRgxUcc, DimOneStrictlyToLeftOfRangeUcc,
+    DimOneStrictlyToRightOfRangeUcc, DimThreeAllElsEqUcc, DimThreeAllElsGreaterThanUcc,
+    DimThreeAllElsRgxUcc, DimThreeBtwnUcc, DimThreeContainsAllElsOfArrUcc,
+    DimThreeContainsElGreaterThanUcc, DimThreeContainsElRgxUcc, DimThreeEqUcc,
+    DimThreeGreaterThanUcc, DimThreeInUcc, DimThreeLenEqUcc, DimThreeLenGreaterThanUcc,
+    DimThreeOverlapsWithArrUcc, DimThreeRgxUcc, DimTwoAllElsEqUcc, DimTwoAllElsGreaterThanUcc,
+    DimTwoAllElsRgxUcc, DimTwoBtwnUcc, DimTwoContainsAllElsOfArrUcc,
+    DimTwoContainsElGreaterThanUcc, DimTwoContainsElRgxUcc, DimTwoEqUcc, DimTwoGreaterThanUcc,
+    DimTwoInUcc, DimTwoLenEqUcc, DimTwoLenGreaterThanUcc, DimTwoOverlapsWithArrUcc, DimTwoRgxUcc,
+    DisplayPlusToTokens, EqToEncodedStringRepresentationUcc, EqUcc, ExcludedUpperBoundUcc,
+    FindRangesThatFullyContainTheGivenRangeUcc, FindRangesWithinGivenRangeUcc,
+    GreaterThanCrntDateUcc, GreaterThanCrntTimeUcc, GreaterThanCrntTimestampUcc,
+    GreaterThanExcludedUpperBoundUcc, GreaterThanIncludedLowerBoundUcc, GreaterThanUcc, InUcc,
+    IncludedLowerBoundUcc, LenEqUcc, LenGreaterThanUcc, OverlapWithRangeUcc, OverlapsWithArrUcc,
+    RangeLenUcc, RgxUcc, StrictlyToLeftOfRangeUcc, StrictlyToRightOfRangeUcc,
+    prm::{PgJsonWhSelfUcc, PgTypeWhSelfUcc},
+};
+use optml::Optml;
+use proc_macro2::TokenStream as Ts2;
+use quote::quote;
+use strum_macros::{Display, EnumIter};
+macro_rules! pg_json_flt_dim {
+    (
+        $fn_name:ident(dim: usize,ident: Ts2),[$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident],
+        $uuid:literal
+    ) => {
+        #[must_use]
+        pub fn $fn_name(dim: usize, ident: Ts2) -> Self {
+            match dim {
+                0 => Self::$b { ident },
+                1 => Self::$d1 { ident },
+                2 => Self::$d2 { ident },
+                3 => Self::$d3 { ident },
+                4 => Self::$d4 { ident },
+                _ => panic!(concat!($uuid, " unsupported dim")),
+            }
+        }
+    };
+    (
+        $fn_name:ident(dim: usize),[$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident],
+        $uuid:literal
+    ) => {
+        #[must_use]
+        pub fn $fn_name(dim: usize) -> Self {
+            match dim {
+                0 => Self::$b,
+                1 => Self::$d1,
+                2 => Self::$d2,
+                3 => Self::$d3,
+                4 => Self::$d4,
+                _ => panic!(concat!($uuid, " unsupported dim")),
+            }
+        }
+    };
 }
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PgFilterName {
-    AdjacentWithRange,
-    AllElsEq,
-    AllElsGreaterThan,
-    AllElsRgx,
-    Before,
-    Btwn,
-    ContainsAllElsOfArr,
-    ContainsElGreaterThan,
-    ContainsElRgx,
-    CrntDate,
-    CrntTime,
-    CrntTimestamp,
-    Eq,
-    EqToEncodedStringRepresentation,
-    ExcludedUpperBound,
-    FindRangesThatFullyContainTheGivenRange,
-    FindRangesWithinGivenRange,
-    GreaterThan,
-    GreaterThanCrntDate,
-    GreaterThanCrntTime,
-    GreaterThanCrntTimestamp,
-    GreaterThanExcludedUpperBound,
-    GreaterThanIncludedLowerBound,
-    In,
-    IncludedLowerBound,
-    LenEq,
-    LenGreaterThan,
-    OverlapWithRange,
-    OverlapsWithArr,
-    RangeLen,
-    Rgx,
-    StrictlyToLeftOfRange,
-    StrictlyToRightOfRange,
-}
-
-#[derive(Debug, Clone)]
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Display, EnumIter, Optml)]
 pub enum PgTypeFlt {
-    AdjacentWithRange { ident: proc_macro2::TokenStream },
-    Before { ident: proc_macro2::TokenStream },
-    Btwn { ident: proc_macro2::TokenStream },
+    Eq { ident: Ts2 },
+    DimOneEq { ident: Ts2 },
+    GreaterThan { ident: Ts2 },
+    DimOneGreaterThan { ident: Ts2 },
+    Btwn { ident: Ts2 },
+    DimOneBtwn { ident: Ts2 },
+    In { ident: Ts2 },
+    DimOneIn { ident: Ts2 },
+    Rgx,
+    DimOneRgx,
+    Before { ident: Ts2 },
+    DimOneBefore { ident: Ts2 },
     CrntDate,
-    CrntTime,
-    CrntTimestamp,
-    DimOneAdjacentWithRange { ident: proc_macro2::TokenStream },
-    DimOneBefore { ident: proc_macro2::TokenStream },
-    DimOneBtwn { ident: proc_macro2::TokenStream },
     DimOneCrntDate,
-    DimOneCrntTime,
-    DimOneCrntTimestamp,
-    DimOneEq { ident: proc_macro2::TokenStream },
-    DimOneEqToEncodedStringRepresentation,
-    DimOneExcludedUpperBound { ident: proc_macro2::TokenStream },
-    DimOneFindRangesThatFullyContainTheGivenRange { ident: proc_macro2::TokenStream },
-    DimOneFindRangesWithinGivenRange { ident: proc_macro2::TokenStream },
-    DimOneGreaterThan { ident: proc_macro2::TokenStream },
-    DimOneGreaterThanCrntDate,
-    DimOneGreaterThanCrntTime,
-    DimOneGreaterThanCrntTimestamp,
-    DimOneGreaterThanExcludedUpperBound { ident: proc_macro2::TokenStream },
-    DimOneGreaterThanIncludedLowerBound { ident: proc_macro2::TokenStream },
-    DimOneIn { ident: proc_macro2::TokenStream },
-    DimOneIncludedLowerBound { ident: proc_macro2::TokenStream },
-    DimOneLenEq,
-    DimOneLenGreaterThan,
-    DimOneOverlapWithRange { ident: proc_macro2::TokenStream },
-    DimOneRangeLen,
-    DimOneRgx,
-    DimOneStrictlyToLeftOfRange { ident: proc_macro2::TokenStream },
-    DimOneStrictlyToRightOfRange { ident: proc_macro2::TokenStream },
-    Eq { ident: proc_macro2::TokenStream },
-    EqToEncodedStringRepresentation,
-    ExcludedUpperBound { ident: proc_macro2::TokenStream },
-    FindRangesThatFullyContainTheGivenRange { ident: proc_macro2::TokenStream },
-    FindRangesWithinGivenRange { ident: proc_macro2::TokenStream },
-    GreaterThan { ident: proc_macro2::TokenStream },
     GreaterThanCrntDate,
-    GreaterThanCrntTime,
+    DimOneGreaterThanCrntDate,
+    CrntTimestamp,
+    DimOneCrntTimestamp,
     GreaterThanCrntTimestamp,
-    GreaterThanExcludedUpperBound { ident: proc_macro2::TokenStream },
-    GreaterThanIncludedLowerBound { ident: proc_macro2::TokenStream },
-    In { ident: proc_macro2::TokenStream },
-    IncludedLowerBound { ident: proc_macro2::TokenStream },
-    OverlapWithRange { ident: proc_macro2::TokenStream },
-    RangeLen,
-    Rgx,
-    StrictlyToLeftOfRange { ident: proc_macro2::TokenStream },
-    StrictlyToRightOfRange { ident: proc_macro2::TokenStream },
-}
-
-#[derive(Debug, Clone)]
-pub enum PgJsonFlt {
-    AllElsEq { ident: proc_macro2::TokenStream },
-    AllElsGreaterThan { ident: proc_macro2::TokenStream },
-    AllElsRgx,
-    Btwn { ident: proc_macro2::TokenStream },
-    ContainsAllElsOfArr { ident: proc_macro2::TokenStream },
-    ContainsElGreaterThan { ident: proc_macro2::TokenStream },
-    ContainsElRgx,
-    DimFourAllElsEq { ident: proc_macro2::TokenStream },
-    DimFourAllElsGreaterThan { ident: proc_macro2::TokenStream },
-    DimFourAllElsRgx,
-    DimFourBtwn { ident: proc_macro2::TokenStream },
-    DimFourContainsAllElsOfArr { ident: proc_macro2::TokenStream },
-    DimFourContainsElGreaterThan { ident: proc_macro2::TokenStream },
-    DimFourContainsElRgx,
-    DimFourEq { ident: proc_macro2::TokenStream },
-    DimFourGreaterThan { ident: proc_macro2::TokenStream },
-    DimFourIn { ident: proc_macro2::TokenStream },
-    DimFourLenEq,
-    DimFourLenGreaterThan,
-    DimFourOverlapsWithArr { ident: proc_macro2::TokenStream },
-    DimFourRgx,
-    DimOneAllElsEq { ident: proc_macro2::TokenStream },
-    DimOneAllElsGreaterThan { ident: proc_macro2::TokenStream },
-    DimOneAllElsRgx,
-    DimOneBtwn { ident: proc_macro2::TokenStream },
-    DimOneContainsAllElsOfArr { ident: proc_macro2::TokenStream },
-    DimOneContainsElGreaterThan { ident: proc_macro2::TokenStream },
-    DimOneContainsElRgx,
-    DimOneEq { ident: proc_macro2::TokenStream },
-    DimOneGreaterThan { ident: proc_macro2::TokenStream },
-    DimOneIn { ident: proc_macro2::TokenStream },
+    DimOneGreaterThanCrntTimestamp,
+    CrntTime,
+    DimOneCrntTime,
+    GreaterThanCrntTime,
+    DimOneGreaterThanCrntTime,
     DimOneLenEq,
     DimOneLenGreaterThan,
-    DimOneOverlapsWithArr { ident: proc_macro2::TokenStream },
-    DimOneRgx,
-    DimThreeAllElsEq { ident: proc_macro2::TokenStream },
-    DimThreeAllElsGreaterThan { ident: proc_macro2::TokenStream },
-    DimThreeAllElsRgx,
-    DimThreeBtwn { ident: proc_macro2::TokenStream },
-    DimThreeContainsAllElsOfArr { ident: proc_macro2::TokenStream },
-    DimThreeContainsElGreaterThan { ident: proc_macro2::TokenStream },
-    DimThreeContainsElRgx,
-    DimThreeEq { ident: proc_macro2::TokenStream },
-    DimThreeGreaterThan { ident: proc_macro2::TokenStream },
-    DimThreeIn { ident: proc_macro2::TokenStream },
-    DimThreeLenEq,
-    DimThreeLenGreaterThan,
-    DimThreeOverlapsWithArr { ident: proc_macro2::TokenStream },
-    DimThreeRgx,
-    DimTwoAllElsEq { ident: proc_macro2::TokenStream },
-    DimTwoAllElsGreaterThan { ident: proc_macro2::TokenStream },
-    DimTwoAllElsRgx,
-    DimTwoBtwn { ident: proc_macro2::TokenStream },
-    DimTwoContainsAllElsOfArr { ident: proc_macro2::TokenStream },
-    DimTwoContainsElGreaterThan { ident: proc_macro2::TokenStream },
-    DimTwoContainsElRgx,
-    DimTwoEq { ident: proc_macro2::TokenStream },
-    DimTwoGreaterThan { ident: proc_macro2::TokenStream },
-    DimTwoIn { ident: proc_macro2::TokenStream },
-    DimTwoLenEq,
-    DimTwoLenGreaterThan,
-    DimTwoOverlapsWithArr { ident: proc_macro2::TokenStream },
-    DimTwoRgx,
-    Eq { ident: proc_macro2::TokenStream },
-    GreaterThan { ident: proc_macro2::TokenStream },
-    In { ident: proc_macro2::TokenStream },
-    LenEq,
-    LenGreaterThan,
-    OverlapsWithArr { ident: proc_macro2::TokenStream },
-    Rgx,
+    EqToEncodedStringRepresentation,
+    DimOneEqToEncodedStringRepresentation,
+    FindRangesWithinGivenRange { ident: Ts2 },
+    DimOneFindRangesWithinGivenRange { ident: Ts2 },
+    FindRangesThatFullyContainTheGivenRange { ident: Ts2 },
+    DimOneFindRangesThatFullyContainTheGivenRange { ident: Ts2 },
+    StrictlyToLeftOfRange { ident: Ts2 },
+    DimOneStrictlyToLeftOfRange { ident: Ts2 },
+    StrictlyToRightOfRange { ident: Ts2 },
+    DimOneStrictlyToRightOfRange { ident: Ts2 },
+    IncludedLowerBound { ident: Ts2 },
+    DimOneIncludedLowerBound { ident: Ts2 },
+    ExcludedUpperBound { ident: Ts2 },
+    DimOneExcludedUpperBound { ident: Ts2 },
+    GreaterThanIncludedLowerBound { ident: Ts2 },
+    DimOneGreaterThanIncludedLowerBound { ident: Ts2 },
+    GreaterThanExcludedUpperBound { ident: Ts2 },
+    DimOneGreaterThanExcludedUpperBound { ident: Ts2 },
+    OverlapWithRange { ident: Ts2 },
+    DimOneOverlapWithRange { ident: Ts2 },
+    AdjacentWithRange { ident: Ts2 },
+    DimOneAdjacentWithRange { ident: Ts2 },
+    RangeLen,
+    DimOneRangeLen,
+    // BitVecPositionEq,//currently deactivated
 }
-
-pub trait PgFlt {
-    #[must_use]
-    fn filter_name(&self) -> PgFilterName;
-
-    #[must_use]
-    fn maybe_generic(&self) -> Option<proc_macro2::TokenStream>;
-}
-
-impl PgJsonFlt {
-    #[must_use]
-    pub const fn dim_eq(dimension: PgJsonFilterDimension, ident: proc_macro2::TokenStream) -> Self {
-        match dimension {
-            PgJsonFilterDimension::Zero => Self::Eq { ident },
-            PgJsonFilterDimension::One => Self::DimOneEq { ident },
-            PgJsonFilterDimension::Two => Self::DimTwoEq { ident },
-            PgJsonFilterDimension::Three => Self::DimThreeEq { ident },
-            PgJsonFilterDimension::Four => Self::DimFourEq { ident },
-        }
-    }
-
-    #[must_use]
-    pub const fn dim_len_eq(dimension: PgJsonFilterDimension) -> Self {
-        match dimension {
-            PgJsonFilterDimension::Zero => Self::LenEq,
-            PgJsonFilterDimension::One => Self::DimOneLenEq,
-            PgJsonFilterDimension::Two => Self::DimTwoLenEq,
-            PgJsonFilterDimension::Three => Self::DimThreeLenEq,
-            PgJsonFilterDimension::Four => Self::DimFourLenEq,
-        }
-    }
-
-    #[must_use]
-    pub const fn dim_rgx(dimension: PgJsonFilterDimension) -> Self {
-        match dimension {
-            PgJsonFilterDimension::Zero => Self::Rgx,
-            PgJsonFilterDimension::One => Self::DimOneRgx,
-            PgJsonFilterDimension::Two => Self::DimTwoRgx,
-            PgJsonFilterDimension::Three => Self::DimThreeRgx,
-            PgJsonFilterDimension::Four => Self::DimFourRgx,
-        }
-    }
-}
-
 impl PgFlt for PgTypeFlt {
-    fn filter_name(&self) -> PgFilterName {
-        match self.clone() {
-            Self::Eq { .. } | Self::DimOneEq { .. } => PgFilterName::Eq,
-            Self::GreaterThan { .. } | Self::DimOneGreaterThan { .. } => PgFilterName::GreaterThan,
-            Self::Btwn { .. } | Self::DimOneBtwn { .. } => PgFilterName::Btwn,
-            Self::In { .. } | Self::DimOneIn { .. } => PgFilterName::In,
-            Self::Rgx | Self::DimOneRgx => PgFilterName::Rgx,
-            Self::Before { .. } | Self::DimOneBefore { .. } => PgFilterName::Before,
-            Self::CrntDate | Self::DimOneCrntDate => PgFilterName::CrntDate,
-            Self::GreaterThanCrntDate | Self::DimOneGreaterThanCrntDate => {
-                PgFilterName::GreaterThanCrntDate
-            }
-            Self::CrntTimestamp | Self::DimOneCrntTimestamp => PgFilterName::CrntTimestamp,
-            Self::GreaterThanCrntTimestamp | Self::DimOneGreaterThanCrntTimestamp => {
-                PgFilterName::GreaterThanCrntTimestamp
-            }
-            Self::CrntTime | Self::DimOneCrntTime => PgFilterName::CrntTime,
-            Self::GreaterThanCrntTime | Self::DimOneGreaterThanCrntTime => {
-                PgFilterName::GreaterThanCrntTime
-            }
-            Self::DimOneLenEq => PgFilterName::LenEq,
-            Self::DimOneLenGreaterThan => PgFilterName::LenGreaterThan,
-            Self::EqToEncodedStringRepresentation | Self::DimOneEqToEncodedStringRepresentation => {
-                PgFilterName::EqToEncodedStringRepresentation
-            }
-            Self::FindRangesWithinGivenRange { .. }
-            | Self::DimOneFindRangesWithinGivenRange { .. } => {
-                PgFilterName::FindRangesWithinGivenRange
-            }
-            Self::FindRangesThatFullyContainTheGivenRange { .. }
-            | Self::DimOneFindRangesThatFullyContainTheGivenRange { .. } => {
-                PgFilterName::FindRangesThatFullyContainTheGivenRange
-            }
-            Self::StrictlyToLeftOfRange { .. } | Self::DimOneStrictlyToLeftOfRange { .. } => {
-                PgFilterName::StrictlyToLeftOfRange
-            }
-            Self::StrictlyToRightOfRange { .. } | Self::DimOneStrictlyToRightOfRange { .. } => {
-                PgFilterName::StrictlyToRightOfRange
-            }
-            Self::IncludedLowerBound { .. } | Self::DimOneIncludedLowerBound { .. } => {
-                PgFilterName::IncludedLowerBound
-            }
-            Self::ExcludedUpperBound { .. } | Self::DimOneExcludedUpperBound { .. } => {
-                PgFilterName::ExcludedUpperBound
-            }
-            Self::GreaterThanIncludedLowerBound { .. }
-            | Self::DimOneGreaterThanIncludedLowerBound { .. } => {
-                PgFilterName::GreaterThanIncludedLowerBound
-            }
-            Self::GreaterThanExcludedUpperBound { .. }
-            | Self::DimOneGreaterThanExcludedUpperBound { .. } => {
-                PgFilterName::GreaterThanExcludedUpperBound
-            }
-            Self::OverlapWithRange { .. } | Self::DimOneOverlapWithRange { .. } => {
-                PgFilterName::OverlapWithRange
-            }
-            Self::AdjacentWithRange { .. } | Self::DimOneAdjacentWithRange { .. } => {
-                PgFilterName::AdjacentWithRange
-            }
-            Self::RangeLen | Self::DimOneRangeLen => PgFilterName::RangeLen,
-        }
-    }
-
-    fn maybe_generic(&self) -> Option<proc_macro2::TokenStream> {
-        match self.clone() {
-            Self::AdjacentWithRange { ident }
-            | Self::Before { ident }
-            | Self::Btwn { ident }
-            | Self::DimOneAdjacentWithRange { ident }
-            | Self::DimOneBefore { ident }
-            | Self::DimOneBtwn { ident }
+    fn mb_generic(&self) -> Option<Ts2> {
+        match &self {
+            Self::Eq { ident }
             | Self::DimOneEq { ident }
-            | Self::DimOneExcludedUpperBound { ident }
-            | Self::DimOneFindRangesThatFullyContainTheGivenRange { ident }
-            | Self::DimOneFindRangesWithinGivenRange { ident }
-            | Self::DimOneGreaterThan { ident }
-            | Self::DimOneGreaterThanExcludedUpperBound { ident }
-            | Self::DimOneGreaterThanIncludedLowerBound { ident }
-            | Self::DimOneIn { ident }
-            | Self::DimOneIncludedLowerBound { ident }
-            | Self::DimOneOverlapWithRange { ident }
-            | Self::DimOneStrictlyToLeftOfRange { ident }
-            | Self::DimOneStrictlyToRightOfRange { ident }
-            | Self::Eq { ident }
-            | Self::ExcludedUpperBound { ident }
-            | Self::FindRangesThatFullyContainTheGivenRange { ident }
-            | Self::FindRangesWithinGivenRange { ident }
             | Self::GreaterThan { ident }
-            | Self::GreaterThanExcludedUpperBound { ident }
-            | Self::GreaterThanIncludedLowerBound { ident }
+            | Self::DimOneGreaterThan { ident }
+            | Self::Btwn { ident }
+            | Self::DimOneBtwn { ident }
             | Self::In { ident }
-            | Self::IncludedLowerBound { ident }
-            | Self::OverlapWithRange { ident }
+            | Self::DimOneIn { ident }
+            | Self::Before { ident }
+            | Self::DimOneBefore { ident }
+            | Self::FindRangesWithinGivenRange { ident }
+            | Self::DimOneFindRangesWithinGivenRange { ident }
+            | Self::FindRangesThatFullyContainTheGivenRange { ident }
+            | Self::DimOneFindRangesThatFullyContainTheGivenRange { ident }
             | Self::StrictlyToLeftOfRange { ident }
-            | Self::StrictlyToRightOfRange { ident } => Some(ident),
-            Self::CrntDate
-            | Self::CrntTime
-            | Self::CrntTimestamp
+            | Self::DimOneStrictlyToLeftOfRange { ident }
+            | Self::StrictlyToRightOfRange { ident }
+            | Self::DimOneStrictlyToRightOfRange { ident }
+            | Self::IncludedLowerBound { ident }
+            | Self::DimOneIncludedLowerBound { ident }
+            | Self::ExcludedUpperBound { ident }
+            | Self::DimOneExcludedUpperBound { ident }
+            | Self::GreaterThanIncludedLowerBound { ident }
+            | Self::DimOneGreaterThanIncludedLowerBound { ident }
+            | Self::GreaterThanExcludedUpperBound { ident }
+            | Self::DimOneGreaterThanExcludedUpperBound { ident }
+            | Self::OverlapWithRange { ident }
+            | Self::DimOneOverlapWithRange { ident }
+            | Self::AdjacentWithRange { ident }
+            | Self::DimOneAdjacentWithRange { ident } => Some(ident.clone()),
+            Self::Rgx
+            | Self::DimOneRgx
+            | Self::CrntDate
             | Self::DimOneCrntDate
-            | Self::DimOneCrntTime
-            | Self::DimOneCrntTimestamp
-            | Self::DimOneEqToEncodedStringRepresentation
+            | Self::GreaterThanCrntDate
             | Self::DimOneGreaterThanCrntDate
-            | Self::DimOneGreaterThanCrntTime
+            | Self::CrntTimestamp
+            | Self::DimOneCrntTimestamp
+            | Self::GreaterThanCrntTimestamp
             | Self::DimOneGreaterThanCrntTimestamp
+            | Self::CrntTime
+            | Self::DimOneCrntTime
+            | Self::GreaterThanCrntTime
+            | Self::DimOneGreaterThanCrntTime
             | Self::DimOneLenEq
             | Self::DimOneLenGreaterThan
-            | Self::DimOneRangeLen
-            | Self::DimOneRgx
             | Self::EqToEncodedStringRepresentation
-            | Self::GreaterThanCrntDate
-            | Self::GreaterThanCrntTime
-            | Self::GreaterThanCrntTimestamp
+            | Self::DimOneEqToEncodedStringRepresentation
             | Self::RangeLen
-            | Self::Rgx => None,
+            | Self::DimOneRangeLen => None,
+        }
+    }
+
+    fn prefix_wh_self_ucc(&self) -> Ts2 {
+        let v = PgTypeWhSelfUcc::from_display(&self.ucc());
+        quote! {#v}
+    }
+
+    fn ucc(&self) -> &'static dyn DisplayPlusToTokens {
+        match &self {
+            Self::Eq { .. } => &EqUcc,
+            Self::DimOneEq { .. } => &DimOneEqUcc,
+            Self::GreaterThan { .. } => &GreaterThanUcc,
+            Self::DimOneGreaterThan { .. } => &DimOneGreaterThanUcc,
+            Self::Btwn { .. } => &BtwnUcc,
+            Self::DimOneBtwn { .. } => &DimOneBtwnUcc,
+            Self::In { .. } => &InUcc,
+            Self::DimOneIn { .. } => &DimOneInUcc,
+            Self::Rgx => &RgxUcc,
+            Self::DimOneRgx => &DimOneRgxUcc,
+            Self::Before { .. } => &BeforeUcc,
+            Self::DimOneBefore { .. } => &DimOneBeforeUcc,
+            Self::CrntDate => &CrntDateUcc,
+            Self::DimOneCrntDate => &DimOneCrntDateUcc,
+            Self::GreaterThanCrntDate => &GreaterThanCrntDateUcc,
+            Self::DimOneGreaterThanCrntDate => &DimOneGreaterThanCrntDateUcc,
+            Self::CrntTimestamp => &CrntTimestampUcc,
+            Self::DimOneCrntTimestamp => &DimOneCrntTimestampUcc,
+            Self::GreaterThanCrntTimestamp => &GreaterThanCrntTimestampUcc,
+            Self::DimOneGreaterThanCrntTimestamp => &DimOneGreaterThanCrntTimestampUcc,
+            Self::CrntTime => &CrntTimeUcc,
+            Self::DimOneCrntTime => &DimOneCrntTimeUcc,
+            Self::GreaterThanCrntTime => &GreaterThanCrntTimeUcc,
+            Self::DimOneGreaterThanCrntTime => &DimOneGreaterThanCrntTimeUcc,
+            Self::DimOneLenEq => &DimOneLenEqUcc,
+            Self::DimOneLenGreaterThan => &DimOneLenGreaterThanUcc,
+            Self::EqToEncodedStringRepresentation => &EqToEncodedStringRepresentationUcc,
+            Self::DimOneEqToEncodedStringRepresentation => {
+                &DimOneEqToEncodedStringRepresentationUcc
+            }
+            Self::FindRangesWithinGivenRange { .. } => &FindRangesWithinGivenRangeUcc,
+            Self::DimOneFindRangesWithinGivenRange { .. } => &DimOneFindRangesWithinGivenRangeUcc,
+            Self::FindRangesThatFullyContainTheGivenRange { .. } => {
+                &FindRangesThatFullyContainTheGivenRangeUcc
+            }
+            Self::DimOneFindRangesThatFullyContainTheGivenRange { .. } => {
+                &DimOneFindRangesThatFullyContainTheGivenRangeUcc
+            }
+            Self::StrictlyToLeftOfRange { .. } => &StrictlyToLeftOfRangeUcc,
+            Self::DimOneStrictlyToLeftOfRange { .. } => &DimOneStrictlyToLeftOfRangeUcc,
+            Self::StrictlyToRightOfRange { .. } => &StrictlyToRightOfRangeUcc,
+            Self::DimOneStrictlyToRightOfRange { .. } => &DimOneStrictlyToRightOfRangeUcc,
+            Self::IncludedLowerBound { .. } => &IncludedLowerBoundUcc,
+            Self::DimOneIncludedLowerBound { .. } => &DimOneIncludedLowerBoundUcc,
+            Self::ExcludedUpperBound { .. } => &ExcludedUpperBoundUcc,
+            Self::DimOneExcludedUpperBound { .. } => &DimOneExcludedUpperBoundUcc,
+            Self::GreaterThanIncludedLowerBound { .. } => &GreaterThanIncludedLowerBoundUcc,
+            Self::DimOneGreaterThanIncludedLowerBound { .. } => {
+                &DimOneGreaterThanIncludedLowerBoundUcc
+            }
+            Self::GreaterThanExcludedUpperBound { .. } => &GreaterThanExcludedUpperBoundUcc,
+            Self::DimOneGreaterThanExcludedUpperBound { .. } => {
+                &DimOneGreaterThanExcludedUpperBoundUcc
+            }
+            Self::OverlapWithRange { .. } => &OverlapWithRangeUcc,
+            Self::DimOneOverlapWithRange { .. } => &DimOneOverlapWithRangeUcc,
+            Self::AdjacentWithRange { .. } => &AdjacentWithRangeUcc,
+            Self::DimOneAdjacentWithRange { .. } => &DimOneAdjacentWithRangeUcc,
+            Self::RangeLen => &RangeLenUcc,
+            Self::DimOneRangeLen => &DimOneRangeLenUcc,
         }
     }
 }
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Display, EnumIter, Optml)]
+pub enum PgJsonFlt {
+    Eq { ident: Ts2 },
+    DimOneEq { ident: Ts2 },
+    DimTwoEq { ident: Ts2 },
+    DimThreeEq { ident: Ts2 },
+    DimFourEq { ident: Ts2 },
+    AllElsEq { ident: Ts2 },
+    DimOneAllElsEq { ident: Ts2 },
+    DimTwoAllElsEq { ident: Ts2 },
+    DimThreeAllElsEq { ident: Ts2 },
+    DimFourAllElsEq { ident: Ts2 },
+    LenEq,
+    DimOneLenEq,
+    DimTwoLenEq,
+    DimThreeLenEq,
+    DimFourLenEq,
+    LenGreaterThan,
+    DimOneLenGreaterThan,
+    DimTwoLenGreaterThan,
+    DimThreeLenGreaterThan,
+    DimFourLenGreaterThan,
+    GreaterThan { ident: Ts2 },
+    DimOneGreaterThan { ident: Ts2 },
+    DimTwoGreaterThan { ident: Ts2 },
+    DimThreeGreaterThan { ident: Ts2 },
+    DimFourGreaterThan { ident: Ts2 },
+    ContainsElGreaterThan { ident: Ts2 },
+    DimOneContainsElGreaterThan { ident: Ts2 },
+    DimTwoContainsElGreaterThan { ident: Ts2 },
+    DimThreeContainsElGreaterThan { ident: Ts2 },
+    DimFourContainsElGreaterThan { ident: Ts2 },
+    AllElsGreaterThan { ident: Ts2 },
+    DimOneAllElsGreaterThan { ident: Ts2 },
+    DimTwoAllElsGreaterThan { ident: Ts2 },
+    DimThreeAllElsGreaterThan { ident: Ts2 },
+    DimFourAllElsGreaterThan { ident: Ts2 },
+    Btwn { ident: Ts2 },
+    DimOneBtwn { ident: Ts2 },
+    DimTwoBtwn { ident: Ts2 },
+    DimThreeBtwn { ident: Ts2 },
+    DimFourBtwn { ident: Ts2 },
+    In { ident: Ts2 },
+    DimOneIn { ident: Ts2 },
+    DimTwoIn { ident: Ts2 },
+    DimThreeIn { ident: Ts2 },
+    DimFourIn { ident: Ts2 },
+    Rgx,
+    DimOneRgx,
+    DimTwoRgx,
+    DimThreeRgx,
+    DimFourRgx,
+    ContainsElRgx,
+    DimOneContainsElRgx,
+    DimTwoContainsElRgx,
+    DimThreeContainsElRgx,
+    DimFourContainsElRgx,
+    AllElsRgx,
+    DimOneAllElsRgx,
+    DimTwoAllElsRgx,
+    DimThreeAllElsRgx,
+    DimFourAllElsRgx,
+    ContainsAllElsOfArr { ident: Ts2 },
+    DimOneContainsAllElsOfArr { ident: Ts2 },
+    DimTwoContainsAllElsOfArr { ident: Ts2 },
+    DimThreeContainsAllElsOfArr { ident: Ts2 },
+    DimFourContainsAllElsOfArr { ident: Ts2 },
+    // ContainedInArr,
+    OverlapsWithArr { ident: Ts2 },
+    DimOneOverlapsWithArr { ident: Ts2 },
+    DimTwoOverlapsWithArr { ident: Ts2 },
+    DimThreeOverlapsWithArr { ident: Ts2 },
+    DimFourOverlapsWithArr { ident: Ts2 },
+}
+impl PgJsonFlt {
+    pg_json_flt_dim!(dim_all_els_eq(dim: usize, ident: Ts2), [AllElsEq, DimOneAllElsEq, DimTwoAllElsEq, DimThreeAllElsEq, DimFourAllElsEq], "a1b2c3d4");
 
+    pg_json_flt_dim!(dim_all_els_greater_than(dim: usize, ident: Ts2), [AllElsGreaterThan, DimOneAllElsGreaterThan, DimTwoAllElsGreaterThan, DimThreeAllElsGreaterThan, DimFourAllElsGreaterThan], "e5f6a7b8");
+
+    pg_json_flt_dim!(dim_all_els_rgx(dim: usize), [AllElsRgx, DimOneAllElsRgx, DimTwoAllElsRgx, DimThreeAllElsRgx, DimFourAllElsRgx], "c9d0e1f2");
+
+    pg_json_flt_dim!(dim_btwn(dim: usize, ident: Ts2), [Btwn, DimOneBtwn, DimTwoBtwn, DimThreeBtwn, DimFourBtwn], "a3b4c5d6");
+
+    pg_json_flt_dim!(dim_contains_all_els_of_arr(dim: usize, ident: Ts2), [ContainsAllElsOfArr, DimOneContainsAllElsOfArr, DimTwoContainsAllElsOfArr, DimThreeContainsAllElsOfArr, DimFourContainsAllElsOfArr], "e7f8a9b0");
+
+    pg_json_flt_dim!(dim_contains_el_greater_than(dim: usize, ident: Ts2), [ContainsElGreaterThan, DimOneContainsElGreaterThan, DimTwoContainsElGreaterThan, DimThreeContainsElGreaterThan, DimFourContainsElGreaterThan], "c1d2e3f4");
+
+    pg_json_flt_dim!(dim_contains_el_rgx(dim: usize), [ContainsElRgx, DimOneContainsElRgx, DimTwoContainsElRgx, DimThreeContainsElRgx, DimFourContainsElRgx], "a5b6c7d8");
+
+    pg_json_flt_dim!(dim_eq(dim: usize, ident: Ts2), [Eq, DimOneEq, DimTwoEq, DimThreeEq, DimFourEq], "e9f0a1b2");
+
+    pg_json_flt_dim!(dim_greater_than(dim: usize, ident: Ts2), [GreaterThan, DimOneGreaterThan, DimTwoGreaterThan, DimThreeGreaterThan, DimFourGreaterThan], "c3d4e5f6");
+
+    pg_json_flt_dim!(dim_in(dim: usize, ident: Ts2), [In, DimOneIn, DimTwoIn, DimThreeIn, DimFourIn], "a7b8c9d0");
+
+    pg_json_flt_dim!(dim_len_eq(dim: usize), [LenEq, DimOneLenEq, DimTwoLenEq, DimThreeLenEq, DimFourLenEq], "e1f2a3b4");
+
+    pg_json_flt_dim!(dim_len_greater_than(dim: usize), [LenGreaterThan, DimOneLenGreaterThan, DimTwoLenGreaterThan, DimThreeLenGreaterThan, DimFourLenGreaterThan], "c5d6e7f8");
+
+    pg_json_flt_dim!(dim_overlaps_with_arr(dim: usize, ident: Ts2), [OverlapsWithArr, DimOneOverlapsWithArr, DimTwoOverlapsWithArr, DimThreeOverlapsWithArr, DimFourOverlapsWithArr], "a9b0c1d2");
+
+    pg_json_flt_dim!(dim_rgx(dim: usize), [Rgx, DimOneRgx, DimTwoRgx, DimThreeRgx, DimFourRgx], "e3f4a5b6");
+}
 impl PgFlt for PgJsonFlt {
-    fn filter_name(&self) -> PgFilterName {
-        match self.clone() {
-            Self::Eq { .. }
-            | Self::DimOneEq { .. }
-            | Self::DimTwoEq { .. }
-            | Self::DimThreeEq { .. }
-            | Self::DimFourEq { .. } => PgFilterName::Eq,
-            Self::AllElsEq { .. }
-            | Self::DimOneAllElsEq { .. }
-            | Self::DimTwoAllElsEq { .. }
-            | Self::DimThreeAllElsEq { .. }
-            | Self::DimFourAllElsEq { .. } => PgFilterName::AllElsEq,
+    fn mb_generic(&self) -> Option<Ts2> {
+        match &self {
+            Self::Eq { ident }
+            | Self::DimOneEq { ident }
+            | Self::DimTwoEq { ident }
+            | Self::DimThreeEq { ident }
+            | Self::DimFourEq { ident }
+            | Self::AllElsEq { ident }
+            | Self::DimOneAllElsEq { ident }
+            | Self::DimTwoAllElsEq { ident }
+            | Self::DimThreeAllElsEq { ident }
+            | Self::DimFourAllElsEq { ident }
+            | Self::GreaterThan { ident }
+            | Self::DimOneGreaterThan { ident }
+            | Self::DimTwoGreaterThan { ident }
+            | Self::DimThreeGreaterThan { ident }
+            | Self::DimFourGreaterThan { ident }
+            | Self::ContainsElGreaterThan { ident }
+            | Self::DimOneContainsElGreaterThan { ident }
+            | Self::DimTwoContainsElGreaterThan { ident }
+            | Self::DimThreeContainsElGreaterThan { ident }
+            | Self::DimFourContainsElGreaterThan { ident }
+            | Self::AllElsGreaterThan { ident }
+            | Self::DimOneAllElsGreaterThan { ident }
+            | Self::DimTwoAllElsGreaterThan { ident }
+            | Self::DimThreeAllElsGreaterThan { ident }
+            | Self::DimFourAllElsGreaterThan { ident }
+            | Self::Btwn { ident }
+            | Self::DimOneBtwn { ident }
+            | Self::DimTwoBtwn { ident }
+            | Self::DimThreeBtwn { ident }
+            | Self::DimFourBtwn { ident }
+            | Self::In { ident }
+            | Self::DimOneIn { ident }
+            | Self::DimTwoIn { ident }
+            | Self::DimThreeIn { ident }
+            | Self::DimFourIn { ident }
+            | Self::ContainsAllElsOfArr { ident }
+            | Self::DimOneContainsAllElsOfArr { ident }
+            | Self::DimTwoContainsAllElsOfArr { ident }
+            | Self::DimThreeContainsAllElsOfArr { ident }
+            | Self::DimFourContainsAllElsOfArr { ident }
+            | Self::OverlapsWithArr { ident }
+            | Self::DimOneOverlapsWithArr { ident }
+            | Self::DimTwoOverlapsWithArr { ident }
+            | Self::DimThreeOverlapsWithArr { ident }
+            | Self::DimFourOverlapsWithArr { ident } => Some(ident.clone()),
             Self::LenEq
             | Self::DimOneLenEq
             | Self::DimTwoLenEq
             | Self::DimThreeLenEq
-            | Self::DimFourLenEq => PgFilterName::LenEq,
-            Self::LenGreaterThan
-            | Self::DimOneLenGreaterThan
-            | Self::DimTwoLenGreaterThan
-            | Self::DimThreeLenGreaterThan
-            | Self::DimFourLenGreaterThan => PgFilterName::LenGreaterThan,
-            Self::GreaterThan { .. }
-            | Self::DimOneGreaterThan { .. }
-            | Self::DimTwoGreaterThan { .. }
-            | Self::DimThreeGreaterThan { .. }
-            | Self::DimFourGreaterThan { .. } => PgFilterName::GreaterThan,
-            Self::ContainsElGreaterThan { .. }
-            | Self::DimOneContainsElGreaterThan { .. }
-            | Self::DimTwoContainsElGreaterThan { .. }
-            | Self::DimThreeContainsElGreaterThan { .. }
-            | Self::DimFourContainsElGreaterThan { .. } => PgFilterName::ContainsElGreaterThan,
-            Self::AllElsGreaterThan { .. }
-            | Self::DimOneAllElsGreaterThan { .. }
-            | Self::DimTwoAllElsGreaterThan { .. }
-            | Self::DimThreeAllElsGreaterThan { .. }
-            | Self::DimFourAllElsGreaterThan { .. } => PgFilterName::AllElsGreaterThan,
-            Self::Btwn { .. }
-            | Self::DimOneBtwn { .. }
-            | Self::DimTwoBtwn { .. }
-            | Self::DimThreeBtwn { .. }
-            | Self::DimFourBtwn { .. } => PgFilterName::Btwn,
-            Self::In { .. }
-            | Self::DimOneIn { .. }
-            | Self::DimTwoIn { .. }
-            | Self::DimThreeIn { .. }
-            | Self::DimFourIn { .. } => PgFilterName::In,
-            Self::Rgx
+            | Self::DimFourLenEq
+            | Self::Rgx
             | Self::DimOneRgx
             | Self::DimTwoRgx
             | Self::DimThreeRgx
-            | Self::DimFourRgx => PgFilterName::Rgx,
-            Self::ContainsElRgx
+            | Self::DimFourRgx
+            | Self::ContainsElRgx
             | Self::DimOneContainsElRgx
             | Self::DimTwoContainsElRgx
             | Self::DimThreeContainsElRgx
-            | Self::DimFourContainsElRgx => PgFilterName::ContainsElRgx,
-            Self::AllElsRgx
+            | Self::DimFourContainsElRgx
+            | Self::AllElsRgx
             | Self::DimOneAllElsRgx
             | Self::DimTwoAllElsRgx
             | Self::DimThreeAllElsRgx
-            | Self::DimFourAllElsRgx => PgFilterName::AllElsRgx,
-            Self::ContainsAllElsOfArr { .. }
-            | Self::DimOneContainsAllElsOfArr { .. }
-            | Self::DimTwoContainsAllElsOfArr { .. }
-            | Self::DimThreeContainsAllElsOfArr { .. }
-            | Self::DimFourContainsAllElsOfArr { .. } => PgFilterName::ContainsAllElsOfArr,
-            Self::OverlapsWithArr { .. }
-            | Self::DimOneOverlapsWithArr { .. }
-            | Self::DimTwoOverlapsWithArr { .. }
-            | Self::DimThreeOverlapsWithArr { .. }
-            | Self::DimFourOverlapsWithArr { .. } => PgFilterName::OverlapsWithArr,
+            | Self::DimFourAllElsRgx
+            | Self::LenGreaterThan
+            | Self::DimOneLenGreaterThan
+            | Self::DimTwoLenGreaterThan
+            | Self::DimThreeLenGreaterThan
+            | Self::DimFourLenGreaterThan => None,
         }
     }
 
-    fn maybe_generic(&self) -> Option<proc_macro2::TokenStream> {
-        match self.clone() {
-            Self::AllElsEq { ident }
-            | Self::AllElsGreaterThan { ident }
-            | Self::Btwn { ident }
-            | Self::ContainsAllElsOfArr { ident }
-            | Self::ContainsElGreaterThan { ident }
-            | Self::DimFourAllElsEq { ident }
-            | Self::DimFourAllElsGreaterThan { ident }
-            | Self::DimFourBtwn { ident }
-            | Self::DimFourContainsAllElsOfArr { ident }
-            | Self::DimFourContainsElGreaterThan { ident }
-            | Self::DimFourEq { ident }
-            | Self::DimFourGreaterThan { ident }
-            | Self::DimFourIn { ident }
-            | Self::DimFourOverlapsWithArr { ident }
-            | Self::DimOneAllElsEq { ident }
-            | Self::DimOneAllElsGreaterThan { ident }
-            | Self::DimOneBtwn { ident }
-            | Self::DimOneContainsAllElsOfArr { ident }
-            | Self::DimOneContainsElGreaterThan { ident }
-            | Self::DimOneEq { ident }
-            | Self::DimOneGreaterThan { ident }
-            | Self::DimOneIn { ident }
-            | Self::DimOneOverlapsWithArr { ident }
-            | Self::DimThreeAllElsEq { ident }
-            | Self::DimThreeAllElsGreaterThan { ident }
-            | Self::DimThreeBtwn { ident }
-            | Self::DimThreeContainsAllElsOfArr { ident }
-            | Self::DimThreeContainsElGreaterThan { ident }
-            | Self::DimThreeEq { ident }
-            | Self::DimThreeGreaterThan { ident }
-            | Self::DimThreeIn { ident }
-            | Self::DimThreeOverlapsWithArr { ident }
-            | Self::DimTwoAllElsEq { ident }
-            | Self::DimTwoAllElsGreaterThan { ident }
-            | Self::DimTwoBtwn { ident }
-            | Self::DimTwoContainsAllElsOfArr { ident }
-            | Self::DimTwoContainsElGreaterThan { ident }
-            | Self::DimTwoEq { ident }
-            | Self::DimTwoGreaterThan { ident }
-            | Self::DimTwoIn { ident }
-            | Self::DimTwoOverlapsWithArr { ident }
-            | Self::Eq { ident }
-            | Self::GreaterThan { ident }
-            | Self::In { ident }
-            | Self::OverlapsWithArr { ident } => Some(ident),
-            Self::AllElsRgx
-            | Self::ContainsElRgx
-            | Self::DimFourAllElsRgx
-            | Self::DimFourContainsElRgx
-            | Self::DimFourLenEq
-            | Self::DimFourLenGreaterThan
-            | Self::DimFourRgx
-            | Self::DimOneAllElsRgx
-            | Self::DimOneContainsElRgx
-            | Self::DimOneLenEq
-            | Self::DimOneLenGreaterThan
-            | Self::DimOneRgx
-            | Self::DimThreeAllElsRgx
-            | Self::DimThreeContainsElRgx
-            | Self::DimThreeLenEq
-            | Self::DimThreeLenGreaterThan
-            | Self::DimThreeRgx
-            | Self::DimTwoAllElsRgx
-            | Self::DimTwoContainsElRgx
-            | Self::DimTwoLenEq
-            | Self::DimTwoLenGreaterThan
-            | Self::DimTwoRgx
-            | Self::LenEq
-            | Self::LenGreaterThan
-            | Self::Rgx => None,
+    fn prefix_wh_self_ucc(&self) -> Ts2 {
+        let v = PgJsonWhSelfUcc::from_display(&self.ucc());
+        quote! {#v}
+    }
+
+    fn ucc(&self) -> &'static dyn DisplayPlusToTokens {
+        match &self {
+            Self::Eq { .. } => &EqUcc,
+            Self::DimOneEq { .. } => &DimOneEqUcc,
+            Self::DimTwoEq { .. } => &DimTwoEqUcc,
+            Self::DimThreeEq { .. } => &DimThreeEqUcc,
+            Self::DimFourEq { .. } => &DimFourEqUcc,
+            Self::AllElsEq { .. } => &AllElsEqUcc,
+            Self::DimOneAllElsEq { .. } => &DimOneAllElsEqUcc,
+            Self::DimTwoAllElsEq { .. } => &DimTwoAllElsEqUcc,
+            Self::DimThreeAllElsEq { .. } => &DimThreeAllElsEqUcc,
+            Self::DimFourAllElsEq { .. } => &DimFourAllElsEqUcc,
+            Self::LenEq => &LenEqUcc,
+            Self::DimOneLenEq => &DimOneLenEqUcc,
+            Self::DimTwoLenEq => &DimTwoLenEqUcc,
+            Self::DimThreeLenEq => &DimThreeLenEqUcc,
+            Self::DimFourLenEq => &DimFourLenEqUcc,
+            Self::GreaterThan { .. } => &GreaterThanUcc,
+            Self::DimOneGreaterThan { .. } => &DimOneGreaterThanUcc,
+            Self::DimTwoGreaterThan { .. } => &DimTwoGreaterThanUcc,
+            Self::DimThreeGreaterThan { .. } => &DimThreeGreaterThanUcc,
+            Self::DimFourGreaterThan { .. } => &DimFourGreaterThanUcc,
+            Self::ContainsElGreaterThan { .. } => &ContainsElGreaterThanUcc,
+            Self::DimOneContainsElGreaterThan { .. } => &DimOneContainsElGreaterThanUcc,
+            Self::DimTwoContainsElGreaterThan { .. } => &DimTwoContainsElGreaterThanUcc,
+            Self::DimThreeContainsElGreaterThan { .. } => &DimThreeContainsElGreaterThanUcc,
+            Self::DimFourContainsElGreaterThan { .. } => &DimFourContainsElGreaterThanUcc,
+            Self::AllElsGreaterThan { .. } => &AllElsGreaterThanUcc,
+            Self::DimOneAllElsGreaterThan { .. } => &DimOneAllElsGreaterThanUcc,
+            Self::DimTwoAllElsGreaterThan { .. } => &DimTwoAllElsGreaterThanUcc,
+            Self::DimThreeAllElsGreaterThan { .. } => &DimThreeAllElsGreaterThanUcc,
+            Self::DimFourAllElsGreaterThan { .. } => &DimFourAllElsGreaterThanUcc,
+            Self::Btwn { .. } => &BtwnUcc,
+            Self::DimOneBtwn { .. } => &DimOneBtwnUcc,
+            Self::DimTwoBtwn { .. } => &DimTwoBtwnUcc,
+            Self::DimThreeBtwn { .. } => &DimThreeBtwnUcc,
+            Self::DimFourBtwn { .. } => &DimFourBtwnUcc,
+            Self::In { .. } => &InUcc,
+            Self::DimOneIn { .. } => &DimOneInUcc,
+            Self::DimTwoIn { .. } => &DimTwoInUcc,
+            Self::DimThreeIn { .. } => &DimThreeInUcc,
+            Self::DimFourIn { .. } => &DimFourInUcc,
+            Self::Rgx => &RgxUcc,
+            Self::DimOneRgx => &DimOneRgxUcc,
+            Self::DimTwoRgx => &DimTwoRgxUcc,
+            Self::DimThreeRgx => &DimThreeRgxUcc,
+            Self::DimFourRgx => &DimFourRgxUcc,
+            Self::ContainsElRgx => &ContainsElRgxUcc,
+            Self::DimOneContainsElRgx => &DimOneContainsElRgxUcc,
+            Self::DimTwoContainsElRgx => &DimTwoContainsElRgxUcc,
+            Self::DimThreeContainsElRgx => &DimThreeContainsElRgxUcc,
+            Self::DimFourContainsElRgx => &DimFourContainsElRgxUcc,
+            Self::AllElsRgx => &AllElsRgxUcc,
+            Self::DimOneAllElsRgx => &DimOneAllElsRgxUcc,
+            Self::DimTwoAllElsRgx => &DimTwoAllElsRgxUcc,
+            Self::DimThreeAllElsRgx => &DimThreeAllElsRgxUcc,
+            Self::DimFourAllElsRgx => &DimFourAllElsRgxUcc,
+            Self::LenGreaterThan => &LenGreaterThanUcc,
+            Self::DimOneLenGreaterThan => &DimOneLenGreaterThanUcc,
+            Self::DimTwoLenGreaterThan => &DimTwoLenGreaterThanUcc,
+            Self::DimThreeLenGreaterThan => &DimThreeLenGreaterThanUcc,
+            Self::DimFourLenGreaterThan => &DimFourLenGreaterThanUcc,
+            Self::ContainsAllElsOfArr { .. } => &ContainsAllElsOfArrUcc,
+            Self::DimOneContainsAllElsOfArr { .. } => &DimOneContainsAllElsOfArrUcc,
+            Self::DimTwoContainsAllElsOfArr { .. } => &DimTwoContainsAllElsOfArrUcc,
+            Self::DimThreeContainsAllElsOfArr { .. } => &DimThreeContainsAllElsOfArrUcc,
+            Self::DimFourContainsAllElsOfArr { .. } => &DimFourContainsAllElsOfArrUcc,
+            Self::OverlapsWithArr { .. } => &OverlapsWithArrUcc,
+            Self::DimOneOverlapsWithArr { .. } => &DimOneOverlapsWithArrUcc,
+            Self::DimTwoOverlapsWithArr { .. } => &DimTwoOverlapsWithArrUcc,
+            Self::DimThreeOverlapsWithArr { .. } => &DimThreeOverlapsWithArrUcc,
+            Self::DimFourOverlapsWithArr { .. } => &DimFourOverlapsWithArrUcc,
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn json_dimension_constructor_maps_zero_and_two() -> Result<(), String> {
-        let ident = quote::quote! { TestIdent };
-        let zero_filter =
-            crate::flts::PgJsonFlt::dim_eq(crate::flts::PgJsonFilterDimension::Zero, ident.clone());
-        let two_filter =
-            crate::flts::PgJsonFlt::dim_eq(crate::flts::PgJsonFilterDimension::Two, ident);
-        if matches!(zero_filter, crate::flts::PgJsonFlt::Eq { .. })
-            && matches!(two_filter, crate::flts::PgJsonFlt::DimTwoEq { .. })
-        {
-            return Ok(());
-        }
-        Err("unexpected json dimension filter variant".to_owned())
-    }
-
-    #[test]
-    fn filter_trait_returns_generic_payload_for_token_filters() -> Result<(), String> {
-        let filter = crate::flts::PgTypeFlt::Eq {
-            ident: quote::quote! { SomeIdent },
-        };
-        let Some(generic) = crate::flts::PgFlt::maybe_generic(&filter) else {
-            return Err("expected generic token payload".to_owned());
-        };
-        if generic.to_string() == "SomeIdent"
-            && crate::flts::PgFlt::filter_name(&filter) == crate::flts::PgFilterName::Eq
-        {
-            return Ok(());
-        }
-        Err(generic.to_string())
-    }
+pub trait PgFlt {
+    fn mb_generic(&self) -> Option<Ts2>;
+    fn prefix_wh_self_ucc(&self) -> Ts2;
+    fn ucc(&self) -> &'static dyn DisplayPlusToTokens;
 }
