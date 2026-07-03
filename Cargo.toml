@@ -19,6 +19,8 @@ members = [
   "optml",
   "panic_loc",
   "pg_crud/pg_crud_macros_cmn",
+  "pg_crud/pg_json/gen_pg_json_src",
+  "pg_crud/pg_json_obj/gen_pg_json_obj_src",
   "pg_crud/pg_tbl/gen_pg_tbl_src",
   "pg_crud/pg_types/gen_pg_types_src",
   "pg_crud/wh_flts/gen_wh_flts_src",
@@ -44,6 +46,8 @@ config_lib = { version = "=0.1.0", path = "config_lib", default-features = false
 convert_case = { version = "=0.11.0", default-features = false }
 gen_derive_ts_builder = { version = "=0.1.0", path = "macros_helpers/gen_derive_ts_builder", default-features = false }
 gen_getter_traits_for_struct_fields = { version = "=0.1.0", path = "config_lib/gen_getter_traits_for_struct_fields", default-features = false }
+gen_pg_json_obj_src = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj_src", default-features = false }
+gen_pg_json_src = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json_src", default-features = false }
 git_info = { version = "=0.1.0", path = "git_info", default-features = false }
 loc_lib = { version = "=0.1.0", path = "loc_lib", default-features = false }
 location = { version = "=0.1.0", path = "loc_lib/location", default-features = false }

@@ -66,6 +66,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_json_obj_src"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_macros_cmn",
+ "proc-macro2",
+]
+
+[[package]]
+name = "gen_pg_json_src"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
 name = "gen_pg_tbl_src"
 version = "0.1.0"
 dependencies = [
