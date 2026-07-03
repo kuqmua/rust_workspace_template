@@ -127,74 +127,58 @@ pub struct TblExample {
     // pub col_87: pg_crud::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
     // pub col_88: pg_crud::OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTz,
     // pub col_89: pg_crud::VecOfSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNnTimestampTz,
-    // pub col_90:
-    // pg_crud::OptVecOfSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNnTimestampTz,
-    // pub col_91:
-    // pg_crud::VecOfOptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNlTimestampTz,
-    // pub col_92:
-    // pg_crud::OptVecOfOptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNlTimestampTz, pub
-    // col_93: pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg, pub col_94:
-    // pg_crud::SqlxTypesUuidUuidAsNnUuidInitByClient, pub col_95:
-    // pg_crud::OptSqlxTypesUuidUuidAsNlUuidInitByClient, pub col_96:
-    // pg_crud::VecOfSqlxTypesUuidUuidAsNnArrOfNnUuidInitByClient, pub col_97:
-    // pg_crud::OptVecOfSqlxTypesUuidUuidAsNlArrOfNnUuidInitByClient, pub col_98:
-    // pg_crud::VecOfOptSqlxTypesUuidUuidAsNnArrOfNlUuidInitByClient, pub col_99:
-    // pg_crud::OptVecOfOptSqlxTypesUuidUuidAsNlArrOfNlUuidInitByClient, pub col_100:
-    // pg_crud::SqlxTypesIpnetworkIpNetworkAsNnInet, pub col_101:
-    // pg_crud::OptSqlxTypesIpnetworkIpNetworkAsNlInet, pub col_102:
-    // pg_crud::VecOfSqlxTypesIpnetworkIpNetworkAsNnArrOfNnInet, pub col_103:
-    // pg_crud::OptVecOfSqlxTypesIpnetworkIpNetworkAsNlArrOfNnInet, pub col_104:
-    // pg_crud::VecOfOptSqlxTypesIpnetworkIpNetworkAsNnArrOfNlInet, pub col_105:
-    // pg_crud::OptVecOfOptSqlxTypesIpnetworkIpNetworkAsNlArrOfNlInet, pub col_106:
-    // pg_crud::SqlxTypesMacAddressMacAddressAsNnMacAddr, pub col_107:
-    // pg_crud::OptSqlxTypesMacAddressMacAddressAsNlMacAddr, pub col_108:
-    // pg_crud::VecOfSqlxTypesMacAddressMacAddressAsNnArrOfNnMacAddr, pub col_109:
-    // pg_crud::OptVecOfSqlxTypesMacAddressMacAddressAsNlArrOfNnMacAddr, pub col_110:
-    // pg_crud::VecOfOptSqlxTypesMacAddressMacAddressAsNnArrOfNlMacAddr, pub col_111:
-    // pg_crud::OptVecOfOptSqlxTypesMacAddressMacAddressAsNlArrOfNlMacAddr, pub col_112:
-    // pg_crud::SqlxPgTypesPgRangeI32AsNnInt4Range, pub col_113:
-    // pg_crud::OptSqlxPgTypesPgRangeI32AsNlInt4Range, pub col_114:
-    // pg_crud::VecOfSqlxPgTypesPgRangeI32AsNnArrOfNnInt4Range, pub col_115:
-    // pg_crud::OptVecOfSqlxPgTypesPgRangeI32AsNlArrOfNnInt4Range, pub col_116:
-    // pg_crud::VecOfOptSqlxPgTypesPgRangeI32AsNnArrOfNlInt4Range, pub col_117:
-    // pg_crud::OptVecOfOptSqlxPgTypesPgRangeI32AsNlArrOfNlInt4Range, pub col_118:
-    // pg_crud::SqlxPgTypesPgRangeI64AsNnInt8Range, pub col_119:
-    // pg_crud::OptSqlxPgTypesPgRangeI64AsNlInt8Range, pub col_120:
-    // pg_crud::VecOfSqlxPgTypesPgRangeI64AsNnArrOfNnInt8Range, pub col_121:
-    // pg_crud::OptVecOfSqlxPgTypesPgRangeI64AsNlArrOfNnInt8Range, pub col_122:
-    // pg_crud::VecOfOptSqlxPgTypesPgRangeI64AsNnArrOfNlInt8Range, pub col_123:
-    // pg_crud::OptVecOfOptSqlxPgTypesPgRangeI64AsNlArrOfNlInt8Range, pub col_124:
-    // pg_crud::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRange, pub col_125:
-    // pg_crud::OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRange, pub col_126:
-    // pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnArrOfNnDateRange,
-    // pub col_127:
-    // pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlArrOfNnDateRange,
-    // pub col_128:
-    // pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnArrOfNlDateRange,
-    // pub col_129:
-    // pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlArrOfNlDateRange,
+    // pub col_90: pg_crud::OptVecOfSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNnTimestampTz,
+    // pub col_91: pg_crud::VecOfOptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNlTimestampTz,
+    // pub col_92: pg_crud::OptVecOfOptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNlTimestampTz,
+    // pub col_93: pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
+    // pub col_94: pg_crud::SqlxTypesUuidUuidAsNnUuidInitByClient,
+    // pub col_95: pg_crud::OptSqlxTypesUuidUuidAsNlUuidInitByClient,
+    // pub col_96: pg_crud::VecOfSqlxTypesUuidUuidAsNnArrOfNnUuidInitByClient,
+    // pub col_97: pg_crud::OptVecOfSqlxTypesUuidUuidAsNlArrOfNnUuidInitByClient,
+    // pub col_98: pg_crud::VecOfOptSqlxTypesUuidUuidAsNnArrOfNlUuidInitByClient,
+    // pub col_99: pg_crud::OptVecOfOptSqlxTypesUuidUuidAsNlArrOfNlUuidInitByClient,
+    // pub col_100: pg_crud::SqlxTypesIpnetworkIpNetworkAsNnInet,
+    // pub col_101: pg_crud::OptSqlxTypesIpnetworkIpNetworkAsNlInet,
+    // pub col_102: pg_crud::VecOfSqlxTypesIpnetworkIpNetworkAsNnArrOfNnInet,
+    // pub col_103: pg_crud::OptVecOfSqlxTypesIpnetworkIpNetworkAsNlArrOfNnInet,
+    // pub col_104: pg_crud::VecOfOptSqlxTypesIpnetworkIpNetworkAsNnArrOfNlInet,
+    // pub col_105: pg_crud::OptVecOfOptSqlxTypesIpnetworkIpNetworkAsNlArrOfNlInet,
+    // pub col_106: pg_crud::SqlxTypesMacAddressMacAddressAsNnMacAddr,
+    // pub col_107: pg_crud::OptSqlxTypesMacAddressMacAddressAsNlMacAddr,
+    // pub col_108: pg_crud::VecOfSqlxTypesMacAddressMacAddressAsNnArrOfNnMacAddr,
+    // pub col_109: pg_crud::OptVecOfSqlxTypesMacAddressMacAddressAsNlArrOfNnMacAddr,
+    // pub col_110: pg_crud::VecOfOptSqlxTypesMacAddressMacAddressAsNnArrOfNlMacAddr,
+    // pub col_111: pg_crud::OptVecOfOptSqlxTypesMacAddressMacAddressAsNlArrOfNlMacAddr,
+    // pub col_112: pg_crud::SqlxPgTypesPgRangeI32AsNnInt4Range,
+    // pub col_113: pg_crud::OptSqlxPgTypesPgRangeI32AsNlInt4Range,
+    // pub col_114: pg_crud::VecOfSqlxPgTypesPgRangeI32AsNnArrOfNnInt4Range,
+    // pub col_115: pg_crud::OptVecOfSqlxPgTypesPgRangeI32AsNlArrOfNnInt4Range,
+    // pub col_116: pg_crud::VecOfOptSqlxPgTypesPgRangeI32AsNnArrOfNlInt4Range,
+    // pub col_117: pg_crud::OptVecOfOptSqlxPgTypesPgRangeI32AsNlArrOfNlInt4Range,
+    // pub col_118: pg_crud::SqlxPgTypesPgRangeI64AsNnInt8Range,
+    // pub col_119: pg_crud::OptSqlxPgTypesPgRangeI64AsNlInt8Range,
+    // pub col_120: pg_crud::VecOfSqlxPgTypesPgRangeI64AsNnArrOfNnInt8Range,
+    // pub col_121: pg_crud::OptVecOfSqlxPgTypesPgRangeI64AsNlArrOfNnInt8Range,
+    // pub col_122: pg_crud::VecOfOptSqlxPgTypesPgRangeI64AsNnArrOfNlInt8Range,
+    // pub col_123: pg_crud::OptVecOfOptSqlxPgTypesPgRangeI64AsNlArrOfNlInt8Range,
+    // pub col_124: pg_crud::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRange,
+    // pub col_125: pg_crud::OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRange,
+    // pub col_126: pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnArrOfNnDateRange,
+    // pub col_127: pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlArrOfNnDateRange,
+    // pub col_128: pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnArrOfNlDateRange,
+    // pub col_129: pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlArrOfNlDateRange,
     // pub col_130: pg_crud::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnTimestampRange,
     // pub col_131: pg_crud::OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlTimestampRange,
-    // pub col_132:
-    // pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnArrOfNnTimestampRange,
-    // pub col_133:
-    // pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlArrOfNnTimestampRange,
-    // pub col_134:
-    // pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnArrOfNlTimestampRange,
-    // pub col_135:
-    // pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlArrOfNlTimestampRange,
-    // pub col_136:
-    // pg_crud::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRange,
-    // pub col_137:
-    // pg_crud::OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRange,
-    // pub col_138:
-    // pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNnTimestampTzRange,
-    // pub col_139:
-    // pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNnTimestampTzRange,
-    // pub col_140:
-    // pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNlTimestampTzRange,
-    // pub col_141:
-    // pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNlTimestampTzRange,
+    // pub col_132: pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnArrOfNnTimestampRange,
+    // pub col_133: pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlArrOfNnTimestampRange,
+    // pub col_134: pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnArrOfNlTimestampRange,
+    // pub col_135: pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlArrOfNlTimestampRange,
+    // pub col_136: pg_crud::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRange,
+    // pub col_137: pg_crud::OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRange,
+    // pub col_138: pg_crud::VecOfSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNnTimestampTzRange,
+    // pub col_139: pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNnTimestampTzRange,
+    // pub col_140: pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNlTimestampTzRange,
+    // pub col_141: pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNlTimestampTzRange,
     pub col_142: server_types::AnimalAsNnJsonbObj,
     // pub col_143: server_types::OptAnimalAsNlJsonbObj,
     // pub col_144: server_types::VecOfAnimalWithIdAsNnArrOfNnJsonbObjWithId,

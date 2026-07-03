@@ -15,14 +15,12 @@ mod obj_example_gen_pg_json_obj_mod {
         ) -> ObjExampleWithIdAsNnJsonbObjWithIdWh {
             ObjExampleWithIdAsNnJsonbObjWithIdWh :: Eq (pg_crud :: PgJsonWhEq { oprtr : pg_crud :: Oprtr :: Or , v : ObjExampleWithIdAsNnJsonbObjWithIdTt :: new (< pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . id , pg_crud :: DfltSomeOneEl :: dflt_some_one_el ()) , < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_0 , cr . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_1 , cr . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_2 , cr . field_2)) , })
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: ObjExampleWithIdAsNnJsonbObjWithIdRdIds,
             cr: ObjExampleWithIdAsNnJsonbObjWithIdCr,
         ) -> pg_crud::NotEmptyUnqVec<ObjExampleWithIdAsNnJsonbObjWithIdWh> {
             pg_crud :: NotEmptyUnqVec :: try_new (vec ! [ObjExampleWithIdAsNnJsonbObjWithIdWh :: Id (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . id , pg_crud :: DfltSomeOneEl :: dflt_some_one_el ()) ,) ,) , ObjExampleWithIdAsNnJsonbObjWithIdWh :: Field0 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_0 , cr . field_0) ,) ,) , ObjExampleWithIdAsNnJsonbObjWithIdWh :: Field1 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_1 , cr . field_1) ,) ,) , ObjExampleWithIdAsNnJsonbObjWithIdWh :: Field2 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_2 , cr . field_2) ,) ,)]) . expect ("5473d8c4")
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
             rd_ids: ObjExampleWithIdAsNnJsonbObjWithIdRdIds,
             cr: ObjExampleWithIdAsNnJsonbObjWithIdCr,
@@ -81,7 +79,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -177,7 +174,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -272,7 +268,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -325,7 +320,6 @@ mod obj_example_gen_pg_json_obj_mod {
         pub const fn new(v: pg_crud::NotEmptyUnqVec<ObjExampleAsNnJsonbObjSelEl>) -> Self {
             Self(v)
         }
-
         fn sel_qp(
             &self,
             col_field: &str,
@@ -333,62 +327,12 @@ mod obj_example_gen_pg_json_obj_mod {
         ) -> Result<String, pg_crud::QpEr> {
             let mut acc_sel_qp = String::default();
             for el in self.0.to_vec() {
-                if {
-                    use std::fmt::Write as _;
-                    write!(acc_sel_qp, "{}||", match el {
-                        ObjExampleAsNnJsonbObjSelEl::Field0(v_3c8acf6a) =>
-                            match <pg_crud::I8AsNnJsonbNbr as pg_crud::PgJson>::sel_qp(
-                                v_3c8acf6a,
-                                "field_0",
-                                col_field,
-                                col_field_for_er_msg,
-                                false,
-                            ) {
-                                Ok(v_d54cf786) => v_d54cf786,
-                                Err(er) => {
-                                    return Err(er);
-                                }
-                            },
-                        ObjExampleAsNnJsonbObjSelEl::Field1(v_3c8acf6a) =>
-                            match <pg_crud::OptI8AsNlJsonbNbr as pg_crud::PgJson>::sel_qp(
-                                v_3c8acf6a,
-                                "field_1",
-                                col_field,
-                                col_field_for_er_msg,
-                                false,
-                            ) {
-                                Ok(v_d54cf786) => v_d54cf786,
-                                Err(er) => {
-                                    return Err(er);
-                                }
-                            },
-                        ObjExampleAsNnJsonbObjSelEl::Field2(v_3c8acf6a) =>
-                            match <pg_crud::VecOfI8AsNnArrOfNnJsonbNbr as pg_crud::PgJson>::sel_qp(
-                                v_3c8acf6a,
-                                "field_2",
-                                col_field,
-                                col_field_for_er_msg,
-                                false,
-                            ) {
-                                Ok(v_d54cf786) => v_d54cf786,
-                                Err(er) => {
-                                    return Err(er);
-                                }
-                            },
-                    })
-                }
-                .is_err()
-                {
-                    return Err(pg_crud::QpEr::WriteIntoBuffer {
-                        loc: loc_lib::loc!(),
-                    });
-                }
+                if { use std :: fmt :: Write as _ ; write ! (acc_sel_qp , "{}||" , match el { ObjExampleAsNnJsonbObjSelEl :: Field0 (v_3c8acf6a) => match < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJson > :: sel_qp (v_3c8acf6a , "field_0" , col_field , col_field_for_er_msg , false ,) { Ok (v_d54cf786) => v_d54cf786 , Err (er) => { return Err (er) ; } } , ObjExampleAsNnJsonbObjSelEl :: Field1 (v_3c8acf6a) => match < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: sel_qp (v_3c8acf6a , "field_1" , col_field , col_field_for_er_msg , false ,) { Ok (v_d54cf786) => v_d54cf786 , Err (er) => { return Err (er) ; } } , ObjExampleAsNnJsonbObjSelEl :: Field2 (v_3c8acf6a) => match < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: sel_qp (v_3c8acf6a , "field_2" , col_field , col_field_for_er_msg , false ,) { Ok (v_d54cf786) => v_d54cf786 , Err (er) => { return Err (er) ; } } }) } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; }
             }
             let _: Option<char> = acc_sel_qp.pop();
             let _: Option<char> = acc_sel_qp.pop();
             Ok(acc_sel_qp)
         }
-
         fn sel_qp_pg_type(&self, col: &str) -> Result<String, pg_crud::QpEr> {
             self.sel_qp(col, col)
         }
@@ -397,7 +341,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -424,7 +367,6 @@ mod obj_example_gen_pg_json_obj_mod {
     #[derive(
         Debug,
         Clone,
-        Copy,
         PartialEq,
         serde :: Serialize,
         serde :: Deserialize,
@@ -487,7 +429,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -514,7 +455,6 @@ mod obj_example_gen_pg_json_obj_mod {
     #[derive(
         Debug,
         Clone,
-        Copy,
         PartialEq,
         serde :: Serialize,
         serde :: Deserialize,
@@ -602,7 +542,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Self::Eq(v_6781c7e3) => pg_crud::PgTypeWhFlt::qp(v_6781c7e3, incr, &col, add_oprtr),
             }
         }
-
         fn qb(
             self,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -681,7 +620,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Self::Eq(v_31e7fe47) => pg_crud::PgTypeWhFlt::qp(v_31e7fe47, incr, &col, add_oprtr),
             }
         }
-
         fn qb(
             self,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -796,7 +734,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -915,7 +852,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -949,7 +885,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -978,7 +913,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -1171,17 +1105,10 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgJson for ObjExampleAsNnJsonbObj {
+        type Tt = ObjExampleAsNnJsonbObjTt;
         type Cr = ObjExampleAsNnJsonbObjCr;
         type CrForQuery = ObjExampleAsNnJsonbObjCrForQuery;
-        type Rd = ObjExampleAsNnJsonbObjRd;
-        type RdIds = ObjExampleAsNnJsonbObjRdIds;
-        type RdInn = ObjExampleAsNnJsonbObjRdInn;
         type Sel = ObjExampleAsNnJsonbObjSel;
-        type Tt = ObjExampleAsNnJsonbObjTt;
-        type Upd = ObjExampleAsNnJsonbObjUpd;
-        type UpdForQuery = ObjExampleAsNnJsonbObjUpdForQuery;
-        type Wh = ObjExampleAsNnJsonbObjWh;
-
         fn sel_qp(
             v: &Self::Sel,
             fi: &str,
@@ -1205,7 +1132,9 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = ObjExampleAsNnJsonbObjWh;
+        type Rd = ObjExampleAsNnJsonbObjRd;
+        type RdIds = ObjExampleAsNnJsonbObjRdIds;
         fn sel_only_ids_qp(col_field: &str) -> Result<String, pg_crud::QpEr> {
             Ok({
                 let mut acc = String::default();
@@ -1257,7 +1186,7 @@ mod obj_example_gen_pg_json_obj_mod {
                 format!("jsonb_build_object('v',{acc})")
             })
         }
-
+        type RdInn = ObjExampleAsNnJsonbObjRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             ObjExampleAsNnJsonbObjRdInn {
                 field_0: v.field_0.map(|v_6e5af985| pg_crud::V {
@@ -1273,7 +1202,8 @@ mod obj_example_gen_pg_json_obj_mod {
                 }),
             }
         }
-
+        type Upd = ObjExampleAsNnJsonbObjUpd;
+        type UpdForQuery = ObjExampleAsNnJsonbObjUpdForQuery;
         fn upd_qp(
             v: &Self::UpdForQuery,
             jsonb_set_accumulator: &str,
@@ -1284,8 +1214,7 @@ mod obj_example_gen_pg_json_obj_mod {
             let _: &str = jsonb_set_accumulator;
             let _: &str = jsonb_set_path;
             let mut std_opt_opt_obj_acc = format!(
-                "case when jsonb_typeof({jsonb_set_target}) = 'object' then \
-                 ({jsonb_set_target})::jsonb else '{{}}'::jsonb end"
+                "case when jsonb_typeof({jsonb_set_target}) = 'object' then ({jsonb_set_target})::jsonb else '{{}}'::jsonb end"
             );
             let gen_jsonb_set_target =
                 |v_12d082b5: &str| format!("{jsonb_set_target}->'{v_12d082b5}'");
@@ -1345,12 +1274,10 @@ mod obj_example_gen_pg_json_obj_mod {
                 Ok(std_opt_opt_obj_acc)
             } else {
                 Ok(format!(
-                    "jsonb_set({jsonb_set_accumulator},'{{{jsonb_set_path}}}',\
-                     {std_opt_opt_obj_acc})"
+                    "jsonb_set({jsonb_set_accumulator},'{{{jsonb_set_path}}}',{std_opt_opt_obj_acc})"
                 ))
             }
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1401,7 +1328,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             fi: &str,
@@ -1413,7 +1339,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1424,7 +1349,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_crd_ids_qp(
             v: &Self::CrForQuery,
             fi: &str,
@@ -1507,7 +1431,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_0fe559fa
             }))
         }
-
         fn sel_only_crd_ids_qb<'lt>(
             v: &'lt Self::CrForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1548,16 +1471,7 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgType for ObjExampleAsNnJsonbObj {
-        type Cr = ObjExampleAsNnJsonbObjCr;
-        type Rd = ObjExampleAsNnJsonbObjRd;
-        type RdIds = ObjExampleAsNnJsonbObjRdIds;
-        type RdInn = ObjExampleAsNnJsonbObjRdInn;
-        type Sel = ObjExampleAsNnJsonbObjSel;
         type Tt = ObjExampleAsNnJsonbObjTt;
-        type Upd = ObjExampleAsNnJsonbObjUpd;
-        type UpdForQuery = ObjExampleAsNnJsonbObjUpdForQuery;
-        type Wh = ObjExampleAsNnJsonbObjWh;
-
         fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display {
             format!(
                 "{col} jsonb not null check (jsonb_matches_schema('{}', {col}))",
@@ -1565,14 +1479,13 @@ mod obj_example_gen_pg_json_obj_mod {
                     .expect("59a1654b")
             )
         }
-
+        type Cr = ObjExampleAsNnJsonbObjCr;
         fn cr_qp(_: &Self::Cr, incr: &mut u64) -> Result<String, pg_crud::QpEr> {
             match pg_crud::incr_checked_add_one_returning_incr(incr) {
                 Ok(v_7df9eb00) => Ok(format!("${v_7df9eb00}")),
                 Err(er) => Err(er),
             }
         }
-
         fn cr_qb(
             v: Self::Cr,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1583,29 +1496,31 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
+        type Sel = ObjExampleAsNnJsonbObjSel;
         fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, pg_crud::QpEr> {
             match v.sel_qp_pg_type(col) {
                 Ok(v_d91c19a6) => Ok(format!("{v_d91c19a6} as {col}")),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = ObjExampleAsNnJsonbObjWh;
+        type Rd = ObjExampleAsNnJsonbObjRd;
         fn normalize(v: Self::Rd) -> Self::Rd {
             v
         }
-
+        type RdIds = ObjExampleAsNnJsonbObjRdIds;
         fn sel_only_ids_qp(col: &str) -> Result<String, pg_crud::QpEr> {
             match <Self as pg_crud::PgJson>::sel_only_ids_qp(col) {
                 Ok(v_e776e9fa) => Ok(format!("{v_e776e9fa} as {col},")),
                 Err(er) => Err(er),
             }
         }
-
+        type RdInn = ObjExampleAsNnJsonbObjRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             <Self as pg_crud::PgJson>::into_inn(v)
         }
-
+        type Upd = ObjExampleAsNnJsonbObjUpd;
+        type UpdForQuery = ObjExampleAsNnJsonbObjUpdForQuery;
         #[allow(unused_variables)]
         fn upd_qp(
             v: &Self::UpdForQuery,
@@ -1622,7 +1537,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 incr,
             )
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1630,7 +1544,6 @@ mod obj_example_gen_pg_json_obj_mod {
         {
             <Self as pg_crud::PgJson>::upd_qb(v, query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             col: &str,
@@ -1641,7 +1554,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -1658,7 +1570,6 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgJsonTestCases for ObjExampleAsNnJsonbObj {
         type PgJson = Self;
         type Sel = ObjExampleAsNnJsonbObjSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgJson as pg_crud::PgJson>::Cr>> {
             Some({
                 let mut acc_ccd79a32 = Vec::new();
@@ -1707,7 +1618,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_ccd79a32
             })
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Vec<Vec<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
@@ -1740,25 +1650,21 @@ mod obj_example_gen_pg_json_obj_mod {
             for el_7bf83754 in < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_2_dims_vec_rd_inn (& rd_ids . 0. v . field_2) { for el_2720df8a in el_7bf83754 { let field_2_crnt = Some (pg_crud :: V { v : el_2720df8a }) ; field_2_last . clone_from (& field_2_crnt) ; acc_ef081dc3 . push (vec ! [ObjExampleAsNnJsonbObjRdInn { field_0 : field_0_last . clone () , field_1 : field_1_last . clone () , field_2 : field_2_crnt . clone () }]) ; } }
             acc_ef081dc3
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: ObjExampleAsNnJsonbObjRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             < Self :: PgJson as pg_crud :: PgType > :: Rd :: try_new (v . field_0 . map (| v_8ff65e09 | pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_8ff65e09 . v) }) , v . field_1 . map (| v_8ff65e09 | pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_8ff65e09 . v) }) , v . field_2 . map (| v_8ff65e09 | pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_8ff65e09 . v) })) . expect ("3aeeabba")
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: ObjExampleAsNnJsonbObjRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Upd {
             < Self :: PgJson as pg_crud :: PgType > :: Upd :: new (pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_ebea163e = Vec :: new () ; acc_ebea163e . extend (v . field_0 . map (| el_23bdfe1e | { ObjExampleAsNnJsonbObjUpdEl :: Field0 (pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped (el_23bdfe1e . v) }) })) ; acc_ebea163e . extend (v . field_1 . map (| el_23bdfe1e | { ObjExampleAsNnJsonbObjUpdEl :: Field1 (pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped (el_23bdfe1e . v) }) })) ; acc_ebea163e . extend (v . field_2 . map (| el_23bdfe1e | { ObjExampleAsNnJsonbObjUpdEl :: Field2 (pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped (el_23bdfe1e . v) }) })) ; acc_ebea163e }) . expect ("a06dbdc5"))
         }
-
         fn rd_ids_into_opt_v_rd_inn(
             v: <Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             Some (pg_crud :: V { v : ObjExampleAsNnJsonbObjRdInn { field_0 : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (v . 0. v . field_0) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) , field_1 : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (v . 0. v . field_1) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) , field_2 : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (v . 0. v . field_2) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) } })
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgJson as pg_crud::PgJson>::Upd,
         ) -> <Self::PgJson as pg_crud::PgJson>::RdIds {
@@ -1788,13 +1694,11 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             })
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::Rd>> {
             Some (pg_crud :: V { v : ObjExampleAsNnJsonbObjRd :: try_new (< pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_opt_v_rd_dflt_some_one_el (& v . 0. v . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_opt_v_rd_dflt_some_one_el (& v . 0. v . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_opt_v_rd_dflt_some_one_el (& v . 0. v . field_2)) . expect ("57820868") })
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgJson as pg_crud::PgJson>::Rd,
             opt_upd: Option<<Self::PgJson as pg_crud::PgJson>::Upd>,
@@ -1822,14 +1726,12 @@ mod obj_example_gen_pg_json_obj_mod {
                 None => rd,
             }
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             ObjExampleAsNnJsonbObjRd :: try_new (< pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_opt_v_rd (rd_ids . 0. v . field_0 , cr . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_opt_v_rd (rd_ids . 0. v . field_1 , cr . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_opt_v_rd (rd_ids . 0. v . field_2 , cr . field_2)) . expect ("52ad3994")
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -1838,35 +1740,30 @@ mod obj_example_gen_pg_json_obj_mod {
                 v: <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr),
             })
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Tt {
             ObjExampleAsNnJsonbObjTt :: new (< pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_0 , cr . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_1 , cr . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_2 , cr . field_2))
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Wh {
             ObjExampleAsNnJsonbObjWh :: Eq (pg_crud :: PgJsonWhEq { oprtr : pg_crud :: Oprtr :: Or , v : ObjExampleAsNnJsonbObjTt :: new (< pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_0 , cr . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_1 , cr . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids . 0. v . field_2 , cr . field_2)) })
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new (vec ! [ObjExampleAsNnJsonbObjWh :: Field0 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_0 , cr . field_0))) , ObjExampleAsNnJsonbObjWh :: Field1 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_1 , cr . field_1))) , ObjExampleAsNnJsonbObjWh :: Field2 (pg_crud :: PgTypeWh :: new (pg_crud :: Oprtr :: And , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids . 0. v . field_2 , cr . field_2)))]) . expect ("ba9c52c1")
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_89ec072c = Vec :: new () ; for el_d830c061 in < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_to_json_field (rd_ids . 0. v . field_0 , cr . field_0) . into_vec () { acc_89ec072c . push (ObjExampleAsNnJsonbObjWh :: Field0 (pg_crud :: PgTypeWh :: try_new (pg_crud :: Oprtr :: Or , vec ! [el_d830c061] ,) . expect ("0c6ccad1") ,)) ; } for el_d830c061 in < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_to_json_field (rd_ids . 0. v . field_1 , cr . field_1) . into_vec () { acc_89ec072c . push (ObjExampleAsNnJsonbObjWh :: Field1 (pg_crud :: PgTypeWh :: try_new (pg_crud :: Oprtr :: Or , vec ! [el_d830c061] ,) . expect ("0c6ccad1") ,)) ; } for el_d830c061 in < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_to_json_field (rd_ids . 0. v . field_2 , cr . field_2) . into_vec () { acc_89ec072c . push (ObjExampleAsNnJsonbObjWh :: Field2 (pg_crud :: PgTypeWh :: try_new (pg_crud :: Oprtr :: Or , vec ! [el_d830c061] ,) . expect ("0c6ccad1") ,)) ; } acc_89ec072c }) . expect ("9c50391c")
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -1885,7 +1782,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -1904,7 +1800,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -1923,7 +1818,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -1942,7 +1836,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
@@ -1960,7 +1853,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
@@ -1978,7 +1870,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2001,7 +1892,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2024,7 +1914,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2047,7 +1936,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2070,7 +1958,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2093,7 +1980,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -2125,76 +2011,64 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgTypeTestCases for ObjExampleAsNnJsonbObj {
         type PgType = Self;
         type Sel = ObjExampleAsNnJsonbObjSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgType as pg_crud::PgType>::Cr>> {
             <Self as pg_crud::PgJsonTestCases>::opt_vec_cr()
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Vec<Vec<<Self::PgType as pg_crud::PgType>::RdInn>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_2_dims_vec_rd_inn(rd_ids)
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: ObjExampleAsNnJsonbObjRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_rd_with_new_or_try_new_unwraped(v)
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: ObjExampleAsNnJsonbObjRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Upd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_upd_with_new_or_try_new_unwraped(v)
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgType as pg_crud::PgType>::Upd,
         ) -> <Self::PgType as pg_crud::PgType>::RdIds {
             <Self as pg_crud::PgJsonTestCases>::upd_to_rd_ids(v)
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_opt_v_rd_dflt_some_one_el(v)
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgType as pg_crud::PgType>::Rd,
             opt_upd: Option<<Self::PgType as pg_crud::PgType>::Upd>,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::previous_rd_and_opt_upd_into_rd(rd, opt_upd)
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_opt_v_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Tt {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_tt(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Wh {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_wh_eq(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2203,7 +2077,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2214,7 +2087,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 ),
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2223,7 +2095,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2232,7 +2103,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2241,7 +2111,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2250,19 +2119,16 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_eq(cr)
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_greater_than(cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2275,7 +2141,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2288,7 +2153,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2299,7 +2163,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_pg_json_opt_vec_wh_in(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2312,7 +2175,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2323,7 +2185,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             < Self as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids , cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -2337,8 +2198,8 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgTypeNotPk for ObjExampleAsNnJsonbObj {
-        type Cr = ObjExampleAsNnJsonbObjCr;
         type PgType = Self;
+        type Cr = ObjExampleAsNnJsonbObjCr;
     }
     #[derive(Debug, Clone, Copy)]
     pub struct OptObjExampleAsNlJsonbObj;
@@ -2368,7 +2229,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2406,7 +2266,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2443,7 +2302,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2474,7 +2332,6 @@ mod obj_example_gen_pg_json_obj_mod {
         pub fn new(v: Option<pg_crud::NotEmptyUnqVec<ObjExampleAsNnJsonbObjSelEl>>) -> Self {
             Self(v.map(<ObjExampleAsNnJsonbObj as pg_crud::PgJson>::Sel::new))
         }
-
         fn sel_qp_pg_type(&self, col: &str) -> Result<String, pg_crud::QpEr> {
             let v = self . 0 . as_ref () . map_or_else (< < ObjExampleAsNnJsonbObj as pg_crud :: PgJson > :: Sel as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el , Clone :: clone) ;
             match v.sel_qp_pg_type(col) {
@@ -2487,7 +2344,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2540,7 +2396,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2575,7 +2430,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -2641,17 +2495,10 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgJson for OptObjExampleAsNlJsonbObj {
+        type Tt = OptObjExampleAsNlJsonbObjTt;
         type Cr = OptObjExampleAsNlJsonbObjCr;
         type CrForQuery = OptObjExampleAsNlJsonbObjCrForQuery;
-        type Rd = OptObjExampleAsNlJsonbObjRd;
-        type RdIds = OptObjExampleAsNlJsonbObjRdIds;
-        type RdInn = OptObjExampleAsNlJsonbObjRdInn;
         type Sel = OptObjExampleAsNlJsonbObjSel;
-        type Tt = OptObjExampleAsNlJsonbObjTt;
-        type Upd = OptObjExampleAsNlJsonbObjUpd;
-        type UpdForQuery = OptObjExampleAsNlJsonbObjUpdForQuery;
-        type Wh = OptObjExampleAsNlJsonbObjWh;
-
         fn sel_qp(
             v: &Self::Sel,
             fi: &str,
@@ -2669,28 +2516,28 @@ mod obj_example_gen_pg_json_obj_mod {
                 true,
             ) {
                 Ok(v_1f8de96a) => Ok(format!(
-                    "jsonb_build_object('{fi}',jsonb_build_object('v',case when \
-                     jsonb_typeof({col_field_fi}) = 'null' then 'null'::jsonb else ({v_1f8de96a}) \
-                     end))"
+                    "jsonb_build_object('{fi}',jsonb_build_object('v',case when jsonb_typeof({col_field_fi}) = 'null' then 'null'::jsonb else ({v_1f8de96a}) end))"
                 )),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = OptObjExampleAsNlJsonbObjWh;
+        type Rd = OptObjExampleAsNlJsonbObjRd;
+        type RdIds = OptObjExampleAsNlJsonbObjRdIds;
         fn sel_only_ids_qp(col_field: &str) -> Result<String, pg_crud::QpEr> {
             match <ObjExampleAsNnJsonbObj as pg_crud::PgJson>::sel_only_ids_qp(col_field) {
                 Ok(v_21000130) => Ok(format!(
-                    "jsonb_build_object('v',case when jsonb_typeof({col_field}) = 'null' then \
-                     'null'::jsonb else ({v_21000130}) end)"
+                    "jsonb_build_object('v',case when jsonb_typeof({col_field}) = 'null' then 'null'::jsonb else ({v_21000130}) end)"
                 )),
                 Err(er) => Err(er),
             }
         }
-
+        type RdInn = OptObjExampleAsNlJsonbObjRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             v.0.map(<ObjExampleAsNnJsonbObj as pg_crud::PgJson>::into_inn)
         }
-
+        type Upd = OptObjExampleAsNlJsonbObjUpd;
+        type UpdForQuery = OptObjExampleAsNlJsonbObjUpdForQuery;
         fn upd_qp(
             v: &Self::UpdForQuery,
             jsonb_set_accumulator: &str,
@@ -2716,7 +2563,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2737,7 +2583,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             }
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             fi: &str,
@@ -2749,7 +2594,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2769,7 +2613,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_crd_ids_qp(
             v: &Self::CrForQuery,
             fi: &str,
@@ -2779,64 +2622,42 @@ mod obj_example_gen_pg_json_obj_mod {
             Ok(format!(
                 "'{fi}'jsonb_build_object('v',{}),",
                 match &v.0 {
-                    Some(v_90219286) => format!("jsonb_build_object('v',{})", {
-                        let mut acc_0e9170a3 = String::new();
-                        match <pg_crud::I8AsNnJsonbNbr as pg_crud::PgJson>::sel_only_crd_ids_qp(
-                            &v_90219286.field_0,
-                            "field_0",
-                            &format!("{col_field}->'field_0'"),
-                            incr,
-                        ) {
-                            Ok(mut v_93015133) => {
-                                let _: Option<char> = v_93015133.pop();
-                                if {
-                                    use std::fmt::Write as _;
-                                    write!(acc_0e9170a3, "jsonb_build_object({v_93015133})||")
+                    Some(v_90219286) =>
+                        format!("jsonb_build_object('v',{})", {
+                            let mut acc_0e9170a3 = String::new();
+                            match <pg_crud::I8AsNnJsonbNbr as pg_crud::PgJson>::sel_only_crd_ids_qp(
+                                &v_90219286.field_0,
+                                "field_0",
+                                &format!("{col_field}->'field_0'"),
+                                incr,
+                            ) {
+                                Ok(mut v_93015133) => {
+                                    let _: Option<char> = v_93015133.pop();
+                                    if {
+                                        use std::fmt::Write as _;
+                                        write!(acc_0e9170a3, "jsonb_build_object({v_93015133})||")
+                                    }
+                                    .is_err()
+                                    {
+                                        return Err(pg_crud::QpEr::WriteIntoBuffer {
+                                            loc: loc_lib::loc!(),
+                                        });
+                                    }
                                 }
-                                .is_err()
-                                {
-                                    return Err(pg_crud::QpEr::WriteIntoBuffer {
-                                        loc: loc_lib::loc!(),
-                                    });
-                                }
-                            }
-                            Err(er) => {
-                                return Err(er);
-                            }
-                        }
-                        match <pg_crud::OptI8AsNlJsonbNbr as pg_crud::PgJson>::sel_only_crd_ids_qp(
-                            &v_90219286.field_1,
-                            "field_1",
-                            &format!("{col_field}->'field_1'"),
-                            incr,
-                        ) {
-                            Ok(mut v_93015133) => {
-                                let _: Option<char> = v_93015133.pop();
-                                if {
-                                    use std::fmt::Write as _;
-                                    write!(acc_0e9170a3, "jsonb_build_object({v_93015133})||")
-                                }
-                                .is_err()
-                                {
-                                    return Err(pg_crud::QpEr::WriteIntoBuffer {
-                                        loc: loc_lib::loc!(),
-                                    });
+                                Err(er) => {
+                                    return Err(er);
                                 }
                             }
-                            Err(er) => {
-                                return Err(er);
-                            }
-                        }
-                        match < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: sel_only_crd_ids_qp (& v_90219286 . field_2 , "field_2" , & format ! ("{col_field}->'field_2'") , incr) { Ok (mut v_93015133) => { let _ : Option < char > = v_93015133 . pop () ; if { use std :: fmt :: Write as _ ; write ! (acc_0e9170a3 , "jsonb_build_object({v_93015133})||") } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; } } , Err (er) => { return Err (er) ; } }
-                        let _: Option<char> = acc_0e9170a3.pop();
-                        let _: Option<char> = acc_0e9170a3.pop();
-                        acc_0e9170a3
-                    }),
+                            match < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: sel_only_crd_ids_qp (& v_90219286 . field_1 , "field_1" , & format ! ("{col_field}->'field_1'") , incr) { Ok (mut v_93015133) => { let _ : Option < char > = v_93015133 . pop () ; if { use std :: fmt :: Write as _ ; write ! (acc_0e9170a3 , "jsonb_build_object({v_93015133})||") } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; } } , Err (er) => { return Err (er) ; } }
+                            match < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: sel_only_crd_ids_qp (& v_90219286 . field_2 , "field_2" , & format ! ("{col_field}->'field_2'") , incr) { Ok (mut v_93015133) => { let _ : Option < char > = v_93015133 . pop () ; if { use std :: fmt :: Write as _ ; write ! (acc_0e9170a3 , "jsonb_build_object({v_93015133})||") } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; } } , Err (er) => { return Err (er) ; } }
+                            let _: Option<char> = acc_0e9170a3.pop();
+                            let _: Option<char> = acc_0e9170a3.pop();
+                            acc_0e9170a3
+                        }),
                     None => pg_crud::NULL_JSONB.to_owned(),
                 }
             ))
         }
-
         fn sel_only_crd_ids_qb<'lt>(
             v: &'lt Self::CrForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2859,16 +2680,7 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgType for OptObjExampleAsNlJsonbObj {
-        type Cr = OptObjExampleAsNlJsonbObjCr;
-        type Rd = OptObjExampleAsNlJsonbObjRd;
-        type RdIds = OptObjExampleAsNlJsonbObjRdIds;
-        type RdInn = OptObjExampleAsNlJsonbObjRdInn;
-        type Sel = OptObjExampleAsNlJsonbObjSel;
         type Tt = OptObjExampleAsNlJsonbObjTt;
-        type Upd = OptObjExampleAsNlJsonbObjUpd;
-        type UpdForQuery = OptObjExampleAsNlJsonbObjUpdForQuery;
-        type Wh = OptObjExampleAsNlJsonbObjWh;
-
         fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display {
             format!(
                 "{col} jsonb not null check (jsonb_matches_schema('{}', {col}))",
@@ -2876,14 +2688,13 @@ mod obj_example_gen_pg_json_obj_mod {
                     .expect("59a1654b")
             )
         }
-
+        type Cr = OptObjExampleAsNlJsonbObjCr;
         fn cr_qp(_: &Self::Cr, incr: &mut u64) -> Result<String, pg_crud::QpEr> {
             match pg_crud::incr_checked_add_one_returning_incr(incr) {
                 Ok(v_7df9eb00) => Ok(format!("${v_7df9eb00}")),
                 Err(er) => Err(er),
             }
         }
-
         fn cr_qb(
             v: Self::Cr,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2894,29 +2705,31 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
+        type Sel = OptObjExampleAsNlJsonbObjSel;
         fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, pg_crud::QpEr> {
             match v.sel_qp_pg_type(col) {
                 Ok(v_d91c19a6) => Ok(format!("{v_d91c19a6} as {col}")),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = OptObjExampleAsNlJsonbObjWh;
+        type Rd = OptObjExampleAsNlJsonbObjRd;
         fn normalize(v: Self::Rd) -> Self::Rd {
             v
         }
-
+        type RdIds = OptObjExampleAsNlJsonbObjRdIds;
         fn sel_only_ids_qp(col: &str) -> Result<String, pg_crud::QpEr> {
             match <Self as pg_crud::PgJson>::sel_only_ids_qp(col) {
                 Ok(v_e776e9fa) => Ok(format!("{v_e776e9fa} as {col},")),
                 Err(er) => Err(er),
             }
         }
-
+        type RdInn = OptObjExampleAsNlJsonbObjRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             <Self as pg_crud::PgJson>::into_inn(v)
         }
-
+        type Upd = OptObjExampleAsNlJsonbObjUpd;
+        type UpdForQuery = OptObjExampleAsNlJsonbObjUpdForQuery;
         #[allow(unused_variables)]
         fn upd_qp(
             v: &Self::UpdForQuery,
@@ -2939,7 +2752,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2947,7 +2759,6 @@ mod obj_example_gen_pg_json_obj_mod {
         {
             <Self as pg_crud::PgJson>::upd_qb(v, query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             col: &str,
@@ -2958,7 +2769,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -2975,7 +2785,6 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgJsonTestCases for OptObjExampleAsNlJsonbObj {
         type PgJson = Self;
         type Sel = OptObjExampleAsNlJsonbObjSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgJson as pg_crud::PgJson>::Cr>> {
             Some({
                 let mut acc_ccd79a32 = Vec::new();
@@ -2998,31 +2807,26 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_ccd79a32
             })
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Vec<Vec<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             rd_ids . 0. v . as_ref () . into_iter () . flat_map (| v_5fa0668c | { < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_to_2_dims_vec_rd_inn (v_5fa0668c) . into_iter () . flat_map (| el0 | { el0 . into_iter () . map (| el1 | vec ! [Some (el1)]) }) }) . chain (std :: iter :: once (vec ! [None])) . collect ()
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: OptObjExampleAsNlJsonbObjRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             < Self :: PgJson as pg_crud :: PgType > :: Rd :: new (v . map (< ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped))
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: OptObjExampleAsNlJsonbObjRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Upd {
             < Self :: PgJson as pg_crud :: PgType > :: Upd :: new (v . map (< ObjExampleAsNnJsonbObj as pg_crud :: PgTypeTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped))
         }
-
         fn rd_ids_into_opt_v_rd_inn(
             v: <Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             Some (pg_crud :: V { v : v . 0. v . and_then (| v_5d7e3961 | match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (v_5d7e3961) { Some (v_cfca0099) => Some (v_cfca0099 . v) , None => None , }) })
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgJson as pg_crud::PgJson>::Upd,
         ) -> <Self::PgJson as pg_crud::PgJson>::RdIds {
@@ -3032,27 +2836,23 @@ mod obj_example_gen_pg_json_obj_mod {
                     .map(<ObjExampleAsNnJsonbObj as pg_crud::PgJsonTestCases>::upd_to_rd_ids),
             })
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::Rd>> {
             Some (pg_crud :: V { v : OptObjExampleAsNlJsonbObjRd :: new (v . 0. v . as_ref () . and_then (| v_dfa7815e | match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_to_opt_v_rd_dflt_some_one_el (v_dfa7815e) { Some (v_02cef266) => Some (v_02cef266 . v) , None => None , })) })
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgJson as pg_crud::PgJson>::Rd,
             opt_upd: Option<<Self::PgJson as pg_crud::PgJson>::Upd>,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             match opt_upd { Some (v_fca601b5) => OptObjExampleAsNlJsonbObjRd (match v_fca601b5 . 0 { Some (v_8d7747f1) => Some (< ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: previous_rd_and_opt_upd_into_rd (rd . 0 . unwrap_or_else (pg_crud :: DfltSomeOneEl :: dflt_some_one_el) , Some (v_8d7747f1) ,)) , None => None , }) , None => rd , }
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             OptObjExampleAsNlJsonbObjRd :: new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_2b2ab8a1) , Some (cr_4a1adaa3)) => { Some (< ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_opt_v_rd (rd_ids_2b2ab8a1 , cr_4a1adaa3) . expect ("56ac4450") . v) } , (Some (_) , None) => panic ! ("75be9ae0") , (None , Some (_)) => panic ! ("6a95d7ae") , (None , None) => None , })
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3061,7 +2861,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 v: <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr),
             })
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3078,68 +2877,58 @@ mod obj_example_gen_pg_json_obj_mod {
                 (None, None) => None,
             })
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Wh {
             pg_crud :: NlJsonObjPgTypeWhFlt (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_ce30c0fe) , Some (cr_8fd81ed8)) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [< ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_wh_eq (rd_ids_ce30c0fe , cr_8fd81ed8)]) { Ok (v_7a9cd49b) => Some (v_7a9cd49b) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("463769fc") } } , (Some (_) , None) => panic ! ("1a2b314c") , (None , Some (_)) => panic ! ("9faea0f9") , (None , None) => None , })
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new (vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_2898c440) , Some (cr_f1c4667c)) => Some (< ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids_2898c440 , cr_f1c4667c)) , (Some (_) , None) => panic ! ("49e4c289") , (None , Some (_)) => panic ! ("ad71caa2") , (None , None) => None , })]) . expect ("ba9c52c1")
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_12b6f16d = Vec :: new () ; match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_2f024927) , Some (cr_120c1dad)) => { for el_a8b181a0 in < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_to_json_field (rd_ids_2f024927 , cr_120c1dad) . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el_a8b181a0]) { Ok (v_8e72cfd7) => { acc_12b6f16d . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_8e72cfd7))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("2a88b17f") } } } } , (Some (_) , None) => panic ! ("b4507b4c") , (None , Some (_)) => panic ! ("8f458c1d") , (None , None) => { acc_12b6f16d . push (pg_crud :: NlJsonObjPgTypeWhFlt (None)) ; } , } acc_12b6f16d }) . expect ("7efc9aae")
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match cr . 0 { Some (cr_09a81dae) => match < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: cr_into_pg_json_opt_vec_wh_len_eq (cr_09a81dae) { Some (v_3680a4c9) => { let mut acc_5c441d3a = Vec :: new () ; for el_a8b181a0 in v_3680a4c9 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el_a8b181a0]) { Ok (v_15097b27) => { acc_5c441d3a . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_15097b27))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("6c4da72e") } } } let v_84ea8e4c = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_3680a4c9)) ; if ! acc_5c441d3a . contains (& v_84ea8e4c) { acc_5c441d3a . push (v_84ea8e4c) ; } acc_5c441d3a } , None => { return None ; } } , None => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] , }) { Ok (v_72dbefbc) => Some (v_72dbefbc) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("d41bcbca") } }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             cr . 0 . map_or_else (|| None , | cr_612f2a61 | < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: cr_into_pg_json_opt_vec_wh_len_greater_than (cr_612f2a61) . map_or_else (|| None , | v_1ea95b5d | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_87f84b5c = Vec :: new () ; for el_9bbf8527 in v_1ea95b5d . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el_9bbf8527]) { Ok (v_1d0202fc) => { acc_87f84b5c . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_1d0202fc))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("bdb0a112") , } , } } let v_4e4cfda3 = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_1ea95b5d)) ; if ! acc_87f84b5c . contains (& v_4e4cfda3) { acc_87f84b5c . push (v_4e4cfda3) ; } acc_87f84b5c }) { Ok (v_ea4ca151) => Some (v_ea4ca151) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("c7ecc36f") , } , } ,))
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3150,7 +2939,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3161,7 +2949,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3172,7 +2959,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_in (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3183,7 +2969,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3194,7 +2979,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -3214,76 +2998,64 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgTypeTestCases for OptObjExampleAsNlJsonbObj {
         type PgType = Self;
         type Sel = OptObjExampleAsNlJsonbObjSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgType as pg_crud::PgType>::Cr>> {
             <Self as pg_crud::PgJsonTestCases>::opt_vec_cr()
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Vec<Vec<<Self::PgType as pg_crud::PgType>::RdInn>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_2_dims_vec_rd_inn(rd_ids)
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: OptObjExampleAsNlJsonbObjRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_rd_with_new_or_try_new_unwraped(v)
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: OptObjExampleAsNlJsonbObjRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Upd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_upd_with_new_or_try_new_unwraped(v)
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgType as pg_crud::PgType>::Upd,
         ) -> <Self::PgType as pg_crud::PgType>::RdIds {
             <Self as pg_crud::PgJsonTestCases>::upd_to_rd_ids(v)
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_opt_v_rd_dflt_some_one_el(v)
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgType as pg_crud::PgType>::Rd,
             opt_upd: Option<<Self::PgType as pg_crud::PgType>::Upd>,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::previous_rd_and_opt_upd_into_rd(rd, opt_upd)
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_opt_v_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Tt {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_tt(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Wh {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_wh_eq(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3292,7 +3064,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3303,7 +3074,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 ),
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3312,7 +3082,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3321,7 +3090,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3330,7 +3098,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3339,19 +3106,16 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_eq(cr)
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_greater_than(cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3364,7 +3128,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3377,7 +3140,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3388,7 +3150,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_pg_json_opt_vec_wh_in(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3401,7 +3162,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3412,7 +3172,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             < Self as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids , cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -3426,8 +3185,8 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgTypeNotPk for OptObjExampleAsNlJsonbObj {
-        type Cr = OptObjExampleAsNlJsonbObjCr;
         type PgType = Self;
+        type Cr = OptObjExampleAsNlJsonbObjCr;
     }
     #[derive(Debug, Clone, Copy)]
     pub struct VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId;
@@ -3459,7 +3218,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3499,7 +3257,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3542,7 +3299,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3580,7 +3336,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 dim1_pgn,
             }
         }
-
         fn sel_qp_pg_type(&self, col: &str) -> Result<String, pg_crud::QpEr> {
             let obj_example_with_id_as_nn_jsonb_obj_with_id_sel = {
                 let mut acc_sel_qp_with_id = String::default();
@@ -3598,10 +3353,7 @@ mod obj_example_gen_pg_json_obj_mod {
             let dim1_start = self.dim1_pgn.start();
             let dim1_end = self.dim1_pgn.end();
             Ok(format!(
-                "(case when (jsonb_array_length({col}) = 0) then '[]'::jsonb else (select \
-                 jsonb_agg(({obj_example_with_id_as_nn_jsonb_obj_with_id_sel})) from \
-                 jsonb_array_elements((select {col})) with ordinality where ordinality between \
-                 {dim1_start} and {dim1_end}) end)"
+                "(case when (jsonb_array_length({col}) = 0) then '[]'::jsonb else (select jsonb_agg(({obj_example_with_id_as_nn_jsonb_obj_with_id_sel})) from jsonb_array_elements((select {col})) with ordinality where ordinality between {dim1_start} and {dim1_end}) end)"
             ))
         }
     }
@@ -3609,7 +3361,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3700,8 +3451,7 @@ mod obj_example_gen_pg_json_obj_mod {
                     }
                 };
                 Ok(format!(
-                    "{oprtr_qp}(exists (select 1 from jsonb_array_elements({col}) as {elem} where \
-                     {v_9696ee60}))"
+                    "{oprtr_qp}(exists (select 1 from jsonb_array_elements({col}) as {elem} where {v_9696ee60}))"
                 ))
             };
             match &self {
@@ -3737,7 +3487,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             }
         }
-
         fn qb(
             self,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -3810,7 +3559,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3847,7 +3595,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -3994,8 +3741,7 @@ mod obj_example_gen_pg_json_obj_mod {
             incr: &mut u64,
         ) -> Result<String, pg_crud::QpEr> {
             Ok(format!(
-                "(select jsonb_agg({}) from jsonb_array_elements({}) as elem where elem->>'id' in \
-                 ({}))",
+                "(select jsonb_agg({}) from jsonb_array_elements({}) as elem where elem->>'id' in ({}))",
                 {
                     let mut acc_57cd0744 = String::new();
                     for el_d7561f40 in self.upd.to_vec() {
@@ -4137,17 +3883,10 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgJson for VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId {
+        type Tt = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdTt;
         type Cr = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCr;
         type CrForQuery = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCrForQuery;
-        type Rd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRd;
-        type RdIds = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdIds;
-        type RdInn = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn;
         type Sel = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdSel;
-        type Tt = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdTt;
-        type Upd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpd;
-        type UpdForQuery = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpdForQuery;
-        type Wh = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdWh;
-
         fn sel_qp(
             v: &Self::Sel,
             fi: &str,
@@ -4167,18 +3906,15 @@ mod obj_example_gen_pg_json_obj_mod {
             let dim1_start = v.dim1_pgn.start();
             let dim1_end = v.dim1_pgn.end();
             Ok(format!(
-                "jsonb_build_object('{fi}',jsonb_build_object('v',(case when \
-                 (jsonb_array_length({col_field}->'{fi}') = 0) then '[]'::jsonb else (select \
-                 jsonb_agg(({obj_example_with_id_as_nn_jsonb_obj_with_id_sel})) from \
-                 jsonb_array_elements((select {col_field}->'{fi}')) with ordinality where \
-                 ordinality between {dim1_start} and {dim1_end}) end)))"
+                "jsonb_build_object('{fi}',jsonb_build_object('v',(case when (jsonb_array_length({col_field}->'{fi}') = 0) then '[]'::jsonb else (select jsonb_agg(({obj_example_with_id_as_nn_jsonb_obj_with_id_sel})) from jsonb_array_elements((select {col_field}->'{fi}')) with ordinality where ordinality between {dim1_start} and {dim1_end}) end)))"
             ))
         }
-
+        type Wh = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdWh;
+        type Rd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRd;
+        type RdIds = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdIds;
         fn sel_only_ids_qp(col_field: &str) -> Result<String, pg_crud::QpEr> {
             Ok(format!(
-                "jsonb_build_object('v',(select jsonb_agg({}) from \
-                 jsonb_array_elements({col_field}) as elem))",
+                "jsonb_build_object('v',(select jsonb_agg({}) from jsonb_array_elements({col_field}) as elem))",
                 {
                     let mut acc = String::default();
                     if { use std :: fmt :: Write as _ ; write ! (acc , "jsonb_build_object('id',{})||" , match < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJson > :: sel_only_ids_qp ("elem->'id'") { Ok (v_2317e0af) => v_2317e0af , Err (er) => { return Err (er) ; } }) } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; }
@@ -4231,7 +3967,7 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             ))
         }
-
+        type RdInn = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             v.0.into_iter()
                 .map(|el_34d57236| ObjExampleWithIdAsNnJsonbObjWithIdRdInn {
@@ -4254,7 +3990,8 @@ mod obj_example_gen_pg_json_obj_mod {
                 })
                 .collect()
         }
-
+        type Upd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpd;
+        type UpdForQuery = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpdForQuery;
         fn upd_qp(
             v: &Self::UpdForQuery,
             jsonb_set_accumulator: &str,
@@ -4354,14 +4091,9 @@ mod obj_example_gen_pg_json_obj_mod {
                 format!(" || jsonb_build_arr({cr_qp_acc})")
             };
             Ok(format!(
-                "jsonb_set({jsonb_set_accumulator},'{{{jsonb_set_path}}}',case when \
-                 jsonb_typeof({jsonb_set_target}) = 'null' then '[]'::jsonb else (select \
-                 coalesce((select jsonb_agg({upd_qp_acc}) from \
-                 jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) end \
-                 {mb_jsonb_build_arr})"
+                "jsonb_set({jsonb_set_accumulator},'{{{jsonb_set_path}}}',case when jsonb_typeof({jsonb_set_target}) = 'null' then '[]'::jsonb else (select coalesce((select jsonb_agg({upd_qp_acc}) from jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) end {mb_jsonb_build_arr})"
             ))
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4388,7 +4120,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             fi: &str,
@@ -4400,7 +4131,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4482,7 +4212,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_crd_ids_qp(
             v: &Self::CrForQuery,
             fi: &str,
@@ -4490,8 +4219,7 @@ mod obj_example_gen_pg_json_obj_mod {
             incr: &mut u64,
         ) -> Result<String, pg_crud::QpEr> {
             Ok(format!(
-                "'{fi}',jsonb_build_object('v',(select jsonb_agg({}) from \
-                 jsonb_array_elements({}) as elem where elem->>'id' in ({}))),",
+                "'{fi}',jsonb_build_object('v',(select jsonb_agg({}) from jsonb_array_elements({}) as elem where elem->>'id' in ({}))),",
                 {
                     let mut acc_0f2b92d0 = String::new();
                     for el in &v.0 {
@@ -4575,7 +4303,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             ))
         }
-
         fn sel_only_crd_ids_qb<'lt>(
             v: &'lt Self::CrForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4635,16 +4362,7 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgType for VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId {
-        type Cr = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCr;
-        type Rd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRd;
-        type RdIds = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdIds;
-        type RdInn = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn;
-        type Sel = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdSel;
         type Tt = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdTt;
-        type Upd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpd;
-        type UpdForQuery = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpdForQuery;
-        type Wh = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdWh;
-
         fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display {
             format!(
                 "{col} jsonb not null check (jsonb_matches_schema('{}', {col}))",
@@ -4654,14 +4372,13 @@ mod obj_example_gen_pg_json_obj_mod {
                 .expect("59a1654b")
             )
         }
-
+        type Cr = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCr;
         fn cr_qp(_: &Self::Cr, incr: &mut u64) -> Result<String, pg_crud::QpEr> {
             match pg_crud::incr_checked_add_one_returning_incr(incr) {
                 Ok(v_7df9eb00) => Ok(format!("${v_7df9eb00}")),
                 Err(er) => Err(er),
             }
         }
-
         fn cr_qb(
             v: Self::Cr,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4672,29 +4389,31 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
+        type Sel = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdSel;
         fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, pg_crud::QpEr> {
             match v.sel_qp_pg_type(col) {
                 Ok(v_d91c19a6) => Ok(format!("{v_d91c19a6} as {col}")),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdWh;
+        type Rd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRd;
         fn normalize(v: Self::Rd) -> Self::Rd {
             v
         }
-
+        type RdIds = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdIds;
         fn sel_only_ids_qp(col: &str) -> Result<String, pg_crud::QpEr> {
             match <Self as pg_crud::PgJson>::sel_only_ids_qp(col) {
                 Ok(v_e776e9fa) => Ok(format!("{v_e776e9fa} as {col},")),
                 Err(er) => Err(er),
             }
         }
-
+        type RdInn = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             <Self as pg_crud::PgJson>::into_inn(v)
         }
-
+        type Upd = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpd;
+        type UpdForQuery = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpdForQuery;
         #[allow(unused_variables)]
         fn upd_qp(
             v: &Self::UpdForQuery,
@@ -4793,12 +4512,9 @@ mod obj_example_gen_pg_json_obj_mod {
                 format!(" || jsonb_build_arr({cr_qp_acc})")
             };
             Ok(format!(
-                "((select coalesce((select jsonb_agg({upd_qp_acc}) from \
-                 jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) \
-                 {mb_jsonb_build_arr})"
+                "((select coalesce((select jsonb_agg({upd_qp_acc}) from jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) {mb_jsonb_build_arr})"
             ))
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4806,7 +4522,6 @@ mod obj_example_gen_pg_json_obj_mod {
         {
             <Self as pg_crud::PgJson>::upd_qb(v, query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             col: &str,
@@ -4817,7 +4532,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -4834,7 +4548,6 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgJsonTestCases for VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId {
         type PgJson = Self;
         type Sel = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgJson as pg_crud::PgJson>::Cr>> {
             Some({
                 let mut acc_ccd79a32 = Vec::new();
@@ -5012,37 +4725,31 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_ccd79a32
             })
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Vec<Vec<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             rd_ids . 0. v . iter () . map (| el | { let mut acc_00b3df88 = Vec :: new () ; for el_4b4da5aa in < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_2_dims_vec_rd_inn (& el . 0. v . field_0 . clone ()) { for el_18d1f553 in el_4b4da5aa { acc_00b3df88 . push (vec ! [ObjExampleWithIdAsNnJsonbObjWithIdRdInn { id : Some (pg_crud :: V { v : el . 0. v . id . 0. v }) , field_0 : Some (pg_crud :: V { v : el_18d1f553 }) , field_1 : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_1 . clone ()) , field_2 : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_2 . clone ()) }]) ; } } for el_4b4da5aa in < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_2_dims_vec_rd_inn (& el . 0. v . field_1 . clone ()) { for el_18d1f553 in el_4b4da5aa { acc_00b3df88 . push (vec ! [ObjExampleWithIdAsNnJsonbObjWithIdRdInn { id : Some (pg_crud :: V { v : el . 0. v . id . 0. v }) , field_0 : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_0 . clone ()) , field_1 : Some (pg_crud :: V { v : el_18d1f553 }) , field_2 : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_2 . clone ()) }]) ; } } for el_4b4da5aa in < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_to_2_dims_vec_rd_inn (& el . 0. v . field_2 . clone ()) { for el_18d1f553 in el_4b4da5aa { acc_00b3df88 . push (vec ! [ObjExampleWithIdAsNnJsonbObjWithIdRdInn { id : Some (pg_crud :: V { v : el . 0. v . id . 0. v }) , field_0 : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_0 . clone ()) , field_1 : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el . 0. v . field_1 . clone ()) , field_2 : Some (pg_crud :: V { v : el_18d1f553 }) }]) ; } } acc_00b3df88 }) . collect ()
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRd :: new (v . into_iter () . map (| el_ffed1bfc | ObjExampleWithIdAsNnJsonbObjWithIdRd { id : el_ffed1bfc . id . map (| v_3ac52220 | pg_crud :: V { v : < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_3ac52220 . v) }) , field_0 : el_ffed1bfc . field_0 . map (| v_3ac52220 | pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_3ac52220 . v) }) , field_1 : el_ffed1bfc . field_1 . map (| v_3ac52220 | pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_3ac52220 . v) }) , field_2 : el_ffed1bfc . field_2 . map (| v_3ac52220 | pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (v_3ac52220 . v) }) }) . collect ())
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Upd {
             VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdUpd :: try_new (Vec :: new () , pg_crud :: UnqVec :: < ObjExampleWithIdAsNnJsonbObjWithIdUpdEl > :: try_new (v . into_iter () . map (| el_ffed1bfc | ObjExampleWithIdAsNnJsonbObjWithIdUpdEl { id : pg_crud :: UuidUuidAsNnJsonbStringUpd :: new (el_ffed1bfc . id . clone () . expect ("f04a2c6d") . v) , fields : < ObjExampleAsNnJsonbObj as pg_crud :: PgJsonTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped (ObjExampleAsNnJsonbObjRdInn { field_0 : el_ffed1bfc . field_0 , field_1 : el_ffed1bfc . field_1 , field_2 : el_ffed1bfc . field_2 }) , }) . collect () ,) . expect ("ca51d559") , Vec :: new () ,) . expect ("0449fe82")
         }
-
         fn rd_ids_into_opt_v_rd_inn(
             v: <Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             Some (pg_crud :: V { v : v . 0. v . into_iter () . fold (Vec :: new () , | mut acc_cf4743b1 , el_6603f209 | { acc_cf4743b1 . push (ObjExampleWithIdAsNnJsonbObjWithIdRdInn { id : < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el_6603f209 . 0. v . id) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJson > :: into_inn (< < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) , field_0 : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el_6603f209 . 0. v . field_0) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) , field_1 : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el_6603f209 . 0. v . field_1) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) , field_2 : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (el_6603f209 . 0. v . field_2) . map_or_else (|| Some (pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: into_inn (< < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJson > :: Rd as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el ()) }) , Some) }) ; acc_cf4743b1 }) })
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgJson as pg_crud::PgJson>::Upd,
         ) -> <Self::PgJson as pg_crud::PgJson>::RdIds {
             VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdIds (pg_crud :: V { v : v . upd . to_vec () . iter () . map (| el_4634bb8a | { let mut field_0 = None ; let mut field_1 = None ; let mut field_2 = None ; for el_da177c5a in el_4634bb8a . fields . 0 . to_vec () { match & el_da177c5a { ObjExampleAsNnJsonbObjUpdEl :: Field0 (v_d2a6daf8) => { field_0 = Some (v_d2a6daf8 . v . clone ()) ; } , ObjExampleAsNnJsonbObjUpdEl :: Field1 (_) | ObjExampleAsNnJsonbObjUpdEl :: Field2 (_) => () , } } for el_da177c5a in el_4634bb8a . fields . 0 . to_vec () { match & el_da177c5a { ObjExampleAsNnJsonbObjUpdEl :: Field1 (v_d2a6daf8) => { field_1 = Some (v_d2a6daf8 . v . clone ()) ; } , ObjExampleAsNnJsonbObjUpdEl :: Field0 (_) | ObjExampleAsNnJsonbObjUpdEl :: Field2 (_) => () , } } for el_da177c5a in el_4634bb8a . fields . 0 . to_vec () { match & el_da177c5a { ObjExampleAsNnJsonbObjUpdEl :: Field2 (v_d2a6daf8) => { field_2 = Some (v_d2a6daf8 . v . clone ()) ; } , ObjExampleAsNnJsonbObjUpdEl :: Field0 (_) | ObjExampleAsNnJsonbObjUpdEl :: Field1 (_) => () , } } ObjExampleWithIdAsNnJsonbObjWithIdRdIds (pg_crud :: V { v : ObjExampleWithIdAsNnJsonbObjWithIdRdIdsH { id : < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: upd_to_rd_ids (& el_4634bb8a . id) , field_0 : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: upd_to_rd_ids (& field_0 . expect ("a3ec7cae")) , field_1 : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: upd_to_rd_ids (& field_1 . expect ("a3ec7cae")) , field_2 : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: upd_to_rd_ids (& field_2 . expect ("a3ec7cae")) } }) }) . collect () })
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::Rd>> {
@@ -5067,7 +4774,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }),
             })
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgJson as pg_crud::PgJson>::Rd,
             opt_upd: Option<<Self::PgJson as pg_crud::PgJson>::Upd>,
@@ -5104,7 +4810,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 None => rd,
             }
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5118,7 +4823,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_37909420
             })
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5127,7 +4831,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 v: <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr),
             })
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5141,7 +4844,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_319e1fb1
             })
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5157,14 +4859,12 @@ mod obj_example_gen_pg_json_obj_mod {
                 }),
             })
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new (vec ! [VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdWh :: Eq (pg_crud :: PgJsonWhEq { oprtr : pg_crud :: Oprtr :: And , v : VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdTt :: new ({ let mut acc_97ebf7d6 = Vec :: new () ; for (rd_ids_319c9e78 , cr_00ae06d2) in rd_ids . 0. v . into_iter () . zip (cr . 0) { acc_97ebf7d6 . push (ObjExampleWithIdAsNnJsonbObjWithIdTt :: new (< pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids_319c9e78 . 0. v . id , pg_crud :: DfltSomeOneEl :: dflt_some_one_el ()) , < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids_319c9e78 . 0. v . field_0 , cr_00ae06d2 . field_0) , < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids_319c9e78 . 0. v . field_1 , cr_00ae06d2 . field_1) , < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids_319c9e78 . 0. v . field_2 , cr_00ae06d2 . field_2))) ; } acc_97ebf7d6 }) })]) . expect ("ba9c52c1")
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5173,7 +4873,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5197,7 +4896,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5218,7 +4916,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5239,7 +4936,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5260,7 +4956,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
@@ -5293,7 +4988,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
@@ -5331,7 +5025,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5598,7 +5291,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -5865,7 +5557,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -6132,7 +5823,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -6399,7 +6089,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -6666,7 +6355,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -6942,76 +6630,64 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgTypeTestCases for VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId {
         type PgType = Self;
         type Sel = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgType as pg_crud::PgType>::Cr>> {
             <Self as pg_crud::PgJsonTestCases>::opt_vec_cr()
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Vec<Vec<<Self::PgType as pg_crud::PgType>::RdInn>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_2_dims_vec_rd_inn(rd_ids)
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_rd_with_new_or_try_new_unwraped(v)
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Upd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_upd_with_new_or_try_new_unwraped(v)
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgType as pg_crud::PgType>::Upd,
         ) -> <Self::PgType as pg_crud::PgType>::RdIds {
             <Self as pg_crud::PgJsonTestCases>::upd_to_rd_ids(v)
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_opt_v_rd_dflt_some_one_el(v)
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgType as pg_crud::PgType>::Rd,
             opt_upd: Option<<Self::PgType as pg_crud::PgType>::Upd>,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::previous_rd_and_opt_upd_into_rd(rd, opt_upd)
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_opt_v_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Tt {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_tt(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Wh {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_wh_eq(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7020,7 +6696,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7031,7 +6706,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 ),
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7040,7 +6714,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7049,7 +6722,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7058,7 +6730,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7067,19 +6738,16 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_eq(cr)
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_greater_than(cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7092,7 +6760,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7105,7 +6772,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7116,7 +6782,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_pg_json_opt_vec_wh_in(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7129,7 +6794,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7140,7 +6804,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             < Self as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids , cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -7154,8 +6817,8 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgTypeNotPk for VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId {
-        type Cr = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCr;
         type PgType = Self;
+        type Cr = VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithIdCr;
     }
     #[derive(Debug, Clone, Copy)]
     pub struct OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId;
@@ -7187,7 +6850,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7227,7 +6889,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7266,7 +6927,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7301,13 +6961,11 @@ mod obj_example_gen_pg_json_obj_mod {
         ) -> Self {
             Self(v)
         }
-
         fn sel_qp_pg_type(&self, col: &str) -> Result<String, pg_crud::QpEr> {
             let v = self . 0 . as_ref () . map_or_else (< < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJson > :: Sel as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el , Clone :: clone) ;
             match v.sel_qp_pg_type(col) {
                 Ok(v_c2ca032e) => Ok(format!(
-                    "case when jsonb_typeof({col}) = 'null' then 'null'::jsonb else \
-                     ({v_c2ca032e}) end"
+                    "case when jsonb_typeof({col}) = 'null' then 'null'::jsonb else ({v_c2ca032e}) end"
                 )),
                 Err(er) => Err(er),
             }
@@ -7317,7 +6975,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7375,7 +7032,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7412,7 +7068,6 @@ mod obj_example_gen_pg_json_obj_mod {
         fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
         }
-
         fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
             <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
         }
@@ -7471,17 +7126,10 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgJson for OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId {
+        type Tt = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdTt;
         type Cr = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCr;
         type CrForQuery = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCrForQuery;
-        type Rd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd;
-        type RdIds = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdIds;
-        type RdInn = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn;
         type Sel = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdSel;
-        type Tt = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdTt;
-        type Upd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpd;
-        type UpdForQuery = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpdForQuery;
-        type Wh = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdWh;
-
         fn sel_qp(
             v: &Self::Sel,
             fi: &str,
@@ -7498,22 +7146,23 @@ mod obj_example_gen_pg_json_obj_mod {
                 true,
             ) {
                 Ok(v_d7bbd03c) => Ok(format!(
-                    "case when jsonb_typeof({col_field}->'{fi}') = 'null' then \
-                     jsonb_build_object('{fi}',jsonb_build_object('v','null'::jsonb)) else \
-                     ({v_d7bbd03c}) end"
+                    "case when jsonb_typeof({col_field}->'{fi}') = 'null' then jsonb_build_object('{fi}',jsonb_build_object('v','null'::jsonb)) else ({v_d7bbd03c}) end"
                 )),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdWh;
+        type Rd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd;
+        type RdIds = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdIds;
         fn sel_only_ids_qp(col_field: &str) -> Result<String, pg_crud::QpEr> {
             match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJson > :: sel_only_ids_qp (col_field) { Ok (v_21000130) => Ok (format ! ("jsonb_build_object('v',case when jsonb_typeof({col_field}) = 'null' then 'null'::jsonb else ({v_21000130}) end)")) , Err (er) => Err (er) }
         }
-
+        type RdInn = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             v.0.map(<VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud::PgJson>::into_inn)
         }
-
+        type Upd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpd;
+        type UpdForQuery = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpdForQuery;
         fn upd_qp(
             v: &Self::UpdForQuery,
             jsonb_set_accumulator: &str,
@@ -7541,7 +7190,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7564,7 +7212,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             }
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             fi: &str,
@@ -7576,7 +7223,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7587,7 +7233,6 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
         fn sel_only_crd_ids_qp(
             v: &Self::CrForQuery,
             fi: &str,
@@ -7598,8 +7243,7 @@ mod obj_example_gen_pg_json_obj_mod {
                 "'{fi}',jsonb_build_object('v',{}),",
                 match &v.0 {
                     Some(v_3c415c92) => format!(
-                        "jsonb_build_object('v',(select jsonb_agg({}) from \
-                         jsonb_array_elements({}) as elem where elem->>'id' in ({})))",
+                        "jsonb_build_object('v',(select jsonb_agg({}) from jsonb_array_elements({}) as elem where elem->>'id' in ({})))",
                         {
                             let mut acc_1a91bdc7 = String::new();
                             for el_9bdcd847 in &v_3c415c92.0 {
@@ -7642,7 +7286,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 }
             ))
         }
-
         fn sel_only_crd_ids_qb<'lt>(
             v: &'lt Self::CrForQuery,
             mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7656,16 +7299,7 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgType for OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId {
-        type Cr = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCr;
-        type Rd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd;
-        type RdIds = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdIds;
-        type RdInn = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn;
-        type Sel = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdSel;
         type Tt = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdTt;
-        type Upd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpd;
-        type UpdForQuery = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpdForQuery;
-        type Wh = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdWh;
-
         fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display {
             format!(
                 "{col} jsonb not null check (jsonb_matches_schema('{}', {col}))",
@@ -7675,14 +7309,13 @@ mod obj_example_gen_pg_json_obj_mod {
                 .expect("59a1654b")
             )
         }
-
+        type Cr = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCr;
         fn cr_qp(_: &Self::Cr, incr: &mut u64) -> Result<String, pg_crud::QpEr> {
             match pg_crud::incr_checked_add_one_returning_incr(incr) {
                 Ok(v_7df9eb00) => Ok(format!("${v_7df9eb00}")),
                 Err(er) => Err(er),
             }
         }
-
         fn cr_qb(
             v: Self::Cr,
             mut query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7693,29 +7326,31 @@ mod obj_example_gen_pg_json_obj_mod {
             }
             Ok(query)
         }
-
+        type Sel = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdSel;
         fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, pg_crud::QpEr> {
             match v.sel_qp_pg_type(col) {
                 Ok(v_d91c19a6) => Ok(format!("{v_d91c19a6} as {col}")),
                 Err(er) => Err(er),
             }
         }
-
+        type Wh = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdWh;
+        type Rd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd;
         fn normalize(v: Self::Rd) -> Self::Rd {
             v
         }
-
+        type RdIds = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdIds;
         fn sel_only_ids_qp(col: &str) -> Result<String, pg_crud::QpEr> {
             match <Self as pg_crud::PgJson>::sel_only_ids_qp(col) {
                 Ok(v_e776e9fa) => Ok(format!("{v_e776e9fa} as {col},")),
                 Err(er) => Err(er),
             }
         }
-
+        type RdInn = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn;
         fn into_inn(v: Self::Rd) -> Self::RdInn {
             <Self as pg_crud::PgJson>::into_inn(v)
         }
-
+        type Upd = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpd;
+        type UpdForQuery = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdUpdForQuery;
         #[allow(unused_variables)]
         fn upd_qp(
             v: &Self::UpdForQuery,
@@ -7816,10 +7451,7 @@ mod obj_example_gen_pg_json_obj_mod {
                         format!(" || jsonb_build_arr({cr_qp_acc})")
                     };
                     Ok(format!(
-                        "(case when jsonb_typeof({jsonb_set_target}) = 'null' then '[]'::jsonb \
-                         else (select coalesce((select jsonb_agg({upd_qp_acc}) from \
-                         jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) \
-                         end {mb_jsonb_build_arr})"
+                        "(case when jsonb_typeof({jsonb_set_target}) = 'null' then '[]'::jsonb else (select coalesce((select jsonb_agg({upd_qp_acc}) from jsonb_array_elements({jsonb_set_target}) as elem {mb_wh}),'[]'::jsonb)) end {mb_jsonb_build_arr})"
                     ))
                 }
                 None => match pg_crud::incr_checked_add_one_returning_incr(incr) {
@@ -7828,7 +7460,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 },
             }
         }
-
         fn upd_qb(
             v: Self::UpdForQuery,
             query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7836,7 +7467,6 @@ mod obj_example_gen_pg_json_obj_mod {
         {
             <Self as pg_crud::PgJson>::upd_qb(v, query)
         }
-
         fn sel_only_updd_ids_qp(
             v: &Self::UpdForQuery,
             col: &str,
@@ -7847,7 +7477,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 Err(er) => Err(er),
             }
         }
-
         fn sel_only_updd_ids_qb<'lt>(
             v: &'lt Self::UpdForQuery,
             query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -7864,7 +7493,6 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgJsonTestCases for OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId {
         type PgJson = Self;
         type Sel = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgJson as pg_crud::PgJson>::Cr>> {
             Some({
                 let mut acc_ccd79a32 = Vec::new();
@@ -7878,7 +7506,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 acc_ccd79a32
             })
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Vec<Vec<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
@@ -7889,51 +7516,43 @@ mod obj_example_gen_pg_json_obj_mod {
             acc_fb5111f1.push(vec![None]);
             acc_fb5111f1
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             < Self :: PgJson as pg_crud :: PgType > :: Rd :: new (v . map (| v_189e3c07 | v_189e3c07 . into_iter () . map (| el_ffed1bfc | ObjExampleWithIdAsNnJsonbObjWithIdRd { id : el_ffed1bfc . id . as_ref () . map (| el_5c1f7f63 | pg_crud :: V { v : < pg_crud :: UuidUuidAsNnJsonbString as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (el_5c1f7f63 . v . clone ()) }) , field_0 : el_ffed1bfc . field_0 . as_ref () . map (| el_5c1f7f63 | pg_crud :: V { v : < pg_crud :: I8AsNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (el_5c1f7f63 . v . clone ()) }) , field_1 : el_ffed1bfc . field_1 . as_ref () . map (| el_5c1f7f63 | pg_crud :: V { v : < pg_crud :: OptI8AsNlJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (el_5c1f7f63 . v . clone ()) }) , field_2 : el_ffed1bfc . field_2 . as_ref () . map (| el_5c1f7f63 | pg_crud :: V { v : < pg_crud :: VecOfI8AsNnArrOfNnJsonbNbr as pg_crud :: PgJsonTestCases > :: rd_inn_into_rd_with_new_or_try_new_unwraped (el_5c1f7f63 . v . clone ()) }) }) . collect ()))
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgJson as pg_crud::PgJson>::Upd {
             < Self :: PgJson as pg_crud :: PgType > :: Upd :: new (v . map (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgTypeTestCases > :: rd_inn_into_upd_with_new_or_try_new_unwraped))
         }
-
         fn rd_ids_into_opt_v_rd_inn(
             v: <Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::RdInn>> {
             Some (pg_crud :: V { v : v . 0. v . and_then (| v_f816032d | match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_into_opt_v_rd_inn (v_f816032d) { Some (v_d0549423) => Some (v_d0549423 . v) , None => None , }) })
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgJson as pg_crud::PgJson>::Upd,
         ) -> <Self::PgJson as pg_crud::PgJson>::RdIds {
             OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdIds (pg_crud :: V { v : v . 0 . as_ref () . map (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: upd_to_rd_ids) })
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgJson as pg_crud::PgJson>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgJson as pg_crud::PgJson>::Rd>> {
             Some (pg_crud :: V { v : OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd :: new (v . 0. v . as_ref () . and_then (| v_16ab4136 | match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_to_opt_v_rd_dflt_some_one_el (v_16ab4136) { Some (v_71a66429) => Some (v_71a66429 . v . 0) , None => None , })) })
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgJson as pg_crud::PgJson>::Rd,
             opt_upd: Option<<Self::PgJson as pg_crud::PgJson>::Upd>,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             match opt_upd { Some (v_fca601b5) => OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd (match v_fca601b5 . 0 { Some (v_8d7747f1) => Some (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: previous_rd_and_opt_upd_into_rd (rd . 0 . unwrap_or_else (pg_crud :: DfltSomeOneEl :: dflt_some_one_el) , Some (v_8d7747f1) ,)) , None => None , }) , None => rd , }
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Rd {
             OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRd :: new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_2b2ab8a1) , Some (cr_4a1adaa3)) => { Some (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_opt_v_rd (rd_ids_2b2ab8a1 , cr_4a1adaa3) . expect ("56ac4450") . v . 0) } , (Some (_) , None) => panic ! ("75be9ae0") , (None , Some (_)) => panic ! ("6a95d7ae") , (None , None) => None , })
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -7942,28 +7561,24 @@ mod obj_example_gen_pg_json_obj_mod {
                 v: <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr),
             })
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Tt {
             OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdTt :: new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_fb2ec2e4) , Some (cr_2f615d4f)) => { Some (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_tt (rd_ids_fb2ec2e4 , cr_2f615d4f) . 0) } , (Some (_) , None) => panic ! ("9349dcd5") , (None , Some (_)) => panic ! ("45f8e70a") , (None , None) => None , })
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> <Self::PgJson as pg_crud::PgJson>::Wh {
             pg_crud :: NlJsonObjPgTypeWhFlt (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_ce30c0fe) , Some (cr_8fd81ed8)) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_wh_eq (rd_ids_ce30c0fe , cr_8fd81ed8)]) { Ok (v_7a9cd49b) => Some (v_7a9cd49b) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("463769fc") } } , (Some (_) , None) => panic ! ("1a2b314c") , (None , Some (_)) => panic ! ("9faea0f9") , (None , None) => None , })
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh> {
             pg_crud :: NotEmptyUnqVec :: try_new (vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_2898c440) , Some (cr_f1c4667c)) => Some (< VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_vec_wh_eq_using_fields (rd_ids_2898c440 , cr_f1c4667c)) , (Some (_) , None) => panic ! ("49e4c289") , (None , Some (_)) => panic ! ("ad71caa2") , (None , None) => None , })]) . expect ("ba9c52c1")
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -7972,47 +7587,40 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_cdcb6239) , Some (cr_fdd53941)) => match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq (rd_ids_cdcb6239 , cr_fdd53941) { Some (v_d6124e21) => { let mut acc_bd78dc08 = Vec :: new () ; for el in v_d6124e21 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el]) { Ok (v_7ed84f3b) => { acc_bd78dc08 . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_7ed84f3b))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23dca12f") } } } let v_e48110ec = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_d6124e21)) ; if ! acc_bd78dc08 . contains (& v_e48110ec) { acc_bd78dc08 . push (v_e48110ec) ; } acc_bd78dc08 } , None => { return None ; } } , (Some (_) , None) => panic ! ("6abeac7b") , (None , Some (_)) => panic ! ("a2761cd2") , (None , None) => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] }) { Ok (v_55f2dc3d) => Some (v_55f2dc3d) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("88912e24") } }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             match pg_crud :: NotEmptyUnqVec :: try_new (match cr . 0 { Some (cr_09a81dae) => match < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: cr_into_pg_json_opt_vec_wh_len_eq (cr_09a81dae) { Some (v_3680a4c9) => { let mut acc_5c441d3a = Vec :: new () ; for el_a8b181a0 in v_3680a4c9 . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el_a8b181a0]) { Ok (v_15097b27) => { acc_5c441d3a . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_15097b27))) ; } , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("6c4da72e") } } } let v_84ea8e4c = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_3680a4c9)) ; if ! acc_5c441d3a . contains (& v_84ea8e4c) { acc_5c441d3a . push (v_84ea8e4c) ; } acc_5c441d3a } , None => { return None ; } } , None => vec ! [pg_crud :: NlJsonObjPgTypeWhFlt (None)] , }) { Ok (v_72dbefbc) => Some (v_72dbefbc) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("d41bcbca") } }
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgJson as pg_crud::PgJson>::Wh>> {
             cr . 0 . map_or_else (|| None , | cr_612f2a61 | < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: cr_into_pg_json_opt_vec_wh_len_greater_than (cr_612f2a61) . map_or_else (|| None , | v_1ea95b5d | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_87f84b5c = Vec :: new () ; for el_9bbf8527 in v_1ea95b5d . clone () . into_vec () { match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [el_9bbf8527]) { Ok (v_1d0202fc) => { acc_87f84b5c . push (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_1d0202fc))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("bdb0a112") , } , } } let v_4e4cfda3 = pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_1ea95b5d)) ; if ! acc_87f84b5c . contains (& v_4e4cfda3) { acc_87f84b5c . push (v_4e4cfda3) ; } acc_87f84b5c }) { Ok (v_ea4ca151) => Some (v_ea4ca151) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("c7ecc36f") , } , } ,))
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8023,7 +7631,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8034,7 +7641,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8045,7 +7651,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_in (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8056,7 +7661,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8067,7 +7671,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             match (rd_ids . 0. v , cr . 0) { (Some (rd_ids_3e2e30c8) , Some (cr_79039a2f)) => < VecOfObjExampleWithIdAsNnArrOfNnJsonbObjWithId as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids_3e2e30c8 , cr_79039a2f) . map_or_else (|| None , | v_35662b3a | match pg_crud :: NotEmptyUnqVec :: try_new ({ let mut acc_e0d72451 = vec ! [] ; for el in v_35662b3a . into_vec () { match el { pg_crud :: SingleOrMultiple :: Multiple (multiple) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (multiple)))) ; } , pg_crud :: SingleOrMultiple :: Single (single) => match pg_crud :: NotEmptyUnqVec :: try_new (vec ! [single]) { Ok (v_4ce6ecd3) => { acc_e0d72451 . push (pg_crud :: SingleOrMultiple :: Single (pg_crud :: NlJsonObjPgTypeWhFlt (Some (v_4ce6ecd3)))) ; } Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => () , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("626ffa77") , } , } , } } acc_e0d72451 }) { Ok (v_5d381053) => Some (v_5d381053) , Err (er) => match er { pg_crud :: NotEmptyUnqVecTryNewEr :: IsEmpty { .. } => None , pg_crud :: NotEmptyUnqVecTryNewEr :: NotUnq { .. } => panic ! ("23a17416") , } , }) , (Some (_) , None) => panic ! ("994082bf") , (None , Some (_)) => panic ! ("04f4d016") , (None , None) => None , }
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgJson as pg_crud::PgJson>::RdIds,
             cr: <Self::PgJson as pg_crud::PgJson>::Cr,
@@ -8087,76 +7690,64 @@ mod obj_example_gen_pg_json_obj_mod {
     impl pg_crud::PgTypeTestCases for OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId {
         type PgType = Self;
         type Sel = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdSel;
-
         fn opt_vec_cr() -> Option<Vec<<Self::PgType as pg_crud::PgType>::Cr>> {
             <Self as pg_crud::PgJsonTestCases>::opt_vec_cr()
         }
-
         fn rd_ids_to_2_dims_vec_rd_inn(
             rd_ids: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Vec<Vec<<Self::PgType as pg_crud::PgType>::RdInn>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_2_dims_vec_rd_inn(rd_ids)
         }
-
         fn rd_inn_into_rd_with_new_or_try_new_unwraped(
             v: OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_rd_with_new_or_try_new_unwraped(v)
         }
-
         fn rd_inn_into_upd_with_new_or_try_new_unwraped(
             v: OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdRdInn,
         ) -> <Self::PgType as pg_crud::PgType>::Upd {
             <Self as pg_crud::PgJsonTestCases>::rd_inn_into_upd_with_new_or_try_new_unwraped(v)
         }
-
         fn upd_to_rd_ids(
             v: &<Self::PgType as pg_crud::PgType>::Upd,
         ) -> <Self::PgType as pg_crud::PgType>::RdIds {
             <Self as pg_crud::PgJsonTestCases>::upd_to_rd_ids(v)
         }
-
         fn rd_ids_to_opt_v_rd_dflt_some_one_el(
             v: &<Self::PgType as pg_crud::PgType>::RdIds,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_to_opt_v_rd_dflt_some_one_el(v)
         }
-
         fn previous_rd_and_opt_upd_into_rd(
             rd: <Self::PgType as pg_crud::PgType>::Rd,
             opt_upd: Option<<Self::PgType as pg_crud::PgType>::Upd>,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::previous_rd_and_opt_upd_into_rd(rd, opt_upd)
         }
-
         fn rd_ids_and_cr_into_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Rd {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_opt_v_rd(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::V<<Self::PgType as pg_crud::PgType>::Rd>> {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_opt_v_rd(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_tt(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Tt {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_tt(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_wh_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> <Self::PgType as pg_crud::PgType>::Wh {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_wh_eq(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_vec_wh_eq_using_fields(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8165,7 +7756,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8176,7 +7766,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 ),
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8185,7 +7774,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8194,7 +7782,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8203,7 +7790,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8212,19 +7798,16 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_eq(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_eq(cr)
         }
-
         fn cr_into_pg_json_opt_vec_wh_len_greater_than(
             cr: <Self::PgType as pg_crud::PgType>::Cr,
         ) -> Option<pg_crud::NotEmptyUnqVec<<Self::PgType as pg_crud::PgType>::Wh>> {
             <Self as pg_crud::PgJsonTestCases>::cr_into_pg_json_opt_vec_wh_len_greater_than(cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8237,7 +7820,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8250,7 +7832,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_in(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8261,7 +7842,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             <Self as pg_crud::PgJsonTestCases>::rd_ids_and_cr_into_pg_json_opt_vec_wh_in(rd_ids, cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8274,7 +7854,6 @@ mod obj_example_gen_pg_json_obj_mod {
                 rd_ids, cr,
             )
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8285,7 +7864,6 @@ mod obj_example_gen_pg_json_obj_mod {
         > {
             < Self as pg_crud :: PgJsonTestCases > :: rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than (rd_ids , cr)
         }
-
         fn rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx(
             rd_ids: <Self::PgType as pg_crud::PgType>::RdIds,
             cr: <Self::PgType as pg_crud::PgType>::Cr,
@@ -8299,8 +7877,8 @@ mod obj_example_gen_pg_json_obj_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl pg_crud::PgTypeNotPk for OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithId {
-        type Cr = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCr;
         type PgType = Self;
+        type Cr = OptVecOfObjExampleWithIdAsNlArrOfNnJsonbObjWithIdCr;
     }
 }
 pub use obj_example_gen_pg_json_obj_mod::*;

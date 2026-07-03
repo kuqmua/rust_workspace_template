@@ -1,13 +1,9 @@
-use std::{io, path::Path, process::Command};
-
+use crate::panic_if_err::panic_if_err;
+use crate::write_string_into_file::{WritePathOutcome, try_write_string_into_file_with_outcome};
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use serde::Deserialize;
-
-use crate::{
-    panic_if_err::panic_if_err,
-    write_string_into_file::{WritePathOutcome, try_write_string_into_file_with_outcome},
-};
+use std::{io, path::Path, process::Command};
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum FormatWithCargofmt {
     False,
@@ -86,18 +82,14 @@ pub fn mb_write_ts_into_file<P>(
 }
 #[cfg(test)]
 mod tests {
-    use std::fs::{metadata, write};
-
-    use proc_macro2::TokenStream as Ts2;
-
     use super::{
         FormatWithCargofmt, ShouldWriteTsIntoFile, mb_write_ts_into_file, should_write_ts_flag,
         try_mb_write_ts_into_file,
     };
-    use crate::{
-        rs_file_path::rs_file_path,
-        test_hlp::{assert_file_content, cleanup_test_file, test_path},
-    };
+    use crate::rs_file_path::rs_file_path;
+    use crate::test_hlp::{assert_file_content, cleanup_test_file, test_path};
+    use proc_macro2::TokenStream as Ts2;
+    use std::fs::{metadata, write};
     #[test]
     fn mb_write_ts_into_file_skips_when_flag_is_false() {
         let base = test_path("macros_helpers_skip");

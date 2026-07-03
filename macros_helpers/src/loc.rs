@@ -1,15 +1,13 @@
-use std::str::FromStr;
-
+use crate::attr_ident_str::AttrIdentStr;
 use naming::{HashMapUcc, LocSc, WithSerdeUcc};
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::quote;
+use std::str::FromStr;
 use syn::{
     AngleBracketedGenericArguments, Field, Fields, GenericArgument, PathArguments, Type, Variant,
 };
 use token_patterns::StringTs;
-
-use crate::attr_ident_str::AttrIdentStr;
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum LocFieldAttr {
@@ -25,7 +23,6 @@ pub enum LocFieldAttr {
 }
 impl FromStr for LocFieldAttr {
     type Err = ();
-
     fn from_str(v: &str) -> Result<Self, Self::Err> {
         if v == "eo_to_err_string" {
             Ok(Self::EoToErrString)
@@ -52,7 +49,6 @@ impl FromStr for LocFieldAttr {
 }
 impl TryFrom<&Field> for LocFieldAttr {
     type Error = String;
-
     fn try_from(syn_field: &Field) -> Result<Self, Self::Error> {
         let mut opt_attr = None;
         for el in &syn_field.attrs {

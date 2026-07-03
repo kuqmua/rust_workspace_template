@@ -162,12 +162,11 @@ pub fn gen_impl_pub_const_try_new_for_ident_ts(
 }
 #[cfg(test)]
 mod tests {
-    use proc_macro2::TokenStream as Ts2;
-
     use super::{
         gen_impl_const_new_for_ident_ts, gen_impl_new_for_ident_ts,
         gen_impl_pub_const_new_for_ident_ts,
     };
+    use proc_macro2::TokenStream as Ts2;
     fn cmpct(v: &str) -> String {
         v.split_whitespace().collect::<String>()
     }

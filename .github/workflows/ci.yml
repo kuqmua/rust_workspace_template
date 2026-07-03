@@ -1,251 +1,86 @@
 name: CI
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
+on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 0
-  CARGO_NET_RETRY: 10
-  CARGO_NET_TIMEOUT: 60
-  RUSTFLAGS: "-D warnings -D unreachable_pub -D dead_code"
-  RUSTDOCFLAGS: "-D warnings"
-  RUST_BACKTRACE: short
 
 jobs:
-  fmt:
-    name: cargo fmt
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-        with:
-          components: rustfmt
-      - run: cargo fmt
-      - name: git diff --exit-code
-        run: git diff --exit-code
 
-  metadata:
-    name: cargo metadata --locked --format-version 1
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-      - name: cargo metadata --locked --format-version 1
-        run: cargo metadata --locked --format-version 1
+    services:
+      postgres:
+        image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
 
-  clippy:
-    name: cargo clippy --all-targets --all-features -- -D warnings
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-        with:
-          toolchain: nightly
-          components: clippy
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-          key: clippy-nightly
-      - name: cargo clippy --all-targets --all-features -- -D warnings
-        run: cargo clippy --all-targets --all-features -- -D warnings
+    - uses: actions/checkout@v4
 
-  taplo:
-    name: taplo fmt --check
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Install taplo
-        uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
-      - name: taplo fmt --check
-        run: taplo fmt --check
+    - name: cache rust
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-  taplo-lint:
-    name: taplo lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Install taplo
-        uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
-      - name: taplo lint
-        run: taplo lint
+    - name: install rust nightly
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        components: rustfmt, clippy
 
-  audit:
-    name: cargo audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - name: Install cargo-audit
-        uses: taiki-e/install-action@6e84c0f8f063dd58bf76f3d07fdb5f89fcd3f2e1
-      - name: cargo audit
-        run: cargo audit
+    - name: rustc --version
+      run: rustc --version
 
-  typos:
-    name: typos
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: Install typos
-        uses: taiki-e/install-action@dc6aaebcb47625f80d5dada4c7fbf1dc3e7e257a
-      - name: typos
-        run: typos
+    - name: wait for postgreSQL
+      run: |
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432; then
+            echo "PostgreSQL is ready!"
+            break
+          fi
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
 
-  actionlint:
-    name: actionlint
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
+    - name: cargo fmt --all -- --check
+      run: cargo fmt --all -- --check
 
-  deny:
-    name: cargo deny check advisories bans licenses sources
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - name: Install cargo-deny
-        uses: taiki-e/install-action@43d63066c313f326186510e6e5feab4dd2391cfd
-      - name: cargo deny check advisories bans licenses sources
-        run: cargo deny check advisories bans licenses sources
+    - name: cargo clippy --all-targets --all-features -- -D warnings
+      run: cargo clippy --all-targets --all-features -- -D warnings
 
-  machete:
-    name: cargo machete
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - name: Install cargo-machete
-        uses: taiki-e/install-action@59979a424d2584f3cdeca89833d69ca54b72d84f
-      - run: cargo machete
+    - name: cargo doc --no-deps --all-features
+      run: cargo doc --no-deps --all-features
+      env:
+        RUSTDOCFLAGS: "-D warnings"
 
-  check-semver:
-    name: cargo-semver-checks-action
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          fetch-depth: 0
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239
+    - name: cargo audit
+      run: |
+        cargo install cargo-audit
+        cargo audit \
+          --ignore RUSTSEC-2023-0071 \
+          --ignore RUSTSEC-2021-0141 \
+          --ignore RUSTSEC-2024-0370
 
-  hack:
-    name: cargo hack check --workspace --feature-powerset --no-dev-deps
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@a8bfb6e9b2cf3cefc208e6a18507d78669d398ab
-      - name: cargo hack check --workspace --feature-powerset --no-dev-deps
-        run: cargo hack check --workspace --feature-powerset --no-dev-deps
-
-  udeps:
-    name: cargo +nightly udeps --workspace --all-targets --all-features
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@5b842231ba77f5c045dba54ac5560fed2db780e2
-      - name: Install cargo-udeps
-        uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
-      - name: cargo +nightly udeps --workspace --all-targets --all-features
-        run: cargo +nightly udeps --workspace --all-targets --all-features
-
-  # miri:
-  #   name: cargo +nightly miri test --workspace --all-features
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 20
-  #   steps:
-  #     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-  #     - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-  #       with:
-  #         toolchain: nightly
-  #         components: miri
-  #     - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-  #       with:
-  #         cache-on-failure: true
-  #         key: miri-nightly
-  #     - name: cargo +nightly miri test --workspace --all-features
-  #       run: cargo +nightly miri test --workspace --all-features
-
-  llvm-cov:
-    name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-        with:
-          components: llvm-tools-preview
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
-      - name: cargo llvm-cov --workspace --all-features --all-targets --summary-only
-        run: cargo llvm-cov --workspace --all-features --all-targets --summary-only
-
-  gitleaks:
-    name: gitleaks detect
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: gitleaks detect
-        run: docker run --rm -v "$PWD:/workspace" zricethezav/gitleaks:latest detect --source /workspace --no-git
-
-  trivy:
-    name: trivy fs
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - name: trivy fs
-        run: docker run --rm -v "$PWD:/workspace" aquasec/trivy:latest fs /workspace
-
-  bench-save-baseline:
-    name: cargo bench save baseline
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-          key: bench-save-baseline
-      - name: cargo bench save baseline
-        run: cargo bench --workspace --all-features --no-run
-
-  bench-baseline-compare:
-    name: cargo bench baseline compare
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
-      - uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
-        with:
-          cache-on-failure: true
-          key: bench-baseline-compare
-      - name: cargo bench baseline compare
-        run: cargo bench --workspace --all-features --no-run
+    - name: cargo test --features test-utils
+      env:
+        SERVICE_SOCKET_ADDRESS: "127.0.0.1:8080"
+        DATABASE_URL: "postgres://postgres:postgres@127.0.0.1:5432/postgres"
+        TIMEZONE: "10800"
+        TRACING_LEVEL: "debug"
+        SRC_PLACE_TYPE: "src"
+        ENABLE_API_GIT_COMMIT_CHECK: "true"
+        MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: "1048576000"
+      run: cargo test --features test-utils

@@ -1,22 +1,21 @@
 [package]
 name = "pg_tbl"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL table leaf helpers"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../README.md"
-keywords = ["postgres", "table"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-app_state.workspace = true
 gen_pg_tbl.workspace = true
-
-[features]
-test-utils = []
+app_state.workspace = true
 
 [lints]
 workspace = true
+
+[features]
+test-utils = []

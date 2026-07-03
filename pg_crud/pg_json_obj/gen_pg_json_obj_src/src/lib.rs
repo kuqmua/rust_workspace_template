@@ -1,8 +1,6 @@
 pub mod cfg;
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub mod types;
-use std::{fmt::Display, iter::repeat_with};
-
 use cfg::{GenPgJsonsConfig, Pattern, PgJsonObjRecord, TraitGen};
 use gen_quotes::dq_ts;
 use macros_helpers::{
@@ -69,6 +67,8 @@ use pg_crud_macros_cmn::{
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use serde_json::from_str;
+use std::fmt::Display;
+use std::iter::repeat_with;
 use syn::{
     Data, DeriveInput, Field, FieldMutability, Fields, Ident, Path, Type, TypePath, Visibility,
     parse2,
@@ -82,9 +82,8 @@ use types::{
     AddSerdeSkipSerializingIfVecIsEmptyAnn, IdentPattern, IsStdrtWithId, NewTypeOrStructDcl,
     PgJsonSubtype, PgJsonSubtypeTtOrCr, PgTypeSubtype, RdWithOrWithoutAnnOrInn,
 };
-// todo gen authorization rights enum for json fields
-// todo bug in upd if updating arr and creating el in jsonb arr without anything
-// - rd_ids generation logic of vec returns wrong query part
+//todo gen authorization rights enum for json fields
+//todo bug in upd if updating arr and creating el in jsonb arr without anything - rd_ids generation logic of vec returns wrong query part
 #[must_use]
 pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
     panic_loc();

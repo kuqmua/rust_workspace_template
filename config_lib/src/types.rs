@@ -1,16 +1,14 @@
+use crate::str_from_enum_macros::impl_from_str_for_enum_helper;
+use dotenv::dotenv;
+use optml::Optml;
+use serde::{Deserialize, Serialize};
 use std::{
     env,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
     sync::OnceLock,
 };
-
-use dotenv::dotenv;
-use optml::Optml;
-use serde::{Deserialize, Serialize};
 use strum_macros::{Display as StrumDisplay, EnumIter};
-
-use crate::str_from_enum_macros::impl_from_str_for_enum_helper;
 const TRACING_LEVEL_PARSE_PAIRS: [(&str, TracingLevel); 5] = [
     ("trace", TracingLevel::Trace),
     ("debug", TracingLevel::Debug),
@@ -48,7 +46,6 @@ impl TracingLevel {
 }
 impl FromStr for TracingLevel {
     type Err = String;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         impl_from_str_for_enum_helper(s, &TRACING_LEVEL_PARSE_PAIRS)
     }
@@ -68,7 +65,6 @@ pub enum SrcPlaceType {
 }
 impl FromStr for SrcPlaceType {
     type Err = String;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         impl_from_str_for_enum_helper(s, &SRC_PLACE_TYPE_PARSE_PAIRS)
     }
@@ -91,7 +87,6 @@ impl SrcPlaceType {
             }
         }
     }
-
     #[allow(clippy::single_call_fn)] // helper keeps env-read error context centralized and deterministic for tests
     fn parse_src_place_type_from_env_var(v: Result<String, env::VarError>) -> Result<Self, String> {
         parse_from_env_var_from_str(v, SRC_PLACE_TYPE_ENV_VAR, SRC_PLACE_TYPE_PARSE_CTX)
@@ -130,17 +125,14 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use std::{
-        env,
-        fmt::{Debug, Display},
-        str::FromStr,
-    };
-
     use super::{
         SRC_PLACE_TYPE_ENV_VAR, SRC_PLACE_TYPE_PARSE_CTX, SRC_PLACE_TYPE_PARSE_PAIRS, SrcPlaceType,
         TRACING_LEVEL_PARSE_PAIRS, TracingLevel, parse_from_env_var_from_str,
         parse_from_env_var_with, parse_from_str_with_ctx,
     };
+    use std::env;
+    use std::fmt::{Debug, Display};
+    use std::str::FromStr;
     #[allow(clippy::single_call_fn)] // shared helper keeps parse-pair assertions centralized across enum parser tests
     fn assert_from_str_matches_pairs<T>(pairs: &[(&str, T)])
     where

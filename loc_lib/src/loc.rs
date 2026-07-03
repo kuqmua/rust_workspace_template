@@ -1,9 +1,3 @@
-use std::{
-    fmt::{Display, Formatter, Result as FmtResult},
-    sync::OnceLock,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
-
 use app_state::SrcPlaceType;
 use chrono::{DateTime, FixedOffset, Utc};
 use git_info::PROJECT_GIT_INFO;
@@ -11,6 +5,11 @@ use naming::GITHUB_URL;
 use optml::Optml;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    sync::OnceLock,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 use utoipa::ToSchema;
 static SRC_PLACE_TYPE: OnceLock<SrcPlaceType> = OnceLock::new();
 static LOC_DISPLAY_TIMEZONE: OnceLock<Option<FixedOffset>> = OnceLock::new();
@@ -42,7 +41,6 @@ impl Loc {
             .get_or_init(|| FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS))
             .as_ref()
     }
-
     fn fmt_with_occr(
         &self,
         f: &mut Formatter<'_>,
@@ -58,29 +56,24 @@ impl Loc {
             Ok(())
         }
     }
-
     fn fmt_github_loc(&self, f: &mut Formatter<'_>, file: &str, line: u32) -> FmtResult {
         write!(f, "{}/blob/{}/{}#L{}", GITHUB_URL, self.commit, file, line)
     }
-
     fn fmt_src_loc(f: &mut Formatter<'_>, file: &str, line: u32, col: u32) -> FmtResult {
         write!(f, "{file}:{line}:{col}")
     }
-
     #[allow(clippy::single_call_fn)] // centralizes datetime + timezone composition so formatting can stay branch-light and tests can target conversion separately
     fn datetime_with_tz(&self) -> Option<DateTime<FixedOffset>> {
         let epoch = UNIX_EPOCH.checked_add(self.duration)?;
         let offset = Self::loc_display_timezone()?;
         Some(DateTime::<Utc>::from(epoch).with_timezone(offset))
     }
-
     fn fmt_datetime(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.datetime_with_tz() {
             Some(v) => write!(f, "{}", v.format("%Y-%m-%d %H:%M:%S")),
             None => f.write_str(INCORRECT_DATETIME_MSG),
         }
     }
-
     fn fmt_github_place(&self, f: &mut Formatter<'_>) -> FmtResult {
         self.fmt_with_occr(
             f,
@@ -88,14 +81,12 @@ impl Loc {
             |fmtr, v| self.fmt_github_loc(fmtr, &v.file, v.line),
         )
     }
-
     fn fmt_place(&self, src_place_type: SrcPlaceType, f: &mut Formatter<'_>) -> FmtResult {
         match src_place_type {
             SrcPlaceType::Src => self.fmt_src_place(f),
             SrcPlaceType::Github => self.fmt_github_place(f),
         }
     }
-
     fn fmt_src_place(&self, f: &mut Formatter<'_>) -> FmtResult {
         self.fmt_with_occr(
             f,
@@ -103,7 +94,6 @@ impl Loc {
             |fmtr, v| Self::fmt_src_loc(fmtr, &v.file, v.line, v.col),
         )
     }
-
     #[must_use]
     pub fn new(file: String, line: u32, col: u32, occr: Option<Occr>) -> Self {
         Self {
@@ -137,14 +127,12 @@ impl Display for Loc {
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 mod tests {
+    use super::{GITHUB_URL, INCORRECT_DATETIME_MSG, LOC_DISPLAY_UTC_OFFSET_SECS, Loc, Occr};
+    use app_state::SrcPlaceType;
     use std::{
         fmt::{Display, Formatter, Result as FmtResult},
         time::Duration,
     };
-
-    use app_state::SrcPlaceType;
-
-    use super::{GITHUB_URL, INCORRECT_DATETIME_MSG, LOC_DISPLAY_UTC_OFFSET_SECS, Loc, Occr};
     struct DatetimeFmt<'loc_lt> {
         loc: &'loc_lt Loc,
     }

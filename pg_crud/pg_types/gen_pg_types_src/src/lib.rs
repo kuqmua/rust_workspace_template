@@ -1,14 +1,10 @@
-use std::{
-    fmt::{Display, Formatter, Result as StdFmtResult},
-    iter::{once, repeat_n},
-};
-
 use gen_quotes::dq_ts;
+use macros_helpers::gen_impl_try_from_ts;
 use macros_helpers::{
     DCopy, DDefault, DEq, DOrd, DPartialOrd, DSerdeDeserialize, DSerdeSerialize, DTsBuilder,
     FormatWithCargofmt, ShouldWriteTsIntoFile, gen_const_new_ts, gen_if_write_is_err_ts,
-    gen_impl_display_ts, gen_impl_from_ts, gen_impl_try_from_ts, gen_new_ts, gen_pub_const_new_ts,
-    gen_pub_new_ts, gen_pub_try_new_ts, mb_write_ts_into_file,
+    gen_impl_display_ts, gen_impl_from_ts, gen_new_ts, gen_pub_const_new_ts, gen_pub_new_ts,
+    gen_pub_try_new_ts, mb_write_ts_into_file,
 };
 use naming::{
     ArrOfUcc, AsUcc, ColSc, ContainsNullByteUcc, CrSc, DateNaiveSc, DateNaiveUcc, DateSc, DateUcc,
@@ -55,6 +51,10 @@ use quote::{ToTokens, quote};
 use rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
+use std::{
+    fmt::{Display, Formatter, Result as StdFmtResult},
+    iter::{once, repeat_n},
+};
 use strum::IntoEnumIterator as _;
 use strum_macros::{Display as StrumDisplay, EnumIter};
 use token_patterns::{
@@ -231,7 +231,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 CanBeNl::False => CanBeAnArrEl::False,
             }
         }
-
         const fn can_be_nl(&self) -> CanBeNl {
             match &self {
                 Self::I16AsInt2
@@ -294,7 +293,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     impl TryFrom<&PgType> for Range {
         type Error = ();
-
         fn try_from(v: &PgType) -> Result<Self, Self::Error> {
             match &v {
                 PgType::I16AsInt2
@@ -388,7 +386,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         type Error = String;
-
         fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
             let cant_supp_nl_vrts_msg = "cant support nl vrts: ";
             let cant_supp_arr_ver_msg = "cant support arr_version: ";
@@ -470,7 +467,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     impl TryFrom<&PgType> for PgTypeInitTryNew {
         type Error = ();
-
         fn try_from(v: &PgType) -> Result<Self, Self::Error> {
             match v {
                 PgType::I16AsInt2

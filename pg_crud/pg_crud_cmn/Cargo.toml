@@ -1,30 +1,29 @@
 [package]
 name = "pg_crud_cmn"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Shared PostgreSQL CRUD runtime types"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../README.md"
-keywords = ["postgres", "crud"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-loc_lib.workspace = true
-naming.workspace = true
-optml.workspace = true
-proc-macro2.workspace = true
-quote.workspace = true
-schemars.workspace = true
-serde.workspace = true
-sqlx.workspace = true
-strum.workspace = true
-strum_macros.workspace = true
-thiserror.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
+sqlx.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+schemars.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+loc_lib = {path = "../../loc_lib"}
+strum.workspace = true
+strum_macros.workspace = true
+naming = {path = "../../naming"}
+optml = {path = "../../optml"}
 
 [features]
 test-utils = []

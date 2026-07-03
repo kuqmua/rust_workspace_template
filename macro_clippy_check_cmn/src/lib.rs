@@ -167,6 +167,7 @@ workspace = true"#
 #[cfg(test)]
 #[cfg(feature = "test-utils")]
 mod tests {
+    use super::{FileSnapshot, capture_snapshot, restore_snapshot};
     use std::{
         env::temp_dir,
         fs::{create_dir_all, read_to_string, remove_dir_all, write},
@@ -174,8 +175,6 @@ mod tests {
         process,
         sync::atomic::{AtomicUsize, Ordering},
     };
-
-    use super::{FileSnapshot, capture_snapshot, restore_snapshot};
     static TEST_SEQ: AtomicUsize = AtomicUsize::new(0);
     struct TmpDir(PathBuf);
     impl TmpDir {
@@ -185,7 +184,6 @@ mod tests {
             create_dir_all(&path).expect("2b24ef1a");
             Self(path)
         }
-
         fn path(&self) -> &Path {
             &self.0
         }

@@ -1,8 +1,7 @@
-use std::{borrow::Cow, sync::OnceLock};
-
 pub use naming::GITHUB_URL;
 use optml::Optml;
 use serde_derive::{Deserialize, Serialize};
+use std::{borrow::Cow, sync::OnceLock};
 const TREE_SEGMENT: &str = "/tree/";
 const BASE_GIT_COMMIT_LINK_LEN: usize = GITHUB_URL.len() + TREE_SEGMENT.len();
 static PROJECT_GIT_COMMIT_LINK: OnceLock<String> = OnceLock::new();
@@ -57,7 +56,6 @@ impl<T: ?Sized + AsRef<str>> GetGitCommitId for T {
     fn get_git_commit_id(&self) -> String {
         self.as_ref().to_owned()
     }
-
     fn get_git_commit_id_ref(&self) -> Option<&str> {
         Some(self.as_ref())
     }
@@ -130,14 +128,13 @@ pub const fn git_commit_link_capacity(commit_id: &str) -> usize {
 }
 #[cfg(test)]
 mod tests {
-    use std::{borrow::Cow, cell::Cell, ptr};
-
     use super::{
         GITHUB_URL, GetGitCommitId, GetGitCommitLink as _, ProjectGitInfo, TREE_SEGMENT,
         git_commit_link, git_commit_link_capacity, git_commit_link_cow, is_project_commit,
         project_git_commit_id, project_git_commit_link, project_git_commit_link_ref,
         validate_project_commit, with_git_commit_id_ref_or,
     };
+    use std::{borrow::Cow, cell::Cell, ptr};
     #[derive(Debug)]
     struct TestGitCommit {
         borrow_commit_ref: bool,
@@ -150,7 +147,6 @@ mod tests {
             self.fallback_calls.set(calls);
             self.commit.to_owned()
         }
-
         fn get_git_commit_id_ref(&self) -> Option<&str> {
             self.borrow_commit_ref.then_some(self.commit)
         }

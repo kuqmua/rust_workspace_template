@@ -1,6 +1,5 @@
-use syn::{Field, FieldMutability, Ident, Path, Type, TypePath, Visibility, token::Colon};
-
 use crate::gen_simple_syn_punct::gen_simple_syn_punct;
+use syn::{Field, FieldMutability, Ident, Path, Type, TypePath, Visibility, token::Colon};
 #[must_use]
 pub fn loc_syn_field() -> Field {
     Field {

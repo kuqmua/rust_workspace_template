@@ -1,7 +1,6 @@
+use crate::panic_if_err::panic_if_err;
 use proc_macro2::TokenStream as Ts2;
 use syn::{Attribute, Meta};
-
-use crate::panic_if_err::panic_if_err;
 const NO_ATTR_ER: &str = "no_attr";
 const ATTR_NOT_LIST_ER: &str = "attr_not_list";
 #[allow(clippy::single_call_fn)] // helper keeps segment comparison logic isolated and reusable for future attr queries
@@ -62,13 +61,12 @@ pub fn get_macro_attr_meta_list_ts<'lt>(attrs: &'lt [Attribute], attr_path: &str
 }
 #[cfg(test)]
 mod tests {
-    use quote::quote;
-    use syn::{Attribute, parse_quote};
-
     use super::{
         find_macro_attr, get_macro_attr, get_macro_attr_meta_list_ts, try_get_macro_attr,
         try_get_macro_attr_meta_list_ts,
     };
+    use quote::quote;
+    use syn::{Attribute, parse_quote};
     fn attrs() -> Vec<Attribute> {
         vec![
             parse_quote!(#[sqlx::type_name(name = "x")]),

@@ -1,33 +1,45 @@
 [package]
 name = "server_tbl_example"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Server table example domain types"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["server", "table"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
 axum.workspace = true
-git_info.workspace = true
 http.workspace = true
-loc_lib.workspace = true
-optml.workspace = true
-pg_crud = { workspace = true, features = ["test-utils"] }
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-server_types = { workspace = true, features = ["test-utils"] }
-sqlx.workspace = true
 thiserror.workspace = true
+sqlx.workspace = true
 utoipa.workspace = true
+git_info = {path = "../git_info"}
+loc_lib = {path = "../loc_lib"}
+pg_crud = {path = "../pg_crud", features = ["test-utils"]}
+server_types = {path = "../server_types"}
+optml = {path = "../optml"}
 
-[features]
-test-utils = ["pg_crud/test-utils", "server_types/test-utils"]
+[dev-dependencies]
+num_cpus.workspace = true
+futures.workspace = true
+secrecy.workspace = true
+tokio.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+itertools.workspace = true
+app_state = {path = "../app_state"}
+config_lib = {path = "../config_lib"}
+server_app_state = {path = "../server_app_state"}
+server_config = {path = "../server_config"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = ["pg_crud/test-utils", "server_types/test-utils"]

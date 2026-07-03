@@ -1,3 +1,4 @@
+use crate::hdr_val::get_required_header_str;
 use axum::http::{
     HeaderMap, StatusCode,
     header::{HeaderName, ToStrError},
@@ -6,8 +7,6 @@ use git_info::validate_project_commit;
 use loc_lib::{Location, loc, loc::Loc};
 use optml::Optml;
 use thiserror::Error;
-
-use crate::hdr_val::get_required_header_str;
 const COMMIT_HEADER_NAME: HeaderName = HeaderName::from_static("commit");
 const NO_COMMIT_HEADER_MSG: &str = "no_commit_header";
 const COMMIT_NOT_EQ_MSG: &str =
@@ -44,7 +43,6 @@ impl CommitEr {
             loc: loc!(),
         }
     }
-
     #[allow(clippy::single_call_fn)] // keeps header to-str conversion error construction reusable
     fn commit_to_str_conversion(commit_to_str_conversion: ToStrError) -> Self {
         Self::CommitToStrConversion {
@@ -52,7 +50,6 @@ impl CommitEr {
             loc: loc!(),
         }
     }
-
     #[allow(clippy::single_call_fn)] // keeps missing-commit-header error construction reusable
     fn no_commit_header() -> Self {
         Self::NoCommitHeader {
@@ -89,9 +86,6 @@ pub fn check_commit(
 }
 #[cfg(test)]
 mod tests {
-    use axum::http::{HeaderMap, StatusCode, header::HeaderValue};
-    use git_info::{PROJECT_GIT_INFO, is_project_commit, project_git_commit_link_ref};
-
     use super::{
         COMMIT_HEADER_NAME, COMMIT_NOT_EQ_MSG, CommitEr, NO_COMMIT_HEADER_MSG, check_commit,
         read_commit_header_str, validate_commit_header, validate_commit_header_value,
@@ -101,6 +95,8 @@ mod tests {
         expect_err_variant_ref_with_status, expect_ok, mk_headers_with_entry,
         non_utf8_header_value, replace_header_name,
     };
+    use axum::http::{HeaderMap, StatusCode, header::HeaderValue};
+    use git_info::{PROJECT_GIT_INFO, is_project_commit, project_git_commit_link_ref};
     const WRONG_COMMIT: &str = "deadbeef";
     fn check_commit_enabled(headers: &HeaderMap) -> Result<(), CommitEr> {
         check_commit(true, headers)

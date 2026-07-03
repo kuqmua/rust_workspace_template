@@ -146,12 +146,10 @@ impl StatusCode {
         };
         quote::quote! {http::StatusCode::#ts}
     }
-
     #[must_use]
     pub fn to_proc_macro_attr_view_ts(&self) -> Ts2 {
         format!("#[{self}]").parse::<Ts2>().expect("48ab5b45")
     }
-
     #[must_use]
     pub fn to_status_code_description_ts(&self) -> Ts2 {
         match *self {
@@ -229,7 +227,6 @@ impl StatusCode {
             }
         }
     }
-
     #[must_use]
     pub fn to_status_code_ts(&self) -> Ts2 {
         match *self {
@@ -298,7 +295,6 @@ impl StatusCode {
 }
 impl TryFrom<&String> for StatusCode {
     type Error = ();
-
     fn try_from(v: &String) -> Result<Self, Self::Error> {
         if v == "continue_100" {
             Ok(Self::Continue100)

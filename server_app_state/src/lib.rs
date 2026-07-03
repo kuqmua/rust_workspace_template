@@ -56,8 +56,7 @@ impl AsRef<str> for ServerAppState<'_> {
 }
 #[cfg(test)]
 mod tests {
-    use std::ptr;
-
+    use super::ServerAppState;
     use app_state::{
         GetEnableApiGitCommitCheck as _, GetMaximumSizeOfHttpBodyInBytes as _, GetPgPool as _,
         GetSrcPlaceType as _, GetTimezone as _,
@@ -66,8 +65,7 @@ mod tests {
     use git_info::{GetGitCommitLink as _, ProjectGitInfo};
     use secrecy::SecretBox;
     use server_config::Config;
-
-    use super::ServerAppState;
+    use std::ptr;
     const TEST_COMMIT: &str = "abc123";
     #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> ProjectGitInfo<'static> {

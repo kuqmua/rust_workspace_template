@@ -108,7 +108,7 @@ pub fn loc(input: Ts) -> Ts {
     let tokens = match supported_enum_vrt {
         SuportedEnumVrt::Named => {
             let loc_sc_str = LocSc.to_string();
-            // todo mb impl display was a bad idea. .to_string() casts is dangerous
+            //todo mb impl display was a bad idea. .to_string() casts is dangerous
             let impl_display_h_ts = {
                 let vrts_ts = data_enum.variants.iter().map(|el| {
                     let el_ident = &el.ident;
@@ -454,7 +454,7 @@ pub fn loc(input: Ts) -> Ts {
                     )
                 },
             );
-            // todo mb make a trait?
+            //todo mb make a trait?
             quote! {
                 #impl_display_for_ident_ts
                 #impl_ident_into_serde_version_ts

@@ -46,13 +46,12 @@ pub async fn check_body_size(body: Body, limit: usize) -> Result<Bytes, BodySize
 }
 #[cfg(test)]
 mod tests {
-    use axum::{body::Body, http::StatusCode};
-    use bytes::Bytes;
-
     use super::check_body_size;
     use crate::test_hlp::{
         assert_err_status_code_only, assert_err_status_code_variant_ref, assert_ok_eq, block_on,
     };
+    use axum::{body::Body, http::StatusCode};
+    use bytes::Bytes;
     fn expect_reached_max_size(
         body: Body,
         limit: usize,

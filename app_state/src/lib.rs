@@ -2,7 +2,7 @@ pub use config_lib::{
     GetCorsAllowOrigin, GetDatabaseUrl, GetEnableApiGitCommitCheck,
     GetMaximumSizeOfHttpBodyInBytes, GetMongoUrl, GetPgPoolMaxConnections, GetRedisUrl,
     GetServiceSocketAddress, GetSrcPlaceType, GetStartingCheckLink, GetTimezone, GetTracingLevel,
-    types::{SrcPlaceType, TracingLevel},
+    types::SrcPlaceType, types::TracingLevel,
 };
 use sqlx::PgPool;
 pub trait GetPgPool {

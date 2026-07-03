@@ -1,6 +1,5 @@
-use std::fmt::{Display, Write as _};
-
 use proc_macro2::TokenStream as Ts2;
+use std::fmt::{Display, Write as _};
 const NO_PREFIX: &str = "";
 const BINARY_PREFIX: &str = "b";
 const SINGLE_QUOTE: char = '\'';

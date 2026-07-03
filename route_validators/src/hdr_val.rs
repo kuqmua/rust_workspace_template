@@ -60,16 +60,15 @@ pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
 }
 #[cfg(test)]
 mod tests {
-    use axum::http::{
-        HeaderMap,
-        header::{AsHeaderName, HeaderName, HeaderValue},
-    };
-
     use super::{
         get_required_header, get_required_header_mapped, get_required_header_str,
         get_required_header_str_parsed,
     };
     use crate::test_hlp::{mk_headers_with_entry, non_utf8_header_value};
+    use axum::http::{
+        HeaderMap,
+        header::{AsHeaderName, HeaderName, HeaderValue},
+    };
     const TEST_HEADER_NAME: HeaderName = HeaderName::from_static("x-test-header");
     #[derive(Debug, PartialEq, Eq)]
     enum TestEr {

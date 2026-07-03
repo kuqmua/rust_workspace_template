@@ -1,27 +1,27 @@
 [package]
 name = "config_lib"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Configuration domain types"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["configuration", "environment"]
-categories = ["config"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
+
 
 [dependencies]
-chrono.workspace = true
-dotenv.workspace = true
-gen_getter_traits_for_struct_fields.workspace = true
-optml.workspace = true
 secrecy.workspace = true
+chrono.workspace = true
 serde.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
-try_from_env.workspace = true
+dotenv.workspace = true
+try_from_env = {path = "./try_from_env"}
+gen_getter_traits_for_struct_fields = {path = "./gen_getter_traits_for_struct_fields"}
+optml = {path = "../optml"}
 
 [lints]
 workspace = true

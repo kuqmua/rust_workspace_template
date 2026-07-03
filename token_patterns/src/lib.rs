@@ -2,7 +2,7 @@ use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 macro_rules! def_tp {
-    ($name:ident, | $tokens:ident | $body:block) => {
+    ($name:ident, |$tokens:ident| $body:block) => {
         #[derive(Debug, Clone, Copy, Optml)]
         pub struct $name;
         impl ToTokens for $name {
@@ -243,12 +243,11 @@ fn append_tokens(tokens: &mut Ts2, part: impl ToTokens) {
 }
 #[cfg(test)]
 mod tests {
-    use quote::{ToTokens, quote};
-
     use super::{
         Bool, CrateDfltSomeOneEl, CrateDfltSomeOneElCall, DeriveDebugCloneCopy, SqlxAcquire,
         path_dflt_some_one_el_call, pg_crud, pg_crud_cmn,
     };
+    use quote::{ToTokens, quote};
     fn assert_tokens_eq(actual: impl ToTokens, expected: impl ToTokens) {
         assert_eq!(quote! {#actual}.to_string(), quote! {#expected}.to_string());
     }

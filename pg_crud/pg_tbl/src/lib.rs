@@ -66,14 +66,12 @@ fn gen_update_query_string(
     match update_selector_fmt {
         UpdateSelectorFmt::Eq => {
             format!(
-                "update {tbl} set {cols_or_els} where {pk_field_name} = {pk_selector} returning \
-                 {cols_to_return}"
+                "update {tbl} set {cols_or_els} where {pk_field_name} = {pk_selector} returning {cols_to_return}"
             )
         }
         UpdateSelectorFmt::InList => {
             format!(
-                "update {tbl} set {cols_or_els} where {pk_field_name} in ({pk_selector}) \
-                 returning {cols_to_return}"
+                "update {tbl} set {cols_or_els} where {pk_field_name} in ({pk_selector}) returning {cols_to_return}"
             )
         }
     }
@@ -112,8 +110,7 @@ pub fn gen_when_col_id_then_v_um_qp(col: &str, id: &str, value: &str) -> String 
 pub fn gen_col_eqs_case_acc_else_col_end_comma_um_qp(col: &str, acc: &str) -> String {
     format!("{col} = case {acc}else {col} end,")
 }
-// todo extra param for cols_to_return instead of pk_field_name in "returning
-// {pk_field_name}""
+//todo extra param for cols_to_return instead of pk_field_name in "returning {pk_field_name}""
 #[must_use]
 pub fn gen_um_query_string(
     tbl: &str,
@@ -131,8 +128,7 @@ pub fn gen_um_query_string(
         UpdateSelectorFmt::InList,
     )
 }
-// todo extra param for cols_to_return instead of pk_field_name in "returning
-// {pk_field_name}""
+//todo extra param for cols_to_return instead of pk_field_name in "returning {pk_field_name}""
 #[must_use]
 pub fn gen_uo_query_string(
     tbl: &str,

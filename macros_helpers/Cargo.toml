@@ -1,27 +1,26 @@
 [package]
+edition = "2024"
 name = "macros_helpers"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Shared macro helper utilities"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["macros", "helpers"]
-categories = ["development-tools"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
 
 [dependencies]
-gen_derive_ts_builder.workspace = true
-gen_quotes.workspace = true
-naming.workspace = true
-optml.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
-serde.workspace = true
-strum_macros.workspace = true
 syn.workspace = true
-token_patterns.workspace = true
+strum_macros.workspace = true
+serde.workspace = true
+token_patterns = {path = "../token_patterns"}
+gen_quotes = {path = "../gen_quotes"}
+naming = {path = "../naming"}
+gen_derive_ts_builder = {path = "./gen_derive_ts_builder"}
+optml = {path = "../optml"}
 
 [lints]
 workspace = true

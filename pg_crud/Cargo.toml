@@ -1,36 +1,36 @@
 [package]
 name = "pg_crud"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL CRUD facade crate"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["postgres", "crud"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
+
 
 [dependencies]
-futures.workspace = true
-pg_crud_cmn.workspace = true
-pg_json.workspace = true
-pg_json_obj.workspace = true
-pg_tbl.workspace = true
-pg_types.workspace = true
-route_validators.workspace = true
 strum_macros.workspace = true
+futures.workspace = true
 uuid.workspace = true
-wh_flts.workspace = true
-
-[features]
-test-utils = [
-  "pg_crud_cmn/test-utils",
-  "pg_json/test-utils",
-  "pg_tbl/test-utils",
-  "pg_types/test-utils",
-  "wh_flts/test-utils",
-]
+pg_crud_cmn = {path = "./pg_crud_cmn", features = ["test-utils"]}
+pg_tbl = {path = "./pg_tbl"}
+pg_json_obj = {path = "./pg_json_obj"}
+pg_json = {path = "./pg_json"}
+pg_types = {path = "./pg_types"}
+wh_flts = {path = "./wh_flts"}
+route_validators = {path = "../route_validators"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = [
+    "pg_crud_cmn/test-utils",
+    "pg_tbl/test-utils",
+    "pg_json/test-utils",
+    "pg_types/test-utils",
+    "wh_flts/test-utils"
+]

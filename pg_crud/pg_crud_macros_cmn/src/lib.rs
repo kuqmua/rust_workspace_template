@@ -1,9 +1,10 @@
 mod flts;
-use std::fmt::Display;
-
 pub use flts::*;
 use gen_quotes::dq_ts;
-use macros_helpers::{DTsBuilder, gen_impl_display_ts, gen_impl_to_err_string_ts};
+use macros_helpers::DTsBuilder;
+use macros_helpers::gen_impl_display_ts;
+use macros_helpers::gen_impl_to_err_string_ts;
+use naming::prm::{SelfCrUcc, SelfSelUcc, SelfWhUcc};
 use naming::{
     AddOprtrSc, AllVrtsDfltSomeOneElMaxPageSizeSc, AllVrtsDfltSomeOneElSc, ColFieldForErMsgSc,
     ColFieldSc, ColSc, CrForQueryUcc, CrIntoPgJsonOptVecWhLenEqSc,
@@ -26,12 +27,12 @@ use naming::{
     RdUcc, SelOnlyCrdIdsQbSc, SelOnlyCrdIdsQpSc, SelOnlyIdsQpSc, SelOnlyUpddIdsQbSc,
     SelOnlyUpddIdsQpSc, SelQpSc, SelUcc, SelfUcc, TtSc, TtUcc, UpdForQueryUcc, UpdQbSc, UpdQpSc,
     UpdToRdIdsSc, UpdUcc, VSc, VUcc, ValueSc, WhUcc,
-    prm::{SelfCrUcc, SelfSelUcc, SelfWhUcc},
 };
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use strum_macros::{Display, EnumIter};
 use syn::{Ident, Type};
 use token_patterns::{
@@ -43,7 +44,7 @@ use token_patterns::{
     PgCrudDfltSomeOneEl, PgCrudDfltSomeOneElMaxPageSize, RefStr, StdFmtDisplay, StringTs, U64,
 };
 macro_rules! bool_enum_to_tokens {
-    ($name:ident,false => $false_expr:expr,true => $true_expr:expr) => {
+    ($name:ident, false => $false_expr:expr, true => $true_expr:expr) => {
         #[derive(Debug, Clone, Copy, Optml)]
         pub enum $name {
             False,
@@ -65,7 +66,7 @@ pub enum DeriveOrImpl {
     Derive,
     Impl(Ts2),
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Optml)]
 pub enum IsStdrtNn {
     False,
     True,
@@ -97,7 +98,6 @@ impl IsNl {
             Self::True => quote! {Option<#ts>},
         }
     }
-
     #[must_use]
     pub fn mb_some_wrap(&self, ts: Ts2) -> Ts2 {
         match &self {
@@ -105,7 +105,6 @@ impl IsNl {
             Self::True => quote! {Some(#ts)},
         }
     }
-
     #[must_use]
     pub const fn nn_or_nl_str(&self) -> &str {
         match &self {
@@ -113,7 +112,6 @@ impl IsNl {
             Self::True => "Nl",
         }
     }
-
     #[must_use]
     pub fn prefix_str(&self) -> String {
         match &self {
@@ -121,7 +119,6 @@ impl IsNl {
             Self::True => String::from("StdOptOpt"),
         }
     }
-
     #[must_use]
     pub fn rust(&self) -> &'static dyn Display {
         match &self {
@@ -144,7 +141,6 @@ impl Import {
             Self::PgCrudCmn => &PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
         }
     }
-
     fn all_vrts_dflt_some_one_el_max_page_size(&self) -> &dyn ToTokens {
         match &self {
             Self::Crate => &CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
@@ -152,7 +148,6 @@ impl Import {
             Self::PgCrudCmn => &PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
         }
     }
-
     fn dflt_some_one_el(&self) -> &dyn ToTokens {
         match &self {
             Self::Crate => &CrateDfltSomeOneEl,
@@ -160,7 +155,6 @@ impl Import {
             Self::PgCrudCmn => &PgCrudCmnDfltSomeOneEl,
         }
     }
-
     fn dflt_some_one_el_max_page_size(&self) -> &dyn ToTokens {
         match &self {
             Self::Crate => &CrateDfltSomeOneElMaxPageSize,
@@ -168,7 +162,6 @@ impl Import {
             Self::PgCrudCmn => &PgCrudCmnDfltSomeOneElMaxPageSize,
         }
     }
-
     #[must_use]
     pub const fn sc_str(&self) -> &'static str {
         match &self {
@@ -177,7 +170,6 @@ impl Import {
             Self::PgCrudCmn => "pg_crud_cmn",
         }
     }
-
     #[must_use]
     pub const fn to_path(&self) -> &'static str {
         match &self {
@@ -255,7 +247,7 @@ impl EqOprtrH {
         quote! {#import::#EqOprtrUcc::#ts}
     }
 }
-// todo mb reuse with other structs
+//todo mb reuse with other structs
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum Dim {
@@ -612,7 +604,7 @@ pub fn gen_impl_pg_json_ts(
             }
         },
     );
-    // todo mb reexport sqlx?
+    //todo mb reexport sqlx?
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #path_ts #PgJsonUcc for #ident {
@@ -986,13 +978,13 @@ pub fn gen_impl_pg_type_not_pk_for_ident_ts(import: &Import, ident: &dyn ToToken
 //     let cr_ucc = CrUcc;
 //     let wh_ucc = WhUcc;
 //     let self_pg_type_or_pg_json_as_pg_json_ts = {
-//         let pg_type_or_pg_json_ts: &dyn ToTokens = match &pg_type_or_pg_json
-// {             PgTypeOrPgJson::PgType => &PgTypeUcc,
+//         let pg_type_or_pg_json_ts: &dyn ToTokens = match &pg_type_or_pg_json {
+//             PgTypeOrPgJson::PgType => &PgTypeUcc,
 //             PgTypeOrPgJson::PgJson => &PgJsonUcc,
 //         };
 //         quote! {
-//             <#SelfUcc::#pg_type_or_pg_json_ts as
-// #import::#pg_type_or_pg_json_ts>         }
+//             <#SelfUcc::#pg_type_or_pg_json_ts as #import::#pg_type_or_pg_json_ts>
+//         }
 //     };
 //     quote!{
 //         fn #method_name_ts(
@@ -1872,9 +1864,7 @@ pub fn gen_upd_arr_null_guard_agg(
     mb_jsonb_build_arr: &dyn Display,
 ) -> String {
     format!(
-        "case when jsonb_typeof({target}) = 'null' then '[]'::jsonb else (select coalesce((select \
-         jsonb_agg({agg_cnt}) from jsonb_array_elements({target}) as elem {mb_wh}),'[]'::jsonb)) \
-         end {mb_jsonb_build_arr}"
+        "case when jsonb_typeof({target}) = 'null' then '[]'::jsonb else (select coalesce((select jsonb_agg({agg_cnt}) from jsonb_array_elements({target}) as elem {mb_wh}),'[]'::jsonb)) end {mb_jsonb_build_arr}"
     )
 }
 #[must_use]
@@ -1885,9 +1875,7 @@ pub fn gen_sel_arr_pgn_agg(
     end_v: &dyn Display,
 ) -> String {
     format!(
-        "(case when (jsonb_array_length({source}) = 0) then '[]'::jsonb else (select \
-         jsonb_agg(({content})) from jsonb_array_elements((select {source})) with ordinality \
-         where ordinality between {start} and {end_v}) end)"
+        "(case when (jsonb_array_length({source}) = 0) then '[]'::jsonb else (select jsonb_agg(({content})) from jsonb_array_elements((select {source})) with ordinality where ordinality between {start} and {end_v}) end)"
     )
 }
 #[must_use]
@@ -1897,8 +1885,7 @@ pub fn gen_jsonb_agg_by_id(
     ids: &dyn Display,
 ) -> String {
     format!(
-        "(select jsonb_agg({agg_cnt}) from jsonb_array_elements({source}) as elem where \
-         elem->>'id' in ({ids}))"
+        "(select jsonb_agg({agg_cnt}) from jsonb_array_elements({source}) as elem where elem->>'id' in ({ids}))"
     )
 }
 #[must_use]

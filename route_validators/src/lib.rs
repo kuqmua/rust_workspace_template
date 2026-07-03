@@ -3,7 +3,7 @@ pub mod check_commit;
 mod hdr_val;
 #[cfg(test)]
 pub(crate) mod test_hlp;
-// todo request per second middleware
+//todo request per second middleware
 use axum::http::StatusCode;
 use naming as _;
 pub trait GetAxumHttpStatusCode {
@@ -14,9 +14,8 @@ pub trait GetAxumHttpStatusCode {
 }
 #[cfg(test)]
 mod tests {
-    use axum::http::StatusCode;
-
     use super::GetAxumHttpStatusCode;
+    use axum::http::StatusCode;
     struct TestEr;
     impl GetAxumHttpStatusCode for TestEr {
         const AXUM_HTTP_STATUS_CODE: StatusCode = StatusCode::IM_A_TEAPOT;

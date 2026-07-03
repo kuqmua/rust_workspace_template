@@ -1,9 +1,3 @@
-use std::{
-    collections::HashSet,
-    fmt::{Display, Formatter, Result as StdFmtResult},
-    iter::once,
-};
-
 use gen_quotes::dq_ts;
 use macros_helpers::{
     DCopy, DSchemarsJsonSchema, DTsBuilder, FormatWithCargofmt, ShouldWriteTsIntoFile,
@@ -25,21 +19,25 @@ use pg_crud_macros_cmn::{
     DefaultSomeOneOrDefaultSomeOneWithMaxPageSize, Dim, DimIndexNbr, Import, IsNl, IsQbMut,
     IsSelOnlyCrdIdsQbMut, IsSelOnlyUpddIdsQbMut, IsSelQpColFieldForErMsgUsed, IsSelQpIsPgTypeUsed,
     IsSelQpSelfSelUsed, IsStdrtNn, IsUpdQbMut, PgFlt, PgJsonFlt, RdOrUpd,
-    ShouldDSchemarsJsonSchema, ShouldDeriveUtoipaToSchema, gen_case_jsonb_typeof_null,
-    gen_dim_nbr_pgn_ts, gen_impl_crate_is_string_empty_for_ident_ts,
-    gen_impl_display_and_to_err_string_debug_ts,
+    ShouldDSchemarsJsonSchema, ShouldDeriveUtoipaToSchema, gen_dim_nbr_pgn_ts,
+    gen_impl_crate_is_string_empty_for_ident_ts, gen_impl_display_and_to_err_string_debug_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_ts, gen_impl_pg_json_test_cases_for_ident_ts,
     gen_impl_pg_json_ts, gen_impl_sqlx_type_and_encode_for_ident_ts,
-    gen_impl_to_err_string_no_generics_ts, gen_jsonb_build_obj, gen_jsonb_build_obj_v,
-    gen_opt_type_dcl_ts, gen_pg_type_wh_ts, gen_sqlx_types_json_type_dcl_ts, gen_v_dcl_ts,
-    gen_v_init_ts, gen_vec_tokens_dcl_ts,
+    gen_impl_to_err_string_no_generics_ts, gen_opt_type_dcl_ts, gen_pg_type_wh_ts,
+    gen_sqlx_types_json_type_dcl_ts, gen_v_dcl_ts, gen_v_init_ts, gen_vec_tokens_dcl_ts,
 };
+use pg_crud_macros_cmn::{gen_case_jsonb_typeof_null, gen_jsonb_build_obj, gen_jsonb_build_obj_v};
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter, Result as StdFmtResult},
+    iter::once,
+};
 use strum::IntoEnumIterator as _;
 use strum_macros::{Display, EnumIter};
 use token_patterns::{
@@ -184,7 +182,6 @@ pub fn gen_pg_json(input_ts: &Ts2) -> Ts2 {
                 | Self::ArrDim4 { dim1_is_nl, .. } => Some(*dim1_is_nl),
             }
         }
-
         const fn dim_count(&self) -> usize {
             match self {
                 Self::Stdrt => 0,
@@ -194,7 +191,6 @@ pub fn gen_pg_json(input_ts: &Ts2) -> Ts2 {
                 Self::ArrDim4 { .. } => 4,
             }
         }
-
         fn dims(&self) -> Vec<IsNl> {
             match self {
                 Self::Stdrt => vec![],
@@ -216,12 +212,10 @@ pub fn gen_pg_json(input_ts: &Ts2) -> Ts2 {
                 } => vec![*dim1_is_nl, *dim2_is_nl, *dim3_is_nl, *dim4_is_nl],
             }
         }
-
         fn down_by(&self, n: usize) -> Option<Self> {
             let dims = self.dims();
             dims.get(n..).map(Self::from_dims)
         }
-
         fn from_dims(dims: &[IsNl]) -> Self {
             match dims {
                 [] => Self::Stdrt,
@@ -272,7 +266,6 @@ pub fn gen_pg_json(input_ts: &Ts2) -> Ts2 {
     }
     impl TryFrom<&Pattern> for ArrDim {
         type Error = ();
-
         fn try_from(v: &Pattern) -> Result<Self, Self::Error> {
             let dims = v.dims();
             match dims.as_slice() {

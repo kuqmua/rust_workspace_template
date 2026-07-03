@@ -1,30 +1,28 @@
 pub mod str_from_enum_macros;
 pub mod types;
+use chrono::FixedOffset;
+pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
+use optml::Optml;
+use secrecy::SecretBox;
 use std::{
     env,
     net::{AddrParseError, SocketAddr},
     num::ParseIntError,
     str::{FromStr, ParseBoolError},
 };
-
-use chrono::FixedOffset;
-pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
-use optml::Optml;
-use secrecy::SecretBox;
 use thiserror::Error;
 pub use try_from_env::TryFromEnv;
 macro_rules! impl_try_from_non_empty_string {
     ($name:ident, $er_name:ident) => {
         #[derive(Debug, Clone, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
         pub struct $name(pub String);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
+        #[derive(Debug, Error, Optml)]
         pub enum $er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
         }
         impl TryFromStdEnvVarOk for $name {
             type Error = $er_name;
-
             fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
                 try_map_non_empty_env_value(v, |is_empty| Self::Error::IsEmpty { is_empty }, Self)
             }
@@ -81,14 +79,13 @@ macro_rules! impl_try_from_secret_url {
     ($name:ident, $er_name:ident) => {
         #[derive(Debug, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
         pub struct $name(pub SecretBox<String>);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
+        #[derive(Debug, Error, Optml)]
         pub enum $er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
         }
         impl TryFromStdEnvVarOk for $name {
             type Error = $er_name;
-
             fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
                 try_map_non_empty_env_value(
                     v,
@@ -168,7 +165,6 @@ pub enum TryFromStdEnvVarOkTimezoneEr {
 }
 impl TryFromStdEnvVarOk for Timezone {
     type Error = TryFromStdEnvVarOkTimezoneEr;
-
     fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
         let i32_v =
             parse_from_str_with_er(&v, |i32_parsing| Self::Error::I32Parsing { i32_parsing })?;

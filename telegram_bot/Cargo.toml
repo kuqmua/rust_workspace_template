@@ -1,22 +1,22 @@
 [package]
+edition = "2024"
 name = "telegram_bot"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Telegram bot binary placeholder"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["telegram", "bot"]
-categories = ["command-line-utilities"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+
 
 [dependencies]
 git_info.workspace = true
 log.workspace = true
-optml.workspace = true
 teloxide.workspace = true
 tokio.workspace = true
+optml.workspace = true
 
 [lints]
 workspace = true

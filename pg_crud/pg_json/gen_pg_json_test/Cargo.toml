@@ -1,23 +1,22 @@
 [package]
 name = "gen_pg_json_test"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL JSON generator test support"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../../README.md"
-keywords = ["postgres", "tests"]
-categories = ["development-tools"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dev-dependencies]
-gen_pg_json_src.workspace = true
-macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 quote.workspace = true
-
-[features]
-test-utils = ["macro_clippy_check_cmn/test-utils"]
+macro_clippy_check_cmn = {path = "../../../macro_clippy_check_cmn"}
+gen_pg_json_src = {path = "../gen_pg_json_src"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = ["macro_clippy_check_cmn/test-utils"]

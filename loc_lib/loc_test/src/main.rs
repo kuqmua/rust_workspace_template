@@ -6,30 +6,29 @@
 // impl display like this this
 // eo_loc_field
 // https://github.com/kuqmua/tufa_project/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
-use std::collections::HashMap;
-
 use loc_lib::{Location, ToErrString, loc, loc::Loc};
 use optml::Optml;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use thiserror::Error;
 #[derive(Debug, Error, Location, Optml)]
 pub enum ErOne {
-    // use ToErrString for hashmap ks instead of Display
-    // todo even for String in serialize deserialize version of er must be using ToErrString impl
-    // instead of std::fmt::Display todo test on using only loc as pnly field in named vrt
+    //use ToErrString for hashmap ks instead of Display
+    //todo even for String in serialize deserialize version of er must be using ToErrString impl instead of std::fmt::Display
+    //todo test on using only loc as pnly field in named vrt
     Vrt {
         #[eo_to_err_string]
-        eo_display_field: DisplayStruct, // IN SERIALIZE DESERIALIZE String
+        eo_display_field: DisplayStruct, //IN SERIALIZE DESERIALIZE String
         #[eo_to_err_string_serde]
         eo_serde: SerdeStruct,
         #[eo_loc]
-        eo_loc_field: ErTwo, // IN SERIALIZE DESERIALIZE nested
-        #[eo_vec_to_err_string] // todo remove w under Vec
-        eo_vec_display_field: Vec<DisplayStruct>, // IN SERIALIZE DESERIALIZE Vec<String>
+        eo_loc_field: ErTwo, //IN SERIALIZE DESERIALIZE nested
+        #[eo_vec_to_err_string] //todo remove w under Vec
+        eo_vec_display_field: Vec<DisplayStruct>, //IN SERIALIZE DESERIALIZE Vec<String>
         #[eo_vec_to_err_string_serde]
         eo_vec_serde: Vec<SerdeStruct>,
         #[eo_vec_loc]
-        eo_vec_loc_field: Vec<ErUnnamedOne>, // IN SERIALIZE DESERIALIZE Vec<nested>
+        eo_vec_loc_field: Vec<ErUnnamedOne>, //IN SERIALIZE DESERIALIZE Vec<nested>
         #[eo_hashmap_k_string_v_to_err_string]
         hashmap_string_string: HashMap<String, DisplayStruct>,
         #[eo_hashmap_k_string_v_to_err_string_serde]
@@ -61,14 +60,13 @@ pub struct DisplayStruct {
     pub display: String,
     pub something: bool,
 }
-// todo or mb two different traits - display foreign type and convert into
-// serializable and deserializable type
+//todo or mb two different traits - display foreign type and convert into serializable and deserializable type
 impl ToErrString for DisplayStruct {
     fn to_err_string(&self) -> String {
         format!("{self:?}")
     }
 }
-// todo rename fields
+//todo rename fields
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Serialize, Deserialize, Optml)]
 pub struct SerdeStruct {

@@ -30,9 +30,8 @@ pub fn string_syn_punct() -> Punctuated<PathSegment, PathSep> {
 }
 #[cfg(test)]
 mod tests {
-    use quote::quote;
-
     use super::gen_simple_syn_punct;
+    use quote::quote;
     #[test]
     fn gen_simple_syn_punct_builds_three_segment_path() {
         let punct = gen_simple_syn_punct(&["std", "string", "String"]);

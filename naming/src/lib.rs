@@ -1,6 +1,4 @@
 pub mod prm;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
 use gen_quotes::dq_str;
 pub use naming_cmn::{
     AsRefStrToScStr, AsRefStrToScTs, AsRefStrToUccStr, AsRefStrToUccTs, AsRefStrToUpperScStr,
@@ -15,6 +13,7 @@ pub use naming_macros::{
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 pub const GITHUB_URL: &str = "https://github.com/kuqmua/tufa_project";
 naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["pk"],

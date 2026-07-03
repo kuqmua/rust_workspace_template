@@ -1,30 +1,29 @@
 [package]
 name = "pg_types_chrono_net"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL chrono and network leaf types"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../../README.md"
-keywords = ["postgres", "types"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-chrono.workspace = true
-gen_pg_types.workspace = true
-loc_lib.workspace = true
-optml.workspace = true
-pg_crud_cmn.workspace = true
-pg_types_cmn.workspace = true
-serde.workspace = true
 sqlx.workspace = true
+serde.workspace = true
+chrono.workspace = true
 thiserror.workspace = true
-wh_flts.workspace = true
-
-[features]
-test-utils = ["pg_crud_cmn/test-utils"]
+gen_pg_types = {path = "../gen_pg_types"}
+pg_types_cmn = {path = "../pg_types_cmn"}
+pg_crud_cmn = {path = "../../pg_crud_cmn"}
+loc_lib = {path = "../../../loc_lib"}
+wh_flts = {path = "../../wh_flts"}
+optml = {path = "../../../optml"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = ["pg_crud_cmn/test-utils"]

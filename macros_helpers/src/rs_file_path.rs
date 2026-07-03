@@ -8,9 +8,8 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use super::rs_file_path;
+    use std::path::Path;
     #[test]
     fn rs_file_path_adds_rs_extension_for_path_without_extension() {
         let actual = rs_file_path("src/generated");

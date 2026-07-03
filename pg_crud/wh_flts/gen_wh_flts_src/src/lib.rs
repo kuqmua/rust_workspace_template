@@ -1,9 +1,7 @@
-use std::fmt::Display;
-
 use gen_quotes::dq_ts;
+use macros_helpers::{DSerdeDeserialize, DTsBuilder};
 use macros_helpers::{
-    DSerdeDeserialize, DTsBuilder, FormatWithCargofmt, ShouldWriteTsIntoFile,
-    gen_if_write_is_err_ts, mb_write_ts_into_file,
+    FormatWithCargofmt, ShouldWriteTsIntoFile, gen_if_write_is_err_ts, mb_write_ts_into_file,
 };
 use naming::{
     ColSc, DimsIesSc, DimsSc, ErSc, IncrSc, PubSc, QuerySc, SelfSc, VSc,
@@ -19,6 +17,7 @@ use pg_crud_macros_cmn::{
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use serde_json::from_str;
+use std::fmt::Display;
 use strum::IntoEnumIterator as _;
 use token_patterns::{PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall};
 #[must_use]
@@ -43,7 +42,6 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
     }
     impl TryFrom<&PgTypePtrn> for DimNbr {
         type Error = ();
-
         fn try_from(v: &PgTypePtrn) -> Result<Self, Self::Error> {
             match &v {
                 PgTypePtrn::Stdrt => Err(()),
@@ -66,7 +64,6 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
         fn dim_ts(&self) -> Ts2 {
             self.dim_u8().to_string().parse::<Ts2>().expect("18c32bc0")
         }
-
         const fn dim_u8(&self) -> u8 {
             match &self {
                 Self::One => 1,
@@ -1113,8 +1110,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
             let gen_all_els_eq_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_json_cmp_flt_ts(pg_type_ptrn, &|pg_type_kind: &PgTypeKind| {
                     format!(
-                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{}) as el where \
-                         (el) <> ${{}}))",
+                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{}) as el where (el) <> ${{}}))",
                         pg_type_kind.format_argument()
                     )
                 })
@@ -1177,8 +1173,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
             let gen_contains_el_greater_than_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_json_cmp_flt_ts(pg_type_ptrn, &|pg_type_kind: &PgTypeKind| {
                     format!(
-                        "{{}}(exists(select 1 from jsonb_array_elements({{}}{}) as el where (el) \
-                         > ${{}}))",
+                        "{{}}(exists(select 1 from jsonb_array_elements({{}}{}) as el where (el) > ${{}}))",
                         pg_type_kind.format_argument()
                     )
                 })
@@ -1186,8 +1181,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
             let gen_all_els_greater_than_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_json_cmp_flt_ts(pg_type_ptrn, &|pg_type_kind: &PgTypeKind| {
                     format!(
-                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{}) as el where \
-                         (el) <= ${{}}))",
+                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{}) as el where (el) <= ${{}}))",
                         pg_type_kind.format_argument()
                     )
                 })
@@ -1403,22 +1397,20 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
                         ),
                     )
                 };
-            // todo test it properly using all strange string vrts
+            //todo test it properly using all strange string vrts
             let gen_contains_el_rgx_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_jsonb_arr_el_rgx_ts(pg_type_ptrn, &|fa| {
                     format!(
-                        "{{}}(exists(select 1 from jsonb_array_elements({{}}{fa}) as el where (el \
-                         #>> '{{{{}}}}') {{}} ${{}}))"
+                        "{{}}(exists(select 1 from jsonb_array_elements({{}}{fa}) as el where (el #>> '{{{{}}}}') {{}} ${{}}))"
                     )
                 })
             };
-            // todo reuse select it
-            // todo test it properly using all strange string vrts
+            //todo reuse select it
+            //todo test it properly using all strange string vrts
             let gen_all_els_rgx_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_jsonb_arr_el_rgx_ts(pg_type_ptrn, &|fa| {
                     format!(
-                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{fa}) as el where \
-                         (el #>> '{{{{}}}}') !{{}} ${{}}))"
+                        "{{}}(not exists(select 1 from jsonb_array_elements({{}}{fa}) as el where (el #>> '{{{{}}}}') !{{}} ${{}}))"
                     )
                 })
             };
@@ -1462,8 +1454,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
             let gen_overlaps_with_arr_ts = |pg_type_ptrn: &PgTypePtrn| {
                 gen_pg_json_vec_with_qp_ts(pg_type_ptrn, &|pg_type_kind| {
                     format!(
-                        "{{}}(exists (select 1 from jsonb_arr_els_text({{}}{}) as e1 join \
-                         jsonb_arr_els_text({{}}) as e2 on e1.v = e2.v))",
+                        "{{}}(exists (select 1 from jsonb_arr_els_text({{}}{}) as e1 join jsonb_arr_els_text({{}}) as e2 on e1.v = e2.v))",
                         pg_type_kind.format_argument()
                     )
                 })

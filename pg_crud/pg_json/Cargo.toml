@@ -1,22 +1,24 @@
 [package]
 name = "pg_json"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL JSON facade crate"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../README.md"
-keywords = ["postgres", "json"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-pg_json_nbr.workspace = true
-pg_json_other.workspace = true
-
-[features]
-test-utils = ["pg_json_nbr/test-utils", "pg_json_other/test-utils"]
+pg_json_nbr = {path = "./pg_json_nbr"}
+pg_json_other = {path = "./pg_json_other"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = [
+    "pg_json_nbr/test-utils",
+    "pg_json_other/test-utils",
+]

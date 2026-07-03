@@ -1,10 +1,9 @@
-use std::fmt::Display;
-
 use convert_case::{Case, Casing as _};
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
+use std::fmt::Display;
 macro_rules! case_trait_pair {
-    ($str_trait:ident, $ts_trait:ident, $bound:path, | $slf:ident | $body:expr) => {
+    ($str_trait:ident, $ts_trait:ident, $bound:path, |$slf:ident| $body:expr) => {
         pub trait $str_trait {
             fn case(&self) -> String;
         }
@@ -88,14 +87,13 @@ fn str_case(v: &str, case: Case<'_>) -> String {
 }
 #[cfg(test)]
 mod tests {
-    use quote::quote;
-
     use super::{
         AsRefStrToScStr, AsRefStrToScTs, AsRefStrToUccStr, AsRefStrToUccTs, AsRefStrToUpperScStr,
         AsRefStrToUpperScTs, DisplayToScStr, DisplayToScTs, DisplayToUccStr, DisplayToUccTs,
         DisplayToUpperScStr, DisplayToUpperScTs, ToTokensToScStr, ToTokensToScTs, ToTokensToUccStr,
         ToTokensToUccTs, ToTokensToUpperScStr, ToTokensToUpperScTs,
     };
+    use quote::quote;
     fn assert_case_triplet<S>(to_ucc: S, to_sc: S, to_upper_sc: S)
     where
         S: AsRef<str>,

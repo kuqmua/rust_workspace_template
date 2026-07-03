@@ -6,9 +6,8 @@ pub(crate) fn panic_if_err<T, E>(res: Result<T, E>, mk_panic_msg: impl FnOnce(E)
 }
 #[cfg(test)]
 mod tests {
-    use std::panic::catch_unwind;
-
     use super::panic_if_err;
+    use std::panic::catch_unwind;
     #[test]
     fn panic_if_err_returns_ok_value() {
         let value = panic_if_err::<u8, u16>(Ok(7), |_| String::from("unused"));

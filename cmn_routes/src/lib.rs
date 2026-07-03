@@ -1,6 +1,4 @@
-// todo gen openapi spec
-use std::{borrow::Cow, sync::Arc};
-
+//todo gen openapi spec
 use app_state::GetPgPool;
 use axum::{
     Json, Router,
@@ -11,6 +9,7 @@ use axum::{
 use git_info::GetGitCommitLink;
 use optml::Optml;
 use serde::Serialize;
+use std::{borrow::Cow, sync::Arc};
 const SLASH_HEALTH_CHECK: &str = "/health_check";
 const SLASH_GIT_INFO: &str = "/git_info";
 const SLASH_SWAGGER_UI: &str = "/swagger-ui";
@@ -131,13 +130,6 @@ pub fn cmn_routes(app_state_b9fc2d94: DynArcCmnRoutesPrms) -> Router {
 }
 #[cfg(test)]
 mod tests {
-    use std::{borrow::Cow, sync::Arc};
-
-    use app_state::GetPgPool;
-    use axum::http::{StatusCode, Uri};
-    use git_info::{GetGitCommitId, git_commit_link};
-    use sqlx::PgPool;
-
     use super::{
         HEALTH_CHECK_ER_STATUS, HEALTH_CHECK_OK_STATUS, NO_ROUTE_MSG_PREFIX, SLASH_SWAGGER_UI,
         get_uri_suffix, map_health_check_status, mk_commit_json_res, mk_git_info_payload,
@@ -145,6 +137,11 @@ mod tests {
         mk_not_found_payload_for_suffix,
     };
     use crate::CmnRoutesPrms;
+    use app_state::GetPgPool;
+    use axum::http::{StatusCode, Uri};
+    use git_info::{GetGitCommitId, git_commit_link};
+    use sqlx::PgPool;
+    use std::{borrow::Cow, sync::Arc};
     const TEST_COMMIT: &str = "abc123";
     #[derive(Debug)]
     struct TestState {
@@ -154,7 +151,6 @@ mod tests {
         fn get_git_commit_id(&self) -> String {
             self.commit.to_owned()
         }
-
         fn get_git_commit_id_ref(&self) -> Option<&str> {
             Some(self.commit)
         }

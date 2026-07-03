@@ -1,24 +1,23 @@
 [package]
 name = "naming"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Naming helper facade crate for the Rust workspace template"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["naming", "template"]
-categories = ["development-tools"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-gen_quotes.workspace = true
-naming_cmn.workspace = true
-naming_macros.workspace = true
-optml.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
 syn.workspace = true
+gen_quotes = {path = "../gen_quotes"}
+naming_macros = {path = "./naming_macros"}
+naming_cmn = {path = "./naming_cmn"}
+optml = {path = "../optml"}
 
 [lints]
 workspace = true

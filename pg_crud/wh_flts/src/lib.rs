@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter, Result as StdFmtResult, Write as _};
-
 use loc_lib::{Location, loc, loc::Loc};
 use optml::Optml;
 use pg_crud_cmn::{
@@ -10,6 +8,7 @@ use regex::Regex;
 use schemars::{_private::alloc::borrow, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 use sqlx::{Encode, Postgres, Type, postgres::PgArguments, query::Query, types::Json};
+use std::fmt::{Display, Formatter, Result as StdFmtResult, Write as _};
 use thiserror::Error;
 use utoipa::ToSchema;
 gen_wh_flts::gen_wh_flts!({
@@ -38,9 +37,7 @@ impl DfltSomeOneEl for EncodeFormat {
         Self::default()
     }
 }
-// difference between NotEmptyUnqVec and PgJsonNotEmptyUnqVec only in
-// pg_crud_cmn::DfltSomeOneEl impl with different generic requirement and
-// PgTypeWhFlt
+//difference between NotEmptyUnqVec and PgJsonNotEmptyUnqVec only in pg_crud_cmn::DfltSomeOneEl impl with different generic requirement and PgTypeWhFlt
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
 pub struct PgJsonNotEmptyUnqVec<T>(Vec<T>);
 impl<T> PgJsonNotEmptyUnqVec<T> {
@@ -48,7 +45,6 @@ impl<T> PgJsonNotEmptyUnqVec<T> {
     pub fn into_vec(self) -> Vec<T> {
         self.0
     }
-
     pub fn qp_one_by_one(
         &self,
         incr: &mut u64,
@@ -65,7 +61,6 @@ impl<T> PgJsonNotEmptyUnqVec<T> {
         let _: Option<char> = acc.pop();
         Ok(acc)
     }
-
     #[must_use]
     pub const fn to_vec(&self) -> &Vec<T> {
         &self.0
@@ -89,7 +84,6 @@ impl<T: Serialize> PgJsonNotEmptyUnqVec<T> {
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgJsonNotEmptyUnqVec<T> {
     type Error = NotEmptyUnqVecTryNewEr<T>;
-
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         NotEmptyUnqVec::try_new(v)
             .map(NotEmptyUnqVec::into_vec)
@@ -123,7 +117,6 @@ const _: () = {
                 _serde::de::Visitor<'de> for __Visitor<'de, T>
             {
                 type Value = PgJsonNotEmptyUnqVec<T>;
-
                 fn expecting(
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
@@ -133,7 +126,6 @@ const _: () = {
                         "tuple struct PgJsonNotEmptyUnqVec",
                     )
                 }
-
                 #[inline]
                 fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
                 where
@@ -142,7 +134,6 @@ const _: () = {
                     let f0: Vec<T> = <Vec<T> as _serde::Deserialize>::deserialize(__e)?;
                     Ok(PgJsonNotEmptyUnqVec(f0))
                 }
-
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
                 where
@@ -200,7 +191,6 @@ where
         }
         Ok(query)
     }
-
     fn qp(&self, incr: &mut u64, _: &dyn Display, _add_oprtr: bool) -> Result<String, QpEr> {
         match incr_checked_add_one_returning_incr(incr) {
             Ok(v) => Ok(format!("${v}")),
@@ -213,7 +203,6 @@ where
 pub struct RgxRgx(pub Regex);
 impl TryFrom<String> for RgxRgx {
     type Error = regex::Error;
-
     fn try_from(v: String) -> Result<Self, Self::Error> {
         Regex::new(&v).map(RgxRgx)
     }
@@ -232,7 +221,7 @@ impl PartialEq for RgxRgx {
         self.0.as_str() == other.0.as_str()
     }
 }
-// todo add some logic? for regex validation?
+//todo add some logic? for regex validation?
 #[allow(unused_qualifications)]
 #[allow(clippy::absolute_paths)]
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -243,15 +232,12 @@ const _: () = {
         fn schema_name() -> borrow::Cow<'static, str> {
             borrow::Cow::Borrowed("RegexRegex")
         }
-
         fn schema_id() -> borrow::Cow<'static, str> {
             borrow::Cow::Borrowed("tests::RegexRegex")
         }
-
         fn json_schema(generator: &mut SchemaGenerator) -> Schema {
             { generator.subschema_for::<String>() }
         }
-
         fn inline_schema() -> bool {
             false
         }
@@ -347,14 +333,12 @@ const _: () = {
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
                 type Value = __Field;
-
                 fn expecting(
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(__f, "field identifier")
                 }
-
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
                 where
                     __E: _serde::de::Error,
@@ -365,7 +349,6 @@ const _: () = {
                         _ => Ok(__Field::__ignore),
                     }
                 }
-
                 fn visit_str<__E>(self, v: &str) -> Result<Self::Value, __E>
                 where
                     __E: _serde::de::Error,
@@ -376,7 +359,6 @@ const _: () = {
                         _ => Ok(__Field::__ignore),
                     }
                 }
-
                 fn visit_bytes<__E>(self, v: &[u8]) -> Result<Self::Value, __E>
                 where
                     __E: _serde::de::Error,
@@ -414,14 +396,12 @@ const _: () = {
                     + for<'__> Encode<'__, Postgres>,
             {
                 type Value = Btwn<T>;
-
                 fn expecting(
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(__f, "struct Between")
                 }
-
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
                 where
@@ -444,7 +424,6 @@ const _: () = {
                         Err(er) => Err(serde::de::Error::custom(format!("{er:?}"))),
                     }
                 }
-
                 #[inline]
                 fn visit_map<__A>(self, mut __map: __A) -> Result<Self::Value, __A::Error>
                 where
@@ -529,7 +508,6 @@ impl<'lt, T: Send + Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt> PgTyp
         }
         Ok(query)
     }
-
     fn qp(&self, incr: &mut u64, _: &dyn Display, _: bool) -> Result<String, QpEr> {
         let start_incr = match incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
@@ -554,7 +532,6 @@ impl<T> PgTypeNotEmptyUnqVec<T> {
     pub const fn to_vec(&self) -> &Vec<T> {
         &self.0
     }
-
     #[must_use]
     pub fn into_vec(self) -> Vec<T> {
         self.0
@@ -562,7 +539,6 @@ impl<T> PgTypeNotEmptyUnqVec<T> {
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUnqVec<T> {
     type Error = NotEmptyUnqVecTryNewEr<T>;
-
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         NotEmptyUnqVec::try_new(v)
             .map(NotEmptyUnqVec::into_vec)
@@ -596,7 +572,6 @@ const _: () = {
                 _serde::de::Visitor<'de> for __Visitor<'de, T>
             {
                 type Value = PgTypeNotEmptyUnqVec<T>;
-
                 fn expecting(
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
@@ -606,7 +581,6 @@ const _: () = {
                         "tuple struct PgTypeNotEmptyUnqVec",
                     )
                 }
-
                 #[inline]
                 fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
                 where
@@ -615,7 +589,6 @@ const _: () = {
                     let f0: Vec<T> = <Vec<T> as _serde::Deserialize>::deserialize(__e)?;
                     Ok(PgTypeNotEmptyUnqVec(f0))
                 }
-
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
                 where
@@ -692,7 +665,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
     pub fn into_inn(self) -> Vec<T> {
         self.0
     }
-
     pub fn pg_json_qp(
         &self,
         incr: &mut u64,
@@ -701,7 +673,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
     ) -> Result<String, QpEr> {
         self.qp(incr, col, add_oprtr, &PgTypeOrPgJson::PgJson, &Vrt::Normal)
     }
-
     pub fn pg_json_qp_minus_one(
         &self,
         incr: &mut u64,
@@ -716,7 +687,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
             &Vrt::MinusOne,
         )
     }
-
     pub fn pg_type_qp(
         &self,
         incr: &mut u64,
@@ -725,7 +695,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
     ) -> Result<String, QpEr> {
         self.qp(incr, col, add_oprtr, &PgTypeOrPgJson::PgType, &Vrt::Normal)
     }
-
     pub fn pg_type_qp_minus_one(
         &self,
         incr: &mut u64,
@@ -740,7 +709,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
             &Vrt::MinusOne,
         )
     }
-
     pub fn qb(
         self,
         mut query: Query<'lt, Postgres, PgArguments>,
@@ -752,7 +720,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
         }
         Ok(query)
     }
-
     fn qp(
         &self,
         incr: &mut u64,
@@ -783,7 +750,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
         }
         Ok(acc)
     }
-
     #[must_use]
     pub const fn to_inn(&self) -> &Vec<T> {
         &self.0
@@ -791,7 +757,6 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
 }
 impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
     type Error = BoundedVecTryNewEr;
-
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         let len = v.len();
         if len == LENGTH {
@@ -812,12 +777,10 @@ impl<T: Clone + DfltSomeOneEl, const LENGTH: usize> DfltSomeOneEl for BoundedVec
 }
 #[cfg(test)]
 mod tests {
-    use std::fmt::Display;
-
+    use super::{EncodeFormat, PgJsonNotEmptyUnqVec, PgTypeNotEmptyUnqVec, RgxRgx};
     use pg_crud_cmn::{NotEmptyUnqVecTryNewEr, PgTypeWhFlt};
     use regex::Regex;
-
-    use super::{EncodeFormat, PgJsonNotEmptyUnqVec, PgTypeNotEmptyUnqVec, RgxRgx};
+    use std::fmt::Display;
     #[derive(Debug, PartialEq, Eq)]
     struct NonClone(u8);
     fn d() -> &'static dyn Display {

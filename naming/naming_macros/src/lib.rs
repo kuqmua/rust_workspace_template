@@ -1,5 +1,3 @@
-use std::fmt::Write as _;
-
 use gen_quotes::dq_ts;
 use panic_loc::panic_loc;
 use proc_macro::TokenStream as Ts;
@@ -7,6 +5,7 @@ use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use regex::Regex;
 use serde_json::from_str;
+use std::fmt::Write as _;
 #[allow(unused_imports)]
 use syn::{Data, DeriveInput, Fields, Ident, Type, parse};
 use token_patterns::StringTs;

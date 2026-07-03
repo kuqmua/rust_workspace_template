@@ -1,16 +1,15 @@
-use std::fmt::Display;
-
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::ToTokens;
+use std::fmt::Display;
 use strum_macros::{Display, EnumIter};
-#[derive(Debug, Clone, Copy, Display, EnumIter, Optml)]
+#[derive(Debug, Display, EnumIter, Optml)]
 pub enum IsStdrtWithId {
     False,
     True,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum IdentPattern {
     StdrtNnWithoutId,
     StdrtNnWithId,
@@ -19,7 +18,7 @@ pub enum IdentPattern {
     ArrNlWithIdentifier,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, Display, Optml)]
+#[derive(Debug, Clone, Display, Optml)]
 pub enum PgJsonSubtype {
     Tt,
     Cr,
@@ -43,7 +42,7 @@ impl ToTokens for PgJsonSubtype {
         display_to_tokens(self, tokens);
     }
 }
-#[derive(Debug, Clone, Copy, Display, Optml)]
+#[derive(Debug, Clone, Display, Optml)]
 pub enum PgTypeSubtype {
     Rd,
     Upd,
@@ -54,7 +53,7 @@ impl ToTokens for PgTypeSubtype {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum PgJsonSubtypeTtOrCr {
     Tt,
     Cr,
@@ -67,18 +66,18 @@ impl From<&PgJsonSubtypeTtOrCr> for PgJsonSubtype {
         }
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum RdWithOrWithoutAnnOrInn {
     Inn,
     WithSerdeOptIsNoneAnn,
     WithoutSerdeOptIsNoneAnn,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum AddSerdeSkipSerializingIfVecIsEmptyAnn {
     False,
     True,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum NewTypeOrStructDcl {
     NewType,
     StructDcl,

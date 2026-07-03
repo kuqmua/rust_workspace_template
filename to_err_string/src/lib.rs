@@ -1,5 +1,3 @@
-use std::{borrow::Cow, fmt::Debug, io::Error as IoEr};
-
 use axum::{
     Error as AxumEr,
     extract::rejection::{JsonDataError, JsonRejection, JsonSyntaxError},
@@ -11,13 +9,12 @@ use serde_json::Error as SerdeJsonEr;
 use sqlx::{
     Error as SqlxEr,
     migrate::MigrateError,
-    types::{
-        BigDecimal, Decimal,
-        chrono::{NaiveDate, NaiveDateTime, NaiveTime},
-        time::{PrimitiveDateTime, Time},
-        uuid::Error as UuidEr,
-    },
+    types::chrono::{NaiveDate, NaiveDateTime, NaiveTime},
+    types::time::{PrimitiveDateTime, Time},
+    types::uuid::Error as UuidEr,
+    types::{BigDecimal, Decimal},
 };
+use std::{borrow::Cow, fmt::Debug, io::Error as IoEr};
 use time::error::ComponentRange;
 use tracing::{dispatcher::SetGlobalDefaultError, log::SetLoggerError};
 macro_rules! impl_to_err_string_with {

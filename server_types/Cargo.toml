@@ -1,30 +1,30 @@
 [package]
+edition = "2024"
 name = "server_types"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Server API boundary domain types"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["server", "types"]
-categories = ["web-programming"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+
 
 [dependencies]
-loc_lib.workspace = true
-optml.workspace = true
-pg_crud = { workspace = true, features = ["test-utils"] }
-schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-sqlx.workspace = true
 thiserror.workspace = true
+sqlx.workspace = true
 utoipa.workspace = true
+schemars.workspace = true
 uuid.workspace = true
-
-[features]
-test-utils = ["pg_crud/test-utils"]
+loc_lib = {path = "../loc_lib"}
+pg_crud = {path = "../pg_crud", features = ["test-utils"]}
+optml = {path = "../optml"}
 
 [lints]
 workspace = true
+
+[features]
+test-utils = ["pg_crud/test-utils"]

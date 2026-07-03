@@ -1,10 +1,3 @@
-use std::{
-    fmt::{Display, Formatter, Result as StdFmtResult, Write as _},
-    iter::once,
-    panic::Location,
-    str::FromStr,
-};
-
 use gen_quotes::dq_ts;
 use macros_helpers::{
     AttrIdentStr, DClone, DCopy, DTsBuilder, FormatWithCargofmt, LocFieldAttr,
@@ -68,12 +61,18 @@ use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use serde::Deserialize;
 use serde_json::from_str;
+use std::{
+    fmt::{Display, Formatter, Result as StdFmtResult, Write as _},
+    iter::once,
+    panic::Location,
+    str::FromStr,
+};
 use strum_macros::Display;
 use syn::{
     AttrStyle, Attribute, Data, DeriveInput, Field, FieldMutability, Fields, FieldsNamed, Ident,
     Meta, Path, PathArguments, PathSegment, Type, TypePath, Variant, Visibility, parse2,
-    punctuated::Punctuated,
-    token::{Brace, Bracket, Colon, Comma, PathSep, Pound},
+    punctuated::Punctuated, token::Brace, token::Bracket, token::Colon, token::Comma,
+    token::PathSep, token::Pound,
 };
 #[allow(unused_imports)]
 use token_patterns::{
@@ -83,30 +82,30 @@ use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElCall, RefStr, SqlxAcquire, SqlxRow, StringTs, U8, U16, U32, U64,
 };
-// todo decide wh to do er log (mb add in some places)
-// todo gen route what will return cols of the tbl and their rust and postgersql
-// types todo crd at and updd at fields + crd by + updd by
-// todo attrs for activation generation crud methods(like gen cr, uo, dlo)
-// todo authorization for returning concrete er or just minimal info(user role)
-// todo gen rules and roles
-// todo mb add unnest sql types?
-// todo mb add unnest to flt params if its arr ?
-// todo swagger ui https://github.com/juhaku/utoipa/blob/master/examples/todo-axum/src/main.rs
-// todo derive utoipa::ToSchema for what? original structs or with serialize
-// deserialize? todo need to add utoipa::ToSchema ann #[schema(value_type =
-// YourToSchemaTraitImplStruct)] for all fields todo remove useless derives like
-// useless serde::Serialize and Deserialize todo mb gen compisite type for user defined type https://docs.rs/sqlx/0.7.3/sqlx/pg/types/index.html#rust_decimal
-// todo rd again some interesting thoughts about sql as api https://habr.com/ru/companies/timeweb/articles/798937/
-// todo reexport all crates what logic depends on (from crates.io) (use of
-// undclared crate or module `time`) todo add transaction isolation level (see
-// pg docs) todo check on pg max len value of type
-// todo in few cases rows affected is usefull. (upd del for example). if 0
-// afftected -mb its er? or mb use sel then upd\del?(rewrite query) todo pg json schema validation https://youtu.be/F6X60ln2VNc
-// todo gen json schema from rust type https://docs.rs/schemars/laTest/schemars/
-// todo support rd tbl len
-// todo what is pub what is private
-// todo header Retry-After logic
-// todo pg json:
+//todo decide wh to do er log (mb add in some places)
+//todo gen route what will return cols of the tbl and their rust and postgersql types
+//todo crd at and updd at fields + crd by + updd by
+//todo attrs for activation generation crud methods(like gen cr, uo, dlo)
+//todo authorization for returning concrete er or just minimal info(user role)
+//todo gen rules and roles
+//todo mb add unnest sql types?
+//todo mb add unnest to flt params if its arr ?
+//todo swagger ui https://github.com/juhaku/utoipa/blob/master/examples/todo-axum/src/main.rs
+//todo derive utoipa::ToSchema for what? original structs or with serialize deserialize?
+//todo need to add utoipa::ToSchema ann #[schema(value_type = YourToSchemaTraitImplStruct)] for all fields
+//todo remove useless derives like useless serde::Serialize and Deserialize
+//todo mb gen compisite type for user defined type https://docs.rs/sqlx/0.7.3/sqlx/pg/types/index.html#rust_decimal
+//todo rd again some interesting thoughts about sql as api https://habr.com/ru/companies/timeweb/articles/798937/
+//todo reexport all crates what logic depends on (from crates.io) (use of undclared crate or module `time`)
+//todo add transaction isolation level (see pg docs)
+//todo check on pg max len value of type
+//todo in few cases rows affected is usefull. (upd del for example). if 0 afftected -mb its er? or mb use sel then upd\del?(rewrite query)
+//todo pg json schema validation https://youtu.be/F6X60ln2VNc
+//todo gen json schema from rust type https://docs.rs/schemars/laTest/schemars/
+//todo support rd tbl len
+//todo what is pub what is private
+//todo header Retry-After logic
+//todo pg json:
 //* write json schema in pg
 //* validate insert json field with json schema
 #[must_use]
@@ -121,7 +120,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         const fn get_opt_status_code(&self) -> Option<&StatusCode> {
             self.status_code.as_ref()
         }
-
         const fn get_syn_vrt(&self) -> &Variant {
             &self.vrt
         }
@@ -170,7 +168,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 Self::Dlo => (DClone::True, DCopy::True),
             }
         }
-
         const fn desirable_status_code(self) -> StatusCode {
             match self {
                 Self::Cm | Self::Co => StatusCode::Crd201,
@@ -179,7 +176,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 }
             }
         }
-
         const fn gen_pg_tbl_attr_er_vrts(self) -> GenPgTblAttr {
             match self {
                 Self::Cm => GenPgTblAttr::CmErVrts,
@@ -192,7 +188,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 Self::Dlo => GenPgTblAttr::DloErVrts,
             }
         }
-
         const fn gen_pg_tbl_attr_logic(self) -> GenPgTblAttr {
             match self {
                 Self::Cm => GenPgTblAttr::CmLogic,
@@ -205,7 +200,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 Self::Dlo => GenPgTblAttr::DloLogic,
             }
         }
-
         const fn http_method(self) -> OpHttpMethod {
             match self {
                 Self::Cm | Self::Co | Self::Rm | Self::Ro => OpHttpMethod::Post,
@@ -213,33 +207,26 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 Self::Dm | Self::Dlo => OpHttpMethod::Delete,
             }
         }
-
         fn op_er_with_serde_sc(self) -> SelfErWithSerdeSc {
             SelfErWithSerdeSc::from_display(&self)
         }
-
         fn op_payload_example_sc(self) -> impl DisplayPlusToTokens {
             SelfPayloadExampleSc::from_display(&self)
         }
-
         fn self_h_sc_ts(self) -> Ts2 {
             let v = SelfHSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
         }
-
         fn self_sc_str(self) -> String {
             AsRefStrToScStr::case(&self.to_string())
         }
-
         fn self_sc_ts(self) -> Ts2 {
             AsRefStrToScTs::case_or_panic(&self.to_string())
         }
-
         fn try_self_h_sc_ts(self) -> Ts2 {
             let v = TrySelfHSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
         }
-
         fn try_self_sc_ts(self) -> Ts2 {
             let v = TrySelfSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
@@ -418,7 +405,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 let fi = el.ident.clone().expect("915ef2ce");
                 let fi_len = fi.to_string().len();
                 let max_pg_col_len = 63;
-                // todo write runtime check
+                //todo write runtime check
                 assert!(fi_len <= max_pg_col_len, "1266ae5a");
                 fields.push(SynField {
                     vis: el.vis.clone(),
@@ -465,7 +452,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let fields_len = fields.len();
     let fields_len_without_pk = fields_without_pk.len();
     let pk_ft = &pk_field.type0;
-    // todo must remove this and use trait type instead
+    //todo must remove this and use trait type instead
     let pk_ft_tt_ts = SelfTtUcc::from_type_last_segment(&pk_field.type0);
     let gen_as_pg_type_ts = |ts: &dyn ToTokens| {
         quote! {<#ts as #import_ts #PgTypeUcc>}
@@ -1697,8 +1684,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let ident_upd_try_new_er_ts = gen_no_fields_provided_er_ts(&ident_upd_try_new_er_ucc);
         let impl_pub_try_new_for_ident_upd_ts = gen_impl_pub_try_new_for_ident_ts(
-            &quote! {#[allow(clippy::redundant_pattern_matching)]}, /* todo check if 1 then
-                                                                     * different logic */
+            &quote! {#[allow(clippy::redundant_pattern_matching)]}, //todo check if 1 then different logic
             &ident_upd_ucc,
             &fields_dcl_ts,
             &ident_upd_try_new_er_ucc,
@@ -3704,7 +3690,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let oprtr_ts = quote! {#import_ts Oprtr::};
         (quote! {#oprtr_ts Or}, quote! {#oprtr_ts And})
     };
-    let generated_ident_tests_ts = {
+    let ident_tests_ts = {
         fn gen_assert_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens) -> Ts2 {
             quote! {assert!(#ts0,#ts1);}
         }
@@ -3738,7 +3724,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let ident_uo_prms_ucc = gen_ident_op_prms_ucc(&Op::Uo);
         let config_path_ts = quote! {server_config::Config};
         let undrscr_unused_ts = quote! {_unused};
-        // todo mb remove it?\
+        //todo mb remove it?\
         let gen_some_pg_type_wh_try_new_ts = |oprtr_ts: &dyn ToTokens, ts: &dyn ToTokens| {
             quote! {
                 Some(
@@ -3769,8 +3755,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             let fi = &el.ident;
             quote! {#fi: None}
         });
-        // todo instead of first dropping tbl - check if its not exists. if exists Test
-        // must fail
+        //todo instead of first dropping tbl - check if its not exists. if exists Test must fail
         let sel_dflt_all_with_max_page_size_not_empty_unq_vec_ts = {
             let ts = gen_fields_named_with_comma_ts(&|el: &SynField| {
                 let fi = &el.ident;
@@ -4405,7 +4390,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 }
             };
         let rm_tests_ts = {
-            // todo extra rm checks
+            //todo extra rm checks
             let wh_pk_or_repeat_uuid_ts = gen_wh_pk_or_ts(&quote! {
                 std::iter::repeat_with(|| #pk_wh_eq_uuid_new_v_ts)
                 .take(el_30614c66)
@@ -4776,8 +4761,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_ts,
                 rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_ts,
             ) = {
-                // todo if vec_cr is empty then do different logic (for uuid). now uuid Tested
-                // using one dflt case
+                //todo if vec_cr is empty then do different logic (for uuid). now uuid Tested using one dflt case
                 let gen_ts = |test_name: &str, dim: &Dim| {
                     let fn_ts = dim.rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_nbr_eq_sc();
                     gen_rd_test_ts(
@@ -5050,7 +5034,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 })
             };
         let um_tests_ts = {
-            // todo add Test for trying to upd empty vec
+            //todo add Test for trying to upd empty vec
             let um_only_one_col_tests_ts = gen_fields_named_without_pk_without_comma_ts(
                 &|el: &SynField| {
                     let fi = &el.ident;
@@ -5823,13 +5807,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     mb_write_ts_into_file(
         gen_pg_tbl_config.tests_write_into_file,
         "gen_pg_tbl_Tests",
-        &generated_ident_tests_ts,
+        &ident_tests_ts,
         &FormatWithCargofmt::True,
     );
-    let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
-        ShouldWriteTsIntoFile::False => Ts2::new(),
-        ShouldWriteTsIntoFile::True => generated_ident_tests_ts,
-    };
     let cmn_ts = quote! {
         #ident_prep_pg_er_ts
         #ident_cr_ts

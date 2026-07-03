@@ -1,31 +1,30 @@
 [package]
 name = "gen_pg_json_src"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "PostgreSQL JSON source generator"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../../README.md"
-keywords = ["postgres", "generator"]
-categories = ["database"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-gen_quotes.workspace = true
-macros_helpers.workspace = true
-naming.workspace = true
-optml.workspace = true
-panic_loc.workspace = true
-pg_crud_macros_cmn.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
-rayon.workspace = true
-serde.workspace = true
-serde_json.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
-token_patterns.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rayon.workspace = true
+pg_crud_macros_cmn = {path = "../../pg_crud_macros_cmn"}
+gen_quotes = {path = "../../../gen_quotes"}
+panic_loc = {path = "../../../panic_loc"}
+macros_helpers = {path = "../../../macros_helpers"}
+naming = {path = "../../../naming"}
+token_patterns = {path = "../../../token_patterns"}
+optml = {path = "../../../optml"}
 
 [lints]
 workspace = true

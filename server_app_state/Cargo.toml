@@ -1,27 +1,25 @@
 [package]
 name = "server_app_state"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Server application state"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../README.md"
-keywords = ["server", "state"]
-categories = ["web-programming"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-app_state.workspace = true
 chrono.workspace = true
-cmn_routes.workspace = true
-config_lib.workspace = true
-git_info.workspace = true
-optml.workspace = true
-pg_crud = { workspace = true, features = ["test-utils"] }
-server_config.workspace = true
 sqlx.workspace = true
-
+config_lib.workspace = true
+cmn_routes.workspace = true
+git_info.workspace = true
+app_state.workspace = true
+server_config.workspace = true
+pg_crud = {path = "../pg_crud", features = ["test-utils"]}
+optml.workspace = true
 [dev-dependencies]
 secrecy.workspace = true
 tokio.workspace = true

@@ -1,21 +1,20 @@
 [package]
 name = "loc_test"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-rust-version.workspace = true
+version = "0.1.0"
 publish = false
-description = "Location macro support test binary"
-repository = "https://github.com/kuqmua/rust_workspace_template"
-readme = "../../README.md"
-keywords = ["location", "tests"]
-categories = ["development-tools"]
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
 
 [dependencies]
-loc_lib.workspace = true
-optml.workspace = true
-serde.workspace = true
 thiserror.workspace = true
+serde.workspace = true
+loc_lib = {path = ".."}
+optml = {path = "../../optml"}
 
 [lints]
 workspace = true

@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
-use loc_lib::{Location, loc, loc::Loc};
+use loc_lib::loc::Loc;
+use loc_lib::{Location, loc};
 use optml::Optml;
 use pg_crud_cmn::{
     DEFAULT_PAGINATION_LIMIT, DfltSomeOneEl, DfltSomeOneElMaxPageSize, PgTypeWhFlt, PgnBase, QpEr,
@@ -8,6 +7,7 @@ use pg_crud_cmn::{
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, postgres::PgArguments, query::Query};
+use std::fmt::Display;
 use thiserror::Error;
 use utoipa::ToSchema;
 #[derive(Debug, Deserialize, JsonSchema, Optml)]
@@ -45,12 +45,10 @@ impl PgnStartsWithOne {
     pub const fn end(&self) -> i64 {
         self.0.end()
     }
-
     #[must_use]
     pub const fn start(&self) -> i64 {
         self.0.start()
     }
-
     pub fn try_new(limit: i64, offset: i64) -> Result<Self, PgnStartsWithOneTryNewEr> {
         if limit <= 0 || offset < 1 {
             if limit <= 0 {
@@ -74,7 +72,6 @@ impl PgnStartsWithOne {
 }
 impl TryFrom<PgnStartsWithOneRaw> for PgnStartsWithOne {
     type Error = PgnStartsWithOneTryNewEr;
-
     fn try_from(v: PgnStartsWithOneRaw) -> Result<Self, Self::Error> {
         Self::try_new(v.limit, v.offset)
     }
@@ -86,7 +83,6 @@ impl<'lt> PgTypeWhFlt<'lt> for PgnStartsWithOne {
     ) -> Result<Query<'lt, Postgres, PgArguments>, String> {
         self.0.qb(query)
     }
-
     fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
         self.0.qp(incr, col, add_oprtr)
     }

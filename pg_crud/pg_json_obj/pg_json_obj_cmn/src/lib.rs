@@ -20,17 +20,14 @@ impl<T> UnqVec<T> {
     pub const fn as_slice(&self) -> &[T] {
         self.0.as_slice()
     }
-
     #[must_use]
     pub fn into_vec(self) -> Vec<T> {
         self.0
     }
-
     #[must_use]
     pub const fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
-
     #[must_use]
     pub const fn to_vec(&self) -> &Vec<T> {
         &self.0
@@ -86,14 +83,12 @@ const _: () = {
                 _serde::de::Visitor<'de> for __Visitor<'de, T>
             {
                 type Value = UnqVec<T>;
-
                 fn expecting(
                     &self,
                     __formatter: &mut _serde::__private228::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(__formatter, "tuple struct UnqVec")
                 }
-
                 #[inline]
                 fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
                 where
@@ -102,7 +97,6 @@ const _: () = {
                     let f0: Vec<T> = <Vec<T> as _serde::Deserialize>::deserialize(__e)?;
                     try_new_or_de_error(f0)
                 }
-
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
                 where
@@ -151,9 +145,8 @@ impl<T1> UnqVec<T1> {
 }
 #[cfg(test)]
 mod tests {
-    use pg_crud_cmn::{first_duplicate_idx, take_fst_dup};
-
     use super::{UnqVec, UnqVecTryNewEr};
+    use pg_crud_cmn::{first_duplicate_idx, take_fst_dup};
     #[derive(Debug, PartialEq, Eq)]
     struct NonClone(u8);
     #[test]

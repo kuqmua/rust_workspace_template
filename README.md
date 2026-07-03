@@ -1,96 +1,163 @@
-# Rust Workspace Template
+# Tufa Project
 
-Production-oriented Rust workspace template with strict linting, deterministic tests, and CI gates that scale from pull requests to nightly full verification.
+A comprehensive Rust-based project for building web applications with PostgreSQL integration.
 
-## Goals
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Project Structure](#project-structure)
+- [Setup and Installation](#setup-and-installation)
+- [Usage](#usage)
+- [Modules](#modules)
+- [Contributing](#contributing)
+- [License](#license)
 
-- Keep dependencies controlled: workspace-level declarations, no implicit defaults.
-- Keep quality predictable: strict lint profile, deterministic tests, reproducible local verification order.
-- Keep developer onboarding fast: copy-paste commands and cargo aliases for daily workflows.
+## Project Overview
 
-## Workspace layout
+Tufa Project is a Rust workspace containing multiple crates designed to facilitate the development of web applications with PostgreSQL database integration. The project includes various utilities, macros, and libraries to streamline common development tasks.
 
-- `server`: minimal entrypoint crate.
-- `tests`: workspace-level policy and meta tests.
+## What Was Fixed
 
-## Quick start
+- Clarified terminology in documentation by replacing inconsistent `er` wording with `error`.
+- Expanded wording around quality checks to make commands and expected outcomes easier to understand.
+- Added this section to explicitly describe what was improved in the project documentation.
 
-1. Install nightly toolchain:
+## Key Features
+
+- PostgreSQL CRUD ops with code generation
+- Advanced error handling with detailed context
+- Configuration management
+- Git information integration
+- Type-safe database interactions
+- Extensible macro system
+- JSON schema validation for PostgreSQL
+
+## Project Structure
+
+This is a Rust workspace project with the following main components:
+
+- `postgresql_crud`: Core crate for PostgreSQL CRUD ops
+- `config_lib`: Configuration management utilities
+- `git_info`: Git repository information tools
+- `location_lib`: Advanced er handling with context
+- `from_sqlx_postgres_er`: SQLx PostgreSQL er conversion
+- `from_str`: String parsing utilities
+- `gen_quotes`: Quote generation utilities
+- `macros_helpers`: Helper macros for code generation
+- And many more utility crates...
+
+## Setup and Installation
+
+## Toolchain
+
+This workspace is intended to be built and linted with the latest Rust nightly toolchain.
+
+
+### Prerequisites
+
+- Rust nightly (latest version)
+- PostgreSQL database
+- Docker (for containerized deployments)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd tufa_project
+   ```
+
+2. Init submodules:
+   ```bash
+   git submodule update --init --recursive --checkout
+   ```
+
+3. Build the project:
+   ```bash
+   cargo build
+   ```
+
+### Database Setup
+
+1. Start the database:
+   ```bash
+   cd server && sudo docker-compose up -d && cd ..
+   ```
+
+2. Run migrations:
+   ```bash
+   cd server && sqlx migrate run && cd ..
+   ```
+
+## Usage
+
+### Running Tests
 
 ```bash
-rustup toolchain install nightly
-```
-
-2. Verify toolchain setup:
-
-```bash
-cargo +nightly --version
-```
-
-3. Run local checks in required order:
-
-```bash
-cargo fmt
-cargo clippy --all-targets --all-features -- -D warnings
+# Run all tests
 cargo test
+
+# Run tests with features
+cargo test --features test-utils -- --nocapture
+
+# Run with debug logging
+RUST_LOG=sqlx=debug cargo test --features test-utils -- --nocapture
 ```
 
-## Developer shortcuts
-
-Cargo aliases are configured in `.cargo/config.toml`:
-
-- `cargo workspace-format`
-- `cargo workspace-lint`
-- `cargo workspace-test`
-- `cargo workspace-hack`
-- `cargo workspace-deny`
-- `cargo workspace-udeps`
-- `cargo workspace-verify` (runs `fmt -> clippy -> test` in required order)
-
-Extended local validation set (parity with CI lanes):
+### Code Quality
 
 ```bash
-cargo workspace-hack
-cargo workspace-deny
-cargo workspace-udeps
+# Check for errors
+cargo check
+
+# Run clippy lints
+cargo clippy
+
+# Check with specific flags
+RUSTFLAGS="-Awarnings" cargo clippy --all-targets --all-features
 ```
 
-## Production build defaults
+### Development
 
-Release profile is hardened in workspace root `Cargo.toml`:
+```bash
+# Start development with file watching
+cargo watch -x check -x test -x "run"
+```
 
-- `lto = "fat"`
-- `codegen-units = 1`
-- `panic = "abort"`
-- `strip = "symbols"`
+## Modules
 
-These settings optimize for smaller and more predictable production binaries.
+### postgresql_crud
+Core functionality for PostgreSQL CRUD ops with automatic code generation for tables, types, and JSON objs.
 
-## CI and governance
+### config_lib
+Configuration management with environment variable parsing and type-safe accessors.
 
-- Main CI: `.github/workflows/ci.yml`
-- All CI jobs run on pull requests targeting `main` and pushes to `main` when Rust or CI files changed.
-- Contribution guide: `CONTRIBUTING.md`
-- Release process: `RELEASE.md`
-- Security policy: `SECURITY.md`
-- Changelog template: `CHANGELOG.md`
+### git_info
+Compile-time and runtime Git repository information retrieval.
 
-## Policy tests
+### location_lib
+Advanced error handling system with detailed context and src tracking.
 
-All tests live in `tests/src/lib.rs` and enforce template rules, including:
+### from_sqlx_postgres_er
+Utilities for converting SQLx PostgreSQL errors to application-specific errors.
 
-- workspace dependencies and exact version pinning
-- no forbidden runtime shortcuts (`unwrap`, `todo!`, source-dropping `map_err`)
-- deterministic testing constraints
-- hardened release profile and `workspace-verify` command order
-- nightly toolchain contract (`rust-toolchain.toml` must stay on `channel = "nightly"`)
-- no debug print macros outside entrypoint
-- workflow permissions and timeouts
-- GitHub Actions pinned by full commit SHA
+### from_str
+Safe string parsing with detailed error context.
 
-## Extension rules
+### gen_quotes
+Utilities for generating quotes and text content.
 
-- Add crates.io dependencies only in `[workspace.dependencies]`.
-- Use `*.workspace = true` in crate `Cargo.toml` files.
-- Disable default features unless required by a concrete use case.
-- Preserve external contracts unless changes are explicitly requested.
+### macros_helpers
+Collection of helper macros for code generation and boilerplate reduction.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

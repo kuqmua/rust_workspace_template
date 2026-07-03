@@ -1,3 +1,4 @@
+use naming::prm::{PgJsonWhSelfUcc, PgTypeWhSelfUcc};
 use naming::{
     AdjacentWithRangeUcc, AllElsEqUcc, AllElsGreaterThanUcc, AllElsRgxUcc, BeforeUcc, BtwnUcc,
     ContainsAllElsOfArrUcc, ContainsElGreaterThanUcc, ContainsElRgxUcc, CrntDateUcc, CrntTimeUcc,
@@ -29,17 +30,13 @@ use naming::{
     GreaterThanExcludedUpperBoundUcc, GreaterThanIncludedLowerBoundUcc, GreaterThanUcc, InUcc,
     IncludedLowerBoundUcc, LenEqUcc, LenGreaterThanUcc, OverlapWithRangeUcc, OverlapsWithArrUcc,
     RangeLenUcc, RgxUcc, StrictlyToLeftOfRangeUcc, StrictlyToRightOfRangeUcc,
-    prm::{PgJsonWhSelfUcc, PgTypeWhSelfUcc},
 };
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::quote;
 use strum_macros::{Display, EnumIter};
 macro_rules! pg_json_flt_dim {
-    (
-        $fn_name:ident(dim: usize,ident: Ts2),[$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident],
-        $uuid:literal
-    ) => {
+    ($fn_name:ident(dim: usize, ident: Ts2), [$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident], $uuid:literal) => {
         #[must_use]
         pub fn $fn_name(dim: usize, ident: Ts2) -> Self {
             match dim {
@@ -52,10 +49,7 @@ macro_rules! pg_json_flt_dim {
             }
         }
     };
-    (
-        $fn_name:ident(dim: usize),[$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident],
-        $uuid:literal
-    ) => {
+    ($fn_name:ident(dim: usize), [$b:ident, $d1:ident, $d2:ident, $d3:ident, $d4:ident], $uuid:literal) => {
         #[must_use]
         pub fn $fn_name(dim: usize) -> Self {
             match dim {
@@ -122,7 +116,7 @@ pub enum PgTypeFlt {
     DimOneAdjacentWithRange { ident: Ts2 },
     RangeLen,
     DimOneRangeLen,
-    // BitVecPositionEq,//currently deactivated
+    //BitVecPositionEq,//currently deactivated
 }
 impl PgFlt for PgTypeFlt {
     fn mb_generic(&self) -> Option<Ts2> {
@@ -179,12 +173,10 @@ impl PgFlt for PgTypeFlt {
             | Self::DimOneRangeLen => None,
         }
     }
-
     fn prefix_wh_self_ucc(&self) -> Ts2 {
         let v = PgTypeWhSelfUcc::from_display(&self.ucc());
         quote! {#v}
     }
-
     fn ucc(&self) -> &'static dyn DisplayPlusToTokens {
         match &self {
             Self::Eq { .. } => &EqUcc,
@@ -327,31 +319,18 @@ pub enum PgJsonFlt {
 }
 impl PgJsonFlt {
     pg_json_flt_dim!(dim_all_els_eq(dim: usize, ident: Ts2), [AllElsEq, DimOneAllElsEq, DimTwoAllElsEq, DimThreeAllElsEq, DimFourAllElsEq], "a1b2c3d4");
-
     pg_json_flt_dim!(dim_all_els_greater_than(dim: usize, ident: Ts2), [AllElsGreaterThan, DimOneAllElsGreaterThan, DimTwoAllElsGreaterThan, DimThreeAllElsGreaterThan, DimFourAllElsGreaterThan], "e5f6a7b8");
-
     pg_json_flt_dim!(dim_all_els_rgx(dim: usize), [AllElsRgx, DimOneAllElsRgx, DimTwoAllElsRgx, DimThreeAllElsRgx, DimFourAllElsRgx], "c9d0e1f2");
-
     pg_json_flt_dim!(dim_btwn(dim: usize, ident: Ts2), [Btwn, DimOneBtwn, DimTwoBtwn, DimThreeBtwn, DimFourBtwn], "a3b4c5d6");
-
     pg_json_flt_dim!(dim_contains_all_els_of_arr(dim: usize, ident: Ts2), [ContainsAllElsOfArr, DimOneContainsAllElsOfArr, DimTwoContainsAllElsOfArr, DimThreeContainsAllElsOfArr, DimFourContainsAllElsOfArr], "e7f8a9b0");
-
     pg_json_flt_dim!(dim_contains_el_greater_than(dim: usize, ident: Ts2), [ContainsElGreaterThan, DimOneContainsElGreaterThan, DimTwoContainsElGreaterThan, DimThreeContainsElGreaterThan, DimFourContainsElGreaterThan], "c1d2e3f4");
-
     pg_json_flt_dim!(dim_contains_el_rgx(dim: usize), [ContainsElRgx, DimOneContainsElRgx, DimTwoContainsElRgx, DimThreeContainsElRgx, DimFourContainsElRgx], "a5b6c7d8");
-
     pg_json_flt_dim!(dim_eq(dim: usize, ident: Ts2), [Eq, DimOneEq, DimTwoEq, DimThreeEq, DimFourEq], "e9f0a1b2");
-
     pg_json_flt_dim!(dim_greater_than(dim: usize, ident: Ts2), [GreaterThan, DimOneGreaterThan, DimTwoGreaterThan, DimThreeGreaterThan, DimFourGreaterThan], "c3d4e5f6");
-
     pg_json_flt_dim!(dim_in(dim: usize, ident: Ts2), [In, DimOneIn, DimTwoIn, DimThreeIn, DimFourIn], "a7b8c9d0");
-
     pg_json_flt_dim!(dim_len_eq(dim: usize), [LenEq, DimOneLenEq, DimTwoLenEq, DimThreeLenEq, DimFourLenEq], "e1f2a3b4");
-
     pg_json_flt_dim!(dim_len_greater_than(dim: usize), [LenGreaterThan, DimOneLenGreaterThan, DimTwoLenGreaterThan, DimThreeLenGreaterThan, DimFourLenGreaterThan], "c5d6e7f8");
-
     pg_json_flt_dim!(dim_overlaps_with_arr(dim: usize, ident: Ts2), [OverlapsWithArr, DimOneOverlapsWithArr, DimTwoOverlapsWithArr, DimThreeOverlapsWithArr, DimFourOverlapsWithArr], "a9b0c1d2");
-
     pg_json_flt_dim!(dim_rgx(dim: usize), [Rgx, DimOneRgx, DimTwoRgx, DimThreeRgx, DimFourRgx], "e3f4a5b6");
 }
 impl PgFlt for PgJsonFlt {
@@ -429,12 +408,10 @@ impl PgFlt for PgJsonFlt {
             | Self::DimFourLenGreaterThan => None,
         }
     }
-
     fn prefix_wh_self_ucc(&self) -> Ts2 {
         let v = PgJsonWhSelfUcc::from_display(&self.ucc());
         quote! {#v}
     }
-
     fn ucc(&self) -> &'static dyn DisplayPlusToTokens {
         match &self {
             Self::Eq { .. } => &EqUcc,

@@ -1,10 +1,10 @@
+use crate::panic_if_err::panic_if_err;
+use crate::rs_file_path::rs_file_path;
 use std::{
     fs::{metadata, read_to_string, write},
     io::{self, ErrorKind},
     path::{Path, PathBuf},
 };
-
-use crate::{panic_if_err::panic_if_err, rs_file_path::rs_file_path};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
     Changed(PathBuf),
@@ -18,12 +18,10 @@ impl WritePathOutcome {
             Self::Changed(path) | Self::Unchanged(path) => path,
         }
     }
-
     #[must_use]
     pub const fn is_changed(&self) -> bool {
         matches!(self, Self::Changed(_))
     }
-
     #[must_use]
     pub fn path(&self) -> &Path {
         match self {
@@ -47,8 +45,7 @@ fn should_write_string_into_file(path: &Path, string_cnt: &str) -> io::Result<bo
     }
 }
 #[allow(clippy::single_call_fn)]
-// shared test helper checks unchanged-length diff content path to ensure content comparison still
-// runs
+// shared test helper checks unchanged-length diff content path to ensure content comparison still runs
 #[cfg(test)]
 fn should_write_with_same_len_diff(path: &Path, old: &str, new: &str) -> io::Result<bool> {
     if old.len() != new.len() {
@@ -130,21 +127,16 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs::{metadata, write},
-        path::{Path, PathBuf},
-    };
-
     use super::{
         WritePathOutcome, should_write_string_into_file, should_write_with_diff_len,
         should_write_with_same_len_diff, try_write_string_into_file,
         try_write_string_into_file_with_outcome, try_write_string_into_path,
         try_write_string_into_path_with_outcome, write_string_if_needed, write_string_into_file,
     };
-    use crate::{
-        rs_file_path::rs_file_path,
-        test_hlp::{assert_file_content, cleanup_test_file, test_path},
-    };
+    use crate::rs_file_path::rs_file_path;
+    use crate::test_hlp::{assert_file_content, cleanup_test_file, test_path};
+    use std::fs::{metadata, write};
+    use std::path::{Path, PathBuf};
     fn txt_path(name: &str) -> PathBuf {
         test_path(name).with_extension("txt")
     }
