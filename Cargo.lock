@@ -66,10 +66,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_tbl_src"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
+name = "gen_pg_types_src"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+]
+
+[[package]]
 name = "gen_quotes"
 version = "0.1.0"
 dependencies = [
  "naming_constants",
+ "proc-macro2",
+]
+
+[[package]]
+name = "gen_wh_flts_src"
+version = "0.1.0"
+dependencies = [
  "proc-macro2",
 ]
 
