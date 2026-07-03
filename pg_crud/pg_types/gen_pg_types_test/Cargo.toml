@@ -1,0 +1,18 @@
+[package]
+name = "gen_pg_types_test"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "PostgreSQL type generator test support"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../../README.md"
+keywords = ["postgres", "tests"]
+categories = ["development-tools"]
+
+[dependencies]
+pg_types.workspace = true
+
+[lints]
+workspace = true

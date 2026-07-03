@@ -1,0 +1,17 @@
+[package]
+name = "telegram_bot"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Telegram bot binary placeholder"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../README.md"
+keywords = ["telegram", "bot"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+
+[lints]
+workspace = true

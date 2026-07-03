@@ -9,7 +9,9 @@ members = [
   "gen_quotes",
   "git_info",
   "loc_lib",
+  "loc_lib/loc_test",
   "loc_lib/location",
+  "macro_clippy_check_cmn",
   "macros_helpers",
   "macros_helpers/gen_derive_ts_builder",
   "naming",
@@ -18,21 +20,32 @@ members = [
   "naming_constants",
   "optml",
   "panic_loc",
+  "pg_crud",
   "pg_crud/pg_crud_cmn",
   "pg_crud/pg_crud_macros_cmn",
+  "pg_crud/pg_json",
   "pg_crud/pg_json/gen_pg_json",
   "pg_crud/pg_json/gen_pg_json_src",
+  "pg_crud/pg_json/gen_pg_json_test",
+  "pg_crud/pg_json/gen_pg_json_test_cnt",
   "pg_crud/pg_json/pg_json_nbr",
   "pg_crud/pg_json/pg_json_other",
   "pg_crud/pg_json_obj",
   "pg_crud/pg_json_obj/gen_pg_json_obj",
   "pg_crud/pg_json_obj/gen_pg_json_obj_src",
+  "pg_crud/pg_json_obj/gen_pg_json_obj_test",
+  "pg_crud/pg_json_obj/gen_pg_json_obj_test_cnt",
   "pg_crud/pg_json_obj/pg_json_obj_cmn",
   "pg_crud/pg_tbl",
   "pg_crud/pg_tbl/gen_pg_tbl",
   "pg_crud/pg_tbl/gen_pg_tbl_src",
+  "pg_crud/pg_tbl/gen_pg_tbl_test",
+  "pg_crud/pg_tbl/gen_pg_tbl_test_cnt",
+  "pg_crud/pg_types",
   "pg_crud/pg_types/gen_pg_types",
   "pg_crud/pg_types/gen_pg_types_src",
+  "pg_crud/pg_types/gen_pg_types_test",
+  "pg_crud/pg_types/gen_pg_types_test_cnt",
   "pg_crud/pg_types/pg_types_chrono_net",
   "pg_crud/pg_types/pg_types_cmn",
   "pg_crud/pg_types/pg_types_numeric",
@@ -40,8 +53,15 @@ members = [
   "pg_crud/wh_flts",
   "pg_crud/wh_flts/gen_wh_flts",
   "pg_crud/wh_flts/gen_wh_flts_src",
+  "pg_crud/wh_flts/gen_wh_flts_test",
+  "pg_crud/wh_flts/gen_wh_flts_test_cnt",
+  "route_validators",
   "server",
+  "server_app_state",
   "server_config",
+  "server_tbl_example",
+  "server_types",
+  "telegram_bot",
   "tests",
   "to_err_string",
   "to_err_string_macros",
@@ -65,28 +85,43 @@ gen_getter_traits_for_struct_fields = { version = "=0.1.0", path = "config_lib/g
 gen_pg_json = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json", default-features = false }
 gen_pg_json_obj = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj", default-features = false }
 gen_pg_json_obj_src = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj_src", default-features = false }
+gen_pg_json_obj_test = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj_test", default-features = false }
+gen_pg_json_obj_test_cnt = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj_test_cnt", default-features = false }
 gen_pg_json_src = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json_src", default-features = false }
+gen_pg_json_test = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json_test", default-features = false }
+gen_pg_json_test_cnt = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json_test_cnt", default-features = false }
 gen_pg_tbl = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl", default-features = false }
 gen_pg_tbl_src = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
+gen_pg_tbl_test = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl_test", default-features = false }
+gen_pg_tbl_test_cnt = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl_test_cnt", default-features = false }
 gen_pg_types = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types", default-features = false }
 gen_pg_types_src = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_src", default-features = false }
+gen_pg_types_test = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_test", default-features = false }
+gen_pg_types_test_cnt = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_test_cnt", default-features = false }
 gen_wh_flts = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts", default-features = false }
 gen_wh_flts_src = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
+gen_wh_flts_test = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_test", default-features = false }
+gen_wh_flts_test_cnt = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_test_cnt", default-features = false }
 git_info = { version = "=0.1.0", path = "git_info", default-features = false }
 loc_lib = { version = "=0.1.0", path = "loc_lib", default-features = false }
+loc_test = { version = "=0.1.0", path = "loc_lib/loc_test", default-features = false }
 location = { version = "=0.1.0", path = "loc_lib/location", default-features = false }
+macro_clippy_check_cmn = { version = "=0.1.0", path = "macro_clippy_check_cmn", default-features = false }
 macros_helpers = { version = "=0.1.0", path = "macros_helpers", default-features = false }
 naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features = false }
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
 naming_constants = { version = "=0.1.0", path = "naming_constants", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
+pg_crud = { version = "=0.1.0", path = "pg_crud", default-features = false }
 pg_crud_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_cmn", default-features = false }
 pg_crud_macros_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_macros_cmn", default-features = false }
+pg_json = { version = "=0.1.0", path = "pg_crud/pg_json", default-features = false }
 pg_json_nbr = { version = "=0.1.0", path = "pg_crud/pg_json/pg_json_nbr", default-features = false }
 pg_json_obj = { version = "=0.1.0", path = "pg_crud/pg_json_obj", default-features = false }
 pg_json_obj_cmn = { version = "=0.1.0", path = "pg_crud/pg_json_obj/pg_json_obj_cmn", default-features = false }
 pg_json_other = { version = "=0.1.0", path = "pg_crud/pg_json/pg_json_other", default-features = false }
 pg_tbl = { version = "=0.1.0", path = "pg_crud/pg_tbl", default-features = false }
+pg_types = { version = "=0.1.0", path = "pg_crud/pg_types", default-features = false }
 pg_types_chrono_net = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_chrono_net", default-features = false }
 pg_types_cmn = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_cmn", default-features = false }
 pg_types_numeric = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_numeric", default-features = false }
@@ -101,7 +136,11 @@ quote = { version = "=1.0.42", default-features = false, features = [
 regex = { version = "=1.12.2", default-features = false, features = [
   "unicode-perl",
 ] }
+route_validators = { version = "=0.1.0", path = "route_validators", default-features = false }
+server_app_state = { version = "=0.1.0", path = "server_app_state", default-features = false }
 server_config = { version = "=0.1.0", path = "server_config", default-features = false }
+server_tbl_example = { version = "=0.1.0", path = "server_tbl_example", default-features = false }
+server_types = { version = "=0.1.0", path = "server_types", default-features = false }
 syn = { version = "=2.0.112", default-features = false, features = [
   "full",
   "visit",
@@ -113,6 +152,7 @@ syn = { version = "=2.0.112", default-features = false, features = [
   "clone-impls",
   "proc-macro",
 ] }
+telegram_bot = { version = "=0.1.0", path = "telegram_bot", default-features = false }
 token_patterns = { version = "=0.1.0", path = "token_patterns", default-features = false }
 to_err_string_macros = { version = "=0.1.0", path = "to_err_string_macros", default-features = false }
 toml = { version = "=0.9.8", default-features = false, features = [

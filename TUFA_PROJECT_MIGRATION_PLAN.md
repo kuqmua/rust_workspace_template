@@ -59,19 +59,19 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 12. PostgreSQL leaf crates: [x] `pg_crud/pg_json/pg_json_nbr`, [x] `pg_crud/pg_json/pg_json_other`, [x] `pg_crud/pg_json_obj`, [x] `pg_crud/pg_types/pg_types_chrono_net`, [x] `pg_crud/pg_types/pg_types_numeric`, [x] `pg_crud/pg_types/pg_types_text_misc`, [x] `pg_crud/pg_tbl`
     -> verify: `cargo check -p pg_json_nbr -p pg_json_other -p pg_json_obj -p pg_types_chrono_net -p pg_types_numeric -p pg_types_text_misc -p pg_tbl`.
 
-13. Aggregator crates: `pg_crud/pg_json`, `pg_crud/pg_types`, then `pg_crud`
+13. Aggregator crates: [x] `pg_crud/pg_json`, [x] `pg_crud/pg_types`, then [x] `pg_crud`
     -> verify: `cargo check -p pg_json -p pg_types -p pg_crud`.
 
-14. API/domain boundary: `route_validators`, `server_types`
+14. API/domain boundary: [x] `route_validators`, [x] `server_types`
     -> verify: `cargo check -p route_validators -p server_types`.
 
-15. Server state and example table layer: `server_app_state`, `server_tbl_example`
+15. Server state and example table layer: [x] `server_app_state`, [x] `server_tbl_example`
     -> verify: `cargo check -p server_app_state -p server_tbl_example`.
 
-16. Binary crates: first [~] `server`, then [ ] `telegram_bot` only if needed
+16. Binary crates: first [x] `server`, then [x] `telegram_bot`
     -> verify: `cargo check -p server`; for the bot, run `cargo check -p telegram_bot`.
 
-17. Test/support crates: [ ] `macro_clippy_check_cmn`, [ ] `loc_lib/loc_test`, every [ ] `*_test` and [ ] `*_test_cnt`, then the existing [~] `tests`
+17. Test/support crates: [x] `macro_clippy_check_cmn`, [x] `loc_lib/loc_test`, every [x] `*_test` and [x] `*_test_cnt`, then the existing [x] `tests`
     -> verify: `cargo test --quiet`; if feature flags such as `test-utils` remain, also run `cargo test --all-features`.
 
 ## Main Risk

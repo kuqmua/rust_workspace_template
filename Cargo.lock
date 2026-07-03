@@ -88,10 +88,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_json_obj_test"
+version = "0.1.0"
+dependencies = [
+ "pg_json_obj",
+]
+
+[[package]]
+name = "gen_pg_json_obj_test_cnt"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_json_obj_src",
+]
+
+[[package]]
 name = "gen_pg_json_src"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "gen_pg_json_test"
+version = "0.1.0"
+dependencies = [
+ "pg_json",
+]
+
+[[package]]
+name = "gen_pg_json_test_cnt"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_json_src",
 ]
 
 [[package]]
@@ -109,6 +137,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_tbl_test"
+version = "0.1.0"
+dependencies = [
+ "pg_tbl",
+]
+
+[[package]]
+name = "gen_pg_tbl_test_cnt"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_tbl_src",
+]
+
+[[package]]
 name = "gen_pg_types"
 version = "0.1.0"
 dependencies = [
@@ -120,6 +162,20 @@ name = "gen_pg_types_src"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "gen_pg_types_test"
+version = "0.1.0"
+dependencies = [
+ "pg_types",
+]
+
+[[package]]
+name = "gen_pg_types_test_cnt"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_types_src",
 ]
 
 [[package]]
@@ -142,6 +198,20 @@ name = "gen_wh_flts_src"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "gen_wh_flts_test"
+version = "0.1.0"
+dependencies = [
+ "wh_flts",
+]
+
+[[package]]
+name = "gen_wh_flts_test_cnt"
+version = "0.1.0"
+dependencies = [
+ "gen_wh_flts_src",
 ]
 
 [[package]]
@@ -206,11 +276,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "loc_test"
+version = "0.1.0"
+dependencies = [
+ "loc_lib",
+]
+
+[[package]]
 name = "location"
 version = "0.1.0"
 dependencies = [
  "syn",
 ]
+
+[[package]]
+name = "macro_clippy_check_cmn"
+version = "0.1.0"
 
 [[package]]
 name = "macros_helpers"
@@ -274,6 +355,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pg_crud"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "pg_json",
+ "pg_json_obj",
+ "pg_tbl",
+ "pg_types",
+ "route_validators",
+ "wh_flts",
+]
+
+[[package]]
 name = "pg_crud_cmn"
 version = "0.1.0"
 
@@ -285,6 +379,14 @@ dependencies = [
  "naming_constants",
  "proc-macro2",
  "quote",
+]
+
+[[package]]
+name = "pg_json"
+version = "0.1.0"
+dependencies = [
+ "pg_json_nbr",
+ "pg_json_other",
 ]
 
 [[package]]
@@ -323,6 +425,16 @@ version = "0.1.0"
 dependencies = [
  "app_state",
  "pg_crud_cmn",
+]
+
+[[package]]
+name = "pg_types"
+version = "0.1.0"
+dependencies = [
+ "pg_types_chrono_net",
+ "pg_types_cmn",
+ "pg_types_numeric",
+ "pg_types_text_misc",
 ]
 
 [[package]]
@@ -409,6 +521,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
+name = "route_validators"
+version = "0.1.0"
+
+[[package]]
 name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -473,11 +589,33 @@ name = "server"
 version = "0.1.0"
 
 [[package]]
+name = "server_app_state"
+version = "0.1.0"
+dependencies = [
+ "app_state",
+ "server_config",
+]
+
+[[package]]
 name = "server_config"
 version = "0.1.0"
 dependencies = [
  "app_state",
  "config_lib",
+]
+
+[[package]]
+name = "server_tbl_example"
+version = "0.1.0"
+dependencies = [
+ "pg_tbl",
+]
+
+[[package]]
+name = "server_types"
+version = "0.1.0"
+dependencies = [
+ "route_validators",
 ]
 
 [[package]]
@@ -496,6 +634,10 @@ name = "target-triple"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "591ef38edfb78ca4771ee32cf494cb8771944bee237a9b91fc9c1424ac4b777b"
+
+[[package]]
+name = "telegram_bot"
+version = "0.1.0"
 
 [[package]]
 name = "termcolor"

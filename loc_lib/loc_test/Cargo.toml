@@ -1,0 +1,18 @@
+[package]
+name = "loc_test"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Location macro support test binary"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["location", "tests"]
+categories = ["development-tools"]
+
+[dependencies]
+loc_lib.workspace = true
+
+[lints]
+workspace = true

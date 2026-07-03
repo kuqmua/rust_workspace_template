@@ -1,0 +1,21 @@
+[package]
+name = "pg_types"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "PostgreSQL type facade crate"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["postgres", "types"]
+categories = ["database"]
+
+[dependencies]
+pg_types_chrono_net.workspace = true
+pg_types_cmn.workspace = true
+pg_types_numeric.workspace = true
+pg_types_text_misc.workspace = true
+
+[lints]
+workspace = true
