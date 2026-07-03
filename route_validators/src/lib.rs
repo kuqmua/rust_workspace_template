@@ -1,3 +1,9 @@
+pub mod check_body_size;
+pub mod check_commit;
+pub mod hdr_val;
+#[cfg(test)]
+mod test_hlp;
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum RouteValidationStatusCode {
     BadRequest,
@@ -15,30 +21,16 @@ pub trait GetRouteValidationStatusCode {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct BodySizeValidation;
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum BodySizeValidationResult {
-    Accepted,
-    Rejected,
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct CommitValidation;
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum CommitValidationResult {
-    Accepted,
-    Rejected,
+#[must_use]
+pub const fn check_body_size(
+    validation: check_body_size::BodySizeValidation,
+) -> check_body_size::BodySizeValidationResult {
+    check_body_size::check_body_size(validation)
 }
 
 #[must_use]
-pub const fn check_body_size(_validation: BodySizeValidation) -> BodySizeValidationResult {
-    BodySizeValidationResult::Accepted
-}
-
-#[must_use]
-pub const fn check_commit(_validation: CommitValidation) -> CommitValidationResult {
-    CommitValidationResult::Accepted
+pub const fn check_commit(
+    validation: check_commit::CommitValidation,
+) -> check_commit::CommitValidationResult {
+    check_commit::check_commit(validation)
 }

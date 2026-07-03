@@ -1,3 +1,4 @@
+pub mod str_from_enum_macros;
 pub mod types;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

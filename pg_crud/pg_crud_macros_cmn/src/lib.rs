@@ -1,3 +1,5 @@
+pub mod flts;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AddOprtrUndrscr {
     False,
@@ -217,6 +219,9 @@ pub enum PostgresModuleScope {
     PgCrudCmn,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct CommonDeriveTokenStreamBuilder;
+
 impl AsRef<str> for PostgresModuleScope {
     fn as_ref(&self) -> &str {
         match *self {
@@ -227,9 +232,101 @@ impl AsRef<str> for PostgresModuleScope {
     }
 }
 
+impl CommonDeriveTokenStreamBuilder {
+    #[must_use]
+    pub fn build_enum<
+        AnnotationTokenStream,
+        IdentifierTokenStream,
+        GenericsTokenStream,
+        BodyTokenStream,
+    >(
+        self,
+        annotation: &AnnotationTokenStream,
+        identifier: &IdentifierTokenStream,
+        generics: &GenericsTokenStream,
+        body: &BodyTokenStream,
+    ) -> proc_macro2::TokenStream
+    where
+        AnnotationTokenStream: quote::ToTokens + ?Sized,
+        IdentifierTokenStream: quote::ToTokens + ?Sized,
+        GenericsTokenStream: quote::ToTokens + ?Sized,
+        BodyTokenStream: quote::ToTokens + ?Sized,
+    {
+        macros_helpers::DTsBuilder::new().build_enum(annotation, identifier, generics, body)
+    }
+
+    #[must_use]
+    pub fn build_struct<
+        AnnotationTokenStream,
+        IdentifierTokenStream,
+        GenericsTokenStream,
+        BodyTokenStream,
+    >(
+        self,
+        annotation: &AnnotationTokenStream,
+        identifier: &IdentifierTokenStream,
+        generics: &GenericsTokenStream,
+        body: &BodyTokenStream,
+    ) -> proc_macro2::TokenStream
+    where
+        AnnotationTokenStream: quote::ToTokens + ?Sized,
+        IdentifierTokenStream: quote::ToTokens + ?Sized,
+        GenericsTokenStream: quote::ToTokens + ?Sized,
+        BodyTokenStream: quote::ToTokens + ?Sized,
+    {
+        macros_helpers::DTsBuilder::new().build_struct(annotation, identifier, generics, body)
+    }
+
+    #[must_use]
+    pub const fn d_clone(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn d_copy(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn d_debug(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn d_default(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn d_eq(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn d_partial_eq(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn make_pub(self) -> Self {
+        self
+    }
+
+    #[must_use]
+    pub const fn make_pub_if(self, _condition: PgCrudCommonBuilderVisibility) -> Self {
+        self
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PgCrudCommonBuilderVisibility {
+    Private,
+    Public,
+}
+
 #[must_use]
-pub const fn cmn_d_ts_builder() -> macros_helpers::DTsBuilder {
-    macros_helpers::DTsBuilder::new()
+pub const fn cmn_d_ts_builder() -> CommonDeriveTokenStreamBuilder {
+    CommonDeriveTokenStreamBuilder
 }
 
 #[must_use]

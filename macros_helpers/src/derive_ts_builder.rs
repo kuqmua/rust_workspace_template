@@ -1,0 +1,16 @@
+gen_derive_ts_builder::gen_derive_ts_builder!([
+    "Debug",
+    "Default",
+    "Clone",
+    "Copy",
+    "PartialEq",
+    "Eq",
+    "PartialOrd",
+    "Ord",
+    "serde::Serialize",
+    "serde::Deserialize",
+    "utoipa::ToSchema",
+    "schemars::JsonSchema",
+    "thiserror::Error",
+    "loc_lib::Location"
+]);

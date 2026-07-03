@@ -1,3 +1,30 @@
+pub mod attr_ident_str;
+pub mod derive_ts_builder;
+pub mod gen_field_loc_new_ts;
+pub mod gen_if_write_is_err_ts;
+pub mod gen_impl_dflt_ts;
+pub mod gen_impl_display_ts;
+pub mod gen_impl_from_ts;
+pub mod gen_impl_to_err_string_ts;
+pub mod gen_impl_try_from_ts;
+pub mod gen_new_or_try_new;
+pub mod gen_pub_type_al_ts;
+pub mod gen_simple_syn_punct;
+pub mod get_macro_attr;
+pub mod loc;
+pub mod loc_syn_field;
+pub mod panic_if_err;
+pub mod pgn_start_end_init_ts;
+pub mod rs_file_path;
+pub mod status_code;
+pub mod syn_field;
+pub mod wrap_derive;
+pub mod write_string_into_file;
+pub mod write_ts_into_file;
+
+#[cfg(test)]
+mod test_hlp;
+
 gen_derive_ts_builder::gen_derive_ts_builder!([]);
 
 #[derive(Debug, Clone, Copy)]
@@ -109,28 +136,9 @@ pub enum ShouldWriteTsIntoFile {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum StatusCode {
-    Ok,
-}
-
-#[derive(Debug, Clone, Copy)]
 pub enum WritePathOutcome {
     Changed,
     Unchanged,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct AttrIdentText(&'static str);
-
-impl AsRef<str> for AttrIdentText {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-
-pub trait AttrIdentStr {
-    #[must_use]
-    fn attr_ident_str(&self) -> AttrIdentText;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -612,8 +620,8 @@ pub const fn string_syn_punct() -> SimpleSynPunctuated {
 }
 
 #[must_use]
-pub const fn get_only_one<Value>(_value: &Value) -> StatusCode {
-    StatusCode::Ok
+pub const fn get_only_one<Value>(_value: &Value) -> status_code::StatusCode {
+    status_code::StatusCode::Ok
 }
 
 #[must_use]
