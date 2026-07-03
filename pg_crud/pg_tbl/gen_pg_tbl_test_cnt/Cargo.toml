@@ -1,38 +1,15 @@
 [package]
 name = "gen_pg_tbl_test_cnt"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
 publish = false
-version = "0.1.0"
-edition = "2024"
-description = "description"
-repository = "repository"
-readme = "readme"
-license = "license"
-keywords = ["keyword"]
-categories = ["category"]
+description = "PostgreSQL table generator test content"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../../README.md"
+keywords = ["postgres", "tests"]
+categories = ["development-tools"]
+
 [lints]
 workspace = true
-[dependencies]
-axum.workspace = true
-http.workspace = true
-sqlx.workspace = true
-reqwest.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-thiserror.workspace = true
-utoipa.workspace = true
-git_info = {path = "../../../git_info"}
-loc_lib = {path = "../../../loc_lib"}
-pg_crud = {path = "../../../pg_crud", features = ["test-utils"]}
-optml = {path = "../../../optml"}
-[dev-dependencies]
-num_cpus.workspace = true
-futures.workspace = true
-secrecy.workspace = true
-tokio.workspace = true
-tracing-subscriber.workspace = true
-uuid.workspace = true
-itertools.workspace = true
-app_state = {path = "../../../app_state"}
-config_lib = {path = "../../../config_lib"}
-server_app_state = {path = "../../../server_app_state"}
-server_config = {path = "../../../server_config"}
