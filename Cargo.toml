@@ -18,11 +18,27 @@ members = [
   "naming_constants",
   "optml",
   "panic_loc",
+  "pg_crud/pg_crud_cmn",
   "pg_crud/pg_crud_macros_cmn",
+  "pg_crud/pg_json/gen_pg_json",
   "pg_crud/pg_json/gen_pg_json_src",
+  "pg_crud/pg_json/pg_json_nbr",
+  "pg_crud/pg_json/pg_json_other",
+  "pg_crud/pg_json_obj",
+  "pg_crud/pg_json_obj/gen_pg_json_obj",
   "pg_crud/pg_json_obj/gen_pg_json_obj_src",
+  "pg_crud/pg_json_obj/pg_json_obj_cmn",
+  "pg_crud/pg_tbl",
+  "pg_crud/pg_tbl/gen_pg_tbl",
   "pg_crud/pg_tbl/gen_pg_tbl_src",
+  "pg_crud/pg_types/gen_pg_types",
   "pg_crud/pg_types/gen_pg_types_src",
+  "pg_crud/pg_types/pg_types_chrono_net",
+  "pg_crud/pg_types/pg_types_cmn",
+  "pg_crud/pg_types/pg_types_numeric",
+  "pg_crud/pg_types/pg_types_text_misc",
+  "pg_crud/wh_flts",
+  "pg_crud/wh_flts/gen_wh_flts",
   "pg_crud/wh_flts/gen_wh_flts_src",
   "server",
   "server_config",
@@ -46,8 +62,16 @@ config_lib = { version = "=0.1.0", path = "config_lib", default-features = false
 convert_case = { version = "=0.11.0", default-features = false }
 gen_derive_ts_builder = { version = "=0.1.0", path = "macros_helpers/gen_derive_ts_builder", default-features = false }
 gen_getter_traits_for_struct_fields = { version = "=0.1.0", path = "config_lib/gen_getter_traits_for_struct_fields", default-features = false }
+gen_pg_json = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json", default-features = false }
+gen_pg_json_obj = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj", default-features = false }
 gen_pg_json_obj_src = { version = "=0.1.0", path = "pg_crud/pg_json_obj/gen_pg_json_obj_src", default-features = false }
 gen_pg_json_src = { version = "=0.1.0", path = "pg_crud/pg_json/gen_pg_json_src", default-features = false }
+gen_pg_tbl = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl", default-features = false }
+gen_pg_tbl_src = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
+gen_pg_types = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types", default-features = false }
+gen_pg_types_src = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_src", default-features = false }
+gen_wh_flts = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts", default-features = false }
+gen_wh_flts_src = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
 git_info = { version = "=0.1.0", path = "git_info", default-features = false }
 loc_lib = { version = "=0.1.0", path = "loc_lib", default-features = false }
 location = { version = "=0.1.0", path = "loc_lib/location", default-features = false }
@@ -56,11 +80,19 @@ naming_cmn = { version = "=0.1.0", path = "naming/naming_cmn", default-features 
 naming_macros = { version = "=0.1.0", path = "naming/naming_macros", default-features = false }
 naming_constants = { version = "=0.1.0", path = "naming_constants", default-features = false }
 optml = { version = "=0.1.0", path = "optml", default-features = false }
+pg_crud_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_cmn", default-features = false }
 pg_crud_macros_cmn = { version = "=0.1.0", path = "pg_crud/pg_crud_macros_cmn", default-features = false }
-gen_pg_tbl_src = { version = "=0.1.0", path = "pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
-gen_pg_types_src = { version = "=0.1.0", path = "pg_crud/pg_types/gen_pg_types_src", default-features = false }
-gen_wh_flts_src = { version = "=0.1.0", path = "pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
+pg_json_nbr = { version = "=0.1.0", path = "pg_crud/pg_json/pg_json_nbr", default-features = false }
+pg_json_obj = { version = "=0.1.0", path = "pg_crud/pg_json_obj", default-features = false }
+pg_json_obj_cmn = { version = "=0.1.0", path = "pg_crud/pg_json_obj/pg_json_obj_cmn", default-features = false }
+pg_json_other = { version = "=0.1.0", path = "pg_crud/pg_json/pg_json_other", default-features = false }
+pg_tbl = { version = "=0.1.0", path = "pg_crud/pg_tbl", default-features = false }
+pg_types_chrono_net = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_chrono_net", default-features = false }
+pg_types_cmn = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_cmn", default-features = false }
+pg_types_numeric = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_numeric", default-features = false }
+pg_types_text_misc = { version = "=0.1.0", path = "pg_crud/pg_types/pg_types_text_misc", default-features = false }
 proc-macro2 = { version = "=1.0.104", default-features = false, features = [
+  "proc-macro",
   "span-locations",
 ] }
 quote = { version = "=1.0.42", default-features = false, features = [
@@ -91,6 +123,7 @@ try_from_env = { version = "=0.1.0", path = "config_lib/try_from_env", default-f
 trybuild = { version = "=1.0.117", default-features = false }
 uuid = { version = "=1.19.0", default-features = false, features = ["v4"] }
 walkdir = { version = "=2.5.0", default-features = false }
+wh_flts = { version = "=0.1.0", path = "pg_crud/wh_flts", default-features = false }
 
 [profile.dev]
 incremental = false

@@ -1,0 +1,21 @@
+[package]
+name = "gen_pg_json"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "PostgreSQL JSON proc-macro wrapper"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../../README.md"
+keywords = ["postgres", "macros"]
+categories = ["database"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+gen_pg_json_src.workspace = true
+
+[lints]
+workspace = true

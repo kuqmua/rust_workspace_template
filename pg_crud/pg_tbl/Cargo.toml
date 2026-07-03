@@ -1,0 +1,22 @@
+[package]
+name = "pg_tbl"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "PostgreSQL table leaf helpers"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../README.md"
+keywords = ["postgres", "table"]
+categories = ["database"]
+
+[dependencies]
+app_state.workspace = true
+pg_crud_cmn.workspace = true
+
+[features]
+test-utils = []
+
+[lints]
+workspace = true

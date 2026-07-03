@@ -1,0 +1,23 @@
+[package]
+name = "pg_types_numeric"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "PostgreSQL numeric leaf types"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "../../../README.md"
+keywords = ["postgres", "types"]
+categories = ["database"]
+
+[dependencies]
+pg_crud_cmn.workspace = true
+pg_types_cmn.workspace = true
+wh_flts.workspace = true
+
+[features]
+test-utils = ["pg_crud_cmn/test-utils", "wh_flts/test-utils"]
+
+[lints]
+workspace = true

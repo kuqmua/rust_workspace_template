@@ -66,6 +66,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_json"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_json_src",
+]
+
+[[package]]
+name = "gen_pg_json_obj"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_json_obj_src",
+]
+
+[[package]]
 name = "gen_pg_json_obj_src"
 version = "0.1.0"
 dependencies = [
@@ -81,10 +95,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_pg_tbl"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_tbl_src",
+]
+
+[[package]]
 name = "gen_pg_tbl_src"
 version = "0.1.0"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "gen_pg_types"
+version = "0.1.0"
+dependencies = [
+ "gen_pg_types_src",
 ]
 
 [[package]]
@@ -100,6 +128,13 @@ version = "0.1.0"
 dependencies = [
  "naming_constants",
  "proc-macro2",
+]
+
+[[package]]
+name = "gen_wh_flts"
+version = "0.1.0"
+dependencies = [
+ "gen_wh_flts_src",
 ]
 
 [[package]]
@@ -239,6 +274,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "pg_crud_cmn"
+version = "0.1.0"
+
+[[package]]
 name = "pg_crud_macros_cmn"
 version = "0.1.0"
 dependencies = [
@@ -246,6 +285,78 @@ dependencies = [
  "naming_constants",
  "proc-macro2",
  "quote",
+]
+
+[[package]]
+name = "pg_json_nbr"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "wh_flts",
+]
+
+[[package]]
+name = "pg_json_obj"
+version = "0.1.0"
+dependencies = [
+ "pg_json_obj_cmn",
+]
+
+[[package]]
+name = "pg_json_obj_cmn"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+]
+
+[[package]]
+name = "pg_json_other"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "wh_flts",
+]
+
+[[package]]
+name = "pg_tbl"
+version = "0.1.0"
+dependencies = [
+ "app_state",
+ "pg_crud_cmn",
+]
+
+[[package]]
+name = "pg_types_chrono_net"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "pg_types_cmn",
+ "wh_flts",
+]
+
+[[package]]
+name = "pg_types_cmn"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+]
+
+[[package]]
+name = "pg_types_numeric"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "pg_types_cmn",
+ "wh_flts",
+]
+
+[[package]]
+name = "pg_types_text_misc"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "pg_types_cmn",
+ "wh_flts",
 ]
 
 [[package]]
@@ -555,6 +666,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20064672db26d7cdc89c7798c48a0fdfac8213434a1186e5ef29fd560ae223d6"
 dependencies = [
  "wit-bindgen",
+]
+
+[[package]]
+name = "wh_flts"
+version = "0.1.0"
+dependencies = [
+ "pg_crud_cmn",
+ "regex",
 ]
 
 [[package]]

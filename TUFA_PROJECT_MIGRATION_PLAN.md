@@ -50,13 +50,13 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 9. PostgreSQL source generator crates: [x] `pg_crud/pg_json/gen_pg_json_src`, [x] `pg_crud/pg_json_obj/gen_pg_json_obj_src`, [x] `pg_crud/pg_tbl/gen_pg_tbl_src`, [x] `pg_crud/wh_flts/gen_wh_flts_src`, [x] `pg_crud/pg_types/gen_pg_types_src`
    -> verify: `cargo check -p gen_pg_json_src -p gen_pg_json_obj_src -p gen_pg_tbl_src -p gen_wh_flts_src -p gen_pg_types_src`.
 
-10. PostgreSQL proc-macro wrappers: `pg_crud/pg_json/gen_pg_json`, `pg_crud/pg_json_obj/gen_pg_json_obj`, `pg_crud/pg_tbl/gen_pg_tbl`, `pg_crud/wh_flts/gen_wh_flts`, `pg_crud/pg_types/gen_pg_types`
+10. PostgreSQL proc-macro wrappers: [x] `pg_crud/pg_json/gen_pg_json`, [x] `pg_crud/pg_json_obj/gen_pg_json_obj`, [x] `pg_crud/pg_tbl/gen_pg_tbl`, [x] `pg_crud/wh_flts/gen_wh_flts`, [x] `pg_crud/pg_types/gen_pg_types`
     -> verify: `cargo check -p gen_pg_json -p gen_pg_json_obj -p gen_pg_tbl -p gen_wh_flts -p gen_pg_types`.
 
-11. Base PostgreSQL runtime crates: `pg_crud/pg_crud_cmn`, `pg_crud/wh_flts`, `pg_crud/pg_json_obj/pg_json_obj_cmn`, `pg_crud/pg_types/pg_types_cmn`
+11. Base PostgreSQL runtime crates: [x] `pg_crud/pg_crud_cmn`, [x] `pg_crud/wh_flts`, [x] `pg_crud/pg_json_obj/pg_json_obj_cmn`, [x] `pg_crud/pg_types/pg_types_cmn`
     -> verify: `cargo check -p pg_crud_cmn -p wh_flts -p pg_json_obj_cmn -p pg_types_cmn`.
 
-12. PostgreSQL leaf crates: `pg_crud/pg_json/pg_json_nbr`, `pg_crud/pg_json/pg_json_other`, `pg_crud/pg_json_obj`, `pg_crud/pg_types/pg_types_chrono_net`, `pg_crud/pg_types/pg_types_numeric`, `pg_crud/pg_types/pg_types_text_misc`, `pg_crud/pg_tbl`
+12. PostgreSQL leaf crates: [x] `pg_crud/pg_json/pg_json_nbr`, [x] `pg_crud/pg_json/pg_json_other`, [x] `pg_crud/pg_json_obj`, [x] `pg_crud/pg_types/pg_types_chrono_net`, [x] `pg_crud/pg_types/pg_types_numeric`, [x] `pg_crud/pg_types/pg_types_text_misc`, [x] `pg_crud/pg_tbl`
     -> verify: `cargo check -p pg_json_nbr -p pg_json_other -p pg_json_obj -p pg_types_chrono_net -p pg_types_numeric -p pg_types_text_misc -p pg_tbl`.
 
 13. Aggregator crates: `pg_crud/pg_json`, `pg_crud/pg_types`, then `pg_crud`
