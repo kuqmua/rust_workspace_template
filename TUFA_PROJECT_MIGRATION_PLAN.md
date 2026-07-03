@@ -44,7 +44,7 @@ Status legend: `[x]` migrated and verified, `[~]` exists in target but still nee
 7. Location/domain layer: [x] `loc_lib/location`, [x] `loc_lib`
    -> verify: `cargo check -p location -p loc_lib`.
 
-8. Shared PostgreSQL proc-macro layer: `pg_crud/pg_crud_macros_cmn`
+8. Shared PostgreSQL proc-macro layer: [x] `pg_crud/pg_crud_macros_cmn`
    -> verify: `cargo check -p pg_crud_macros_cmn`.
 
 9. PostgreSQL source generator crates: `pg_crud/pg_json/gen_pg_json_src`, `pg_crud/pg_json_obj/gen_pg_json_obj_src`, `pg_crud/pg_tbl/gen_pg_tbl_src`, `pg_crud/wh_flts/gen_wh_flts_src`, `pg_crud/pg_types/gen_pg_types_src`

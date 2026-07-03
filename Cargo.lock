@@ -203,6 +203,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pg_crud_macros_cmn"
+version = "0.1.0"
+dependencies = [
+ "macros_helpers",
+ "naming_constants",
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
