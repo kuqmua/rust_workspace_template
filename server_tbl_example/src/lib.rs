@@ -37,7 +37,7 @@ pub struct TblExample {
     // pub pk: pg_crud::I64AsNnBigSerialInitByPg,
     #[gen_pg_tbl_pk]
     pub pk_col: pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
-    // pub col_0: pg_crud::I16AsNnInt2,
+    pub col_0: pg_crud::I16AsNnInt2,
     // pub col_1: pg_crud::OptI16AsNlInt2,
     // pub col_2: pg_crud::VecOfI16AsNnArrOfNnInt2,
     // pub col_3: pg_crud::OptVecOfI16AsNlArrOfNnInt2,
@@ -179,8 +179,4 @@ pub struct TblExample {
     // pub col_139: pg_crud::OptVecOfSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNnTimestampTzRange,
     // pub col_140: pg_crud::VecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnArrOfNlTimestampTzRange,
     // pub col_141: pg_crud::OptVecOfOptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlArrOfNlTimestampTzRange,
-    pub col_142: server_types::AnimalAsNnJsonbObj,
-    // pub col_143: server_types::OptAnimalAsNlJsonbObj,
-    // pub col_144: server_types::VecOfAnimalWithIdAsNnArrOfNnJsonbObjWithId,
-    // pub col_145: server_types::OptVecOfAnimalWithIdAsNlArrOfNnJsonbObjWithId,
 }

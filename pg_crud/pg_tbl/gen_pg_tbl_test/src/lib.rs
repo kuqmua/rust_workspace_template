@@ -23,18 +23,7 @@ git_info = {path = "../../../git_info"}
 loc_lib = {path = "../../../loc_lib"}
 pg_crud = {path = "../../../pg_crud", features = ["test-utils"]}
 optml = {path = "../../../optml"}
-[dev-dependencies]
-num_cpus.workspace = true
-futures.workspace = true
-secrecy.workspace = true
-tokio.workspace = true
-tracing-subscriber.workspace = true
-uuid.workspace = true
-itertools.workspace = true
-app_state = {path = "../../../app_state"}
-config_lib = {path = "../../../config_lib"}
-server_app_state = {path = "../../../server_app_state"}
-server_config = {path = "../../../server_config"}"#,
+"#,
             &{
                 #[derive(Optml)]
                 enum AddGenPgTblPk {

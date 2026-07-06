@@ -1423,7 +1423,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             extra_prms,
                             "{}order by {} {}",
                             prefix,
-                            &match &prms.payload.order_by.col {
+                            match &prms.payload.order_by.col {
                                 TblExampleSel::PkCol(_) => "pk_col",
                                 TblExampleSel::Col0(_) => "col_0",
                                 TblExampleSel::Col1(_) => "col_1",

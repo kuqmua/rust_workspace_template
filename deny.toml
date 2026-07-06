@@ -29,10 +29,6 @@ exceptions = []
 ignore = true
 registries = []
 [[licenses.clarify]]
-crate = "gen_pg_json_obj_test_cnt"
-expression = "MIT"
-license-files = []
-[[licenses.clarify]]
 crate = "gen_pg_json_test_cnt"
 expression = "MIT"
 license-files = []

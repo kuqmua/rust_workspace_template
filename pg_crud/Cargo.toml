@@ -17,7 +17,6 @@ futures.workspace = true
 uuid.workspace = true
 pg_crud_cmn = {path = "./pg_crud_cmn", features = ["test-utils"]}
 pg_tbl = {path = "./pg_tbl"}
-pg_json_obj = {path = "./pg_json_obj"}
 pg_json = {path = "./pg_json"}
 pg_types = {path = "./pg_types"}
 wh_flts = {path = "./wh_flts"}

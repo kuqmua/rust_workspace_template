@@ -28,12 +28,6 @@ members = [
   "pg_crud/pg_json/gen_pg_json_test_cnt",
   "pg_crud/pg_json/pg_json_nbr",
   "pg_crud/pg_json/pg_json_other",
-  "pg_crud/pg_json_obj",
-  "pg_crud/pg_json_obj/gen_pg_json_obj",
-  "pg_crud/pg_json_obj/gen_pg_json_obj_src",
-  "pg_crud/pg_json_obj/gen_pg_json_obj_test",
-  "pg_crud/pg_json_obj/gen_pg_json_obj_test_cnt",
-  "pg_crud/pg_json_obj/pg_json_obj_cmn",
   "pg_crud/pg_tbl",
   "pg_crud/pg_tbl/gen_pg_tbl",
   "pg_crud/pg_tbl/gen_pg_tbl_src",
@@ -146,7 +140,6 @@ itertools = { version = "=0.14.0" }
 app_state = { path = "./app_state" }
 cmn_routes = { path = "./cmn_routes" }
 config_lib = { path = "./config_lib" }
-gen_pg_json_obj_src = { path = "./pg_crud/pg_json_obj/gen_pg_json_obj_src", default-features = false }
 gen_pg_json_src = { path = "./pg_crud/pg_json/gen_pg_json_src", default-features = false }
 gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl" }
 gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }

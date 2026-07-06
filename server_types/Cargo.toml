@@ -12,19 +12,9 @@ categories = ["category"]
 
 
 [dependencies]
-serde.workspace = true
-serde_json.workspace = true
-thiserror.workspace = true
-sqlx.workspace = true
-utoipa.workspace = true
-schemars.workspace = true
-uuid.workspace = true
-loc_lib = {path = "../loc_lib"}
-pg_crud = {path = "../pg_crud", features = ["test-utils"]}
-optml = {path = "../optml"}
 
 [lints]
 workspace = true
 
 [features]
-test-utils = ["pg_crud/test-utils"]
+test-utils = []

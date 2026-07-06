@@ -808,7 +808,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let new_syn_vrt =
         |vrt_name: &dyn Display,
          status_code: Option<StatusCode>,
-         vrt_fields: Vec<(LocFieldAttr, &dyn Display, Punctuated<PathSegment, PathSep>)>|
+         vrt_fields: Vec<(LocFieldAttr, &dyn Display, Punctuated<PathSegment, PathSep>)>,
+         is_loc_first: bool|
          -> SynVrt {
             SynVrt {
                 vrt: Variant {
@@ -841,56 +842,68 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     fields: Fields::Named(FieldsNamed {
                         brace_token: Brace::default(),
                         named: {
-                            let mut acc =
-                                vrt_fields
-                                    .into_iter()
-                                    .fold(Punctuated::new(), |mut acc, el| {
-                                        acc.push_value(Field {
-                                            attrs: vec![Attribute {
-                                                pound_token: Pound {
-                                                    spans: [proc_macro2::Span::call_site()],
-                                                },
-                                                style: AttrStyle::Outer,
-                                                bracket_token: Bracket::default(),
-                                                meta: Meta::Path(Path {
-                                                    leading_colon: None,
-                                                    segments: {
-                                                        let mut acc0 = Punctuated::new();
-                                                        acc0.push(PathSegment {
-                                                            ident: Ident::new(
-                                                                AttrIdentStr::attr_ident_str(&el.0),
-                                                                proc_macro2::Span::call_site(),
-                                                            ),
-                                                            arguments: PathArguments::None,
-                                                        });
-                                                        acc0
-                                                    },
-                                                }),
-                                            }],
-                                            vis: Visibility::Inherited,
-                                            mutability: FieldMutability::None,
-                                            ident: Some(Ident::new(
-                                                &el.1.to_string(),
-                                                proc_macro2::Span::call_site(),
-                                            )),
-                                            colon_token: Some(Colon {
+                            let initial_fields = if is_loc_first {
+                                let mut named_fields_acc = Punctuated::new();
+                                named_fields_acc.push_value(loc_syn_field());
+                                named_fields_acc.push_punct(Comma {
+                                    spans: [proc_macro2::Span::call_site()],
+                                });
+                                named_fields_acc
+                            } else {
+                                Punctuated::new()
+                            };
+                            let mut named_fields_acc = vrt_fields.into_iter().fold(
+                                initial_fields,
+                                |mut named_fields_acc, el| {
+                                    named_fields_acc.push_value(Field {
+                                        attrs: vec![Attribute {
+                                            pound_token: Pound {
                                                 spans: [proc_macro2::Span::call_site()],
-                                            }),
-                                            ty: Type::Path(TypePath {
-                                                qself: None,
-                                                path: Path {
-                                                    leading_colon: None,
-                                                    segments: el.2,
+                                            },
+                                            style: AttrStyle::Outer,
+                                            bracket_token: Bracket::default(),
+                                            meta: Meta::Path(Path {
+                                                leading_colon: None,
+                                                segments: {
+                                                    let mut acc0 = Punctuated::new();
+                                                    acc0.push(PathSegment {
+                                                        ident: Ident::new(
+                                                            AttrIdentStr::attr_ident_str(&el.0),
+                                                            proc_macro2::Span::call_site(),
+                                                        ),
+                                                        arguments: PathArguments::None,
+                                                    });
+                                                    acc0
                                                 },
                                             }),
-                                        });
-                                        acc.push_punct(Comma {
+                                        }],
+                                        vis: Visibility::Inherited,
+                                        mutability: FieldMutability::None,
+                                        ident: Some(Ident::new(
+                                            &el.1.to_string(),
+                                            proc_macro2::Span::call_site(),
+                                        )),
+                                        colon_token: Some(Colon {
                                             spans: [proc_macro2::Span::call_site()],
-                                        });
-                                        acc
+                                        }),
+                                        ty: Type::Path(TypePath {
+                                            qself: None,
+                                            path: Path {
+                                                leading_colon: None,
+                                                segments: el.2,
+                                            },
+                                        }),
                                     });
-                            acc.push_value(loc_syn_field());
-                            acc
+                                    named_fields_acc.push_punct(Comma {
+                                        spans: [proc_macro2::Span::call_site()],
+                                    });
+                                    named_fields_acc
+                                },
+                            );
+                            if !is_loc_first {
+                                named_fields_acc.push_value(loc_syn_field());
+                            }
+                            named_fields_acc
                         },
                     }),
                     discriminant: None,
@@ -906,6 +919,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &ErSc,
             gen_simple_syn_punct(&[&PgCrudSc.to_string(), &QpErUcc.to_string()]),
         )],
+        false,
     );
     let gen_sel_qp_prms_payload_sel_ts = |op: &Op| {
         gen_match_ok_err_short_ts(
@@ -1319,6 +1333,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &TryBindSc,
             string_syn_punct.clone(),
         )],
+        false,
     );
     let gen_query_pg_type_wh_flt_qb_prms_payload_wh_query_ts = |op: &Op| {
         gen_match_qb_or_err_ts(
@@ -1339,6 +1354,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &PgSc,
             simple_syn_punct_sqlx_error.clone(),
         )],
+        false,
     );
     let gen_match_ident_rd_try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_ident_sel_ts =
         |rm_or_ro: &RmOrRo| {
@@ -1948,6 +1964,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 simple_syn_punct_sqlx_error,
             ),
         ],
+        false,
     );
     let sqlx_query_sqlx_pg_ts = quote! {sqlx::query::<sqlx::Postgres>};
     let (pg_crud_pg_type_wh_flt_qp_ts, pg_crud_pg_type_wh_flt_qb_ts) = {
@@ -1963,6 +1980,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &NotUnqFieldSc,
             gen_simple_syn_punct(&[&ident_sel_ucc.to_string()]),
         )],
+        true,
     );
     let simple_syn_punct_serde_error = gen_simple_syn_punct(&["serde_json", "Error"]);
     let serde_json_to_string_syn_vrt = new_syn_vrt(
@@ -1973,6 +1991,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &SerdeJsonToStringSc,
             simple_syn_punct_serde_error.clone(),
         )],
+        false,
     );
     let simple_syn_punct_reqwest_error = gen_simple_syn_punct(&["reqwest", "Error"]);
     let failed_to_get_res_text_syn_vrt = new_syn_vrt(
@@ -1995,6 +2014,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 simple_syn_punct_reqwest_error.clone(),
             ),
         ],
+        false,
     );
     let deserialize_res_syn_vrt = new_syn_vrt(
         &DeResUcc,
@@ -2021,6 +2041,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 simple_syn_punct_serde_error.clone(),
             ),
         ],
+        false,
     );
     let reqwest_syn_vrt = new_syn_vrt(
         &ReqwestUcc,
@@ -2030,6 +2051,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &ReqwestSc,
             simple_syn_punct_reqwest_error,
         )],
+        false,
     );
     let check_body_size_syn_vrt = new_syn_vrt(
         &CheckBodySizeUcc,
@@ -2043,6 +2065,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 &BodySizeErUcc.to_string(),
             ]),
         )],
+        false,
     );
     let serde_json_syn_vrt = new_syn_vrt(
         &SerdeJsonUcc,
@@ -2052,6 +2075,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &SerdeJsonSc,
             simple_syn_punct_serde_error,
         )],
+        false,
     );
     let header_cnt_type_app_json_not_found_syn_vrt = new_syn_vrt(
         &HeaderContentTypeAppJsonNotFoundUcc,
@@ -2061,6 +2085,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             &'static dyn Display,
             Punctuated<PathSegment, PathSep>,
         )>::default(),
+        false,
     );
     let cmn_http_req_syn_vrts = {
         vec![
@@ -2752,7 +2777,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                         #ExtraPrmsSc,
                                         #extra_prms_order_by_h_ts,
                                         #PrefixSc,
-                                        &match &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc {
+                                        match &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc {
                                             #order_by_col_match_ts
                                         },
                                         #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref().map_or_else(
@@ -3660,6 +3685,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                             &ident_op_er_with_serde_ucc.to_string()
                                         ]),
                                     )],
+                                    false,
                                 )
                                 .get_syn_vrt()
                                 .clone()
