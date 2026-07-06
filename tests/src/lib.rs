@@ -384,7 +384,7 @@ mod tests {
         validate_workspace_dep_version(v_tbl);
         match v_tbl.len() {
             1 => {}
-            2 => validate_workspace_dep_features(v_tbl),
+            2 => validate_workspace_dep_features_or_default_features(v_tbl),
             3 => {
                 validate_workspace_dep_features(v_tbl);
                 match v_tbl.get("default-features").expect("847a138f") {
@@ -398,6 +398,22 @@ mod tests {
                 }
             }
             _ => panic!("f1139378 {v_tbl:#?}"),
+        }
+    }
+    #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
+    fn validate_workspace_dep_features_or_default_features(v_tbl: &Table) {
+        if v_tbl.contains_key("features") {
+            validate_workspace_dep_features(v_tbl);
+        } else {
+            match v_tbl.get("default-features").expect("d2a8c4e1") {
+                &Value::Boolean(_) => (),
+                &Value::String(_)
+                | &Value::Table(_)
+                | &Value::Integer(_)
+                | &Value::Float(_)
+                | &Value::Datetime(_)
+                | &Value::Array(_) => panic!("e5f7b1c3"),
+            }
         }
     }
     #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
