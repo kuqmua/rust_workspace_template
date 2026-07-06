@@ -372,7 +372,15 @@ mod tests {
         let v_tbl = toml_val_as_tbl_ref(v, "cb693a3f");
         if let Some(path_v) = v_tbl.get("path") {
             match path_v {
-                Value::String(_) => return,
+                Value::String(_) => {
+                    validate_workspace_path_dep_version(v_tbl);
+                    match v_tbl.len() {
+                        2 => (),
+                        3 => validate_workspace_dep_default_features(v_tbl),
+                        _ => panic!("f6a3b9d1 {v_tbl:#?}"),
+                    }
+                    return;
+                }
                 Value::Table(_)
                 | Value::Integer(_)
                 | Value::Float(_)
@@ -400,20 +408,38 @@ mod tests {
             _ => panic!("f1139378 {v_tbl:#?}"),
         }
     }
+    #[allow(clippy::single_call_fn)] // path workspace deps must keep concrete package versions for external tooling policy checks
+    fn validate_workspace_path_dep_version(v_tbl: &Table) {
+        match v_tbl.get("version").expect("bf2e4a7c") {
+            Value::String(version_string) => {
+                assert_eq!(version_string, "0.1.0", "8c3d5f91");
+            }
+            Value::Table(_)
+            | Value::Integer(_)
+            | Value::Float(_)
+            | Value::Boolean(_)
+            | Value::Datetime(_)
+            | Value::Array(_) => panic!("a6c7e3d2"),
+        }
+    }
     #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
     fn validate_workspace_dep_features_or_default_features(v_tbl: &Table) {
         if v_tbl.contains_key("features") {
             validate_workspace_dep_features(v_tbl);
         } else {
-            match v_tbl.get("default-features").expect("d2a8c4e1") {
-                &Value::Boolean(_) => (),
-                &Value::String(_)
-                | &Value::Table(_)
-                | &Value::Integer(_)
-                | &Value::Float(_)
-                | &Value::Datetime(_)
-                | &Value::Array(_) => panic!("e5f7b1c3"),
-            }
+            validate_workspace_dep_default_features(v_tbl);
+        }
+    }
+    #[allow(clippy::single_call_fn)] // shared shape check for dependency tables that explicitly opt out of default features
+    fn validate_workspace_dep_default_features(v_tbl: &Table) {
+        match v_tbl.get("default-features").expect("d2a8c4e1") {
+            &Value::Boolean(_) => (),
+            &Value::String(_)
+            | &Value::Table(_)
+            | &Value::Integer(_)
+            | &Value::Float(_)
+            | &Value::Datetime(_)
+            | &Value::Array(_) => panic!("e5f7b1c3"),
         }
     }
     #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable

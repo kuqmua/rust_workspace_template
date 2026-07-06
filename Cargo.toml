@@ -198,46 +198,45 @@ git-version = { version = "=0.3.9", default-features = false }
 itertools = { version = "=0.14.0", default-features = false, features = [
   "use_std",
 ] }
-app_state = { path = "./app_state" }
-cmn_routes = { path = "./cmn_routes" }
-config_lib = { path = "./config_lib" }
-gen_derive_ts_builder = { path = "./macros_helpers/gen_derive_ts_builder" }
-gen_getter_traits_for_struct_fields = { path = "./config_lib/gen_getter_traits_for_struct_fields" }
-gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl" }
-gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
-gen_pg_types = { path = "./pg_crud/pg_types/gen_pg_types" }
-gen_pg_types_src = { path = "./pg_crud/pg_types/gen_pg_types_src", default-features = false }
-gen_quotes = { path = "./gen_quotes" }
-gen_wh_flts = { path = "./pg_crud/wh_flts/gen_wh_flts" }
-gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
-git_info = { path = "./git_info" }
-loc_lib = { path = "./loc_lib" }
-location = { path = "./loc_lib/location" }
-macro_clippy_check_cmn = { path = "./macro_clippy_check_cmn", default-features = false }
-macros_helpers = { path = "./macros_helpers" }
-naming = { path = "./naming" }
-naming_cmn = { path = "./naming/naming_cmn" }
-naming_macros = { path = "./naming/naming_macros" }
-optml = { path = "./optml" }
-panic_loc = { path = "./panic_loc" }
-pg_crud = { path = "./pg_crud" }
-pg_crud_cmn = { path = "./pg_crud/pg_crud_cmn" }
-pg_crud_macros_cmn = { path = "./pg_crud/pg_crud_macros_cmn" }
-pg_tbl = { path = "./pg_crud/pg_tbl" }
-pg_types = { path = "./pg_crud/pg_types" }
-pg_types_chrono_net = { path = "./pg_crud/pg_types/pg_types_chrono_net" }
-pg_types_cmn = { path = "./pg_crud/pg_types/pg_types_cmn" }
-pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric" }
-pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc" }
-route_validators = { path = "./route_validators" }
-server_app_state = { path = "./server_app_state" }
-server_config = { path = "./server_config" }
-server_tbl_example = { path = "./server_tbl_example" }
-to_err_string = { path = "./to_err_string" }
-token_patterns = { path = "./token_patterns", default-features = false }
-try_from_env = { path = "./config_lib/try_from_env" }
-wh_flts = { path = "./pg_crud/wh_flts" }
-
+app_state = { path = "./app_state", version = "0.1.0" }
+cmn_routes = { path = "./cmn_routes", version = "0.1.0" }
+config_lib = { path = "./config_lib", version = "0.1.0" }
+gen_derive_ts_builder = { path = "./macros_helpers/gen_derive_ts_builder", version = "0.1.0" }
+gen_getter_traits_for_struct_fields = { path = "./config_lib/gen_getter_traits_for_struct_fields", version = "0.1.0" }
+gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl", version = "0.1.0" }
+gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", version = "0.1.0", default-features = false }
+gen_pg_types = { path = "./pg_crud/pg_types/gen_pg_types", version = "0.1.0" }
+gen_pg_types_src = { path = "./pg_crud/pg_types/gen_pg_types_src", version = "0.1.0", default-features = false }
+gen_quotes = { path = "./gen_quotes", version = "0.1.0" }
+gen_wh_flts = { path = "./pg_crud/wh_flts/gen_wh_flts", version = "0.1.0" }
+gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", version = "0.1.0", default-features = false }
+git_info = { path = "./git_info", version = "0.1.0" }
+loc_lib = { path = "./loc_lib", version = "0.1.0" }
+location = { path = "./loc_lib/location", version = "0.1.0" }
+macro_clippy_check_cmn = { path = "./macro_clippy_check_cmn", version = "0.1.0", default-features = false }
+macros_helpers = { path = "./macros_helpers", version = "0.1.0" }
+naming = { path = "./naming", version = "0.1.0" }
+naming_cmn = { path = "./naming/naming_cmn", version = "0.1.0" }
+naming_macros = { path = "./naming/naming_macros", version = "0.1.0" }
+optml = { path = "./optml", version = "0.1.0" }
+panic_loc = { path = "./panic_loc", version = "0.1.0" }
+pg_crud = { path = "./pg_crud", version = "0.1.0" }
+pg_crud_cmn = { path = "./pg_crud/pg_crud_cmn", version = "0.1.0" }
+pg_crud_macros_cmn = { path = "./pg_crud/pg_crud_macros_cmn", version = "0.1.0" }
+pg_tbl = { path = "./pg_crud/pg_tbl", version = "0.1.0" }
+pg_types = { path = "./pg_crud/pg_types", version = "0.1.0" }
+pg_types_chrono_net = { path = "./pg_crud/pg_types/pg_types_chrono_net", version = "0.1.0" }
+pg_types_cmn = { path = "./pg_crud/pg_types/pg_types_cmn", version = "0.1.0" }
+pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric", version = "0.1.0" }
+pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc", version = "0.1.0" }
+route_validators = { path = "./route_validators", version = "0.1.0" }
+server_app_state = { path = "./server_app_state", version = "0.1.0" }
+server_config = { path = "./server_config", version = "0.1.0" }
+server_tbl_example = { path = "./server_tbl_example", version = "0.1.0" }
+to_err_string = { path = "./to_err_string", version = "0.1.0" }
+token_patterns = { path = "./token_patterns", version = "0.1.0", default-features = false }
+try_from_env = { path = "./config_lib/try_from_env", version = "0.1.0" }
+wh_flts = { path = "./pg_crud/wh_flts", version = "0.1.0" }
 [workspace.lints.rust]
 unsafe_code = "deny"
 absolute_paths_not_starting_with_crate = "deny"
