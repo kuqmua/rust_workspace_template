@@ -1,21 +1,17 @@
-use gen_quotes::dq_ts;
-use naming::LocSc;
-use proc_macro2::Literal;
-use proc_macro2::TokenStream as Ts2;
-use quote::quote;
 #[must_use]
-pub fn gen_field_loc_new_ts(file: &'static str, line: u32, col: u32) -> Ts2 {
+pub fn gen_field_loc_new_ts(file: &'static str, line: u32, col: u32) -> proc_macro2::TokenStream {
+    let loc_sc = naming::LocSc;
     let loc_new_ts = {
-        let file_ts = dq_ts(&file);
+        let file_ts = gen_quotes::dq_ts(&file);
         let line_ts = {
-            let literal = Literal::u32_unsuffixed(line);
-            quote! {#literal}
+            let literal = proc_macro2::Literal::u32_unsuffixed(line);
+            quote::quote! {#literal}
         };
         let col_ts = {
-            let literal = Literal::u32_unsuffixed(col);
-            quote! {#literal}
+            let literal = proc_macro2::Literal::u32_unsuffixed(col);
+            quote::quote! {#literal}
         };
-        quote! {
+        quote::quote! {
             loc_lib::loc::Loc::new(
                 file!().to_owned(),
                 line!(),
@@ -28,5 +24,5 @@ pub fn gen_field_loc_new_ts(file: &'static str, line: u32, col: u32) -> Ts2 {
             )
         }
     };
-    quote! {#LocSc: #loc_new_ts}
+    quote::quote! {#loc_sc: #loc_new_ts}
 }

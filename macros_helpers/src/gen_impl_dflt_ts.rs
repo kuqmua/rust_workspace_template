@@ -1,7 +1,8 @@
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-pub fn gen_impl_dflt_ts(ident: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
-    quote! {
+pub fn gen_impl_dflt_ts(
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> proc_macro2::TokenStream {
+    quote::quote! {
         impl Default for #ident {
             fn default() -> Self {
                 #ts

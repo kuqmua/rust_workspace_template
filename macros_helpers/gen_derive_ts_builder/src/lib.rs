@@ -1,9 +1,3 @@
-use naming::prm::{DSelfIfSc, DSelfSc, DSelfUcc};
-use optml::Optml;
-use proc_macro::TokenStream as Ts;
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use serde_json::from_str;
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_sc(input: &str) -> String {
     let mut result = String::with_capacity(input.len());
@@ -35,42 +29,42 @@ fn to_sc(input: &str) -> String {
     result.trim_matches('_').to_owned()
 }
 #[proc_macro]
-pub fn gen_derive_ts_builder(input_ts: Ts) -> Ts {
-    #[derive(Clone, Optml)]
+pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    #[derive(Clone, optml::Optml)]
     struct El {
-        d_trait_name_if_sc: Ts2,
-        d_trait_name_sc: Ts2,
-        d_trait_name_ucc: Ts2,
-        trait_type: Ts2,
+        d_trait_name_if_sc: proc_macro2::TokenStream,
+        d_trait_name_sc: proc_macro2::TokenStream,
+        d_trait_name_ucc: proc_macro2::TokenStream,
+        trait_type: proc_macro2::TokenStream,
     }
-    let make_pub_sc_ts = quote! {make_pub};
-    let make_pub_if_sc_ts = quote! {make_pub_if};
-    let make_pub_ucc_ts = quote! {MakePub};
-    let el_vec = from_str::<Vec<String>>(&input_ts.to_string())
+    let make_pub_sc_ts = quote::quote! {make_pub};
+    let make_pub_if_sc_ts = quote::quote! {make_pub_if};
+    let make_pub_ucc_ts = quote::quote! {MakePub};
+    let el_vec = serde_json::from_str::<Vec<String>>(&input_ts.to_string())
         .expect("c5d09740")
         .into_iter()
         .map(|el| {
             let sc = to_sc(&el);
             El {
                 d_trait_name_ucc: {
-                    let v = DSelfUcc::from_display(&sc);
-                    quote! {#v}
+                    let v = naming::prm::DSelfUcc::from_display(&sc);
+                    quote::quote! {#v}
                 },
                 d_trait_name_sc: {
-                    let v = DSelfSc::from_display(&sc);
-                    quote! {#v}
+                    let v = naming::prm::DSelfSc::from_display(&sc);
+                    quote::quote! {#v}
                 },
                 d_trait_name_if_sc: {
-                    let v = DSelfIfSc::from_display(&sc);
-                    quote! {#v}
+                    let v = naming::prm::DSelfIfSc::from_display(&sc);
+                    quote::quote! {#v}
                 },
-                trait_type: el.parse::<Ts2>().expect("8672240f"),
+                trait_type: el.parse::<proc_macro2::TokenStream>().expect("8672240f"),
             }
         })
         .collect::<Vec<El>>();
     let (make_pub_pub_enum_ts, pub_enum_derive_vec_ts) = {
-        fn gen_ts(ident: &dyn ToTokens) -> Ts2 {
-            quote! {
+        fn gen_ts(ident: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
+            quote::quote! {
                 #[derive(Debug, Clone, Copy, optml::Optml)]
                 pub enum #ident {
                     True,
@@ -84,8 +78,8 @@ pub fn gen_derive_ts_builder(input_ts: Ts) -> Ts {
         )
     };
     let (make_pub_derive_trait_name_bool_ts, field_vec_ts) = {
-        fn gen_ts(ident: &dyn ToTokens) -> Ts2 {
-            quote! {#ident: bool,}
+        fn gen_ts(ident: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
+            quote::quote! {#ident: bool,}
         }
         (
             gen_ts(&make_pub_sc_ts),
@@ -93,10 +87,10 @@ pub fn gen_derive_ts_builder(input_ts: Ts) -> Ts {
         )
     };
     let (make_pub_derive_and_derive_if_ts, derive_and_derive_if_vec_ts) = {
-        let gen_ts = |first_name_ts: &dyn ToTokens,
-                      second_name_ts: &dyn ToTokens,
-                      condition_type_ts: &dyn ToTokens| {
-            quote! {
+        let gen_ts = |first_name_ts: &dyn quote::ToTokens,
+                      second_name_ts: &dyn quote::ToTokens,
+                      condition_type_ts: &dyn quote::ToTokens| {
+            quote::quote! {
                 pub const fn #first_name_ts(mut self) -> Self {
                     self.#first_name_ts = true;
                     self
@@ -119,24 +113,24 @@ pub fn gen_derive_ts_builder(input_ts: Ts) -> Ts {
                         &el.d_trait_name_ucc,
                     )
                 });
-                quote! {#(#ts)*}
+                quote::quote! {#(#ts)*}
             },
         )
     };
     let if_self_derive_acc_push_vec_ts = el_vec.iter().map(|el| {
         let d_trait_name_sc = &el.d_trait_name_sc;
         let trait_type = &el.trait_type;
-        quote! {
+        quote::quote! {
             if self.#d_trait_name_sc {
                 acc_2a71375c.push(quote::quote!{#trait_type});
             }
         }
     });
-    let derive_ts_builder_ucc = quote! {DTsBuilder};
-    let struct_or_enum_ucc = quote! {StructOrEnum};
-    let quote_to_tokens_ts = quote! {quote::ToTokens};
-    let ts2_ts = quote! {proc_macro2::TokenStream};
-    let generated: Ts2 = quote! {
+    let derive_ts_builder_ucc = quote::quote! {DTsBuilder};
+    let struct_or_enum_ucc = quote::quote! {StructOrEnum};
+    let quote_to_tokens_ts = quote::quote! {quote::ToTokens};
+    let ts2_ts = quote::quote! {proc_macro2::TokenStream};
+    let generated: proc_macro2::TokenStream = quote::quote! {
         #make_pub_pub_enum_ts
         #(#pub_enum_derive_vec_ts)*
         #[derive(Debug, Clone, Copy, optml::Optml)]
@@ -261,17 +255,16 @@ pub fn gen_derive_ts_builder(input_ts: Ts) -> Ts {
 }
 #[cfg(test)]
 mod tests {
-    use super::to_sc;
     #[test]
     fn to_sc_handles_pascal_case() {
-        assert_eq!(to_sc("HelloWorld"), "hello_world");
+        assert_eq!(super::to_sc("HelloWorld"), "hello_world");
     }
     #[test]
     fn to_sc_collapses_non_alpha_chunks() {
-        assert_eq!(to_sc("A--B__C"), "a_b_c");
+        assert_eq!(super::to_sc("A--B__C"), "a_b_c");
     }
     #[test]
     fn to_sc_trims_edge_separators() {
-        assert_eq!(to_sc("__Hello__"), "hello");
+        assert_eq!(super::to_sc("__Hello__"), "hello");
     }
 }

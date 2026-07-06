@@ -1,8 +1,6 @@
-use optml::Optml;
-use syn::{Ident, Type, Visibility};
-#[derive(Debug, Clone, Optml)]
+#[derive(Debug, Clone, optml::Optml)]
 pub struct SynField {
-    pub ident: Ident,
-    pub type0: Type,
-    pub vis: Visibility,
+    pub ident: syn::Ident,
+    pub type0: syn::Type,
+    pub vis: syn::Visibility,
 }

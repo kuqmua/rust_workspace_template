@@ -1,10 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use macro_clippy_check_cmn::clippy_check;
-    use quote::quote;
     #[test]
     fn clippy() {
-        clippy_check(
+        macro_clippy_check_cmn::clippy_check(
             "gen_wh_flts_test_cnt",
             "../pg_crud/wh_flts/",
             r#"[dependencies]
@@ -18,7 +16,7 @@ wh_flts = {path = "../../wh_flts"}
 test-utils = []"#,
             &format!(
                 "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse wh_flts::*;\n{}",
-                gen_wh_flts_src::gen_wh_flts(&quote! {
+                gen_wh_flts_src::gen_wh_flts(&quote::quote! {
                     {
                         "pg_types_write_into_file": "False",
                         "whole_write_into_file": "False"

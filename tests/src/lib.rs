@@ -1,27 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use optml::Optml;
-    use regex::Regex;
-    use std::{
-        collections::HashSet,
-        ffi::OsStr,
-        fs::read_to_string,
-        path::{Path, PathBuf},
-        process::{Command, Output, Stdio},
-        str::Split,
-    };
-    use syn::{
-        Expr, ExprCall, ExprLit, ExprMethodCall, ExprPath, ItemFn, ItemMod, ItemType, ItemUse, Lit,
-        Type, TypePath, UseTree, Visibility, parse_file,
-        visit::{
-            Visit, visit_expr_call, visit_expr_method_call, visit_expr_path, visit_item,
-            visit_item_fn, visit_item_mod, visit_item_type, visit_item_use, visit_macro,
-            visit_type_path,
-        },
-    };
-    use toml::{Table as TomlTable, Value, value::Table};
-    use uuid::Uuid;
-    use walkdir::WalkDir;
     const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
     const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
         "disallowed_fields",
@@ -48,86 +26,7 @@ mod tests {
         "useless_borrows_in_formatting",
     ];
     const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
-    const USE_IMPORT_POLICY_EXCEPTIONS: &[&str] = &[
-        "app_state/src/lib.rs",
-        "cmn_routes/src/lib.rs",
-        "config_lib/config_lib_macros/src/lib.rs",
-        "config_lib/gen_getter_traits_for_struct_fields/src/lib.rs",
-        "config_lib/src/lib.rs",
-        "config_lib/src/str_from_enum_macros.rs",
-        "config_lib/src/types.rs",
-        "config_lib/try_from_env/src/lib.rs",
-        "gen_quotes/src/lib.rs",
-        "git_info/src/lib.rs",
-        "loc_lib/loc_macros/src/lib.rs",
-        "loc_lib/loc_test/src/main.rs",
-        "loc_lib/location/src/lib.rs",
-        "loc_lib/src/loc.rs",
-        "macro_clippy_check_cmn/src/lib.rs",
-        "macros_helpers/gen_derive_ts_builder/src/lib.rs",
-        "macros_helpers/src/gen_field_loc_new_ts.rs",
-        "macros_helpers/src/gen_if_write_is_err_ts.rs",
-        "macros_helpers/src/gen_impl_dflt_ts.rs",
-        "macros_helpers/src/gen_impl_display_ts.rs",
-        "macros_helpers/src/gen_impl_from_ts.rs",
-        "macros_helpers/src/gen_impl_to_err_string_ts.rs",
-        "macros_helpers/src/gen_impl_try_from_ts.rs",
-        "macros_helpers/src/gen_new_or_try_new.rs",
-        "macros_helpers/src/gen_pub_type_al_ts.rs",
-        "macros_helpers/src/gen_simple_syn_punct.rs",
-        "macros_helpers/src/get_macro_attr.rs",
-        "macros_helpers/src/loc.rs",
-        "macros_helpers/src/loc_syn_field.rs",
-        "macros_helpers/src/panic_if_err.rs",
-        "macros_helpers/src/pgn_start_end_init_ts.rs",
-        "macros_helpers/src/rs_file_path.rs",
-        "macros_helpers/src/status_code.rs",
-        "macros_helpers/src/syn_field.rs",
-        "macros_helpers/src/test_hlp.rs",
-        "macros_helpers/src/wrap_derive.rs",
-        "macros_helpers/src/write_string_into_file.rs",
-        "macros_helpers/src/write_ts_into_file.rs",
-        "naming/naming_cmn/src/lib.rs",
-        "naming/naming_cmn_macros/src/lib.rs",
-        "naming/naming_macros/src/lib.rs",
-        "naming/src/lib.rs",
-        "optml/src/lib.rs",
-        "panic_loc/src/lib.rs",
-        "pg_crud/pg_crud_cmn/src/lib.rs",
-        "pg_crud/pg_crud_cmn_macros/src/lib.rs",
-        "pg_crud/pg_crud_macros_cmn/src/flts.rs",
-        "pg_crud/pg_crud_macros_cmn/src/lib.rs",
-        "pg_crud/pg_crud_macros_cmn_macros/src/lib.rs",
-        "pg_crud/pg_tbl/gen_pg_tbl/src/lib.rs",
-        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-        "pg_crud/pg_tbl/gen_pg_tbl_test/src/lib.rs",
-        "pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs",
-        "pg_crud/pg_tbl/src/lib.rs",
-        "pg_crud/pg_types/gen_pg_types/src/lib.rs",
-        "pg_crud/pg_types/gen_pg_types_src/src/lib.rs",
-        "pg_crud/pg_types/gen_pg_types_test/src/lib.rs",
-        "pg_crud/pg_types/pg_types_cmn/src/lib.rs",
-        "pg_crud/wh_flts/gen_wh_flts/src/lib.rs",
-        "pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs",
-        "pg_crud/wh_flts/gen_wh_flts_test/src/lib.rs",
-        "pg_crud/wh_flts/src/lib.rs",
-        "route_validators/src/check_body_size.rs",
-        "route_validators/src/check_commit.rs",
-        "route_validators/src/hdr_val.rs",
-        "route_validators/src/lib.rs",
-        "route_validators/src/test_hlp.rs",
-        "server_app_state/server_app_state_macros/src/lib.rs",
-        "server_app_state/src/lib.rs",
-        "server_config/src/lib.rs",
-        "server_tbl_example/src/lib.rs",
-        "tests/src/lib.rs",
-        "to_err_string/src/lib.rs",
-        "to_err_string/to_err_string_macros/src/lib.rs",
-        "token_patterns/src/lib.rs",
-        "token_patterns/token_patterns_macros/src/lib.rs",
-        "workspace_macro_helpers/src/lib.rs",
-    ];
-    #[derive(Debug, Clone, Copy, Optml)]
+    #[derive(Debug, Clone, Copy, optml::Optml)]
     enum ExpectOrPanic {
         Expect,
         Panic,
@@ -140,7 +39,7 @@ mod tests {
             }
         }
     }
-    #[derive(Debug, Clone, Copy, Optml)]
+    #[derive(Debug, Clone, Copy, optml::Optml)]
     enum RustOrClippy {
         Clippy,
         Rust,
@@ -156,7 +55,7 @@ mod tests {
     struct DbgVisitor {
         found: bool,
     }
-    impl<'ast> Visit<'ast> for DbgVisitor {
+    impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
         fn visit_macro(&mut self, i: &'ast syn::Macro) {
             if i.path
                 .segments
@@ -171,7 +70,7 @@ mod tests {
         todo_found: usize,
         unimplemented_found: usize,
     }
-    impl<'ast> Visit<'ast> for TodoUnimplVisitor {
+    impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
         fn visit_macro(&mut self, i: &'ast syn::Macro) {
             if let Some(last_segment) = i.path.segments.last() {
                 match () {
@@ -189,32 +88,32 @@ mod tests {
     struct UnwrapVisitor {
         found_count: usize,
     }
-    impl<'ast> Visit<'ast> for UnwrapVisitor {
-        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+    impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
+        fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
             if i.method == "unwrap" && i.args.is_empty() {
                 self.found_count = self.found_count.saturating_add(1);
             }
-            visit_expr_method_call(self, i);
+            syn::visit::visit_expr_method_call(self, i);
         }
     }
     struct RuntimePanicExpectUnwrapVisitor {
         ers: Vec<String>,
     }
-    impl<'ast> Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
-        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+    impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
+        fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
             if i.method == "expect" {
                 self.ers.push(".expect() call".to_owned());
             }
             if i.method == "unwrap" {
                 self.ers.push(".unwrap() call".to_owned());
             }
-            visit_expr_method_call(self, i);
+            syn::visit::visit_expr_method_call(self, i);
         }
         fn visit_item(&mut self, i: &'ast syn::Item) {
             if has_test_only_cfg_attr(i) {
                 return;
             }
-            visit_item(self, i);
+            syn::visit::visit_item(self, i);
         }
         fn visit_macro(&mut self, i: &'ast syn::Macro) {
             if i.path
@@ -224,47 +123,47 @@ mod tests {
             {
                 self.ers.push("panic!() call".to_owned());
             }
-            visit_macro(self, i);
+            syn::visit::visit_macro(self, i);
         }
     }
     struct RuntimeMutexVisitor {
         found_count: usize,
     }
-    impl<'ast> Visit<'ast> for RuntimeMutexVisitor {
+    impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
         fn visit_item(&mut self, i: &'ast syn::Item) {
             if has_test_only_cfg_attr(i) {
                 return;
             }
-            visit_item(self, i);
+            syn::visit::visit_item(self, i);
         }
-        fn visit_type_path(&mut self, i: &'ast TypePath) {
+        fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
             if path_has_segment(&i.path, "Mutex") {
                 self.found_count = self.found_count.saturating_add(1);
             }
-            visit_type_path(self, i);
+            syn::visit::visit_type_path(self, i);
         }
     }
     struct RuntimeArcVisitor {
         allow_arc_value_usage: bool,
         ers: Vec<String>,
     }
-    impl<'ast> Visit<'ast> for RuntimeArcVisitor {
-        fn visit_expr_call(&mut self, i: &'ast ExprCall) {
+    impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
+        fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
             if expr_call_path(i).is_some_and(|path| path_ends_with(path, &["Arc", "new"]))
                 && !self.allow_arc_value_usage
             {
                 self.ers
                     .push("Arc::new() outside approved cross-thread state construction".to_owned());
             }
-            visit_expr_call(self, i);
+            syn::visit::visit_expr_call(self, i);
         }
         fn visit_item(&mut self, i: &'ast syn::Item) {
             if has_test_only_cfg_attr(i) {
                 return;
             }
-            visit_item(self, i);
+            syn::visit::visit_item(self, i);
         }
-        fn visit_item_type(&mut self, i: &'ast ItemType) {
+        fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
             if type_contains_segment(&i.ty, "Arc") {
                 let name = i.ident.to_string();
                 if !name.contains("Shared") && !name.contains("DynArc") {
@@ -273,44 +172,44 @@ mod tests {
                     ));
                 }
             }
-            visit_item_type(self, i);
+            syn::visit::visit_item_type(self, i);
         }
     }
     struct AsyncBlockingCallVisitor {
         async_fn_depth: usize,
         ers: Vec<String>,
     }
-    impl<'ast> Visit<'ast> for AsyncBlockingCallVisitor {
-        fn visit_expr_call(&mut self, i: &'ast ExprCall) {
+    impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
+        fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
             if self.async_fn_depth != 0
                 && expr_call_path(i).is_some_and(path_is_blocking_async_call)
             {
                 self.ers
                     .push("blocking call inside async function".to_owned());
             }
-            visit_expr_call(self, i);
+            syn::visit::visit_expr_call(self, i);
         }
-        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+        fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
             if self.async_fn_depth != 0 && method_is_blocking_async_call(&i.method.to_string()) {
                 self.ers.push(format!(
                     ".{}() blocking method call inside async function",
                     i.method
                 ));
             }
-            visit_expr_method_call(self, i);
+            syn::visit::visit_expr_method_call(self, i);
         }
         fn visit_item(&mut self, i: &'ast syn::Item) {
             if has_test_only_cfg_attr(i) {
                 return;
             }
-            visit_item(self, i);
+            syn::visit::visit_item(self, i);
         }
-        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+        fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
             let is_async = i.sig.asyncness.is_some();
             if is_async {
                 self.async_fn_depth = self.async_fn_depth.saturating_add(1);
             }
-            visit_item_fn(self, i);
+            syn::visit::visit_item_fn(self, i);
             if is_async {
                 self.async_fn_depth = self.async_fn_depth.saturating_sub(1);
             }
@@ -320,32 +219,32 @@ mod tests {
         ers: Vec<String>,
         test_depth: usize,
     }
-    impl<'ast> Visit<'ast> for UnitTestExternalServiceVisitor {
-        fn visit_expr_path(&mut self, i: &'ast ExprPath) {
+    impl<'ast> syn::visit::Visit<'ast> for UnitTestExternalServiceVisitor {
+        fn visit_expr_path(&mut self, i: &'ast syn::ExprPath) {
             if self.test_depth != 0 && path_is_external_service_client(&i.path) {
                 self.ers.push(format!(
                     "unit tests must not depend on external service client `{}`",
                     path_to_string(&i.path)
                 ));
             }
-            visit_expr_path(self, i);
+            syn::visit::visit_expr_path(self, i);
         }
-        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+        fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
             let is_test = self.test_depth != 0 || item_fn_is_unit_test(i);
             if is_test {
                 self.test_depth = self.test_depth.saturating_add(1);
             }
-            visit_item_fn(self, i);
+            syn::visit::visit_item_fn(self, i);
             if is_test {
                 self.test_depth = self.test_depth.saturating_sub(1);
             }
         }
-        fn visit_item_mod(&mut self, i: &'ast ItemMod) {
+        fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
             let is_test = self.test_depth != 0 || i.attrs.iter().any(attr_is_test_only_cfg);
             if is_test {
                 self.test_depth = self.test_depth.saturating_add(1);
             }
-            visit_item_mod(self, i);
+            syn::visit::visit_item_mod(self, i);
             if is_test {
                 self.test_depth = self.test_depth.saturating_sub(1);
             }
@@ -354,14 +253,14 @@ mod tests {
     struct IncludeAssetMacroVisitor {
         ers: Vec<String>,
     }
-    impl<'ast> Visit<'ast> for IncludeAssetMacroVisitor {
+    impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
         fn visit_macro(&mut self, i: &'ast syn::Macro) {
             if let Some(segment) = i.path.segments.last()
                 && (segment.ident == "include_str" || segment.ident == "include_bytes")
             {
                 self.ers.push(format!("contains {}!()", segment.ident));
             }
-            visit_macro(self, i);
+            syn::visit::visit_macro(self, i);
         }
     }
     struct UseImportVisitor {
@@ -369,26 +268,26 @@ mod tests {
         found_use_rename: bool,
     }
     impl UseImportVisitor {
-        fn use_tree_contains_rename(use_tree: &UseTree) -> bool {
+        fn use_tree_contains_rename(use_tree: &syn::UseTree) -> bool {
             match use_tree {
-                UseTree::Path(use_path) => Self::use_tree_contains_rename(&use_path.tree),
-                UseTree::Name(_) | UseTree::Glob(_) => false,
-                UseTree::Rename(_) => true,
-                UseTree::Group(use_group) => {
+                syn::UseTree::Path(use_path) => Self::use_tree_contains_rename(&use_path.tree),
+                syn::UseTree::Name(_) | syn::UseTree::Glob(_) => false,
+                syn::UseTree::Rename(_) => true,
+                syn::UseTree::Group(use_group) => {
                     use_group.items.iter().any(Self::use_tree_contains_rename)
                 }
             }
         }
     }
-    impl<'ast> Visit<'ast> for UseImportVisitor {
-        fn visit_item_use(&mut self, i: &'ast ItemUse) {
-            if !matches!(i.vis, Visibility::Public(_)) {
+    impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
+        fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
+            if !matches!(i.vis, syn::Visibility::Public(_)) {
                 self.found_non_public_use_import = true;
             }
             if Self::use_tree_contains_rename(&i.tree) {
                 self.found_use_rename = true;
             }
-            visit_item_use(self, i);
+            syn::visit::visit_item_use(self, i);
         }
     }
     #[test]
@@ -397,7 +296,7 @@ mod tests {
             let publish = parsed
                 .get("package")
                 .and_then(|v_1c7b4e9d| v_1c7b4e9d.get("publish"));
-            if publish != Some(&Value::Boolean(false)) {
+            if publish != Some(&toml::Value::Boolean(false)) {
                 ers.push(format!("{}: missing `publish = false`", path.display()));
             }
         });
@@ -410,7 +309,7 @@ mod tests {
                 .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
             {
                 Some(lints_tbl) => {
-                    if lints_tbl.get("workspace") != Some(&Value::Boolean(true)) {
+                    if lints_tbl.get("workspace") != Some(&toml::Value::Boolean(true)) {
                         ers.push(format!(
                             "{}: [lints] missing `workspace = true`",
                             path.display()
@@ -429,7 +328,7 @@ mod tests {
             let edition = parsed
                 .get("package")
                 .and_then(|v_6d9f2a3e| v_6d9f2a3e.get("edition"))
-                .and_then(Value::as_str);
+                .and_then(toml::Value::as_str);
             if edition != Some("2024") {
                 ers.push(format!("{}: edition is not \"2024\"", path.display()));
             }
@@ -455,7 +354,7 @@ mod tests {
             if is_exception(path, &exceptions) {
                 continue;
             }
-            let Ok(v) = read_to_string(path) else {
+            let Ok(v) = std::fs::read_to_string(path) else {
                 continue; //skip binary non-utf8 files
             };
             ers.extend(collect_non_english_symbol_ers(path, &v));
@@ -468,12 +367,12 @@ mod tests {
             method_name: &'static str,
             uuids: Vec<String>,
         }
-        impl<'ast> Visit<'ast> for ExpectVisitor {
-            fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+        impl<'ast> syn::visit::Visit<'ast> for ExpectVisitor {
+            fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
                 if i.method == self.method_name {
                     if i.args.len() == 1 {
-                        if let Some(Expr::Lit(ExprLit {
-                            lit: Lit::Str(lit_str),
+                        if let Some(syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(lit_str),
                             ..
                         })) = i.args.first()
                         {
@@ -490,7 +389,7 @@ mod tests {
                         self.ers.push("with != 1 arg".to_owned());
                     }
                 }
-                visit_expr_method_call(self, i);
+                syn::visit::visit_expr_method_call(self, i);
             }
         }
         let mut all_uuids = Vec::new();
@@ -586,18 +485,18 @@ mod tests {
         parse_only_clippy: bool,
         exp_id: &'static str,
     ) -> Vec<String> {
-        let output = Command::new(tool)
+        let output = std::process::Command::new(tool)
             .args(["-W", "help"])
-            .stdout(Stdio::piped())
+            .stdout(std::process::Stdio::piped())
             .output()
             .unwrap_or_else(|_| panic!("{exp_id}"));
         assert_cmd_output_ok(&output, "95d4595a", "cc4670a2");
         let stdout = String::from_utf8_lossy(&output.stdout);
         let regex = if parse_only_clippy {
-            Regex::new(r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
+            regex::Regex::new(r"(?m)^\s*clippy::([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
                 .expect("fbf14346")
         } else {
-            Regex::new(r"(?m)^\s*([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
+            regex::Regex::new(r"(?m)^\s*([a-z0-9][a-z0-9_-]+)\s+(allow|warn|deny|forbid)\b")
                 .expect("60d99c87")
         };
         regex
@@ -607,7 +506,7 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // shared command-output assertions keep status/stderr checks reusable for command-driven tests
     fn assert_cmd_output_ok(
-        output: &Output,
+        output: &std::process::Output,
         status_exp_id: &'static str,
         stderr_exp_id: &'static str,
     ) {
@@ -625,13 +524,13 @@ mod tests {
     }
     #[test]
     fn check_rs_files_contains_only_unq_uuid_v4() {
-        let rgx = Regex::new(
+        let rgx = regex::Regex::new(
             r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b"
         ).expect("e098a1ff");
-        let mut seen = HashSet::new();
+        let mut seen = std::collections::HashSet::new();
         for_each_rs_file_content(|_, v| {
             for el_714b3d9c in rgx.find_iter(v) {
-                let uuid = Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
+                let uuid = uuid::Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
                 assert!(uuid.get_version_num() == 4, "49b49b21");
                 assert!(seen.insert(uuid), "4cf9d239");
             }
@@ -647,11 +546,11 @@ mod tests {
         }
     }
     #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
-    fn validate_workspace_dep_spec(v: &Value) {
+    fn validate_workspace_dep_spec(v: &toml::Value) {
         let v_tbl = toml_val_as_tbl_ref(v, "cb693a3f");
         if let Some(path_v) = v_tbl.get("path") {
             match path_v {
-                Value::String(_) => {
+                toml::Value::String(_) => {
                     validate_workspace_path_dep_version(v_tbl);
                     match v_tbl.len() {
                         2 => (),
@@ -660,12 +559,12 @@ mod tests {
                     }
                     return;
                 }
-                Value::Table(_)
-                | Value::Integer(_)
-                | Value::Float(_)
-                | Value::Boolean(_)
-                | Value::Datetime(_)
-                | Value::Array(_) => panic!("6ca03a1f"),
+                toml::Value::Table(_)
+                | toml::Value::Integer(_)
+                | toml::Value::Float(_)
+                | toml::Value::Boolean(_)
+                | toml::Value::Datetime(_)
+                | toml::Value::Array(_) => panic!("6ca03a1f"),
             }
         }
         validate_workspace_dep_version(v_tbl);
@@ -675,34 +574,34 @@ mod tests {
             3 => {
                 validate_workspace_dep_features(v_tbl);
                 match v_tbl.get("default-features").expect("847a138f") {
-                    &Value::Boolean(_) => (),
-                    &Value::String(_)
-                    | &Value::Table(_)
-                    | &Value::Integer(_)
-                    | &Value::Float(_)
-                    | &Value::Datetime(_)
-                    | &Value::Array(_) => panic!("b320164b"),
+                    &toml::Value::Boolean(_) => (),
+                    &toml::Value::String(_)
+                    | &toml::Value::Table(_)
+                    | &toml::Value::Integer(_)
+                    | &toml::Value::Float(_)
+                    | &toml::Value::Datetime(_)
+                    | &toml::Value::Array(_) => panic!("b320164b"),
                 }
             }
             _ => panic!("f1139378 {v_tbl:#?}"),
         }
     }
     #[allow(clippy::single_call_fn)] // path workspace deps must keep concrete package versions for external tooling policy checks
-    fn validate_workspace_path_dep_version(v_tbl: &Table) {
+    fn validate_workspace_path_dep_version(v_tbl: &toml::value::Table) {
         match v_tbl.get("version").expect("bf2e4a7c") {
-            Value::String(version_string) => {
+            toml::Value::String(version_string) => {
                 assert_eq!(version_string, "0.1.0", "8c3d5f91");
             }
-            Value::Table(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => panic!("a6c7e3d2"),
+            toml::Value::Table(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => panic!("a6c7e3d2"),
         }
     }
     #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
-    fn validate_workspace_dep_features_or_default_features(v_tbl: &Table) {
+    fn validate_workspace_dep_features_or_default_features(v_tbl: &toml::value::Table) {
         if v_tbl.contains_key("features") {
             validate_workspace_dep_features(v_tbl);
         } else {
@@ -710,41 +609,41 @@ mod tests {
         }
     }
     #[allow(clippy::single_call_fn)] // shared shape check for dependency tables that explicitly opt out of default features
-    fn validate_workspace_dep_default_features(v_tbl: &Table) {
+    fn validate_workspace_dep_default_features(v_tbl: &toml::value::Table) {
         match v_tbl.get("default-features").expect("d2a8c4e1") {
-            &Value::Boolean(_) => (),
-            &Value::String(_)
-            | &Value::Table(_)
-            | &Value::Integer(_)
-            | &Value::Float(_)
-            | &Value::Datetime(_)
-            | &Value::Array(_) => panic!("e5f7b1c3"),
+            &toml::Value::Boolean(_) => (),
+            &toml::Value::String(_)
+            | &toml::Value::Table(_)
+            | &toml::Value::Integer(_)
+            | &toml::Value::Float(_)
+            | &toml::Value::Datetime(_)
+            | &toml::Value::Array(_) => panic!("e5f7b1c3"),
         }
     }
     #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
-    fn validate_workspace_dep_version(v_tbl: &Table) {
+    fn validate_workspace_dep_version(v_tbl: &toml::value::Table) {
         match v_tbl.get("version").expect("d5b2b269") {
-            Value::String(version_string) => {
+            toml::Value::String(version_string) => {
                 assert!(is_exact_three_part_version(version_string), "6640b9bf");
             }
-            Value::Table(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => panic!("a3410a37"),
+            toml::Value::Table(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => panic!("a3410a37"),
         }
     }
     #[allow(clippy::single_call_fn)] // extracted to avoid repeated feature-type checks for dependency tables
-    fn validate_workspace_dep_features(v_tbl: &Table) {
+    fn validate_workspace_dep_features(v_tbl: &toml::value::Table) {
         match v_tbl.get("features").expect("473577d5") {
-            &Value::Array(_) => (),
-            &Value::String(_)
-            | &Value::Table(_)
-            | &Value::Integer(_)
-            | &Value::Float(_)
-            | &Value::Boolean(_)
-            | &Value::Datetime(_) => panic!("38ba32e9"),
+            &toml::Value::Array(_) => (),
+            &toml::Value::String(_)
+            | &toml::Value::Table(_)
+            | &toml::Value::Integer(_)
+            | &toml::Value::Float(_)
+            | &toml::Value::Boolean(_)
+            | &toml::Value::Datetime(_) => panic!("38ba32e9"),
         }
     }
     #[allow(clippy::single_call_fn)] // isolates exact-version parsing so version-format checks are reusable and testable
@@ -762,7 +661,7 @@ mod tests {
         iter.next().is_none()
     }
     #[allow(clippy::single_call_fn)] // keeps exact-version parser steps reusable while avoiding repeated parse blocks
-    fn take_next_u64_part(iter: &mut Split<'_, char>) -> bool {
+    fn take_next_u64_part(iter: &mut std::str::Split<'_, char>) -> bool {
         iter.next()
             .and_then(|part| part.parse::<u64>().ok())
             .is_some()
@@ -780,7 +679,7 @@ mod tests {
         let lints_exceptions_set = lints_not_in_cargo_toml_vec_exceptions
             .iter()
             .copied()
-            .collect::<HashSet<&str>>();
+            .collect::<std::collections::HashSet<&str>>();
         let (lints_not_in_cargo_toml, lints_missing_by_exception) = split_lints_missing_from_cargo(
             lints_to_check,
             &lints_from_cargo_set,
@@ -806,7 +705,7 @@ mod tests {
         trimmed.split_once('=').map(|(key, _)| key)
     }
     fn env_keys_from_file(path: &str) -> Vec<String> {
-        read_to_string(path)
+        std::fs::read_to_string(path)
             .expect("b3a7c1e4")
             .lines()
             .filter_map(parse_env_key_line)
@@ -831,7 +730,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared set-difference collector keeps missing-item checks reusable across lint and env-key tests
     fn collect_missing_items<'items>(
         items: &'items [String],
-        present_set: &HashSet<&str>,
+        present_set: &std::collections::HashSet<&str>,
     ) -> Vec<&'items str> {
         items
             .iter()
@@ -842,7 +741,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // centralized formatter keeps env key mismatch diagnostics consistent
     fn collect_missing_key_ers(
         source_keys: &[String],
-        target_set: &HashSet<&str>,
+        target_set: &std::collections::HashSet<&str>,
         source_file: &str,
         target_file: &str,
     ) -> Vec<String> {
@@ -854,8 +753,8 @@ mod tests {
     #[allow(clippy::single_call_fn)] // split keeps lint exception handling explicit while reusing missing-item collection
     fn split_lints_missing_from_cargo<'lints>(
         lints_to_check: &'lints [String],
-        lints_from_cargo_set: &HashSet<&str>,
-        lints_exceptions_set: &HashSet<&str>,
+        lints_from_cargo_set: &std::collections::HashSet<&str>,
+        lints_exceptions_set: &std::collections::HashSet<&str>,
     ) -> (Vec<&'lints str>, Vec<&'lints str>) {
         let mut lints_not_in_cargo_toml = Vec::new();
         let mut lints_missing_by_exception = Vec::new();
@@ -868,7 +767,7 @@ mod tests {
         }
         (lints_not_in_cargo_toml, lints_missing_by_exception)
     }
-    fn is_exception(path: &Path, exceptions: &[&str]) -> bool {
+    fn is_exception(path: &std::path::Path, exceptions: &[&str]) -> bool {
         exceptions.iter().any(|exception| path.ends_with(exception))
     }
     #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
@@ -884,7 +783,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // reusable collector stays split from assertion helper for callsites that need raw error vectors
     fn collect_cargo_toml_ers(
         exceptions: &[&str],
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
     ) -> Vec<String> {
         let mut ers = Vec::new();
         for_each_cargo_toml_project_file(exceptions, |path| {
@@ -899,7 +798,7 @@ mod tests {
     fn assert_cargo_toml_ers_empty(
         exceptions: &[&str],
         exp_id: &'static str,
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
     ) {
         let ers = collect_cargo_toml_ers(exceptions, |path, parsed, ers| {
             mk_ers(path, parsed, ers);
@@ -909,7 +808,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared workspace-root cargo policy assertion keeps root exceptions and joined-diagnostic behavior consistent across package-metadata checks
     fn assert_root_workspace_cargo_policy(
         exp_id: &'static str,
-        mut mk_ers: impl FnMut(&Path, &TomlTable, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
     ) {
         assert_cargo_toml_ers_empty(&ROOT_CARGO_TOML_EXCEPTIONS, exp_id, |path, parsed, ers| {
             mk_ers(path, parsed, ers);
@@ -933,12 +832,14 @@ mod tests {
         assert_joined_ers_empty(ers, exp_id);
     }
     #[allow(clippy::single_call_fn)] // shared helper avoids repeated conversion of vec<string> into set<&str>
-    fn str_set(v: &[String]) -> HashSet<&str> {
-        v.iter().map(String::as_str).collect::<HashSet<&str>>()
+    fn str_set(v: &[String]) -> std::collections::HashSet<&str> {
+        v.iter()
+            .map(String::as_str)
+            .collect::<std::collections::HashSet<&str>>()
     }
     #[allow(clippy::single_call_fn)] // shared duplicate finder keeps uniqueness checks reusable and consistent
     fn find_duplicate_strings(v: &[String]) -> Vec<String> {
-        let mut seen = HashSet::new();
+        let mut seen = std::collections::HashSet::new();
         let mut duplicates = Vec::new();
         for el_45f4b8bc in v {
             if !seen.insert(el_45f4b8bc.as_str()) {
@@ -949,7 +850,7 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // reusable collector stays available for AST-policy tests and keeps collection logic separate from assertion wrappers
     fn collect_rs_ast_ers(
-        mut mk_ers: impl FnMut(&Path, &syn::File, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
     ) -> Vec<String> {
         let mut ers = Vec::new();
         for_each_rs_syn_file(|path, ast| {
@@ -960,16 +861,16 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared visitor runner keeps AST test callsites focused on assertion logic rather than visit boilerplate
     fn visit_syn_file<V>(ast: &syn::File, mut visitor: V) -> V
     where
-        V: for<'ast> Visit<'ast>,
+        V: for<'ast> syn::visit::Visit<'ast>,
     {
-        Visit::visit_file(&mut visitor, ast);
+        syn::visit::Visit::visit_file(&mut visitor, ast);
         visitor
     }
     #[allow(clippy::single_call_fn)] // shared assertion wrapper keeps AST-policy tests focused on visitor logic while reusing collection and joined-report formatting
     fn assert_rs_ast_ers_empty_with_ctx(
         exp_id: &'static str,
         ctx: &str,
-        mut mk_ers: impl FnMut(&Path, &syn::File, &mut Vec<String>),
+        mut mk_ers: impl FnMut(&std::path::Path, &syn::File, &mut Vec<String>),
     ) {
         let ers = collect_rs_ast_ers(|path, ast, ers| {
             mk_ers(path, ast, ers);
@@ -977,9 +878,9 @@ mod tests {
         assert_joined_ers_empty_with_ctx(&ers, exp_id, ctx);
     }
     #[allow(clippy::single_call_fn)] // shared parser keeps Cargo.toml read+parse behavior centralized for policy collectors
-    fn read_toml_table(path: &Path) -> Option<TomlTable> {
-        let v = read_to_string(path).ok()?;
-        v.parse::<TomlTable>().ok()
+    fn read_toml_table(path: &std::path::Path) -> Option<toml::Table> {
+        let v = std::fs::read_to_string(path).ok()?;
+        v.parse::<toml::Table>().ok()
     }
     #[test]
     fn no_dbg_macro_in_source_code() {
@@ -999,7 +900,7 @@ mod tests {
         assert_joined_ers_empty_with_ctx(&ers, "3d2fc8a1", "empty lines found in Rust files:");
     }
     #[allow(clippy::single_call_fn)] // isolates empty-line diagnostics so file-level test stays focused on traversal and assertion
-    fn collect_empty_line_ers(path: &Path, v: &str) -> Vec<String> {
+    fn collect_empty_line_ers(path: &std::path::Path, v: &str) -> Vec<String> {
         let mut lines_iter = v.lines();
         if let Some(first_line) = lines_iter.next()
             && first_line.trim().is_empty()
@@ -1020,7 +921,7 @@ mod tests {
             .collect::<Vec<String>>()
     }
     #[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
-    fn collect_non_english_symbol_ers(path: &Path, v: &str) -> Vec<String> {
+    fn collect_non_english_symbol_ers(path: &std::path::Path, v: &str) -> Vec<String> {
         let mut ers = Vec::new();
         for (line_idx, line) in v.lines().enumerate() {
             let line_number = line_idx.saturating_add(1);
@@ -1109,9 +1010,6 @@ mod tests {
             "b4e7c2a9",
             "non-public use imports found; prefer explicit paths at usage sites:",
             |path, ast, ers| {
-                if is_exception(path, USE_IMPORT_POLICY_EXCEPTIONS) {
-                    return;
-                }
                 let visitor = visit_syn_file(
                     ast,
                     UseImportVisitor {
@@ -1121,7 +1019,7 @@ mod tests {
                 );
                 if visitor.found_non_public_use_import {
                     ers.push(format!(
-                        "{}: found non-public use import; use the explicit path at the usage site or add a reviewed exception with reason",
+                        "{}: found non-public use import; use the explicit path at the usage site",
                         path.display()
                     ));
                 }
@@ -1249,20 +1147,28 @@ mod tests {
         );
     }
     #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
-    fn push_repeated_file_er(ers: &mut Vec<String>, path: &Path, msg: &str, times: usize) {
+    fn push_repeated_file_er(
+        ers: &mut Vec<String>,
+        path: &std::path::Path,
+        msg: &str,
+        times: usize,
+    ) {
         for _ in 0..times {
             ers.push(format!("{}: {msg}", path.display()));
         }
     }
-    fn project_dir() -> WalkDir {
-        WalkDir::new("../")
+    fn project_dir() -> walkdir::WalkDir {
+        walkdir::WalkDir::new("../")
     }
     #[allow(clippy::single_call_fn)] // shared ignore predicate keeps directory filtering rules consistent across walkers
-    fn is_ignored_dir_entry_name(name: &OsStr) -> bool {
+    fn is_ignored_dir_entry_name(name: &std::ffi::OsStr) -> bool {
         name == "target" || name == ".git"
     }
     #[allow(clippy::single_call_fn)] // shared traversal keeps Cargo.toml filtering rules centralized while avoiding temporary vec allocation
-    fn for_each_cargo_toml_project_file(exceptions: &[&str], mut on_file: impl FnMut(&Path)) {
+    fn for_each_cargo_toml_project_file(
+        exceptions: &[&str],
+        mut on_file: impl FnMut(&std::path::Path),
+    ) {
         for entry in project_dir()
             .into_iter()
             .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
@@ -1285,8 +1191,9 @@ mod tests {
             .filter(|el| is_rs_file_path(el.path()))
     }
     #[allow(clippy::single_call_fn)] // shared extension gate keeps english-only file selection centralized and reusable
-    fn is_allowed_english_check_file(path: &Path) -> bool {
-        path.is_file() && is_allowed_english_check_ext(path.extension().and_then(OsStr::to_str))
+    fn is_allowed_english_check_file(path: &std::path::Path) -> bool {
+        path.is_file()
+            && is_allowed_english_check_ext(path.extension().and_then(std::ffi::OsStr::to_str))
     }
     #[allow(clippy::single_call_fn)] // shared extension predicate keeps source-policy file-kind checks consistent
     fn is_allowed_english_check_ext(ext: Option<&str>) -> bool {
@@ -1296,8 +1203,8 @@ mod tests {
         )
     }
     #[allow(clippy::single_call_fn)] // shared rust-extension predicate keeps rs walker filters consistent
-    fn is_rs_file_path(path: &Path) -> bool {
-        path.extension().and_then(OsStr::to_str) == Some("rs")
+    fn is_rs_file_path(path: &std::path::Path) -> bool {
+        path.extension().and_then(std::ffi::OsStr::to_str) == Some("rs")
     }
     fn path_has_segment(path: &syn::Path, segment: &str) -> bool {
         path.segments.iter().any(|el| el.ident == segment)
@@ -1311,69 +1218,69 @@ mod tests {
                 .zip(segments.iter().rev())
                 .all(|(got, exp)| got.ident == *exp)
     }
-    fn expr_call_path(call: &ExprCall) -> Option<&syn::Path> {
+    fn expr_call_path(call: &syn::ExprCall) -> Option<&syn::Path> {
         match call.func.as_ref() {
-            Expr::Path(path) => Some(&path.path),
-            Expr::Array(_)
-            | Expr::Assign(_)
-            | Expr::Async(_)
-            | Expr::Await(_)
-            | Expr::Binary(_)
-            | Expr::Block(_)
-            | Expr::Break(_)
-            | Expr::Call(_)
-            | Expr::Cast(_)
-            | Expr::Closure(_)
-            | Expr::Const(_)
-            | Expr::Continue(_)
-            | Expr::Field(_)
-            | Expr::ForLoop(_)
-            | Expr::Group(_)
-            | Expr::If(_)
-            | Expr::Index(_)
-            | Expr::Infer(_)
-            | Expr::Let(_)
-            | Expr::Lit(_)
-            | Expr::Loop(_)
-            | Expr::Macro(_)
-            | Expr::Match(_)
-            | Expr::MethodCall(_)
-            | Expr::Paren(_)
-            | Expr::Range(_)
-            | Expr::RawAddr(_)
-            | Expr::Reference(_)
-            | Expr::Repeat(_)
-            | Expr::Return(_)
-            | Expr::Struct(_)
-            | Expr::Try(_)
-            | Expr::TryBlock(_)
-            | Expr::Tuple(_)
-            | Expr::Unary(_)
-            | Expr::Unsafe(_)
-            | Expr::Verbatim(_)
-            | Expr::While(_)
-            | Expr::Yield(_)
+            syn::Expr::Path(path) => Some(&path.path),
+            syn::Expr::Array(_)
+            | syn::Expr::Assign(_)
+            | syn::Expr::Async(_)
+            | syn::Expr::Await(_)
+            | syn::Expr::Binary(_)
+            | syn::Expr::Block(_)
+            | syn::Expr::Break(_)
+            | syn::Expr::Call(_)
+            | syn::Expr::Cast(_)
+            | syn::Expr::Closure(_)
+            | syn::Expr::Const(_)
+            | syn::Expr::Continue(_)
+            | syn::Expr::Field(_)
+            | syn::Expr::ForLoop(_)
+            | syn::Expr::Group(_)
+            | syn::Expr::If(_)
+            | syn::Expr::Index(_)
+            | syn::Expr::Infer(_)
+            | syn::Expr::Let(_)
+            | syn::Expr::Lit(_)
+            | syn::Expr::Loop(_)
+            | syn::Expr::Macro(_)
+            | syn::Expr::Match(_)
+            | syn::Expr::MethodCall(_)
+            | syn::Expr::Paren(_)
+            | syn::Expr::Range(_)
+            | syn::Expr::RawAddr(_)
+            | syn::Expr::Reference(_)
+            | syn::Expr::Repeat(_)
+            | syn::Expr::Return(_)
+            | syn::Expr::Struct(_)
+            | syn::Expr::Try(_)
+            | syn::Expr::TryBlock(_)
+            | syn::Expr::Tuple(_)
+            | syn::Expr::Unary(_)
+            | syn::Expr::Unsafe(_)
+            | syn::Expr::Verbatim(_)
+            | syn::Expr::While(_)
+            | syn::Expr::Yield(_)
             | _ => None,
         }
     }
     #[allow(clippy::single_call_fn)] // keeps Arc type policy readable apart from syn type matching
-    fn type_contains_segment(ty: &Type, segment: &str) -> bool {
+    fn type_contains_segment(ty: &syn::Type, segment: &str) -> bool {
         match ty {
-            Type::Path(path) => path_has_segment(&path.path, segment),
-            Type::Array(_)
-            | Type::BareFn(_)
-            | Type::Group(_)
-            | Type::ImplTrait(_)
-            | Type::Infer(_)
-            | Type::Macro(_)
-            | Type::Never(_)
-            | Type::Paren(_)
-            | Type::Ptr(_)
-            | Type::Reference(_)
-            | Type::Slice(_)
-            | Type::TraitObject(_)
-            | Type::Tuple(_)
-            | Type::Verbatim(_)
+            syn::Type::Path(path) => path_has_segment(&path.path, segment),
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::Group(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Paren(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Reference(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
             | _ => false,
         }
     }
@@ -1401,7 +1308,7 @@ mod tests {
             || path_ends_with(path, &["tokio", "net", "UdpSocket", "bind"])
     }
     #[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
-    fn item_fn_is_unit_test(item: &ItemFn) -> bool {
+    fn item_fn_is_unit_test(item: &syn::ItemFn) -> bool {
         item.attrs
             .iter()
             .any(|attr| attr.path().is_ident("test") || attr_is_test_only_cfg(attr))
@@ -1415,8 +1322,8 @@ mod tests {
             .join("::")
     }
     #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
-    fn is_runtime_policy_source_path(path: &Path) -> bool {
-        if path.file_name().and_then(OsStr::to_str) == Some("test_hlp.rs") {
+    fn is_runtime_policy_source_path(path: &std::path::Path) -> bool {
+        if path.file_name().and_then(std::ffi::OsStr::to_str) == Some("test_hlp.rs") {
             return false;
         }
         if !path
@@ -1434,7 +1341,7 @@ mod tests {
         !is_proc_macro_crate(&parsed) && !is_test_crate(&parsed)
     }
     #[allow(clippy::single_call_fn)] // walks upward from a source file to the owning crate manifest
-    fn nearest_cargo_toml_path(path: &Path) -> Option<PathBuf> {
+    fn nearest_cargo_toml_path(path: &std::path::Path) -> Option<std::path::PathBuf> {
         for ancestor in path.ancestors() {
             let cargo_toml_path = ancestor.join("Cargo.toml");
             if cargo_toml_path.exists() {
@@ -1444,21 +1351,21 @@ mod tests {
         None
     }
     #[allow(clippy::single_call_fn)] // package-name based test crate filter keeps generated/test-only crates outside runtime policy
-    fn is_test_crate(parsed: &TomlTable) -> bool {
+    fn is_test_crate(parsed: &toml::Table) -> bool {
         parsed
             .get("package")
-            .and_then(Value::as_table)
+            .and_then(toml::Value::as_table)
             .and_then(|package| package.get("name"))
-            .and_then(Value::as_str)
+            .and_then(toml::Value::as_str)
             .is_some_and(|name| name == "tests" || name.contains("_test") || name.ends_with("test"))
     }
     #[allow(clippy::single_call_fn)] // proc-macro crates are allowed to panic by repository policy
-    fn is_proc_macro_crate(parsed: &TomlTable) -> bool {
+    fn is_proc_macro_crate(parsed: &toml::Table) -> bool {
         parsed
             .get("lib")
-            .and_then(Value::as_table)
+            .and_then(toml::Value::as_table)
             .and_then(|lib| lib.get("proc-macro"))
-            == Some(&Value::Boolean(true))
+            == Some(&toml::Value::Boolean(true))
     }
     #[allow(clippy::single_call_fn)] // keeps cfg(test) handling local to runtime AST policy visitor
     fn has_test_only_cfg_attr(i: &syn::Item) -> bool {
@@ -1503,50 +1410,53 @@ mod tests {
         is_test_only_cfg
     }
     #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
-    fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {
+    fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
         for entry in rs_project_files() {
             let path = entry.path();
-            let Ok(v) = read_to_string(path) else {
+            let Ok(v) = std::fs::read_to_string(path) else {
                 continue;
             };
             on_file(path, &v);
         }
     }
     #[allow(clippy::single_call_fn)] // shared rust-file parser keeps read+parse flow reusable for AST-based checks and visitors
-    fn for_each_rs_syn_file(mut on_file: impl FnMut(&Path, &syn::File)) {
+    fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
         for_each_rs_file_content(|path, v| {
-            let ast = parse_file(v).expect("5e7a83eb");
+            let ast = syn::parse_file(v).expect("5e7a83eb");
             on_file(path, &ast);
         });
     }
-    fn workspace_tbl_from_cargo_toml() -> Table {
-        let mut tbl = read_to_string("../Cargo.toml")
+    fn workspace_tbl_from_cargo_toml() -> toml::value::Table {
+        let mut tbl = std::fs::read_to_string("../Cargo.toml")
             .expect("39a0d238")
-            .parse::<TomlTable>()
+            .parse::<toml::Table>()
             .expect("beb11586");
         toml_val_as_tbl(tbl.remove("workspace").expect("f728192d"), "2bfb0b62")
     }
     #[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required
-    fn toml_val_as_tbl(v: Value, uuid: &str) -> Table {
+    fn toml_val_as_tbl(v: toml::Value, uuid: &str) -> toml::value::Table {
         match v {
-            Value::Table(t) => t,
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => panic!("{uuid}"),
+            toml::Value::Table(t) => t,
+            toml::Value::String(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => panic!("{uuid}"),
         }
     }
-    fn toml_val_as_tbl_ref<'value_lt>(v: &'value_lt Value, uuid: &str) -> &'value_lt Table {
+    fn toml_val_as_tbl_ref<'value_lt>(
+        v: &'value_lt toml::Value,
+        uuid: &str,
+    ) -> &'value_lt toml::value::Table {
         match v {
-            Value::Table(t) => t,
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => panic!("{uuid}"),
+            toml::Value::Table(t) => t,
+            toml::Value::String(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => panic!("{uuid}"),
         }
     }
     #[test]
@@ -1561,11 +1471,11 @@ mod tests {
     }
     #[test]
     fn workspace_dependencies_use_inline_table_style() {
-        let rgx =
-            Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$").expect("ac15d6b9");
+        let rgx = regex::Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$")
+            .expect("ac15d6b9");
         let mut ers = Vec::new();
         for_each_cargo_toml_project_file(&[], |path| {
-            let v = read_to_string(path).expect("762c1d9e");
+            let v = std::fs::read_to_string(path).expect("762c1d9e");
             for mtch in rgx.find_iter(&v) {
                 let line_nbr = v
                     .bytes()
@@ -1586,9 +1496,13 @@ mod tests {
         );
     }
     #[allow(clippy::single_call_fn)] // shared collector keeps workspace-dependency policy checks reusable and centralized
-    fn collect_non_workspace_dep_ers(path: &Path, parsed: &TomlTable, ers: &mut Vec<String>) {
+    fn collect_non_workspace_dep_ers(
+        path: &std::path::Path,
+        parsed: &toml::Table,
+        ers: &mut Vec<String>,
+    ) {
         for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            if let Some(deps) = parsed.get(dep_section).and_then(Value::as_table) {
+            if let Some(deps) = parsed.get(dep_section).and_then(toml::Value::as_table) {
                 for (dep_name, dep_value) in deps {
                     if !workspace_dep_entry_is_valid(dep_value) {
                         ers.push(workspace_dep_entry_er(path, dep_name, dep_section));
@@ -1598,22 +1512,22 @@ mod tests {
         }
     }
     #[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
-    fn workspace_dep_entry_is_valid(dep_value: &Value) -> bool {
+    fn workspace_dep_entry_is_valid(dep_value: &toml::Value) -> bool {
         match dep_value {
-            Value::Table(dep_tbl) => {
+            toml::Value::Table(dep_tbl) => {
                 dep_tbl.contains_key("path")
-                    || dep_tbl.get("workspace") == Some(&Value::Boolean(true))
+                    || dep_tbl.get("workspace") == Some(&toml::Value::Boolean(true))
             }
-            Value::String(_)
-            | Value::Integer(_)
-            | Value::Float(_)
-            | Value::Boolean(_)
-            | Value::Datetime(_)
-            | Value::Array(_) => false,
+            toml::Value::String(_)
+            | toml::Value::Integer(_)
+            | toml::Value::Float(_)
+            | toml::Value::Boolean(_)
+            | toml::Value::Datetime(_)
+            | toml::Value::Array(_) => false,
         }
     }
     #[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
-    fn workspace_dep_entry_er(path: &Path, dep_name: &str, dep_section: &str) -> String {
+    fn workspace_dep_entry_er(path: &std::path::Path, dep_name: &str, dep_section: &str) -> String {
         format!(
             "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}` (only `path = ...` is allowed as exception)",
             path.display(),
@@ -1646,7 +1560,9 @@ mod tests {
     fn collect_workspace_member_missing_cargo_toml_ers(members: &[&str]) -> Vec<String> {
         let mut ers = Vec::new();
         for member_str in members {
-            let path = Path::new("..").join(member_str).join("Cargo.toml");
+            let path = std::path::Path::new("..")
+                .join(member_str)
+                .join("Cargo.toml");
             if !path.exists() {
                 ers.push(format!(
                     "member `{member_str}` Cargo.toml not found at {}",
@@ -1658,10 +1574,10 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // central member extraction keeps workspace-members readers strict and reusable across membership checks
     fn workspace_members_as_strs<'members_lt>(
-        workspace: &'members_lt Table,
+        workspace: &'members_lt toml::value::Table,
         exp_id: &'static str,
     ) -> Vec<&'members_lt str> {
-        let Some(members) = workspace.get("members").and_then(Value::as_array) else {
+        let Some(members) = workspace.get("members").and_then(toml::Value::as_array) else {
             panic!("{exp_id}");
         };
         let mut output = Vec::with_capacity(members.len());

@@ -1,7 +1,6 @@
-use std::{panic::set_hook, sync::Once};
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
-static PANIC_HOOK_ONCE: Once = Once::new();
+static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
 const PANIC_NO_LOCATION_MSG: &str = "panic occurred but can't get location information...";
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place
 fn panic_with_location_msg(file: &str, line: u32, col: u32) -> String {
@@ -9,7 +8,7 @@ fn panic_with_location_msg(file: &str, line: u32, col: u32) -> String {
 }
 pub fn panic_loc() {
     PANIC_HOOK_ONCE.call_once(|| {
-        set_hook(Box::new(move |panic_info| {
+        std::panic::set_hook(Box::new(move |panic_info| {
             if let Some(location) = panic_info.location() {
                 eprintln!(
                     "{}",
@@ -23,16 +22,15 @@ pub fn panic_loc() {
 }
 #[cfg(test)]
 mod tests {
-    use super::{PANIC_NO_LOCATION_MSG, panic_loc};
     #[test]
     fn panic_loc_can_be_called_multiple_times() {
-        panic_loc();
-        panic_loc();
+        super::panic_loc();
+        super::panic_loc();
     }
     #[test]
     fn panic_no_location_message_is_stable() {
         assert_eq!(
-            PANIC_NO_LOCATION_MSG,
+            super::PANIC_NO_LOCATION_MSG,
             "panic occurred but can't get location information..."
         );
     }

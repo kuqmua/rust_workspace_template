@@ -1,6 +1,5 @@
-use optml::Optml;
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, pg_crud::GenPgTbl, Optml)]
+#[derive(Debug, Clone, Copy, pg_crud::GenPgTbl, optml::Optml)]
 #[pg_crud::gen_pg_tbl_config{{
     "tests_write_into_file": "False",
     "cmn_write_into_file": "False",

@@ -1,17 +1,18 @@
-use syn::{PathArguments, PathSegment, punctuated::Punctuated, token::PathSep};
-fn mk_path_segment(v: &str) -> PathSegment {
-    PathSegment {
+fn mk_path_segment(v: &str) -> syn::PathSegment {
+    syn::PathSegment {
         ident: proc_macro2::Ident::new(v, proc_macro2::Span::call_site()),
-        arguments: PathArguments::None,
+        arguments: syn::PathArguments::None,
     }
 }
 #[must_use]
-pub fn gen_simple_syn_punct(v: &[&str]) -> Punctuated<PathSegment, PathSep> {
-    let mut acc = Punctuated::<PathSegment, PathSep>::new();
+pub fn gen_simple_syn_punct(
+    v: &[&str],
+) -> syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
+    let mut acc = syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
     if let Some((last, rest)) = v.split_last() {
         for el in rest {
             acc.push_value(mk_path_segment(el));
-            acc.push_punct(PathSep {
+            acc.push_punct(syn::token::PathSep {
                 spans: [
                     proc_macro2::Span::call_site(),
                     proc_macro2::Span::call_site(),
@@ -23,26 +24,27 @@ pub fn gen_simple_syn_punct(v: &[&str]) -> Punctuated<PathSegment, PathSep> {
     acc
 }
 #[must_use]
-pub fn string_syn_punct() -> Punctuated<PathSegment, PathSep> {
+pub fn string_syn_punct() -> syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
     gen_simple_syn_punct(&["std", "string", "String"])
 }
 #[cfg(test)]
 mod tests {
-    use super::gen_simple_syn_punct;
-    use quote::quote;
     #[test]
     fn gen_simple_syn_punct_builds_three_segment_path() {
-        let punct = gen_simple_syn_punct(&["std", "string", "String"]);
-        assert_eq!(quote! {#punct}.to_string(), "std :: string :: String");
+        let punct = super::gen_simple_syn_punct(&["std", "string", "String"]);
+        assert_eq!(
+            quote::quote! {#punct}.to_string(),
+            "std :: string :: String"
+        );
     }
     #[test]
     fn gen_simple_syn_punct_builds_single_segment_path() {
-        let punct = gen_simple_syn_punct(&["Only"]);
-        assert_eq!(quote! {#punct}.to_string(), "Only");
+        let punct = super::gen_simple_syn_punct(&["Only"]);
+        assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]
     fn gen_simple_syn_punct_returns_empty_path_on_empty_input() {
-        let punct = gen_simple_syn_punct(&[]);
+        let punct = super::gen_simple_syn_punct(&[]);
         assert!(punct.is_empty());
     }
 }

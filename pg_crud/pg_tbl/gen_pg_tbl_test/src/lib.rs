@@ -1,13 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use macro_clippy_check_cmn::clippy_check;
-    use optml::Optml;
-    use proc_macro2::TokenStream as Ts2;
-    use quote::quote;
-    use token_patterns::AllowClippyArbitrarySrcItemOrdering;
     #[test]
     fn clippy() {
-        clippy_check(
+        macro_clippy_check_cmn::clippy_check(
             "gen_pg_tbl_test_cnt",
             "../pg_crud/pg_tbl/",
             r#"[dependencies]
@@ -25,20 +20,22 @@ pg_crud = {path = "../../../pg_crud", features = ["test-utils"]}
 optml = {path = "../../../optml"}
 "#,
             &{
-                #[derive(Optml)]
+                #[derive(optml::Optml)]
                 enum AddGenPgTblPk {
                     False,
                     True,
                 }
+                let allow_clippy_arbitrary_src_item_ordering =
+                    token_patterns::AllowClippyArbitrarySrcItemOrdering;
                 let gen_tbl_example_ts = |add_gen_pg_tbl_pk: AddGenPgTblPk| {
                     let mb_gen_pg_tbl_pk_ts = match add_gen_pg_tbl_pk {
-                        AddGenPgTblPk::False => Ts2::new(),
+                        AddGenPgTblPk::False => proc_macro2::TokenStream::new(),
                         AddGenPgTblPk::True => {
-                            quote! {#[gen_pg_tbl_pk]}
+                            quote::quote! {#[gen_pg_tbl_pk]}
                         }
                     };
-                    quote! {
-                        #AllowClippyArbitrarySrcItemOrdering
+                    quote::quote! {
+                        #allow_clippy_arbitrary_src_item_ordering
                         #[derive(Debug, Clone, Copy, optml::Optml)]
                         #[pg_crud::gen_pg_tbl_config{{
                             "cm_write_into_file": "False",
@@ -91,7 +88,7 @@ optml = {path = "../../../optml"}
                 };
                 let ts = gen_pg_tbl_src::gen_pg_tbl(gen_tbl_example_ts(AddGenPgTblPk::True));
                 let tbl_struct_ts = gen_tbl_example_ts(AddGenPgTblPk::False);
-                quote! {
+                quote::quote! {
                     #ts
                     #tbl_struct_ts
                 }
