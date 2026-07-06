@@ -79,7 +79,7 @@ scraper = { version = "=0.25.0", default-features = false, features = [
   "main",
   "errors",
 ] }
-regex = { version = "=1.12.2", default-features = false, features = [
+regex = { version = "=1.12.4", default-features = false, features = [
   "std",
   "perf",
   "unicode",
