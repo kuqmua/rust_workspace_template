@@ -6,7 +6,7 @@ const TREE_SEGMENT: &str = "/tree/";
 const BASE_GIT_COMMIT_LINK_LEN: usize = GITHUB_URL.len() + TREE_SEGMENT.len();
 const PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
     args = ["--always", "--abbrev=40"],
-    prefix = "https://github.com/kuqmua/tufa_project/tree/"
+    prefix = "https://github.com/kuqmua/rust_workspace_template/tree/"
 );
 pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
     commit: git_version::git_version!(args = ["--always", "--abbrev=40"]),

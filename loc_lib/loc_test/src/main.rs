@@ -2,10 +2,10 @@
 // eo_loc_field: {
 //     eo_display_with_serde_field: v
 // }
-// https://github.com/kuqmua/tufa_project/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
+// https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
 // impl display like this this
 // eo_loc_field
-// https://github.com/kuqmua/tufa_project/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
+// https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
 use loc_lib::{Location, ToErrString, loc, loc::Loc};
 use optml::Optml;
 use serde::{Deserialize, Serialize};

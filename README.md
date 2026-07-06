@@ -64,7 +64,7 @@ This workspace is intended to be built and linted with the latest Rust nightly t
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd tufa_project
+   cd rust_workspace_template
    ```
 
 2. Init submodules:

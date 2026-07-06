@@ -14,7 +14,7 @@ use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-pub const GITHUB_URL: &str = "https://github.com/kuqmua/tufa_project";
+pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
 naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["pk"],
     ["serde"],
