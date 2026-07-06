@@ -6,7 +6,7 @@
 - Disable default features unless required.
 - Prefer `std` over external crates.
 - Declare crates.io dependencies only in workspace.dependencies.
-- Use dependency.workspace = true for dependencies in workspace projects
+- Use `dep = { workspace = true }` for dependencies in workspace projects
 - Prefer borrowing over cloning, especially for large structures.
 - Use `Arc` only for cross-thread sharing.
 - Use `Mutex` only for interior mutability.
@@ -28,7 +28,7 @@
 - `expect()` messages must contain **8 first symbols from random UUID v4**.
 - Use abbreviations when creating names.
 - Use conrete crates types from crates.io in workspace Cargo.toml
-- Use `*CRATE NAME*.workspace = true` for workspace crates depoendencies in Cargo.toml
+- Use `crate_name = { workspace = true }` for workspace crates dependencies in Cargo.toml
 
 ## WHAT AGENT MUST NOT DO
 
