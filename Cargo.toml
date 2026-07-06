@@ -45,7 +45,6 @@ members = [
   "server_app_state",
   "server_config",
   "server_tbl_example",
-  "server_types",
   "tests",
   "to_err_string",
   "token_patterns",
