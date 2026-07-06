@@ -1,4 +1,6 @@
 use std::{panic::set_hook, sync::Once};
+// Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
+// prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: Once = Once::new();
 const PANIC_NO_LOCATION_MSG: &str = "panic occurred but can't get location information...";
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place

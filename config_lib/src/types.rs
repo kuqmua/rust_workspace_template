@@ -6,7 +6,6 @@ use std::{
     env,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
-    sync::OnceLock,
 };
 use strum_macros::{Display as StrumDisplay, EnumIter};
 const TRACING_LEVEL_PARSE_PAIRS: [(&str, TracingLevel); 5] = [
@@ -22,7 +21,6 @@ const SRC_PLACE_TYPE_ENV_VAR: &str = "SRC_PLACE_TYPE";
 const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as FromStr>::from_str(&v)";
 const SRC_PLACE_TYPE_FIX_MSG: &str =
     "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
-static DOTENV_INIT: OnceLock<()> = OnceLock::new();
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Default, Clone, Copy, EnumIter, Serialize, Deserialize, PartialEq, Eq, Optml)]
 pub enum TracingLevel {
@@ -73,11 +71,9 @@ impl SrcPlaceType {
     #[must_use]
     pub fn from_env_or_dflt() -> Self {
         let dflt = Self::default();
-        let _: &() = DOTENV_INIT.get_or_init(|| {
-            if let Err(er) = dotenv() {
-                eprintln!("dotenv() failed in SrcPlaceType::from_env_or_dflt: {er}");
-            }
-        });
+        if let Err(er) = dotenv() {
+            eprintln!("dotenv() failed in SrcPlaceType::from_env_or_dflt: {er}");
+        }
         let parsed = Self::parse_src_place_type_from_env_var(env::var(SRC_PLACE_TYPE_ENV_VAR));
         match parsed {
             Ok(v) => v,

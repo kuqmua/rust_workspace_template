@@ -7,12 +7,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
-    sync::OnceLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use utoipa::ToSchema;
-static SRC_PLACE_TYPE: OnceLock<SrcPlaceType> = OnceLock::new();
-static LOC_DISPLAY_TIMEZONE: OnceLock<Option<FixedOffset>> = OnceLock::new();
 const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
 const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -35,11 +32,9 @@ pub struct Loc {
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
 impl Loc {
-    #[allow(clippy::single_call_fn)] // shared cached offset accessor is reused by formatter and tests
-    fn loc_display_timezone() -> Option<&'static FixedOffset> {
-        LOC_DISPLAY_TIMEZONE
-            .get_or_init(|| FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS))
-            .as_ref()
+    #[allow(clippy::single_call_fn)] // shared offset accessor is reused by formatter and tests
+    const fn loc_display_timezone() -> Option<FixedOffset> {
+        FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS)
     }
     fn fmt_with_occr(
         &self,
@@ -66,7 +61,7 @@ impl Loc {
     fn datetime_with_tz(&self) -> Option<DateTime<FixedOffset>> {
         let epoch = UNIX_EPOCH.checked_add(self.duration)?;
         let offset = Self::loc_display_timezone()?;
-        Some(DateTime::<Utc>::from(epoch).with_timezone(offset))
+        Some(DateTime::<Utc>::from(epoch).with_timezone(&offset))
     }
     fn fmt_datetime(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.datetime_with_tz() {
@@ -116,10 +111,7 @@ pub struct StdTimeDuration {
 }
 impl Display for Loc {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        self.fmt_place(
-            *SRC_PLACE_TYPE.get_or_init(SrcPlaceType::from_env_or_dflt),
-            f,
-        )?;
+        self.fmt_place(SrcPlaceType::from_env_or_dflt(), f)?;
         f.write_str(" ")?;
         self.fmt_datetime(f)
     }

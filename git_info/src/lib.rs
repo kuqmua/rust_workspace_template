@@ -1,13 +1,17 @@
 pub use naming::GITHUB_URL;
 use optml::Optml;
 use serde_derive::{Deserialize, Serialize};
-use std::{borrow::Cow, sync::OnceLock};
+use std::borrow::Cow;
 const TREE_SEGMENT: &str = "/tree/";
 const BASE_GIT_COMMIT_LINK_LEN: usize = GITHUB_URL.len() + TREE_SEGMENT.len();
-static PROJECT_GIT_COMMIT_LINK: OnceLock<String> = OnceLock::new();
+const PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
+    args = ["--always", "--abbrev=40"],
+    prefix = "https://github.com/kuqmua/tufa_project/tree/"
+);
 pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
     commit: git_version::git_version!(args = ["--always", "--abbrev=40"]),
 };
+const PROJECT_GIT_COMMIT_ID: &str = PROJECT_GIT_INFO.commit;
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, Default, Optml)]
 pub struct ProjectGitInfo<'commit_lt> {
     pub commit: &'commit_lt str,
@@ -76,12 +80,9 @@ where
     src.get_git_commit_id_ref()
         .map_or_else(|| on_owned(src), on_ref)
 }
-const fn project_git_commit_id() -> &'static str {
-    PROJECT_GIT_INFO.commit
-}
 #[must_use]
 pub fn is_project_commit(commit_id: &str) -> bool {
-    commit_id == project_git_commit_id()
+    commit_id == PROJECT_GIT_COMMIT_ID
 }
 pub fn validate_project_commit(commit_id: &str) -> Result<(), &'static str> {
     if is_project_commit(commit_id) {
@@ -94,10 +95,8 @@ pub fn project_git_commit_link() -> String {
     project_git_commit_link_ref().to_owned()
 }
 #[must_use]
-pub fn project_git_commit_link_ref() -> &'static str {
+pub const fn project_git_commit_link_ref() -> &'static str {
     PROJECT_GIT_COMMIT_LINK
-        .get_or_init(|| build_git_commit_link(project_git_commit_id()))
-        .as_str()
 }
 #[must_use]
 pub fn git_commit_link(commit_id: &str) -> String {
@@ -108,13 +107,10 @@ pub fn git_commit_link_cow(commit_id: &str) -> Cow<'static, str> {
     if is_project_commit(commit_id) {
         return Cow::Borrowed(project_git_commit_link_ref());
     }
-    Cow::Owned(build_git_commit_link(commit_id))
-}
-fn build_git_commit_link(commit_id: &str) -> String {
     let cap = git_commit_link_capacity(commit_id);
     let mut output = String::with_capacity(cap);
     write_git_commit_link(&mut output, commit_id);
-    output
+    Cow::Owned(output)
 }
 #[allow(clippy::single_call_fn)] // shared writer keeps link assembly consistent across builders and tests
 fn write_git_commit_link(output: &mut String, commit_id: &str) {
@@ -129,9 +125,9 @@ pub const fn git_commit_link_capacity(commit_id: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::{
-        GITHUB_URL, GetGitCommitId, GetGitCommitLink as _, ProjectGitInfo, TREE_SEGMENT,
-        git_commit_link, git_commit_link_capacity, git_commit_link_cow, is_project_commit,
-        project_git_commit_id, project_git_commit_link, project_git_commit_link_ref,
+        GITHUB_URL, GetGitCommitId, GetGitCommitLink as _, PROJECT_GIT_COMMIT_ID, ProjectGitInfo,
+        TREE_SEGMENT, git_commit_link, git_commit_link_capacity, git_commit_link_cow,
+        is_project_commit, project_git_commit_link, project_git_commit_link_ref,
         validate_project_commit, with_git_commit_id_ref_or,
     };
     use std::{borrow::Cow, cell::Cell, ptr};
@@ -245,14 +241,14 @@ mod tests {
         assert_expected_git_commit_link(&link, "");
     }
     #[test]
-    fn git_commit_link_cow_borrows_cached_project_link_for_project_commit() {
-        let project_commit = project_git_commit_id();
+    fn git_commit_link_cow_borrows_static_project_link_for_project_commit() {
+        let project_commit = PROJECT_GIT_COMMIT_ID;
         let actual = git_commit_link_cow(project_commit);
         assert!(matches!(actual, Cow::Borrowed(v) if ptr::eq(v, project_git_commit_link_ref())));
     }
     #[test]
-    fn git_commit_link_uses_cached_project_link_for_project_commit() {
-        let project_commit = project_git_commit_id();
+    fn git_commit_link_uses_static_project_link_for_project_commit() {
+        let project_commit = PROJECT_GIT_COMMIT_ID;
         let actual = git_commit_link(project_commit);
         assert_eq!(actual, project_git_commit_link_ref());
     }
@@ -263,7 +259,7 @@ mod tests {
     }
     #[test]
     fn is_project_commit_returns_true_for_project_commit() {
-        assert!(is_project_commit(project_git_commit_id()));
+        assert!(is_project_commit(PROJECT_GIT_COMMIT_ID));
     }
     #[test]
     fn is_project_commit_returns_false_for_other_commit() {
@@ -271,7 +267,7 @@ mod tests {
     }
     #[test]
     fn validate_project_commit_returns_ok_for_project_commit() {
-        assert_eq!(validate_project_commit(project_git_commit_id()), Ok(()));
+        assert_eq!(validate_project_commit(PROJECT_GIT_COMMIT_ID), Ok(()));
     }
     #[test]
     fn validate_project_commit_returns_project_link_for_non_project_commit() {
@@ -281,20 +277,20 @@ mod tests {
         );
     }
     #[test]
-    fn validate_project_commit_reuses_cached_project_link_ref() {
+    fn validate_project_commit_reuses_static_project_link_ref() {
         let er = validate_project_commit("deadbeef").expect_err("46bc13a9");
-        let cached = project_git_commit_link_ref();
-        assert!(ptr::eq(er, cached));
+        let project_link = project_git_commit_link_ref();
+        assert!(ptr::eq(er, project_link));
     }
     #[test]
     fn project_git_commit_link_matches_project_commit() {
         assert_eq!(
             project_git_commit_link(),
-            expected_git_commit_link(project_git_commit_id())
+            expected_git_commit_link(PROJECT_GIT_COMMIT_ID)
         );
     }
     #[test]
-    fn project_git_commit_link_ref_is_cached_and_stable() {
+    fn project_git_commit_link_ref_is_static_and_stable() {
         let first = project_git_commit_link_ref();
         let second = project_git_commit_link_ref();
         assert_eq!(first, second);
@@ -349,7 +345,7 @@ mod tests {
     #[test]
     fn get_git_commit_link_cow_borrows_project_link_for_project_commit() {
         let git_info = ProjectGitInfo {
-            commit: project_git_commit_id(),
+            commit: PROJECT_GIT_COMMIT_ID,
         };
         let link = git_info.get_git_commit_link_cow();
         assert!(matches!(link, Cow::Borrowed(v) if ptr::eq(v, project_git_commit_link_ref())));
