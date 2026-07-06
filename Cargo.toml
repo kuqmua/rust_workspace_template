@@ -85,7 +85,7 @@ regex = { version = "=1.12.2", default-features = false, features = [
   "unicode",
 ] }
 convert_case = { version = "=0.10.0", default-features = false }
-uuid = { version = "=1.19.0", default-features = false, features = [
+uuid = { version = "=1.23.4", default-features = false, features = [
   "std",
   "serde",
   "v4",
