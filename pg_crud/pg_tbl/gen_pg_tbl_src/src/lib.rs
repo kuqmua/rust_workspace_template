@@ -10,23 +10,18 @@ use naming::{
     AsRefStrToScStr, AsRefStrToScTs, BeginSc, BindedQuerySc, BodyBytesSc, BodySc, BodySizeErUcc,
     BySc, CheckBodySizeSc, CheckBodySizeUcc, CmErVrtsSc, CmLogicSc, CmnErVrtsSc, CmnLogicSc,
     CmnRdIdsFromCoSc, CoErVrtsSc, CoLogicSc, ColSc, ColsSc, CommitSc, ConfigSc,
-    CrExtensionIfNotExistsPgJsonschemaUcc, CrExtensionIfNotExistsUuidOsspUcc,
-    CrIntoPgJsonOptVecWhLenEqSc, CrIntoPgJsonOptVecWhLenGreaterThanSc,
-    CrIntoPgTypeOptVecWhDimOneEqSc, CrQbSc, CrQpSc, CrSc, CrTblColQpSc, CrUcc, DeResUcc,
-    DesirableUcc, DfltSomeOneElMaxPageSizeSc, DfltSomeOneElMaxPageSizeUcc, DfltSomeOneElSc,
-    DfltSomeOneElUcc, DisplayPlusToTokens, DisplayToScStr, DloErVrtsSc, DloLogicSc, DmErVrtsSc,
-    DmLogicSc, ElSc, EndpointLocSc, ErSc, ExecutorAcquireSc, ExecutorSc, ExpectedResSc,
-    ExtraPrmsSc, FailedToGetResTextUcc, FalseSc, FromHSc, FutureSc, GenColQuealsVCommaUoQpSc,
-    GenPgTblPkSc, GenSelQpSc, GenWhenColIdThenVUmQpSc, HeaderContentTypeAppJsonNotFoundUcc,
-    HeadersSc, IdentCrDfltSc, IncrSc, IntoSerdeVersionSc, LocSc, NoFieldsProvidedUcc,
-    NotUnqFieldSc, NotUnqFieldUcc, NotUnqPkSc, NotUnqPkUcc, OptVecCrSc, OrderBySc, OrderByUcc,
-    OrderSc, PayloadSc, PayloadUcc, PgCrudSc, PgPoolForTokioSpawnSyncMoveSc, PgPoolSc, PgSc,
-    PgTypeOptVecWhGreaterThanTestSc, PgTypeUcc, PgUcc, PgnSc, PkQpSc, PkSc, PoolConnectionSc,
-    PoolSc, PrefixSc, PrepExtensionsSc, PrepPgSc, PrepPgTblSc, PrepPgUcc, PrmsSc, QbSc, QpErUcc,
-    QpSc, QpUcc, QuerySc, QueryStringSc, RdIdsAndCrIntoOptVecWhEqToJsonFieldSc,
-    RdIdsAndCrIntoPgJsonOptVecWhBtwnSc, RdIdsAndCrIntoPgJsonOptVecWhContainsElGreaterThanSc,
-    RdIdsAndCrIntoPgJsonOptVecWhContainsElRgxSc, RdIdsAndCrIntoPgJsonOptVecWhGreaterThanSc,
-    RdIdsAndCrIntoPgJsonOptVecWhInSc, RdIdsAndCrIntoPgJsonOptVecWhRgxSc,
+    CrExtensionIfNotExistsUuidOsspUcc, CrIntoPgTypeOptVecWhDimOneEqSc, CrQbSc, CrQpSc, CrSc,
+    CrTblColQpSc, CrUcc, DeResUcc, DesirableUcc, DfltSomeOneElMaxPageSizeSc,
+    DfltSomeOneElMaxPageSizeUcc, DfltSomeOneElSc, DfltSomeOneElUcc, DisplayPlusToTokens,
+    DisplayToScStr, DloErVrtsSc, DloLogicSc, DmErVrtsSc, DmLogicSc, ElSc, EndpointLocSc, ErSc,
+    ExecutorAcquireSc, ExecutorSc, ExpectedResSc, ExtraPrmsSc, FailedToGetResTextUcc, FalseSc,
+    FromHSc, FutureSc, GenColQuealsVCommaUoQpSc, GenPgTblPkSc, GenSelQpSc, GenWhenColIdThenVUmQpSc,
+    HeaderContentTypeAppJsonNotFoundUcc, HeadersSc, IdentCrDfltSc, IncrSc, IntoSerdeVersionSc,
+    LocSc, NoFieldsProvidedUcc, NotUnqFieldSc, NotUnqFieldUcc, NotUnqPkSc, NotUnqPkUcc, OptVecCrSc,
+    OrderBySc, OrderByUcc, OrderSc, PayloadSc, PayloadUcc, PgCrudSc, PgPoolForTokioSpawnSyncMoveSc,
+    PgPoolSc, PgSc, PgTypeOptVecWhGreaterThanTestSc, PgTypeUcc, PgUcc, PgnSc, PkQpSc, PkSc,
+    PoolConnectionSc, PoolSc, PrefixSc, PrepExtensionsSc, PrepPgSc, PrepPgTblSc, PrepPgUcc, PrmsSc,
+    QbSc, QpErUcc, QpSc, QpUcc, QuerySc, QueryStringSc, RdIdsAndCrIntoOptVecWhEqToFieldSc,
     RdIdsAndCrIntoVecWhEqUsingFieldsSc, RdIdsAndCrIntoWhEqSc,
     RdIdsAndTtIntoPgTypeOptWhGreaterThanSc, RdIdsIntoRdSc, RdIdsIntoTtSc, RdIdsIntoUpdSc, RdIdsSc,
     RdIdsUcc, RdIntoTtSc, RdUcc, ReqSc, ReqwestSc, ReqwestUcc, ResSc, ResTextSc, RmErVrtsSc,
@@ -50,7 +45,7 @@ use naming::{
 use optml::Optml;
 use panic_loc::panic_loc;
 use pg_crud_macros_cmn::{
-    AddOprtrUndrscr, ColPrmUndrscr, Dim, EqOrEqUsingFields, Import, IncrPrmUndrscr, IsQbMut,
+    AddOprtrUndrscr, ColPrmUndrscr, EqOrEqUsingFields, Import, IncrPrmUndrscr, IsQbMut,
     cmn_d_ts_builder, er_enum_d_ts_builder, gen_impl_de_for_struct_ts,
     gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts, gen_impl_pg_crud_dflt_some_one_el_ts,
     gen_impl_to_err_string_no_generics_ts, gen_opt_type_dcl_ts, gen_qp_er_write_into_buffer_ts,
@@ -100,14 +95,10 @@ use token_patterns::{
 //todo add transaction isolation level (see pg docs)
 //todo check on pg max len value of type
 //todo in few cases rows affected is usefull. (upd del for example). if 0 afftected -mb its er? or mb use sel then upd\del?(rewrite query)
-//todo pg json schema validation https://youtu.be/F6X60ln2VNc
 //todo gen json schema from rust type https://docs.rs/schemars/laTest/schemars/
 //todo support rd tbl len
 //todo what is pub what is private
 //todo header Retry-After logic
-//todo pg json:
-//* write json schema in pg
-//* validate insert json field with json schema
 #[must_use]
 pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     #[allow(clippy::arbitrary_source_item_ordering)]
@@ -593,9 +584,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 loc: loc_lib::loc::Loc,
             };
             quote! {{
-                #CrExtensionIfNotExistsPgJsonschemaUcc {
-                    #ts
-                },
                 #CrExtensionIfNotExistsUuidOsspUcc {
                     #ts
                 },
@@ -621,12 +609,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let pub_async_fn_prep_extensions_ts = quote! {
             pub async fn #PrepExtensionsSc(#PoolSc: &sqlx::Pool<sqlx::Postgres>) -> Result<(), #ident_prep_pg_er_ucc> {
-                if let Err(er) = sqlx::query("create extension if not exists pg_jsonschema").execute(#PoolSc).await {
-                    return Err(#ident_prep_pg_er_ucc::#CrExtensionIfNotExistsPgJsonschemaUcc {
-                        er,
-                        loc: loc_lib::loc!()
-                    });
-                }
                 if let Err(er) = sqlx::query("create extension if not exists \"uuid-ossp\"").execute(#PoolSc).await {
                     return Err(#ident_prep_pg_er_ucc::#CrExtensionIfNotExistsUuidOsspUcc {
                         er,
@@ -3982,39 +3964,15 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let tbl_rd_ids_and_cr_into_wh_eq_name = "8e427ad7";
         let tbl_rd_ids_and_cr_into_vec_wh_eq_using_fields_name = "eb24448c";
-        let tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_name = "9ac6d79a";
+        let tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_name = "9ac6d79a";
         let tbl_cr_into_pg_type_opt_vec_wh_dim_one_eq_name = "72940b0e";
         let tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name = "5a52af33";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq_name = "1f388ef8";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq_name = "581c947f";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_name = "de556c26";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_name = "35b26a97";
-        let tbl_cr_into_pg_json_opt_vec_wh_len_eq_name = "1ce53b67";
-        let tbl_cr_into_pg_json_opt_vec_wh_len_greater_than_name = "6b6bdfe0";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than_name = "35a01678";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn_name = "33a3706a";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_in_name = "a3e2165c";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx_name = "427ac837";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than_name = "fe3267a0";
-        let tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx_name = "b4504737";
         fill_tbl_fis_vec_ts(vec![
             &tbl_rd_ids_and_cr_into_wh_eq_name,
             &tbl_rd_ids_and_cr_into_vec_wh_eq_using_fields_name,
-            &tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_name,
+            &tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_name,
             &tbl_cr_into_pg_type_opt_vec_wh_dim_one_eq_name,
             &tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_name,
-            &tbl_cr_into_pg_json_opt_vec_wh_len_eq_name,
-            &tbl_cr_into_pg_json_opt_vec_wh_len_greater_than_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_in_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than_name,
-            &tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx_name,
         ]);
         let sel_dflt_all_with_max_page_size_cloned_clone_ts =
             quote! {sel_dflt_all_with_max_page_size_cloned.clone()};
@@ -4538,14 +4496,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     &quote! {"ee8d232d"},
                 )
             };
-            let gen_fi_ft_opt_vec_cr_flt_not_empty_or_vec_fi_dflt_ts = |fi: &Ident, ft: &Type| {
-                let ts = gen_ft_opt_vec_cr_ts(ft);
-                quote! {
-                    #ts
-                    .filter(|el_bba28182| !el_bba28182.is_empty())
-                    .unwrap_or_else(|| vec![ident_cr_dflt.#fi.clone()])
-                }
-            };
             let gen_rd_test_ts =
                 |test_name: &str,
                  gen_method_call_ts: &dyn Fn(&Ident, &Type) -> Ts2,
@@ -4718,8 +4668,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     ),
                 )
             };
-            let rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_ts = gen_rd_test_ts(
-                tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_name,
+            let rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts = gen_rd_test_ts(
+                tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_name,
                 &gen_ident_ft_opt_vec_cr_or_vec_ts,
                 &gen_ident_cr_cnt_el_ts,
                 &|el: &SynField| {
@@ -4728,7 +4678,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         &quote! {v_d5cd3c70},
                         &{
                             let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
-                            quote! {#ft_ts #RdIdsAndCrIntoOptVecWhEqToJsonFieldSc(
+                            quote! {#ft_ts #RdIdsAndCrIntoOptVecWhEqToFieldSc(
                                 rd_ids_from_co.#fi.clone().expect("65cef584"),
                                 ident_cr.#fi.clone()
                             )}
@@ -4781,182 +4731,14 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     )
                 },
             );
-            let (
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_ts,
-            ) = {
-                //todo if vec_cr is empty then do different logic (for uuid). now uuid Tested using one dflt case
-                let gen_ts = |test_name: &str, dim: &Dim| {
-                    let fn_ts = dim.rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_nbr_eq_sc();
-                    gen_rd_test_ts(
-                        test_name,
-                        &gen_fi_ft_opt_vec_cr_flt_not_empty_or_vec_fi_dflt_ts,
-                        &gen_ident_cr_cnt_el_ts,
-                        &|el: &SynField| {
-                            let fi = &el.ident;
-                            let ft = &el.type0;
-                            let ft_ts = gen_as_pg_type_test_cases_path_ts(ft);
-                            gen_if_let_some_ts(
-                                &quote! {v_bb67b871},
-                                &quote! {#ft_ts #fn_ts(
-                                    rd_ids_from_co.#fi.clone().expect("2ed000a5"),
-                                    ident_cr.#fi.clone()
-                                )},
-                                &gen_for_each_assert_eq_ts(
-                                    &quote! {v_bb67b871},
-                                    &quote! {el_3efa0bb4},
-                                    fi,
-                                ),
-                            )
-                        },
-                    )
-                };
-                (
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq_name,
-                        &Dim::One,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq_name,
-                        &Dim::Two,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_name,
-                        &Dim::Three,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_name,
-                        &Dim::Four,
-                    ),
-                )
-            };
-            let cr_into_pg_json_opt_vec_wh_len_eq_ts = gen_rd_test_ts(
-                tbl_cr_into_pg_json_opt_vec_wh_len_eq_name,
-                &gen_fi_ft_opt_vec_cr_flt_not_empty_or_vec_fi_dflt_ts,
-                &gen_ident_cr_cnt_el_ts,
-                &|el: &SynField| {
-                    let fi = &el.ident;
-                    gen_if_let_some_ts(
-                        &quote! {v_f825e068},
-                        &{
-                            let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
-                            quote! {#ft_ts #CrIntoPgJsonOptVecWhLenEqSc(
-                                ident_cr.#fi.clone()
-                            )}
-                        },
-                        &gen_for_each_assert_eq_ts(&quote! {v_f825e068}, &quote! {el_c09ef321}, fi),
-                    )
-                },
-            );
-            let cr_into_pg_json_opt_vec_wh_len_greater_than_ts = gen_rd_test_ts(
-                tbl_cr_into_pg_json_opt_vec_wh_len_greater_than_name,
-                &gen_fi_ft_opt_vec_cr_flt_not_empty_or_vec_fi_dflt_ts,
-                &gen_ident_cr_cnt_el_ts,
-                &|el: &SynField| {
-                    let fi = &el.ident;
-                    gen_if_let_some_ts(
-                        &quote! {v_cd4aa374},
-                        &{
-                            let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
-                            quote! {#ft_ts #CrIntoPgJsonOptVecWhLenGreaterThanSc(
-                                ident_cr.#fi.clone()
-                            )}
-                        },
-                        &gen_for_each_assert_eq_ts(&quote! {v_cd4aa374}, &quote! {el_527b546b}, fi),
-                    )
-                },
-            );
-            let (
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_in_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than_ts,
-                rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx_ts,
-            ) = {
-                let gen_ts = |tbl_name: &str, method_ts: &dyn ToTokens| {
-                    gen_rd_test_ts(
-                        tbl_name,
-                        &gen_fi_ft_opt_vec_cr_flt_not_empty_or_vec_fi_dflt_ts,
-                        &gen_ident_cr_cnt_el_ts,
-                        &|el: &SynField| {
-                            let fi = &el.ident;
-                            gen_if_let_some_ts(
-                                &quote! {v_0b85c066},
-                                &{
-                                    let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
-                                    quote! {#ft_ts #method_ts(
-                                        rd_ids_from_co.#fi.clone().expect("df01c8ac"),
-                                        ident_cr.#fi.clone()
-                                    )}
-                                },
-                                &{
-                                    let ts = gen_rd_ids_and_cr_into_wh_assert_eq_ts(&gen_fi_wh_ts(
-                                        fi,
-                                        &quote! {match el_feacc53b {
-                                            #import_ts SingleOrMultiple::Multiple(multiple) => multiple.into_vec().into_iter().collect(),
-                                            #import_ts SingleOrMultiple::Single(single) => std::iter::once(single).collect(),
-                                        }},
-                                    ));
-                                    quote! {
-                                        for el_feacc53b in v_0b85c066.into_vec() {
-                                            #ts
-                                        }
-                                    }
-                                },
-                            )
-                        },
-                    )
-                };
-                (
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhGreaterThanSc,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhBtwnSc,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_in_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhInSc,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhRgxSc,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhContainsElGreaterThanSc,
-                    ),
-                    gen_ts(
-                        tbl_rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx_name,
-                        &RdIdsAndCrIntoPgJsonOptVecWhContainsElRgxSc,
-                    ),
-                )
-            };
             quote! {
                 #test_rm_by_non_existent_pks_ts
                 #test_rm_by_eq_to_crd_pks_ts
                 #rd_ids_and_cr_into_wh_eq_ts
                 #rd_ids_and_cr_into_vec_wh_eq_using_fields_ts
-                #rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_ts
+                #rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts
                 #cr_into_pg_type_opt_vec_wh_dim_one_eq_ts
                 #rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_one_eq_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_two_eq_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_three_eq_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_four_eq_ts
-                #cr_into_pg_json_opt_vec_wh_len_eq_ts
-                #cr_into_pg_json_opt_vec_wh_len_greater_than_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_greater_than_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_btwn_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_in_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_rgx_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_greater_than_ts
-                #rd_ids_and_cr_into_pg_json_opt_vec_wh_contains_el_rgx_ts
             }
         };
         let ro_tests_ts = quote! {

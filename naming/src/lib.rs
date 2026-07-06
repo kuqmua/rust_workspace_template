@@ -113,19 +113,14 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     [
         "not", "unq", "id", "in", "json", "upd", "and", "del", "arrs"
     ],
-    ["gen", "jsonb", "set", "target"],
     ["all", "fields", "are", "none"],
     ["self"],
     ["cr", "qp"],
     ["cr", "qb"],
     ["sel", "qp"],
-    ["jsonb", "set", "accumulator"],
-    ["jsonb", "set", "target"],
-    ["jsonb", "set", "path"],
     ["col", "field"],
     ["col", "field", "for", "er", "msg"],
     ["fi"],
-    ["pg", "json"],
     ["cr"],
     ["dotenv"],
     ["std", "env", "var", "er"],
@@ -215,9 +210,7 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["nbr"],
     ["vec", "of"],
     ["arr", "of"],
-    ["jsonb", "obj"],
     ["with", "id"],
-    ["uuid", "uuid", "as", "nn", "jsonb", "string"],
     ["rgx"],
     ["dim", "one", "rgx"],
     ["dim", "two", "rgx"],
@@ -291,7 +284,6 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["all", "els", "eq"],
     ["contains", "el", "greater", "than"],
     ["all", "els", "greater", "than"],
-    ["cr", "extension", "if", "not", "exists", "pg", "jsonschema"],
     ["cr", "extension", "if", "not", "exists", "uuid", "ossp"],
     ["prep", "pg"],
     ["prep", "pg", "tbl"],
@@ -340,7 +332,6 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["normalize"],
     ["new"],
     ["try", "new"],
-    ["pg", "json", "test", "cases"],
     ["pg", "pool"],
     ["pg", "pool", "for", "tokio", "spawn", "sync", "move"],
     ["ident", "cr", "dflt"],
@@ -396,10 +387,7 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["opt", "vec", "cr"],
     ["rd", "ids", "to2", "dims", "vec", "rd", "inn"],
     [
-        "rd", "ids", "and", "cr", "into", "opt", "vec", "wh", "eq", "to", "json", "field"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "vec", "wh", "eq", "to", "json", "field"
+        "rd", "ids", "and", "cr", "into", "opt", "vec", "wh", "eq", "to", "field"
     ],
     [
         "cr", "into", "pg", "type", "opt", "vec", "wh", "dim", "one", "eq"
@@ -408,48 +396,12 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
         "rd", "ids", "and", "tt", "into", "pg", "type", "opt", "wh", "greater", "than"
     ],
     ["pg", "type", "opt", "vec", "wh", "greater", "than", "test"],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "dim", "one", "eq"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "dim", "two", "eq"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "dim", "three", "eq"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "dim", "four", "eq"
-    ],
     ["prep", "extensions"],
     ["tbl"],
     ["routes"],
     ["routes", "h"],
-    [
-        "cr", "into", "pg", "json", "opt", "vec", "wh", "len", "greater", "than"
-    ],
-    ["cr", "into", "pg", "json", "opt", "vec", "wh", "len", "eq"],
     ["from", "h"],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "greater", "than"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "btwn"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "in"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "rgx"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "contains", "el",
-        "greater", "than"
-    ],
-    [
-        "rd", "ids", "and", "cr", "into", "pg", "json", "opt", "vec", "wh", "contains", "el", "rgx"
-    ],
     ["executor", "acquire"],
-    ["gen", "pg", "json", "mod"],
     ["gen", "pg", "types", "mod"],
     ["to", "err", "string"],
     ["body", "size", "er"],

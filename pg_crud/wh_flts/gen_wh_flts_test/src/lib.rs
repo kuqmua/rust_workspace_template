@@ -25,7 +25,6 @@ test-utils = []"#,
                 gen_wh_flts_src::gen_wh_flts(&quote! {
                     {
                         "pg_types_write_into_file": "False",
-                        "pg_json_write_into_file": "False",
                         "whole_write_into_file": "False"
                     }
                 })

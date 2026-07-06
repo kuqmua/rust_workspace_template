@@ -14,15 +14,6 @@ mod tbl_example_gen_pg_tbl_mod {
         pub async fn prep_extensions(
             pool: &sqlx::Pool<sqlx::Postgres>,
         ) -> Result<(), TblExamplePrepPgEr> {
-            if let Err(er) = sqlx::query("create extension if not exists pg_jsonschema")
-                .execute(pool)
-                .await
-            {
-                return Err(TblExamplePrepPgEr::CrExtensionIfNotExistsPgJsonschema {
-                    er,
-                    loc: loc_lib::loc!(),
-                });
-            }
             if let Err(er) = sqlx::query("create extension if not exists \"uuid-ossp\"")
                 .execute(pool)
                 .await
@@ -6083,11 +6074,6 @@ mod tbl_example_gen_pg_tbl_mod {
     }
     #[derive(Debug, thiserror :: Error, loc_lib :: Location)]
     pub enum TblExamplePrepPgEr {
-        CrExtensionIfNotExistsPgJsonschema {
-            #[eo_to_err_string]
-            er: sqlx::Error,
-            loc: loc_lib::loc::Loc,
-        },
         CrExtensionIfNotExistsUuidOssp {
             #[eo_to_err_string]
             er: sqlx::Error,

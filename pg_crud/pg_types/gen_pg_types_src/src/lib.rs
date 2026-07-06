@@ -35,8 +35,8 @@ use pg_crud_macros_cmn::{
     DefaultSomeOneOrDefaultSomeOneWithMaxPageSize, DeriveOrImpl, EqOprtrH, Import, IncrPrmUndrscr,
     IsCrQbMut, IsNl, IsPkUndrscr, IsQbMut, IsSelOnlyUpddIdsQbMut, IsStdrtNn, IsUpdQbMut, PgFlt,
     PgTypeFlt, RdOrUpd, SelQpValueUndrscr, ShouldDSchemarsJsonSchema, ShouldDeriveUtoipaToSchema,
-    UpdQpJsonbSetAccumulatorUndrscr, UpdQpJsonbSetPathUndrscr, UpdQpJsonbSetTargetUndrscr,
-    UpdQpValueUndrscr, gen_dim_nbr_pgn_ts, gen_impl_crate_is_string_empty_for_ident_ts,
+    UpdQpAccumulatorUndrscr, UpdQpPathUndrscr, UpdQpTargetUndrscr, UpdQpValueUndrscr,
+    gen_dim_nbr_pgn_ts, gen_impl_crate_is_string_empty_for_ident_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_ts, gen_impl_pg_type_not_pk_for_ident_ts,
     gen_impl_pg_type_test_cases_for_ident_ts, gen_impl_pg_type_ts,
@@ -445,7 +445,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde::Deserialize, Optml)]
-    struct GenPgJsonsConfig {
+    struct GenPgTypesConfig {
         vrt: GenPgTypesConfigVrt,
         pg_tbl_cols_write_into_file: ShouldWriteTsIntoFile,
         whole_write_into_file: ShouldWriteTsIntoFile,
@@ -572,10 +572,10 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         }
     }
     panic_loc();
-    let gen_pg_json_config = match from_str::<GenPgJsonsConfig>(&input_ts.to_string()) {
+    let gen_pg_types_config = match from_str::<GenPgTypesConfig>(&input_ts.to_string()) {
         Ok(v) => v,
         Err(er) => {
-            let msg = format!("failed to parse GenPgJsonsConfig: {er}");
+            let msg = format!("failed to parse GenPgTypesConfig: {er}");
             return quote! { compile_error!(#msg); };
         }
     };
@@ -642,7 +642,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 acc0
             })
         };
-        let acc = match gen_pg_json_config.vrt {
+        let acc = match gen_pg_types_config.vrt {
             GenPgTypesConfigVrt::All | GenPgTypesConfigVrt::WithDimOne => gen_vrts(true, None),
             GenPgTypesConfigVrt::WithoutDims => gen_vrts(false, None),
             GenPgTypesConfigVrt::Subset(types) => gen_vrts(true, Some(&types)),
@@ -3667,7 +3667,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
             let sel_only_ids_and_sel_only_updd_ids_query_cmn_ts = {
                 let format_ts = dq_ts(&{
                     let col_comma = "{col},";
-                    if matches!(&is_nn_stdrt_can_be_pk, IsNnStdrtCanBePk::True) { col_comma.to_owned() } else { format!("'{{{{\\\"v\\\": null}}}}'::jsonb as {col_comma}") }
+                    col_comma.to_owned()
                 });
                 quote! {Ok(format!(#format_ts))}
             };
@@ -4118,9 +4118,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 &ident_upd_ucc,
                 &ident_upd_for_query_ucc,
                 &UpdQpValueUndrscr::True,
-                &UpdQpJsonbSetAccumulatorUndrscr::True,
-                &UpdQpJsonbSetTargetUndrscr::True,
-                &UpdQpJsonbSetPathUndrscr::True,
+                &UpdQpAccumulatorUndrscr::True,
+                &UpdQpTargetUndrscr::True,
+                &UpdQpPathUndrscr::True,
                 &typical_qp_ts,
                 &IsUpdQbMut::True,
                 &typical_qb_ts,
@@ -4928,7 +4928,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                     #rd_ids_and_cr_into_wh_eq_ts
                 ]).expect("4c08b551")
             };
-            let rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_ts: Option<Ts2> = None;
+            let rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<Ts2> = None;
             let cr_into_pg_type_opt_vec_wh_dim_one_eq_ts: Option<Ts2> = match &pg_type_pattern {
                 PgTypePattern::Stdrt => None,
                 PgTypePattern::ArrDim1 { dim1_is_nl } => Some({
@@ -5289,22 +5289,10 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 &rd_ids_and_cr_into_tt_ts,
                 &rd_ids_and_cr_into_wh_eq_ts,
                 &rd_ids_and_cr_into_vec_wh_eq_using_fields_ts,
-                rd_ids_and_cr_into_opt_vec_wh_eq_to_json_field_ts.as_ref(),
+                rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts.as_ref(),
                 cr_into_pg_type_opt_vec_wh_dim_one_eq_ts.as_ref(),
                 pg_type_opt_vec_wh_greater_than_test_ts.as_ref(),
                 rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts.as_ref(),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
             )
         };
         let mb_impl_pg_type_pk_for_ident_stdrt_nn_if_can_be_pk_ts = if matches!(&is_nn_stdrt_can_be_pk, IsNnStdrtCanBePk::True) {
@@ -5369,7 +5357,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     .collect::<(Vec<String>, Vec<String>)>();
     let parse_strs_to_ts2_vec = pg_crud_macros_cmn::parse_strs_to_ts2_vec;
     mb_write_ts_into_file(
-        gen_pg_json_config.pg_tbl_cols_write_into_file,
+        gen_pg_types_config.pg_tbl_cols_write_into_file,
         "pg_tbl_cols_using_pg_types",
         &{
             let ts = parse_strs_to_ts2_vec(cols_ts, "79ee6381");
@@ -5386,7 +5374,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         pg_crud_macros_cmn::gen_mod_with_pub_use_ts(&GenPgTypesModSc, &ts)
     };
     mb_write_ts_into_file(
-        gen_pg_json_config.whole_write_into_file,
+        gen_pg_types_config.whole_write_into_file,
         "gen_pg_types",
         &generated,
         &FormatWithCargofmt::True,

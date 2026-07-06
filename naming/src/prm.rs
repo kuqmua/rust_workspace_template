@@ -22,7 +22,6 @@ naming_macros::gen_self_ucc_and_sc_str_and_ts!([
     ["std", "opt", "opt", "self", "wh"],
     ["self", "nn"],
     ["pg", "type", "wh", "self"],
-    ["pg", "json", "wh", "self"],
     ["self", "tt"],
     ["self", "orgn"],
     ["self", "sel", "el"],
@@ -44,7 +43,6 @@ naming_macros::gen_self_ucc_and_sc_str_and_ts!([
     ["self", "rd", "ids", "h"],
     ["self", "last"],
     ["self", "crnt"],
-    ["jsonb", "self"],
     ["self", "cr", "for", "query"],
     ["self", "upd", "for", "query", "el"],
     ["self", "dm", "prms"],
@@ -64,6 +62,5 @@ naming_macros::gen_self_ucc_and_sc_str_and_ts!([
     [
         "self", "rd", "ids", "to2", "dims", "vec", "rd", "inn", "acc"
     ],
-    ["self", "gen", "pg", "json", "obj", "mod"],
     ["self", "gen", "pg", "tbl", "mod"]
 ]);

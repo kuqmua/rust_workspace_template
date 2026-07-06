@@ -14,8 +14,7 @@ services:
   #     TIMEZONE: "10800"
   #     TRACING_LEVEL: "debug"
   postgres16:
-  # image build from https://github.com/kuqmua/pg_jsonschema_custom
-    image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema
+    image: postgres:16
     container_name: postgres16
     restart: always
     ports:
