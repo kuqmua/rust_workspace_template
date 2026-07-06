@@ -901,6 +901,32 @@ mod tests {
             collect_non_workspace_dep_ers,
         );
     }
+    #[test]
+    fn workspace_dependencies_use_inline_table_style() {
+        let rgx =
+            Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$").expect("ac15d6b9");
+        let mut ers = Vec::new();
+        for_each_cargo_toml_project_file(&[], |path| {
+            let v = read_to_string(path).expect("762c1d9e");
+            for mtch in rgx.find_iter(&v) {
+                let line_nbr = v
+                    .bytes()
+                    .take(mtch.start())
+                    .filter(|byte| *byte == b'\n')
+                    .count()
+                    .saturating_add(1);
+                ers.push(format!(
+                    "{}:{line_nbr} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
+                    path.display()
+                ));
+            }
+        });
+        assert_joined_ers_empty_with_ctx(
+            &ers,
+            "d7a3c5b1",
+            "dotted workspace dependency style found:",
+        );
+    }
     #[allow(clippy::single_call_fn)] // shared collector keeps workspace-dependency policy checks reusable and centralized
     fn collect_non_workspace_dep_ers(path: &Path, parsed: &TomlTable, ers: &mut Vec<String>) {
         for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
@@ -931,7 +957,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
     fn workspace_dep_entry_er(path: &Path, dep_name: &str, dep_section: &str) -> String {
         format!(
-            "{}: dependency `{dep_name}` in [{dep_section}] must use `.workspace = true` (only `path = ...` is allowed as exception)",
+            "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}` (only `path = ...` is allowed as exception)",
             path.display(),
         )
     }
