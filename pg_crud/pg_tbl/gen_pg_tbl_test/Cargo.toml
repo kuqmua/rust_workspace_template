@@ -13,10 +13,10 @@ edition = "2024"
 [dev-dependencies]
 proc-macro2.workspace = true
 quote.workspace = true
-gen_pg_tbl_src = {path = "../gen_pg_tbl_src"}
-macro_clippy_check_cmn = {path = "../../../macro_clippy_check_cmn"}
-token_patterns = {path = "../../../token_patterns"}
-optml = {path = "../../../optml"}
+gen_pg_tbl_src.workspace = true
+macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
+token_patterns.workspace = true
+optml.workspace = true
 
 [lints]
 workspace = true

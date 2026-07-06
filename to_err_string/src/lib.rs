@@ -104,10 +104,16 @@ impl_to_err_string_const!(
     SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultEr",
     SetLoggerError => "tracing::log::SetLoggerError",
 );
-fn debug_alt_to_string<T: Debug>(v: &T) -> String {
+fn debug_alt_to_string<T>(v: &T) -> String
+where
+    T: Debug,
+{
     format!("{v:#?}")
 }
-fn debug_to_string<T: Debug>(v: &T) -> String {
+fn debug_to_string<T>(v: &T) -> String
+where
+    T: Debug,
+{
     format!("{v:?}")
 }
 fn as_ref_str_to_owned<T>(v: &T) -> String

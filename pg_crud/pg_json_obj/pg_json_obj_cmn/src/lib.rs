@@ -139,7 +139,10 @@ impl<T> From<UnqVec<T>> for Vec<T> {
     }
 }
 impl<T1> UnqVec<T1> {
-    pub fn from_t1_impl_from_t2<T2: From<T1>>(v: Self) -> UnqVec<T2> {
+    pub fn from_t1_impl_from_t2<T2>(v: Self) -> UnqVec<T2>
+    where
+        T2: From<T1>,
+    {
         UnqVec(v.0.into_iter().map(T2::from).collect::<Vec<T2>>())
     }
 }

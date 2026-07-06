@@ -2645,7 +2645,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     let incr_init_ts = quote! {let mut #IncrSc: u64 = 0;};
                     let col_names_dq_ts = dq_ts(&{
                         let mut acc = fields.iter().fold(String::default(), |mut acc0, el| {
-                            assert!(write!(acc0, "{}", &el.ident).is_ok(), "b9fe50dc");
+                            assert!(write!(acc0, "{}", el.ident).is_ok(), "b9fe50dc");
                             acc0.push(',');
                             acc0
                         });
@@ -3690,7 +3690,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let oprtr_ts = quote! {#import_ts Oprtr::};
         (quote! {#oprtr_ts Or}, quote! {#oprtr_ts And})
     };
-    let ident_tests_ts = {
+    let generated_ident_tests_ts = {
         fn gen_assert_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens) -> Ts2 {
             quote! {assert!(#ts0,#ts1);}
         }
@@ -5807,9 +5807,13 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     mb_write_ts_into_file(
         gen_pg_tbl_config.tests_write_into_file,
         "gen_pg_tbl_Tests",
-        &ident_tests_ts,
+        &generated_ident_tests_ts,
         &FormatWithCargofmt::True,
     );
+    let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
+        ShouldWriteTsIntoFile::False => Ts2::new(),
+        ShouldWriteTsIntoFile::True => generated_ident_tests_ts,
+    };
     let cmn_ts = quote! {
         #ident_prep_pg_er_ts
         #ident_cr_ts

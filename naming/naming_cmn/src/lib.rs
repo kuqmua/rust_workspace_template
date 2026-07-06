@@ -74,11 +74,17 @@ where
 fn case_from_string(v: &str, case: Case<'_>) -> String {
     str_case(v, case)
 }
-fn display_case_str<T: Display>(v: &T, case: Case<'_>) -> String {
+fn display_case_str<T>(v: &T, case: Case<'_>) -> String
+where
+    T: Display,
+{
     let stringified = v.to_string();
     case_from_string(&stringified, case)
 }
-fn tokenized_case_str<T: ToTokens>(v: &T, case: Case<'_>) -> String {
+fn tokenized_case_str<T>(v: &T, case: Case<'_>) -> String
+where
+    T: ToTokens,
+{
     let tokenized = quote! {#v}.to_string();
     case_from_string(&tokenized, case)
 }

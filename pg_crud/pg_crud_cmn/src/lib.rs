@@ -897,7 +897,7 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
             }
         }
         let _: Option<char> = acc.pop();
-        Ok(format!("{}({acc})", &self.oprtr.to_qp(add_oprtr)))
+        Ok(format!("{}({acc})", self.oprtr.to_qp(add_oprtr)))
     }
 }
 impl<T: Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl for PgTypeWh<T> {
@@ -1224,7 +1224,10 @@ impl<T> From<NotEmptyUnqVec<T>> for Vec<T> {
     }
 }
 impl<T1> NotEmptyUnqVec<T1> {
-    pub fn from_t1_impl_from_t2<T2: From<T1>>(v: Self) -> NotEmptyUnqVec<T2> {
+    pub fn from_t1_impl_from_t2<T2>(v: Self) -> NotEmptyUnqVec<T2>
+    where
+        T2: From<T1>,
+    {
         NotEmptyUnqVec(v.0.into_iter().map(T2::from).collect::<Vec<T2>>())
     }
 }
@@ -1624,7 +1627,10 @@ pub fn uuid_uuid_test_cases_vec() -> [Uuid; 1] {
     [Uuid::new_v4()]
 }
 #[must_use]
-pub fn first_duplicate_idx<T: PartialEq>(values: &[T]) -> Option<usize> {
+pub fn first_duplicate_idx<T>(values: &[T]) -> Option<usize>
+where
+    T: PartialEq,
+{
     for (idx, current) in values.iter().enumerate() {
         if values.iter().take(idx).any(|prev| prev == current) {
             return Some(idx);
@@ -1633,7 +1639,10 @@ pub fn first_duplicate_idx<T: PartialEq>(values: &[T]) -> Option<usize> {
     None
 }
 #[must_use]
-pub fn take_fst_dup<T: PartialEq>(values: &mut Vec<T>) -> Option<T> {
+pub fn take_fst_dup<T>(values: &mut Vec<T>) -> Option<T>
+where
+    T: PartialEq,
+{
     let duplicate_idx = first_duplicate_idx(values.as_slice())?;
     Some(values.swap_remove(duplicate_idx))
 }

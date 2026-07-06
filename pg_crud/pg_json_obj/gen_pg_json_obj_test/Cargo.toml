@@ -12,8 +12,8 @@ edition = "2024"
 
 [dev-dependencies]
 quote.workspace = true
-gen_pg_json_obj_src = {path = "../gen_pg_json_obj_src"}
-macro_clippy_check_cmn = {path = "../../../macro_clippy_check_cmn"}
+gen_pg_json_obj_src.workspace = true
+macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 
 [lints]
 workspace = true

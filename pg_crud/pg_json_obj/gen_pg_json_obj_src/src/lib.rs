@@ -84,6 +84,13 @@ use types::{
 };
 //todo gen authorization rights enum for json fields
 //todo bug in upd if updating arr and creating el in jsonb arr without anything - rd_ids generation logic of vec returns wrong query part
+fn generated_expect_message_literal(
+    prefix: &str,
+    generated_index: usize,
+    field_index: usize,
+) -> proc_macro2::Literal {
+    proc_macro2::Literal::string(&format!("{prefix}{generated_index:02x}{field_index:02x}"))
+}
 #[must_use]
 pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
     panic_loc();
@@ -3965,18 +3972,20 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                             let dq_ts0 = dq_ts(&format!("'{{fi}}',{},", gen_jsonb_build_obj_v(&gen_jsonb_agg_by_id(&"{}", &"{}", &"{}"))));
                             let dq_ts1 = dq_ts(&gen_jsonb_build_obj_v(&"{acc_0f2b92d0}"));
                             quote!{
+                                let v_f391cb72 = {
+                                    let mut acc_0f2b92d0 = #StringTs::new();
+                                    for el in &#VSc.0 {
+                                        #(#ts)*
+                                    }
+                                    let _: Option<char> = acc_0f2b92d0.pop();
+                                    let _: Option<char> = acc_0f2b92d0.pop();
+                                    format!(#dq_ts1)
+                                };
+                                let v_492fdc61 = format!("{col_field}->'{fi}'");
                                 Ok(format!(
                                     #dq_ts0,
-                                    {
-                                        let mut acc_0f2b92d0 = #StringTs::new();
-                                        for el in &#VSc.0 {
-                                            #(#ts)*
-                                        }
-                                        let _: Option<char> = acc_0f2b92d0.pop();
-                                        let _: Option<char> = acc_0f2b92d0.pop();
-                                        format!(#dq_ts1)
-                                    },
-                                    &format!("{col_field}->'{fi}'"),
+                                    v_f391cb72,
+                                    v_492fdc61,
                                     {
                                         let mut acc_44b1f772 = #StringTs::new();
                                         for _ in &#VSc.0 {
@@ -4011,14 +4020,14 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                 &quote!{acc_857ce631, "${v_7f11bec0},"},
                                 &return_err_qp_er_write_into_buffer_ts
                             );
-                            let dq_ts0 = dq_ts(&format!("'{{fi}}',{},", gen_jsonb_build_obj_v(&"{}")));
+                            let dq_ts0 = dq_ts(&format!("'{{fi}}',{},", gen_jsonb_build_obj_v(&"{v_63f0c5a8}")));
                             let dq_ts1 = dq_ts(&gen_jsonb_build_obj_v(&gen_jsonb_agg_by_id(&"{}", &"{}", &"{}")));
                             let dq_ts2 = dq_ts(&gen_jsonb_build_obj_v(&"{acc_1a91bdc7}"));
                             quote!{
-                                Ok(format!(
-                                    #dq_ts0,
-                                    match &#VSc.0 {
-                                        Some(v_3c415c92) => format!(
+                                let v_63f0c5a8 = match &#VSc.0 {
+                                    Some(v_3c415c92) => {
+                                        let v_387ee0bc = format!("{col_field}->'{fi}'");
+                                        format!(
                                             #dq_ts1,
                                             {
                                                 let mut acc_1a91bdc7 = #StringTs::new();
@@ -4029,7 +4038,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                 let _: Option<char> = acc_1a91bdc7.pop();
                                                 format!(#dq_ts2)
                                             },
-                                            &format!("{col_field}->'{fi}'"),
+                                            v_387ee0bc,
                                             {
                                                 let mut acc_857ce631 = #StringTs::new();
                                                 for _ in &v_3c415c92.0 {
@@ -4039,16 +4048,17 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                         },
                                                         Err(#ErSc) => {
                                                             return Err(#ErSc);
-                                                        },
+                                                        }
                                                     }
                                                 }
                                                 let _: Option<char> = acc_857ce631.pop();
                                                 acc_857ce631
                                             }
-                                        ),
-                                        None => pg_crud::NULL_JSONB.to_owned(),
-                                    }
-                                ))
+                                        )
+                                    },
+                                    None => pg_crud::NULL_JSONB.to_owned(),
+                                };
+                                Ok(format!(#dq_ts0))
                             }
                         },
                     },
@@ -4770,9 +4780,10 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                     }
                                 }
                             });
-                            let struct_fields_ts = vec_syn_field.iter().map(|el0| {
+                            let struct_fields_ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
-                                quote! {#fi: #fi.expect("106f16f2")}
+                                let expect_message = generated_expect_message_literal("p106", i, field_index);
+                                quote! {#fi: #fi.expect(#expect_message)}
                             });
                             let ts0 = gen_v_init_ts0(&quote!{
                                 #ident_rd_ids_h_ucc{
@@ -4849,11 +4860,12 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                             });
                             let ts1 = gen_v_init_ts0(&{
                                 let uuid_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&uuid_uuid_as_nn_jsonb_string_ts);
-                                let fields_ts = vec_syn_field.iter().map(|el0| {
+                                let fields_ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                     let fi = &el0.ident;
                                     let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                    let expect_message = generated_expect_message_literal("pa3e", i, field_index);
                                     quote! {
-                                        #fi: #ft_as_pg_json_test_cases_ts::#UpdToRdIdsSc(&#fi.expect("a3ec7cae"))
+                                        #fi: #ft_as_pg_json_test_cases_ts::#UpdToRdIdsSc(&#fi.expect(#expect_message))
                                     }
                                 });
                                 quote!{
@@ -4972,11 +4984,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                         }
                     }
                 });
-                let gen_struct_init_ts = |fn0: &dyn Fn(&dyn ToTokens) -> Ts2|{
-                    let ts = vec_syn_field.iter().map(|el0| {
+                let gen_struct_init_ts = |fn0: &dyn Fn(&dyn ToTokens, usize) -> Ts2|{
+                    let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                         let fi = &el0.ident;
                         let ts0 = gen_v_init_ts0(&{
-                            let ts = fn0(&fi);
+                            let ts = fn0(&fi, field_index);
                             let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
                             quote!{
                                 #ft_as_pg_json_test_cases_ts::previous_rd_and_opt_upd_into_rd(
@@ -5014,9 +5026,10 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                 match &is_nl {
                     IsNl::False => match &pattern {
                         Pattern::Stdrt => {
-                            let struct_init_ts = gen_struct_init_ts(&|ts: &dyn ToTokens|{
+                            let struct_init_ts = gen_struct_init_ts(&|ts: &dyn ToTokens, field_index: usize|{
+                                let expect_message = generated_expect_message_literal("pa2d", i, field_index);
                                 quote!{
-                                    #RdSc.#ts.expect("a2d26e36").#VSc
+                                    #RdSc.#ts.expect(#expect_message).#VSc
                                 }
                             });
                             quote!{
@@ -5037,9 +5050,10 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                             }
                         },
                         Pattern::Arr => {
-                            let struct_init_ts = gen_struct_init_ts(&|ts: &dyn ToTokens|{
+                            let struct_init_ts = gen_struct_init_ts(&|ts: &dyn ToTokens, field_index: usize|{
+                                let expect_message = generated_expect_message_literal("p2e8", i, field_index);
                                 quote!{
-                                    found_rd_el.#ts.expect("2e8229f7").#VSc
+                                    found_rd_el.#ts.expect(#expect_message).#VSc
                                 }
                             });
                             quote! {
@@ -5084,6 +5098,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
             let rd_ids_and_cr_into_rd_ts = {
                 let gen_nl_ts = |nl_rd_ident_ts: &dyn ToTokens, ts: &dyn ToTokens|{
                     let nl_rd_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&nl_rd_ident_ts);
+                    let expect_message = generated_expect_message_literal("p56a", i, 0);
                     quote! {
                         #ident_rd_ucc::new(
                             match (#RdIdsSc.0.#VSc, #CrSc.0) {
@@ -5092,7 +5107,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                         #nl_rd_pg_json_test_cases_ts::#RdIdsAndCrIntoOptVRdSc(
                                             rd_ids_2b2ab8a1,
                                             cr_4a1adaa3
-                                        ).expect("56ac4450").#VSc #ts
+                                        ).expect(#expect_message).#VSc #ts
                                     )
                                 },
                                 (Some(_), None) => panic!("75be9ae0"),
@@ -5472,19 +5487,21 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                         }
                     },
                 };
+                let expect_message = generated_expect_message_literal("pba9", i, 0);
                 quote!{
                     #import::NotEmptyUnqVec::try_new(vec![
                         #ts
-                    ]).expect("ba9c52c1")
+                    ]).expect(#expect_message)
                 }
             };
             let rd_ids_and_cr_into_vec_wh_eq_to_json_field_ts = match &pattern {
                 Pattern::Stdrt => match &is_nl {
                     IsNl::False => {
-                        let ts = vec_syn_field.iter().map(|el0| {
+                        let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                             let fi = &el0.ident;
                             let fi_ucc = &ToTokensToUccTs::case_or_panic(&fi);
                             let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                            let expect_message = generated_expect_message_literal("p0c6", i, field_index);
                             quote! {
                                 for el_d830c061 in #ft_as_pg_json_test_cases_ts::#RdIdsAndCrIntoVecWhEqToJsonFieldSc(
                                     #RdIdsSc.0.#VSc.#fi,
@@ -5493,12 +5510,12 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                     acc_89ec072c.push(
                                         #ident_wh_ucc::#fi_ucc(
                                             #import::PgTypeWh::try_new(
-                                                #import::Oprtr::Or,
-                                                vec![el_d830c061],
-                                            )
-                                            .expect("0c6ccad1"),
+                                            #import::Oprtr::Or,
+                                            vec![el_d830c061],
                                         )
-                                    );
+                                            .expect(#expect_message),
+                                    )
+                                );
                                 }
                             }
                         });
@@ -5608,10 +5625,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                     match &pattern {
                         Pattern::Stdrt => match &is_nl {
                             IsNl::False => {
-                                let ts = vec_syn_field.iter().map(|el0| {
+                                let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                     let fi = &el0.ident;
                                     let fi_ucc = &ToTokensToUccTs::case_or_panic(&fi);
                                     let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                    let expect_message = generated_expect_message_literal("p9a2", i, field_index);
                                     quote! {
                                         if let Some(v_2bbd2c96) = #ft_as_pg_json_test_cases_ts::#rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_nbr_eq_sc(
                                             #RdIdsSc.0.#VSc.#fi,
@@ -5623,7 +5641,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                         #import::PgTypeWh::try_new(
                                                             #import::Oprtr::And,
                                                             vec![el]
-                                                        ).expect("9a25e058")
+                                                        ).expect(#expect_message)
                                                     )
                                                 );
                                             }
@@ -5658,10 +5676,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                         Pattern::Arr => match &is_nl {
                             IsNl::False => {
                                 let arr_el_wh_push_ts = {
-                                    let per_field_wh_ts = vec_syn_field.iter().map(|el0| {
+                                    let per_field_wh_ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                         let fi = &el0.ident;
                                         let el_fi_ucc = ElSelfUcc::from_tokens(&fi);
                                         let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                        let expect_message = generated_expect_message_literal("p1f7", i, field_index);
                                         quote! {
                                             if let Some(v_bf84026e) = #ft_as_pg_json_test_cases_ts::#rd_ids_and_cr_into_pg_json_opt_vec_wh_dim_nbr_eq_sc(
                                                 rd_ids_420d38ca.0.#VSc.#fi.clone(),
@@ -5672,7 +5691,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                         #import::PgTypeWh::try_new(
                                                             #import::Oprtr::And,
                                                             vec![el]
-                                                        ).expect("1f7ae335")
+                                                        ).expect(#expect_message)
                                                     );
                                                     if !acc_dd377eb1.contains(&v_592e6b5f) {
                                                         acc_dd377eb1.push(v_592e6b5f);
@@ -5819,10 +5838,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                 match &pattern {
                     Pattern::Stdrt => match &is_nl {
                         IsNl::False => {
-                            let ts = vec_syn_field.iter().map(|el0| {
+                            let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let fi_ucc = &ToTokensToUccTs::case_or_panic(&fi);
                                 let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                let expect_message = generated_expect_message_literal("p2f4", i, field_index);
                                 quote! {
                                     if let Some(v_927601a4) = #ft_as_pg_json_test_cases_ts::#CrIntoPgJsonOptVecWhLenEqSc(
                                         #CrSc.#fi
@@ -5833,7 +5853,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                     #import::PgTypeWh::try_new(
                                                         #import::Oprtr::And,
                                                         vec![el_194a660a]
-                                                    ).expect("2f437949")
+                                                    ).expect(#expect_message)
                                                 )
                                             );
                                         }
@@ -5867,10 +5887,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                     },
                     Pattern::Arr => match &is_nl {
                         IsNl::False => {
-                            let ts = vec_syn_field.iter().map(|el0| {
+                            let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let el_fi_ucc = ElSelfUcc::from_tokens(&fi);
                                 let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                let expect_message = generated_expect_message_literal("p38c", i, field_index);
                                 quote! {
                                     for cr_e06a9fe2 in #CrSc.0.clone() {
                                         if let Some(v_ee015fcc) = #ft_as_pg_json_test_cases_ts::#CrIntoPgJsonOptVecWhLenEqSc(
@@ -5882,7 +5903,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                         #import::Oprtr::And,
                                                         vec![el]
                                                     )
-                                                    .expect("38ca88dc"),
+                                                    .expect(#expect_message),
                                                 );
                                                 if !acc_480d72e5.contains(&v_0ae29f5f) {
                                                     acc_480d72e5.push(v_0ae29f5f);
@@ -5965,10 +5986,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                 match &pattern {
                     Pattern::Stdrt => match &is_nl {
                         IsNl::False => {
-                            let ts = vec_syn_field.iter().map(|el0| {
+                            let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let fi_ucc = &ToTokensToUccTs::case_or_panic(&fi);
                                 let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                let expect_message = generated_expect_message_literal("p479", i, field_index);
                                 quote! {
                                     if let Some(v_3432b965) = #ft_as_pg_json_test_cases_ts::#CrIntoPgJsonOptVecWhLenGreaterThanSc(
                                         #CrSc.#fi
@@ -5979,7 +6001,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                     #import::PgTypeWh::try_new(
                                                         #import::Oprtr::And,
                                                         vec![el_9bbf8527]
-                                                    ).expect("479db858")
+                                                    ).expect(#expect_message)
                                                 )
                                             );
                                         }
@@ -6013,10 +6035,11 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                     },
                     Pattern::Arr => match &is_nl {
                         IsNl::False => {
-                            let ts = vec_syn_field.iter().map(|el0| {
+                            let ts = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let el_fi_ucc = ElSelfUcc::from_tokens(&fi);
                                 let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&el0.type0);
+                                let expect_message = generated_expect_message_literal("p955", i, field_index);
                                 quote! {
                                     for cr_34a1e540 in #CrSc.0.clone() {
                                         if let Some(v_51fe384b) = #ft_as_pg_json_test_cases_ts::#CrIntoPgJsonOptVecWhLenGreaterThanSc(
@@ -6028,7 +6051,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                         #import::Oprtr::And,
                                                         vec![el_4a00ab02]
                                                     )
-                                                    .expect("955c6c27"),
+                                                    .expect(#expect_message),
                                                 );
                                                 if !acc_acceb7eb.contains(&el_938f8b34) {
                                                     acc_acceb7eb.push(el_938f8b34);
@@ -6088,11 +6111,13 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                 let gen_ts = |ts: &dyn ToTokens|match &is_nl {
                     IsNl::False => match &pattern {
                         Pattern::Stdrt => {
-                            let ts0 = vec_syn_field.iter().map(|el0| {
+                            let ts0 = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let ft = &el0.type0;
                                 let fi_ucc = &ToTokensToUccTs::case_or_panic(&fi);
                                 let ft_as_pg_json_test_cases_ts = gen_type_as_pg_json_test_cases_ts(&ft);
+                                let single_expect_message = generated_expect_message_literal("p263", i, field_index);
+                                let multiple_expect_message = generated_expect_message_literal("pe3e", i, field_index);
                                 quote! {
                                     if let Some(v_a2900ac9) = #ft_as_pg_json_test_cases_ts::#ts(
                                         #RdIdsSc.0.#VSc.#fi,
@@ -6117,7 +6142,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                             #ident_wh_ucc::#fi_ucc(#import::PgTypeWh::try_new(
                                                                 and,
                                                                 vec![single]
-                                                            ).expect("2635ede5"))
+                                                            ).expect(#single_expect_message))
                                                         )
                                                     );
                                                 },
@@ -6138,7 +6163,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                     }
                                                     acc_be2a6606
                                                 })
-                                            ).expect("e3e5b4ab"))
+                                            ).expect(#multiple_expect_message))
                                         );
                                         if !acc_a94bd7fb.contains(&v_3e75a2f2) {
                                             acc_a94bd7fb.push(v_3e75a2f2);
@@ -6182,9 +6207,10 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                 let last_ts = gen_fi_is_some_ts(&last.ident);
                                 quote! {#(#rest_ts)* #last_ts}
                             };
-                            let ts0 = vec_syn_field.iter().map(|el0| {
+                            let ts0 = vec_syn_field.iter().enumerate().map(|(field_index, el0)| {
                                 let fi = &el0.ident;
                                 let el_fi_ucc = ElSelfUcc::from_tokens(&fi);
+                                let expect_message = generated_expect_message_literal("p2ed", i, field_index);
                                 quote! {
                                     if let Some(v_f190793e) = #fi {
                                         for el_22ac4087 in v_f190793e.clone().into_vec() {
@@ -6197,7 +6223,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                     #import::SingleOrMultiple::Single(single) => #import::PgTypeWh::try_new(
                                                         and,
                                                         vec![single]
-                                                    ).expect("2ed4dc5e"),
+                                                    ).expect(#expect_message),
                                                 }
                                             );
                                             all_fields_acc.push(wh_f8a4319c.clone());
@@ -6250,6 +6276,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                     }
                                 }
                             });
+                            let expect_message = generated_expect_message_literal("p31d", i, 0);
                             quote! {
                                 match #import::NotEmptyUnqVec::try_new({
                                     let mut acc_359c0b3f = Vec::new();
@@ -6267,7 +6294,7 @@ pub fn gen_pg_json_obj(input_ts: Ts2) -> Ts2 {
                                                     })
                                                 ],
                                             )
-                                            .expect("31db8e1e"),
+                                            .expect(#expect_message),
                                         );
                                         #(#init_ts)*
                                         if #if_some_ts {

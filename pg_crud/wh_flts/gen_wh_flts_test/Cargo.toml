@@ -11,8 +11,8 @@ categories = ["category"]
 edition = "2024"
 
 [dev-dependencies]
-gen_wh_flts_src = {path = "../gen_wh_flts_src"}
-macro_clippy_check_cmn = {path = "../../../macro_clippy_check_cmn"}
+gen_wh_flts_src.workspace = true
+macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 quote.workspace = true
 
 [lints]

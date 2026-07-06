@@ -67,57 +67,100 @@ members = [
 exclude = []
 
 [workspace.dependencies]
-serde = {version = "=1.0.228", features = ["derive"]}
-serde_derive = {version = "=1.0.228"}
-serde_json = {version = "=1.0.148"}
-toml = {version = "=0.9.8"}
-scraper = {version = "=0.25.0"}
-regex = {version = "=1.12.2"}
-convert_case = {version = "=0.10.0"}
-uuid = {version = "=1.19.0", features = ["serde", "v4"]}
-reqwest = {version = "=0.13.1", default-features = false, features = ["json", "blocking", "native-tls", "http2"]}
-tokio = {version = "=1.48.0", features = ["macros", "rt-multi-thread", "signal"]}
-sqlx = {version = "=0.8.6", features = ["postgres", "uuid", "bigdecimal", "rust_decimal", "chrono", "time", "bit-vec", "runtime-tokio", "ipnetwork", "mac_address", "json"]}
-axum = {version = "=0.8.8", features = ["macros"]}
-tower = {version = "=0.5.2"}
-tower-http = {version = "=0.6.8", features = ["trace", "cors", "request-id", "propagate-header"]}
-tower_governor = {version = "=0.8.0"}
-http-body = {version = "=1.0.1"}
-http = {version = "=1.4.0"}
-futures = {version = "=0.3.31"}
-tracing = {version = "=0.1.44", features = ["log"]}
-tracing-subscriber = {version = "=0.3.22", features = ["registry", "env-filter"]}
-log = {version = "=0.4.29"}
-teloxide = {version = "=0.17.0", features = ["macros"]}
-num_cpus = {version = "=1.17.0"}
-secrecy = {version = "=0.10.3", features = ["serde"]}
-chrono = {version = "=0.4.42", features = ["serde"]}
-thiserror = {version = "=2.0.17"}
-strum = {version = "=0.27.2"}
-strum_macros = {version = "=0.27.2"}
-dotenv = {version = "=0.15.0"}
-time = {version = "=0.3.47", features = ["serde"]}
-quote = {version = "=1.0.42"}
-syn = {version = "=2.0.112", features = ["full", "visit", "visit-mut", "extra-traits"] }
-proc-macro2 = {version = "=1.0.104"}
-utoipa = {version = "=4.1.0", features = ["axum_extras"]} #=5.4.0 contains path bug, update later
-schemars = {version = "=1.2.0"}
-rayon = {version = "=1.11.0"}
-bytes = {version = "=1.11.1"}
-walkdir = {version = "=2.5.0"}
-git-version = {version = "=0.3.9"}
-itertools = {version = "=0.14.0"}
-app_state = {path = "./app_state"}
-cmn_routes = {path = "./cmn_routes"}
-config_lib = {path = "./config_lib"}
-gen_pg_tbl = {path = "./pg_crud/pg_tbl/gen_pg_tbl"}
-git_info = {path = "./git_info"}
-loc_lib = {path = "./loc_lib"}
-naming = {path = "./naming"}
-optml = {path = "./optml"}
-server_app_state = {path = "./server_app_state"}
-server_config = {path = "./server_config"}
-server_tbl_example = {path = "./server_tbl_example"}
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_derive = { version = "=1.0.228" }
+serde_json = { version = "=1.0.148" }
+toml = { version = "=0.9.8" }
+scraper = { version = "=0.25.0" }
+regex = { version = "=1.12.2" }
+convert_case = { version = "=0.10.0" }
+uuid = { version = "=1.19.0", features = ["serde", "v4"] }
+reqwest = { version = "=0.13.1", default-features = false, features = [
+  "json",
+  "blocking",
+  "native-tls",
+  "http2",
+] }
+tokio = { version = "=1.48.0", features = [
+  "macros",
+  "rt-multi-thread",
+  "signal",
+] }
+sqlx = { version = "=0.8.6", features = [
+  "postgres",
+  "uuid",
+  "bigdecimal",
+  "rust_decimal",
+  "chrono",
+  "time",
+  "bit-vec",
+  "runtime-tokio",
+  "ipnetwork",
+  "mac_address",
+  "json",
+] }
+axum = { version = "=0.8.8", features = ["macros"] }
+tower = { version = "=0.5.2" }
+tower-http = { version = "=0.6.8", features = [
+  "trace",
+  "cors",
+  "request-id",
+  "propagate-header",
+] }
+tower_governor = { version = "=0.8.0" }
+http-body = { version = "=1.0.1" }
+http = { version = "=1.4.0" }
+futures = { version = "=0.3.31" }
+tracing = { version = "=0.1.44", features = ["log"] }
+tracing-subscriber = { version = "=0.3.22", features = [
+  "registry",
+  "env-filter",
+] }
+log = { version = "=0.4.29" }
+teloxide = { version = "=0.17.0", features = ["macros"] }
+num_cpus = { version = "=1.17.0" }
+secrecy = { version = "=0.10.3", features = ["serde"] }
+chrono = { version = "=0.4.42", features = ["serde"] }
+thiserror = { version = "=2.0.17" }
+strum = { version = "=0.27.2" }
+strum_macros = { version = "=0.27.2" }
+dotenv = { version = "=0.15.0" }
+time = { version = "=0.3.47", features = ["serde"] }
+quote = { version = "=1.0.42" }
+syn = { version = "=2.0.112", features = [
+  "full",
+  "visit",
+  "visit-mut",
+  "extra-traits",
+] }
+proc-macro2 = { version = "=1.0.104" }
+utoipa = { version = "=4.1.0", features = [
+  "axum_extras",
+] } #=5.4.0 contains path bug, update later
+schemars = { version = "=1.2.0" }
+rayon = { version = "=1.11.0" }
+bytes = { version = "=1.11.1" }
+walkdir = { version = "=2.5.0" }
+git-version = { version = "=0.3.9" }
+itertools = { version = "=0.14.0" }
+app_state = { path = "./app_state" }
+cmn_routes = { path = "./cmn_routes" }
+config_lib = { path = "./config_lib" }
+gen_pg_json_obj_src = { path = "./pg_crud/pg_json_obj/gen_pg_json_obj_src", default-features = false }
+gen_pg_json_src = { path = "./pg_crud/pg_json/gen_pg_json_src", default-features = false }
+gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl" }
+gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
+gen_pg_types_src = { path = "./pg_crud/pg_types/gen_pg_types_src", default-features = false }
+gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
+git_info = { path = "./git_info" }
+loc_lib = { path = "./loc_lib" }
+macro_clippy_check_cmn = { path = "./macro_clippy_check_cmn", default-features = false }
+naming = { path = "./naming" }
+optml = { path = "./optml" }
+server_app_state = { path = "./server_app_state" }
+server_config = { path = "./server_config" }
+server_tbl_example = { path = "./server_tbl_example" }
+token_patterns = { path = "./token_patterns", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -130,9 +173,9 @@ let_underscore_drop = "deny"
 macro_use_extern_crate = "deny"
 meta_variable_misuse = "deny"
 missing_abi = "deny"
-missing_copy_implementations = "allow" #GenPostgresJsonObjType cannot simply know impl or not for Select for fields
+missing_copy_implementations = "allow"                           #GenPostgresJsonObjType cannot simply know impl or not for Select for fields
 missing_debug_implementations = "deny"
-missing_docs = "allow" #too lazy to write docs now and i think this is not necessary now
+missing_docs = "allow"                                           #too lazy to write docs now and i think this is not necessary now
 non_ascii_idents = "deny"
 rust_2021_incompatible_closure_captures = "deny"
 rust_2021_incompatible_or_patterns = "deny"
@@ -145,14 +188,14 @@ unnameable_types = "deny"
 unreachable_pub = "deny"
 unsafe_op_in_unsafe_fn = "deny"
 unstable_features = "deny"
-unused_crate_dependencies = "warn" 
+unused_crate_dependencies = "warn"
 unused_extern_crates = "deny"
 unused_import_braces = "deny"
 unused_lifetimes = "deny"
 unused_macro_rules = "deny"
 unused_qualifications = "deny"
 unused_results = "deny"
-dead_code = "warn" 
+dead_code = "warn"
 variant_size_differences = "deny"
 ambiguous_glob_imports = "deny"
 ambiguous_glob_reexports = "deny"
@@ -251,9 +294,9 @@ unused_must_use = "deny"
 unused_mut = "deny"
 unused_parens = "deny"
 unused_unsafe = "deny"
-unused_variables = "warn" 
+unused_variables = "warn"
 useless_ptr_null_checks = "deny"
-warnings = "warn" 
+warnings = "warn"
 while_true = "deny"
 ambiguous_associated_items = "deny"
 arithmetic_overflow = "deny"
@@ -340,7 +383,7 @@ out_of_scope_macro_calls = "deny"
 repr_transparent_non_zst_fields = "deny"
 unused_visibilities = "deny"
 aarch64_softfloat_neon = "deny"
-inline_always_mismatching_target_features = "deny" 
+inline_always_mismatching_target_features = "deny"
 improper_gpu_kernel_arg = "deny"
 missing_gpu_kernel_export_name = "deny"
 ambiguous_panic_imports = "deny"
@@ -349,13 +392,14 @@ ambiguous_import_visibilities = "deny"
 ambiguous_derive_helpers = "deny"
 internal_eq_trait_method_impls = "deny"
 float_literal_f32_fallback = "deny"
+dead_code_pub_in_binary = "allow"
 
 [workspace.lints.clippy]
 absolute_paths = "deny"
 absurd_extreme_comparisons = "deny"
 alloc_instead_of_core = "deny"
-allow_attributes = "allow" #serde used too much allow_attributes.
-allow_attributes_without_reason = "allow" #serde used too much allow_attributes.
+allow_attributes = "allow"                         #serde used too much allow_attributes.
+allow_attributes_without_reason = "allow"          #serde used too much allow_attributes.
 almost_complete_range = "deny"
 almost_swapped = "deny"
 approx_constant = "deny"
@@ -410,12 +454,12 @@ chars_last_cmp = "deny"
 chars_next_cmp = "deny"
 checked_conversions = "deny"
 clear_with_drain = "deny"
-clone_on_copy = "allow" #allow coz in proc macroses unknown which syn::Field type implements clone+copy.
+clone_on_copy = "allow"                            #allow coz in proc macroses unknown which syn::Field type implements clone+copy.
 clone_on_ref_ptr = "deny"
 cloned_instead_of_copied = "deny"
 cmp_null = "deny"
 cmp_owned = "deny"
-cognitive_complexity = "allow" #breaks some code
+cognitive_complexity = "allow"                     #breaks some code
 collapsible_else_if = "deny"
 collapsible_if = "deny"
 collapsible_match = "deny"
@@ -430,7 +474,7 @@ create_dir = "deny"
 crosspointer_transmute = "deny"
 dbg_macro = "deny"
 debug_assert_with_mut_call = "deny"
-decimal_literal_representation = "allow"#dont think its more readable
+decimal_literal_representation = "allow"           #dont think its more readable
 declare_interior_mutable_const = "deny"
 default_constructed_unit_structs = "deny"
 default_instead_of_iter_empty = "deny"
@@ -444,7 +488,7 @@ deref_addrof = "deny"
 deref_by_slicing = "deny"
 derivable_impls = "deny"
 derive_ord_xor_partial_ord = "deny"
-derive_partial_eq_without_eq = "allow"#todo deny after macro refactoring
+derive_partial_eq_without_eq = "allow"             #todo deny after macro refactoring
 derived_hash_with_manual_eq = "deny"
 disallowed_macros = "deny"
 disallowed_methods = "deny"
@@ -482,11 +526,11 @@ err_expect = "deny"
 error_impl_error = "deny"
 excessive_nesting = "deny"
 excessive_precision = "deny"
-exhaustive_enums = "allow" #not need if all binaries would recompile for each version
-exhaustive_structs = "allow" #not need if all binaries would recompile for each version
+exhaustive_enums = "allow"                         #not need if all binaries would recompile for each version
+exhaustive_structs = "allow"                       #not need if all binaries would recompile for each version
 exit = "deny"
 expect_fun_call = "deny"
-expect_used = "allow" #todo if there is a lot of time then deny
+expect_used = "allow"                              #todo if there is a lot of time then deny
 expl_impl_clone_on_copy = "deny"
 explicit_auto_deref = "deny"
 explicit_counter_loop = "deny"
@@ -540,7 +584,7 @@ impl_hash_borrow_with_str_and_bytes = "deny"
 impl_trait_in_params = "deny"
 implicit_clone = "deny"
 implicit_hasher = "deny"
-implicit_return = "allow" #not need
+implicit_return = "allow"                          #not need
 implicit_saturating_add = "deny"
 implicit_saturating_sub = "deny"
 implied_bounds_in_impls = "deny"
@@ -676,7 +720,7 @@ mem_forget = "deny"
 mem_replace_option_with_none = "deny"
 mem_replace_with_default = "deny"
 mem_replace_with_uninit = "deny"
-min_ident_chars = "allow" #enable for llm context window optimization
+min_ident_chars = "allow"                          #enable for llm context window optimization
 min_max = "deny"
 mismatching_type_param_order = "deny"
 misnamed_getters = "deny"
@@ -684,15 +728,15 @@ misrefactored_assign_op = "deny"
 missing_assert_message = "deny"
 missing_asserts_for_indexing = "deny"
 missing_const_for_fn = "deny"
-missing_docs_in_private_items = "allow" #too lazy to do it on dev stage
+missing_docs_in_private_items = "allow"            #too lazy to do it on dev stage
 missing_enforced_import_renames = "deny"
-missing_errors_doc = "allow" #too lazy to do it on dev stage
+missing_errors_doc = "allow"                       #too lazy to do it on dev stage
 missing_fields_in_debug = "deny"
-missing_inline_in_public_items = "allow" #its not so clear where to add #[inline] and where not
-missing_panics_doc = "allow" #too lazy to do it on dev stage
+missing_inline_in_public_items = "allow"           #its not so clear where to add #[inline] and where not
+missing_panics_doc = "allow"                       #too lazy to do it on dev stage
 missing_safety_doc = "deny"
 missing_spin_loop = "deny"
-missing_trait_methods = "allow" #serde and other crates do not implement this feature. too much time to refactor that
+missing_trait_methods = "allow"                    #serde and other crates do not implement this feature. too much time to refactor that
 mistyped_literal_suffixes = "deny"
 mixed_case_hex_literals = "deny"
 mixed_read_write_in_expression = "deny"
@@ -702,7 +746,7 @@ module_name_repetitions = "deny"
 modulo_arithmetic = "deny"
 modulo_one = "deny"
 multi_assignments = "deny"
-multiple_crate_versions = "allow" #dont know how to fix it
+multiple_crate_versions = "allow"                  #dont know how to fix it
 multiple_inherent_impl = "deny"
 multiple_unsafe_ops_per_block = "deny"
 must_use_candidate = "deny"
@@ -789,14 +833,14 @@ partialeq_ne_impl = "deny"
 partialeq_to_none = "deny"
 path_buf_push_overwrite = "deny"
 path_ends_with_ext = "deny"
-pattern_type_mismatch = "allow" #dont know how to refactor that. forces to use ref pattern or (.clone with conflict with other lints)
+pattern_type_mismatch = "allow"                    #dont know how to refactor that. forces to use ref pattern or (.clone with conflict with other lints)
 permissions_set_readonly_false = "deny"
 possible_missing_comma = "deny"
 precedence = "deny"
 print_in_format_impl = "deny"
 print_literal = "deny"
-print_stderr = "allow" #need for dev
-print_stdout = "allow" #need for dev
+print_stderr = "allow"                             #need for dev
+print_stdout = "allow"                             #need for dev
 print_with_newline = "deny"
 println_empty_string = "deny"
 ptr_arg = "deny"
@@ -804,11 +848,11 @@ ptr_as_ptr = "deny"
 ptr_cast_constness = "deny"
 ptr_eq = "deny"
 ptr_offset_with_cast = "deny"
-pub_use = "allow" #its limitation, not a rule. annoying but not so usefull
-pub_with_shorthand = "allow" #conflicts with pub_without_shorthand
+pub_use = "allow"                                  #its limitation, not a rule. annoying but not so usefull
+pub_with_shorthand = "allow"                       #conflicts with pub_without_shorthand
 pub_without_shorthand = "deny"
 question_mark = "deny"
-question_mark_used = "allow" #not against it
+question_mark_used = "allow"                       #not against it
 range_minus_one = "deny"
 range_plus_one = "deny"
 range_zip_with_len = "deny"
@@ -835,7 +879,7 @@ redundant_guards = "deny"
 redundant_locals = "deny"
 redundant_pattern = "deny"
 redundant_pattern_matching = "deny"
-redundant_pub_crate = "allow" #dont understand how to use correctly. conflicts with "unreachable pub"
+redundant_pub_crate = "allow"                      #dont understand how to use correctly. conflicts with "unreachable pub"
 redundant_slicing = "deny"
 redundant_static_lifetimes = "deny"
 redundant_type_annotations = "deny"
@@ -845,7 +889,7 @@ ref_patterns = "deny"
 repeat_once = "deny"
 reserve_after_initialization = "deny"
 rest_pat_in_fully_bound_structs = "deny"
-result_large_err = "allow" #not sure how to fix it
+result_large_err = "allow"                         #not sure how to fix it
 result_map_or_into_option = "deny"
 result_map_unit_fn = "deny"
 result_unit_err = "deny"
@@ -859,7 +903,7 @@ seek_from_current = "deny"
 seek_to_start_instead_of_rewind = "deny"
 self_assignment = "deny"
 self_named_constructors = "deny"
-self_named_module_files = "allow" #old rust style guide. conflicts with mod_module_files (which is Rust 2018+ style guide)
+self_named_module_files = "allow"                  #old rust style guide. conflicts with mod_module_files (which is Rust 2018+ style guide)
 semicolon_if_nothing_returned = "deny"
 semicolon_inside_block = "deny"
 semicolon_outside_block = "deny"
@@ -873,8 +917,8 @@ should_implement_trait = "deny"
 should_panic_without_expect = "deny"
 significant_drop_in_scrutinee = "deny"
 significant_drop_tightening = "deny"
-similar_names = "allow" # not so usefull. too much to refactor.
-single_call_fn = "deny" # utoipa function code gen problems with that lint
+similar_names = "allow"                            # not so usefull. too much to refactor.
+single_call_fn = "deny"                            # utoipa function code gen problems with that lint
 single_char_add_str = "deny"
 single_char_lifetime_names = "deny"
 single_char_pattern = "deny"
@@ -888,8 +932,8 @@ size_of_ref = "deny"
 skip_while_next = "deny"
 slow_vector_initialization = "deny"
 stable_sort_primitive = "deny"
-std_instead_of_alloc = "allow" #not using no_std
-std_instead_of_core = "allow" #not using no_std
+std_instead_of_alloc = "allow"                     #not using no_std
+std_instead_of_core = "allow"                      #not using no_std
 str_to_string = "deny"
 string_add = "deny"
 string_add_assign = "deny"
@@ -900,7 +944,7 @@ string_lit_chars_any = "deny"
 string_slice = "deny"
 strlen_on_c_strings = "deny"
 struct_excessive_bools = "deny"
-struct_field_names = "allow" #just makes no sense. very annoying if u generating similar fields
+struct_field_names = "allow"                       #just makes no sense. very annoying if u generating similar fields
 suboptimal_flops = "deny"
 suspicious_arithmetic_impl = "deny"
 suspicious_assignment_formatting = "deny"
@@ -921,8 +965,8 @@ tests_outside_test_module = "deny"
 to_digit_is_some = "deny"
 to_string_in_format_args = "deny"
 todo = "deny"
-too_many_arguments = "allow" #useless
-too_many_lines = "allow" #useless
+too_many_arguments = "allow"                       #useless
+too_many_lines = "allow"                           #useless
 toplevel_ref_arg = "deny"
 trailing_empty_array = "deny"
 trait_duplication_in_bounds = "deny"
@@ -940,7 +984,7 @@ trivial_regex = "deny"
 trivially_copy_pass_by_ref = "deny"
 try_err = "deny"
 tuple_array_conversions = "deny"
-type_complexity = "allow" #annoying for code generation
+type_complexity = "allow"                          #annoying for code generation
 type_id_on_box = "deny"
 type_repetition_in_bounds = "deny"
 undocumented_unsafe_blocks = "deny"
@@ -981,7 +1025,7 @@ unreachable = "deny"
 unreadable_literal = "deny"
 unsafe_derive_deserialize = "deny"
 unsafe_removed_from_name = "deny"
-unseparated_literal_suffix = "allow"#separated_literal_suffix deny, unseparated_literal_suffix allow
+unseparated_literal_suffix = "allow"               #separated_literal_suffix deny, unseparated_literal_suffix allow
 unsound_collection_transmute = "deny"
 unused_async = "deny"
 unused_enumerate_index = "deny"
@@ -996,7 +1040,7 @@ unwrap_in_result = "deny"
 unwrap_or_default = "deny"
 unwrap_used = "deny"
 upper_case_acronyms = "deny"
-use_debug = "allow" #too much code to refactor, maybe for size of binary and longer compile times
+use_debug = "allow"                                #too much code to refactor, maybe for size of binary and longer compile times
 use_self = "deny"
 used_underscore_binding = "deny"
 useless_asref = "deny"
@@ -1029,7 +1073,7 @@ zero_prefixed_literal = "deny"
 zero_ptr = "deny"
 zero_sized_map_values = "deny"
 zst_offset = "deny"
-infinite_loop = "deny"# didnt wasted for for order declaration(a,b,c...)
+infinite_loop = "deny"                             # didnt wasted for for order declaration(a,b,c...)
 integer_division_remainder_used = "deny"
 iter_filter_is_ok = "deny"
 iter_filter_is_some = "deny"
@@ -1089,7 +1133,7 @@ infallible_try_from = "deny"
 inverted_saturating_sub = "deny"
 io_other_error = "deny"
 ip_constant = "deny"
-literal_string_with_formatting_args = "allow"#in proc macros for generating formatting content is not correct
+literal_string_with_formatting_args = "allow"      #in proc macros for generating formatting content is not correct
 manual_abs_diff = "deny"
 manual_contains = "deny"
 manual_dangling_ptr = "deny"
@@ -1155,6 +1199,11 @@ same_length_and_capacity = "deny"
 duration_suboptimal_units = "deny"
 manual_take = "deny"
 manual_checked_ops = "deny"
+inline_modules = "allow"
+inline_trait_bounds = "deny"
+manual_assert_eq = "deny"
+manual_clear = "deny"
+some_filter = "deny"
 
 [profile.dev]
 debug = 1
