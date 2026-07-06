@@ -46,6 +46,7 @@ mod tests {
         "manual_option_zip",
         "useless_borrows_in_formatting",
     ];
+    const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
     #[derive(Debug, Clone, Copy, Optml)]
     enum ExpectOrPanic {
         Expect,
@@ -268,6 +269,19 @@ mod tests {
             if is_test {
                 self.test_depth = self.test_depth.saturating_sub(1);
             }
+        }
+    }
+    struct IncludeAssetMacroVisitor {
+        ers: Vec<String>,
+    }
+    impl<'ast> Visit<'ast> for IncludeAssetMacroVisitor {
+        fn visit_macro(&mut self, i: &'ast syn::Macro) {
+            if let Some(segment) = i.path.segments.last()
+                && (segment.ident == "include_str" || segment.ident == "include_bytes")
+            {
+                self.ers.push(format!("contains {}!()", segment.ident));
+            }
+            visit_macro(self, i);
         }
     }
     #[test]
@@ -961,6 +975,25 @@ mod tests {
             &ers,
             "b6e2a9f4",
             "macro_rules found; use workspace proc-macro crates instead:",
+        );
+    }
+    #[test]
+    fn no_include_asset_macros_outside_allowlist() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "a6d4f2c9",
+            "include_str!() or include_bytes!() found outside explicit generated/test fixture allowlist:",
+            |path, ast, ers| {
+                if is_exception(path, &INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS) {
+                    return;
+                }
+                let visitor = visit_syn_file(ast, IncludeAssetMacroVisitor { ers: Vec::new() });
+                ers.extend(visitor.ers.into_iter().map(|er| {
+                    format!(
+                        "{}: {er}; add only generated/test fixture files to INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS",
+                        path.display()
+                    )
+                }));
+            },
         );
     }
     #[test]

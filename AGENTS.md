@@ -51,6 +51,7 @@
 - Ignore cancellation safety.
 - Depend on external services in tests.
 - Use flaky time-based tests.
+- Use `include_str!()` or `include_bytes!()` outside explicit generated/test fixture allowlist.
 - Change public API without instruction.
 - Leak generics to users.
 - Refactor or reformat without request.
