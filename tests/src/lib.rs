@@ -11,8 +11,12 @@ mod tests {
         str::Split,
     };
     use syn::{
-        Expr, ExprLit, ExprMethodCall, Lit, parse_file,
-        visit::{Visit, visit_expr_method_call, visit_item, visit_macro},
+        Expr, ExprCall, ExprLit, ExprMethodCall, ExprPath, ItemFn, ItemMod, ItemType, Lit, Type,
+        TypePath, parse_file,
+        visit::{
+            Visit, visit_expr_call, visit_expr_method_call, visit_expr_path, visit_item,
+            visit_item_fn, visit_item_mod, visit_item_type, visit_macro, visit_type_path,
+        },
     };
     use toml::{Table as TomlTable, Value, value::Table};
     use uuid::Uuid;
@@ -140,6 +144,130 @@ mod tests {
                 self.ers.push("panic!() call".to_owned());
             }
             visit_macro(self, i);
+        }
+    }
+    struct RuntimeMutexVisitor {
+        found_count: usize,
+    }
+    impl<'ast> Visit<'ast> for RuntimeMutexVisitor {
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_test_only_cfg_attr(i) {
+                return;
+            }
+            visit_item(self, i);
+        }
+        fn visit_type_path(&mut self, i: &'ast TypePath) {
+            if path_has_segment(&i.path, "Mutex") {
+                self.found_count = self.found_count.saturating_add(1);
+            }
+            visit_type_path(self, i);
+        }
+    }
+    struct RuntimeArcVisitor {
+        allow_arc_value_usage: bool,
+        ers: Vec<String>,
+    }
+    impl<'ast> Visit<'ast> for RuntimeArcVisitor {
+        fn visit_expr_call(&mut self, i: &'ast ExprCall) {
+            if expr_call_path(i).is_some_and(|path| path_ends_with(path, &["Arc", "new"]))
+                && !self.allow_arc_value_usage
+            {
+                self.ers
+                    .push("Arc::new() outside approved cross-thread state construction".to_owned());
+            }
+            visit_expr_call(self, i);
+        }
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_test_only_cfg_attr(i) {
+                return;
+            }
+            visit_item(self, i);
+        }
+        fn visit_item_type(&mut self, i: &'ast ItemType) {
+            if type_contains_segment(&i.ty, "Arc") {
+                let name = i.ident.to_string();
+                if !name.contains("Shared") && !name.contains("DynArc") {
+                    self.ers.push(format!(
+                        "Arc type alias `{name}` must be explicitly named as shared cross-thread state"
+                    ));
+                }
+            }
+            visit_item_type(self, i);
+        }
+    }
+    struct AsyncBlockingCallVisitor {
+        async_fn_depth: usize,
+        ers: Vec<String>,
+    }
+    impl<'ast> Visit<'ast> for AsyncBlockingCallVisitor {
+        fn visit_expr_call(&mut self, i: &'ast ExprCall) {
+            if self.async_fn_depth != 0
+                && expr_call_path(i).is_some_and(path_is_blocking_async_call)
+            {
+                self.ers
+                    .push("blocking call inside async function".to_owned());
+            }
+            visit_expr_call(self, i);
+        }
+        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+            if self.async_fn_depth != 0 && method_is_blocking_async_call(&i.method.to_string()) {
+                self.ers.push(format!(
+                    ".{}() blocking method call inside async function",
+                    i.method
+                ));
+            }
+            visit_expr_method_call(self, i);
+        }
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_test_only_cfg_attr(i) {
+                return;
+            }
+            visit_item(self, i);
+        }
+        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+            let is_async = i.sig.asyncness.is_some();
+            if is_async {
+                self.async_fn_depth = self.async_fn_depth.saturating_add(1);
+            }
+            visit_item_fn(self, i);
+            if is_async {
+                self.async_fn_depth = self.async_fn_depth.saturating_sub(1);
+            }
+        }
+    }
+    struct UnitTestExternalServiceVisitor {
+        ers: Vec<String>,
+        test_depth: usize,
+    }
+    impl<'ast> Visit<'ast> for UnitTestExternalServiceVisitor {
+        fn visit_expr_path(&mut self, i: &'ast ExprPath) {
+            if self.test_depth != 0 && path_is_external_service_client(&i.path) {
+                self.ers.push(format!(
+                    "unit tests must not depend on external service client `{}`",
+                    path_to_string(&i.path)
+                ));
+            }
+            visit_expr_path(self, i);
+        }
+        fn visit_item_fn(&mut self, i: &'ast ItemFn) {
+            let is_test = self.test_depth != 0 || item_fn_is_unit_test(i);
+            if is_test {
+                self.test_depth = self.test_depth.saturating_add(1);
+            }
+            visit_item_fn(self, i);
+            if is_test {
+                self.test_depth = self.test_depth.saturating_sub(1);
+            }
+        }
+        fn visit_item_mod(&mut self, i: &'ast ItemMod) {
+            let is_test = self.test_depth != 0 || i.attrs.iter().any(attr_is_test_only_cfg);
+            if is_test {
+                self.test_depth = self.test_depth.saturating_add(1);
+            }
+            visit_item_mod(self, i);
+            if is_test {
+                self.test_depth = self.test_depth.saturating_sub(1);
+            }
         }
     }
     #[test]
@@ -863,6 +991,92 @@ mod tests {
             },
         );
     }
+    #[test]
+    fn runtime_code_does_not_use_mutex() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "e3f8a1c5",
+            "runtime code contains Mutex; use it only for justified interior mutability:",
+            |path, ast, ers| {
+                if !is_runtime_policy_source_path(path) {
+                    return;
+                }
+                let visitor = visit_syn_file(ast, RuntimeMutexVisitor { found_count: 0 });
+                push_repeated_file_er(ers, path, "Mutex type usage", visitor.found_count);
+            },
+        );
+    }
+    #[test]
+    fn runtime_arc_usage_is_limited_to_cross_thread_state() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "f9c2d4a8",
+            "runtime Arc usage must be limited to explicit cross-thread shared state:",
+            |path, ast, ers| {
+                if !is_runtime_policy_source_path(path) {
+                    return;
+                }
+                let visitor = visit_syn_file(
+                    ast,
+                    RuntimeArcVisitor {
+                        allow_arc_value_usage: path.ends_with("server/src/main.rs"),
+                        ers: Vec::new(),
+                    },
+                );
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
+            },
+        );
+    }
+    #[test]
+    fn async_functions_do_not_make_blocking_executor_calls() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "a8e1c6f3",
+            "async functions contain blocking executor calls:",
+            |path, ast, ers| {
+                if !is_runtime_policy_source_path(path) {
+                    return;
+                }
+                let visitor = visit_syn_file(
+                    ast,
+                    AsyncBlockingCallVisitor {
+                        async_fn_depth: 0,
+                        ers: Vec::new(),
+                    },
+                );
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
+            },
+        );
+    }
+    #[test]
+    fn unit_tests_do_not_create_external_service_clients() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "d1f5b9c7",
+            "unit tests contain external-service clients; use deterministic local fakes instead:",
+            |path, ast, ers| {
+                let visitor = visit_syn_file(
+                    ast,
+                    UnitTestExternalServiceVisitor {
+                        test_depth: 0,
+                        ers: Vec::new(),
+                    },
+                );
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
+            },
+        );
+    }
     #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
     fn push_repeated_file_er(ers: &mut Vec<String>, path: &Path, msg: &str, times: usize) {
         for _ in 0..times {
@@ -913,6 +1127,121 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared rust-extension predicate keeps rs walker filters consistent
     fn is_rs_file_path(path: &Path) -> bool {
         path.extension().and_then(OsStr::to_str) == Some("rs")
+    }
+    fn path_has_segment(path: &syn::Path, segment: &str) -> bool {
+        path.segments.iter().any(|el| el.ident == segment)
+    }
+    fn path_ends_with(path: &syn::Path, segments: &[&str]) -> bool {
+        path.segments.len() >= segments.len()
+            && path
+                .segments
+                .iter()
+                .rev()
+                .zip(segments.iter().rev())
+                .all(|(got, exp)| got.ident == *exp)
+    }
+    fn expr_call_path(call: &ExprCall) -> Option<&syn::Path> {
+        match call.func.as_ref() {
+            Expr::Path(path) => Some(&path.path),
+            Expr::Array(_)
+            | Expr::Assign(_)
+            | Expr::Async(_)
+            | Expr::Await(_)
+            | Expr::Binary(_)
+            | Expr::Block(_)
+            | Expr::Break(_)
+            | Expr::Call(_)
+            | Expr::Cast(_)
+            | Expr::Closure(_)
+            | Expr::Const(_)
+            | Expr::Continue(_)
+            | Expr::Field(_)
+            | Expr::ForLoop(_)
+            | Expr::Group(_)
+            | Expr::If(_)
+            | Expr::Index(_)
+            | Expr::Infer(_)
+            | Expr::Let(_)
+            | Expr::Lit(_)
+            | Expr::Loop(_)
+            | Expr::Macro(_)
+            | Expr::Match(_)
+            | Expr::MethodCall(_)
+            | Expr::Paren(_)
+            | Expr::Range(_)
+            | Expr::RawAddr(_)
+            | Expr::Reference(_)
+            | Expr::Repeat(_)
+            | Expr::Return(_)
+            | Expr::Struct(_)
+            | Expr::Try(_)
+            | Expr::TryBlock(_)
+            | Expr::Tuple(_)
+            | Expr::Unary(_)
+            | Expr::Unsafe(_)
+            | Expr::Verbatim(_)
+            | Expr::While(_)
+            | Expr::Yield(_)
+            | _ => None,
+        }
+    }
+    #[allow(clippy::single_call_fn)] // keeps Arc type policy readable apart from syn type matching
+    fn type_contains_segment(ty: &Type, segment: &str) -> bool {
+        match ty {
+            Type::Path(path) => path_has_segment(&path.path, segment),
+            Type::Array(_)
+            | Type::BareFn(_)
+            | Type::Group(_)
+            | Type::ImplTrait(_)
+            | Type::Infer(_)
+            | Type::Macro(_)
+            | Type::Never(_)
+            | Type::Paren(_)
+            | Type::Ptr(_)
+            | Type::Reference(_)
+            | Type::Slice(_)
+            | Type::TraitObject(_)
+            | Type::Tuple(_)
+            | Type::Verbatim(_)
+            | _ => false,
+        }
+    }
+    #[allow(clippy::single_call_fn)] // names the async-blocking method policy separately from traversal code
+    fn method_is_blocking_async_call(method: &str) -> bool {
+        matches!(
+            method,
+            "block_on" | "block_in_place" | "blocking_recv" | "blocking_send"
+        )
+    }
+    #[allow(clippy::single_call_fn)] // names the async-blocking function policy separately from traversal code
+    fn path_is_blocking_async_call(path: &syn::Path) -> bool {
+        path_ends_with(path, &["futures", "executor", "block_on"])
+            || path_ends_with(path, &["tokio", "task", "block_in_place"])
+            || path_ends_with(path, &["std", "thread", "sleep"])
+    }
+    #[allow(clippy::single_call_fn)] // names the external-service unit-test policy separately from traversal code
+    fn path_is_external_service_client(path: &syn::Path) -> bool {
+        path_ends_with(path, &["reqwest", "Client", "new"])
+            || path_ends_with(path, &["std", "net", "TcpStream", "connect"])
+            || path_ends_with(path, &["std", "net", "TcpListener", "bind"])
+            || path_ends_with(path, &["std", "net", "UdpSocket", "bind"])
+            || path_ends_with(path, &["tokio", "net", "TcpStream", "connect"])
+            || path_ends_with(path, &["tokio", "net", "TcpListener", "bind"])
+            || path_ends_with(path, &["tokio", "net", "UdpSocket", "bind"])
+    }
+    #[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
+    fn item_fn_is_unit_test(item: &ItemFn) -> bool {
+        item.attrs
+            .iter()
+            .any(|attr| attr.path().is_ident("test") || attr_is_test_only_cfg(attr))
+    }
+    #[allow(clippy::single_call_fn)] // keeps external-service error messages stable and readable
+    fn path_to_string(path: &syn::Path) -> String {
+        path.segments
+            .iter()
+            .map(|segment| segment.ident.to_string())
+            .collect::<Vec<String>>()
+            .join("::")
     }
     #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
     fn is_runtime_policy_source_path(path: &Path) -> bool {

@@ -17,6 +17,7 @@ const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const HEALTH_CHECK_OK_STATUS: StatusCode = StatusCode::OK;
 const HEALTH_CHECK_ER_STATUS: StatusCode = StatusCode::SERVICE_UNAVAILABLE;
+// cross-thread shared axum route state must outlive cloned service tasks
 type DynArcCmnRoutesPrms = Arc<dyn CmnRoutesPrms>;
 type CmnState = State<DynArcCmnRoutesPrms>;
 type JsonRes<T> = (StatusCode, Json<T>);

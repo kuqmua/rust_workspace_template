@@ -30,6 +30,7 @@ use tower_http::{
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt as _, util::SubscriberInitExt as _};
 const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
+// cross-thread shared axum state is cloned into tower/hyper worker tasks
 type SharedAppState = Arc<ServerAppState<'static>>;
 #[cfg(test)]
 type SplitByChar<'split_lt> = Split<'split_lt, char>;

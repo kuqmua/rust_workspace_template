@@ -58,6 +58,15 @@
 - Change semantics silently.
 - Insert blank lines between code
 
+## Review-only rules
+
+These rules require code review judgment and are not fully proven by automated tests:
+
+- Absence of hidden coupling.
+- Minimal public API surface.
+- Whether `Arc` is semantically required for cross-thread sharing.
+- Whether `Mutex` is semantically required for interior mutability.
+
 ## Run before completion
 
 ```bash
