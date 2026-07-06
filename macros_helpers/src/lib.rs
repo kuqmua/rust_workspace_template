@@ -53,7 +53,7 @@ pub use get_macro_attr::{
 pub use loc::{LocFieldAttr, gen_serde_version_of_named_syn_vrt};
 pub use loc_syn_field::loc_syn_field;
 pub use pgn_start_end_init_ts::pgn_start_end_init_ts;
-pub use status_code::{StatusCode, get_only_one};
+pub use status_code::{GetOnlyOneStatusCodeEr, StatusCode, get_only_one};
 pub use syn_field::SynField;
 pub use wrap_derive::wrap_derive;
 pub use write_string_into_file::{

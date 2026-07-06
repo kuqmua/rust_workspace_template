@@ -8,7 +8,10 @@ use regex::Regex;
 use schemars::{_private::alloc::borrow, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 use sqlx::{Encode, Postgres, Type, postgres::PgArguments, query::Query};
-use std::fmt::{Display, Formatter, Result as StdFmtResult, Write as _};
+use std::{
+    fmt::{Display, Formatter, Result as StdFmtResult, Write as _},
+    process::abort,
+};
 use thiserror::Error;
 use utoipa::ToSchema;
 gen_wh_flts::gen_wh_flts!({
@@ -88,7 +91,13 @@ impl Display for RgxRgx {
 }
 impl DfltSomeOneEl for RgxRgx {
     fn dflt_some_one_el() -> Self {
-        Self(Regex::new("[a-z]+").expect("22a9eda5"))
+        match Regex::new("[a-z]+") {
+            Ok(v) => Self(v),
+            Err(er) => {
+                eprintln!("22a9eda5: {er}");
+                abort();
+            }
+        }
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Optml)]

@@ -461,8 +461,12 @@ where
     T: SwaggerUrlPathSelfQuotesStr,
 {
     fn swagger_url_path_self_quotes_ts(&self, v: &str) -> Ts2 {
-        self.swagger_url_path_self_quotes_str(v)
-            .parse::<Ts2>()
-            .expect("f292686b")
+        match self.swagger_url_path_self_quotes_str(v).parse::<Ts2>() {
+            Ok(parsed_ts) => parsed_ts,
+            Err(er) => {
+                let msg = er.to_string();
+                quote::quote! {compile_error!(#msg);}
+            }
+        }
     }
 }

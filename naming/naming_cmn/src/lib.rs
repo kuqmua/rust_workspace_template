@@ -69,7 +69,13 @@ fn to_ts_or_panic<T>(v: &T) -> Ts2
 where
     T: Display + ?Sized,
 {
-    v.to_string().parse::<Ts2>().expect("753ce6dd")
+    match v.to_string().parse::<Ts2>() {
+        Ok(parsed_ts) => parsed_ts,
+        Err(er) => {
+            let msg = er.to_string();
+            quote! {compile_error!(#msg);}
+        }
+    }
 }
 fn case_from_string(v: &str, case: Case<'_>) -> String {
     str_case(v, case)

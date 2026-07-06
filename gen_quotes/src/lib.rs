@@ -24,7 +24,12 @@ where
 {
     quote_literal(prefix, quote_ch, v)
         .parse::<Ts2>()
-        .unwrap_or_else(|_| panic!("{panic_id}"))
+        .unwrap_or_else(|er| {
+            let msg = format!("{panic_id}: {er}");
+            format!("compile_error!(\"{msg}\");")
+                .parse::<Ts2>()
+                .unwrap_or_else(|_| Ts2::new())
+        })
 }
 #[must_use]
 pub fn single_quotes_str(v: &str) -> String {
@@ -105,20 +110,17 @@ mod tests {
     }
     #[test]
     fn quote_helpers_handle_empty_input() {
-        use std::panic::catch_unwind;
         assert_quote_str(&single_quotes_str(""), "''");
         assert_quote_str(&dq_str(&""), "\"\"");
         assert_quote_str(&binary_single_quotes_str(""), "b''");
         assert_quote_str(&binary_dq_str(&""), "b\"\"");
-        match catch_unwind(|| single_quotes_ts("")) {
-            Err(_) => (),
-            Ok(_) => panic!("a71c4d2e"),
-        }
+        assert!(single_quotes_ts("").to_string().contains("compile_error !"));
         assert_quote_ts(&dq_ts(&""), "\"\"");
-        match catch_unwind(|| binary_single_quotes_ts("")) {
-            Err(_) => (),
-            Ok(_) => panic!("f13b9c70"),
-        }
+        assert!(
+            binary_single_quotes_ts("")
+                .to_string()
+                .contains("compile_error !")
+        );
         assert_quote_ts(&binary_dq_ts(&""), "b\"\"");
     }
 }

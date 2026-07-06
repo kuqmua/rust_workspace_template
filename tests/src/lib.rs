@@ -126,7 +126,7 @@ mod tests {
             visit_expr_method_call(self, i);
         }
         fn visit_item(&mut self, i: &'ast syn::Item) {
-            if has_cfg_test_attr(i) {
+            if has_test_only_cfg_attr(i) {
                 return;
             }
             visit_item(self, i);
@@ -942,39 +942,46 @@ mod tests {
             == Some(&Value::Boolean(true))
     }
     #[allow(clippy::single_call_fn)] // keeps cfg(test) handling local to runtime AST policy visitor
-    fn has_cfg_test_attr(i: &syn::Item) -> bool {
+    fn has_test_only_cfg_attr(i: &syn::Item) -> bool {
         match i {
-            syn::Item::Const(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Enum(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::ExternCrate(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Fn(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::ForeignMod(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Impl(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Macro(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Mod(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Static(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Struct(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Trait(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::TraitAlias(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Type(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Union(item) => item.attrs.iter().any(attr_is_cfg_test),
-            syn::Item::Use(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Const(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Enum(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::ExternCrate(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Fn(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::ForeignMod(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Impl(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Macro(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Mod(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Static(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Struct(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Trait(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::TraitAlias(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Type(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Union(item) => item.attrs.iter().any(attr_is_test_only_cfg),
+            syn::Item::Use(item) => item.attrs.iter().any(attr_is_test_only_cfg),
             syn::Item::Verbatim(_) | _ => false,
         }
     }
-    #[allow(clippy::single_call_fn)] // accepts normal #[cfg(test)] tokens without treating other cfgs as test code
-    fn attr_is_cfg_test(attr: &syn::Attribute) -> bool {
+    #[allow(clippy::single_call_fn)] // accepts cfg(test) and cfg(feature = "test-utils") as non-production code
+    fn attr_is_test_only_cfg(attr: &syn::Attribute) -> bool {
         if !attr.path().is_ident("cfg") {
             return false;
         }
-        let mut is_test_cfg = false;
+        let mut is_test_only_cfg = false;
         drop(attr.parse_nested_meta(|meta| {
             if meta.path.is_ident("test") {
-                is_test_cfg = true;
+                is_test_only_cfg = true;
+            }
+            if meta.path.is_ident("feature") {
+                let value = meta.value()?;
+                let lit: syn::LitStr = value.parse()?;
+                if lit.value() == "test-utils" {
+                    is_test_only_cfg = true;
+                }
             }
             Ok(())
         }));
-        is_test_cfg
+        is_test_only_cfg
     }
     #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
     fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {

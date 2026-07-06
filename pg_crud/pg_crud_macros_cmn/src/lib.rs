@@ -171,10 +171,7 @@ impl Import {
 }
 impl ToTokens for Import {
     fn to_tokens(&self, tokens: &mut Ts2) {
-        self.sc_str()
-            .parse::<Ts2>()
-            .expect("d8636ee5")
-            .to_tokens(tokens);
+        parse_ts_or_compile_error(self.sc_str(), "d8636ee5").to_tokens(tokens);
     }
 }
 bool_enum_to_tokens!(AddOprtrUndrscr, false => AddOprtrSc, true => quote! {_});
@@ -375,9 +372,7 @@ pub fn pg_crud_cmn_qp_er_ts() -> Ts2 {
 }
 #[must_use]
 pub fn gen_dim_nbr_pgn_ts(dim_nbr: usize) -> Ts2 {
-    format!("dim{dim_nbr}_pgn")
-        .parse::<Ts2>()
-        .expect("7c3a91b2")
+    parse_ts_or_compile_error(&format!("dim{dim_nbr}_pgn"), "7c3a91b2")
 }
 pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> Ts2 {
     dq_ts(&format!("struct {v}"))
@@ -1082,7 +1077,7 @@ pub fn gen_impl_de_for_struct_ts(
     _len: usize,
     gen_type_ts: &dyn Fn(&Ident, &Type) -> Ts2,
 ) -> Ts2 {
-    let raw_ident_ts = format!("{ident}Raw").parse::<Ts2>().expect("a1b2c3d4");
+    let raw_ident_ts = parse_ts_or_compile_error(&format!("{ident}Raw"), "a1b2c3d4");
     let raw_fields_ts = vec_ident_type.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
         quote! { #fi: #type_ts, }
@@ -1162,7 +1157,7 @@ pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> Ts2 {
 #[must_use]
 pub fn parse_strs_to_ts2_vec(v: Vec<String>, uuid: &str) -> Vec<Ts2> {
     v.into_iter()
-        .map(|el| el.parse::<Ts2>().unwrap_or_else(|_| panic!("{uuid}")))
+        .map(|el| parse_ts_or_compile_error(&el, uuid))
         .collect::<Vec<Ts2>>()
 }
 #[must_use]
@@ -1263,5 +1258,14 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
             #match_ts
         }
         Ok(#QuerySc)
+    }
+}
+fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
+    match v.parse::<Ts2>() {
+        Ok(parsed_ts) => parsed_ts,
+        Err(er) => {
+            let msg = format!("{er_id}: {er}");
+            quote! {compile_error!(#msg);}
+        }
     }
 }

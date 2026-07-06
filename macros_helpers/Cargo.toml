@@ -16,6 +16,7 @@ quote = { workspace = true }
 syn = { workspace = true }
 strum_macros = { workspace = true }
 serde = { workspace = true }
+thiserror = { workspace = true }
 token_patterns = { workspace = true }
 gen_quotes = { workspace = true }
 naming = { workspace = true }

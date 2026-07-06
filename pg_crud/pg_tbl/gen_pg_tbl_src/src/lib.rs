@@ -77,6 +77,15 @@ use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElCall, RefStr, SqlxAcquire, SqlxRow, StringTs, U8, U16, U32, U64,
 };
+fn compile_error_ts(msg: &str) -> Ts2 {
+    quote! {compile_error!(#msg);}
+}
+fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
+    match v.parse::<Ts2>() {
+        Ok(parsed_ts) => parsed_ts,
+        Err(er) => compile_error_ts(&format!("{er_id}: {er}")),
+    }
+}
 //todo decide wh to do er log (mb add in some places)
 //todo gen route what will return cols of the tbl and their rust and postgersql types
 //todo crd at and updd at fields + crd by + updd by
@@ -401,7 +410,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             let mut fields = Vec::with_capacity(fields_named.named.len());
             let mut fields_without_pk = Vec::with_capacity(fields_named.named.len());
             for el in &fields_named.named {
-                let fi = el.ident.clone().expect("915ef2ce");
+                let Some(fi) = el.ident.clone() else {
+                    return compile_error_ts("915ef2ce: expected named field ident");
+                };
                 let fi_len = fi.to_string().len();
                 let max_pg_col_len = 63;
                 //todo write runtime check
@@ -415,20 +426,23 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 {
                     for el0 in &el.attrs {
                         if el0.path().segments.len() == 1 {
-                            let first_segment_ident =
-                                &el0.path().segments.first().expect("a9c3b38b").ident;
+                            let Some(first_segment) = el0.path().segments.first() else {
+                                return compile_error_ts("a9c3b38b: expected attr path segment");
+                            };
+                            let first_segment_ident = &first_segment.ident;
                             let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
                             if first_segment_ident == &gen_pg_tbl_pk_sc_str {
                                 if opt_pk_field.is_some() {
-                                    panic!("1a75cea1");
-                                } else {
-                                    opt_pk_field = Some(SynField {
-                                        vis: el.vis.clone(),
-                                        type0: el.ty.clone(),
-                                        ident: fi.clone(),
-                                    });
-                                    is_pk = true;
+                                    return compile_error_ts(
+                                        "1a75cea1: duplicate primary key field",
+                                    );
                                 }
+                                opt_pk_field = Some(SynField {
+                                    vis: el.vis.clone(),
+                                    type0: el.ty.clone(),
+                                    ident: fi.clone(),
+                                });
+                                is_pk = true;
                             }
                         }
                     }
@@ -441,12 +455,15 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     });
                 }
             }
-            (opt_pk_field.expect("6a529a99"), fields, fields_without_pk)
+            let Some(pk_field) = opt_pk_field else {
+                return compile_error_ts("6a529a99: primary key field not found");
+            };
+            (pk_field, fields, fields_without_pk)
         } else {
-            panic!("7f31872d");
+            return compile_error_ts("7f31872d: expected named struct fields");
         }
     } else {
-        panic!("bd4718d0");
+        return compile_error_ts("bd4718d0: expected struct input");
     };
     let fields_len = fields.len();
     let fields_len_without_pk = fields_without_pk.len();
@@ -751,9 +768,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             }
         };
     let gen_ident_op_suffix_ts = |op: &Op, suffix: &str| {
-        format!("{ident}{op}{suffix}")
-            .parse::<Ts2>()
-            .expect("79ab147e")
+        parse_ts_or_compile_error(&format!("{ident}{op}{suffix}"), "79ab147e")
     };
     let gen_ident_op_er_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Er");
     let gen_ident_op_res_vrts_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ResVrts");
@@ -762,7 +777,10 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let fields_ts = if let Fields::Named(v) = &syn_vrt.vrt.fields {
             v.named.iter().enumerate().map(|(i, el)| {
                 let fi = &el.ident;
-                if *fi.as_ref().expect("edbbd08a") == LocSc.to_string() {
+                let Some(fi_ref) = fi.as_ref() else {
+                    return compile_error_ts("edbbd08a: expected named field ident");
+                };
+                if *fi_ref == LocSc.to_string() {
                     gen_field_loc_new_ts(loc.file(), loc.line(), loc.column())
                 } else {
                     let er_incr_sc = ErSelfSc::from_display(&i);
@@ -770,7 +788,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 }
             })
         } else {
-            panic!("10773d36");
+            return compile_error_ts("10773d36: expected named variant fields");
         };
         quote! {
             #vrt_ident {
@@ -784,10 +802,10 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let syn_vrt_init_ts = gen_init_ts(syn_vrt, loc);
         let ts = wrap_into_axum_res_ts(
             &quote! {#ident_op_res_vrts_ucc::#FromHSc(#ErSc)},
-            &syn_vrt
-                .get_opt_status_code()
-                .expect("81efa954")
-                .to_http_status_code_ts(),
+            &match syn_vrt.get_opt_status_code() {
+                Some(v) => v.to_http_status_code_ts(),
+                None => return compile_error_ts("81efa954: status code attr not found"),
+            },
             &AddReturn::True,
         );
         quote! {
@@ -1643,11 +1661,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             #impl_sqlx_row_for_ident_rd_ids_ts
         }
     };
-    let gen_ident_try_op_er_ucc = |op: &Op| {
-        format!("{ident}Try{op}Er")
-            .parse::<Ts2>()
-            .expect("6a5468b2")
-    };
+    let gen_ident_try_op_er_ucc =
+        |op: &Op| parse_ts_or_compile_error(&format!("{ident}Try{op}Er"), "6a5468b2");
     let ident_try_rm_er_ucc = gen_ident_try_op_er_ucc(&Op::Rm);
     let gen_ident_op_er_with_serde_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ErWithSerde");
     let pg_crud_order_by_ts = quote! {#import_ts #OrderByUcc};
@@ -1656,9 +1671,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let ident_um_payload_ucc = SelfUmPayloadUcc::from_tokens(&ident);
     let ident_upd_try_new_er_ucc = SelfUpdTryNewErUcc::from_tokens(&ident);
     let ident_upd_for_query_ucc = SelfUpdForQueryUcc::from_tokens(&ident);
-    let path_v_ts = format!("{PgCrudSc}::{VUcc}")
-        .parse::<Ts2>()
-        .expect("dbdbb7f2");
+    let path_v_ts = parse_ts_or_compile_error(&format!("{PgCrudSc}::{VUcc}"), "dbdbb7f2");
     let ident_upd_ts = {
         let gen_opt_v_ft_as_pg_type_upd_ts = |syn_type: &Type| {
             let syn_type_as_pg_type_upd_ts = gen_as_pg_type_upd_ts(&syn_type);
@@ -2091,12 +2104,14 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let gen_pg_tbl_attr_str = gen_pg_tbl_attr.to_string();
         let cmn_er_vrts_attr_ts =
             get_macro_attr_meta_list_ts(&di_prm.attrs, &gen_pg_tbl_attr.gen_path_to_attr());
-        let parsed_di: DeriveInput = parse2((*cmn_er_vrts_attr_ts).clone()).expect("1b80783d");
+        let Ok(parsed_di): Result<DeriveInput, _> = parse2((*cmn_er_vrts_attr_ts).clone()) else {
+            return Vec::new();
+        };
         assert!(parsed_di.ident == gen_pg_tbl_attr_str, "8a66c852");
         let vrts = if let Data::Enum(data_enum) = parsed_di.data {
             data_enum.variants
         } else {
-            panic!("f3ddc78c");
+            return Vec::new();
         };
         vrts.into_iter().collect()
     };
@@ -2241,29 +2256,35 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let gen_loc_vrt_ts = |er_vrt: &Variant| -> Ts2 {
         let vrt_ident = &er_vrt.ident;
         let Fields::Named(fields_named) = &er_vrt.fields else {
-            panic!("2acd4725");
+            return compile_error_ts("2acd4725: expected named variant fields");
         };
         let fields_mapped_into_ts = fields_named.named.iter().map(|field| {
-            let fi = field.ident.as_ref().expect("a21dc807");
+            let Some(fi) = field.ident.as_ref() else {
+                return compile_error_ts("a21dc807: expected named field ident");
+            };
             let loc_attr = if *fi == *LocSc.to_string() {
                 Ts2::new()
             } else {
                 let mut loc_attr: Option<LocFieldAttr> = None;
                 for el in &field.attrs {
                     if el.path().segments.len() == 1 {
-                        let segment = el.path().segments.first().expect("5bd7ed8d");
+                        let Some(segment) = el.path().segments.first() else {
+                            return compile_error_ts("5bd7ed8d: expected attr path segment");
+                        };
                         if let Ok(v) =
                             { <LocFieldAttr as FromStr>::from_str(&segment.ident.to_string()) }
                         {
                             if loc_attr.is_some() {
-                                panic!("9a469d36")
-                            } else {
-                                loc_attr = Some(v);
+                                return compile_error_ts("9a469d36: duplicate loc field attr");
                             }
+                            loc_attr = Some(v);
                         }
                     }
                 }
-                loc_attr.expect("d1003b2e").to_attr_view_ts()
+                match loc_attr {
+                    Some(v) => v.to_attr_view_ts(),
+                    None => return compile_error_ts("d1003b2e: loc field attr not found"),
+                }
             };
             let ft = &field.ty;
             quote! {
@@ -2501,7 +2522,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                 let fields_idents = fields_named.named.iter().map(|field| &field.ident);
                                 quote! {#(#fields_idents),*}
                             } else {
-                                panic!("8dcafc1c");
+                                return compile_error_ts("8dcafc1c: expected named variant fields");
                             };
                             quote! {
                                 #ident_op_res_vrts_ucc::#vrt_ident {
@@ -3598,7 +3619,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         let vrts_ts = type_vrts_from_req_res_syn_vrts.iter().map(|el| {
                             let vrt_ident = &el.ident;
                             let Fields::Named(fields_named) = &el.fields else {
-                                panic!("10764d2b");
+                                return compile_error_ts("10764d2b: expected named variant fields");
                             };
                             let fields_mapped_into_ts = {
                                 let fields_ts = fields_named.named.iter().map(|field| &field.ident);
@@ -3943,16 +3964,14 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             |fi: &Ident, el_ts: &dyn ToTokens| gen_ident_cr_ts(fi, &el_ts);
         let gen_ident_cr_cnt_el_ts = |fi: &Ident| gen_ident_cr_ts(fi, &ElSc);
         let gen_tbl_test_name_fi_ts = |test_name: &str, fi: &Ident| {
-            format!("tbl_{test_name}_{fi}")
-                .parse::<Ts2>()
-                .expect("eb30c1e4")
+            parse_ts_or_compile_error(&format!("tbl_{test_name}_{fi}"), "eb30c1e4")
         };
         let mut tbl_fis_init_vec_ts = Vec::new();
         let mut tbl_test_name_fis_vec_ts = Vec::new();
         let mut fill_tbl_fis_vec_ts = |test_names: Vec<&str>| {
             for el0 in test_names {
                 let gen_init_variable_name_ts =
-                    |fi: &Ident| format!("tbl_{el0}_{fi}").parse::<Ts2>().expect("2003ad9f");
+                    |fi: &Ident| parse_ts_or_compile_error(&format!("tbl_{el0}_{fi}"), "2003ad9f");
                 tbl_fis_init_vec_ts.push(gen_fields_named_without_pk_without_comma_ts(
                     &|el: &SynField| {
                         let fi = &el.ident;

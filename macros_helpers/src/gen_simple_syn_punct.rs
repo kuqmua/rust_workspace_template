@@ -7,8 +7,8 @@ fn mk_path_segment(v: &str) -> PathSegment {
 }
 #[must_use]
 pub fn gen_simple_syn_punct(v: &[&str]) -> Punctuated<PathSegment, PathSep> {
+    let mut acc = Punctuated::<PathSegment, PathSep>::new();
     if let Some((last, rest)) = v.split_last() {
-        let mut acc = Punctuated::<PathSegment, PathSep>::new();
         for el in rest {
             acc.push_value(mk_path_segment(el));
             acc.push_punct(PathSep {
@@ -19,10 +19,8 @@ pub fn gen_simple_syn_punct(v: &[&str]) -> Punctuated<PathSegment, PathSep> {
             });
         }
         acc.push_value(mk_path_segment(last));
-        acc
-    } else {
-        panic!("f68497cc");
     }
+    acc
 }
 #[must_use]
 pub fn string_syn_punct() -> Punctuated<PathSegment, PathSep> {
@@ -43,8 +41,8 @@ mod tests {
         assert_eq!(quote! {#punct}.to_string(), "Only");
     }
     #[test]
-    #[should_panic(expected = "f68497cc")]
-    fn gen_simple_syn_punct_panics_on_empty_input() {
-        let _punct = gen_simple_syn_punct(&[]);
+    fn gen_simple_syn_punct_returns_empty_path_on_empty_input() {
+        let punct = gen_simple_syn_punct(&[]);
+        assert!(punct.is_empty());
     }
 }

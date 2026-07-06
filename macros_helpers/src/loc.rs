@@ -4,9 +4,7 @@ use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::quote;
 use std::str::FromStr;
-use syn::{
-    AngleBracketedGenericArguments, Field, Fields, GenericArgument, PathArguments, Type, Variant,
-};
+use syn::{AngleBracketedGenericArguments, Field, Fields, PathArguments, Type, Variant};
 use token_patterns::StringTs;
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, Optml)]
@@ -88,10 +86,14 @@ impl AttrIdentStr for LocFieldAttr {
 impl LocFieldAttr {
     #[must_use]
     pub fn to_attr_view_ts(&self) -> Ts2 {
-        format!("#[{}]", AttrIdentStr::attr_ident_str(self))
-            .parse::<Ts2>()
-            .expect("147c39e9")
+        match format!("#[{}]", AttrIdentStr::attr_ident_str(self)).parse::<Ts2>() {
+            Ok(v) => v,
+            Err(er) => compile_error_ts(&er.to_string()),
+        }
     }
+}
+fn compile_error_ts(msg: &str) -> Ts2 {
+    quote! {compile_error!(#msg);}
 }
 #[must_use]
 pub fn gen_serde_version_of_named_syn_vrt(v: &Variant) -> Ts2 {
@@ -99,10 +101,12 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &Variant) -> Ts2 {
     let fields = if let Fields::Named(fields) = &v.fields {
         &fields.named
     } else {
-        panic!("79b0f231");
+        return compile_error_ts("79b0f231: expected named variant fields");
     };
     let fields_with_serde_ts = fields.iter().map(|el| {
-        let el_c25b655e_ident = el.ident.as_ref().expect("438aa90e");
+        let Some(el_c25b655e_ident) = el.ident.as_ref() else {
+            return compile_error_ts("438aa90e: expected named field ident");
+        };
         let ts = if *el_c25b655e_ident == *LocSc.to_string() {
             quote! {#LocSc: loc_lib::loc::Loc}
         } else {
@@ -110,40 +114,45 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &Variant) -> Ts2 {
                 let segments = if let Type::Path(syn_type_path) = &el.ty {
                     &syn_type_path.path.segments
                 } else {
-                    panic!("55136128");
+                    return None;
                 };
                 assert!(segments.len() == 1, "114c28f3");
-                let first_segment = segments.iter().next().expect("a037b0ba");
+                let first_segment = segments.iter().next()?;
                 {
                     assert!(first_segment.ident == HashMapUcc.to_string(), "5e1bc6b1");
                 };
                 let PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) =
                     &first_segment.arguments
                 else {
-                    panic!("f464b7a1");
+                    return None;
                 };
                 assert!(args.len() == 2, "47cde1b8");
                 assert!(
                     quote! {#StringTs}.to_string() == {
-                        let first_argument = args.iter().next().expect("f9d97146");
+                        let first_argument = args.iter().next()?;
                         quote! {#first_argument}.to_string()
                     },
                     "bbdda4ab"
                 );
-                args.iter().nth(1).expect("f4e88416")
+                args.iter().nth(1)
             };
             let el_type_ts = {
                 let el_type = &el.ty;
                 quote! {#el_type}
             };
-            let el_type_with_serde_ts = match LocFieldAttr::try_from(el).expect("2db209a8") {
+            let loc_field_attr = match LocFieldAttr::try_from(el) {
+                Ok(parsed_attr) => parsed_attr,
+                Err(er) => return compile_error_ts(&format!("2db209a8: {er}")),
+            };
+            let el_type_with_serde_ts = match loc_field_attr {
                 LocFieldAttr::EoToErrString => quote! {#StringTs},
                 LocFieldAttr::EoToErrStringSerde | LocFieldAttr::EoVecToErrStringSerde => {
                     el_type_ts
                 }
-                LocFieldAttr::EoLoc => format!("{el_type_ts}{WithSerdeUcc}")
-                    .parse::<Ts2>()
-                    .expect("201dc0a4"),
+                LocFieldAttr::EoLoc => match format!("{el_type_ts}{WithSerdeUcc}").parse::<Ts2>() {
+                    Ok(parsed_ts) => parsed_ts,
+                    Err(er) => return compile_error_ts(&format!("201dc0a4: {er}")),
+                },
                 LocFieldAttr::EoVecToErrString => {
                     quote! {
                         Vec<#StringTs>
@@ -153,10 +162,12 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &Variant) -> Ts2 {
                     let segments = if let Type::Path(v0) = &el.ty {
                         &v0.path.segments
                     } else {
-                        panic!("8d93bf20");
+                        return compile_error_ts("8d93bf20: expected path type");
                     };
                     assert!(segments.len() == 1, "0c65bbaa");
-                    let first_segment = segments.iter().next().expect("595050cf");
+                    let Some(first_segment) = segments.iter().next() else {
+                        return compile_error_ts("595050cf: expected first path segment");
+                    };
                     let el_vec_type_with_serde_ts =
                         if let PathArguments::AngleBracketed(AngleBracketedGenericArguments {
                             args,
@@ -164,39 +175,55 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &Variant) -> Ts2 {
                         }) = &first_segment.arguments
                         {
                             assert!(args.len() == 1, "572a9da8");
-                            format!(
+                            match format!(
                                 "{}{}",
                                 {
-                                    let first_arg = args.iter().next().expect("e9b33787");
+                                    let Some(first_arg) = args.iter().next() else {
+                                        return compile_error_ts(
+                                            "e9b33787: expected first generic arg",
+                                        );
+                                    };
                                     quote! {#first_arg}
                                 },
                                 WithSerdeUcc,
                             )
                             .parse::<Ts2>()
-                            .expect("22c364b9")
+                            {
+                                Ok(parsed_ts) => parsed_ts,
+                                Err(er) => return compile_error_ts(&format!("22c364b9: {er}")),
+                            }
                         } else {
-                            panic!("07c6ab44");
+                            return compile_error_ts("07c6ab44: expected angle bracketed args");
                         };
                     quote! {
                         Vec<#el_vec_type_with_serde_ts>
                     }
                 }
                 LocFieldAttr::EoHashMapKStringVToErrString => {
-                    let _: &GenericArgument = get_1_hashmap_arg();
+                    if get_1_hashmap_arg().is_none() {
+                        return compile_error_ts("c1d03b71: expected HashMap<String, T>");
+                    }
                     quote! {
                         std::collections::HashMap<#StringTs, #StringTs>
                     }
                 }
                 LocFieldAttr::EoHashMapKStringVToErrStringSerde => {
-                    let _: &GenericArgument = get_1_hashmap_arg();
+                    if get_1_hashmap_arg().is_none() {
+                        return compile_error_ts("e9c6a7d2: expected HashMap<String, T>");
+                    }
                     el_type_ts
                 }
                 LocFieldAttr::EoHashMapKStringVLoc => {
-                    let second_argument = get_1_hashmap_arg();
+                    let Some(second_argument) = get_1_hashmap_arg() else {
+                        return compile_error_ts("c828da34: expected HashMap<String, T>");
+                    };
                     let el_hashmap_v_type_with_serde_ts =
-                        format!("{}{}", quote! {#second_argument}, WithSerdeUcc)
+                        match format!("{}{}", quote! {#second_argument}, WithSerdeUcc)
                             .parse::<Ts2>()
-                            .expect("86307dbc");
+                        {
+                            Ok(parsed_ts) => parsed_ts,
+                            Err(er) => return compile_error_ts(&format!("86307dbc: {er}")),
+                        };
                     quote! {
                         std::collections::HashMap<#StringTs, #el_hashmap_v_type_with_serde_ts>
                     }

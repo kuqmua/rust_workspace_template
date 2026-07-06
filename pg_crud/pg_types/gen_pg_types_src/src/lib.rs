@@ -60,6 +60,15 @@ use token_patterns::{
     AllowClippyArbitrarySrcItemOrdering, CoreDefault, F32, I16, I32, I64, MustUse,
     PgCrudCmnDfltSomeOneElCall, StringTs, U8, U32,
 };
+fn compile_error_ts(msg: &str) -> Ts2 {
+    quote! {compile_error!(#msg);}
+}
+fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
+    match v.parse::<Ts2>() {
+        Ok(parsed_ts) => parsed_ts,
+        Err(er) => compile_error_ts(&format!("{er_id}: {er}")),
+    }
+}
 #[must_use]
 pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     #[allow(clippy::arbitrary_source_item_ordering)]
@@ -251,10 +260,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     impl ToTokens for PgType {
         fn to_tokens(&self, tokens: &mut Ts2) {
-            self.to_string()
-                .parse::<Ts2>()
-                .expect("cfefbb95")
-                .to_tokens(tokens);
+            parse_ts_or_compile_error(&self.to_string(), "cfefbb95").to_tokens(tokens);
         }
     }
     impl From<&Range> for PgType {
@@ -321,10 +327,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     }
     impl ToTokens for Range {
         fn to_tokens(&self, tokens: &mut Ts2) {
-            self.to_string()
-                .parse::<Ts2>()
-                .expect("798ccb5a")
-                .to_tokens(tokens);
+            parse_ts_or_compile_error(&self.to_string(), "798ccb5a").to_tokens(tokens);
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
@@ -543,10 +546,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
             let mut check_acc = Vec::with_capacity(acc.len());
             for el in &acc {
                 if check_acc.contains(&el) {
-                    panic!("536036f9");
-                } else {
-                    check_acc.push(el);
+                    return compile_error_ts("536036f9: duplicate pg type config entry");
                 }
+                check_acc.push(el);
             }
         }
         acc
@@ -669,11 +671,14 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
             pg_type_prm: &PgType,
             is_nl_prm: &IsNl,
             pg_type_pattern_prm: &PgTypePattern
-        | gen_ident_str(
-            pg_type_prm,
-            is_nl_prm,
-            pg_type_pattern_prm
-        ).parse::<Ts2>().expect("ff3eb7a6");
+        | parse_ts_or_compile_error(
+            &gen_ident_str(
+                pg_type_prm,
+                is_nl_prm,
+                pg_type_pattern_prm
+            ),
+            "ff3eb7a6"
+        );
         let ident = &gen_ident_ts(pg_type, is_nl, pg_type_pattern);
         let gen_ident_stdrt_nn_ts = |v: &PgType| gen_ident_ts(v, &IsNl::False, &PgTypePattern::Stdrt);
         let ident_stdrt_nn_ucc = gen_ident_stdrt_nn_ts(pg_type);
@@ -706,7 +711,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let sqlx_types_chrono_naive_time_as_nn_time_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoNaiveTimeAsTime);
         let sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
         let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_nn_timestamptz_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
-        let inn_type_stdrt_nn_ts = {
+        let inn_type_stdrt_nn_str = {
             let i16_str = "i16".to_owned();
             let i32_str = "i32".to_owned();
             let i64_str = "i64".to_owned();
@@ -750,7 +755,8 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_naive_date_time_str),
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_str),
             }
-        }.parse::<Ts2>().expect("2555843f");
+        };
+        let inn_type_stdrt_nn_ts = parse_ts_or_compile_error(&inn_type_stdrt_nn_str, "2555843f");
         let ft_h: &dyn ToTokens = {
             match &pg_type_pattern {
                 PgTypePattern::Stdrt => match &is_nl {
@@ -4472,7 +4478,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         };
         (
             {
-                let fi = format!("col_{i}").parse::<Ts2>().expect("2e15af68");
+                let fi = parse_ts_or_compile_error(&format!("col_{i}"), "2e15af68");
                 quote! {
                     pub #fi: pg_crud::pg_type:: #ident,
                 }

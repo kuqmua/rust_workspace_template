@@ -97,10 +97,7 @@ impl DfltSomeOneElMaxPageSize for PgnStartsWithOne {
     #[inline]
     fn dflt_some_one_el_max_page_size() -> Self {
         let one: i32 = 1;
-        Self(PgnBase::new_unchecked(
-            i32::MAX.checked_sub(one).expect("c0f03c51").into(),
-            one.into(),
-        ))
+        Self(PgnBase::new_unchecked((i32::MAX - one).into(), one.into()))
     }
 }
 #[must_use]

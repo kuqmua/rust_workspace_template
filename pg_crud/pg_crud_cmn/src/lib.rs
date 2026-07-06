@@ -579,8 +579,7 @@ impl<T: Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl f
     fn dflt_some_one_el() -> Self {
         Self {
             oprtr: DfltSomeOneEl::dflt_some_one_el(),
-            v: NotEmptyUnqVec::try_new(AllEnumVrtsArrDfltSomeOneEl::all_vrts_dflt_some_one_el())
-                .expect("a918b427"),
+            v: DfltSomeOneEl::dflt_some_one_el(),
         }
     }
 }
@@ -631,7 +630,7 @@ pub struct PgnBase {
 impl PgnBase {
     #[must_use]
     pub const fn end(&self) -> i64 {
-        self.offset.checked_add(self.limit).expect("8a297b66")
+        self.offset.saturating_add(self.limit)
     }
     #[must_use]
     pub const fn new_unchecked(limit: i64, offset: i64) -> Self {

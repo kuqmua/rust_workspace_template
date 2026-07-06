@@ -8,12 +8,13 @@ use git_info::PROJECT_GIT_INFO;
 use num_cpus::get;
 use secrecy::ExposeSecret;
 use server_app_state::ServerAppState;
-use server_config::Config;
-use server_tbl_example::TblExample;
+use server_config::{Config, ConfigTryFromEnvEr};
+use server_tbl_example::{TblExample, TblExamplePrepPgEr};
 use sqlx::postgres::PgPoolOptions;
 #[cfg(test)]
 use std::str::Split;
-use std::sync::Arc;
+use std::{io::Error as StdIoError, process::ExitCode, sync::Arc};
+use thiserror::Error;
 use tokio::{
     net::TcpListener,
     runtime::{Builder, Runtime},
@@ -32,6 +33,23 @@ const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 type SharedAppState = Arc<ServerAppState<'static>>;
 #[cfg(test)]
 type SplitByChar<'split_lt> = Split<'split_lt, char>;
+#[derive(Debug, Error)]
+enum RunServerEr {
+    #[error("failed to bind service socket: {0}")]
+    BindServiceSocket(StdIoError),
+    #[error("failed to build tokio runtime: {0}")]
+    BuildRuntime(StdIoError),
+    #[error("failed to read configuration from environment: {0}")]
+    Config(#[from] ConfigTryFromEnvEr),
+    #[error("failed to build governor config")]
+    GovernorConfig,
+    #[error("failed to connect to postgres: {0}")]
+    PgConnect(#[from] sqlx::Error),
+    #[error("failed to prepare postgres schema: {0}")]
+    PrepPg(#[from] TblExamplePrepPgEr),
+    #[error("server failed: {0}")]
+    Serve(StdIoError),
+}
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(app_state: &SharedAppState) -> Router {
     Router::new()
@@ -98,34 +116,33 @@ fn init_tracing() {
         .init();
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
-fn mk_runtime() -> Runtime {
+fn mk_runtime() -> Result<Runtime, RunServerEr> {
     Builder::new_multi_thread()
         .worker_threads(get())
         .enable_all()
         .build()
-        .expect("5995c954")
+        .map_err(RunServerEr::BuildRuntime)
 }
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(config: &Config) -> sqlx::PgPool {
-    PgPoolOptions::new()
+async fn mk_pg_pool(config: &Config) -> Result<sqlx::PgPool, RunServerEr> {
+    Ok(PgPoolOptions::new()
         .max_connections(*GetPgPoolMaxConnections::get_pg_pool_max_connections(
             config,
         ))
         .connect(ExposeSecret::expose_secret(
             GetDatabaseUrl::get_database_url(config),
         ))
-        .await
-        .expect("8b72f688")
+        .await?)
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
-async fn run_server() {
-    let config = Config::try_from_env().expect("d74a6e5f");
-    let pg_pool = mk_pg_pool(&config).await;
-    TblExample::prep_pg(&pg_pool).await.expect("647fa499");
+async fn run_server() -> Result<(), RunServerEr> {
+    let config = Config::try_from_env()?;
+    let pg_pool = mk_pg_pool(&config).await?;
+    TblExample::prep_pg(&pg_pool).await?;
     let tcp_listener =
         TcpListener::bind(GetServiceSocketAddress::get_service_socket_address(&config))
             .await
-            .expect("3f294e7c");
+            .map_err(RunServerEr::BindServiceSocket)?;
     let cors_origins = parse_cors_allow_origin(GetCorsAllowOrigin::get_cors_allow_origin(&config));
     let app_state = mk_app_state(config, pg_pool);
     let api_routes = mk_api_routes(&app_state);
@@ -134,7 +151,7 @@ async fn run_server() {
             .per_second(2)
             .burst_size(10)
             .finish()
-            .expect("b7e3a4f1"),
+            .ok_or(RunServerEr::GovernorConfig)?,
     );
     serve(
         tcp_listener,
@@ -151,14 +168,23 @@ async fn run_server() {
             .into_make_service(),
     )
     .with_graceful_shutdown(async {
-        signal::ctrl_c().await.expect("a3f7b1c2");
+        if let Err(er) = signal::ctrl_c().await {
+            eprintln!("failed to wait for ctrl-c signal: {er}");
+        }
     })
     .await
-    .expect("2dc4449b");
+    .map_err(RunServerEr::Serve)?;
+    Ok(())
 }
-fn main() {
+fn main() -> ExitCode {
     init_tracing();
-    mk_runtime().block_on(run_server());
+    match mk_runtime().and_then(|runtime| runtime.block_on(run_server())) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(er) => {
+            eprintln!("{er}");
+            ExitCode::FAILURE
+        }
+    }
 }
 #[cfg(test)]
 mod tests {

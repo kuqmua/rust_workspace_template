@@ -4,6 +4,7 @@ use proc_macro2::TokenStream as Ts2;
 use quote::quote;
 use strum_macros::Display;
 use syn::Variant;
+use thiserror::Error;
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -148,7 +149,13 @@ impl StatusCode {
     }
     #[must_use]
     pub fn to_proc_macro_attr_view_ts(&self) -> Ts2 {
-        format!("#[{self}]").parse::<Ts2>().expect("48ab5b45")
+        match format!("#[{self}]").parse::<Ts2>() {
+            Ok(v) => v,
+            Err(er) => {
+                let msg = er.to_string();
+                quote! {compile_error!(#msg);}
+            }
+        }
     }
     #[must_use]
     pub fn to_status_code_description_ts(&self) -> Ts2 {
@@ -421,27 +428,25 @@ impl TryFrom<&String> for StatusCode {
         }
     }
 }
-#[must_use]
-pub fn get_only_one(vrt: &Variant) -> StatusCode {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+pub enum GetOnlyOneStatusCodeEr {
+    #[error("07286cf0: two or more supported status code attrs")]
+    MoreThanOne,
+    #[error("19fc6512: supported status code attr not found")]
+    NotFound,
+}
+pub fn get_only_one(vrt: &Variant) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
     let mut opt_self = None;
-    vrt.attrs.iter().for_each(|attr| {
+    for attr in &vrt.attrs {
         if attr.path().segments.len() == 1
-            && let Ok(named_attr) = StatusCode::try_from(
-                &attr
-                    .path()
-                    .segments
-                    .first()
-                    .expect("9deb71d1")
-                    .ident
-                    .to_string(),
-            )
+            && let Some(segment) = attr.path().segments.first()
+            && let Ok(named_attr) = StatusCode::try_from(&segment.ident.to_string())
         {
             if opt_self.is_some() {
-                panic!("07286cf0");
-            } else {
-                opt_self = Some(named_attr);
+                return Err(GetOnlyOneStatusCodeEr::MoreThanOne);
             }
+            opt_self = Some(named_attr);
         }
-    });
-    opt_self.expect("19fc6512")
+    }
+    opt_self.ok_or(GetOnlyOneStatusCodeEr::NotFound)
 }
