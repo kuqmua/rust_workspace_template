@@ -7,20 +7,19 @@ use macros_helpers::{
     gen_pub_try_new_ts, mb_write_ts_into_file,
 };
 use naming::{
-    ArrOfUcc, AsUcc, ColSc, ContainsNullByteUcc, CrSc, DateNaiveSc, DateNaiveUcc, DateSc, DateUcc,
-    DaysSc, DisplayPlusToTokens, EarlierDateNotSupportedUcc, EarliestSupportedDateSc, EndSc,
-    EndUcc, EqUcc, ErSc, ExcludedStartGreaterThanExcludedEndUcc,
-    ExcludedStartGreaterThanIncludedEndUcc, ExcludedUcc, GenPgTypesModSc, HourSc,
-    IncludedEndCannotBeMaxUcc, IncludedStartGreaterThanExcludedEndUcc,
-    IncludedStartGreaterThanIncludedEndUcc, IncludedUcc, IncrSc,
-    InvalidHourOrMinuteOrSecondOrMicrosecondUcc, MaxSc, MicroSc, MicrosecondSc, MicrosecondsSc,
-    MinSc, MinuteSc, MonthsSc, NanosecondPrecisionIsNotSupportedUcc, NanosecondSc, NearZeroSc,
-    NegativeLessTypicalSc, NegativeMoreTypicalSc, NewSc, NotUuidUcc, OptUpdSc, OptVecCrSc,
-    PgTypePkUcc, PgTypeUcc, PositiveLessTypicalSc, PositiveMoreTypicalSc, QuerySc,
+    AsUcc, ColSc, ContainsNullByteUcc, CrSc, DateNaiveSc, DateNaiveUcc, DateSc, DateUcc, DaysSc,
+    DisplayPlusToTokens, EarlierDateNotSupportedUcc, EarliestSupportedDateSc, EndSc, EndUcc, EqUcc,
+    ErSc, ExcludedStartGreaterThanExcludedEndUcc, ExcludedStartGreaterThanIncludedEndUcc,
+    ExcludedUcc, GenPgTypesModSc, HourSc, IncludedEndCannotBeMaxUcc,
+    IncludedStartGreaterThanExcludedEndUcc, IncludedStartGreaterThanIncludedEndUcc, IncludedUcc,
+    IncrSc, InvalidHourOrMinuteOrSecondOrMicrosecondUcc, MaxSc, MicroSc, MicrosecondSc,
+    MicrosecondsSc, MinSc, MinuteSc, MonthsSc, NanosecondPrecisionIsNotSupportedUcc, NanosecondSc,
+    NearZeroSc, NegativeLessTypicalSc, NegativeMoreTypicalSc, NewSc, NotUuidUcc, OptUpdSc,
+    OptVecCrSc, PgTypePkUcc, PgTypeUcc, PositiveLessTypicalSc, PositiveMoreTypicalSc, QuerySc,
     RdIdsAndCrIntoRdSc, RdIdsIntoRdSc, RdIdsIntoTtSc, RdIdsIntoUpdSc, RdIdsSc,
     RdIdsTo2DimsVecRdInnSc, RdIdsUcc, RdIntoTtSc, RdSc, RdUcc, SecSc, SecondSc, SelfSc, SelfUcc,
     StartSc, StartUcc, TimeSc, TimeUcc, ToErrStringSc, TryNewSc, TtSc, TtUcc, UnboundedUcc, UpdUcc,
-    VSc, VecOfUcc,
+    VSc,
     prm::{
         SelfCrUcc, SelfNnUcc, SelfOrgnTryNewErUcc, SelfOrgnTryNewForDeErUcc, SelfOrgnUcc,
         SelfRdIdsUcc, SelfRdInnUcc, SelfRdUcc, SelfSelUcc, SelfTtUcc, SelfUpdForQueryUcc,
@@ -32,18 +31,18 @@ use panic_loc::panic_loc;
 use pg_crud_cmn::PgTypeGreaterThanVrt;
 use pg_crud_macros_cmn::{
     AddOprtrUndrscr, ColPrmUndrscr, CrQbValueUndrscr, CrQpIncrUndrscr, CrQpValueUndrscr,
-    DefaultSomeOneOrDefaultSomeOneWithMaxPageSize, DeriveOrImpl, EqOprtrH, Import, IncrPrmUndrscr,
-    IsCrQbMut, IsNl, IsPkUndrscr, IsQbMut, IsSelOnlyUpddIdsQbMut, IsStdrtNn, IsUpdQbMut, PgFlt,
-    PgTypeFlt, RdOrUpd, SelQpValueUndrscr, ShouldDSchemarsJsonSchema, ShouldDeriveUtoipaToSchema,
-    UpdQpAccumulatorUndrscr, UpdQpPathUndrscr, UpdQpTargetUndrscr, UpdQpValueUndrscr,
-    gen_dim_nbr_pgn_ts, gen_impl_crate_is_string_empty_for_ident_ts,
+    DeriveOrImpl, EqOprtrH, Import, IncrPrmUndrscr, IsCrQbMut, IsNl, IsPkUndrscr, IsQbMut,
+    IsSelOnlyUpddIdsQbMut, IsStdrtNn, IsUpdQbMut, PgFlt, PgTypeFlt, RdOrUpd, SelQpValueUndrscr,
+    ShouldDSchemarsJsonSchema, ShouldDeriveUtoipaToSchema, UpdQpAccumulatorUndrscr,
+    UpdQpPathUndrscr, UpdQpTargetUndrscr, UpdQpValueUndrscr,
+    gen_impl_crate_is_string_empty_for_ident_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts,
     gen_impl_pg_crud_cmn_dflt_some_one_el_ts, gen_impl_pg_type_not_pk_for_ident_ts,
     gen_impl_pg_type_test_cases_for_ident_ts, gen_impl_pg_type_ts,
     gen_impl_sqlx_decode_sqlx_pg_for_ident_ts, gen_impl_sqlx_type_and_encode_for_ident_ts,
     gen_impl_sqlx_type_for_ident_ts, gen_impl_to_err_string_no_generics_ts, gen_opt_type_dcl_ts,
     gen_pg_type_wh_ts, gen_return_err_qp_er_write_into_buffer_ts, gen_v_init_ts,
-    gen_vec_tokens_dcl_ts, impl_pg_type_eq_oprtr_for_ident_ts, impl_pg_type_wh_flt_for_ident_ts,
+    impl_pg_type_eq_oprtr_for_ident_ts, impl_pg_type_wh_flt_for_ident_ts,
     serde_er_enum_d_ts_builder,
 };
 use proc_macro2::TokenStream as Ts2;
@@ -53,13 +52,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 use std::{
     fmt::{Display, Formatter, Result as StdFmtResult},
-    iter::{once, repeat_n},
+    iter::once,
 };
 use strum::IntoEnumIterator as _;
 use strum_macros::{Display as StrumDisplay, EnumIter};
 use token_patterns::{
     AllowClippyArbitrarySrcItemOrdering, CoreDefault, F32, I16, I32, I64, MustUse,
-    PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall, StringTs, U8, U32,
+    PgCrudCmnDfltSomeOneElCall, StringTs, U8, U32,
 };
 #[must_use]
 pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
@@ -220,17 +219,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         False,
         True,
     }
-    enum CanBeAnArrEl {
-        False,
-        True,
-    }
     impl PgType {
-        const fn can_be_an_arr_el(&self) -> CanBeAnArrEl {
-            match self.can_be_nl() {
-                CanBeNl::True => CanBeAnArrEl::True,
-                CanBeNl::False => CanBeAnArrEl::False,
-            }
-        }
         const fn can_be_nl(&self) -> CanBeNl {
             match &self {
                 Self::I16AsInt2
@@ -338,36 +327,10 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 .to_tokens(tokens);
         }
     }
-    // todo reuse it(move to pg_macros_cmn) if sqlx devs will add nested arr support
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, StrumDisplay, EnumIter, Optml)]
     enum PgTypePattern {
         Stdrt,
-        ArrDim1 { dim1_is_nl: IsNl },
-        // sqlx does not support nested arrs yet. https://github.com/launchbadge/sqlx/issues/2280
-        // ArrDim2 {
-        //     dim1_is_nl: IsNl,
-        //     dim2_is_nl: IsNl,
-        // },
-        // ArrDim3 {
-        //     dim1_is_nl: IsNl,
-        //     dim2_is_nl: IsNl,
-        //     dim3_is_nl: IsNl,
-        // },
-        // ArrDim4 {
-        //     dim1_is_nl: IsNl,
-        //     dim2_is_nl: IsNl,
-        //     dim3_is_nl: IsNl,
-        //     dim4_is_nl: IsNl,
-        // },
-    }
-    impl PgTypePattern {
-        const fn arr_dims_nbr(&self) -> usize {
-            match &self {
-                Self::Stdrt => 0,
-                Self::ArrDim1 { .. } => 1,
-            }
-        }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, PartialEq, Serialize, Deserialize, Optml)]
@@ -388,50 +351,22 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         type Error = String;
         fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
             let cant_supp_nl_vrts_msg = "cant support nl vrts: ";
-            let cant_supp_arr_ver_msg = "cant support arr_version: ";
             match &v.pg_type.can_be_nl() {
                 CanBeNl::False => {
                     if matches!(&v.is_nl, IsNl::True) {
                         return Err(format!("{cant_supp_nl_vrts_msg}{v:#?}"));
                     }
-                    match &v.pg_type_pattern {
-                        PgTypePattern::Stdrt => Ok(Self {
-                            pg_type: v.pg_type,
-                            is_nl: v.is_nl,
-                            pg_type_pattern: v.pg_type_pattern,
-                        }),
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => {
-                            match &v.pg_type.can_be_an_arr_el() {
-                                CanBeAnArrEl::False => {
-                                    Err(format!("{cant_supp_arr_ver_msg}{v:#?}"))
-                                }
-                                CanBeAnArrEl::True => match &dim1_is_nl {
-                                    IsNl::False => Ok(Self {
-                                        pg_type: v.pg_type,
-                                        is_nl: v.is_nl,
-                                        pg_type_pattern: v.pg_type_pattern,
-                                    }),
-                                    IsNl::True => Err(format!("{cant_supp_nl_vrts_msg}{v:#?}")),
-                                },
-                            }
-                        }
-                    }
-                }
-                CanBeNl::True => match &v.pg_type_pattern {
-                    PgTypePattern::Stdrt => Ok(Self {
+                    Ok(Self {
                         pg_type: v.pg_type,
                         is_nl: v.is_nl,
                         pg_type_pattern: v.pg_type_pattern,
-                    }),
-                    PgTypePattern::ArrDim1 { .. } => match &v.pg_type.can_be_an_arr_el() {
-                        CanBeAnArrEl::False => Err(format!("{cant_supp_arr_ver_msg}{v:#?}")),
-                        CanBeAnArrEl::True => Ok(Self {
-                            pg_type: v.pg_type,
-                            is_nl: v.is_nl,
-                            pg_type_pattern: v.pg_type_pattern,
-                        }),
-                    },
-                },
+                    })
+                }
+                CanBeNl::True => Ok(Self {
+                    pg_type: v.pg_type,
+                    is_nl: v.is_nl,
+                    pg_type_pattern: v.pg_type_pattern,
+                }),
             }
         }
     }
@@ -440,8 +375,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         All,
         Concrete(Vec<PgTypeRecord>),
         Subset(Vec<PgType>),
-        WithDimOne,
-        WithoutDims,
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde::Deserialize, Optml)]
@@ -580,72 +513,30 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         }
     };
     let (cols_ts, pg_type_arr) = {
-        let gen_vrts = |include_arr: bool, filter: Option<&[PgType]>| {
+        let gen_vrts = |filter: Option<&[PgType]>| {
             PgType::iter().filter(|el| filter.is_none_or(|f| f.contains(el))).fold(Vec::new(), |mut acc0, el| {
-                for el0 in PgTypePattern::iter().fold(Vec::new(), |mut acc1, el1| {
-                    match &el1 {
-                        PgTypePattern::Stdrt => {
-                            acc1.push(el1);
-                        }
-                        PgTypePattern::ArrDim1 { .. } => {
-                            if include_arr {
-                                for el2 in IsNl::iter() {
-                                    acc1.push(PgTypePattern::ArrDim1 { dim1_is_nl: el2 });
-                                }
-                            }
-                        }
-                    }
-                    acc1
-                }) {
-                    match &el0 {
-                        PgTypePattern::Stdrt => match &el.can_be_nl() {
-                            CanBeNl::False => {
-                                acc0.push(PgTypeRecord {
-                                    pg_type: el.clone(),
-                                    is_nl: IsNl::False,
-                                    pg_type_pattern: el0,
-                                });
-                            },
-                            CanBeNl::True => IsNl::iter().for_each(|el1| {
-                                acc0.push(PgTypeRecord {
-                                    pg_type: el.clone(),
-                                    is_nl: el1,
-                                    pg_type_pattern: el0.clone(),
-                                });
-                            }),
-                        },
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => match &el.can_be_an_arr_el() {
-                            CanBeAnArrEl::False => (),
-                            CanBeAnArrEl::True => match &el.can_be_nl() {
-                                CanBeNl::False => {
-                                    if matches!(&dim1_is_nl, IsNl::False) {
-                                        for el1 in IsNl::iter() {
-                                            acc0.push(PgTypeRecord {
-                                                pg_type: el.clone(),
-                                                is_nl: el1,
-                                                pg_type_pattern: PgTypePattern::ArrDim1 { dim1_is_nl: *dim1_is_nl },
-                                            });
-                                        }
-                                    }
-                                },
-                                CanBeNl::True => IsNl::iter().for_each(|is_nl| {
-                                    acc0.push(PgTypeRecord {
-                                        pg_type: el.clone(),
-                                        is_nl,
-                                        pg_type_pattern: el0.clone(),
-                                    });
-                                }),
-                            },
-                        },
-                    }
+                match &el.can_be_nl() {
+                    CanBeNl::False => {
+                        acc0.push(PgTypeRecord {
+                            pg_type: el,
+                            is_nl: IsNl::False,
+                            pg_type_pattern: PgTypePattern::Stdrt,
+                        });
+                    },
+                    CanBeNl::True => IsNl::iter().for_each(|el1| {
+                        acc0.push(PgTypeRecord {
+                            pg_type: el.clone(),
+                            is_nl: el1,
+                            pg_type_pattern: PgTypePattern::Stdrt,
+                        });
+                    }),
                 }
                 acc0
             })
         };
         let acc = match gen_pg_types_config.vrt {
-            GenPgTypesConfigVrt::All | GenPgTypesConfigVrt::WithDimOne => gen_vrts(true, None),
-            GenPgTypesConfigVrt::WithoutDims => gen_vrts(false, None),
-            GenPgTypesConfigVrt::Subset(types) => gen_vrts(true, Some(&types)),
+            GenPgTypesConfigVrt::All => gen_vrts(None),
+            GenPgTypesConfigVrt::Subset(types) => gen_vrts(Some(&types)),
             GenPgTypesConfigVrt::Concrete(v) => v,
         };
         {
@@ -671,44 +562,15 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
             fn gen_pg_type_record_h_vec(
                 pg_type_record_h: PgTypeRecordH,
             ) -> Vec<PgTypeRecordH> {
-                let gen_vec = |
-                    pg_type_record_h_prm: PgTypeRecordH
-                | gen_pg_type_record_h_vec(pg_type_record_h_prm)
-                .into_iter()
-                .chain(once(pg_type_record_h.clone()))
-                .collect();
-                //same pattern was in gen_pg_types 21.05.2025
-                match (
-                    &pg_type_record_h.is_nl,
-                    &pg_type_record_h.pg_type_pattern,
-                ) {
-                    (IsNl::False, PgTypePattern::Stdrt) => {
-                        vec![pg_type_record_h]
-                    }
-                    (IsNl::True, PgTypePattern::Stdrt) => {
-                        gen_vec(PgTypeRecordH {
-                            is_nl: IsNl::False,
-                            pg_type_pattern: PgTypePattern::Stdrt,
-                        })
-                    }
-                    (
-                        IsNl::False,
-                        PgTypePattern::ArrDim1 {
-                            dim1_is_nl,
-                        },
-                    ) => gen_vec(PgTypeRecordH {
-                        is_nl: *dim1_is_nl,
-                        pg_type_pattern: PgTypePattern::Stdrt,
-                    }),
-                    (
-                        IsNl::True,
-                        PgTypePattern::ArrDim1 { .. },
-                    ) => gen_vec(PgTypeRecordH {
+                match &pg_type_record_h.is_nl {
+                    IsNl::False => vec![pg_type_record_h],
+                    IsNl::True => gen_pg_type_record_h_vec(PgTypeRecordH {
                         is_nl: IsNl::False,
-                        pg_type_pattern: pg_type_record_h
-                            .pg_type_pattern
-                            .clone(),
-                    }),
+                        pg_type_pattern: PgTypePattern::Stdrt,
+                    })
+                    .into_iter()
+                    .chain(once(pg_type_record_h.clone()))
+                    .collect(),
                 }
             }
             for el0 in gen_pg_type_record_h_vec(PgTypeRecordH {
@@ -774,7 +636,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let pg_type_pattern = &el.pg_type_pattern;
         let pg_type_init_try_new_try_from_pg_type = PgTypeInitTryNew::try_from(pg_type);
         let pg_type_deserialize = PgTypeDeserialize::from(pg_type);
-        let arr_dims_nbr = pg_type_pattern.arr_dims_nbr();
         let range_try_from_pg_type = Range::try_from(pg_type);
         let range_try_from_pg_type_is_ok = range_try_from_pg_type.is_ok();
         let import = Import::PgCrudCmn;
@@ -795,20 +656,13 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let gen_ident_str = |
             pg_type_prm: &PgType,
             is_nl_prm: &IsNl,
-            pg_type_pattern_prm: &PgTypePattern
+            _pg_type_pattern_prm: &PgTypePattern
         | {
             let rust_type_name = RustTypeName::from(pg_type_prm);
             let pg_type_name = PgTypeName::from(pg_type_prm);
             let is_nl_rust = is_nl_prm.rust();
             let nn_or_nl_str = is_nl_prm.nn_or_nl_str();
-            let (rust_part, pg_part) = match &pg_type_pattern_prm {
-                PgTypePattern::Stdrt => (format!("{rust_type_name}"), format!("{pg_type_name}")),
-                PgTypePattern::ArrDim1 { dim1_is_nl } => {
-                    let d1 = dim1_is_nl.nn_or_nl_str();
-                    let d1_rust = dim1_is_nl.rust();
-                    (format!("{VecOfUcc}{d1_rust}{rust_type_name}"), format!("{ArrOfUcc}{d1}{pg_type_name}"))
-                }
-            };
+            let (rust_part, pg_part) = (format!("{rust_type_name}"), format!("{pg_type_name}"));
             format!("{is_nl_rust}{rust_part}{AsUcc}{nn_or_nl_str}{pg_part}")
         };
         let gen_ident_ts = |
@@ -823,21 +677,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let ident = &gen_ident_ts(pg_type, is_nl, pg_type_pattern);
         let gen_ident_stdrt_nn_ts = |v: &PgType| gen_ident_ts(v, &IsNl::False, &PgTypePattern::Stdrt);
         let ident_stdrt_nn_ucc = gen_ident_stdrt_nn_ts(pg_type);
-        let ident_stdrt_nl_ucc = gen_ident_ts(pg_type, &IsNl::True, &PgTypePattern::Stdrt);
-        let ident_arr_nn_ucc = gen_ident_ts(
-            pg_type,
-            &IsNl::False,
-            &PgTypePattern::ArrDim1 {
-                dim1_is_nl: IsNl::False,
-            },
-        );
-        let ident_arr_nl_ucc = gen_ident_ts(
-            pg_type,
-            &IsNl::False,
-            &PgTypePattern::ArrDim1 {
-                dim1_is_nl: IsNl::True,
-            },
-        );
         let gen_as_trait_ts = |ts: &dyn ToTokens, pg_type_or_pg_type_test_cases: &PgTypeOrPgTypeTestCases| {
             let trait_ts = match &pg_type_or_pg_type_test_cases {
                 PgTypeOrPgTypeTestCases::PgType => quote! {PgType},
@@ -849,18 +688,13 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let gen_as_pg_type_test_cases_ts = |ts: &dyn ToTokens| gen_as_trait_ts(&ts, &PgTypeOrPgTypeTestCases::PgTypeTestCases);
         let self_as_pg_type_ts = gen_as_pg_type_ts(&SelfUcc);
         let ident_stdrt_nn_as_pg_type_ts = gen_as_pg_type_ts(&ident_stdrt_nn_ucc);
-        let ident_stdrt_nl_as_pg_type_ts = gen_as_pg_type_ts(&ident_stdrt_nl_ucc);
         let self_pg_type_as_pg_type_ts = gen_as_pg_type_ts(&quote! {Self::#PgTypeUcc});
         let ident_stdrt_nn_as_pg_type_test_cases_ts = gen_as_pg_type_test_cases_ts(&ident_stdrt_nn_ucc);
-        let ident_stdrt_nl_as_pg_type_test_cases_ts = gen_as_pg_type_test_cases_ts(&ident_stdrt_nl_ucc);
-        let ident_arr_nn_as_pg_type_test_cases_ts = gen_as_pg_type_test_cases_ts(&ident_arr_nn_ucc);
-        let ident_arr_nl_as_pg_type_test_cases_ts = gen_as_pg_type_test_cases_ts(&ident_arr_nl_ucc);
         let gen_ident_stdrt_nn_orgn_ts = |pg_type_prm: &PgType| SelfOrgnUcc::from_tokens(
             &gen_ident_stdrt_nn_ts(pg_type_prm)
         );
         let ident_stdrt_nn_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(pg_type);
         let ident_orgn_ucc = SelfOrgnUcc::from_tokens(&ident);
-        let ident_stdrt_nl_tt_ucc = SelfTtUcc::from_tokens(&ident_stdrt_nl_ucc);
         let sqlx_types_chrono_naive_date_as_nn_date_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveDateAsDate);
         let sqlx_types_chrono_naive_time_as_nn_time_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveTimeAsTime);
         let sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
@@ -917,26 +751,11 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_str),
             }
         }.parse::<Ts2>().expect("2555843f");
-        let gen_ident_orgn_non_wrapping = |pg_type_pattern_prm: &PgTypePattern, is_nl_prm: &IsNl| SelfOrgnUcc::from_tokens(&gen_ident_ts(pg_type, is_nl_prm, pg_type_pattern_prm));
-        let dim1_ident_orgn_ts = |dim1_is_nl: &IsNl| {
-            let (pat, inl): (&PgTypePattern, &IsNl) = match &is_nl {
-                IsNl::False => (&PgTypePattern::Stdrt, dim1_is_nl),
-                IsNl::True => (pg_type_pattern, &IsNl::False),
-            };
-            gen_ident_orgn_non_wrapping(pat, inl)
-        };
         let ft_h: &dyn ToTokens = {
             match &pg_type_pattern {
                 PgTypePattern::Stdrt => match &is_nl {
                     IsNl::False => &inn_type_stdrt_nn_ts,
                     IsNl::True => &gen_opt_type_dcl_ts(&ident_stdrt_nn_orgn_ucc),
-                },
-                PgTypePattern::ArrDim1 { dim1_is_nl } => &{
-                    let v = dim1_ident_orgn_ts(dim1_is_nl);
-                    match &is_nl {
-                        IsNl::False => gen_vec_tokens_dcl_ts(&v),
-                        IsNl::True => gen_opt_type_dcl_ts(&v),
-                    }
                 },
             }
         };
@@ -959,10 +778,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
             PgTypePattern::Stdrt => match &is_nl {
                 IsNl::False => &inn_type_stdrt_nn_ts,
                 IsNl::True => &gen_opt_type_dcl_ts(&inn_type_stdrt_nn_ts),
-            },
-            PgTypePattern::ArrDim1 { dim1_is_nl } => &{
-                let dim1_type = dim1_is_nl.mb_opt_wrap(quote! {#inn_type_stdrt_nn_ts});
-                is_nl.mb_opt_wrap(gen_vec_tokens_dcl_ts(&dim1_type))
             },
         };
         let can_be_pk = match &pg_type {
@@ -1348,37 +1163,34 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 }
             }
         };
-        let derive_copy = match &pg_type_pattern {
-            PgTypePattern::Stdrt => match &pg_type {
-                PgType::I16AsInt2 |
-                PgType::I32AsInt4 |
-                PgType::I64AsInt8 |
-                PgType::F32AsFloat4 |
-                PgType::F64AsFloat8 |
-                PgType::I16AsSmallSerialInitByPg |
-                PgType::I32AsSerialInitByPg |
-                PgType::I64AsBigSerialInitByPg |
-                PgType::SqlxPgTypesPgMoneyAsMoney |
-                PgType::BoolAsBool |
-                PgType::SqlxTypesChronoNaiveTimeAsTime |
-                PgType::SqlxTypesTimeTimeAsTime |
-                PgType::SqlxPgTypesPgIntervalAsInterval |
-                PgType::SqlxTypesChronoNaiveDateAsDate |
-                PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                PgType::SqlxTypesUuidUuidAsUuidV4InitByPg |
-                PgType::SqlxTypesUuidUuidAsUuidInitByClient |
-                PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => DCopy::True,
-                PgType::StringAsText |
-                PgType::StdVecVecU8AsBytea => DCopy::False,
-            },
-            PgTypePattern::ArrDim1 { .. } => DCopy::False,
+        let derive_copy = match &pg_type {
+            PgType::I16AsInt2 |
+            PgType::I32AsInt4 |
+            PgType::I64AsInt8 |
+            PgType::F32AsFloat4 |
+            PgType::F64AsFloat8 |
+            PgType::I16AsSmallSerialInitByPg |
+            PgType::I32AsSerialInitByPg |
+            PgType::I64AsBigSerialInitByPg |
+            PgType::SqlxPgTypesPgMoneyAsMoney |
+            PgType::BoolAsBool |
+            PgType::SqlxTypesChronoNaiveTimeAsTime |
+            PgType::SqlxTypesTimeTimeAsTime |
+            PgType::SqlxPgTypesPgIntervalAsInterval |
+            PgType::SqlxTypesChronoNaiveDateAsDate |
+            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
+            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+            PgType::SqlxTypesUuidUuidAsUuidV4InitByPg |
+            PgType::SqlxTypesUuidUuidAsUuidInitByClient |
+            PgType::SqlxTypesIpnetworkIpNetworkAsInet |
+            PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
+            PgType::SqlxPgTypesPgRangeI32AsInt4Range |
+            PgType::SqlxPgTypesPgRangeI64AsInt8Range |
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => DCopy::True,
+            PgType::StringAsText |
+            PgType::StdVecVecU8AsBytea => DCopy::False,
         };
         let sqlx_types_chrono_naive_time_min_fn_ts = quote!{sqlx_types_chrono_naive_time_min};
         let sqlx_types_chrono_naive_time_ten_fn_ts = quote!{sqlx_types_chrono_naive_time_ten};
@@ -2172,10 +1984,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                             let gen_match_opt_ts = |ts: &dyn ToTokens| {
                                 quote! {#VSc.map(#ts::#NewSc)}
                             };
-                            let gen_arr_dims_init_ts = |ts: &dyn ToTokens| match &is_nl {
-                                IsNl::False => quote! {#VSc.into_iter().map(#ts::#NewSc).collect()},
-                                IsNl::True => gen_match_opt_ts(&ts),
-                            };
                             match &pg_type_pattern {
                                 PgTypePattern::Stdrt => match &is_nl {
                                     IsNl::False => {
@@ -2192,7 +2000,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                     }
                                     IsNl::True => gen_match_opt_ts(&ident_stdrt_nn_orgn_ucc),
                                 },
-                                PgTypePattern::ArrDim1 { dim1_is_nl } => gen_arr_dims_init_ts(&dim1_ident_orgn_ts(dim1_is_nl)),
                             }
                         };
                         quote! {Self(#ts)}
@@ -2210,11 +2017,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                 &ts
                             ),
                         },
-                        PgTypePattern::ArrDim1 { .. } => gen_new_ts(
-                            &MustUse,
-                            &v_ident_inn_type_ts,
-                            &ts
-                        ),
                     }
                 },
                 |pg_type_init_try_new| {
@@ -2229,25 +2031,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                 }),
                                 None => None
                             }))}
-                        };
-                        let gen_arr_dims_init_ts = |ts: &dyn ToTokens| match &is_nl {
-                            IsNl::False => quote! {
-                                Ok(Self({
-                                    let mut acc_4ce2782a = Vec::new();
-                                    for el_de177578 in #VSc {
-                                        match #ts::#TryNewSc(el_de177578) {
-                                            Ok(v_a763a416) => {
-                                                acc_4ce2782a.push(v_a763a416);
-                                            },
-                                            Err(er) => {
-                                                return Err(er);
-                                            }
-                                        }
-                                    }
-                                    acc_4ce2782a
-                                }))
-                            },
-                            IsNl::True => gen_match_opt_ts(&ts),
                         };
                         match &pg_type_pattern {
                             PgTypePattern::Stdrt => match &is_nl {
@@ -2463,7 +2246,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                 }
                                 IsNl::True => gen_match_opt_ts(&ident_stdrt_nn_orgn_ucc),
                             },
-                            PgTypePattern::ArrDim1 { dim1_is_nl } => gen_arr_dims_init_ts(&dim1_ident_orgn_ts(dim1_is_nl)),
                         }
                     };
                     quote! {
@@ -2524,7 +2306,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                             },
                             IsNl::True => Ts2::new(),
                         },
-                        PgTypePattern::ArrDim1 { .. } => Ts2::new(),
                     }
                 };
                 quote! {
@@ -2556,28 +2337,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                 &quote!{v_6bfd70fa}
                             ),
                         },
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => {
-                            let el_dot_zero_ts = quote! {el_6910aab7.0};
-                            let dim1_ts = match &dim1_is_nl {
-                                IsNl::False => el_dot_zero_ts,
-                                IsNl::True => gen_match_ts(
-                                    &el_dot_zero_ts,
-                                    &Ts2::new(),
-                                    &quote!{v_1b8cbd77}
-                                ),
-                            };
-                            let into_iter_dim1_ts = quote! {.into_iter().map(|el_6910aab7|#dim1_ts).collect()};
-                            match &is_nl {
-                                IsNl::False => quote! {
-                                    #v_dot_zero #into_iter_dim1_ts
-                                },
-                                IsNl::True => gen_match_ts(
-                                    &v_dot_zero,
-                                    &into_iter_dim1_ts,
-                                    &quote!{v_38cfcd24}
-                                ),
-                            }
-                        }
                     }
                 }
             );
@@ -3021,10 +2780,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                         }
                         IsNl::True => some_dflt_some_one_el_call_ts,
                     },
-                    PgTypePattern::ArrDim1 { .. } => match &is_nl {
-                        IsNl::False => quote! {vec![#PgCrudCmnDfltSomeOneElCall]},
-                        IsNl::True => some_dflt_some_one_el_call_ts,
-                    },
                 };
                 quote! {Self(#ts)}
             });
@@ -3068,18 +2823,8 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                         },
                         IsNl::True => ok_self_scopes_v_ts,
                     },
-                    PgTypePattern::ArrDim1 { .. } => ok_self_scopes_v_ts,
                 }
             });
-            let impl_sqlx_pg_pg_has_arr_type_for_ident_orgn_ts = {
-                quote! {
-                    impl sqlx::postgres::PgHasArrayType for #ident_orgn_ucc {
-                        fn array_type_info() -> sqlx::postgres::PgTypeInfo {
-                            <#inn_type_stdrt_nn_ts as sqlx::postgres::PgHasArrayType>::array_type_info()
-                        }
-                    }
-                }
-            };
             let mb_impl_from_ident_rd_for_ident_orgn_ts = match &is_nn_stdrt_can_be_pk {
                 IsNnStdrtCanBePk::False => Ts2::new(),
                 IsNnStdrtCanBePk::True => gen_impl_from_ts(&ident_stdrt_nn_rd_ucc, &ident_orgn_ucc, &{
@@ -3103,7 +2848,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 #impl_dflt_some_one_el_for_ident_orgn_ts
                 #impl_sqlx_type_and_encode_for_ident_orgn_ts
                 #impl_sqlx_decode_sqlx_pg_for_ident_orgn_ts
-                #impl_sqlx_pg_pg_has_arr_type_for_ident_orgn_ts
                 #mb_impl_from_ident_rd_for_ident_orgn_ts
             }
         };
@@ -3170,16 +2914,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                             IsNl::False => eq_ts,
                             IsNl::True => nl_eq_oprtr_ts,
                         },
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => match &is_nl {
-                            IsNl::False => match &dim1_is_nl {
-                                IsNl::False => eq_ts,
-                                IsNl::True => {
-                                    //todo thats not actually usefull coz nl arr comparison has different logic. need to refactor EqOprtrH enum
-                                    eq_ts
-                                }
-                            },
-                            IsNl::True => nl_eq_oprtr_ts,
-                        },
                     }
                 },
             );
@@ -3232,42 +2966,13 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         let ident_sel_ts = {
             let pub_struct_ident_sel_ts = gen_pub_struct_tokens_ts(
                 &ident_sel_ucc,
-                &match &pg_type_pattern {
-                    PgTypePattern::Stdrt => quote! {;},
-                    PgTypePattern::ArrDim1 { .. } => {
-                        let mut args_ts = Vec::with_capacity(arr_dims_nbr);
-                        for el0 in 1..=arr_dims_nbr {
-                            let dim_nbr_pgn_ts = gen_dim_nbr_pgn_ts(el0);
-                            args_ts.push(quote! {
-                                #dim_nbr_pgn_ts: pg_types_cmn::PgnStartsWithOne
-                            });
-                        }
-                        quote! {{#(#args_ts),*}}
-                    }
-                },
+                &quote! {;},
                 DDefault::True,
             );
             let (impl_dflt_some_one_el_for_ident_sel_ts, impl_dflt_some_one_el_max_page_size_for_ident_sel_ts) = {
-                let gen_ts = |dflt_some_one_or_dflt_some_one_with_max_page_size: &DefaultSomeOneOrDefaultSomeOneWithMaxPageSize| match &pg_type_pattern {
-                    PgTypePattern::Stdrt => quote! {Self},
-                    PgTypePattern::ArrDim1 { .. } => {
-                        let ts: &dyn ToTokens = match &dflt_some_one_or_dflt_some_one_with_max_page_size {
-                            DefaultSomeOneOrDefaultSomeOneWithMaxPageSize::DefaultSomeOne => &PgCrudCmnDfltSomeOneElCall,
-                            DefaultSomeOneOrDefaultSomeOneWithMaxPageSize::DefaultSomeOneWithMaxPageSize => &PgCrudCmnDfltSomeOneElMaxPageSizeCall,
-                        };
-                        let mut args_ts = Vec::with_capacity(arr_dims_nbr);
-                        for el0 in 1..=arr_dims_nbr {
-                            let dim_nbr_pgn_ts = gen_dim_nbr_pgn_ts(el0);
-                            args_ts.push(quote! {
-                                #dim_nbr_pgn_ts: #ts
-                            });
-                        }
-                        quote! {Self {#(#args_ts),*}}
-                    }
-                };
                 (
-                    gen_impl_pg_crud_cmn_dflt_some_one_el_ts(&ident_sel_ucc, &gen_ts(&DefaultSomeOneOrDefaultSomeOneWithMaxPageSize::DefaultSomeOne)),
-                    gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(&ident_sel_ucc, &gen_ts(&DefaultSomeOneOrDefaultSomeOneWithMaxPageSize::DefaultSomeOneWithMaxPageSize)),
+                    gen_impl_pg_crud_cmn_dflt_some_one_el_ts(&ident_sel_ucc, &quote! {Self}),
+                    gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(&ident_sel_ucc, &quote! {Self}),
                 )
             };
             quote! {
@@ -3351,111 +3056,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => ranges_cmn_flt_vec,
-                        }
-                    }
-                    PgTypePattern::ArrDim1 { dim1_is_nl } => {
-                        let dim_one_greater_than = PgTypeFlt::DimOneGreaterThan {
-                            ident: quote! {#ident_stdrt_nn_tt_ucc},
-                        };
-                        let dim_one_btwn = PgTypeFlt::DimOneBtwn {
-                            ident: quote! {#ident_stdrt_nn_tt_ucc},
-                        };
-                        let dim_one_in_h = PgTypeFlt::DimOneIn {
-                            ident: {
-                                let ts = SelfTtUcc::from_tokens(&match &pg_type.can_be_nl() {
-                                    CanBeNl::False => quote! {#ident_stdrt_nn_ucc},
-                                    CanBeNl::True => gen_ident_ts(pg_type, is_nl, &PgTypePattern::Stdrt)
-                                });
-                                quote!{#ts}
-                            },
-                        };
-                        let dim_one_rgx = PgTypeFlt::DimOneRgx;
-                        let dim_one_crnt_date = PgTypeFlt::DimOneCrntDate;
-                        let dim_one_greater_than_crnt_date = PgTypeFlt::DimOneGreaterThanCrntDate;
-                        let dim_one_crnt_time = PgTypeFlt::DimOneCrntTime;
-                        let dim_one_greater_than_crnt_time = PgTypeFlt::DimOneGreaterThanCrntTime;
-                        let dim_one_crnt_timestamp = PgTypeFlt::DimOneCrntTimestamp;
-                        let dim_one_greater_than_crnt_timestamp = PgTypeFlt::DimOneGreaterThanCrntTimestamp;
-                        let dim_one_before = PgTypeFlt::DimOneBefore {
-                            ident: quote! {#ident_stdrt_nn_tt_ucc},
-                        };
-                        let cmn_arr_dim1_pg_type_flts = gen_flts_with(cmn_pg_type_flts, &[
-                            PgTypeFlt::DimOneEq {
-                                ident: {
-                                    let ts = SelfTtUcc::from_tokens(&match &dim1_is_nl {
-                                        IsNl::False => &ident_stdrt_nn_ucc,
-                                        IsNl::True => &ident_stdrt_nl_ucc,
-                                    });
-                                    quote! {#ts}
-                                },
-                            },
-                            PgTypeFlt::DimOneLenEq,
-                            PgTypeFlt::DimOneLenGreaterThan,
-                        ]);
-                        let cmn_arr_dim1_pg_type_nbr_flts = gen_flts_with(
-                            cmn_arr_dim1_pg_type_flts.clone(),
-                            &[dim_one_greater_than.clone(), dim_one_btwn.clone(), dim_one_in_h.clone()],
-                        );
-                        let (
-                            wh_sqlx_pg_types_pg_range_i32_ts,
-                            wh_sqlx_pg_types_pg_range_i64_ts,
-                            wh_sqlx_pg_types_pg_range_sqlx_types_chrono_naive_date_ts,
-                            wh_sqlx_pg_types_pg_range_sqlx_types_chrono_naive_date_time_ts,
-                            wh_sqlx_pg_types_pg_range_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_ts,
-                        ) = {
-                            let gen_ts = |range: Range| {
-                                let pg_type_from_range = PgType::from(&range);
-                                let range_el_ident_stdrt_nn_ts = gen_ident_stdrt_nn_ts(&pg_type_from_range);
-                                let range_el_ident_stdrt_nn_as_crate_pg_type_rd_ts = {
-                                    let range_el_ident_stdrt_nn_as_crate_pg_type_ts = gen_as_pg_type_ts(&range_el_ident_stdrt_nn_ts);
-                                    quote! {#range_el_ident_stdrt_nn_as_crate_pg_type_ts::Rd}
-                                };
-                                let range_ident_ts = quote! {#ident_stdrt_nn_tt_ucc};
-                                gen_flts_with(cmn_arr_dim1_pg_type_flts.clone(), &[
-                                    PgTypeFlt::DimOneFindRangesWithinGivenRange { ident: range_ident_ts.clone() },
-                                    PgTypeFlt::DimOneFindRangesThatFullyContainTheGivenRange { ident: range_ident_ts.clone() },
-                                    PgTypeFlt::DimOneStrictlyToLeftOfRange { ident: range_ident_ts.clone() },
-                                    PgTypeFlt::DimOneStrictlyToRightOfRange { ident: range_ident_ts.clone() },
-                                    PgTypeFlt::DimOneIncludedLowerBound { ident: range_el_ident_stdrt_nn_as_crate_pg_type_rd_ts.clone() },
-                                    PgTypeFlt::DimOneExcludedUpperBound { ident: range_el_ident_stdrt_nn_as_crate_pg_type_rd_ts.clone() },
-                                    PgTypeFlt::DimOneGreaterThanIncludedLowerBound { ident: range_el_ident_stdrt_nn_as_crate_pg_type_rd_ts.clone() },
-                                    PgTypeFlt::DimOneGreaterThanExcludedUpperBound { ident: range_el_ident_stdrt_nn_as_crate_pg_type_rd_ts },
-                                    PgTypeFlt::DimOneOverlapWithRange { ident: range_ident_ts.clone() },
-                                    PgTypeFlt::DimOneAdjacentWithRange { ident: range_ident_ts },
-                                    PgTypeFlt::DimOneRangeLen,
-                                ])
-                            };
-                            (
-                                gen_ts(Range::I32AsInt4),
-                                gen_ts(Range::I64AsInt8),
-                                gen_ts(Range::SqlxTypesChronoNaiveDateAsDate),
-                                gen_ts(Range::SqlxTypesChronoNaiveDateTimeAsTimestamp),
-                                gen_ts(Range::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
-                            )
-                        };
-                        match &pg_type {
-                            PgType::I16AsInt2
-                            | PgType::I32AsInt4
-                            | PgType::I64AsInt8
-                            | PgType::F32AsFloat4
-                            | PgType::F64AsFloat8
-                            | PgType::I16AsSmallSerialInitByPg
-                            | PgType::I32AsSerialInitByPg
-                            | PgType::I64AsBigSerialInitByPg => cmn_arr_dim1_pg_type_nbr_flts,
-                            PgType::SqlxPgTypesPgMoneyAsMoney => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_in_h]),
-                            PgType::StdVecVecU8AsBytea => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[PgTypeFlt::DimOneEqToEncodedStringRepresentation]),
-                            PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_greater_than, dim_one_btwn, dim_one_crnt_time, dim_one_greater_than_crnt_time]),
-                            PgType::SqlxTypesChronoNaiveDateAsDate => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_greater_than, dim_one_btwn, dim_one_crnt_date, dim_one_greater_than_crnt_date]),
-                            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_greater_than, dim_one_btwn, dim_one_crnt_timestamp, dim_one_greater_than_crnt_timestamp]),
-                            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_before, dim_one_btwn]),
-                            PgType::StringAsText | PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_rgx]),
-                            PgType::BoolAsBool | PgType::SqlxPgTypesPgIntervalAsInterval | PgType::SqlxTypesIpnetworkIpNetworkAsInet => cmn_arr_dim1_pg_type_flts,
-                            PgType::SqlxTypesMacAddressMacAddressAsMacAddr => gen_flts_with(cmn_arr_dim1_pg_type_flts, &[dim_one_greater_than, dim_one_rgx]),
-                            PgType::SqlxPgTypesPgRangeI32AsInt4Range => wh_sqlx_pg_types_pg_range_i32_ts,
-                            PgType::SqlxPgTypesPgRangeI64AsInt8Range => wh_sqlx_pg_types_pg_range_i64_ts,
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => wh_sqlx_pg_types_pg_range_sqlx_types_chrono_naive_date_ts,
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => wh_sqlx_pg_types_pg_range_sqlx_types_chrono_naive_date_time_ts,
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => wh_sqlx_pg_types_pg_range_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_ts,
                         }
                     }
                 }
@@ -3707,20 +3307,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => "tsrange",
                         PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => "tstzrange",
                     };
-                    let mb_arr_part = match &pg_type_pattern {
-                        PgTypePattern::Stdrt => String::new(),
-                        PgTypePattern::ArrDim1 { .. } => repeat_n("[]", arr_dims_nbr).collect::<String>(),
-                    };
-                    let mb_constraint_part = match &pg_type_pattern {
-                        PgTypePattern::Stdrt => String::new(),
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => match &dim1_is_nl {
-                            IsNl::False => ",check (array_position({col},null) is null)".to_owned(),
-                            IsNl::True => String::new(),
-                        },
-                    };
                     let mb_pk_is_pk_ts = quote! {pg_types_cmn::mb_pk(is_pk)};
-                    let col_pg_query_type = format!("{{col}} {pg_query_type}{mb_arr_part}{mb_constraint_part}");
-                    let col_pg_query_type_nn = format!("{{col}} {pg_query_type}{mb_arr_part} not null{mb_constraint_part}");
+                    let col_pg_query_type = format!("{{col}} {pg_query_type}");
+                    let col_pg_query_type_nn = format!("{{col}} {pg_query_type} not null");
                     let space_extra_prm = " {}";
                     match (&is_nl, &can_be_pk) {
                         (IsNl::False, CanBePk::False) => {
@@ -3766,32 +3355,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 },
                 &bind_v_to_query_cr_ts,
                 &ident_sel_ucc,
-                &match &el.pg_type_pattern {
-                    PgTypePattern::Stdrt => SelQpValueUndrscr::True,
-                    PgTypePattern::ArrDim1 { .. } => SelQpValueUndrscr::False,
-                },
+                &SelQpValueUndrscr::True,
                 &{
-                    let ts = match &pg_type_pattern {
-                        PgTypePattern::Stdrt => quote! {#ColSc.to_owned()},
-                        PgTypePattern::ArrDim1 { .. } => {
-                            let format_ts = dq_ts(&{
-                                let acc = repeat_n("[{}:{}]", arr_dims_nbr).collect::<String>();
-                                format!("{{col}}{acc}")
-                            });
-                            let args_ts = (1..=arr_dims_nbr)
-                            .map(|el0| {
-                                let dim_nbr_pgn_ts = gen_dim_nbr_pgn_ts(el0);
-                                quote! {
-                                    #VSc.#dim_nbr_pgn_ts.start(),
-                                    #VSc.#dim_nbr_pgn_ts.end(),
-                                }
-                            });
-                            quote! {format!(
-                                #format_ts,
-                                #(#args_ts)*
-                            )}
-                        }
-                    };
+                    let ts = quote! {#ColSc.to_owned()};
                     quote! {Ok(#ts)}
                 },
                 &ident_wh_ucc,
@@ -3965,69 +3531,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                 )
                             }),
                         },
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => match (&is_nl, &dim1_is_nl) {
-                            (IsNl::False, IsNl::False) => gen_ident_rd_ident_orgn_ts(&quote! {
-                                #VSc.0.0.into_iter().map(|el|{
-                                    #ident_stdrt_nn_as_pg_type_ts::normalize(
-                                        #ident_stdrt_nn_rd_ucc(el)
-                                    ).0
-                                }).collect()
-                            }),
-                            (IsNl::False, IsNl::True) => gen_ident_rd_ident_orgn_ts(&{
-                                let ident_ts_drvd = gen_ident_ts(pg_type, &IsNl::True, &PgTypePattern::Stdrt);
-                                let ident_arr_stdrt_nl_rd_ucc = SelfRdUcc::from_tokens(&ident_ts_drvd);
-                                quote! {
-                                    #VSc.0.0.into_iter().map(|el|{
-                                        #ident_stdrt_nl_as_pg_type_ts::normalize(
-                                            #ident_arr_stdrt_nl_rd_ucc(el)
-                                        ).0
-                                    }).collect()
-                                }
-                            }),
-                            (IsNl::True, IsNl::False) => gen_ident_rd_ident_orgn_ts(&{
-                                let ident_arr_dim1_nn_nn_ucc = gen_ident_ts(
-                                    pg_type,
-                                    &IsNl::False,
-                                    &PgTypePattern::ArrDim1 {
-                                        dim1_is_nl: IsNl::False,
-                                    },
-                                );
-                                let ident_arr_dim1_nn_nn_rd_ucc = SelfRdUcc::from_tokens(&ident_arr_dim1_nn_nn_ucc);
-                                quote! {
-                                    #VSc.0.0.map(|v_b4d912fb|
-                                        <
-                                            #ident_arr_dim1_nn_nn_ucc
-                                            as
-                                            #import::PgType
-                                        >::normalize(
-                                            #ident_arr_dim1_nn_nn_rd_ucc(v_b4d912fb),
-                                        ).0
-                                    )
-                                }
-                            }),
-                            (IsNl::True, IsNl::True) => gen_ident_rd_ident_orgn_ts(&{
-                                let ident_arr_dim1_nn_nl_ucc = gen_ident_ts(
-                                    pg_type,
-                                    &IsNl::False,
-                                    &PgTypePattern::ArrDim1 {
-                                        dim1_is_nl: IsNl::True,
-                                    },
-                                );
-                                let ident_arr_dim1_nn_nl_rd_ucc = SelfRdUcc::from_tokens(&ident_arr_dim1_nn_nl_ucc);
-                                quote! {
-                                    #VSc.0.0.map(
-                                        |v_dd042db2|
-                                        <
-                                            #ident_arr_dim1_nn_nl_ucc
-                                            as
-                                            #import::PgType
-                                        >::normalize(
-                                            #ident_arr_dim1_nn_nl_rd_ucc(v_dd042db2),
-                                        ).0
-                                    )
-                                }
-                            }),
-                        },
                     }
                 },
                 &if matches!(&is_nn_stdrt_can_be_pk, IsNnStdrtCanBePk::True) {
@@ -4063,54 +3566,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                                     quote!{v_bd169d3b.0}
                                 };
                                 quote! {#v_dot_zero_dot_zero_ts.map(|v_bd169d3b| #ts)}
-                            }
-                        },
-                        PgTypePattern::ArrDim1 { dim1_is_nl } => match (&is_nl, &dim1_is_nl) {
-                            (IsNl::False, IsNl::False) => {
-                                let ts = if range_try_from_pg_type_is_ok {
-                                    gen_ident_stdrt_nn_into_inn_ident_stdrt_nn_rd_ts(&quote!{el_f5e94f0c})
-                                } else {
-                                    quote! {el_f5e94f0c.0}
-                                };
-                                quote! {
-                                    #v_dot_zero_dot_zero_ts.into_iter().map(|el_f5e94f0c|#ts).collect()
-                                }
-                            }
-                            (IsNl::False, IsNl::True) => {
-                                let ts = if range_try_from_pg_type_is_ok {
-                                    gen_ident_stdrt_nn_into_inn_ident_stdrt_nn_rd_ts(&quote!{v_e9a6bd41})
-                                } else {
-                                    quote!{v_e9a6bd41.0}
-                                };
-                                quote! {
-                                    #v_dot_zero_dot_zero_ts.into_iter().map(|el_236259fc|
-                                        el_236259fc.0.map(|v_e9a6bd41| #ts)
-                                    ).collect()
-                                }
-                            }
-                            (IsNl::True, IsNl::False) => {
-                                let ts = if range_try_from_pg_type_is_ok {
-                                    gen_ident_stdrt_nn_into_inn_ident_stdrt_nn_rd_ts(&quote!{el_b37be63e})
-                                } else {
-                                    quote! {el_b37be63e.0}
-                                };
-                                quote! {
-                                    #v_dot_zero_dot_zero_ts.map(|v_47fb2e43|
-                                        v_47fb2e43.0.into_iter().map(|el_b37be63e|#ts).collect()
-                                    )
-                                }
-                            }
-                            (IsNl::True, IsNl::True) => {
-                                let ts = if range_try_from_pg_type_is_ok {
-                                    gen_ident_stdrt_nn_into_inn_ident_stdrt_nn_rd_ts(&quote!{v_e5c5f65c})
-                                } else {
-                                    quote!{v_e5c5f65c.0}
-                                };
-                                quote! {
-                                    #v_dot_zero_dot_zero_ts.map(|v_b1a259c4| v_b1a259c4.0.into_iter().map(|el_19a7e6d0|
-                                        el_19a7e6d0.0.map(|v_e5c5f65c| #ts)
-                                    ).collect())
-                                }
                             }
                         },
                     }
@@ -4563,292 +4018,20 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                         },
                         IsNl::True => Some(gen_some_acc_ts(is_nl, &gen_ident_ts(pg_type, &IsNl::False, &PgTypePattern::Stdrt), &Ts2::new())),
                     },
-                    PgTypePattern::ArrDim1 { dim1_is_nl } => Some(gen_some_acc_ts(
-                        is_nl,
-                        &gen_ident_ts(
-                            pg_type,
-                            &match &is_nl {
-                                IsNl::False => *dim1_is_nl,
-                                IsNl::True => IsNl::False,
-                            },
-                            &match &is_nl {
-                                IsNl::False => PgTypePattern::Stdrt,
-                                IsNl::True => PgTypePattern::ArrDim1 { dim1_is_nl: *dim1_is_nl },
-                            },
-                        ),
-                        &match &is_nl {
-                            IsNl::False => {
-                                let ts: &dyn ToTokens = match &dim1_is_nl {
-                                    IsNl::False => &ident_stdrt_nn_as_pg_type_test_cases_ts,
-                                    IsNl::True => &ident_stdrt_nl_as_pg_type_test_cases_ts,
-                                };
-                                let (first_ts, second_ts, third_ts) = {
-                                    let gen_new_or_try_new_ts = |ts0: &dyn ToTokens| {
-                                        if pg_type_init_try_new_try_from_pg_type.is_ok() {
-                                            quote! {try_new(#ts0).expect("75ad9383")}
-                                        } else {
-                                            quote! {new(#ts0)}
-                                        }
-                                    };
-                                    let gen_ts = |v: usize| {
-                                        let nbr_ts = v.to_string().parse::<Ts2>().expect("50c87202");
-                                        //todo mb correlate with .d_copy_if()
-                                        let mb_dot_clone_ts_drvd: &dyn ToTokens = match &pg_type {
-                                            PgType::I16AsInt2 |
-                                            PgType::I32AsInt4 |
-                                            PgType::I64AsInt8 |
-                                            PgType::F32AsFloat4 |
-                                            PgType::F64AsFloat8 |
-                                            PgType::I16AsSmallSerialInitByPg |
-                                            PgType::I32AsSerialInitByPg |
-                                            PgType::I64AsBigSerialInitByPg |
-                                            PgType::SqlxPgTypesPgMoneyAsMoney |
-                                            PgType::BoolAsBool |
-                                            PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime |
-                                            PgType::SqlxPgTypesPgIntervalAsInterval |
-                                            PgType::SqlxTypesChronoNaiveDateAsDate |
-                                            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                                            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                                            PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient |
-                                            PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                                            PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                                            PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                                            PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => &Ts2::new(),
-                                            PgType::StdVecVecU8AsBytea |
-                                            PgType::StringAsText => &dot_clone_ts,
-                                        };
-                                        quote! {vec![v_6465e8ae #mb_dot_clone_ts_drvd.0.into(); #nbr_ts]}
-                                    };
-                                    (
-                                        gen_new_or_try_new_ts(&quote! {
-                                            #ts::#OptVecCrSc().unwrap_or(Vec::new())
-                                            .into_iter()
-                                            .map(|el_ffb375dd|el_ffb375dd.0.into())
-                                            .collect()
-                                        }),
-                                        gen_new_or_try_new_ts(&gen_ts(2)),
-                                        gen_new_or_try_new_ts(&gen_ts(1000)),
-                                    )
-                                };
-                                quote! {
-                                    acc_0b59a062.push(#self_as_pg_type_ts::Cr::#first_ts);
-                                    if let Some(v_6465e8ae) = #ts::#OptVecCrSc().unwrap_or(Vec::new()).first() {
-                                        acc_0b59a062.push(#self_as_pg_type_ts::Cr::#second_ts);
-                                        acc_0b59a062.push(#self_as_pg_type_ts::Cr::#third_ts);
-                                    }
-                                }
-                            }
-                            IsNl::True => Ts2::new(),
-                        },
-                    )),
                 }
             };
             let rd_ids_to_2_dims_vec_rd_inn_ts = {
-                let gen_star_or_dot_clone_ts = |ts|match &pg_type {
-                    PgType::I16AsInt2 |
-                    PgType::I32AsInt4 |
-                    PgType::I64AsInt8 |
-                    PgType::F32AsFloat4 |
-                    PgType::F64AsFloat8 |
-                    PgType::I16AsSmallSerialInitByPg |
-                    PgType::I32AsSerialInitByPg |
-                    PgType::I64AsBigSerialInitByPg |
-                    PgType::SqlxPgTypesPgMoneyAsMoney |
-                    PgType::BoolAsBool |
-                    PgType::SqlxTypesChronoNaiveTimeAsTime |
-                    PgType::SqlxTypesTimeTimeAsTime |
-                    PgType::SqlxPgTypesPgIntervalAsInterval |
-                    PgType::SqlxTypesChronoNaiveDateAsDate |
-                    PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                    PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
-                    PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient |
-                    PgType::SqlxTypesIpnetworkIpNetworkAsInet |
-                    PgType::SqlxTypesMacAddressMacAddressAsMacAddr |
-                    PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                    PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote!{*#ts},
-                    PgType::StdVecVecU8AsBytea |
-                    PgType::StringAsText => quote!{#ts.clone()}
-                };
-                match &pg_type_pattern {
-                    PgTypePattern::Stdrt => match &is_nl {
-                        IsNl::False => {
-                            let ts = gen_stdrt_nn_test_case_h_ts(&IsNeedToUseInto::True);
-                            quote! {vec![{#ts}]}
-                        }
-                        IsNl::True => quote! {
-                            #ident_stdrt_nn_as_pg_type_test_cases_ts::#RdIdsTo2DimsVecRdInnSc(#RdIdsSc)
-                            .into_iter()
-                            .flat_map(|el0| el0.into_iter().map(|el1| vec![Some(el1)]))
-                            .chain(std::iter::once(vec![None]))
-                            .collect()
-                        },
-                    },
-                    PgTypePattern::ArrDim1 { dim1_is_nl } => match &is_nl {
-                        IsNl::False => match &dim1_is_nl {
-                            IsNl::False => {
-                                let el_nn_nn_star_or_clone_ts = gen_star_or_dot_clone_ts(&quote!{el_d27d1981});
-                                quote! {
-                                    let mut acc_abf96c9f = Vec::new();
-                                    let rd_ids_to_2_dims_vec_rd_inn = #ident_stdrt_nn_as_pg_type_test_cases_ts::#RdIdsTo2DimsVecRdInnSc(#RdIdsSc);
-                                    let opt_extra = {
-                                        let mut opt_extra = None;
-                                        for el_cb3f4b45 in &rd_ids_to_2_dims_vec_rd_inn {
-                                            if opt_extra.is_some() {
-                                                break;
-                                            }
-                                            for el_d27d1981 in el_cb3f4b45 {
-                                                if opt_extra.is_none() {
-                                                    opt_extra = Some((vec![
-                                                        vec![#el_nn_nn_star_or_clone_ts]],
-                                                        vec![vec![#el_nn_nn_star_or_clone_ts, #el_nn_nn_star_or_clone_ts]
-                                                    ]));
-                                                }
-                                                else {
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        opt_extra
-                                    };
-                                    let has_len_greater_than_one = {
-                                        let mut has_len_greater_than_one = false;
-                                        for el_89e74982 in &rd_ids_to_2_dims_vec_rd_inn {
-                                            if el_89e74982.len() > 1 {
-                                                has_len_greater_than_one = true;
-                                                break;
-                                            }
-                                        }
-                                        has_len_greater_than_one
-                                    };
-                                    for el_cb836246 in rd_ids_to_2_dims_vec_rd_inn {
-                                        acc_abf96c9f.push(vec![el_cb836246]);
-                                    }
-                                    if let Some(v_e22f9ad2) = opt_extra {
-                                        if has_len_greater_than_one {
-                                            acc_abf96c9f.push(v_e22f9ad2.0);
-                                        }
-                                        else {
-                                            acc_abf96c9f.push(v_e22f9ad2.1);
-                                        }
-                                    }
-                                    acc_abf96c9f
-                                }
-                            }
-                            IsNl::True => {
-                                let el_nn_nl_star_or_clone_ts = gen_star_or_dot_clone_ts(&quote!{el_6b831e7c});
-                                quote! {
-                                    let mut acc_68eba82f = Vec::new();
-                                    let rd_ids_to_2_dims_vec_rd_inn = #ident_stdrt_nl_as_pg_type_test_cases_ts::#RdIdsTo2DimsVecRdInnSc(#RdIdsSc);
-                                    let opt_extra = {
-                                        let mut opt_extra = None;
-                                        for el_b04183c6 in &rd_ids_to_2_dims_vec_rd_inn {
-                                            if opt_extra.is_some() {
-                                                break;
-                                            }
-                                            for el_6b831e7c in el_b04183c6 {
-                                                if opt_extra.is_none() {
-                                                    opt_extra = Some((
-                                                        vec![vec![#el_nn_nl_star_or_clone_ts]],
-                                                        vec![vec![#el_nn_nl_star_or_clone_ts, #el_nn_nl_star_or_clone_ts]]
-                                                    ));
-                                                }
-                                                else {
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        opt_extra
-                                    };
-                                    let has_len_greater_than_one = rd_ids_to_2_dims_vec_rd_inn.len() > 1;
-                                    acc_68eba82f.push(vec![
-                                        rd_ids_to_2_dims_vec_rd_inn
-                                        .into_iter()
-                                        .flat_map(IntoIterator::into_iter)
-                                        .collect()
-                                    ]);
-                                    if let Some(v_a0f0f172) = opt_extra {
-                                        if has_len_greater_than_one {
-                                            acc_68eba82f.push(v_a0f0f172.0);
-                                        }
-                                        else {
-                                            acc_68eba82f.push(v_a0f0f172.1);
-                                        }
-                                    }
-                                    acc_68eba82f
-                                }
-                            }
-                        },
-                        IsNl::True => {
-                            let ts = match &dim1_is_nl {
-                                IsNl::False => &ident_arr_nn_as_pg_type_test_cases_ts,
-                                IsNl::True => &ident_arr_nl_as_pg_type_test_cases_ts,
-                            };
-                            let el_nl_star_or_clone_ts = gen_star_or_dot_clone_ts(&quote!{el_31abc64a});
-                            quote! {
-                                let mut acc_5f7f59ac = Vec::new();
-                                let rd_ids_to_2_dims_vec_rd_inn = #ts::#RdIdsTo2DimsVecRdInnSc(#RdIdsSc);
-                                let opt_extra = {
-                                    let mut opt_extra = None;
-                                    for el_12a259ab in &rd_ids_to_2_dims_vec_rd_inn {
-                                        if opt_extra.is_some() {
-                                            break;
-                                        }
-                                        for el_16a61773 in el_12a259ab {
-                                            if opt_extra.is_some() {
-                                                break;
-                                            }
-                                            for el_31abc64a in el_16a61773 {
-                                                if opt_extra.is_none() {
-                                                    opt_extra = Some((
-                                                        vec![Some(vec![#el_nl_star_or_clone_ts])],
-                                                        vec![Some(vec![#el_nl_star_or_clone_ts, #el_nl_star_or_clone_ts])]
-                                                    ));
-                                                }
-                                                else {
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    opt_extra
-                                };
-                                let has_len_greater_than_one = {
-                                    let mut has_len_greater_than_one = false;
-                                    for el_a177c6a3 in &rd_ids_to_2_dims_vec_rd_inn {
-                                        for el_aa72f570 in el_a177c6a3 {
-                                            if el_aa72f570.len() > 1 {
-                                                has_len_greater_than_one = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    has_len_greater_than_one
-                                };
-                                acc_5f7f59ac.push(vec![Some(
-                                    rd_ids_to_2_dims_vec_rd_inn
-                                    .into_iter()
-                                    .flatten()
-                                    .flatten()
-                                    .collect()
-                                )]);
-                                acc_5f7f59ac.push(vec![None]);
-                                if let Some(v_3530786a) = opt_extra {
-                                    if has_len_greater_than_one {
-                                        acc_5f7f59ac.push(v_3530786a.0);
-                                    }
-                                    else {
-                                        acc_5f7f59ac.push(v_3530786a.1);
-                                    }
-                                }
-                                acc_5f7f59ac
-                            }
-                        }
+                match &is_nl {
+                    IsNl::False => {
+                        let ts = gen_stdrt_nn_test_case_h_ts(&IsNeedToUseInto::True);
+                        quote! {vec![{#ts}]}
+                    }
+                    IsNl::True => quote! {
+                        #ident_stdrt_nn_as_pg_type_test_cases_ts::#RdIdsTo2DimsVecRdInnSc(#RdIdsSc)
+                        .into_iter()
+                        .flat_map(|el0| el0.into_iter().map(|el1| vec![Some(el1)]))
+                        .chain(std::iter::once(vec![None]))
+                        .collect()
                     },
                 }
             };
@@ -4929,59 +4112,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 ]).expect("4c08b551")
             };
             let rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<Ts2> = None;
-            let cr_into_pg_type_opt_vec_wh_dim_one_eq_ts: Option<Ts2> = match &pg_type_pattern {
-                PgTypePattern::Stdrt => None,
-                PgTypePattern::ArrDim1 { dim1_is_nl } => Some({
-                    let ident_stdrt_is_nl_tt_ucc: &dyn ToTokens = match &dim1_is_nl {
-                        IsNl::False => &ident_stdrt_nn_tt_ucc,
-                        IsNl::True => &ident_stdrt_nl_tt_ucc,
-                    };
-                    let some_ts = {
-                        let ts: &dyn ToTokens = match &is_nl {
-                            IsNl::False => &quote! {#CrSc.0.0},
-                            IsNl::True => &quote! {v_09152b2e.0},
-                        };
-                        quote! {
-                            match #import::NotEmptyUnqVec::try_new({
-                                let mut acc_74c71d5d = Vec::new();
-                                for (i_7702518c, el_081d735b) in #ts.into_iter().enumerate() {
-                                    acc_74c71d5d.push(
-                                        #ident_wh_ucc::DimOneEq(
-                                            wh_flts::PgTypeWhDimOneEq {
-                                                oprtr: #import::Oprtr::Or,
-                                                dims: wh_flts::BoundedVec::try_from(
-                                                    vec![
-                                                        pg_crud_cmn::NotZeroUnsignedPartOfI32::try_from(
-                                                            i32::try_from(i_7702518c.checked_add(1)?).expect("5954966c")
-                                                        ).expect("8d269b8f")
-                                                    ]
-                                                ).expect("fe1e037f"),
-                                                #VSc: #ident_stdrt_is_nl_tt_ucc(el_081d735b),
-                                            }
-                                        )
-                                    );
-                                }
-                                acc_74c71d5d
-                            }) {
-                                Ok(v_2218be19) => Some(v_2218be19),
-                                Err(er) => match er {
-                                    #import::NotEmptyUnqVecTryNewEr::IsEmpty {..} => None,
-                                    #import::NotEmptyUnqVecTryNewEr::NotUnq {..} => panic!("45c8de3c")
-                                }
-                            }
-                        }
-                    };
-                    match &is_nl {
-                        IsNl::False => some_ts,
-                        IsNl::True => quote! {
-                            match #CrSc.0.0 {
-                                Some(v_09152b2e) => #some_ts,
-                                None => None
-                            }
-                        },
-                    }
-                })
-            };
             let pg_type_opt_vec_wh_greater_than_test_ts: Option<Ts2> = {
                 let greater_than = PgTypeGreaterThanVrt::GreaterThan;
                 let not_greater_than = PgTypeGreaterThanVrt::NotGreaterThan;
@@ -5195,7 +4325,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                             )
                         }),
                     },
-                    PgTypePattern::ArrDim1 { .. } => None,
                 }
             };
             let rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<Ts2> = match &pg_type_pattern {
@@ -5270,7 +4399,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                         IsNeedToImplPgTypeGreaterThanTest::False => None,
                     }
                 }
-                PgTypePattern::ArrDim1 { .. } => None,
             };
             gen_impl_pg_type_test_cases_for_ident_ts(
                 &quote! {#[cfg(feature = "test-utils")]},
@@ -5290,7 +4418,6 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
                 &rd_ids_and_cr_into_wh_eq_ts,
                 &rd_ids_and_cr_into_vec_wh_eq_using_fields_ts,
                 rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts.as_ref(),
-                cr_into_pg_type_opt_vec_wh_dim_one_eq_ts.as_ref(),
                 pg_type_opt_vec_wh_greater_than_test_ts.as_ref(),
                 rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts.as_ref(),
             )

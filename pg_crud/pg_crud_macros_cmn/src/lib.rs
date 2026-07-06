@@ -7,13 +7,12 @@ use macros_helpers::gen_impl_to_err_string_ts;
 use naming::prm::{SelfCrUcc, SelfSelUcc, SelfWhUcc};
 use naming::{
     AddOprtrSc, AllVrtsDfltSomeOneElMaxPageSizeSc, AllVrtsDfltSomeOneElSc, ColFieldForErMsgSc,
-    ColSc, CrIntoPgTypeOptVecWhDimOneEqSc, CrQbSc, CrQpSc, CrSc, CrTblColQpSc, CrUcc,
-    DfltSomeOneElMaxPageSizeSc, DfltSomeOneElSc, DisplayPlusToTokens, EqOprtrUcc, ErSc, IncrSc,
-    IsPkSc, MutSc, NormalizeSc, OptUcc, OptUpdSc, OptVecCrSc, PgTypeEqOprtrUcc, PgTypeNotPkUcc,
-    PgTypeOptVecWhGreaterThanTestSc, PgTypeTestCasesUcc, PgTypeUcc, PgTypeWhFltUcc,
-    PreviousRdAndOptUpdIntoRdSc, QbSc, QpErUcc, QpSc, QuerySc, RdIdsAndCrIntoOptVRdSc,
-    RdIdsAndCrIntoOptVecWhEqToFieldSc, RdIdsAndCrIntoRdSc, RdIdsAndCrIntoTtSc,
-    RdIdsAndCrIntoVecWhEqUsingFieldsSc, RdIdsAndCrIntoWhEqSc,
+    ColSc, CrQbSc, CrQpSc, CrSc, CrTblColQpSc, CrUcc, DfltSomeOneElMaxPageSizeSc, DfltSomeOneElSc,
+    DisplayPlusToTokens, EqOprtrUcc, ErSc, IncrSc, IsPkSc, MutSc, NormalizeSc, OptUcc, OptUpdSc,
+    OptVecCrSc, PgTypeEqOprtrUcc, PgTypeNotPkUcc, PgTypeOptVecWhGreaterThanTestSc,
+    PgTypeTestCasesUcc, PgTypeUcc, PgTypeWhFltUcc, PreviousRdAndOptUpdIntoRdSc, QbSc, QpErUcc,
+    QpSc, QuerySc, RdIdsAndCrIntoOptVRdSc, RdIdsAndCrIntoOptVecWhEqToFieldSc, RdIdsAndCrIntoRdSc,
+    RdIdsAndCrIntoTtSc, RdIdsAndCrIntoVecWhEqUsingFieldsSc, RdIdsAndCrIntoWhEqSc,
     RdIdsAndTtIntoPgTypeOptWhGreaterThanSc, RdIdsSc, RdIdsTo2DimsVecRdInnSc,
     RdIdsToOptVRdDfltSomeOneElSc, RdIdsUcc, RdInnIntoRdWithNewOrTryNewUnwrapedSc,
     RdInnIntoUpdWithNewOrTryNewUnwrapedSc, RdInnUcc, RdSc, RdUcc, SelOnlyIdsQpSc,
@@ -927,7 +926,6 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     rd_ids_and_cr_into_wh_eq_ts: &dyn ToTokens,
     rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn ToTokens,
     rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&Ts2>,
-    cr_into_pg_type_opt_vec_wh_dim_one_eq_ts: Option<&Ts2>,
     pg_type_opt_vec_wh_greater_than_test_ts: Option<&Ts2>,
     rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&Ts2>,
 ) -> Ts2 {
@@ -1002,17 +1000,6 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
                 ts,
             )
         });
-    let cr_into_pg_type_opt_vec_wh_dim_one_eq_ts_gnrtd = cr_into_pg_type_opt_vec_wh_dim_one_eq_ts
-        .map(|ts| {
-            let cr_into_pg_type_opt_vec_wh_dim_one_eq_sc = CrIntoPgTypeOptVecWhDimOneEqSc;
-            quote! {
-                fn #cr_into_pg_type_opt_vec_wh_dim_one_eq_sc(
-                    #CrSc: #self_pg_type_as_pg_type_ts::#CrUcc
-                ) -> Option<#import::NotEmptyUnqVec<#self_pg_type_as_pg_type_ts::#WhUcc>> {
-                    #ts
-                }
-            }
-        });
     let pg_type_opt_vec_wh_greater_than_test_ts_gnrtd = pg_type_opt_vec_wh_greater_than_test_ts
         .map(|ts| {
             quote! {
@@ -1063,7 +1050,6 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
             #rd_ids_and_cr_into_wh_eq_ts_gnrtd
             #rd_ids_and_cr_into_vec_wh_eq_using_fields_ts_gnrtd
             #rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts_gnrtd
-            #cr_into_pg_type_opt_vec_wh_dim_one_eq_ts_gnrtd
             #pg_type_opt_vec_wh_greater_than_test_ts_gnrtd
             #rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts_gnrtd
         }

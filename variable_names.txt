@@ -273,16 +273,6 @@ di
 di_894e3269
 di_ident
 di_ident_str
-dim
-dim1_end
-dim1_pgn_ts
-dim1_start
-dim1_ts
-dim1_type
-dim2_is_nl_cnt_ts
-dim2_type
-dim3_is_nl_cnt_ts
-dim3_type
 dim4_is_nl_cnt_ts
 dim4_type
 dim_i_nbr_max

@@ -85,7 +85,7 @@ optml = {path = "../../../optml"}
                                 pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
                             pub col_0: pg_crud::I16AsNnInt2,
                             pub col_1: pg_crud::OptI16AsNlInt2,
-                            pub col_2: pg_crud::VecOfI16AsNnArrOfNnInt2,
+                            pub col_2: pg_crud::I32AsNnInt4,
                         }
                     }
                 };

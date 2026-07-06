@@ -10,18 +10,18 @@ use naming::{
     AsRefStrToScStr, AsRefStrToScTs, BeginSc, BindedQuerySc, BodyBytesSc, BodySc, BodySizeErUcc,
     BySc, CheckBodySizeSc, CheckBodySizeUcc, CmErVrtsSc, CmLogicSc, CmnErVrtsSc, CmnLogicSc,
     CmnRdIdsFromCoSc, CoErVrtsSc, CoLogicSc, ColSc, ColsSc, CommitSc, ConfigSc,
-    CrExtensionIfNotExistsUuidOsspUcc, CrIntoPgTypeOptVecWhDimOneEqSc, CrQbSc, CrQpSc, CrSc,
-    CrTblColQpSc, CrUcc, DeResUcc, DesirableUcc, DfltSomeOneElMaxPageSizeSc,
-    DfltSomeOneElMaxPageSizeUcc, DfltSomeOneElSc, DfltSomeOneElUcc, DisplayPlusToTokens,
-    DisplayToScStr, DloErVrtsSc, DloLogicSc, DmErVrtsSc, DmLogicSc, ElSc, EndpointLocSc, ErSc,
-    ExecutorAcquireSc, ExecutorSc, ExpectedResSc, ExtraPrmsSc, FailedToGetResTextUcc, FalseSc,
-    FromHSc, FutureSc, GenColQuealsVCommaUoQpSc, GenPgTblPkSc, GenSelQpSc, GenWhenColIdThenVUmQpSc,
-    HeaderContentTypeAppJsonNotFoundUcc, HeadersSc, IdentCrDfltSc, IncrSc, IntoSerdeVersionSc,
-    LocSc, NoFieldsProvidedUcc, NotUnqFieldSc, NotUnqFieldUcc, NotUnqPkSc, NotUnqPkUcc, OptVecCrSc,
-    OrderBySc, OrderByUcc, OrderSc, PayloadSc, PayloadUcc, PgCrudSc, PgPoolForTokioSpawnSyncMoveSc,
-    PgPoolSc, PgSc, PgTypeOptVecWhGreaterThanTestSc, PgTypeUcc, PgUcc, PgnSc, PkQpSc, PkSc,
-    PoolConnectionSc, PoolSc, PrefixSc, PrepExtensionsSc, PrepPgSc, PrepPgTblSc, PrepPgUcc, PrmsSc,
-    QbSc, QpErUcc, QpSc, QpUcc, QuerySc, QueryStringSc, RdIdsAndCrIntoOptVecWhEqToFieldSc,
+    CrExtensionIfNotExistsUuidOsspUcc, CrQbSc, CrQpSc, CrSc, CrTblColQpSc, CrUcc, DeResUcc,
+    DesirableUcc, DfltSomeOneElMaxPageSizeSc, DfltSomeOneElMaxPageSizeUcc, DfltSomeOneElSc,
+    DfltSomeOneElUcc, DisplayPlusToTokens, DisplayToScStr, DloErVrtsSc, DloLogicSc, DmErVrtsSc,
+    DmLogicSc, ElSc, EndpointLocSc, ErSc, ExecutorAcquireSc, ExecutorSc, ExpectedResSc,
+    ExtraPrmsSc, FailedToGetResTextUcc, FalseSc, FromHSc, FutureSc, GenColQuealsVCommaUoQpSc,
+    GenPgTblPkSc, GenSelQpSc, GenWhenColIdThenVUmQpSc, HeaderContentTypeAppJsonNotFoundUcc,
+    HeadersSc, IdentCrDfltSc, IncrSc, IntoSerdeVersionSc, LocSc, NoFieldsProvidedUcc,
+    NotUnqFieldSc, NotUnqFieldUcc, NotUnqPkSc, NotUnqPkUcc, OptVecCrSc, OrderBySc, OrderByUcc,
+    OrderSc, PayloadSc, PayloadUcc, PgCrudSc, PgPoolForTokioSpawnSyncMoveSc, PgPoolSc, PgSc,
+    PgTypeOptVecWhGreaterThanTestSc, PgTypeUcc, PgUcc, PgnSc, PkQpSc, PkSc, PoolConnectionSc,
+    PoolSc, PrefixSc, PrepExtensionsSc, PrepPgSc, PrepPgTblSc, PrepPgUcc, PrmsSc, QbSc, QpErUcc,
+    QpSc, QpUcc, QuerySc, QueryStringSc, RdIdsAndCrIntoOptVecWhEqToFieldSc,
     RdIdsAndCrIntoVecWhEqUsingFieldsSc, RdIdsAndCrIntoWhEqSc,
     RdIdsAndTtIntoPgTypeOptWhGreaterThanSc, RdIdsIntoRdSc, RdIdsIntoTtSc, RdIdsIntoUpdSc, RdIdsSc,
     RdIdsUcc, RdIntoTtSc, RdUcc, ReqSc, ReqwestSc, ReqwestUcc, ResSc, ResTextSc, RmErVrtsSc,
@@ -3965,13 +3965,11 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         let tbl_rd_ids_and_cr_into_wh_eq_name = "8e427ad7";
         let tbl_rd_ids_and_cr_into_vec_wh_eq_using_fields_name = "eb24448c";
         let tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_name = "9ac6d79a";
-        let tbl_cr_into_pg_type_opt_vec_wh_dim_one_eq_name = "72940b0e";
         let tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name = "5a52af33";
         fill_tbl_fis_vec_ts(vec![
             &tbl_rd_ids_and_cr_into_wh_eq_name,
             &tbl_rd_ids_and_cr_into_vec_wh_eq_using_fields_name,
             &tbl_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_name,
-            &tbl_cr_into_pg_type_opt_vec_wh_dim_one_eq_name,
             &tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name,
         ]);
         let sel_dflt_all_with_max_page_size_cloned_clone_ts =
@@ -4687,22 +4685,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     )
                 },
             );
-            let cr_into_pg_type_opt_vec_wh_dim_one_eq_ts = gen_rd_test_ts(
-                tbl_cr_into_pg_type_opt_vec_wh_dim_one_eq_name,
-                &gen_ident_ft_opt_vec_cr_or_vec_ts,
-                &gen_ident_cr_cnt_el_ts,
-                &|el: &SynField| {
-                    let fi = &el.ident;
-                    gen_if_let_some_ts(
-                        &quote! {v_b02d763d},
-                        &{
-                            let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
-                            quote! {#ft_ts #CrIntoPgTypeOptVecWhDimOneEqSc(ident_cr.#fi.clone())}
-                        },
-                        &gen_for_each_assert_eq_ts(&quote! {v_b02d763d}, &quote! {el_39d1fb5d}, fi),
-                    )
-                },
-            );
             let rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts = gen_rd_test_ts(
                 tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name,
                 &|_: &Ident, ft: &Type| {
@@ -4737,7 +4719,6 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 #rd_ids_and_cr_into_wh_eq_ts
                 #rd_ids_and_cr_into_vec_wh_eq_using_fields_ts
                 #rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts
-                #cr_into_pg_type_opt_vec_wh_dim_one_eq_ts
                 #rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts
             }
         };
