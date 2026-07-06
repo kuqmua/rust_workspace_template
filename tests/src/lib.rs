@@ -6,13 +6,13 @@ mod tests {
         collections::HashSet,
         ffi::OsStr,
         fs::read_to_string,
-        path::Path,
+        path::{Path, PathBuf},
         process::{Command, Output, Stdio},
         str::Split,
     };
     use syn::{
         Expr, ExprLit, ExprMethodCall, Lit, parse_file,
-        visit::{Visit, visit_expr_method_call},
+        visit::{Visit, visit_expr_method_call, visit_item, visit_macro},
     };
     use toml::{Table as TomlTable, Value, value::Table};
     use uuid::Uuid;
@@ -110,6 +110,36 @@ mod tests {
                 self.found_count = self.found_count.saturating_add(1);
             }
             visit_expr_method_call(self, i);
+        }
+    }
+    struct RuntimePanicExpectUnwrapVisitor {
+        ers: Vec<String>,
+    }
+    impl<'ast> Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
+        fn visit_expr_method_call(&mut self, i: &'ast ExprMethodCall) {
+            if i.method == "expect" {
+                self.ers.push(".expect() call".to_owned());
+            }
+            if i.method == "unwrap" {
+                self.ers.push(".unwrap() call".to_owned());
+            }
+            visit_expr_method_call(self, i);
+        }
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_cfg_test_attr(i) {
+                return;
+            }
+            visit_item(self, i);
+        }
+        fn visit_macro(&mut self, i: &'ast syn::Macro) {
+            if i.path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "panic")
+            {
+                self.ers.push("panic!() call".to_owned());
+            }
+            visit_macro(self, i);
         }
     }
     #[test]
@@ -793,6 +823,27 @@ mod tests {
             push_repeated_file_er(ers, path, "unwrap() call", visitor.found_count);
         });
     }
+    #[test]
+    fn runtime_code_does_not_use_expect_unwrap_or_panic() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "c71f2a8d",
+            "runtime code contains forbidden expect/unwrap/panic calls; use Result with a \
+             thiserror-like error enum instead:",
+            |path, ast, ers| {
+                if !is_runtime_policy_source_path(path) {
+                    return;
+                }
+                let visitor =
+                    visit_syn_file(ast, RuntimePanicExpectUnwrapVisitor { ers: Vec::new() });
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
+            },
+        );
+    }
     #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
     fn push_repeated_file_er(ers: &mut Vec<String>, path: &Path, msg: &str, times: usize) {
         for _ in 0..times {
@@ -843,6 +894,87 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared rust-extension predicate keeps rs walker filters consistent
     fn is_rs_file_path(path: &Path) -> bool {
         path.extension().and_then(OsStr::to_str) == Some("rs")
+    }
+    #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
+    fn is_runtime_policy_source_path(path: &Path) -> bool {
+        if path.file_name().and_then(OsStr::to_str) == Some("test_hlp.rs") {
+            return false;
+        }
+        if !path
+            .components()
+            .any(|component| component.as_os_str() == "src")
+        {
+            return false;
+        }
+        let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
+            return false;
+        };
+        let Some(parsed) = read_toml_table(&cargo_toml_path) else {
+            return false;
+        };
+        !is_proc_macro_crate(&parsed) && !is_test_crate(&parsed)
+    }
+    #[allow(clippy::single_call_fn)] // walks upward from a source file to the owning crate manifest
+    fn nearest_cargo_toml_path(path: &Path) -> Option<PathBuf> {
+        for ancestor in path.ancestors() {
+            let cargo_toml_path = ancestor.join("Cargo.toml");
+            if cargo_toml_path.exists() {
+                return Some(cargo_toml_path);
+            }
+        }
+        None
+    }
+    #[allow(clippy::single_call_fn)] // package-name based test crate filter keeps generated/test-only crates outside runtime policy
+    fn is_test_crate(parsed: &TomlTable) -> bool {
+        parsed
+            .get("package")
+            .and_then(Value::as_table)
+            .and_then(|package| package.get("name"))
+            .and_then(Value::as_str)
+            .is_some_and(|name| name == "tests" || name.contains("_test") || name.ends_with("test"))
+    }
+    #[allow(clippy::single_call_fn)] // proc-macro crates are allowed to panic by repository policy
+    fn is_proc_macro_crate(parsed: &TomlTable) -> bool {
+        parsed
+            .get("lib")
+            .and_then(Value::as_table)
+            .and_then(|lib| lib.get("proc-macro"))
+            == Some(&Value::Boolean(true))
+    }
+    #[allow(clippy::single_call_fn)] // keeps cfg(test) handling local to runtime AST policy visitor
+    fn has_cfg_test_attr(i: &syn::Item) -> bool {
+        match i {
+            syn::Item::Const(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Enum(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::ExternCrate(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Fn(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::ForeignMod(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Impl(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Macro(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Mod(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Static(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Struct(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Trait(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::TraitAlias(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Type(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Union(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Use(item) => item.attrs.iter().any(attr_is_cfg_test),
+            syn::Item::Verbatim(_) | _ => false,
+        }
+    }
+    #[allow(clippy::single_call_fn)] // accepts normal #[cfg(test)] tokens without treating other cfgs as test code
+    fn attr_is_cfg_test(attr: &syn::Attribute) -> bool {
+        if !attr.path().is_ident("cfg") {
+            return false;
+        }
+        let mut is_test_cfg = false;
+        drop(attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("test") {
+                is_test_cfg = true;
+            }
+            Ok(())
+        }));
+        is_test_cfg
     }
     #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
     fn for_each_rs_file_content(mut on_file: impl FnMut(&Path, &str)) {
