@@ -16,12 +16,11 @@ utoipa.workspace = true
 chrono.workspace = true
 serde.workspace = true
 schemars.workspace = true
-git_info = {path = "../git_info"}
-app_state = {path = "../app_state"}
-location = {path = "./location"}
-naming = {path = "../naming"}
-to_err_string = {path = "../to_err_string"}
-optml = {path = "../optml"}
-
+git_info.workspace = true
+app_state.workspace = true
+location.workspace = true
+naming.workspace = true
+to_err_string.workspace = true
+optml.workspace = true
 [lints]
 workspace = true

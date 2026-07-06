@@ -17,11 +17,10 @@ syn.workspace = true
 serde.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
-naming = {path = "../../naming"}
-token_patterns = {path = "../../token_patterns"}
-gen_quotes = {path = "../../gen_quotes"}
-macros_helpers = {path = "../../macros_helpers"}
-optml = {path = "../../optml"}
-
+naming.workspace = true
+token_patterns.workspace = true
+gen_quotes.workspace = true
+macros_helpers.workspace = true
+optml.workspace = true
 [lints]
 workspace = true

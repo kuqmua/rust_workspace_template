@@ -19,9 +19,8 @@ strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
 dotenv.workspace = true
-try_from_env = {path = "./try_from_env"}
-gen_getter_traits_for_struct_fields = {path = "./gen_getter_traits_for_struct_fields"}
-optml = {path = "../optml"}
-
+try_from_env.workspace = true
+gen_getter_traits_for_struct_fields.workspace = true
+optml.workspace = true
 [lints]
 workspace = true

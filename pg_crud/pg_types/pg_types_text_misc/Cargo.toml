@@ -15,13 +15,12 @@ sqlx.workspace = true
 uuid.workspace = true
 serde.workspace = true
 thiserror.workspace = true
-gen_pg_types = {path = "../gen_pg_types"}
-pg_types_cmn = {path = "../pg_types_cmn"}
-pg_crud_cmn = {path = "../../pg_crud_cmn"}
-loc_lib = {path = "../../../loc_lib"}
-wh_flts = {path = "../../wh_flts"}
-optml = {path = "../../../optml"}
-
+gen_pg_types.workspace = true
+pg_types_cmn.workspace = true
+pg_crud_cmn.workspace = true
+loc_lib.workspace = true
+wh_flts.workspace = true
+optml.workspace = true
 [lints]
 workspace = true
 

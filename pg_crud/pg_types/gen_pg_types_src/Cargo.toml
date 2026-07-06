@@ -18,14 +18,13 @@ serde_json.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 rayon.workspace = true
-pg_crud_macros_cmn = {path = "../../pg_crud_macros_cmn"}
-pg_crud_cmn = {path = "../../pg_crud_cmn"}
-gen_quotes = {path = "../../../gen_quotes"}
-panic_loc = {path = "../../../panic_loc"}
-macros_helpers = {path = "../../../macros_helpers"}
-naming = {path = "../../../naming"}
-token_patterns = {path = "../../../token_patterns"}
-optml = {path = "../../../optml"}
-
+pg_crud_macros_cmn.workspace = true
+pg_crud_cmn.workspace = true
+gen_quotes.workspace = true
+panic_loc.workspace = true
+macros_helpers.workspace = true
+naming.workspace = true
+token_patterns.workspace = true
+optml.workspace = true
 [lints]
 workspace = true

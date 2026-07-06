@@ -15,12 +15,11 @@ edition = "2024"
 strum_macros.workspace = true
 futures.workspace = true
 uuid.workspace = true
-pg_crud_cmn = {path = "./pg_crud_cmn", features = ["test-utils"]}
-pg_tbl = {path = "./pg_tbl"}
-pg_types = {path = "./pg_types"}
-wh_flts = {path = "./wh_flts"}
-route_validators = {path = "../route_validators"}
-
+pg_crud_cmn = { workspace = true, features = ["test-utils"] }
+pg_tbl.workspace = true
+pg_types.workspace = true
+wh_flts.workspace = true
+route_validators.workspace = true
 [lints]
 workspace = true
 

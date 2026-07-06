@@ -14,7 +14,6 @@ categories = ["category"]
 proc-macro = true
 
 [dependencies]
-gen_pg_tbl_src = {path = "../gen_pg_tbl_src"}
-
+gen_pg_tbl_src.workspace = true
 [lints]
 workspace = true

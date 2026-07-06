@@ -18,7 +18,7 @@ cmn_routes.workspace = true
 git_info.workspace = true
 app_state.workspace = true
 server_config.workspace = true
-pg_crud = {path = "../pg_crud", features = ["test-utils"]}
+pg_crud = { workspace = true, features = ["test-utils"] }
 optml.workspace = true
 [dev-dependencies]
 secrecy.workspace = true

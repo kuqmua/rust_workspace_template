@@ -18,7 +18,6 @@ regex.workspace = true
 syn.workspace = true
 uuid.workspace = true
 walkdir.workspace = true
-optml = {path = "../optml"}
-
+optml.workspace = true
 [lints]
 workspace = true

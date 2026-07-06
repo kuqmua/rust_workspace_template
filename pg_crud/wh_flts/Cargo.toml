@@ -17,12 +17,10 @@ schemars.workspace = true
 utoipa.workspace = true
 regex.workspace = true
 thiserror.workspace = true
-gen_wh_flts = {path = "./gen_wh_flts"}
-loc_lib = {path = "../../loc_lib"}
-pg_crud_cmn = {path = "../pg_crud_cmn", features = ["test-utils"]}
-optml = {path = "../../optml"}
-
-
+gen_wh_flts.workspace = true
+loc_lib.workspace = true
+pg_crud_cmn = { workspace = true, features = ["test-utils"] }
+optml.workspace = true
 [lints]
 workspace = true
 

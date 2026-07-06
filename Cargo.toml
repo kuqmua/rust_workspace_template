@@ -201,19 +201,42 @@ itertools = { version = "=0.14.0", default-features = false, features = [
 app_state = { path = "./app_state" }
 cmn_routes = { path = "./cmn_routes" }
 config_lib = { path = "./config_lib" }
+gen_derive_ts_builder = { path = "./macros_helpers/gen_derive_ts_builder" }
+gen_getter_traits_for_struct_fields = { path = "./config_lib/gen_getter_traits_for_struct_fields" }
 gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl" }
 gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", default-features = false }
+gen_pg_types = { path = "./pg_crud/pg_types/gen_pg_types" }
 gen_pg_types_src = { path = "./pg_crud/pg_types/gen_pg_types_src", default-features = false }
+gen_quotes = { path = "./gen_quotes" }
+gen_wh_flts = { path = "./pg_crud/wh_flts/gen_wh_flts" }
 gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", default-features = false }
 git_info = { path = "./git_info" }
 loc_lib = { path = "./loc_lib" }
+location = { path = "./loc_lib/location" }
 macro_clippy_check_cmn = { path = "./macro_clippy_check_cmn", default-features = false }
+macros_helpers = { path = "./macros_helpers" }
 naming = { path = "./naming" }
+naming_cmn = { path = "./naming/naming_cmn" }
+naming_macros = { path = "./naming/naming_macros" }
 optml = { path = "./optml" }
+panic_loc = { path = "./panic_loc" }
+pg_crud = { path = "./pg_crud" }
+pg_crud_cmn = { path = "./pg_crud/pg_crud_cmn" }
+pg_crud_macros_cmn = { path = "./pg_crud/pg_crud_macros_cmn" }
+pg_tbl = { path = "./pg_crud/pg_tbl" }
+pg_types = { path = "./pg_crud/pg_types" }
+pg_types_chrono_net = { path = "./pg_crud/pg_types/pg_types_chrono_net" }
+pg_types_cmn = { path = "./pg_crud/pg_types/pg_types_cmn" }
+pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric" }
+pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc" }
+route_validators = { path = "./route_validators" }
 server_app_state = { path = "./server_app_state" }
 server_config = { path = "./server_config" }
 server_tbl_example = { path = "./server_tbl_example" }
+to_err_string = { path = "./to_err_string" }
 token_patterns = { path = "./token_patterns", default-features = false }
+try_from_env = { path = "./config_lib/try_from_env" }
+wh_flts = { path = "./pg_crud/wh_flts" }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

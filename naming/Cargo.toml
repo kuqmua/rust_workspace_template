@@ -14,10 +14,9 @@ edition = "2024"
 proc-macro2.workspace = true
 quote.workspace = true
 syn.workspace = true
-gen_quotes = {path = "../gen_quotes"}
-naming_macros = {path = "./naming_macros"}
-naming_cmn = {path = "./naming_cmn"}
-optml = {path = "../optml"}
-
+gen_quotes.workspace = true
+naming_macros.workspace = true
+naming_cmn.workspace = true
+optml.workspace = true
 [lints]
 workspace = true

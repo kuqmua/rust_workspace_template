@@ -19,12 +19,11 @@ thiserror.workspace = true
 schemars.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
-loc_lib = {path = "../../loc_lib"}
+loc_lib.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
-naming = {path = "../../naming"}
-optml = {path = "../../optml"}
-
+naming.workspace = true
+optml.workspace = true
 [features]
 test-utils = []
 
