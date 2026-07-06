@@ -1,68 +1,40 @@
-use app_state::{
-    GetCorsAllowOrigin, GetDatabaseUrl, GetPgPoolMaxConnections, GetServiceSocketAddress,
-};
-use axum::http::HeaderValue;
-use axum::{Router, serve};
-use cmn_routes::cmn_routes;
-use git_info::PROJECT_GIT_INFO;
-use num_cpus::get;
-use secrecy::ExposeSecret;
-use server_app_state::ServerAppState;
-use server_config::{Config, ConfigTryFromEnvEr};
-use server_tbl_example::{TblExample, TblExamplePrepPgEr};
-use sqlx::postgres::PgPoolOptions;
 #[cfg(test)]
-use std::str::Split;
-use std::{io::Error as StdIoError, process::ExitCode, sync::Arc};
-use thiserror::Error;
-use tokio::{
-    net::TcpListener,
-    runtime::{Builder, Runtime},
-    signal,
-};
-use tower::ServiceBuilder;
-use tower_governor::{GovernorLayer, governor::GovernorConfigBuilder};
-use tower_http::{
-    cors::CorsLayer,
-    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
-    trace::TraceLayer,
-};
-use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt as _, util::SubscriberInitExt as _};
+type SplitByChar<'split_lt> = std::str::Split<'split_lt, char>;
 const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 // cross-thread shared axum state is cloned into tower/hyper worker tasks
-type SharedAppState = Arc<ServerAppState<'static>>;
-#[cfg(test)]
-type SplitByChar<'split_lt> = Split<'split_lt, char>;
-#[derive(Debug, Error)]
+type SharedAppState = std::sync::Arc<server_app_state::ServerAppState<'static>>;
+#[derive(Debug, thiserror::Error)]
 enum RunServerEr {
     #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(StdIoError),
+    BindServiceSocket(std::io::Error),
     #[error("failed to build tokio runtime: {0}")]
-    BuildRuntime(StdIoError),
+    BuildRuntime(std::io::Error),
     #[error("failed to read configuration from environment: {0}")]
-    Config(#[from] ConfigTryFromEnvEr),
+    Config(#[from] server_config::ConfigTryFromEnvEr),
     #[error("failed to build governor config")]
     GovernorConfig,
     #[error("failed to connect to postgres: {0}")]
     PgConnect(#[from] sqlx::Error),
     #[error("failed to prepare postgres schema: {0}")]
-    PrepPg(#[from] TblExamplePrepPgEr),
+    PrepPg(#[from] server_tbl_example::TblExamplePrepPgEr),
     #[error("server failed: {0}")]
-    Serve(StdIoError),
+    Serve(std::io::Error),
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
-fn mk_api_routes(app_state: &SharedAppState) -> Router {
-    Router::new()
-        .merge(cmn_routes(SharedAppState::clone(app_state)))
-        .merge(TblExample::routes(SharedAppState::clone(app_state)))
+fn mk_api_routes(app_state: &SharedAppState) -> axum::Router {
+    axum::Router::new()
+        .merge(cmn_routes::cmn_routes(SharedAppState::clone(app_state)))
+        .merge(server_tbl_example::TblExample::routes(
+            SharedAppState::clone(app_state),
+        ))
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
-fn mk_app_state(config: Config, pg_pool: sqlx::PgPool) -> SharedAppState {
-    Arc::new(ServerAppState {
+fn mk_app_state(config: server_config::Config, pg_pool: sqlx::PgPool) -> SharedAppState {
+    std::sync::Arc::new(server_app_state::ServerAppState {
         pg_pool,
         config,
-        project_git_info: &PROJECT_GIT_INFO,
+        project_git_info: &git_info::PROJECT_GIT_INFO,
     })
 }
 #[allow(clippy::single_call_fn)] // generic parser keeps separator handling reusable for non-header values and future config fields
@@ -94,11 +66,11 @@ fn split_count(v: &str, split_ch: char) -> usize {
         .count()
 }
 #[allow(clippy::single_call_fn)] // extracted so per-value parse behavior can be reused and tested directly
-fn parse_cors_allow_origin_value(value: &str) -> Option<HeaderValue> {
-    value.trim().parse::<HeaderValue>().ok()
+fn parse_cors_allow_origin_value(value: &str) -> Option<axum::http::HeaderValue> {
+    value.trim().parse::<axum::http::HeaderValue>().ok()
 }
 #[allow(clippy::single_call_fn)] // extracted for reuse in main setup and tests
-fn parse_cors_allow_origin(v: &str) -> Vec<HeaderValue> {
+fn parse_cors_allow_origin(v: &str) -> Vec<axum::http::HeaderValue> {
     parse_separated_values(v, CORS_ALLOW_ORIGIN_SPLIT_CH, parse_cors_allow_origin_value)
 }
 #[allow(clippy::single_call_fn)] // generic splitter is test-only and keeps separator behavior assertions deterministic
@@ -108,68 +80,74 @@ fn split_by_char(v: &str, split_ch: char) -> SplitByChar<'_> {
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
 fn init_tracing() {
-    tracing_subscriber::registry()
-        .with(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new(TRACING_DFLT_FILTER)),
-        )
-        .with(fmt::layer())
-        .init();
+    let subscriber = tracing_subscriber::layer::SubscriberExt::with(
+        tracing_subscriber::registry(),
+        tracing_subscriber::EnvFilter::try_from_default_env()
+            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(TRACING_DFLT_FILTER)),
+    );
+    let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
+        subscriber,
+        tracing_subscriber::fmt::layer(),
+    );
+    tracing_subscriber::util::SubscriberInitExt::init(subscriber_with_fmt);
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
-fn mk_runtime() -> Result<Runtime, RunServerEr> {
-    Builder::new_multi_thread()
-        .worker_threads(get())
+fn mk_runtime() -> Result<tokio::runtime::Runtime, RunServerEr> {
+    tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(num_cpus::get())
         .enable_all()
         .build()
         .map_err(RunServerEr::BuildRuntime)
 }
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(config: &Config) -> Result<sqlx::PgPool, RunServerEr> {
-    Ok(PgPoolOptions::new()
-        .max_connections(*GetPgPoolMaxConnections::get_pg_pool_max_connections(
-            config,
-        ))
-        .connect(ExposeSecret::expose_secret(
-            GetDatabaseUrl::get_database_url(config),
+async fn mk_pg_pool(config: &server_config::Config) -> Result<sqlx::PgPool, RunServerEr> {
+    Ok(sqlx::postgres::PgPoolOptions::new()
+        .max_connections(*app_state::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
+        .connect(secrecy::ExposeSecret::expose_secret(
+            app_state::GetDatabaseUrl::get_database_url(config),
         ))
         .await?)
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
 async fn run_server() -> Result<(), RunServerEr> {
-    let config = Config::try_from_env()?;
+    let config = server_config::Config::try_from_env()?;
     let pg_pool = mk_pg_pool(&config).await?;
-    TblExample::prep_pg(&pg_pool).await?;
-    let tcp_listener =
-        TcpListener::bind(GetServiceSocketAddress::get_service_socket_address(&config))
-            .await
-            .map_err(RunServerEr::BindServiceSocket)?;
-    let cors_origins = parse_cors_allow_origin(GetCorsAllowOrigin::get_cors_allow_origin(&config));
+    server_tbl_example::TblExample::prep_pg(&pg_pool).await?;
+    let tcp_listener = tokio::net::TcpListener::bind(
+        app_state::GetServiceSocketAddress::get_service_socket_address(&config),
+    )
+    .await
+    .map_err(RunServerEr::BindServiceSocket)?;
+    let cors_origins = parse_cors_allow_origin(
+        app_state::GetCorsAllowOrigin::get_cors_allow_origin(&config),
+    );
     let app_state = mk_app_state(config, pg_pool);
     let api_routes = mk_api_routes(&app_state);
-    let governor_conf = Arc::new(
-        GovernorConfigBuilder::default()
+    let governor_conf = std::sync::Arc::new(
+        tower_governor::governor::GovernorConfigBuilder::default()
             .per_second(2)
             .burst_size(10)
             .finish()
             .ok_or(RunServerEr::GovernorConfig)?,
     );
-    serve(
+    axum::serve(
         tcp_listener,
-        Router::new()
+        axum::Router::new()
             .nest("/api/v1", api_routes)
             .layer(
-                ServiceBuilder::new()
-                    .layer(PropagateRequestIdLayer::x_request_id())
-                    .layer(TraceLayer::new_for_http())
-                    .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-                    .layer(CorsLayer::new().allow_origin(cors_origins))
-                    .layer(GovernorLayer::new(governor_conf)),
+                tower::ServiceBuilder::new()
+                    .layer(tower_http::request_id::PropagateRequestIdLayer::x_request_id())
+                    .layer(tower_http::trace::TraceLayer::new_for_http())
+                    .layer(tower_http::request_id::SetRequestIdLayer::x_request_id(
+                        tower_http::request_id::MakeRequestUuid,
+                    ))
+                    .layer(tower_http::cors::CorsLayer::new().allow_origin(cors_origins))
+                    .layer(tower_governor::GovernorLayer::new(governor_conf)),
             )
             .into_make_service(),
     )
     .with_graceful_shutdown(async {
-        if let Err(er) = signal::ctrl_c().await {
+        if let Err(er) = tokio::signal::ctrl_c().await {
             eprintln!("failed to wait for ctrl-c signal: {er}");
         }
     })
@@ -177,89 +155,92 @@ async fn run_server() -> Result<(), RunServerEr> {
     .map_err(RunServerEr::Serve)?;
     Ok(())
 }
-fn main() -> ExitCode {
+fn main() -> std::process::ExitCode {
     init_tracing();
     match mk_runtime().and_then(|runtime| runtime.block_on(run_server())) {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(()) => std::process::ExitCode::SUCCESS,
         Err(er) => {
             eprintln!("{er}");
-            ExitCode::FAILURE
+            std::process::ExitCode::FAILURE
         }
     }
 }
 #[cfg(test)]
 mod tests {
-    use super::{
-        CORS_ALLOW_ORIGIN_SPLIT_CH, TRACING_DFLT_FILTER, parse_cors_allow_origin,
-        parse_cors_allow_origin_value, parse_separated_values,
-        parse_separated_values_with_capacity, split_by_char, split_count,
-    };
-    use axum::http::HeaderValue;
     #[allow(clippy::single_call_fn)] // shared fixture keeps two-origin header expectations reusable across parser tests
-    fn mk_two_origin_headers() -> Vec<HeaderValue> {
+    fn mk_two_origin_headers() -> Vec<axum::http::HeaderValue> {
         vec![
-            HeaderValue::from_static("https://a.example"),
-            HeaderValue::from_static("https://b.example"),
+            axum::http::HeaderValue::from_static("https://a.example"),
+            axum::http::HeaderValue::from_static("https://b.example"),
         ]
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps valid CORS header vector checks reusable across parser entry points
-    fn assert_two_origin_headers(v: &[HeaderValue]) {
+    fn assert_two_origin_headers(v: &[axum::http::HeaderValue]) {
         assert_eq!(v, mk_two_origin_headers());
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps split behavior checks concise across separator tests
     fn assert_split_by_char_parts(input: &str, split_ch: char, exp: &[&str]) {
-        let parts = split_by_char(input, split_ch).collect::<Vec<_>>();
+        let parts = super::split_by_char(input, split_ch).collect::<Vec<_>>();
         assert_eq!(parts, exp);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps numeric parser checks consistent across separator helpers
     fn assert_parsed_u8_values(input: &str, split_ch: char, exp: &[u8]) {
-        let parsed = parse_separated_values(input, split_ch, |part| part.parse::<u8>().ok());
+        let parsed = super::parse_separated_values(input, split_ch, |part| part.parse::<u8>().ok());
         assert_eq!(parsed, exp);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps parse helper outputs aligned across capacity and direct parser entry points
     fn assert_parsed_u8_values_with_capacity(input: &str, split_ch: char, exp: &[u8]) {
-        let parsed =
-            parse_separated_values_with_capacity(input, split_ch, |part| part.parse::<u8>().ok());
+        let parsed = super::parse_separated_values_with_capacity(input, split_ch, |part| {
+            part.parse::<u8>().ok()
+        });
         assert_eq!(parsed, exp);
     }
     #[test]
     fn parse_cors_allow_origin_keeps_valid_values() {
-        let v = parse_cors_allow_origin("https://a.example, https://b.example");
+        let v = super::parse_cors_allow_origin("https://a.example, https://b.example");
         assert_two_origin_headers(&v);
     }
     #[test]
     fn parse_cors_allow_origin_skips_invalid_values() {
-        let v = parse_cors_allow_origin("https://ok.example,bad\nvalue");
-        assert_eq!(v, vec![HeaderValue::from_static("https://ok.example")]);
+        let v = super::parse_cors_allow_origin("https://ok.example,bad\nvalue");
+        assert_eq!(
+            v,
+            vec![axum::http::HeaderValue::from_static("https://ok.example")]
+        );
     }
     #[test]
     fn parse_cors_allow_origin_keeps_empty_item_behavior() {
-        let v = parse_cors_allow_origin("");
-        assert_eq!(v, vec![HeaderValue::from_static("")]);
+        let v = super::parse_cors_allow_origin("");
+        assert_eq!(v, vec![axum::http::HeaderValue::from_static("")]);
     }
     #[test]
     fn parse_cors_allow_origin_value_trims_and_parses_valid_header() {
         assert_eq!(
-            parse_cors_allow_origin_value(" https://a.example "),
-            Some(HeaderValue::from_static("https://a.example"))
+            super::parse_cors_allow_origin_value(" https://a.example "),
+            Some(axum::http::HeaderValue::from_static("https://a.example"))
         );
     }
     #[test]
     fn parse_cors_allow_origin_value_returns_none_for_invalid_header() {
-        assert!(parse_cors_allow_origin_value("bad\nvalue").is_none());
+        assert!(super::parse_cors_allow_origin_value("bad\nvalue").is_none());
     }
     #[test]
     fn split_by_char_preserves_empty_segments_for_cors_separator() {
-        assert_split_by_char_parts("a,,b,", CORS_ALLOW_ORIGIN_SPLIT_CH, &["a", "", "b", ""]);
+        assert_split_by_char_parts(
+            "a,,b,",
+            super::CORS_ALLOW_ORIGIN_SPLIT_CH,
+            &["a", "", "b", ""],
+        );
     }
     #[test]
     fn parse_cors_allow_origin_keeps_only_valid_values() {
-        let parsed = parse_cors_allow_origin("https://a.example,bad\nvalue, https://b.example");
+        let parsed =
+            super::parse_cors_allow_origin("https://a.example,bad\nvalue, https://b.example");
         assert_two_origin_headers(&parsed);
     }
     #[test]
     fn parse_comma_separated_values_supports_non_header_parser() {
-        assert_parsed_u8_values("1,2,nope,3", CORS_ALLOW_ORIGIN_SPLIT_CH, &[1, 2, 3]);
+        assert_parsed_u8_values("1,2,nope,3", super::CORS_ALLOW_ORIGIN_SPLIT_CH, &[1, 2, 3]);
     }
     #[test]
     fn split_by_char_supports_custom_separator() {
@@ -275,14 +256,14 @@ mod tests {
     }
     #[test]
     fn split_count_returns_expected_separator_occurrences() {
-        assert_eq!(split_count("a,b,,", ','), 3);
+        assert_eq!(super::split_count("a,b,,", ','), 3);
     }
     #[test]
     fn cors_allow_origin_split_char_is_stable() {
-        assert_eq!(CORS_ALLOW_ORIGIN_SPLIT_CH, ',');
+        assert_eq!(super::CORS_ALLOW_ORIGIN_SPLIT_CH, ',');
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(TRACING_DFLT_FILTER, "info");
+        assert_eq!(super::TRACING_DFLT_FILTER, "info");
     }
 }

@@ -11,11 +11,12 @@ mod tests {
         str::Split,
     };
     use syn::{
-        Expr, ExprCall, ExprLit, ExprMethodCall, ExprPath, ItemFn, ItemMod, ItemType, Lit, Type,
-        TypePath, parse_file,
+        Expr, ExprCall, ExprLit, ExprMethodCall, ExprPath, ItemFn, ItemMod, ItemType, ItemUse, Lit,
+        Type, TypePath, UseTree, Visibility, parse_file,
         visit::{
             Visit, visit_expr_call, visit_expr_method_call, visit_expr_path, visit_item,
-            visit_item_fn, visit_item_mod, visit_item_type, visit_macro, visit_type_path,
+            visit_item_fn, visit_item_mod, visit_item_type, visit_item_use, visit_macro,
+            visit_type_path,
         },
     };
     use toml::{Table as TomlTable, Value, value::Table};
@@ -47,6 +48,85 @@ mod tests {
         "useless_borrows_in_formatting",
     ];
     const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
+    const USE_IMPORT_POLICY_EXCEPTIONS: &[&str] = &[
+        "app_state/src/lib.rs",
+        "cmn_routes/src/lib.rs",
+        "config_lib/config_lib_macros/src/lib.rs",
+        "config_lib/gen_getter_traits_for_struct_fields/src/lib.rs",
+        "config_lib/src/lib.rs",
+        "config_lib/src/str_from_enum_macros.rs",
+        "config_lib/src/types.rs",
+        "config_lib/try_from_env/src/lib.rs",
+        "gen_quotes/src/lib.rs",
+        "git_info/src/lib.rs",
+        "loc_lib/loc_macros/src/lib.rs",
+        "loc_lib/loc_test/src/main.rs",
+        "loc_lib/location/src/lib.rs",
+        "loc_lib/src/loc.rs",
+        "macro_clippy_check_cmn/src/lib.rs",
+        "macros_helpers/gen_derive_ts_builder/src/lib.rs",
+        "macros_helpers/src/gen_field_loc_new_ts.rs",
+        "macros_helpers/src/gen_if_write_is_err_ts.rs",
+        "macros_helpers/src/gen_impl_dflt_ts.rs",
+        "macros_helpers/src/gen_impl_display_ts.rs",
+        "macros_helpers/src/gen_impl_from_ts.rs",
+        "macros_helpers/src/gen_impl_to_err_string_ts.rs",
+        "macros_helpers/src/gen_impl_try_from_ts.rs",
+        "macros_helpers/src/gen_new_or_try_new.rs",
+        "macros_helpers/src/gen_pub_type_al_ts.rs",
+        "macros_helpers/src/gen_simple_syn_punct.rs",
+        "macros_helpers/src/get_macro_attr.rs",
+        "macros_helpers/src/loc.rs",
+        "macros_helpers/src/loc_syn_field.rs",
+        "macros_helpers/src/panic_if_err.rs",
+        "macros_helpers/src/pgn_start_end_init_ts.rs",
+        "macros_helpers/src/rs_file_path.rs",
+        "macros_helpers/src/status_code.rs",
+        "macros_helpers/src/syn_field.rs",
+        "macros_helpers/src/test_hlp.rs",
+        "macros_helpers/src/wrap_derive.rs",
+        "macros_helpers/src/write_string_into_file.rs",
+        "macros_helpers/src/write_ts_into_file.rs",
+        "naming/naming_cmn/src/lib.rs",
+        "naming/naming_cmn_macros/src/lib.rs",
+        "naming/naming_macros/src/lib.rs",
+        "naming/src/lib.rs",
+        "optml/src/lib.rs",
+        "panic_loc/src/lib.rs",
+        "pg_crud/pg_crud_cmn/src/lib.rs",
+        "pg_crud/pg_crud_cmn_macros/src/lib.rs",
+        "pg_crud/pg_crud_macros_cmn/src/flts.rs",
+        "pg_crud/pg_crud_macros_cmn/src/lib.rs",
+        "pg_crud/pg_crud_macros_cmn_macros/src/lib.rs",
+        "pg_crud/pg_tbl/gen_pg_tbl/src/lib.rs",
+        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+        "pg_crud/pg_tbl/gen_pg_tbl_test/src/lib.rs",
+        "pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs",
+        "pg_crud/pg_tbl/src/lib.rs",
+        "pg_crud/pg_types/gen_pg_types/src/lib.rs",
+        "pg_crud/pg_types/gen_pg_types_src/src/lib.rs",
+        "pg_crud/pg_types/gen_pg_types_test/src/lib.rs",
+        "pg_crud/pg_types/pg_types_cmn/src/lib.rs",
+        "pg_crud/wh_flts/gen_wh_flts/src/lib.rs",
+        "pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs",
+        "pg_crud/wh_flts/gen_wh_flts_test/src/lib.rs",
+        "pg_crud/wh_flts/src/lib.rs",
+        "route_validators/src/check_body_size.rs",
+        "route_validators/src/check_commit.rs",
+        "route_validators/src/hdr_val.rs",
+        "route_validators/src/lib.rs",
+        "route_validators/src/test_hlp.rs",
+        "server_app_state/server_app_state_macros/src/lib.rs",
+        "server_app_state/src/lib.rs",
+        "server_config/src/lib.rs",
+        "server_tbl_example/src/lib.rs",
+        "tests/src/lib.rs",
+        "to_err_string/src/lib.rs",
+        "to_err_string/to_err_string_macros/src/lib.rs",
+        "token_patterns/src/lib.rs",
+        "token_patterns/token_patterns_macros/src/lib.rs",
+        "workspace_macro_helpers/src/lib.rs",
+    ];
     #[derive(Debug, Clone, Copy, Optml)]
     enum ExpectOrPanic {
         Expect,
@@ -282,6 +362,33 @@ mod tests {
                 self.ers.push(format!("contains {}!()", segment.ident));
             }
             visit_macro(self, i);
+        }
+    }
+    struct UseImportVisitor {
+        found_non_public_use_import: bool,
+        found_use_rename: bool,
+    }
+    impl UseImportVisitor {
+        fn use_tree_contains_rename(use_tree: &UseTree) -> bool {
+            match use_tree {
+                UseTree::Path(use_path) => Self::use_tree_contains_rename(&use_path.tree),
+                UseTree::Name(_) | UseTree::Glob(_) => false,
+                UseTree::Rename(_) => true,
+                UseTree::Group(use_group) => {
+                    use_group.items.iter().any(Self::use_tree_contains_rename)
+                }
+            }
+        }
+    }
+    impl<'ast> Visit<'ast> for UseImportVisitor {
+        fn visit_item_use(&mut self, i: &'ast ItemUse) {
+            if !matches!(i.vis, Visibility::Public(_)) {
+                self.found_non_public_use_import = true;
+            }
+            if Self::use_tree_contains_rename(&i.tree) {
+                self.found_use_rename = true;
+            }
+            visit_item_use(self, i);
         }
     }
     #[test]
@@ -993,6 +1100,37 @@ mod tests {
                         path.display()
                     )
                 }));
+            },
+        );
+    }
+    #[test]
+    fn no_non_public_use_imports_in_rust_sources() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "b4e7c2a9",
+            "non-public use imports found; prefer explicit paths at usage sites:",
+            |path, ast, ers| {
+                if is_exception(path, USE_IMPORT_POLICY_EXCEPTIONS) {
+                    return;
+                }
+                let visitor = visit_syn_file(
+                    ast,
+                    UseImportVisitor {
+                        found_non_public_use_import: false,
+                        found_use_rename: false,
+                    },
+                );
+                if visitor.found_non_public_use_import {
+                    ers.push(format!(
+                        "{}: found non-public use import; use the explicit path at the usage site or add a reviewed exception with reason",
+                        path.display()
+                    ));
+                }
+                if visitor.found_use_rename {
+                    ers.push(format!(
+                        "{}: found use rename with `as`; use the original item name or rename the item at its definition",
+                        path.display()
+                    ));
+                }
             },
         );
     }

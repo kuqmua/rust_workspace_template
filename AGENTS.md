@@ -25,6 +25,7 @@
 - Preserve behavior unless change is requested.
 - Keep diffs minimal.
 - Keep generated functions and closures inside usage scope.
+- Prefer explicit paths at usage sites over `use` imports.
 - `expect()` messages must contain **8 first symbols from random UUID v4**.
 - Use abbreviations when creating names.
 - Use conrete crates types from crates.io in workspace Cargo.toml
@@ -39,6 +40,7 @@
 - Silence clippy without justification.
 - Leave commented dead code.
 - Commit debug prints.
+- Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
 - Use `unwrap()`.
 - Use `expect()` or `panic!()` in library code except in `proc-macro`, tests, or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.

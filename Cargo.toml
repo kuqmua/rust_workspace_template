@@ -488,7 +488,7 @@ float_literal_f32_fallback = "deny"
 dead_code_pub_in_binary = "allow"
 
 [workspace.lints.clippy]
-absolute_paths = "deny"
+absolute_paths = "allow"
 absurd_extreme_comparisons = "deny"
 alloc_instead_of_core = "deny"
 allow_attributes = "allow"                         #serde used too much allow_attributes.
