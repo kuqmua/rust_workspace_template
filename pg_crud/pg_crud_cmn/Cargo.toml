@@ -24,6 +24,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 naming = { workspace = true }
 optml = { workspace = true }
+workspace_macros = { workspace = true }
 [features]
 test-utils = []
 

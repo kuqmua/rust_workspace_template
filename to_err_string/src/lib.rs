@@ -17,34 +17,9 @@ use sqlx::{
 use std::{borrow::Cow, fmt::Debug, io::Error as IoEr};
 use time::error::ComponentRange;
 use tracing::{dispatcher::SetGlobalDefaultError, log::SetLoggerError};
-macro_rules! impl_to_err_string_with {
-    ($($ty:ty),+ => |$value:ident| $body:expr) => {
-        $(impl ToErrString for $ty {
-            fn to_err_string(&self) -> String {
-                let $value = self;
-                $body
-            }
-        })+
-    };
-}
-macro_rules! impl_to_err_string_const {
-    ($($ty:ty => $msg:expr),+ $(,)?) => {
-        $(impl ToErrString for $ty {
-            fn to_err_string(&self) -> String {
-                static_str_to_owned($msg)
-            }
-        })+
-    };
-}
-macro_rules! impl_to_err_string_as_ref_str {
-    ($($ty:ty),+ $(,)?) => {
-        $(impl ToErrString for $ty {
-            fn to_err_string(&self) -> String {
-                as_ref_str_to_owned(self)
-            }
-        })+
-    };
-}
+use workspace_macros::{
+    impl_to_err_string_as_ref_str, impl_to_err_string_const, impl_to_err_string_with,
+};
 impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 impl_to_err_string_with!(HeaderMap, SizeHint => |v| debug_alt_to_string(v));
 impl_to_err_string_with!(

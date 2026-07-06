@@ -9,15 +9,7 @@ use optml::Optml;
 use pg_crud::CombinationOfAppStateLogicTraits;
 use server_config::Config;
 use sqlx::PgPool;
-macro_rules! impl_cfg_getter {
-    ($trait_name:ident, $fn_name:ident, $ret_ty:ty) => {
-        impl $trait_name for ServerAppState<'_> {
-            fn $fn_name(&self) -> &$ret_ty {
-                self.cfg_ref().$fn_name()
-            }
-        }
-    };
-}
+use workspace_macros::impl_cfg_getter;
 #[derive(Debug, Optml)]
 pub struct ServerAppState<'lt> {
     pub config: Config,

@@ -48,6 +48,7 @@ members = [
   "tests",
   "to_err_string",
   "token_patterns",
+  "workspace_macros",
 ]
 exclude = []
 
@@ -237,6 +238,7 @@ to_err_string = { path = "./to_err_string", version = "0.1.0" }
 token_patterns = { path = "./token_patterns", version = "0.1.0", default-features = false }
 try_from_env = { path = "./config_lib/try_from_env", version = "0.1.0" }
 wh_flts = { path = "./pg_crud/wh_flts", version = "0.1.0" }
+workspace_macros = { path = "./workspace_macros", version = "0.1.0" }
 [workspace.lints.rust]
 unsafe_code = "deny"
 absolute_paths_not_starting_with_crate = "deny"

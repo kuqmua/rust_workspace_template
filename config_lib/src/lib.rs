@@ -12,90 +12,10 @@ use std::{
 };
 use thiserror::Error;
 pub use try_from_env::TryFromEnv;
-macro_rules! impl_try_from_non_empty_string {
-    ($name:ident, $er_name:ident) => {
-        #[derive(Debug, Clone, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
-        pub struct $name(pub String);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
-        pub enum $er_name {
-            #[error("{is_empty:?}")]
-            IsEmpty { is_empty: &'static str },
-        }
-        impl TryFromStdEnvVarOk for $name {
-            type Error = $er_name;
-            fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
-                try_map_non_empty_env_value(v, |is_empty| Self::Error::IsEmpty { is_empty }, Self)
-            }
-        }
-    };
-}
-macro_rules! impl_try_from_parse_mapped {
-    ($name:ident, $er_name:ident, $inner:ty, $er_vrt:ident, $er_field:ident, $er_ty:ty, $map_parse_er:expr, $($derive:ident),*) => {
-        #[derive(Debug, $($derive,)* gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
-        pub struct $name(pub $inner);
-        #[derive(Debug, Error, Optml)]
-        pub enum $er_name {
-            #[error("{:?}", .$er_field)]
-            $er_vrt { $er_field: $er_ty },
-        }
-        impl TryFromStdEnvVarOk for $name {
-            type Error = $er_name;
-            fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
-                parse_from_str_with_er(&v, $map_parse_er).map(Self)
-            }
-        }
-    };
-}
-macro_rules! impl_try_from_parse {
-    ($name:ident, $er_name:ident, $inner:ty, $er_vrt:ident, $er_field:ident, $er_ty:ty, $($derive:ident),*) => {
-        impl_try_from_parse_mapped!(
-            $name,
-            $er_name,
-            $inner,
-            $er_vrt,
-            $er_field,
-            $er_ty,
-            |$er_field| Self::Error::$er_vrt { $er_field },
-            $($derive),*
-        );
-    };
-}
-macro_rules! impl_try_from_parse_string_er {
-    ($name:ident, $er_name:ident, $inner:ty, $er_vrt:ident, $er_field:ident) => {
-        impl_try_from_parse_mapped!(
-            $name,
-            $er_name,
-            $inner,
-            $er_vrt,
-            $er_field,
-            String,
-            |$er_field| Self::Error::$er_vrt { $er_field },
-            Clone,
-            Copy
-        );
-    };
-}
-macro_rules! impl_try_from_secret_url {
-    ($name:ident, $er_name:ident) => {
-        #[derive(Debug, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
-        pub struct $name(pub SecretBox<String>);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
-        pub enum $er_name {
-            #[error("{is_empty:?}")]
-            IsEmpty { is_empty: &'static str },
-        }
-        impl TryFromStdEnvVarOk for $name {
-            type Error = $er_name;
-            fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
-                try_map_non_empty_env_value(
-                    v,
-                    |is_empty| Self::Error::IsEmpty { is_empty },
-                    |v| Self(SecretBox::new(Box::new(v))),
-                )
-            }
-        }
-    };
-}
+use workspace_macros::{
+    impl_try_from_non_empty_string, impl_try_from_parse, impl_try_from_parse_string_er,
+    impl_try_from_secret_url,
+};
 const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
 pub trait TryFromStdEnvVarOk: Sized {
@@ -234,21 +154,9 @@ mod tests {
         TryFromStdEnvVarOkStartingCheckLinkEr, TryFromStdEnvVarOkTimezoneEr,
         TryFromStdEnvVarOkTracingLevelEr, types,
     };
-    macro_rules! assert_parse_ok_matches {
-        ($type0:ty, $value:expr, $pattern:pat) => {
-            assert!(matches!(parse_env::<$type0>($value), Ok($pattern)));
-        };
-    }
-    macro_rules! assert_parse_err_matches {
-        ($type0:ty, $value:expr, $pattern:pat) => {
-            assert!(matches!(parse_env::<$type0>($value), Err($pattern)));
-        };
-    }
-    macro_rules! assert_empty_parse_err_matches {
-        ($type0:ty, $pattern:pat) => {
-            assert!(matches!(parse_env::<$type0>(""), Err($pattern)));
-        };
-    }
+    use workspace_macros::{
+        assert_empty_parse_err_matches, assert_parse_err_matches, assert_parse_ok_matches,
+    };
     #[derive(Debug, PartialEq, Eq)]
     enum ParseRequiredEnvVarTestEr {
         EnvVar { env_var_name: String },

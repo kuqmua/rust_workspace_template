@@ -1,44 +1,7 @@
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
-macro_rules! def_tp {
-    ($name:ident, |$tokens:ident| $body:block) => {
-        #[derive(Debug, Clone, Copy, Optml)]
-        pub struct $name;
-        impl ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut Ts2) {
-                let $tokens = tokens;
-                $body
-            }
-        }
-    };
-}
-macro_rules! tp {
-    ($name:ident, $($tt:tt)*) => {
-        def_tp!($name, |tokens| {
-                append_tokens(tokens, quote! {$($tt)*});
-        });
-    };
-}
-macro_rules! tp_parts {
-    ($name:ident, $($part:expr),+) => {
-        def_tp!($name, |tokens| {
-                $(append_tokens(tokens, $part);)+
-        });
-    };
-}
-macro_rules! ts_path_fn {
-    ($fn_name:ident, $($tt:tt)*) => {
-        fn $fn_name() -> Ts2 {
-            quote! {$($tt)*}
-        }
-    };
-}
-macro_rules! tp_batch {
-    ($(($name:ident, $($tt:tt)*)),+ $(,)?) => {
-        $(tp!($name, $($tt)*);)+
-    };
-}
+use workspace_macros::{tp, tp_batch, tp_parts, ts_path_fn};
 tp!(SqlxAcquire, sqlx::Acquire);
 tp!(
     AxumExtractRejectionJsonRejection,

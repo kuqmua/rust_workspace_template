@@ -34,23 +34,7 @@ use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSize,
     PgCrudDfltSomeOneEl, PgCrudDfltSomeOneElMaxPageSize, RefStr, StdFmtDisplay, StringTs, U64,
 };
-macro_rules! bool_enum_to_tokens {
-    ($name:ident, false => $false_expr:expr, true => $true_expr:expr) => {
-        #[derive(Debug, Clone, Copy, Optml)]
-        pub enum $name {
-            False,
-            True,
-        }
-        impl ToTokens for $name {
-            fn to_tokens(&self, tokens: &mut Ts2) {
-                match &self {
-                    Self::False => ($false_expr).to_tokens(tokens),
-                    Self::True => ($true_expr).to_tokens(tokens),
-                }
-            }
-        }
-    };
-}
+use workspace_macros::bool_enum_to_tokens;
 #[derive(Debug, Clone, Optml)]
 pub enum DeriveOrImpl {
     Derive,

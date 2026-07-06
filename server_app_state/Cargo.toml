@@ -20,6 +20,7 @@ app_state = { workspace = true }
 server_config = { workspace = true }
 pg_crud = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
+workspace_macros = { workspace = true }
 [dev-dependencies]
 secrecy = { workspace = true }
 tokio = { workspace = true }

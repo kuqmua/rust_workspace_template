@@ -2,33 +2,7 @@ use convert_case::{Case, Casing as _};
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use std::fmt::Display;
-macro_rules! case_trait_pair {
-    ($str_trait:ident, $ts_trait:ident, $bound:path, |$slf:ident| $body:expr) => {
-        pub trait $str_trait {
-            fn case(&self) -> String;
-        }
-        impl<T> $str_trait for T
-        where
-            T: $bound,
-        {
-            fn case(&self) -> String {
-                let $slf = self;
-                $body
-            }
-        }
-        pub trait $ts_trait {
-            fn case_or_panic(&self) -> Ts2;
-        }
-        impl<T> $ts_trait for T
-        where
-            T: $str_trait,
-        {
-            fn case_or_panic(&self) -> Ts2 {
-                to_ts_or_panic(&$str_trait::case(self))
-            }
-        }
-    };
-}
+use workspace_macros::case_trait_pair;
 case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
     str_case(self_ref.as_ref(), Case::UpperCamel)
 });

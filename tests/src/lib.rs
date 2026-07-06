@@ -817,6 +817,25 @@ mod tests {
         );
     }
     #[test]
+    fn no_macro_rules_in_source_code() {
+        let macro_name = "macro_rules";
+        let forbidden = format!("{macro_name}!");
+        let mut ers = Vec::new();
+        for_each_rs_file_content(|path, v| {
+            if v.contains(&forbidden) {
+                ers.push(format!(
+                    "{}: contains {forbidden}; use a workspace proc-macro crate instead",
+                    path.display()
+                ));
+            }
+        });
+        assert_joined_ers_empty_with_ctx(
+            &ers,
+            "b6e2a9f4",
+            "macro_rules found; use workspace proc-macro crates instead:",
+        );
+    }
+    #[test]
     fn no_unwrap_in_source_code() {
         assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
             let visitor = visit_syn_file(ast, UnwrapVisitor { found_count: 0 });

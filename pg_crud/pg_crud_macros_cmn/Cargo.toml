@@ -22,5 +22,6 @@ token_patterns = { workspace = true }
 gen_quotes = { workspace = true }
 macros_helpers = { workspace = true }
 optml = { workspace = true }
+workspace_macros = { workspace = true }
 [lints]
 workspace = true

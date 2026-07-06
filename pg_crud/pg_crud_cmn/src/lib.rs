@@ -23,12 +23,7 @@ use strum_macros::EnumString;
 use thiserror::Error;
 use utoipa::ToSchema;
 use uuid::Uuid;
-macro_rules! trait_al {
-    ($name:ident = $($bounds:tt)+) => {
-        pub trait $name: $($bounds)+ {}
-        impl<T: $($bounds)+> $name for T {}
-    };
-}
+use workspace_macros::trait_al;
 pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;

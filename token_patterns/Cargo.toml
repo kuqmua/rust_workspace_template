@@ -14,5 +14,6 @@ edition = "2024"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 optml = { workspace = true }
+workspace_macros = { workspace = true }
 [lints]
 workspace = true

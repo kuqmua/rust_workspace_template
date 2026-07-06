@@ -1,5 +1,5 @@
 [package]
-name = "naming_cmn"
+name = "workspace_macros"
 version = "0.1.0"
 publish = false
 description = "description"
@@ -10,10 +10,11 @@ keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
 
+[lib]
+proc-macro = true
+
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-convert_case = { workspace = true }
-workspace_macros = { workspace = true }
 [lints]
 workspace = true
