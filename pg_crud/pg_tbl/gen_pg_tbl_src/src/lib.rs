@@ -159,6 +159,14 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 Self::Dlo => (DClone::True, DCopy::True),
             }
         }
+        const fn derive_prms_clone_and_copy(self) -> (DClone, DCopy) {
+            match self {
+                Self::Co | Self::Dlo => (DClone::True, DCopy::True),
+                Self::Cm | Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm => {
+                    (DClone::False, DCopy::False)
+                }
+            }
+        }
         const fn desirable_status_code(self) -> StatusCode {
             match self {
                 Self::Cm | Self::Co => StatusCode::Crd201,
@@ -947,6 +955,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             .make_pub()
             .d_debug()
             .d_clone()
+            .d_copy()
             .d_serde_serialize()
             .d_serde_deserialize()
             .d_utoipa_to_schema()
@@ -1361,6 +1370,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let sel_ts = {
         let ident_sel_ts = {
             let ident_sel_enum_ts = cmn_d_ts_builder()
+            .d_copy()
             .build_enum(
                 &Ts2::new(),
                 &ident_sel_ucc,
@@ -3542,7 +3552,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 }
             };
             let prms_ts = {
-                let (derive_clone, derive_copy) = op.derive_clone_and_copy();
+                let (derive_clone, derive_copy) = op.derive_prms_clone_and_copy();
                 let ident_op_prms_struct_ts = DTsBuilder::new()
                     .make_pub()
                     .d_debug()

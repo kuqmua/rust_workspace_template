@@ -8,11 +8,11 @@ mod tests {
             "gen_pg_types_test_cnt",
             "../pg_crud/pg_types/",
             r#"[dependencies]
-chrono.workspace = true
-uuid.workspace = true
-sqlx.workspace = true
-serde.workspace = true
-thiserror.workspace = true
+chrono = { workspace = true }
+uuid = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
 loc_lib = {path = "../../../loc_lib"}
 pg_crud_cmn = {path = "../../pg_crud_cmn"}
 pg_types_cmn = {path = "../pg_types_cmn"}

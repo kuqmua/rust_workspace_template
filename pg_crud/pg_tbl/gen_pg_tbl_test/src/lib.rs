@@ -11,14 +11,14 @@ mod tests {
             "gen_pg_tbl_test_cnt",
             "../pg_crud/pg_tbl/",
             r#"[dependencies]
-axum.workspace = true
-http.workspace = true
-sqlx.workspace = true
-reqwest.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-thiserror.workspace = true
-utoipa.workspace = true
+axum = { workspace = true }
+http = { workspace = true }
+sqlx = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+utoipa = { workspace = true }
 git_info = {path = "../../../git_info"}
 loc_lib = {path = "../../../loc_lib"}
 pg_crud = {path = "../../../pg_crud", features = ["test-utils"]}

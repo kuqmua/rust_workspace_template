@@ -56,7 +56,7 @@ pub enum DeriveOrImpl {
     Derive,
     Impl(Ts2),
 }
-#[derive(Debug, Optml)]
+#[derive(Debug, Clone, Copy, Optml)]
 pub enum IsStdrtNn {
     False,
     True,

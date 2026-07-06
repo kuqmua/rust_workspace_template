@@ -16,7 +16,7 @@ macro_rules! impl_try_from_non_empty_string {
     ($name:ident, $er_name:ident) => {
         #[derive(Debug, Clone, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
         pub struct $name(pub String);
-        #[derive(Debug, Error, Optml)]
+        #[derive(Debug, Clone, Copy, Error, Optml)]
         pub enum $er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
@@ -79,7 +79,7 @@ macro_rules! impl_try_from_secret_url {
     ($name:ident, $er_name:ident) => {
         #[derive(Debug, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
         pub struct $name(pub SecretBox<String>);
-        #[derive(Debug, Error, Optml)]
+        #[derive(Debug, Clone, Copy, Error, Optml)]
         pub enum $er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },

@@ -4939,7 +4939,7 @@ mod tbl_example_gen_pg_tbl_mod {
         },
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Copy)]
     pub struct TblExampleCoPrms {
         pub payload: TblExampleCr,
     }
@@ -6137,7 +6137,7 @@ mod tbl_example_gen_pg_tbl_mod {
             loc: loc_lib::loc::Loc,
         },
     }
-    #[derive(Debug, Clone, serde :: Serialize, serde :: Deserialize, utoipa :: ToSchema)]
+    #[derive(Debug, Clone, Copy, serde :: Serialize, serde :: Deserialize, utoipa :: ToSchema)]
     pub struct TblExampleCr {
         pub col_0: <pg_crud::I16AsNnInt2 as pg_crud::PgType>::Cr,
         pub col_1: <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::Cr,
@@ -6466,7 +6466,7 @@ mod tbl_example_gen_pg_tbl_mod {
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, Clone, PartialEq, serde :: Serialize, serde :: Deserialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
     pub enum TblExampleSel {
         #[serde(rename(serialize = "pk_col", deserialize = "pk_col"))]
         PkCol(<pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::Sel),
