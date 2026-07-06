@@ -22,6 +22,6 @@ location = { workspace = true }
 naming = { workspace = true }
 to_err_string = { workspace = true }
 optml = { workspace = true }
-workspace_macros = { workspace = true }
+loc_macros = { workspace = true }
 [lints]
 workspace = true

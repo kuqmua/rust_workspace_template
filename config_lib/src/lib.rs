@@ -1,6 +1,10 @@
 pub mod str_from_enum_macros;
 pub mod types;
 use chrono::FixedOffset;
+use config_lib_macros::{
+    impl_try_from_non_empty_string, impl_try_from_parse, impl_try_from_parse_string_er,
+    impl_try_from_secret_url,
+};
 pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
 use optml::Optml;
 use secrecy::SecretBox;
@@ -12,10 +16,6 @@ use std::{
 };
 use thiserror::Error;
 pub use try_from_env::TryFromEnv;
-use workspace_macros::{
-    impl_try_from_non_empty_string, impl_try_from_parse, impl_try_from_parse_string_er,
-    impl_try_from_secret_url,
-};
 const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
 pub trait TryFromStdEnvVarOk: Sized {
@@ -154,7 +154,7 @@ mod tests {
         TryFromStdEnvVarOkStartingCheckLinkEr, TryFromStdEnvVarOkTimezoneEr,
         TryFromStdEnvVarOkTracingLevelEr, types,
     };
-    use workspace_macros::{
+    use config_lib_macros::{
         assert_empty_parse_err_matches, assert_parse_err_matches, assert_parse_ok_matches,
     };
     #[derive(Debug, PartialEq, Eq)]

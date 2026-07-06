@@ -1,5 +1,5 @@
 [package]
-name = "token_patterns"
+name = "pg_crud_cmn_macros"
 version = "0.1.0"
 publish = false
 description = "description"
@@ -9,11 +9,11 @@ license = "license"
 keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
-
+[lib]
+proc-macro = true
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-optml = { workspace = true }
-token_patterns_macros = { workspace = true }
+workspace_macro_helpers = { workspace = true }
 [lints]
 workspace = true

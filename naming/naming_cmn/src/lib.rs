@@ -1,8 +1,8 @@
 use convert_case::{Case, Casing as _};
+use naming_cmn_macros::case_trait_pair;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use std::fmt::Display;
-use workspace_macros::case_trait_pair;
 case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
     str_case(self_ref.as_ref(), Case::UpperCamel)
 });

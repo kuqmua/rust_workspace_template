@@ -16,10 +16,10 @@ use sqlx::{
 };
 use std::{borrow::Cow, fmt::Debug, io::Error as IoEr};
 use time::error::ComponentRange;
-use tracing::{dispatcher::SetGlobalDefaultError, log::SetLoggerError};
-use workspace_macros::{
+use to_err_string_macros::{
     impl_to_err_string_as_ref_str, impl_to_err_string_const, impl_to_err_string_with,
 };
+use tracing::{dispatcher::SetGlobalDefaultError, log::SetLoggerError};
 impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 impl_to_err_string_with!(HeaderMap, SizeHint => |v| debug_alt_to_string(v));
 impl_to_err_string_with!(

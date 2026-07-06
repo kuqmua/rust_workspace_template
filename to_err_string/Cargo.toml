@@ -20,6 +20,6 @@ time = { workspace = true }
 sqlx = { workspace = true }
 serde_json = { workspace = true }
 http = { workspace = true }
-workspace_macros = { workspace = true }
+to_err_string_macros = { workspace = true }
 [lints]
 workspace = true

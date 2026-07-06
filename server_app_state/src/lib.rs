@@ -7,9 +7,9 @@ use config_lib::types::SrcPlaceType;
 use git_info::ProjectGitInfo;
 use optml::Optml;
 use pg_crud::CombinationOfAppStateLogicTraits;
+use server_app_state_macros::impl_cfg_getter;
 use server_config::Config;
 use sqlx::PgPool;
-use workspace_macros::impl_cfg_getter;
 #[derive(Debug, Optml)]
 pub struct ServerAppState<'lt> {
     pub config: Config,

@@ -1,7 +1,7 @@
 use optml::Optml;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
-use workspace_macros::{tp, tp_batch, tp_parts, ts_path_fn};
+use token_patterns_macros::{tp, tp_batch, tp_parts, ts_path_fn};
 tp!(SqlxAcquire, sqlx::Acquire);
 tp!(
     AxumExtractRejectionJsonRejection,

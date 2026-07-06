@@ -20,6 +20,7 @@ use naming::{
     UpdQbSc, UpdQpSc, UpdToRdIdsSc, UpdUcc, VSc, VUcc, ValueSc, WhUcc,
 };
 use optml::Optml;
+use pg_crud_macros_cmn_macros::bool_enum_to_tokens;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use serde::{Deserialize, Serialize};
@@ -34,7 +35,6 @@ use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSize,
     PgCrudDfltSomeOneEl, PgCrudDfltSomeOneElMaxPageSize, RefStr, StdFmtDisplay, StringTs, U64,
 };
-use workspace_macros::bool_enum_to_tokens;
 #[derive(Debug, Clone, Optml)]
 pub enum DeriveOrImpl {
     Derive,

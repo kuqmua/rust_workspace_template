@@ -1,5 +1,5 @@
 [package]
-name = "workspace_macros"
+name = "to_err_string_macros"
 version = "0.1.0"
 publish = false
 description = "description"
@@ -9,12 +9,11 @@ license = "license"
 keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
-
 [lib]
 proc-macro = true
-
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
+workspace_macro_helpers = { workspace = true }
 [lints]
 workspace = true

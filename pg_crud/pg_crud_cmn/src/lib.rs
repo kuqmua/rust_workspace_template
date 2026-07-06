@@ -1,6 +1,7 @@
 use loc_lib::{Location, ToErrString, loc, loc::Loc};
 use naming::{AndSc, AscUcc, DescUcc, DisplayToScStr, DisplayToUccStr, NotSc, OrSc};
 use optml::Optml;
+use pg_crud_cmn_macros::trait_al;
 use proc_macro2::TokenStream as Ts2;
 use quote::{ToTokens, quote};
 use schemars::JsonSchema;
@@ -23,7 +24,6 @@ use strum_macros::EnumString;
 use thiserror::Error;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use workspace_macros::trait_al;
 pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;
