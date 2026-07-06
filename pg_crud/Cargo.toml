@@ -17,7 +17,6 @@ futures.workspace = true
 uuid.workspace = true
 pg_crud_cmn = {path = "./pg_crud_cmn", features = ["test-utils"]}
 pg_tbl = {path = "./pg_tbl"}
-pg_json = {path = "./pg_json"}
 pg_types = {path = "./pg_types"}
 wh_flts = {path = "./wh_flts"}
 route_validators = {path = "../route_validators"}
@@ -29,7 +28,6 @@ workspace = true
 test-utils = [
     "pg_crud_cmn/test-utils",
     "pg_tbl/test-utils",
-    "pg_json/test-utils",
     "pg_types/test-utils",
     "wh_flts/test-utils"
 ]
