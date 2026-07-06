@@ -12,15 +12,14 @@ edition = "2024"
 
 
 [dependencies]
-axum.workspace = true
-thiserror.workspace = true
-serde.workspace = true
-http-body.workspace = true
-bytes.workspace = true
-git_info.workspace = true
-naming.workspace = true
-loc_lib.workspace = true
-optml.workspace = true
-
+axum = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+http-body = { workspace = true }
+bytes = { workspace = true }
+git_info = { workspace = true }
+naming = { workspace = true }
+loc_lib = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

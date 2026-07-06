@@ -11,13 +11,13 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-sqlx.workspace = true
-serde.workspace = true
-utoipa.workspace = true
-thiserror.workspace = true
-schemars.workspace = true
+sqlx = { workspace = true }
+serde = { workspace = true }
+utoipa = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
-loc_lib.workspace = true
-optml.workspace = true
+loc_lib = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

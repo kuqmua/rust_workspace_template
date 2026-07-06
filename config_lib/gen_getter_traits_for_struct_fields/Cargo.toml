@@ -14,10 +14,10 @@ categories = ["category"]
 proc-macro = true
 
 [dependencies]
-proc-macro2.workspace = true
-quote.workspace = true
-syn.workspace = true
-panic_loc.workspace = true
-naming.workspace = true
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+panic_loc = { workspace = true }
+naming = { workspace = true }
 [lints]
 workspace = true

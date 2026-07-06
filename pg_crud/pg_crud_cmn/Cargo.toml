@@ -11,19 +11,19 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-utoipa.workspace = true
-uuid.workspace = true
-sqlx.workspace = true
-serde.workspace = true
-thiserror.workspace = true
-schemars.workspace = true
-proc-macro2.workspace = true
-quote.workspace = true
-loc_lib.workspace = true
-strum.workspace = true
-strum_macros.workspace = true
-naming.workspace = true
-optml.workspace = true
+utoipa = { workspace = true }
+uuid = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+loc_lib = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+naming = { workspace = true }
+optml = { workspace = true }
 [features]
 test-utils = []
 

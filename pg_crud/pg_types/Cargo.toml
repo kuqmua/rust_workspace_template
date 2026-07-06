@@ -11,10 +11,10 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-pg_types_cmn.workspace = true
-pg_types_numeric.workspace = true
-pg_types_chrono_net.workspace = true
-pg_types_text_misc.workspace = true
+pg_types_cmn = { workspace = true }
+pg_types_numeric = { workspace = true }
+pg_types_chrono_net = { workspace = true }
+pg_types_text_misc = { workspace = true }
 [lints]
 workspace = true
 

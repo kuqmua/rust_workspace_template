@@ -12,14 +12,13 @@ edition = "2024"
 
 
 [dependencies]
-tracing.workspace = true
-reqwest.workspace = true
-http-body.workspace = true
-axum.workspace = true
-time.workspace = true
-sqlx.workspace = true
-serde_json.workspace = true
-http.workspace = true
-
+tracing = { workspace = true }
+reqwest = { workspace = true }
+http-body = { workspace = true }
+axum = { workspace = true }
+time = { workspace = true }
+sqlx = { workspace = true }
+serde_json = { workspace = true }
+http = { workspace = true }
 [lints]
 workspace = true

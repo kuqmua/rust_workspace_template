@@ -11,15 +11,15 @@ keywords = ["keyword"]
 categories = ["category"]
 
 [dependencies]
-proc-macro2.workspace = true
-quote.workspace = true
-syn.workspace = true
-strum_macros.workspace = true
-serde.workspace = true
-token_patterns.workspace = true
-gen_quotes.workspace = true
-naming.workspace = true
-gen_derive_ts_builder.workspace = true
-optml.workspace = true
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+strum_macros = { workspace = true }
+serde = { workspace = true }
+token_patterns = { workspace = true }
+gen_quotes = { workspace = true }
+naming = { workspace = true }
+gen_derive_ts_builder = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

@@ -12,15 +12,15 @@ edition = "2024"
 
 
 [dependencies]
-utoipa.workspace = true
-chrono.workspace = true
-serde.workspace = true
-schemars.workspace = true
-git_info.workspace = true
-app_state.workspace = true
-location.workspace = true
-naming.workspace = true
-to_err_string.workspace = true
-optml.workspace = true
+utoipa = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+git_info = { workspace = true }
+app_state = { workspace = true }
+location = { workspace = true }
+naming = { workspace = true }
+to_err_string = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

@@ -11,12 +11,11 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-axum.workspace = true
-serde.workspace = true
-sqlx.workspace = true
-app_state.workspace = true
-git_info.workspace = true
-optml.workspace = true
-
+axum = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+app_state = { workspace = true }
+git_info = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

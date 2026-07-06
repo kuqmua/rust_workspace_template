@@ -11,10 +11,9 @@ categories = ["category"]
 edition = "2024"
 
 [dev-dependencies]
-quote.workspace = true
+quote = { workspace = true }
 macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
-gen_pg_types_src.workspace = true
-
+gen_pg_types_src = { workspace = true }
 [lints]
 workspace = true
 

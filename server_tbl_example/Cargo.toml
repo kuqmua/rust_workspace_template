@@ -11,18 +11,18 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-axum.workspace = true
-http.workspace = true
-reqwest.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-thiserror.workspace = true
-sqlx.workspace = true
-utoipa.workspace = true
-git_info.workspace = true
-loc_lib.workspace = true
+axum = { workspace = true }
+http = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+sqlx = { workspace = true }
+utoipa = { workspace = true }
+git_info = { workspace = true }
+loc_lib = { workspace = true }
 pg_crud = { workspace = true, features = ["test-utils"] }
-optml.workspace = true
+optml = { workspace = true }
 [lints]
 workspace = true
 

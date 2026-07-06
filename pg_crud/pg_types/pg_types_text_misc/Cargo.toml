@@ -11,16 +11,16 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-sqlx.workspace = true
-uuid.workspace = true
-serde.workspace = true
-thiserror.workspace = true
-gen_pg_types.workspace = true
-pg_types_cmn.workspace = true
-pg_crud_cmn.workspace = true
-loc_lib.workspace = true
-wh_flts.workspace = true
-optml.workspace = true
+sqlx = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+gen_pg_types = { workspace = true }
+pg_types_cmn = { workspace = true }
+pg_crud_cmn = { workspace = true }
+loc_lib = { workspace = true }
+wh_flts = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true
 

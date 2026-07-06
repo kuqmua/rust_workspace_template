@@ -13,11 +13,11 @@ edition = "2024"
 [dependencies]
 
 [dev-dependencies]
-toml.workspace = true
-regex.workspace = true
-syn.workspace = true
-uuid.workspace = true
-walkdir.workspace = true
-optml.workspace = true
+toml = { workspace = true }
+regex = { workspace = true }
+syn = { workspace = true }
+uuid = { workspace = true }
+walkdir = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

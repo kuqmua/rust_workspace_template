@@ -11,16 +11,16 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-proc-macro2.workspace = true
-quote.workspace = true
-syn.workspace = true
-serde.workspace = true
-strum.workspace = true
-strum_macros.workspace = true
-naming.workspace = true
-token_patterns.workspace = true
-gen_quotes.workspace = true
-macros_helpers.workspace = true
-optml.workspace = true
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+serde = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+naming = { workspace = true }
+token_patterns = { workspace = true }
+gen_quotes = { workspace = true }
+macros_helpers = { workspace = true }
+optml = { workspace = true }
 [lints]
 workspace = true

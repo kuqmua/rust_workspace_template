@@ -12,14 +12,14 @@ edition = "2024"
 
 
 [dependencies]
-strum_macros.workspace = true
-futures.workspace = true
-uuid.workspace = true
+strum_macros = { workspace = true }
+futures = { workspace = true }
+uuid = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
-pg_tbl.workspace = true
-pg_types.workspace = true
-wh_flts.workspace = true
-route_validators.workspace = true
+pg_tbl = { workspace = true }
+pg_types = { workspace = true }
+wh_flts = { workspace = true }
+route_validators = { workspace = true }
 [lints]
 workspace = true
 
