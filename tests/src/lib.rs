@@ -26,6 +26,18 @@ mod tests {
         "useless_borrows_in_formatting",
     ];
     const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
+    const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
+        "../app_state/src/lib.rs",
+        "../config_lib/src/lib.rs",
+        "../git_info/src/lib.rs",
+        "../loc_lib/src/lib.rs",
+        "../macros_helpers/src/lib.rs",
+        "../naming/src/lib.rs",
+        "../pg_crud/src/lib.rs",
+        "../pg_crud/pg_tbl/src/lib.rs",
+        "../pg_crud/pg_types/src/lib.rs",
+        "../route_validators/src/lib.rs",
+    ];
     const DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS: &[&str] = &[
         "../app_state/src/lib.rs",
         "../cmn_routes/src/lib.rs",
@@ -325,6 +337,7 @@ mod tests {
     struct UseImportVisitor {
         found_non_public_use_import: bool,
         found_use_rename: bool,
+        public_use_roots: Vec<String>,
     }
     impl UseImportVisitor {
         fn use_tree_contains_rename(use_tree: &syn::UseTree) -> bool {
@@ -340,7 +353,18 @@ mod tests {
     }
     impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
         fn visit_item_use(&mut self, i: &'ast syn::ItemUse) {
-            if !matches!(i.vis, syn::Visibility::Public(_)) {
+            if matches!(i.vis, syn::Visibility::Public(_)) {
+                if let Some(root) = match &i.tree {
+                    syn::UseTree::Path(use_path) => Some(use_path.ident.to_string()),
+                    syn::UseTree::Rename(use_rename) => Some(use_rename.ident.to_string()),
+                    syn::UseTree::Name(use_name) => Some(use_name.ident.to_string()),
+                    syn::UseTree::Glob(_) | syn::UseTree::Group(_) => None,
+                } {
+                    self.public_use_roots.push(root);
+                } else {
+                    self.public_use_roots.push(String::from("*"));
+                }
+            } else {
                 self.found_non_public_use_import = true;
             }
             if Self::use_tree_contains_rename(&i.tree) {
@@ -1329,13 +1353,14 @@ mod tests {
     fn no_non_public_use_imports_in_rust_sources() {
         assert_rs_ast_ers_empty_with_ctx(
             "b4e7c2a9",
-            "non-public use imports found; prefer explicit paths at usage sites:",
+            "use imports found outside explicit facade re-export files; prefer explicit paths at usage sites:",
             |path, ast, ers| {
                 let visitor = visit_syn_file(
                     ast,
                     UseImportVisitor {
                         found_non_public_use_import: false,
                         found_use_rename: false,
+                        public_use_roots: Vec::new(),
                     },
                 );
                 if visitor.found_non_public_use_import {
@@ -1343,6 +1368,27 @@ mod tests {
                         "{}: found non-public use import; use the explicit path at the usage site",
                         path.display()
                     ));
+                }
+                let local_mod_names = ast
+                    .items
+                    .iter()
+                    .filter_map(|item| {
+                        if let syn::Item::Mod(item_mod) = item {
+                            Some(item_mod.ident.to_string())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<std::collections::HashSet<_>>();
+                if !is_public_reexport_source_path(path) {
+                    for public_use_root in &visitor.public_use_roots {
+                        if !local_mod_names.contains(public_use_root) {
+                            ers.push(format!(
+                                "{}: found public use import rooted at `{public_use_root}` outside facade re-export allowlist; use the explicit path at the usage site or add only intentional facade files to PUBLIC_REEXPORT_SOURCE_INCLUSIONS",
+                                path.display()
+                            ));
+                        }
+                    }
                 }
                 if visitor.found_use_rename {
                     ers.push(format!(
@@ -1749,6 +1795,10 @@ mod tests {
             return false;
         };
         !is_test_crate(&parsed)
+    }
+    #[allow(clippy::single_call_fn)] // keeps public re-export allowlist separate from use-import visitor diagnostics
+    fn is_public_reexport_source_path(path: &std::path::Path) -> bool {
+        is_exception(path, PUBLIC_REEXPORT_SOURCE_INCLUSIONS)
     }
     #[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
     fn is_structural_generic_container(ident: &str) -> bool {

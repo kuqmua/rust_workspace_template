@@ -1,86 +1,51 @@
 mod flts;
 pub use flts::*;
-pub use gen_quotes::dq_ts;
-pub use macros_helpers::DTsBuilder;
-pub use macros_helpers::GeneratedRustTs;
-pub use macros_helpers::gen_impl_display_ts;
-pub use macros_helpers::gen_impl_to_err_string_ts;
-pub use naming::prm::{SelfCrUcc, SelfSelUcc, SelfWhUcc};
-pub use naming::{
-    AddOprtrSc, AllVrtsDfltSomeOneElMaxPageSizeSc, AllVrtsDfltSomeOneElSc, ColFieldForErMsgSc,
-    ColSc, CrQbSc, CrQpSc, CrSc, CrTblColQpSc, CrUcc, DfltSomeOneElMaxPageSizeSc, DfltSomeOneElSc,
-    DisplayPlusToTokens, EqOprtrUcc, ErSc, IncrSc, IsPkSc, MutSc, NormalizeSc, OptUcc, OptUpdSc,
-    OptVecCrSc, PgTypeEqOprtrUcc, PgTypeNotPkUcc, PgTypeOptVecWhGreaterThanTestSc,
-    PgTypeTestCasesUcc, PgTypeUcc, PgTypeWhFltUcc, PreviousRdAndOptUpdIntoRdSc, QbSc, QpErUcc,
-    QpSc, QuerySc, RdIdsAndCrIntoOptVRdSc, RdIdsAndCrIntoOptVecWhEqToFieldSc, RdIdsAndCrIntoRdSc,
-    RdIdsAndCrIntoTtSc, RdIdsAndCrIntoVecWhEqUsingFieldsSc, RdIdsAndCrIntoWhEqSc,
-    RdIdsAndTtIntoPgTypeOptWhGreaterThanSc, RdIdsSc, RdIdsTo2DimsVecRdInnSc,
-    RdIdsToOptVRdDfltSomeOneElSc, RdIdsUcc, RdInnIntoRdWithNewOrTryNewUnwrapedSc,
-    RdInnIntoUpdWithNewOrTryNewUnwrapedSc, RdInnUcc, RdSc, RdUcc, SelOnlyIdsQpSc,
-    SelOnlyUpddIdsQbSc, SelOnlyUpddIdsQpSc, SelQpSc, SelUcc, SelfUcc, TtSc, TtUcc, UpdForQueryUcc,
-    UpdQbSc, UpdQpSc, UpdToRdIdsSc, UpdUcc, VSc, VUcc, ValueSc, WhUcc,
-};
-pub use optml::Optml;
-pub use pg_crud_macros_cmn_macros::bool_enum_to_tokens;
-pub use quote::{ToTokens, quote};
-pub use serde::{Deserialize, Serialize};
-pub use std::fmt::Display;
-pub use strum_macros::{Display, EnumIter};
-pub use syn::{Ident, Type};
-pub use token_patterns::{
-    AllowClippyArbitrarySrcItemOrdering, Bool, CrateAllEnumVrtsArrDfltSomeOneEl,
-    CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize, CrateDfltSomeOneEl, CrateDfltSomeOneElMaxPageSize,
-    PgCrudAllEnumVrtsArrDfltSomeOneEl, PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneEl, PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSize,
-    PgCrudDfltSomeOneEl, PgCrudDfltSomeOneElMaxPageSize, RefStr, StdFmtDisplay, StringTs, U64,
-};
-#[derive(Debug, Clone, Optml)]
+#[derive(Debug, Clone, optml::Optml)]
 pub enum DeriveOrImpl {
     Derive,
-    Impl(GeneratedRustTs),
+    Impl(macros_helpers::GeneratedRustTs),
 }
 #[derive(Debug, Clone, Default)]
-pub struct GeneratedRustTsVec(pub Vec<GeneratedRustTs>);
-impl ToTokens for GeneratedRustTsVec {
+pub struct GeneratedRustTsVec(pub Vec<macros_helpers::GeneratedRustTs>);
+impl quote::ToTokens for GeneratedRustTsVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         for ts in &self.0 {
             ts.to_tokens(tokens);
         }
     }
 }
-impl FromIterator<GeneratedRustTs> for GeneratedRustTsVec {
+impl FromIterator<macros_helpers::GeneratedRustTs> for GeneratedRustTsVec {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = GeneratedRustTs>,
+        T: IntoIterator<Item = macros_helpers::GeneratedRustTs>,
     {
         Self(iter.into_iter().collect())
     }
 }
 #[derive(Debug, Clone, Copy)]
 pub struct NnOrNlStr(pub &'static str);
-impl Display for NnOrNlStr {
+impl std::fmt::Display for NnOrNlStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone)]
 pub struct IsNlPrefixStr(pub String);
-impl Display for IsNlPrefixStr {
+impl std::fmt::Display for IsNlPrefixStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy)]
 pub struct ImportScStr(pub &'static str);
-impl Display for ImportScStr {
+impl std::fmt::Display for ImportScStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy)]
 pub struct ImportPathStr(pub &'static str);
-impl Display for ImportPathStr {
+impl std::fmt::Display for ImportPathStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -102,8 +67,8 @@ pub struct ParseErIdRef<'lt>(pub &'lt str);
 #[derive(Debug, Clone, Copy)]
 pub struct PanicUuidRef<'lt>(pub &'lt str);
 #[derive(Debug, Clone, Copy)]
-pub struct SynIdentTypeRefs<'lt>(pub &'lt [(&'lt Ident, &'lt Type)]);
-#[derive(Debug, Clone, Copy, Optml)]
+pub struct SynIdentTypeRefs<'lt>(pub &'lt [(&'lt syn::Ident, &'lt syn::Type)]);
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum IsStdrtNn {
     False,
     True,
@@ -116,11 +81,11 @@ pub enum IsStdrtNn {
     PartialEq,
     Eq,
     Hash,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumIter,
-    Optml,
+    serde::Serialize,
+    serde::Deserialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    optml::Optml,
 )]
 pub enum IsNl {
     #[default]
@@ -129,17 +94,23 @@ pub enum IsNl {
 }
 impl IsNl {
     #[must_use]
-    pub fn mb_opt_wrap(&self, ts: GeneratedRustTs) -> GeneratedRustTs {
+    pub fn mb_opt_wrap(
+        &self,
+        ts: macros_helpers::GeneratedRustTs,
+    ) -> macros_helpers::GeneratedRustTs {
         match &self {
             Self::False => ts,
-            Self::True => quote! {Option<#ts>}.into(),
+            Self::True => quote::quote! {Option<#ts>}.into(),
         }
     }
     #[must_use]
-    pub fn mb_some_wrap(&self, ts: GeneratedRustTs) -> GeneratedRustTs {
+    pub fn mb_some_wrap(
+        &self,
+        ts: macros_helpers::GeneratedRustTs,
+    ) -> macros_helpers::GeneratedRustTs {
         match &self {
             Self::False => ts,
-            Self::True => quote! {Some(#ts)}.into(),
+            Self::True => quote::quote! {Some(#ts)}.into(),
         }
     }
     #[must_use]
@@ -157,46 +128,46 @@ impl IsNl {
         }
     }
     #[must_use]
-    pub fn rust(&self) -> &'static dyn Display {
+    pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
             Self::False => &"",
-            Self::True => &OptUcc,
+            Self::True => &naming::OptUcc,
         }
     }
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum Import {
     Crate,
     PgCrud,
     PgCrudCmn,
 }
 impl Import {
-    fn all_vrts_dflt_some_one_el(&self) -> &dyn ToTokens {
+    fn all_vrts_dflt_some_one_el(&self) -> &dyn quote::ToTokens {
         match &self {
-            Self::Crate => &CrateAllEnumVrtsArrDfltSomeOneEl,
-            Self::PgCrud => &PgCrudAllEnumVrtsArrDfltSomeOneEl,
-            Self::PgCrudCmn => &PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
+            Self::Crate => &token_patterns::CrateAllEnumVrtsArrDfltSomeOneEl,
+            Self::PgCrud => &token_patterns::PgCrudAllEnumVrtsArrDfltSomeOneEl,
+            Self::PgCrudCmn => &token_patterns::PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
         }
     }
-    fn all_vrts_dflt_some_one_el_max_page_size(&self) -> &dyn ToTokens {
+    fn all_vrts_dflt_some_one_el_max_page_size(&self) -> &dyn quote::ToTokens {
         match &self {
-            Self::Crate => &CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-            Self::PgCrud => &PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-            Self::PgCrudCmn => &PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
+            Self::Crate => &token_patterns::CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
+            Self::PgCrud => &token_patterns::PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
+            Self::PgCrudCmn => &token_patterns::PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
         }
     }
-    fn dflt_some_one_el(&self) -> &dyn ToTokens {
+    fn dflt_some_one_el(&self) -> &dyn quote::ToTokens {
         match &self {
-            Self::Crate => &CrateDfltSomeOneEl,
-            Self::PgCrud => &PgCrudDfltSomeOneEl,
-            Self::PgCrudCmn => &PgCrudCmnDfltSomeOneEl,
+            Self::Crate => &token_patterns::CrateDfltSomeOneEl,
+            Self::PgCrud => &token_patterns::PgCrudDfltSomeOneEl,
+            Self::PgCrudCmn => &token_patterns::PgCrudCmnDfltSomeOneEl,
         }
     }
-    fn dflt_some_one_el_max_page_size(&self) -> &dyn ToTokens {
+    fn dflt_some_one_el_max_page_size(&self) -> &dyn quote::ToTokens {
         match &self {
-            Self::Crate => &CrateDfltSomeOneElMaxPageSize,
-            Self::PgCrud => &PgCrudDfltSomeOneElMaxPageSize,
-            Self::PgCrudCmn => &PgCrudCmnDfltSomeOneElMaxPageSize,
+            Self::Crate => &token_patterns::CrateDfltSomeOneElMaxPageSize,
+            Self::PgCrud => &token_patterns::PgCrudDfltSomeOneElMaxPageSize,
+            Self::PgCrudCmn => &token_patterns::PgCrudCmnDfltSomeOneElMaxPageSize,
         }
     }
     #[must_use]
@@ -216,69 +187,199 @@ impl Import {
         }
     }
 }
-impl ToTokens for Import {
+impl quote::ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         parse_ts_or_compile_error(ParseTsTextRef(self.sc_str().0), ParseErIdRef("d8636ee5"))
             .to_tokens(tokens);
     }
 }
-bool_enum_to_tokens!(AddOprtrUndrscr, false => AddOprtrSc, true => quote! {_});
-bool_enum_to_tokens!(ColPrmUndrscr, false => ColSc, true => quote! {_});
-bool_enum_to_tokens!(IncrPrmUndrscr, false => IncrSc, true => quote! {_});
-bool_enum_to_tokens!(IsCrQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
-bool_enum_to_tokens!(IsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
-bool_enum_to_tokens!(IsSelOnlyCrdIdsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
-bool_enum_to_tokens!(IsSelOnlyUpddIdsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
-bool_enum_to_tokens!(IsSelQpColFieldForErMsgUsed, false => quote! {_}, true => ColFieldForErMsgSc);
-bool_enum_to_tokens!(IsSelQpIsPgTypeUsed, false => quote! {_}, true => quote! {is_pg_type});
-bool_enum_to_tokens!(IsSelQpSelfSelUsed, false => quote! {_}, true => VSc);
-bool_enum_to_tokens!(IsUpdQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
-bool_enum_to_tokens!(IsUpdQpSelfUpdUsed, false => quote! {_}, true => VSc);
-bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote! {, schemars::JsonSchema});
-bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote! {, utoipa::ToSchema});
-#[derive(Debug, Clone, Copy, Optml)]
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(AddOprtrUndrscr, false => naming::AddOprtrSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(ColPrmUndrscr, false => naming::ColSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IncrPrmUndrscr, false => naming::IncrSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsCrQbMut, false => proc_macro2::TokenStream::new(), true => naming::MutSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsQbMut, false => proc_macro2::TokenStream::new(), true => naming::MutSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsSelOnlyCrdIdsQbMut, false => proc_macro2::TokenStream::new(), true => naming::MutSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsSelOnlyUpddIdsQbMut, false => proc_macro2::TokenStream::new(), true => naming::MutSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsSelQpColFieldForErMsgUsed, false => quote::quote! {_}, true => naming::ColFieldForErMsgSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsSelQpIsPgTypeUsed, false => quote::quote! {_}, true => quote::quote! {is_pg_type});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsSelQpSelfSelUsed, false => quote::quote! {_}, true => naming::VSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsUpdQbMut, false => proc_macro2::TokenStream::new(), true => naming::MutSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsUpdQpSelfUpdUsed, false => quote::quote! {_}, true => naming::VSc);
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, schemars::JsonSchema});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, utoipa::ToSchema});
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum RdOrUpd {
     Rd,
     Upd,
 }
 impl RdOrUpd {
     #[must_use]
-    pub fn ucc(&self) -> &dyn DisplayPlusToTokens {
+    pub fn ucc(&self) -> &dyn naming::DisplayPlusToTokens {
         match &self {
-            Self::Rd => &RdUcc,
-            Self::Upd => &UpdUcc,
+            Self::Rd => &naming::RdUcc,
+            Self::Upd => &naming::UpdUcc,
         }
     }
 }
-bool_enum_to_tokens!(IsPkUndrscr, false => IsPkSc, true => quote! {_});
-#[derive(Debug, Clone, Copy, Optml)]
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(IsPkUndrscr, false => naming::IsPkSc, true => quote::quote! {_});
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum DefaultSomeOneOrDefaultSomeOneWithMaxPageSize {
     DefaultSomeOne,
     DefaultSomeOneWithMaxPageSize,
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum EqOrEqUsingFields {
     Eq,
     EqUsingFields,
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum EqOprtrH {
     Eq,
     IsNull,
 }
 impl EqOprtrH {
     #[must_use]
-    pub fn to_tokens_path(&self, import: &Import) -> GeneratedRustTs {
+    pub fn to_tokens_path(&self, import: &Import) -> macros_helpers::GeneratedRustTs {
+        #[allow(non_snake_case, unused_variables)]
+        let (
+            AddOprtrSc,
+            AllVrtsDfltSomeOneElMaxPageSizeSc,
+            AllVrtsDfltSomeOneElSc,
+            AllowClippyArbitrarySrcItemOrdering,
+            ColSc,
+            CrQbSc,
+            CrQpSc,
+            CrSc,
+            CrTblColQpSc,
+            CrUcc,
+            DfltSomeOneElMaxPageSizeSc,
+            DfltSomeOneElSc,
+            EqOprtrUcc,
+            ErSc,
+            IncrSc,
+            NormalizeSc,
+            OptUpdSc,
+            OptVecCrSc,
+            PgCrudCmnDfltSomeOneElCall,
+            PgTypeEqOprtrUcc,
+            PgTypeNotPkUcc,
+            PgTypeOptVecWhGreaterThanTestSc,
+            PgTypeTestCasesUcc,
+            PgTypeUcc,
+            PgTypeWhFltUcc,
+            PreviousRdAndOptUpdIntoRdSc,
+            QbSc,
+            QpErUcc,
+            QpSc,
+            QuerySc,
+            RdIdsAndCrIntoOptVRdSc,
+            RdIdsAndCrIntoOptVecWhEqToFieldSc,
+            RdIdsAndCrIntoRdSc,
+            RdIdsAndCrIntoTtSc,
+            RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+            RdIdsAndCrIntoWhEqSc,
+            RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+            RdIdsSc,
+            RdIdsTo2DimsVecRdInnSc,
+            RdIdsToOptVRdDfltSomeOneElSc,
+            RdIdsUcc,
+            RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+            RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+            RdInnUcc,
+            RdSc,
+            RdUcc,
+            SelOnlyIdsQpSc,
+            SelOnlyUpddIdsQbSc,
+            SelOnlyUpddIdsQpSc,
+            SelQpSc,
+            SelUcc,
+            SelfUcc,
+            TtSc,
+            TtUcc,
+            UpdForQueryUcc,
+            UpdQbSc,
+            UpdQpSc,
+            UpdToRdIdsSc,
+            UpdUcc,
+            VSc,
+            VUcc,
+            ValueSc,
+            WhUcc,
+        ) = (
+            naming::AddOprtrSc,
+            naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+            naming::AllVrtsDfltSomeOneElSc,
+            token_patterns::AllowClippyArbitrarySrcItemOrdering,
+            naming::ColSc,
+            naming::CrQbSc,
+            naming::CrQpSc,
+            naming::CrSc,
+            naming::CrTblColQpSc,
+            naming::CrUcc,
+            naming::DfltSomeOneElMaxPageSizeSc,
+            naming::DfltSomeOneElSc,
+            naming::EqOprtrUcc,
+            naming::ErSc,
+            naming::IncrSc,
+            naming::NormalizeSc,
+            naming::OptUpdSc,
+            naming::OptVecCrSc,
+            token_patterns::PgCrudCmnDfltSomeOneElCall,
+            naming::PgTypeEqOprtrUcc,
+            naming::PgTypeNotPkUcc,
+            naming::PgTypeOptVecWhGreaterThanTestSc,
+            naming::PgTypeTestCasesUcc,
+            naming::PgTypeUcc,
+            naming::PgTypeWhFltUcc,
+            naming::PreviousRdAndOptUpdIntoRdSc,
+            naming::QbSc,
+            naming::QpErUcc,
+            naming::QpSc,
+            naming::QuerySc,
+            naming::RdIdsAndCrIntoOptVRdSc,
+            naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+            naming::RdIdsAndCrIntoRdSc,
+            naming::RdIdsAndCrIntoTtSc,
+            naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+            naming::RdIdsAndCrIntoWhEqSc,
+            naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+            naming::RdIdsSc,
+            naming::RdIdsTo2DimsVecRdInnSc,
+            naming::RdIdsToOptVRdDfltSomeOneElSc,
+            naming::RdIdsUcc,
+            naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+            naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+            naming::RdInnUcc,
+            naming::RdSc,
+            naming::RdUcc,
+            naming::SelOnlyIdsQpSc,
+            naming::SelOnlyUpddIdsQbSc,
+            naming::SelOnlyUpddIdsQpSc,
+            naming::SelQpSc,
+            naming::SelUcc,
+            naming::SelfUcc,
+            naming::TtSc,
+            naming::TtUcc,
+            naming::UpdForQueryUcc,
+            naming::UpdQbSc,
+            naming::UpdQpSc,
+            naming::UpdToRdIdsSc,
+            naming::UpdUcc,
+            naming::VSc,
+            naming::VUcc,
+            naming::ValueSc,
+            naming::WhUcc,
+        );
         let ts = match &self {
-            Self::Eq => quote! {Eq},
-            Self::IsNull => quote! {IsNull},
+            Self::Eq => quote::quote! {Eq},
+            Self::IsNull => quote::quote! {IsNull},
         };
-        quote! {#import::#EqOprtrUcc::#ts}.into()
+        quote::quote! {#import::#EqOprtrUcc::#ts}.into()
     }
 }
 //todo mb reuse with other structs
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum Dim {
     One,
     Two,
@@ -286,7 +387,7 @@ pub enum Dim {
     Four,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum DimIndexNbr {
     Zero,
     One,
@@ -303,32 +404,163 @@ impl From<&Dim> for DimIndexNbr {
         }
     }
 }
-bool_enum_to_tokens!(CrQbValueUndrscr, false => VSc, true => quote! {_});
-bool_enum_to_tokens!(CrQpIncrUndrscr, false => IncrSc, true => quote! {_});
-bool_enum_to_tokens!(CrQpValueUndrscr, false => VSc, true => quote! {_});
-bool_enum_to_tokens!(SelQpValueUndrscr, false => VSc, true => quote! {_});
-bool_enum_to_tokens!(UpdQpAccumulatorUndrscr, false => quote! {upd_accumulator}, true => quote! {_});
-bool_enum_to_tokens!(UpdQpPathUndrscr, false => quote! {upd_path}, true => quote! {_});
-bool_enum_to_tokens!(UpdQpTargetUndrscr, false => quote! {upd_target}, true => quote! {_});
-bool_enum_to_tokens!(UpdQpValueUndrscr, false => VSc, true => quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(CrQbValueUndrscr, false => naming::VSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(CrQpIncrUndrscr, false => naming::IncrSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(CrQpValueUndrscr, false => naming::VSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(SelQpValueUndrscr, false => naming::VSc, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpAccumulatorUndrscr, false => quote::quote! {upd_accumulator}, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpPathUndrscr, false => quote::quote! {upd_path}, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpTargetUndrscr, false => quote::quote! {upd_target}, true => quote::quote! {_});
+pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpValueUndrscr, false => naming::VSc, true => quote::quote! {_});
 pub fn gen_pg_type_wh_ts(
-    attrs_ts: &dyn ToTokens,
+    attrs_ts: &dyn quote::ToTokens,
     vrts: &Vec<&dyn PgFlt>,
-    prefix: &dyn ToTokens,
+    prefix: &dyn quote::ToTokens,
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_qb_mut: &IsQbMut,
-) -> GeneratedRustTs {
-    let ident = SelfWhUcc::from_tokens(&prefix);
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    let ident = naming::prm::SelfWhUcc::from_tokens(&prefix);
     let pg_type_tokens_wh_ts = {
         let vrts_ts = vrts.iter().map(|el| {
             let el_ucc = el.ucc();
             let prefix_wh_self_ucc = el.prefix_wh_self_ucc();
-            let opt_type_ts: Option<GeneratedRustTs> = el.mb_generic();
-            let type_ts = opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote! {<#v>});
-            quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
+            let opt_type_ts: Option<macros_helpers::GeneratedRustTs> = el.mb_generic();
+            let type_ts =
+                opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
+            quote::quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
         });
-        quote! {
+        quote::quote! {
             #attrs_ts
             #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_derive_utoipa_to_schema #should_derive_schemars_json_schema, optml::Optml)]
             pub enum #ident {
@@ -337,7 +569,7 @@ pub fn gen_pg_type_wh_ts(
         }
     };
     let impl_pg_type_pg_type_wh_flt_for_pg_type_tokens_wh_ts = impl_pg_type_wh_flt_for_ident_ts(
-        &quote! {<'lt>},
+        &quote::quote! {<'lt>},
         &ident,
         &proc_macro2::TokenStream::new(),
         &IncrPrmUndrscr::False,
@@ -346,7 +578,7 @@ pub fn gen_pg_type_wh_ts(
         &{
             let vrts_ts = vrts.iter().map(|el| {
                 let el_ucc = el.ucc();
-                quote! {
+                quote::quote! {
                     Self::#el_ucc(#VSc) => pg_crud_cmn::PgTypeWhFlt::qp(
                         #VSc,
                         #IncrSc,
@@ -355,7 +587,7 @@ pub fn gen_pg_type_wh_ts(
                     )
                 }
             });
-            quote! {
+            quote::quote! {
                 match &self {
                     #(#vrts_ts),*
                 }
@@ -365,14 +597,14 @@ pub fn gen_pg_type_wh_ts(
         &{
             let vrts_ts = vrts.iter().map(|el| {
                 let el_ucc = el.ucc();
-                quote! {
+                quote::quote! {
                     Self::#el_ucc(#VSc) => pg_crud_cmn::PgTypeWhFlt::qb(
                         #VSc,
                         #QuerySc
                     )
                 }
             });
-            quote! {
+            quote::quote! {
                 match self {
                     #(#vrts_ts),*
                 }
@@ -381,16 +613,16 @@ pub fn gen_pg_type_wh_ts(
         &Import::PgCrudCmn,
     );
     let impl_loc_lib_to_err_string_for_pg_type_tokens_wh_ts =
-        gen_impl_to_err_string_no_generics_ts(&ident, &quote! {format!("{self:#?}")});
+        gen_impl_to_err_string_no_generics_ts(&ident, &quote::quote! {format!("{self:#?}")});
     let impl_all_vrts_dflt_some_one_el_for_pg_type_tokens_wh_ts =
         gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(&ident, &{
             let vrts_ts = vrts.iter().map(|el| {
                 let el_ucc = el.ucc();
-                quote! {Self::#el_ucc(#PgCrudCmnDfltSomeOneElCall)}
+                quote::quote! {Self::#el_ucc(#PgCrudCmnDfltSomeOneElCall)}
             });
-            quote! {vec![#(#vrts_ts),*]}
+            quote::quote! {vec![#(#vrts_ts),*]}
         });
-    quote! {
+    quote::quote! {
         #pg_type_tokens_wh_ts
         #impl_pg_type_pg_type_wh_flt_for_pg_type_tokens_wh_ts
         #impl_loc_lib_to_err_string_for_pg_type_tokens_wh_ts
@@ -399,62 +631,196 @@ pub fn gen_pg_type_wh_ts(
     .into()
 }
 pub fn gen_impl_to_err_string_no_generics_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    gen_impl_to_err_string_ts(
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    macros_helpers::gen_impl_to_err_string_ts(
         &proc_macro2::TokenStream::new(),
         ident,
         &proc_macro2::TokenStream::new(),
         ts,
     )
 }
-pub fn gen_impl_display_and_to_err_string_debug_ts(ident: &dyn ToTokens) -> GeneratedRustTs {
-    let impl_display_ts = gen_impl_display_ts(
+pub fn gen_impl_display_and_to_err_string_debug_ts(
+    ident: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    let impl_display_ts = macros_helpers::gen_impl_display_ts(
         &proc_macro2::TokenStream::new(),
         ident,
         &proc_macro2::TokenStream::new(),
-        &quote! {write!(f, "{self:?}")},
+        &quote::quote! {write!(f, "{self:?}")},
     );
     let impl_to_err_string_ts =
-        gen_impl_to_err_string_no_generics_ts(ident, &quote! {format!("{self:#?}")});
-    quote! {
+        gen_impl_to_err_string_no_generics_ts(ident, &quote::quote! {format!("{self:#?}")});
+    quote::quote! {
         #impl_display_ts
         #impl_to_err_string_ts
     }
     .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_ts() -> GeneratedRustTs {
-    quote! {pg_crud_cmn::#QpErUcc}.into()
+pub fn pg_crud_cmn_qp_er_ts() -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {pg_crud_cmn::#QpErUcc}.into()
 }
 #[must_use]
-pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> GeneratedRustTs {
+pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::GeneratedRustTs {
     parse_ts_or_compile_error(
         ParseTsTextRef(&format!("dim{}_pgn", dim_nbr.0)),
         ParseErIdRef("7c3a91b2"),
     )
 }
-pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> gen_quotes::QuotedLiteralTs {
-    dq_ts(&format!("struct {v}"))
+pub fn gen_struct_ident_dq_ts(v: &dyn std::fmt::Display) -> gen_quotes::QuotedLiteralTs {
+    gen_quotes::dq_ts(&format!("struct {v}"))
 }
 pub fn gen_struct_ident_with_nbr_els_dq_ts(
-    ident: &dyn DisplayPlusToTokens,
+    ident: &dyn naming::DisplayPlusToTokens,
     len: StructElsLen,
 ) -> gen_quotes::QuotedLiteralTs {
-    dq_ts(&format!("struct {ident} with {} els", len.0))
+    gen_quotes::dq_ts(&format!("struct {ident} with {} els", len.0))
 }
-pub fn gen_sqlx_types_json_type_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {sqlx::types::Json<#type_ts>}.into()
+pub fn gen_sqlx_types_json_type_dcl_ts(
+    type_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {sqlx::types::Json<#type_ts>}.into()
 }
-pub fn gen_opt_type_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {Option<#type_ts>}.into()
+pub fn gen_opt_type_dcl_ts(type_ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {Option<#type_ts>}.into()
 }
-pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {Vec<#type_ts>}.into()
+pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {Vec<#type_ts>}.into()
 }
 pub fn gen_de_dq_ts(
-    ident: &dyn DisplayPlusToTokens,
+    ident: &dyn naming::DisplayPlusToTokens,
     len: DeLen,
 ) -> (
     gen_quotes::QuotedLiteralTs,
@@ -464,7 +830,7 @@ pub fn gen_de_dq_ts(
     let struct_pg_type_ident_wh_tokens_dq_ts = gen_struct_ident_dq_ts(ident);
     let struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts =
         gen_struct_ident_with_nbr_els_dq_ts(ident, StructElsLen(len.0));
-    let pg_type_ident_wh_tokens_dq_ts = dq_ts(&ident);
+    let pg_type_ident_wh_tokens_dq_ts = gen_quotes::dq_ts(&ident);
     (
         struct_pg_type_ident_wh_tokens_dq_ts,
         struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts,
@@ -472,14 +838,144 @@ pub fn gen_de_dq_ts(
     )
 }
 pub fn gen_impl_dflt_some_one_el_ts(
-    impl_generic_ts: &dyn ToTokens,
+    impl_generic_ts: &dyn quote::ToTokens,
     import: &Import,
-    ident: &dyn ToTokens,
-    ident_generic_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ident_generic_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let path_trait_ts = import.dflt_some_one_el();
-    quote! {
+    quote::quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
             fn #DfltSomeOneElSc() -> Self {
                 #ts
@@ -490,11 +986,141 @@ pub fn gen_impl_dflt_some_one_el_ts(
 }
 pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
     import: &Import,
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let path_trait_ts = import.all_vrts_dflt_some_one_el();
-    quote! {
+    quote::quote! {
         impl #path_trait_ts for #ident {
             fn #AllVrtsDfltSomeOneElSc() -> Vec<Self> {
                 #ts
@@ -504,14 +1130,144 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
     .into()
 }
 pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
-    impl_generic_ts: &dyn ToTokens,
+    impl_generic_ts: &dyn quote::ToTokens,
     import: &Import,
-    ident: &dyn ToTokens,
-    ident_generic_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ident_generic_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let path_trait_ts = import.dflt_some_one_el_max_page_size();
-    quote! {
+    quote::quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
             fn #DfltSomeOneElMaxPageSizeSc() -> Self {
                 #ts
@@ -522,12 +1278,142 @@ pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
 }
 pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
     import: &Import,
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let path_trait_ts = import.all_vrts_dflt_some_one_el_max_page_size();
     let all_vrts_dflt_some_one_el_max_page_size_sc = AllVrtsDfltSomeOneElMaxPageSizeSc;
-    quote! {
+    quote::quote! {
         impl #path_trait_ts for #ident {
             fn #all_vrts_dflt_some_one_el_max_page_size_sc() -> Vec<Self> {
                 #ts
@@ -537,9 +1423,9 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
     .into()
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -549,10 +1435,10 @@ pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(
     )
 }
 pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
-    ident: &dyn ToTokens,
-    lt_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    lt_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrud,
@@ -562,21 +1448,21 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
     )
 }
 pub fn gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrud, ident, ts)
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -586,10 +1472,10 @@ pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(
     )
 }
 pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
-    ident: &dyn ToTokens,
-    lt_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    lt_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrud,
@@ -599,24 +1485,154 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
     )
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_max_page_size_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(&Import::PgCrud, ident, ts)
 }
 pub fn impl_pg_type_wh_flt_for_ident_ts(
-    impl_generic_ts: &dyn ToTokens,
-    ident_ts: &dyn ToTokens,
-    ident_generic_ts: &dyn ToTokens,
+    impl_generic_ts: &dyn quote::ToTokens,
+    ident_ts: &dyn quote::ToTokens,
+    ident_generic_ts: &dyn quote::ToTokens,
     incr_prm_undrscr: &IncrPrmUndrscr,
     col_prm_undrscr: &ColPrmUndrscr,
     add_oprtr_undrscr: &AddOprtrUndrscr,
-    qp_ts: &dyn ToTokens,
+    qp_ts: &dyn quote::ToTokens,
     is_qb_mut: &IsQbMut,
-    qb_ts: &dyn ToTokens,
+    qb_ts: &dyn quote::ToTokens,
     import: &Import,
-) -> GeneratedRustTs {
-    quote! {
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #impl_generic_ts #import ::#PgTypeWhFltUcc<'lt> for #ident_ts #ident_generic_ts {
             fn #QpSc(
@@ -638,10 +1654,10 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
     .into()
 }
 pub fn gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(
-    ident_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    ident_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {
         impl sqlx::Encode<'_, sqlx::Postgres> for #ident_ts {
             fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
                 sqlx::Encode::<sqlx::Postgres>::encode_by_ref(&#ts, buf)
@@ -650,11 +1666,141 @@ pub fn gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(
     }.into()
 }
 pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
-    ident_ts: &dyn ToTokens,
-    type_ts: &dyn ToTokens,
-    ok_v_match_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    ident_ts: &dyn quote::ToTokens,
+    type_ts: &dyn quote::ToTokens,
+    ok_v_match_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         impl sqlx::Decode<'_, sqlx::Postgres> for #ident_ts {
             fn decode(#ValueSc: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
                 match <#type_ts as sqlx::Decode<sqlx::Postgres>>::decode(#ValueSc) {
@@ -666,10 +1812,10 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
     }.into()
 }
 pub fn gen_impl_sqlx_type_for_ident_ts(
-    ident_ts: &dyn ToTokens,
-    type_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    ident_ts: &dyn quote::ToTokens,
+    type_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {
         impl sqlx::Type<sqlx::Postgres> for #ident_ts {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
                 <#type_ts as sqlx::Type<sqlx::Postgres>>::compatible(ty)
@@ -682,13 +1828,13 @@ pub fn gen_impl_sqlx_type_for_ident_ts(
     .into()
 }
 pub fn gen_impl_sqlx_type_and_encode_for_ident_ts(
-    ident_ts: &dyn ToTokens,
-    type_ts: &dyn ToTokens,
-    encode_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    ident_ts: &dyn quote::ToTokens,
+    type_ts: &dyn quote::ToTokens,
+    encode_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
     let impl_type_ts = gen_impl_sqlx_type_for_ident_ts(ident_ts, type_ts);
     let impl_encode_ts = gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(ident_ts, encode_ts);
-    quote! {
+    quote::quote! {
         #impl_type_ts
         #impl_encode_ts
     }
@@ -696,41 +1842,171 @@ pub fn gen_impl_sqlx_type_and_encode_for_ident_ts(
 }
 pub fn gen_impl_pg_type_ts(
     import: &Import,
-    ident: &dyn ToTokens,
-    ident_tt_ucc: &dyn ToTokens,
+    ident: &dyn quote::ToTokens,
+    ident_tt_ucc: &dyn quote::ToTokens,
     is_pk_undrscr: &IsPkUndrscr,
-    cr_tbl_col_qp_ts: &dyn ToTokens,
-    ident_cr_ucc: &dyn ToTokens,
+    cr_tbl_col_qp_ts: &dyn quote::ToTokens,
+    ident_cr_ucc: &dyn quote::ToTokens,
     cr_qp_v_undrscr: &CrQpValueUndrscr,
     cr_qp_incr_undrscr: &CrQpIncrUndrscr,
-    cr_qp_ts: &dyn ToTokens,
+    cr_qp_ts: &dyn quote::ToTokens,
     cr_qb_v_undrscr: &CrQbValueUndrscr,
     is_cr_qb_mut: &IsCrQbMut,
-    cr_qb_ts: &dyn ToTokens,
-    ident_sel_ucc: &dyn ToTokens,
+    cr_qb_ts: &dyn quote::ToTokens,
+    ident_sel_ucc: &dyn quote::ToTokens,
     sel_qp_v_undrscr: &SelQpValueUndrscr,
-    sel_qp_ts: &dyn ToTokens,
-    ident_wh_ucc: &dyn ToTokens,
-    ident_rd_ucc: &dyn ToTokens,
-    normalize_ts: &dyn ToTokens,
-    rd_ids_ts: &dyn ToTokens,
-    sel_only_ids_qp_ts: &dyn ToTokens,
-    ident_rd_inn_ucc: &dyn ToTokens,
-    into_inn_ts: &dyn ToTokens,
-    ident_upd_ucc: &dyn ToTokens,
-    ident_upd_for_query_ucc: &dyn ToTokens,
+    sel_qp_ts: &dyn quote::ToTokens,
+    ident_wh_ucc: &dyn quote::ToTokens,
+    ident_rd_ucc: &dyn quote::ToTokens,
+    normalize_ts: &dyn quote::ToTokens,
+    rd_ids_ts: &dyn quote::ToTokens,
+    sel_only_ids_qp_ts: &dyn quote::ToTokens,
+    ident_rd_inn_ucc: &dyn quote::ToTokens,
+    into_inn_ts: &dyn quote::ToTokens,
+    ident_upd_ucc: &dyn quote::ToTokens,
+    ident_upd_for_query_ucc: &dyn quote::ToTokens,
     upd_qp_v_undrscr: &UpdQpValueUndrscr,
     upd_qp_accumulator_undrscr: &UpdQpAccumulatorUndrscr,
     upd_qp_target_undrscr: &UpdQpTargetUndrscr,
     upd_qp_path_undrscr: &UpdQpPathUndrscr,
-    upd_qp_ts: &dyn ToTokens,
+    upd_qp_ts: &dyn quote::ToTokens,
     is_upd_qb_mut: &IsUpdQbMut,
-    upd_qb_ts: &dyn ToTokens,
-    sel_only_updd_ids_qp_ts: &dyn ToTokens,
+    upd_qb_ts: &dyn quote::ToTokens,
+    sel_only_updd_ids_qp_ts: &dyn quote::ToTokens,
     is_sel_only_updd_ids_qb_mut: &IsSelOnlyUpddIdsQbMut,
-    sel_only_updd_ids_qb_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    sel_only_updd_ids_qb_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #import :: #PgTypeUcc for #ident {
             type #TtUcc = #ident_tt_ucc;
@@ -808,14 +2084,19 @@ pub fn gen_impl_pg_type_ts(
 }
 pub fn gen_impl_pg_type_not_pk_for_ident_ts(
     import: &Import,
-    ident: &dyn ToTokens,
-) -> GeneratedRustTs {
-    let ident_cr_ucc = SelfCrUcc::from_tokens(&ident);
-    quote! {
-        #AllowClippyArbitrarySrcItemOrdering
-        impl #import::#PgTypeNotPkUcc for #ident {
-            type #PgTypeUcc = Self;
-            type #CrUcc = #ident_cr_ucc;
+    ident: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    let ident_cr_ucc = naming::prm::SelfCrUcc::from_tokens(&ident);
+    let allow_clippy_arbitrary_src_item_ordering =
+        token_patterns::AllowClippyArbitrarySrcItemOrdering;
+    let pg_type_not_pk_ucc = naming::PgTypeNotPkUcc;
+    let pg_type_ucc = naming::PgTypeUcc;
+    let cr_ucc = naming::CrUcc;
+    quote::quote! {
+        #allow_clippy_arbitrary_src_item_ordering
+        impl #import::#pg_type_not_pk_ucc for #ident {
+            type #pg_type_ucc = Self;
+            type #cr_ucc = #ident_cr_ucc;
         }
     }
     .into()
@@ -824,8 +2105,141 @@ pub fn gen_impl_pg_type_not_pk_for_ident_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {
+fn gen_opt_vec_cr_ts(
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #OptVecCrSc() -> Option<Vec<#path_ts::#CrUcc>> {
             #ts
         }
@@ -837,10 +2251,140 @@ fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRust
     reason = "keeps generated method snippets separated"
 )]
 fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsTo2DimsVecRdInnSc(
             #RdIdsSc: &#path_ts::#RdIdsUcc
         ) -> Vec<Vec<#path_ts::#RdInnUcc>> {
@@ -850,13 +2394,143 @@ fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(
     .into()
 }
 fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
-    method_name_ts: &dyn ToTokens,
-    type_ts: &dyn ToTokens,
-    path_ts: &dyn ToTokens,
-    return_type_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    method_name_ts: &dyn quote::ToTokens,
+    type_ts: &dyn quote::ToTokens,
+    path_ts: &dyn quote::ToTokens,
+    return_type_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #method_name_ts(
             #VSc: #type_ts
         ) -> #path_ts::#return_type_ts {
@@ -869,8 +2543,141 @@ fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {
+fn gen_upd_to_rd_ids_ts(
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #UpdToRdIdsSc(
             #VSc: &#path_ts::#UpdUcc
         ) -> #path_ts::#RdIdsUcc {
@@ -885,10 +2692,140 @@ fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedR
 )]
 fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
     import: Import,
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsToOptVRdDfltSomeOneElSc(
             #VSc: &#path_ts::#RdIdsUcc
         ) -> Option<#import::#VUcc<#path_ts::#RdUcc>> {
@@ -902,10 +2839,140 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
     reason = "keeps generated method snippets separated"
 )]
 fn gen_previous_rd_and_opt_upd_into_rd_ts(
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #PreviousRdAndOptUpdIntoRdSc(
             #RdSc: #path_ts::#RdUcc,
             #OptUpdSc: Option<#path_ts::#UpdUcc>,
@@ -919,8 +2986,141 @@ fn gen_previous_rd_and_opt_upd_into_rd_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {
+fn gen_rd_ids_and_cr_into_rd_ts(
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsAndCrIntoRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
             #CrSc: #path_ts::#CrUcc
@@ -936,10 +3136,140 @@ fn gen_rd_ids_and_cr_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ge
 )]
 fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
     import: Import,
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsAndCrIntoOptVRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
             #CrSc: #path_ts::#CrUcc
@@ -953,8 +3283,141 @@ fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_tt_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {
+fn gen_rd_ids_and_cr_into_tt_ts(
+    path_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsAndCrIntoTtSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
             #CrSc: #path_ts::#CrUcc
@@ -965,12 +3428,142 @@ fn gen_rd_ids_and_cr_into_tt_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ge
     .into()
 }
 pub fn gen_rd_ids_and_cr_into_wh_eq_ts(
-    rd_ids_ts: &dyn ToTokens,
-    cr_ts: &dyn ToTokens,
-    wh_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    rd_ids_ts: &dyn quote::ToTokens,
+    cr_ts: &dyn quote::ToTokens,
+    wh_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsAndCrIntoWhEqSc(
             #RdIdsSc: #rd_ids_ts,
             #CrSc: #cr_ts
@@ -982,12 +3575,142 @@ pub fn gen_rd_ids_and_cr_into_wh_eq_ts(
 }
 pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
     import: &Import,
-    rd_ids_ts: &dyn ToTokens,
-    cr_ts: &dyn ToTokens,
-    wh_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    rd_ids_ts: &dyn quote::ToTokens,
+    cr_ts: &dyn quote::ToTokens,
+    wh_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         fn #RdIdsAndCrIntoVecWhEqUsingFieldsSc(
             #RdIdsSc: #rd_ids_ts,
             #CrSc: #cr_ts
@@ -1003,13 +3726,143 @@ pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
 )]
 fn gen_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts(
     import: Import,
-    rd_ids_ts: &dyn ToTokens,
-    cr_ts: &dyn ToTokens,
-    wh_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    let return_type_ts = gen_opt_type_dcl_ts(&quote! {#import::NotEmptyUnqVec<#wh_ts>});
-    quote! {
+    rd_ids_ts: &dyn quote::ToTokens,
+    cr_ts: &dyn quote::ToTokens,
+    wh_ts: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    let return_type_ts = gen_opt_type_dcl_ts(&quote::quote! {#import::NotEmptyUnqVec<#wh_ts>});
+    quote::quote! {
         fn #RdIdsAndCrIntoOptVecWhEqToFieldSc(
             #RdIdsSc: #rd_ids_ts,
             #CrSc: #cr_ts
@@ -1020,31 +3873,161 @@ fn gen_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts(
     .into()
 }
 pub fn gen_impl_pg_type_test_cases_for_ident_ts(
-    cfg_ts: &dyn ToTokens,
+    cfg_ts: &dyn quote::ToTokens,
     import: &Import,
-    type_ts: &dyn ToTokens,
-    ident: &dyn ToTokens,
-    opt_vec_cr_ts: Option<&GeneratedRustTs>,
-    rd_ids_to_2_dims_vec_rd_inn_ts: &dyn ToTokens,
-    rd_inn_into_rd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
-    rd_inn_into_upd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
-    upd_to_rd_ids_ts: &dyn ToTokens,
-    rd_ids_to_opt_v_rd_dflt_some_one_el_ts: &dyn ToTokens,
-    previous_rd_and_opt_upd_into_rd_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_rd_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_opt_v_rd_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_tt_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_wh_eq_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&GeneratedRustTs>,
-    pg_type_opt_vec_wh_greater_than_test_ts: Option<&GeneratedRustTs>,
-    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&GeneratedRustTs>,
-) -> GeneratedRustTs {
-    let self_pg_type_as_pg_type_ts = quote! {<#SelfUcc::#PgTypeUcc as #import::#PgTypeUcc>};
-    let self_pg_type_as_pg_type_rd_ids_ts = quote! {#self_pg_type_as_pg_type_ts::#RdIdsUcc};
-    let self_pg_type_as_pg_type_cr_ts = quote! {#self_pg_type_as_pg_type_ts::#CrUcc};
-    let self_pg_type_as_pg_type_wh_ts = quote! {#self_pg_type_as_pg_type_ts::#WhUcc};
-    let ident_sel_ucc = SelfSelUcc::from_tokens(&ident);
+    type_ts: &dyn quote::ToTokens,
+    ident: &dyn quote::ToTokens,
+    opt_vec_cr_ts: Option<&macros_helpers::GeneratedRustTs>,
+    rd_ids_to_2_dims_vec_rd_inn_ts: &dyn quote::ToTokens,
+    rd_inn_into_rd_with_new_or_try_new_unwraped_ts: &dyn quote::ToTokens,
+    rd_inn_into_upd_with_new_or_try_new_unwraped_ts: &dyn quote::ToTokens,
+    upd_to_rd_ids_ts: &dyn quote::ToTokens,
+    rd_ids_to_opt_v_rd_dflt_some_one_el_ts: &dyn quote::ToTokens,
+    previous_rd_and_opt_upd_into_rd_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_rd_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_opt_v_rd_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_tt_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_wh_eq_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn quote::ToTokens,
+    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&macros_helpers::GeneratedRustTs>,
+    pg_type_opt_vec_wh_greater_than_test_ts: Option<&macros_helpers::GeneratedRustTs>,
+    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&macros_helpers::GeneratedRustTs>,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    let self_pg_type_as_pg_type_ts = quote::quote! {<#SelfUcc::#PgTypeUcc as #import::#PgTypeUcc>};
+    let self_pg_type_as_pg_type_rd_ids_ts = quote::quote! {#self_pg_type_as_pg_type_ts::#RdIdsUcc};
+    let self_pg_type_as_pg_type_cr_ts = quote::quote! {#self_pg_type_as_pg_type_ts::#CrUcc};
+    let self_pg_type_as_pg_type_wh_ts = quote::quote! {#self_pg_type_as_pg_type_ts::#WhUcc};
+    let ident_sel_ucc = naming::prm::SelfSelUcc::from_tokens(&ident);
     let opt_vec_cr_ts_gnrtd =
         opt_vec_cr_ts.map(|ts| gen_opt_vec_cr_ts(&self_pg_type_as_pg_type_ts, ts));
     let rd_ids_to_2_dims_vec_rd_inn_ts_gnrtd = gen_rd_ids_to_2_dims_vec_rd_inn_ts(
@@ -1056,7 +4039,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
             &RdInnIntoRdWithNewOrTryNewUnwrapedSc,
             &type_ts,
             &self_pg_type_as_pg_type_ts,
-            &RdUcc,
+            &naming::RdUcc,
             &rd_inn_into_rd_with_new_or_try_new_unwraped_ts,
         );
     let rd_inn_into_upd_with_new_or_try_new_unwraped_ts_gnrtd =
@@ -1064,7 +4047,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
             &RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
             &type_ts,
             &self_pg_type_as_pg_type_ts,
-            &UpdUcc,
+            &naming::UpdUcc,
             &rd_inn_into_upd_with_new_or_try_new_unwraped_ts,
         );
     let upd_to_rd_ids_ts_gnrtd =
@@ -1113,7 +4096,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
         });
     let pg_type_opt_vec_wh_greater_than_test_ts_gnrtd = pg_type_opt_vec_wh_greater_than_test_ts
         .map(|ts| {
-            quote! {
+            quote::quote! {
                 fn #PgTypeOptVecWhGreaterThanTestSc() -> Option<
                     #import::NotEmptyUnqVec<
                         #import::PgTypeGreaterThanTest<
@@ -1129,7 +4112,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
         rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts.map(|ts| {
             let rd_ids_and_tt_into_pg_type_opt_wh_greater_than_sc =
                 RdIdsAndTtIntoPgTypeOptWhGreaterThanSc;
-            quote! {
+            quote::quote! {
                 fn #rd_ids_and_tt_into_pg_type_opt_wh_greater_than_sc(
                     greater_than_vrt: #import::PgTypeGreaterThanVrt,
                     #RdIdsSc: #self_pg_type_as_pg_type_ts::#RdIdsUcc,
@@ -1139,7 +4122,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
                 }
             }
         });
-    quote! {
+    quote::quote! {
         #[allow(unused_qualifications)]
         #[allow(clippy::absolute_paths)]
         #AllowClippyArbitrarySrcItemOrdering
@@ -1168,14 +4151,14 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> GeneratedRustTs {
-    quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}.into()
+pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> macros_helpers::GeneratedRustTs {
+    quote::quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}.into()
 }
 pub fn gen_impl_crate_is_string_empty_for_ident_ts(
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {
         impl pg_crud_cmn::IsStringEmpty for #ident {
             fn is_string_empty(&self) -> pg_crud_cmn::IsStringEmptyRes {
                 pg_crud_cmn::IsStringEmptyRes(#ts)
@@ -1184,8 +4167,11 @@ pub fn gen_impl_crate_is_string_empty_for_ident_ts(
     }
     .into()
 }
-pub fn gen_match_try_new_in_de_ts(ident: &dyn ToTokens, init_ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {
+pub fn gen_match_try_new_in_de_ts(
+    ident: &dyn quote::ToTokens,
+    init_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {
         match #ident::try_new(#init_ts) {
             Ok(v) => Ok(v),
             Err(er) => Err(serde::de::Error::custom(format!("{er:?}")))
@@ -1194,23 +4180,25 @@ pub fn gen_match_try_new_in_de_ts(ident: &dyn ToTokens, init_ts: &dyn ToTokens) 
     .into()
 }
 pub fn gen_impl_de_for_struct_ts(
-    ident: &dyn DisplayPlusToTokens,
+    ident: &dyn naming::DisplayPlusToTokens,
     vec_ident_type: SynIdentTypeRefs<'_>,
     _len: DeLen,
-    gen_type_ts: &dyn Fn(&Ident, &Type) -> GeneratedRustTs,
-) -> GeneratedRustTs {
+    gen_type_ts: &dyn Fn(&syn::Ident, &syn::Type) -> macros_helpers::GeneratedRustTs,
+) -> macros_helpers::GeneratedRustTs {
+    let allow_clippy_arbitrary_src_item_ordering =
+        token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_ident_ts = parse_ts_or_compile_error(
         ParseTsTextRef(&format!("{ident}Raw")),
         ParseErIdRef("a1b2c3d4"),
     );
     let raw_fields_ts = vec_ident_type.0.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
-        quote! { #fi: #type_ts, }
+        quote::quote! { #fi: #type_ts, }
     });
     let try_from_fields_ts = vec_ident_type.0.iter().map(|(fi, _)| {
-        quote! { raw.#fi }
+        quote::quote! { raw.#fi }
     });
-    quote! {
+    quote::quote! {
         #[derive(serde::Deserialize)]
         #[allow(clippy::arbitrary_source_item_ordering)]
         struct #raw_ident_ts {
@@ -1218,7 +4206,7 @@ pub fn gen_impl_de_for_struct_ts(
         }
         #[allow(unused_qualifications)]
         #[allow(clippy::absolute_paths)]
-        #AllowClippyArbitrarySrcItemOrdering
+        #allow_clippy_arbitrary_src_item_ordering
         const _: () = {
             #[allow(unused_extern_crates, clippy::useless_attribute)]
             extern crate serde as _serde;
@@ -1237,28 +4225,421 @@ pub fn gen_impl_de_for_struct_ts(
         };
     }.into()
 }
-pub fn wrap_into_scopes_ts(ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {(#ts)}.into()
+pub fn wrap_into_scopes_ts(ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {(#ts)}.into()
 }
-pub fn mb_wrap_into_braces_ts(ts: &dyn ToTokens, wrap: WrapIntoBraces) -> GeneratedRustTs {
+pub fn mb_wrap_into_braces_ts(
+    ts: &dyn quote::ToTokens,
+    wrap: WrapIntoBraces,
+) -> macros_helpers::GeneratedRustTs {
     if wrap.0 {
         wrap_into_scopes_ts(&ts)
     } else {
-        quote! {#ts}.into()
+        quote::quote! {#ts}.into()
     }
 }
-pub fn gen_v_dcl_ts(import: &Import, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {#import::V<#ts>}.into()
+pub fn gen_v_dcl_ts(import: &Import, ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {#import::V<#ts>}.into()
 }
-pub fn gen_v_init_ts(import: &Import, ts: &dyn ToTokens) -> GeneratedRustTs {
-    quote! {#import::V { #VSc: #ts }}.into()
+pub fn gen_v_init_ts(import: &Import, ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {#import::V { #VSc: #ts }}.into()
 }
 pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     import: &Import,
-    ident: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    ident: &dyn quote::ToTokens,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         impl #import::#PgTypeEqOprtrUcc for #ident {
             fn oprtr(&self) -> #import::#EqOprtrUcc {
                 #ts
@@ -1268,8 +4649,138 @@ pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     .into()
 }
 #[must_use]
-pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> GeneratedRustTs {
-    quote! {
+pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         #import::QpEr::WriteIntoBuffer {
             loc: loc_lib::loc!()
         }
@@ -1277,9 +4788,141 @@ pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> GeneratedRustTs {
     .into()
 }
 #[must_use]
-pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> GeneratedRustTs {
+pub fn gen_return_err_qp_er_write_into_buffer_ts(
+    import: Import,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let ts = gen_qp_er_write_into_buffer_ts(import);
-    quote! {return Err(#ts);}.into()
+    quote::quote! {return Err(#ts);}.into()
 }
 #[must_use]
 pub fn parse_strs_to_ts2_vec(v: ParseTsStrings, uuid: ParseErIdRef<'_>) -> GeneratedRustTsVec {
@@ -1289,10 +4932,10 @@ pub fn parse_strs_to_ts2_vec(v: ParseTsStrings, uuid: ParseErIdRef<'_>) -> Gener
 }
 #[must_use]
 pub fn gen_mod_with_pub_use_ts(
-    mod_name: &dyn ToTokens,
+    mod_name: &dyn quote::ToTokens,
     content_ts: &GeneratedRustTsVec,
-) -> GeneratedRustTs {
-    quote! {
+) -> macros_helpers::GeneratedRustTs {
+    quote::quote! {
         #[allow(unused_qualifications)]
         #[allow(clippy::absolute_paths)]
         #[allow(clippy::arbitrary_source_item_ordering)]
@@ -1304,8 +4947,8 @@ pub fn gen_mod_with_pub_use_ts(
     .into()
 }
 #[must_use]
-pub fn cmn_d_ts_builder() -> DTsBuilder {
-    DTsBuilder::new()
+pub fn cmn_d_ts_builder() -> macros_helpers::DTsBuilder {
+    macros_helpers::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_clone()
@@ -1314,8 +4957,8 @@ pub fn cmn_d_ts_builder() -> DTsBuilder {
         .d_serde_deserialize()
 }
 #[must_use]
-pub fn serde_er_enum_d_ts_builder() -> DTsBuilder {
-    DTsBuilder::new()
+pub fn serde_er_enum_d_ts_builder() -> macros_helpers::DTsBuilder {
+    macros_helpers::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_serde_serialize()
@@ -1324,8 +4967,8 @@ pub fn serde_er_enum_d_ts_builder() -> DTsBuilder {
         .d_loc_lib_location()
 }
 #[must_use]
-pub fn er_enum_d_ts_builder() -> DTsBuilder {
-    DTsBuilder::new()
+pub fn er_enum_d_ts_builder() -> macros_helpers::DTsBuilder {
+    macros_helpers::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_thiserror_error()
@@ -1333,11 +4976,141 @@ pub fn er_enum_d_ts_builder() -> DTsBuilder {
 }
 #[must_use]
 pub fn gen_match_ok_assign_or_return_err_ts(
-    expr_ts: &dyn ToTokens,
-    assign_target_ts: &dyn ToTokens,
-    ok_v_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    expr_ts: &dyn quote::ToTokens,
+    assign_target_ts: &dyn quote::ToTokens,
+    ok_v_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => {
                 #assign_target_ts = #ok_v_ts;
@@ -1351,10 +5124,140 @@ pub fn gen_match_ok_assign_or_return_err_ts(
 }
 #[must_use]
 pub fn gen_match_ok_or_return_err_ts(
-    expr_ts: &dyn ToTokens,
-    ok_v_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
-    quote! {
+    expr_ts: &dyn quote::ToTokens,
+    ok_v_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
+    quote::quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => #ok_v_ts,
             Err(#ErSc) => {
@@ -1367,12 +5270,12 @@ pub fn gen_match_ok_or_return_err_ts(
 #[must_use]
 pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
     import: &Import,
-    expr_ts: &dyn ToTokens,
-    ok_v_ts: &dyn ToTokens,
+    expr_ts: &dyn quote::ToTokens,
+    ok_v_ts: &dyn quote::ToTokens,
     panic_uuid: PanicUuidRef<'_>,
-) -> GeneratedRustTs {
-    let panic_uuid_ts = dq_ts(&panic_uuid.0);
-    quote! {
+) -> macros_helpers::GeneratedRustTs {
+    let panic_uuid_ts = gen_quotes::dq_ts(&panic_uuid.0);
+    quote::quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => Some(#ok_v_ts),
             Err(er) => match er {
@@ -1385,12 +5288,142 @@ pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
 }
 #[must_use]
 pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
-    expr_ts: &dyn ToTokens,
-    some_v_ts: &dyn ToTokens,
-    ok_v_ts: &dyn ToTokens,
-) -> GeneratedRustTs {
+    expr_ts: &dyn quote::ToTokens,
+    some_v_ts: &dyn quote::ToTokens,
+    ok_v_ts: &dyn quote::ToTokens,
+) -> macros_helpers::GeneratedRustTs {
+    #[allow(non_snake_case, unused_variables)]
+    let (
+        AddOprtrSc,
+        AllVrtsDfltSomeOneElMaxPageSizeSc,
+        AllVrtsDfltSomeOneElSc,
+        AllowClippyArbitrarySrcItemOrdering,
+        ColSc,
+        CrQbSc,
+        CrQpSc,
+        CrSc,
+        CrTblColQpSc,
+        CrUcc,
+        DfltSomeOneElMaxPageSizeSc,
+        DfltSomeOneElSc,
+        EqOprtrUcc,
+        ErSc,
+        IncrSc,
+        NormalizeSc,
+        OptUpdSc,
+        OptVecCrSc,
+        PgCrudCmnDfltSomeOneElCall,
+        PgTypeEqOprtrUcc,
+        PgTypeNotPkUcc,
+        PgTypeOptVecWhGreaterThanTestSc,
+        PgTypeTestCasesUcc,
+        PgTypeUcc,
+        PgTypeWhFltUcc,
+        PreviousRdAndOptUpdIntoRdSc,
+        QbSc,
+        QpErUcc,
+        QpSc,
+        QuerySc,
+        RdIdsAndCrIntoOptVRdSc,
+        RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        RdIdsAndCrIntoRdSc,
+        RdIdsAndCrIntoTtSc,
+        RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        RdIdsAndCrIntoWhEqSc,
+        RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        RdIdsSc,
+        RdIdsTo2DimsVecRdInnSc,
+        RdIdsToOptVRdDfltSomeOneElSc,
+        RdIdsUcc,
+        RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        RdInnUcc,
+        RdSc,
+        RdUcc,
+        SelOnlyIdsQpSc,
+        SelOnlyUpddIdsQbSc,
+        SelOnlyUpddIdsQpSc,
+        SelQpSc,
+        SelUcc,
+        SelfUcc,
+        TtSc,
+        TtUcc,
+        UpdForQueryUcc,
+        UpdQbSc,
+        UpdQpSc,
+        UpdToRdIdsSc,
+        UpdUcc,
+        VSc,
+        VUcc,
+        ValueSc,
+        WhUcc,
+    ) = (
+        naming::AddOprtrSc,
+        naming::AllVrtsDfltSomeOneElMaxPageSizeSc,
+        naming::AllVrtsDfltSomeOneElSc,
+        token_patterns::AllowClippyArbitrarySrcItemOrdering,
+        naming::ColSc,
+        naming::CrQbSc,
+        naming::CrQpSc,
+        naming::CrSc,
+        naming::CrTblColQpSc,
+        naming::CrUcc,
+        naming::DfltSomeOneElMaxPageSizeSc,
+        naming::DfltSomeOneElSc,
+        naming::EqOprtrUcc,
+        naming::ErSc,
+        naming::IncrSc,
+        naming::NormalizeSc,
+        naming::OptUpdSc,
+        naming::OptVecCrSc,
+        token_patterns::PgCrudCmnDfltSomeOneElCall,
+        naming::PgTypeEqOprtrUcc,
+        naming::PgTypeNotPkUcc,
+        naming::PgTypeOptVecWhGreaterThanTestSc,
+        naming::PgTypeTestCasesUcc,
+        naming::PgTypeUcc,
+        naming::PgTypeWhFltUcc,
+        naming::PreviousRdAndOptUpdIntoRdSc,
+        naming::QbSc,
+        naming::QpErUcc,
+        naming::QpSc,
+        naming::QuerySc,
+        naming::RdIdsAndCrIntoOptVRdSc,
+        naming::RdIdsAndCrIntoOptVecWhEqToFieldSc,
+        naming::RdIdsAndCrIntoRdSc,
+        naming::RdIdsAndCrIntoTtSc,
+        naming::RdIdsAndCrIntoVecWhEqUsingFieldsSc,
+        naming::RdIdsAndCrIntoWhEqSc,
+        naming::RdIdsAndTtIntoPgTypeOptWhGreaterThanSc,
+        naming::RdIdsSc,
+        naming::RdIdsTo2DimsVecRdInnSc,
+        naming::RdIdsToOptVRdDfltSomeOneElSc,
+        naming::RdIdsUcc,
+        naming::RdInnIntoRdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnIntoUpdWithNewOrTryNewUnwrapedSc,
+        naming::RdInnUcc,
+        naming::RdSc,
+        naming::RdUcc,
+        naming::SelOnlyIdsQpSc,
+        naming::SelOnlyUpddIdsQbSc,
+        naming::SelOnlyUpddIdsQpSc,
+        naming::SelQpSc,
+        naming::SelUcc,
+        naming::SelfUcc,
+        naming::TtSc,
+        naming::TtUcc,
+        naming::UpdForQueryUcc,
+        naming::UpdQbSc,
+        naming::UpdQpSc,
+        naming::UpdToRdIdsSc,
+        naming::UpdUcc,
+        naming::VSc,
+        naming::VUcc,
+        naming::ValueSc,
+        naming::WhUcc,
+    );
     let match_ts = gen_match_ok_assign_or_return_err_ts(expr_ts, &QuerySc, ok_v_ts);
-    quote! {
+    quote::quote! {
         if let Some(#some_v_ts) = &#VSc.0 {
             #match_ts
         }
@@ -1398,12 +5431,15 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
     }
     .into()
 }
-fn parse_ts_or_compile_error(v: ParseTsTextRef<'_>, er_id: ParseErIdRef<'_>) -> GeneratedRustTs {
+fn parse_ts_or_compile_error(
+    v: ParseTsTextRef<'_>,
+    er_id: ParseErIdRef<'_>,
+) -> macros_helpers::GeneratedRustTs {
     match v.0.parse::<proc_macro2::TokenStream>() {
         Ok(parsed_ts) => parsed_ts.into(),
         Err(er) => {
             let msg = format!("{}: {er}", er_id.0);
-            quote! {compile_error!(#msg);}.into()
+            quote::quote! {compile_error!(#msg);}.into()
         }
     }
 }

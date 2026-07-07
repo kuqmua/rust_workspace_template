@@ -16,5 +16,6 @@ proc-macro = true
 
 [dependencies]
 gen_pg_types_src = { workspace = true }
+macros_helpers = { workspace = true }
 [lints]
 workspace = true

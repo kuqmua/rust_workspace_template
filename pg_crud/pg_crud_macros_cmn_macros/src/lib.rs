@@ -44,12 +44,12 @@ pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenS
     };
     let name_ident = quote::format_ident!("{name}");
     quote::quote! {
-        #[derive(Debug, Clone, Copy, Optml)]
+        #[derive(Debug, Clone, Copy, optml::Optml)]
         pub enum #name_ident {
             False,
             True,
         }
-        impl ToTokens for #name_ident {
+        impl quote::ToTokens for #name_ident {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 match &self {
                     Self::False => (#false_ts).to_tokens(tokens),
