@@ -3,32 +3,31 @@ struct ToScInput<'input_lt>(&'input_lt str);
 struct ScString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_sc(input: ToScInput<'_>) -> ScString {
-    let mut result = String::with_capacity(input.0.len());
-    let mut prev_is_undrscr = false;
-    let mut prev_is_lowercase = false;
-    for el0 in input.0.chars() {
-        if el0.is_alphabetic() {
-            if el0.is_uppercase() {
-                if prev_is_lowercase && !prev_is_undrscr {
-                    result.push('_');
+    let (result, _, _) = input.0.chars().fold(
+        (String::with_capacity(input.0.len()), false, false),
+        |(mut result, mut prev_is_undrscr, mut prev_is_lowercase), el0| {
+            if el0.is_alphabetic() {
+                if el0.is_uppercase() {
+                    if prev_is_lowercase && !prev_is_undrscr {
+                        result.push('_');
+                    }
+                    result.extend(el0.to_lowercase());
+                    prev_is_lowercase = false;
+                } else {
+                    result.push(el0);
+                    prev_is_lowercase = true;
                 }
-                for el1 in el0.to_lowercase() {
-                    result.push(el1);
+                prev_is_undrscr = false;
+            } else {
+                if !prev_is_undrscr && !result.is_empty() {
+                    result.push('_');
+                    prev_is_undrscr = true;
                 }
                 prev_is_lowercase = false;
-            } else {
-                result.push(el0);
-                prev_is_lowercase = true;
             }
-            prev_is_undrscr = false;
-        } else {
-            if !prev_is_undrscr && !result.is_empty() {
-                result.push('_');
-                prev_is_undrscr = true;
-            }
-            prev_is_lowercase = false;
-        }
-    }
+            (result, prev_is_undrscr, prev_is_lowercase)
+        },
+    );
     ScString(result.trim_matches('_').to_owned())
 }
 #[proc_macro]

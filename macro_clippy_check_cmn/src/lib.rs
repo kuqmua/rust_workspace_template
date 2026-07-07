@@ -97,9 +97,11 @@ fn run_cargo_checked(
 #[cfg(feature = "test-utils")]
 #[allow(clippy::single_call_fn)] // centralizes ordered cargo check execution to keep command flow reusable and consistent
 fn run_cargo_check_steps(target_crate_dir: &std::path::Path, steps: &[(&[&str], &str, &str)]) {
-    for (args, cmd_spawn_er_id, failed_id) in steps {
-        run_cargo_checked(target_crate_dir, args, cmd_spawn_er_id, failed_id);
-    }
+    steps
+        .iter()
+        .fold((), |(), (args, cmd_spawn_er_id, failed_id)| {
+            run_cargo_checked(target_crate_dir, args, cmd_spawn_er_id, failed_id);
+        });
 }
 #[cfg(feature = "test-utils")]
 #[allow(clippy::single_call_fn)] // shared helper centralizes snapshot capture + restore guard construction for generated files

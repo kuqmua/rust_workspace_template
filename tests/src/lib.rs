@@ -26,6 +26,8 @@ mod tests {
         "useless_borrows_in_formatting",
     ];
     const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
+    const FOR_LOOP_SOURCE_EXCEPTIONS: [&str; 1] =
+        ["../pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs"];
     const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
         "../app_state/src/lib.rs",
         "../config_lib/src/lib.rs",
@@ -165,6 +167,15 @@ mod tests {
                 self.found_count = self.found_count.saturating_add(1);
             }
             syn::visit::visit_expr_method_call(self, i);
+        }
+    }
+    struct ForLoopVisitor {
+        found_count: usize,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for ForLoopVisitor {
+        fn visit_expr_for_loop(&mut self, i: &'ast syn::ExprForLoop) {
+            self.found_count = self.found_count.saturating_add(1);
+            syn::visit::visit_expr_for_loop(self, i);
         }
     }
     struct RuntimePanicExpectUnwrapVisitor {
@@ -444,23 +455,28 @@ mod tests {
             {
                 return;
             }
-            for field in fields {
-                self.check_ty(&field.ty, ctx);
-            }
+            fields
+                .iter()
+                .for_each(|field| self.check_ty(&field.ty, ctx));
         }
         fn check_path_arguments(&mut self, arguments: &syn::PathArguments, ctx: &str) {
             match arguments {
                 syn::PathArguments::AngleBracketed(args) => {
-                    for arg in &args.args {
-                        if let syn::GenericArgument::Type(ty) = arg {
-                            self.check_ty(ty, ctx);
-                        }
-                    }
+                    args.args
+                        .iter()
+                        .filter_map(|arg| match arg {
+                            syn::GenericArgument::Type(ty) => Some(ty),
+                            syn::GenericArgument::AssocConst(_)
+                            | syn::GenericArgument::AssocType(_)
+                            | syn::GenericArgument::Constraint(_)
+                            | syn::GenericArgument::Const(_)
+                            | syn::GenericArgument::Lifetime(_)
+                            | _ => None,
+                        })
+                        .for_each(|ty| self.check_ty(ty, ctx));
                 }
                 syn::PathArguments::Parenthesized(args) => {
-                    for ty in &args.inputs {
-                        self.check_ty(ty, ctx);
-                    }
+                    args.inputs.iter().for_each(|ty| self.check_ty(ty, ctx));
                     match &args.output {
                         syn::ReturnType::Default => {}
                         syn::ReturnType::Type(_, ty) => self.check_ty(ty, ctx),
@@ -471,14 +487,13 @@ mod tests {
         }
         fn check_sig(&mut self, sig: &syn::Signature, ctx: &str) {
             self.push_generics(&sig.generics);
-            for input in &sig.inputs {
-                match input {
-                    syn::FnArg::Receiver(_) => {}
-                    syn::FnArg::Typed(pat_ty) => {
-                        self.check_ty(&pat_ty.ty, &format!("{ctx} parameter"));
-                    }
-                }
-            }
+            sig.inputs
+                .iter()
+                .filter_map(|input| match input {
+                    syn::FnArg::Receiver(_) => None,
+                    syn::FnArg::Typed(pat_ty) => Some(pat_ty),
+                })
+                .for_each(|pat_ty| self.check_ty(&pat_ty.ty, &format!("{ctx} parameter")));
             match &sig.output {
                 syn::ReturnType::Default => {}
                 syn::ReturnType::Type(_, ty) => {
@@ -496,9 +511,10 @@ mod tests {
                 syn::Type::Reference(ty_reference) => self.check_ty(&ty_reference.elem, ctx),
                 syn::Type::Slice(ty_slice) => self.check_ty(&ty_slice.elem, ctx),
                 syn::Type::Tuple(ty_tuple) => {
-                    for elem in &ty_tuple.elems {
-                        self.check_ty(elem, ctx);
-                    }
+                    ty_tuple
+                        .elems
+                        .iter()
+                        .for_each(|elem| self.check_ty(elem, ctx));
                 }
                 syn::Type::BareFn(_)
                 | syn::Type::ImplTrait(_)
@@ -514,9 +530,11 @@ mod tests {
         fn check_ty_path(&mut self, ty_path: &syn::TypePath, ctx: &str) {
             if let Some(qself) = &ty_path.qself {
                 self.check_ty(&qself.ty, ctx);
-                for segment in &ty_path.path.segments {
-                    self.check_path_arguments(&segment.arguments, ctx);
-                }
+                ty_path
+                    .path
+                    .segments
+                    .iter()
+                    .for_each(|segment| self.check_path_arguments(&segment.arguments, ctx));
                 return;
             }
             let Some(segment) = ty_path.path.segments.last() else {
@@ -532,9 +550,9 @@ mod tests {
                 return;
             }
             if self.path_starts_with_allowed_type_ident(&ty_path.path) {
-                for path_segment in &ty_path.path.segments {
+                ty_path.path.segments.iter().for_each(|path_segment| {
                     self.check_path_arguments(&path_segment.arguments, ctx);
-                }
+                });
                 return;
             }
             if self.is_allowed_type_ident(&ident) {
@@ -569,11 +587,10 @@ mod tests {
         }
         fn push_generics(&mut self, generics: &syn::Generics) {
             let mut names = std::collections::BTreeSet::new();
-            for param in &generics.params {
-                if let syn::GenericParam::Type(type_param) = param {
-                    let _: bool = names.insert(type_param.ident.to_string());
-                }
-            }
+            names.extend(generics.params.iter().filter_map(|param| match param {
+                syn::GenericParam::Type(type_param) => Some(type_param.ident.to_string()),
+                syn::GenericParam::Const(_) | syn::GenericParam::Lifetime(_) => None,
+            }));
             self.generic_scopes.push(names);
         }
     }
@@ -586,13 +603,13 @@ mod tests {
         }
         fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
             self.push_generics(&i.generics);
-            for variant in &i.variants {
+            i.variants.iter().for_each(|variant| {
                 self.check_fields(
                     &variant.fields,
                     &format!("enum `{}` variant", i.ident),
                     false,
                 );
-            }
+            });
             self.pop_generics();
         }
         fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
@@ -606,13 +623,21 @@ mod tests {
                 return;
             }
             self.push_generics(&i.generics);
-            for item in &i.items {
-                if let syn::ImplItem::Fn(item_fn) = item
-                    && !attrs_contain_test_only_cfg(&item_fn.attrs)
-                {
+            i.items
+                .iter()
+                .filter_map(|item| match item {
+                    syn::ImplItem::Fn(item_fn) if !attrs_contain_test_only_cfg(&item_fn.attrs) => {
+                        Some(item_fn)
+                    }
+                    syn::ImplItem::Const(_)
+                    | syn::ImplItem::Macro(_)
+                    | syn::ImplItem::Type(_)
+                    | syn::ImplItem::Verbatim(_)
+                    | _ => None,
+                })
+                .for_each(|item_fn| {
                     self.check_sig(&item_fn.sig, &format!("method `{}`", item_fn.sig.ident));
-                }
-            }
+                });
             self.pop_generics();
         }
         fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -622,16 +647,24 @@ mod tests {
         }
         fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
             self.push_generics(&i.generics);
-            for item in &i.items {
-                if let syn::TraitItem::Fn(item_fn) = item
-                    && !attrs_contain_test_only_cfg(&item_fn.attrs)
-                {
+            i.items
+                .iter()
+                .filter_map(|item| match item {
+                    syn::TraitItem::Fn(item_fn) if !attrs_contain_test_only_cfg(&item_fn.attrs) => {
+                        Some(item_fn)
+                    }
+                    syn::TraitItem::Const(_)
+                    | syn::TraitItem::Macro(_)
+                    | syn::TraitItem::Type(_)
+                    | syn::TraitItem::Verbatim(_)
+                    | _ => None,
+                })
+                .for_each(|item_fn| {
                     self.check_sig(
                         &item_fn.sig,
                         &format!("trait method `{}`", item_fn.sig.ident),
                     );
-                }
-            }
+                });
             self.pop_generics();
         }
     }
@@ -1240,6 +1273,25 @@ mod tests {
                 ers.push(format!("{}: contains dbg!()", path.display()));
             }
         });
+    }
+    #[test]
+    fn no_for_loops_in_source_code() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "f4c2a9e1",
+            "for loops found; use iterator methods such as `map`, `filter`, `fold`, `try_fold`, `for_each`, or `try_for_each` instead:",
+            |path, ast, ers| {
+                if is_exception(path, &FOR_LOOP_SOURCE_EXCEPTIONS) {
+                    return;
+                }
+                let visitor = visit_syn_file(ast, ForLoopVisitor { found_count: 0 });
+                push_repeated_file_er(
+                    ers,
+                    path,
+                    "contains `for` loop; use iterator methods instead",
+                    visitor.found_count,
+                );
+            },
+        );
     }
     #[test]
     fn no_empty_lines_in_rust_files() {

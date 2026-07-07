@@ -32,24 +32,26 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
 }
 #[proc_macro]
 pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut types = Vec::new();
-    let mut msgs = Vec::new();
-    for part in workspace_macro_helpers::split_top_level_commas(
+    let parsed_pairs_res = workspace_macro_helpers::split_top_level_commas(
         workspace_macro_helpers::MacroTokens(input.into()),
-    ) {
-        if part.is_empty() {
-            continue;
-        }
-        let Some((ty, msg)) = workspace_macro_helpers::split_fat_arrow(part) else {
-            return workspace_macro_helpers::compile_error_ts(
-                "impl_to_err_string_const expects type => msg",
-            )
-            .0
-            .into();
-        };
-        types.push(ty);
-        msgs.push(msg);
-    }
+    )
+    .into_iter()
+    .filter(|part| !part.is_empty())
+    .map(|part| {
+        workspace_macro_helpers::split_fat_arrow(part)
+            .map(|(ty, msg)| (ty.0, msg.0))
+            .ok_or_else(|| {
+                workspace_macro_helpers::compile_error_ts(
+                    "impl_to_err_string_const expects type => msg",
+                )
+            })
+    })
+    .collect::<Result<Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)>, _>>();
+    let pairs = match parsed_pairs_res {
+        Ok(v) => v,
+        Err(er) => return er.0.into(),
+    };
+    let (types, msgs): (Vec<_>, Vec<_>) = pairs.into_iter().unzip();
     quote::quote! {
         #(impl ToErrString for #types {
             fn to_err_string(&self) -> ToErrStringValue {

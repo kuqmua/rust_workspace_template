@@ -180,9 +180,12 @@ mod tests {
     where
         T: Copy + Eq + std::fmt::Debug + std::str::FromStr<Err = String>,
     {
-        for (name, value) in pairs {
-            assert_eq!(T::from_str(name), Ok(*value));
-        }
+        assert!(
+            pairs
+                .iter()
+                .all(|(name, value)| T::from_str(name) == Ok(*value)),
+            "a5d1e7c9"
+        );
     }
     #[allow(clippy::single_call_fn)] // shared helper keeps tracing-level parse/display roundtrip assertions reusable across tests
     fn assert_tracing_level_roundtrip(name: &str, level: super::TracingLevel) {
@@ -197,10 +200,12 @@ mod tests {
     where
         T: Copy + Eq + std::fmt::Debug + std::fmt::Display + std::str::FromStr<Err = String>,
     {
-        for (name, value) in pairs {
-            assert_eq!(T::from_str(name), Ok(*value));
-            assert_eq!(value.to_string(), *name);
-        }
+        assert!(
+            pairs.iter().all(|(name, value)| {
+                T::from_str(name) == Ok(*value) && value.to_string() == *name
+            }),
+            "7d39b6f2"
+        );
     }
     #[test]
     fn tracing_level_display_is_stable() {
@@ -221,9 +226,15 @@ mod tests {
     }
     #[test]
     fn tracing_level_roundtrip_is_stable_for_all_variants() {
-        for (name, level) in super::TRACING_LEVEL_PARSE_PAIRS {
-            assert_tracing_level_roundtrip(name, level);
-        }
+        assert!(
+            super::TRACING_LEVEL_PARSE_PAIRS
+                .into_iter()
+                .all(|(name, level)| {
+                    assert_tracing_level_roundtrip(name, level);
+                    true
+                }),
+            "ec18a7bd"
+        );
     }
     #[test]
     fn src_place_type_from_str_roundtrip_is_stable_for_all_variants() {

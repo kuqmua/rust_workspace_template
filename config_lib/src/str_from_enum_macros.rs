@@ -61,13 +61,16 @@ fn allowed_values_capacity<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValuesCapacit
 }
 #[allow(clippy::single_call_fn)] // extracted to keep allowed-values formatting reusable and tested
 fn mk_allowed_values<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValues {
-    let mut allowed_values = String::with_capacity(allowed_values_capacity(vrts).0);
-    for (k_6e44a22d, (name, _)) in vrts.0.iter().enumerate() {
-        if k_6e44a22d != 0 {
-            allowed_values.push_str(ALLOWED_VALUES_SEPARATOR);
-        }
-        allowed_values.push_str(name);
-    }
+    let allowed_values = vrts.0.iter().enumerate().fold(
+        String::with_capacity(allowed_values_capacity(vrts).0),
+        |mut acc, (idx, (name, _))| {
+            if idx != 0 {
+                acc.push_str(ALLOWED_VALUES_SEPARATOR);
+            }
+            acc.push_str(name);
+            acc
+        },
+    );
     AllowedValues(allowed_values)
 }
 #[allow(clippy::single_call_fn)] // extracted lookup keeps case-insensitive enum-pair search reusable and testable

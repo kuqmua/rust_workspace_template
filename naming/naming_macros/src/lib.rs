@@ -28,12 +28,8 @@ pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macr
         .expect("90e5793b")
         .into_iter()
         .map(|el| {
-            {
-                let rgx = regex::Regex::new(REGEX_VALUE).expect("20948d87");
-                for el0 in &el {
-                    assert!(rgx.is_match(el0), "faadba8a");
-                }
-            }
+            let rgx = regex::Regex::new(REGEX_VALUE).expect("20948d87");
+            assert!(el.iter().all(|el0| rgx.is_match(el0)), "faadba8a");
             let phrase_part_ucc_str = el.iter().fold(String::new(), |mut acc, el0| {
                 acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
                 acc
@@ -136,21 +132,11 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
 ) -> proc_macro::TokenStream {
     panic_loc::panic_loc();
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_ts.to_string()).expect("9d6a20af").into_iter().map(|el| {
-        {
-            let rgx = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
-            for el0 in &el {
-                assert!(rgx.is_match(el0), "4a12d90f {el0}");
-            }
-        }
+        let rgx = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
+        assert!(el.iter().all(|el0| rgx.is_match(el0)), "4a12d90f");
         let self_match_name = "self";
         {
-            let mut is_self_exists_and_only_one = false;
-            for el0 in &el {
-                if el0 == self_match_name {
-                    is_self_exists_and_only_one = true;
-                    break;
-                }
-            }
+            let is_self_exists_and_only_one = el.iter().any(|el0| el0 == self_match_name);
             assert!(is_self_exists_and_only_one, "5680dd63");
         };
         let (els_concat_v_ucc_dq_ts, els_concat_v_sc_dq_ts, struct_ucc_ucc_ts, struct_sc_token_ucc_ts, trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {

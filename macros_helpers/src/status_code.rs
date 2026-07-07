@@ -434,17 +434,16 @@ pub enum GetOnlyOneStatusCodeEr {
 pub struct StatusCodeVariantRef<'variant_lt>(pub &'variant_lt syn::Variant);
 pub fn get_only_one(vrt: StatusCodeVariantRef<'_>) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
     let variant = vrt.0;
-    let mut opt_self = None;
-    for attr in &variant.attrs {
-        if attr.path().segments.len() == 1
-            && let Some(segment) = attr.path().segments.first()
-            && let Ok(named_attr) = StatusCode::try_from(&segment.ident.to_string())
-        {
-            if opt_self.is_some() {
-                return Err(GetOnlyOneStatusCodeEr::MoreThanOne);
-            }
-            opt_self = Some(named_attr);
+    let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
+        if attr.path().segments.len() != 1 {
+            return None;
         }
+        let segment = attr.path().segments.first()?;
+        StatusCode::try_from(&segment.ident.to_string()).ok()
+    });
+    let opt_self = supported_attrs.next();
+    if supported_attrs.next().is_some() {
+        return Err(GetOnlyOneStatusCodeEr::MoreThanOne);
     }
     opt_self.ok_or(GetOnlyOneStatusCodeEr::NotFound)
 }

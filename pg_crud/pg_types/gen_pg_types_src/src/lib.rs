@@ -608,13 +608,18 @@ pub fn gen_pg_types(input_ts: macros_helpers::TsRef<'_>) -> macros_helpers::Gene
         };
         {
             let mut check_acc = Vec::with_capacity(acc.len());
-            for el in &acc {
+            let duplicate_found = acc.iter().any(|el| {
                 if check_acc.contains(&el) {
-                    return compile_error_ts(CompileErrorMsg(
-                        "536036f9: duplicate pg type config entry",
-                    ));
+                    true
+                } else {
+                    check_acc.push(el);
+                    false
                 }
-                check_acc.push(el);
+            });
+            if duplicate_found {
+                return compile_error_ts(CompileErrorMsg(
+                    "536036f9: duplicate pg type config entry",
+                ));
             }
         }
         acc
@@ -641,21 +646,19 @@ pub fn gen_pg_types(input_ts: macros_helpers::TsRef<'_>) -> macros_helpers::Gene
                     .collect(),
                 }
             }
-            for el0 in gen_pg_type_record_h_vec(PgTypeRecordH {
+            let records_to_add = gen_pg_type_record_h_vec(PgTypeRecordH {
                 is_nl: el.is_nl,
                 pg_type_pattern: el.pg_type_pattern,
-            }) {
-                let pg_type_record = PgTypeRecord {
-                    pg_type: el.pg_type.clone(),
-                    is_nl: el0
-                        .is_nl,
-                    pg_type_pattern: el0
-                        .pg_type_pattern,
-                };
-                if !acc.contains(&pg_type_record) {
-                    acc.push(pg_type_record);
-                }
-            }
+            })
+            .into_iter()
+            .map(|el0| PgTypeRecord {
+                pg_type: el.pg_type.clone(),
+                is_nl: el0.is_nl,
+                pg_type_pattern: el0.pg_type_pattern,
+            })
+            .filter(|pg_type_record| !acc.contains(pg_type_record))
+            .collect::<Vec<PgTypeRecord>>();
+            acc.extend(records_to_add);
             acc
         },
     )

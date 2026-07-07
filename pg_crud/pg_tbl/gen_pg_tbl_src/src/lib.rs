@@ -528,59 +528,55 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     let self_tbl_name_call_ts = quote::quote! {Self::#TblNameSc()};
     let (pk_field, fields, fields_without_pk) = if let syn::Data::Struct(data_struct) = &di.data {
         if let syn::Fields::Named(fields_named) = &data_struct.fields {
-            let mut opt_pk_field: Option<macros_helpers::SynField> = None;
-            let mut fields = Vec::with_capacity(fields_named.named.len());
-            let mut fields_without_pk = Vec::with_capacity(fields_named.named.len());
-            for el in &fields_named.named {
-                let Some(fi) = el.ident.clone() else {
-                    return compile_error_ts(CompileErrorMsg(
-                        "915ef2ce: expected named field ident",
-                    ));
-                };
-                let fi_len = fi.to_string().len();
-                let max_pg_col_len = 63;
-                //todo write runtime check
-                assert!(fi_len <= max_pg_col_len, "1266ae5a");
-                fields.push(macros_helpers::SynField {
-                    vis: macros_helpers::SynFieldVis(el.vis.clone()),
-                    type0: macros_helpers::SynFieldType(el.ty.clone()),
-                    ident: macros_helpers::SynFieldIdent(fi.clone()),
-                });
-                let mut is_pk = false;
-                {
-                    for el0 in &el.attrs {
-                        if el0.path().segments.len() == 1 {
-                            let Some(first_segment) = el0.path().segments.first() else {
-                                return compile_error_ts(CompileErrorMsg(
-                                    "a9c3b38b: expected attr path segment",
-                                ));
-                            };
-                            let first_segment_ident = &first_segment.ident;
-                            let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
-                            if first_segment_ident == &gen_pg_tbl_pk_sc_str {
-                                if opt_pk_field.is_some() {
-                                    return compile_error_ts(CompileErrorMsg(
-                                        "1a75cea1: duplicate primary key field",
-                                    ));
-                                }
-                                opt_pk_field = Some(macros_helpers::SynField {
-                                    vis: macros_helpers::SynFieldVis(el.vis.clone()),
-                                    type0: macros_helpers::SynFieldType(el.ty.clone()),
-                                    ident: macros_helpers::SynFieldIdent(fi.clone()),
-                                });
-                                is_pk = true;
-                            }
-                        }
-                    }
-                }
-                if !is_pk {
-                    fields_without_pk.push(macros_helpers::SynField {
+            let fields_acc = fields_named.named.iter().try_fold(
+                (
+                    None,
+                    Vec::with_capacity(fields_named.named.len()),
+                    Vec::with_capacity(fields_named.named.len()),
+                ),
+                |(mut opt_pk_field, mut fields, mut fields_without_pk), el| {
+                    let Some(fi) = el.ident.clone() else {
+                        return Err(compile_error_ts(CompileErrorMsg(
+                            "915ef2ce: expected named field ident",
+                        )));
+                    };
+                    let fi_len = fi.to_string().len();
+                    let max_pg_col_len = 63;
+                    //todo write runtime check
+                    assert!(fi_len <= max_pg_col_len, "1266ae5a");
+                    let field = macros_helpers::SynField {
                         vis: macros_helpers::SynFieldVis(el.vis.clone()),
                         type0: macros_helpers::SynFieldType(el.ty.clone()),
-                        ident: macros_helpers::SynFieldIdent(fi.clone()),
-                    });
-                }
-            }
+                        ident: macros_helpers::SynFieldIdent(fi),
+                    };
+                    fields.push(field.clone());
+                    let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
+                    let is_pk = el
+                        .attrs
+                        .iter()
+                        .filter(|el0| el0.path().segments.len() == 1)
+                        .any(|el0| {
+                            el0.path().segments.first().is_some_and(|first_segment| {
+                                first_segment.ident == gen_pg_tbl_pk_sc_str
+                            })
+                        });
+                    if is_pk {
+                        if opt_pk_field.is_some() {
+                            return Err(compile_error_ts(CompileErrorMsg(
+                                "1a75cea1: duplicate primary key field",
+                            )));
+                        }
+                        opt_pk_field = Some(field);
+                    } else {
+                        fields_without_pk.push(field);
+                    }
+                    Ok((opt_pk_field, fields, fields_without_pk))
+                },
+            );
+            let (opt_pk_field, fields, fields_without_pk) = match fields_acc {
+                Ok(v) => v,
+                Err(er) => return er,
+            };
             let Some(pk_field) = opt_pk_field else {
                 return compile_error_ts(CompileErrorMsg("6a529a99: primary key field not found"));
             };
@@ -2372,9 +2368,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             serde_json_syn_vrt.get_syn_vrt(),
             header_cnt_type_app_json_not_found_syn_vrt.get_syn_vrt(),
         ];
-        for el in &cmn_er_vrts {
-            acc.push(el);
-        }
+        acc.extend(cmn_er_vrts.iter());
         acc
     };
     let gen_pub_h_ts = |is_pub: bool| {
@@ -2519,29 +2513,20 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             let loc_attr = if *fi == *LocSc.to_string() {
                 proc_macro2::TokenStream::new()
             } else {
-                let mut loc_attr: Option<macros_helpers::LocFieldAttr> = None;
-                for el in &field.attrs {
-                    if el.path().segments.len() == 1 {
-                        let Some(segment) = el.path().segments.first() else {
-                            return compile_error_ts(CompileErrorMsg(
-                                "5bd7ed8d: expected attr path segment",
-                            ))
-                            .0;
-                        };
-                        if let Ok(v) = {
-                            <macros_helpers::LocFieldAttr as std::str::FromStr>::from_str(
-                                &segment.ident.to_string(),
-                            )
-                        } {
-                            if loc_attr.is_some() {
-                                return compile_error_ts(CompileErrorMsg(
-                                    "9a469d36: duplicate loc field attr",
-                                ))
-                                .0;
-                            }
-                            loc_attr = Some(v);
-                        }
+                let mut loc_attrs = field.attrs.iter().filter_map(|el| {
+                    if el.path().segments.len() != 1 {
+                        return None;
                     }
+                    let segment = el.path().segments.first()?;
+                    <macros_helpers::LocFieldAttr as std::str::FromStr>::from_str(
+                        &segment.ident.to_string(),
+                    )
+                    .ok()
+                });
+                let loc_attr = loc_attrs.next();
+                if loc_attrs.next().is_some() {
+                    return compile_error_ts(CompileErrorMsg("9a469d36: duplicate loc field attr"))
+                        .0;
                 }
                 match loc_attr {
                     Some(v) => v.to_attr_view_ts().0,
@@ -2575,14 +2560,11 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     let gen_ident_op_prms_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Prms");
     let gen_type_vrts_from_req_res_syn_vrts =
         |syn_vrts: &Vec<&syn::Variant>, op: &Op| -> Vec<syn::Variant> {
-            let mut type_vrts_from_req_res_syn_vrts = Vec::with_capacity(syn_vrts.len());
-            for el in syn_vrts {
-                type_vrts_from_req_res_syn_vrts.push((*el).clone());
-            }
-            for el in gen_er_vrts(&di, op.gen_pg_tbl_attr_er_vrts()) {
-                type_vrts_from_req_res_syn_vrts.push(el.clone());
-            }
-            type_vrts_from_req_res_syn_vrts
+            syn_vrts
+                .iter()
+                .map(|el| (*el).clone())
+                .chain(gen_er_vrts(&di, op.gen_pg_tbl_attr_er_vrts()))
+                .collect::<Vec<syn::Variant>>()
         };
     let std_sync_arc_combination_of_app_state_logic_traits_ts =
         quote::quote! {std::sync::Arc<dyn #import_ts CombinationOfAppStateLogicTraits>};
@@ -2596,7 +2578,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             Op::Cm | Op::Um => &vec_ident_rd_ids_ts,
         }
     };
-    for op in &[
+    [
         Op::Cm,
         Op::Co,
         Op::Rm,
@@ -2605,7 +2587,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         Op::Uo,
         Op::Dm,
         Op::Dlo,
-    ] {
+    ]
+    .iter()
+    .fold((), |(), op| {
         let op_h_sc_ts = op.self_h_sc_ts();
         let op_sc_ts = op.self_sc_ts();
         let gen_for_el_in_upd_for_query_vec_ts = |ts: &dyn quote::ToTokens| {
@@ -4008,7 +3992,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 #try_op_ts
             }
         });
-    }
+    });
     impl_ident_vec_ts.push(quote::quote! {
         pub fn #RoutesSc(#AppStateSc: #std_sync_arc_combination_of_app_state_logic_traits_ts) -> axum::Router {
             Self::#RoutesHSc(#AppStateSc, #self_tbl_name_call_ts)
@@ -4271,7 +4255,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         let mut tbl_fis_init_vec_ts = Vec::new();
         let mut tbl_test_name_fis_vec_ts = Vec::new();
         let mut fill_tbl_fis_vec_ts = |test_names: Vec<&str>| {
-            for el0 in test_names {
+            test_names.into_iter().fold((), |(), el0| {
                 let gen_init_variable_name_ts = |fi: &syn::Ident| {
                     let init_variable_name = format!("tbl_{el0}_{fi}");
                     parse_ts_or_compile_error(
@@ -4296,7 +4280,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         quote::quote! {&#init_variable_name_ts,}
                     },
                 ));
-            }
+            });
         };
         let tbl_rd_ids_and_cr_into_wh_eq_name = "8e427ad7";
         let tbl_rd_ids_and_cr_into_vec_wh_eq_using_fields_name = "eb24448c";

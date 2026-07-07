@@ -83,13 +83,19 @@ pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 #[proc_macro]
 pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut output = proc_macro2::TokenStream::new();
-    for token in proc_macro2::TokenStream::from(input) {
-        if let proc_macro2::TokenTree::Group(group) = token
-            && group.delimiter() == proc_macro2::Delimiter::Parenthesis
-        {
-            output.extend(gen_tp(GenTpInput(group.stream())).0);
-        }
-    }
+    let output = proc_macro2::TokenStream::from(input)
+        .into_iter()
+        .filter_map(|token| match token {
+            proc_macro2::TokenTree::Group(group)
+                if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
+            {
+                Some(gen_tp(GenTpInput(group.stream())).0)
+            }
+            proc_macro2::TokenTree::Group(_)
+            | proc_macro2::TokenTree::Ident(_)
+            | proc_macro2::TokenTree::Punct(_)
+            | proc_macro2::TokenTree::Literal(_) => None,
+        })
+        .collect::<proc_macro2::TokenStream>();
     output.into()
 }

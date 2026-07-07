@@ -9,9 +9,7 @@ pub enum DeriveOrImpl {
 pub struct GeneratedRustTsVec(pub Vec<macros_helpers::GeneratedRustTs>);
 impl quote::ToTokens for GeneratedRustTsVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        for ts in &self.0 {
-            ts.to_tokens(tokens);
-        }
+        tokens.extend(self.0.iter().map(quote::ToTokens::to_token_stream));
     }
 }
 impl FromIterator<macros_helpers::GeneratedRustTs> for GeneratedRustTsVec {

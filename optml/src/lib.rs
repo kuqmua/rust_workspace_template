@@ -108,24 +108,23 @@ pub fn optml(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         }
         syn::Data::Enum(data_enum) => {
-            let mut vars_ts = Vec::new();
-            for (i, var) in data_enum.variants.iter().enumerate() {
-                let var_ident = &var.ident;
-                let fields = match &var.fields {
-                    syn::Fields::Named(fields) => &fields.named,
-                    syn::Fields::Unnamed(fields) => &fields.unnamed,
-                    syn::Fields::Unit => continue,
-                };
-                let fields_len = fields.len();
-                if fields_len <= 1 {
-                    continue;
-                }
-                if let Some(v) =
+            let vars_ts = data_enum
+                .variants
+                .iter()
+                .enumerate()
+                .filter_map(|(i, var)| {
+                    let var_ident = &var.ident;
+                    let fields = match &var.fields {
+                        syn::Fields::Named(fields) => &fields.named,
+                        syn::Fields::Unnamed(fields) => &fields.unnamed,
+                        syn::Fields::Unit => return None,
+                    };
+                    if fields.len() <= 1 {
+                        return None;
+                    }
                     gen_assertions_ts(fields, &gen_alignments_ident_ts(i), "enum", Some(var_ident))
-                {
-                    vars_ts.push(v);
-                }
-            }
+                })
+                .collect::<Vec<proc_macro2::TokenStream>>();
             if vars_ts.is_empty() {
                 return proc_macro::TokenStream::new();
             }

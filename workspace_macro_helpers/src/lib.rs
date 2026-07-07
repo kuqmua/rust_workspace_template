@@ -85,31 +85,36 @@ pub fn split_top_level_commas<T>(input: T) -> TopLevelCommaParts
 where
     T: Into<MacroTokens>,
 {
-    let mut parts = Vec::new();
-    let mut current = proc_macro2::TokenStream::new();
-    let mut angle_depth = 0usize;
-    for token in input.into().0 {
-        match &token {
-            proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '<' => {
-                angle_depth = angle_depth.saturating_add(1);
-                current.extend([token]);
+    let (mut parts, current, _) = input.into().0.into_iter().fold(
+        (Vec::new(), proc_macro2::TokenStream::new(), 0usize),
+        |(mut parts, mut current, mut angle_depth), token| {
+            match &token {
+                proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '<' => {
+                    angle_depth = angle_depth.saturating_add(1);
+                    current.extend([token]);
+                }
+                proc_macro2::TokenTree::Punct(punct)
+                    if punct.as_char() == '>' && angle_depth != 0 =>
+                {
+                    angle_depth = angle_depth.saturating_sub(1);
+                    current.extend([token]);
+                }
+                proc_macro2::TokenTree::Punct(punct)
+                    if punct.as_char() == ',' && angle_depth == 0 =>
+                {
+                    parts.push(current);
+                    current = proc_macro2::TokenStream::new();
+                }
+                proc_macro2::TokenTree::Group(_)
+                | proc_macro2::TokenTree::Ident(_)
+                | proc_macro2::TokenTree::Punct(_)
+                | proc_macro2::TokenTree::Literal(_) => {
+                    current.extend([token]);
+                }
             }
-            proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '>' && angle_depth != 0 => {
-                angle_depth = angle_depth.saturating_sub(1);
-                current.extend([token]);
-            }
-            proc_macro2::TokenTree::Punct(punct) if punct.as_char() == ',' && angle_depth == 0 => {
-                parts.push(current);
-                current = proc_macro2::TokenStream::new();
-            }
-            proc_macro2::TokenTree::Group(_)
-            | proc_macro2::TokenTree::Ident(_)
-            | proc_macro2::TokenTree::Punct(_)
-            | proc_macro2::TokenTree::Literal(_) => {
-                current.extend([token]);
-            }
-        }
-    }
+            (parts, current, angle_depth)
+        },
+    );
     parts.push(current);
     TopLevelCommaParts(parts)
 }

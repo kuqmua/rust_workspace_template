@@ -40,22 +40,16 @@ impl std::str::FromStr for LocFieldAttr {
 impl TryFrom<&syn::Field> for LocFieldAttr {
     type Error = String;
     fn try_from(syn_field: &syn::Field) -> Result<Self, Self::Error> {
-        let mut opt_attr = None;
-        for el in &syn_field.attrs {
-            if el.path().segments.len() == 1 {
-                let first_segment_ident = match el.path().segments.first() {
-                    Some(v) => &v.ident,
-                    None => {
-                        return Err("no first in punct".to_owned());
-                    }
-                };
-                if let Ok(v) = std::str::FromStr::from_str(&first_segment_ident.to_string()) {
-                    if opt_attr.is_some() {
-                        return Err("two or more supported attrs!".to_owned());
-                    }
-                    opt_attr = Some(v);
-                }
-            } //other attrs are not for this proc_macro
+        let mut supported_attrs = syn_field.attrs.iter().filter_map(|el| {
+            if el.path().segments.len() != 1 {
+                return None;
+            }
+            let first_segment_ident = &el.path().segments.first()?.ident;
+            std::str::FromStr::from_str(&first_segment_ident.to_string()).ok()
+        });
+        let opt_attr = supported_attrs.next();
+        if supported_attrs.next().is_some() {
+            return Err("two or more supported attrs!".to_owned());
         }
         opt_attr.map_or_else(|| Err("opt attr is None".to_owned()), Ok)
     }
