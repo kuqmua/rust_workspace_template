@@ -28,6 +28,19 @@ impl std::fmt::Display for MacroTokens {
         self.0.fmt(f)
     }
 }
+impl syn::parse::Parse for MacroTokens {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        input.step(|cursor| {
+            let mut rest = *cursor;
+            let mut tokens = proc_macro2::TokenStream::new();
+            while let Some((token, next)) = rest.token_tree() {
+                tokens.extend([token]);
+                rest = next;
+            }
+            Ok((Self(tokens), rest))
+        })
+    }
+}
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
@@ -47,6 +60,39 @@ impl IntoIterator for TopLevelCommaParts {
     type Item = proc_macro2::TokenStream;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+impl syn::parse::Parse for TopLevelCommaParts {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut parts = Vec::new();
+        let mut current = proc_macro2::TokenStream::new();
+        let mut angle_depth = 0usize;
+        while !input.is_empty() {
+            if input.peek(syn::Token![,]) && angle_depth == 0 {
+                let _: syn::Token![,] = input.parse()?;
+                parts.push(current);
+                current = proc_macro2::TokenStream::new();
+                continue;
+            }
+            let token = input.parse::<proc_macro2::TokenTree>()?;
+            match &token {
+                proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '<' => {
+                    angle_depth = angle_depth.saturating_add(1);
+                }
+                proc_macro2::TokenTree::Punct(punct)
+                    if punct.as_char() == '>' && angle_depth != 0 =>
+                {
+                    angle_depth = angle_depth.saturating_sub(1);
+                }
+                proc_macro2::TokenTree::Group(_)
+                | proc_macro2::TokenTree::Ident(_)
+                | proc_macro2::TokenTree::Punct(_)
+                | proc_macro2::TokenTree::Literal(_) => {}
+            }
+            current.extend([token]);
+        }
+        parts.push(current);
+        Ok(Self(parts))
     }
 }
 #[must_use]
@@ -85,38 +131,8 @@ pub fn split_top_level_commas<T>(input: T) -> TopLevelCommaParts
 where
     T: Into<MacroTokens>,
 {
-    let (mut parts, current, _) = input.into().0.into_iter().fold(
-        (Vec::new(), proc_macro2::TokenStream::new(), 0usize),
-        |(mut parts, mut current, mut angle_depth), token| {
-            match &token {
-                proc_macro2::TokenTree::Punct(punct) if punct.as_char() == '<' => {
-                    angle_depth = angle_depth.saturating_add(1);
-                    current.extend([token]);
-                }
-                proc_macro2::TokenTree::Punct(punct)
-                    if punct.as_char() == '>' && angle_depth != 0 =>
-                {
-                    angle_depth = angle_depth.saturating_sub(1);
-                    current.extend([token]);
-                }
-                proc_macro2::TokenTree::Punct(punct)
-                    if punct.as_char() == ',' && angle_depth == 0 =>
-                {
-                    parts.push(current);
-                    current = proc_macro2::TokenStream::new();
-                }
-                proc_macro2::TokenTree::Group(_)
-                | proc_macro2::TokenTree::Ident(_)
-                | proc_macro2::TokenTree::Punct(_)
-                | proc_macro2::TokenTree::Literal(_) => {
-                    current.extend([token]);
-                }
-            }
-            (parts, current, angle_depth)
-        },
-    );
-    parts.push(current);
-    TopLevelCommaParts(parts)
+    syn::parse2::<TopLevelCommaParts>(input.into().0)
+        .unwrap_or_else(|_| TopLevelCommaParts(Vec::new()))
 }
 pub fn first_ident<I>(input: &mut I) -> Option<FirstIdent>
 where
@@ -170,7 +186,13 @@ where
             && let Some(proc_macro2::TokenTree::Punct(next_punct)) = iter.peek()
             && next_punct.as_char() == '>'
         {
-            drop(iter.next());
+            let arrow = {
+                let mut ts = proc_macro2::TokenStream::new();
+                ts.extend([token]);
+                ts.extend(iter.next());
+                ts
+            };
+            let _: syn::Token![=>] = syn::parse2(arrow).ok()?;
             after.extend(iter);
             return Some((MacroTokens(before), MacroTokens(after)));
         }
@@ -184,24 +206,19 @@ pub fn closure_ident_and_body<T>(input: T) -> Option<(FirstIdent, MacroTokens)>
 where
     T: Into<MacroTokens>,
 {
-    let mut iter = input.into().0.into_iter();
-    let Some(proc_macro2::TokenTree::Punct(open_pipe)) = iter.next() else {
-        return None;
-    };
-    if open_pipe.as_char() != '|' {
-        return None;
+    struct ClosureIdentAndBody {
+        body: MacroTokens,
+        ident: syn::Ident,
     }
-    let Some(proc_macro2::TokenTree::Ident(ident)) = iter.next() else {
-        return None;
-    };
-    let Some(proc_macro2::TokenTree::Punct(close_pipe)) = iter.next() else {
-        return None;
-    };
-    if close_pipe.as_char() != '|' {
-        return None;
+    impl syn::parse::Parse for ClosureIdentAndBody {
+        fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+            let _: syn::Token![|] = input.parse()?;
+            let ident = input.parse::<syn::Ident>()?;
+            let _: syn::Token![|] = input.parse()?;
+            let body = input.parse::<MacroTokens>()?;
+            Ok(Self { body, ident })
+        }
     }
-    Some((
-        FirstIdent(ident.to_string()),
-        MacroTokens(iter.collect::<proc_macro2::TokenStream>()),
-    ))
+    let parsed = syn::parse2::<ClosureIdentAndBody>(input.into().0).ok()?;
+    Some((FirstIdent(parsed.ident.to_string()), parsed.body))
 }

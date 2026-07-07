@@ -3,32 +3,13 @@ struct ToScInput<'input_lt>(&'input_lt str);
 struct ScString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_sc(input: ToScInput<'_>) -> ScString {
-    let (result, _, _) = input.0.chars().fold(
-        (String::with_capacity(input.0.len()), false, false),
-        |(mut result, mut prev_is_undrscr, mut prev_is_lowercase), el0| {
-            if el0.is_alphabetic() {
-                if el0.is_uppercase() {
-                    if prev_is_lowercase && !prev_is_undrscr {
-                        result.push('_');
-                    }
-                    result.extend(el0.to_lowercase());
-                    prev_is_lowercase = false;
-                } else {
-                    result.push(el0);
-                    prev_is_lowercase = true;
-                }
-                prev_is_undrscr = false;
-            } else {
-                if !prev_is_undrscr && !result.is_empty() {
-                    result.push('_');
-                    prev_is_undrscr = true;
-                }
-                prev_is_lowercase = false;
-            }
-            (result, prev_is_undrscr, prev_is_lowercase)
-        },
-    );
-    ScString(result.trim_matches('_').to_owned())
+    let normalized = input
+        .0
+        .split(|ch: char| !ch.is_alphanumeric())
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<&str>>()
+        .join(" ");
+    ScString(naming::AsRefStrToScStr::case(&normalized))
 }
 #[proc_macro]
 pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {

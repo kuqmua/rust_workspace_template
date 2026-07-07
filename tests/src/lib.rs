@@ -1650,18 +1650,30 @@ mod tests {
         fn is_ignored_dir_entry_name(name: &std::ffi::OsStr) -> bool {
             name == "target" || name == ".git"
         }
-        #[allow(clippy::single_call_fn)] // shared traversal keeps Cargo.toml filtering rules centralized while avoiding temporary vec allocation
+        #[allow(clippy::single_call_fn)] // shared metadata loader keeps workspace package discovery aligned with Cargo itself
+        fn workspace_metadata() -> cargo_metadata::Metadata {
+            cargo_metadata::MetadataCommand::new()
+                .manifest_path("../Cargo.toml")
+                .exec()
+                .expect("c84e9d1f")
+        }
+        #[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so workspace package manifests match Cargo's view of the workspace
         fn for_each_cargo_toml_project_file(
             exceptions: &[&str],
-            mut on_file: impl FnMut(&std::path::Path),
+            on_file: impl FnMut(&std::path::Path),
         ) {
-            project_dir()
-                .into_iter()
-                .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
-                .filter_map(Result::ok)
-                .filter(|el| el.file_name() == "Cargo.toml")
-                .filter(|el| !is_exception(el.path(), exceptions))
-                .for_each(|entry| on_file(entry.path()));
+            let metadata = workspace_metadata();
+            let workspace_members = metadata
+                .workspace_members
+                .iter()
+                .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>();
+            metadata
+                .packages
+                .iter()
+                .filter(|package| workspace_members.contains(&package.id))
+                .map(|package| package.manifest_path.as_std_path())
+                .filter(|path| !is_exception(path, exceptions))
+                .for_each(on_file);
         }
         #[allow(clippy::single_call_fn)] // iterator builder is intentionally separated for readability and traversal reuse entrypoint
         fn rs_project_files() -> impl Iterator<Item = walkdir::DirEntry> {

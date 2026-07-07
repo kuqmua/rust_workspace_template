@@ -20,5 +20,6 @@ uuid = { workspace = true }
 walkdir = { workspace = true }
 optml = { workspace = true }
 rayon = { workspace = true }
+cargo_metadata = { workspace = true }
 [lints]
 workspace = true

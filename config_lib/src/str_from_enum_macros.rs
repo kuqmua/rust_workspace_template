@@ -1,14 +1,8 @@
 const ALLOWED_VALUES_SEPARATOR: &str = ", ";
 #[derive(Debug, Clone, Copy)]
 pub struct EnumInputRef<'input_lt>(pub &'input_lt str);
-#[derive(Debug)]
-pub struct EnumPairsRef<'pairs_lt, T>(pub &'pairs_lt [(&'static str, T)]);
-impl<T> Clone for EnumPairsRef<'_, T> {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-impl<T> Copy for EnumPairsRef<'_, T> {}
+#[derive(Debug, Clone, Copy)]
+pub struct EnumVariantsRef<'variants_lt>(pub &'variants_lt [&'static str]);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AllowedValuesCapacity(usize);
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,11 +39,11 @@ impl From<EnumParseEr> for String {
     }
 }
 #[allow(clippy::single_call_fn)] // extracted for reuse by allowed-values formatter and tests
-fn allowed_values_capacity<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValuesCapacity {
+fn allowed_values_capacity(vrts: EnumVariantsRef<'_>) -> AllowedValuesCapacity {
     AllowedValuesCapacity(
         vrts.0
             .iter()
-            .map(|(name, _)| name.len())
+            .map(|name| name.len())
             .sum::<usize>()
             .saturating_add(
                 vrts.0
@@ -60,10 +54,10 @@ fn allowed_values_capacity<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValuesCapacit
     )
 }
 #[allow(clippy::single_call_fn)] // extracted to keep allowed-values formatting reusable and tested
-fn mk_allowed_values<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValues {
+fn mk_allowed_values(vrts: EnumVariantsRef<'_>) -> AllowedValues {
     let allowed_values = vrts.0.iter().enumerate().fold(
         String::with_capacity(allowed_values_capacity(vrts).0),
-        |mut acc, (idx, (name, _))| {
+        |mut acc, (idx, name)| {
             if idx != 0 {
                 acc.push_str(ALLOWED_VALUES_SEPARATOR);
             }
@@ -73,36 +67,30 @@ fn mk_allowed_values<T>(vrts: EnumPairsRef<'_, T>) -> AllowedValues {
     );
     AllowedValues(allowed_values)
 }
-#[allow(clippy::single_call_fn)] // extracted lookup keeps case-insensitive enum-pair search reusable and testable
-fn find_case_insensitive_pair<T>(v: EnumInputRef<'_>, vrts: EnumPairsRef<'_, T>) -> Option<T>
-where
-    T: Copy,
-{
-    vrts.0
-        .iter()
-        .find_map(|(str_vrt, enum_vrt)| v.0.eq_ignore_ascii_case(str_vrt).then_some(*enum_vrt))
-}
 pub fn impl_from_str_for_enum_helper<T, Er>(
     v: EnumInputRef<'_>,
-    vrts: EnumPairsRef<'_, T>,
+    vrts: EnumVariantsRef<'_>,
 ) -> Result<T, Er>
 where
-    T: Copy,
+    T: Copy + std::fmt::Display + strum::IntoEnumIterator,
     Er: From<EnumParseEr>,
 {
-    find_case_insensitive_pair(v, vrts).ok_or_else(|| {
-        let allowed_values = mk_allowed_values(vrts);
-        EnumParseEr {
-            input: UnknownEnumInput(v.0.to_owned()),
-            allowed_values,
-        }
-        .into()
-    })
+    T::iter()
+        .find(|el| v.0.eq_ignore_ascii_case(&el.to_string()))
+        .ok_or_else(|| {
+            let allowed_values = mk_allowed_values(vrts);
+            EnumParseEr {
+                input: UnknownEnumInput(v.0.to_owned()),
+                allowed_values,
+            }
+            .into()
+        })
 }
 #[cfg(test)]
 mod tests {
-    const PAIRS: [(&str, V); 2] = [("a", V::A), ("b", V::B)];
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    const VARIANTS: [&str; 2] = ["a", "b"];
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, strum_macros::Display, strum_macros::EnumIter)]
+    #[strum(serialize_all = "snake_case", ascii_case_insensitive)]
     enum V {
         A,
         B,
@@ -112,33 +100,23 @@ mod tests {
         assert_eq!(
             super::impl_from_str_for_enum_helper::<V, String>(
                 super::EnumInputRef("A"),
-                super::EnumPairsRef(&PAIRS)
+                super::EnumVariantsRef(&VARIANTS)
             ),
             Ok(V::A)
         );
         assert_eq!(
             super::impl_from_str_for_enum_helper::<V, String>(
                 super::EnumInputRef("b"),
-                super::EnumPairsRef(&PAIRS)
+                super::EnumVariantsRef(&VARIANTS)
             ),
             Ok(V::B)
-        );
-    }
-    #[test]
-    fn find_case_insensitive_pair_returns_none_for_unknown_value() {
-        assert_eq!(
-            super::find_case_insensitive_pair(
-                super::EnumInputRef("x"),
-                super::EnumPairsRef(&PAIRS)
-            ),
-            None
         );
     }
     #[test]
     fn helper_error_mentions_allowed_values() {
         let er = super::impl_from_str_for_enum_helper::<V, String>(
             super::EnumInputRef("x"),
-            super::EnumPairsRef(&PAIRS),
+            super::EnumVariantsRef(&VARIANTS),
         )
         .expect_err("4d6330e7");
         assert!(er.contains("Unknown value: x"));
@@ -146,20 +124,19 @@ mod tests {
     }
     #[test]
     fn helper_error_keeps_variant_order_in_allowed_values() {
-        let pairs = [("first", V::A), ("second", V::B)];
         let er = super::impl_from_str_for_enum_helper::<V, String>(
             super::EnumInputRef("x"),
-            super::EnumPairsRef(&pairs),
+            super::EnumVariantsRef(&["first", "second"]),
         )
         .expect_err("ee52fc8d");
         assert!(er.contains("Allowed values: first, second"));
     }
     #[test]
     fn helper_error_handles_empty_variants() {
-        let pairs: [(&str, V); 0] = [];
+        let variants: [&str; 0] = [];
         let er = super::impl_from_str_for_enum_helper::<V, String>(
             super::EnumInputRef("x"),
-            super::EnumPairsRef(&pairs),
+            super::EnumVariantsRef(&variants),
         )
         .expect_err("312f79de");
         assert_eq!(er, "Unknown value: x. Allowed values: ");
@@ -167,15 +144,15 @@ mod tests {
     #[test]
     fn mk_allowed_values_formats_multiple_variants() {
         assert_eq!(
-            super::mk_allowed_values(super::EnumPairsRef(&PAIRS)).as_ref(),
+            super::mk_allowed_values(super::EnumVariantsRef(&VARIANTS)).as_ref(),
             "a, b"
         );
     }
     #[test]
     fn mk_allowed_values_returns_empty_for_no_variants() {
-        let pairs: [(&str, V); 0] = [];
+        let variants: [&str; 0] = [];
         assert_eq!(
-            super::mk_allowed_values(super::EnumPairsRef(&pairs)).as_ref(),
+            super::mk_allowed_values(super::EnumVariantsRef(&variants)).as_ref(),
             ""
         );
     }

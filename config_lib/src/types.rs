@@ -1,12 +1,3 @@
-const TRACING_LEVEL_PARSE_PAIRS: [(&str, TracingLevel); 5] = [
-    ("trace", TracingLevel::Trace),
-    ("debug", TracingLevel::Debug),
-    ("info", TracingLevel::Info),
-    ("warn", TracingLevel::Warn),
-    ("er", TracingLevel::Er),
-];
-const SRC_PLACE_TYPE_PARSE_PAIRS: [(&str, SrcPlaceType); 2] =
-    [("github", SrcPlaceType::Github), ("src", SrcPlaceType::Src)];
 const SRC_PLACE_TYPE_ENV_VAR: &str = "SRC_PLACE_TYPE";
 const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
 const SRC_PLACE_TYPE_FIX_MSG: &str =
@@ -45,12 +36,14 @@ impl AsRef<str> for EnvParseEr {
     Clone,
     Copy,
     strum_macros::EnumIter,
+    strum_macros::VariantNames,
     serde::Serialize,
     serde::Deserialize,
     PartialEq,
     Eq,
     optml::Optml,
 )]
+#[strum(serialize_all = "snake_case")]
 pub enum TracingLevel {
     Trace,
     Debug,
@@ -75,7 +68,7 @@ impl std::str::FromStr for TracingLevel {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         crate::str_from_enum_macros::impl_from_str_for_enum_helper(
             crate::str_from_enum_macros::EnumInputRef(s),
-            crate::str_from_enum_macros::EnumPairsRef(&TRACING_LEVEL_PARSE_PAIRS),
+            crate::str_from_enum_macros::EnumVariantsRef(<Self as strum::VariantNames>::VARIANTS),
         )
     }
 }
@@ -92,10 +85,13 @@ impl std::fmt::Display for TracingLevel {
     PartialEq,
     Eq,
     strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::VariantNames,
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
 )]
+#[strum(serialize_all = "snake_case")]
 pub enum SrcPlaceType {
     #[default]
     Github,
@@ -106,7 +102,7 @@ impl std::str::FromStr for SrcPlaceType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         crate::str_from_enum_macros::impl_from_str_for_enum_helper(
             crate::str_from_enum_macros::EnumInputRef(s),
-            crate::str_from_enum_macros::EnumPairsRef(&SRC_PLACE_TYPE_PARSE_PAIRS),
+            crate::str_from_enum_macros::EnumVariantsRef(<Self as strum::VariantNames>::VARIANTS),
         )
     }
 }
@@ -175,41 +171,27 @@ where
 }
 #[cfg(test)]
 mod tests {
-    #[allow(clippy::single_call_fn)] // shared helper keeps parse-pair assertions centralized across enum parser tests
-    fn assert_from_str_matches_pairs<T>(pairs: &[(&str, T)])
+    #[allow(clippy::single_call_fn)] // shared helper keeps variant parse/display assertions centralized across enum parser tests
+    fn assert_parse_display_roundtrip_variants<T>()
     where
-        T: Copy + Eq + std::fmt::Debug + std::str::FromStr<Err = String>,
+        T: Copy
+            + Eq
+            + std::fmt::Debug
+            + std::fmt::Display
+            + std::str::FromStr<Err = String>
+            + strum::IntoEnumIterator,
     {
         assert!(
-            pairs
-                .iter()
-                .all(|(name, value)| T::from_str(name) == Ok(*value)),
-            "a5d1e7c9"
-        );
-    }
-    #[allow(clippy::single_call_fn)] // shared helper keeps tracing-level parse/display roundtrip assertions reusable across tests
-    fn assert_tracing_level_roundtrip(name: &str, level: super::TracingLevel) {
-        assert_eq!(
-            <super::TracingLevel as std::str::FromStr>::from_str(name),
-            Ok(level)
-        );
-        assert_eq!(level.to_string(), name);
-    }
-    #[allow(clippy::single_call_fn)] // shared helper keeps parse+display roundtrip checks reusable for pair-based enum tests
-    fn assert_parse_display_roundtrip_pairs<T>(pairs: &[(&str, T)])
-    where
-        T: Copy + Eq + std::fmt::Debug + std::fmt::Display + std::str::FromStr<Err = String>,
-    {
-        assert!(
-            pairs.iter().all(|(name, value)| {
-                T::from_str(name) == Ok(*value) && value.to_string() == *name
+            T::iter().all(|value| {
+                let name = value.to_string();
+                T::from_str(&name) == Ok(value)
             }),
             "7d39b6f2"
         );
     }
     #[test]
     fn tracing_level_display_is_stable() {
-        assert_parse_display_roundtrip_pairs(&super::TRACING_LEVEL_PARSE_PAIRS);
+        assert_parse_display_roundtrip_variants::<super::TracingLevel>();
     }
     #[test]
     fn tracing_level_from_str_is_case_insensitive() {
@@ -226,19 +208,11 @@ mod tests {
     }
     #[test]
     fn tracing_level_roundtrip_is_stable_for_all_variants() {
-        assert!(
-            super::TRACING_LEVEL_PARSE_PAIRS
-                .into_iter()
-                .all(|(name, level)| {
-                    assert_tracing_level_roundtrip(name, level);
-                    true
-                }),
-            "ec18a7bd"
-        );
+        assert_parse_display_roundtrip_variants::<super::TracingLevel>();
     }
     #[test]
     fn src_place_type_from_str_roundtrip_is_stable_for_all_variants() {
-        assert_from_str_matches_pairs(&super::SRC_PLACE_TYPE_PARSE_PAIRS);
+        assert_parse_display_roundtrip_variants::<super::SrcPlaceType>();
     }
     #[test]
     fn src_place_type_from_str_accepts_src_value() {
