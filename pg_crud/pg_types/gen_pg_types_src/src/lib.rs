@@ -1,12 +1,12 @@
-use gen_quotes::dq_ts;
-use macros_helpers::gen_impl_try_from_ts;
-use macros_helpers::{
+pub use gen_quotes::dq_ts;
+pub use macros_helpers::gen_impl_try_from_ts;
+pub use macros_helpers::{
     DCopy, DDefault, DEq, DOrd, DPartialOrd, DSerdeDeserialize, DSerdeSerialize, DTsBuilder,
     FormatWithCargofmt, ShouldWriteTsIntoFile, gen_const_new_ts, gen_if_write_is_err_ts,
     gen_impl_display_ts, gen_impl_from_ts, gen_new_ts, gen_pub_const_new_ts, gen_pub_new_ts,
     gen_pub_try_new_ts, mb_write_ts_into_file,
 };
-use naming::{
+pub use naming::{
     AsUcc, ColSc, ContainsNullByteUcc, CrSc, DateNaiveSc, DateNaiveUcc, DateSc, DateUcc, DaysSc,
     DisplayPlusToTokens, EarlierDateNotSupportedUcc, EarliestSupportedDateSc, EndSc, EndUcc, EqUcc,
     ErSc, ExcludedStartGreaterThanExcludedEndUcc, ExcludedStartGreaterThanIncludedEndUcc,
@@ -26,10 +26,10 @@ use naming::{
         SelfUpdUcc, SelfWhUcc,
     },
 };
-use optml::Optml;
-use panic_loc::panic_loc;
-use pg_crud_cmn::PgTypeGreaterThanVrt;
-use pg_crud_macros_cmn::{
+pub use optml::Optml;
+pub use panic_loc::panic_loc;
+pub use pg_crud_cmn::PgTypeGreaterThanVrt;
+pub use pg_crud_macros_cmn::{
     AddOprtrUndrscr, ColPrmUndrscr, CrQbValueUndrscr, CrQpIncrUndrscr, CrQpValueUndrscr,
     DeriveOrImpl, EqOprtrH, Import, IncrPrmUndrscr, IsCrQbMut, IsNl, IsPkUndrscr, IsQbMut,
     IsSelOnlyUpddIdsQbMut, IsStdrtNn, IsUpdQbMut, PgFlt, PgTypeFlt, RdOrUpd, SelQpValueUndrscr,
@@ -45,21 +45,22 @@ use pg_crud_macros_cmn::{
     impl_pg_type_eq_oprtr_for_ident_ts, impl_pg_type_wh_flt_for_ident_ts,
     serde_er_enum_d_ts_builder,
 };
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use rayon::iter::{IntoParallelRefIterator as _, ParallelIterator as _};
-use serde::{Deserialize, Serialize};
-use serde_json::from_str;
-use std::{
-    fmt::{Display, Formatter, Result as StdFmtResult},
+pub use quote::{ToTokens, quote};
+pub use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+pub use serde::{Deserialize, Serialize};
+pub use serde_json::from_str;
+pub use std::{
+    fmt::{Display, Formatter},
     iter::once,
 };
-use strum::IntoEnumIterator as _;
-use strum_macros::{Display as StrumDisplay, EnumIter};
-use token_patterns::{
+pub use strum::IntoEnumIterator;
+pub use strum_macros::EnumIter;
+pub use token_patterns::{
     AllowClippyArbitrarySrcItemOrdering, CoreDefault, F32, I16, I32, I64, MustUse,
     PgCrudCmnDfltSomeOneElCall, StringTs, U8, U32,
 };
+type Ts2 = proc_macro2::TokenStream;
+type StdFmtResult = std::fmt::Result;
 fn compile_error_ts(msg: &str) -> Ts2 {
     quote! {compile_error!(#msg);}
 }
@@ -72,7 +73,7 @@ fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
 #[must_use]
 pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, StrumDisplay, Optml)]
+    #[derive(Debug, strum_macros::Display, Optml)]
     enum RustTypeName {
         I16,
         I32,
@@ -128,7 +129,7 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, StrumDisplay, Optml)]
+    #[derive(Debug, strum_macros::Display, Optml)]
     enum PgTypeName {
         Int2,
         Int4,
@@ -190,7 +191,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, StrumDisplay, EnumIter, Optml)]
+    #[derive(
+        Debug, Clone, PartialEq, Serialize, Deserialize, strum_macros::Display, EnumIter, Optml,
+    )]
     enum PgType {
         I16AsInt2,
         I32AsInt4,
@@ -331,7 +334,9 @@ pub fn gen_pg_types(input_ts: &Ts2) -> Ts2 {
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, StrumDisplay, EnumIter, Optml)]
+    #[derive(
+        Debug, Clone, PartialEq, Serialize, Deserialize, strum_macros::Display, EnumIter, Optml,
+    )]
     enum PgTypePattern {
         Stdrt,
     }

@@ -1,42 +1,39 @@
-use gen_quotes::dq_ts;
-use proc_macro::TokenStream as Ts;
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use std::iter::repeat_n;
-use syn::{
-    Data, DeriveInput, Field, Fields, GenericParam, Ident, Lifetime, parse, punctuated::Punctuated,
-    token::Comma, visit_mut::VisitMut,
-};
 struct ReplaceLts;
-impl VisitMut for ReplaceLts {
-    fn visit_lifetime_mut(&mut self, i: &mut Lifetime) {
-        i.ident = Ident::new("static", i.ident.span());
+impl syn::visit_mut::VisitMut for ReplaceLts {
+    fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
+        i.ident = syn::Ident::new("static", i.ident.span());
     }
 }
 #[allow(clippy::single_call_fn)] // isolated helper keeps lifetime rewrite reusable when alignment logic grows
-fn field_ty_with_static_lts(field: &Field) -> syn::Type {
+fn field_ty_with_static_lts(field: &syn::Field) -> syn::Type {
     let mut ft = field.ty.clone();
     let mut visitor = ReplaceLts;
-    visitor.visit_type_mut(&mut ft);
+    syn::visit_mut::VisitMut::visit_type_mut(&mut visitor, &mut ft);
     ft
 }
 #[allow(clippy::single_call_fn)] // isolated helper keeps align token generation reusable and explicit
-fn gen_align_of_ts(field: &Field) -> Ts2 {
+fn gen_align_of_ts(field: &syn::Field) -> proc_macro2::TokenStream {
     let ft = field_ty_with_static_lts(field);
-    quote! {align_of::<#ft>()}
+    quote::quote! {align_of::<#ft>()}
 }
 #[proc_macro_derive(Optml)]
-pub fn optml(input_ts: Ts) -> Ts {
-    let gen_alignments_ident_ts =
-        |i: usize| format!("alignments_{i}").parse::<Ts2>().expect("5a0bb723");
-    let di: DeriveInput = parse(input_ts).expect("a1d306de");
+pub fn optml(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let gen_alignments_ident_ts = |i: usize| {
+        format!("alignments_{i}")
+            .parse::<proc_macro2::TokenStream>()
+            .expect("5a0bb723")
+    };
+    let di: syn::DeriveInput = syn::parse(input_ts).expect("a1d306de");
     let ident = &di.ident;
-    let gen_fi = |i: usize| Ident::new(&format!("field_{i}"), ident.span());
-    let gen_assertions_ts = |fields: &Punctuated<Field, Comma>,
-                             alignments_ts: &dyn ToTokens,
+    let gen_fi = |i: usize| syn::Ident::new(&format!("field_{i}"), ident.span());
+    let gen_assertions_ts = |fields: &syn::punctuated::Punctuated<
+        syn::Field,
+        syn::token::Comma,
+    >,
+                             alignments_ts: &dyn quote::ToTokens,
                              kind_name: &'static str,
-                             variant: Option<&Ident>|
-     -> Option<Ts2> {
+                             variant: Option<&syn::Ident>|
+     -> Option<proc_macro2::TokenStream> {
         let fields_len = fields.len();
         if fields_len <= 1 {
             return None;
@@ -45,7 +42,7 @@ pub fn optml(input_ts: Ts) -> Ts {
         let variant_info = variant.map_or_else(String::new, |variant_ident| {
             format!("variant '{variant_ident}' ")
         });
-        let gen_or_copy_ident = |field: &Field, idx: usize| {
+        let gen_or_copy_ident = |field: &syn::Field, idx: usize| {
             field
                 .ident
                 .as_ref()
@@ -59,49 +56,49 @@ pub fn optml(input_ts: Ts) -> Ts {
             let i_plus_one = i.saturating_add(1);
             let fi = gen_or_copy_ident(field, i);
             let fi_next = gen_or_copy_ident(next_field, i_plus_one);
-            let msg_ts = dq_ts(&format!(
-                "In {kind_name} '{ident}' {variant_info}align_of field '{fi}' < align_of field '{fi_next}'. Field '{fi_next}' must be placed before '{fi}' for better memory alignment",
+            let msg_ts = gen_quotes::dq_ts(&format!(
+                "In {kind_name} '{ident}' {variant_info}align_of field '{fi}' < align_of field '{fi_next}'. syn::Field '{fi_next}' must be placed before '{fi}' for better memory alignment",
             ));
-            quote!{
+            quote::quote! {
                 assert!(
                     #alignments_ts[#i] >= #alignments_ts[#i_plus_one],
                     #msg_ts,
                 );
             }
         });
-        Some(quote! {
+        Some(quote::quote! {
             let #alignments_ts: [usize; #fields_len] = [#(#align_of_ts),*];
             #(#assertions_ts)*
         })
     };
     let ts = match &di.data {
-        Data::Struct(data) => {
+        syn::Data::Struct(data) => {
             let fields = match &data.fields {
-                Fields::Named(fields) => &fields.named,
-                Fields::Unnamed(fields) => &fields.unnamed,
-                Fields::Unit => {
-                    return Ts::new();
+                syn::Fields::Named(fields) => &fields.named,
+                syn::Fields::Unnamed(fields) => &fields.unnamed,
+                syn::Fields::Unit => {
+                    return proc_macro::TokenStream::new();
                 }
             };
             let fields_len = fields.len();
             if fields_len <= 1 {
-                return Ts::new();
+                return proc_macro::TokenStream::new();
             }
-            match gen_assertions_ts(fields, &quote! {alignments}, "struct", None) {
+            match gen_assertions_ts(fields, &quote::quote! {alignments}, "struct", None) {
                 Some(v) => v,
                 None => {
-                    return Ts::new();
+                    return proc_macro::TokenStream::new();
                 }
             }
         }
-        Data::Enum(data_enum) => {
+        syn::Data::Enum(data_enum) => {
             let mut vars_ts = Vec::new();
             for (i, var) in data_enum.variants.iter().enumerate() {
                 let var_ident = &var.ident;
                 let fields = match &var.fields {
-                    Fields::Named(fields) => &fields.named,
-                    Fields::Unnamed(fields) => &fields.unnamed,
-                    Fields::Unit => continue,
+                    syn::Fields::Named(fields) => &fields.named,
+                    syn::Fields::Unnamed(fields) => &fields.unnamed,
+                    syn::Fields::Unit => continue,
                 };
                 let fields_len = fields.len();
                 if fields_len <= 1 {
@@ -114,12 +111,12 @@ pub fn optml(input_ts: Ts) -> Ts {
                 }
             }
             if vars_ts.is_empty() {
-                return Ts::new();
+                return proc_macro::TokenStream::new();
             }
-            quote! {#(#vars_ts)*}
+            quote::quote! {#(#vars_ts)*}
         }
-        Data::Union(_) => {
-            return Ts::new();
+        syn::Data::Union(_) => {
+            return proc_macro::TokenStream::new();
         }
     };
     let generics = &di.generics;
@@ -127,17 +124,20 @@ pub fn optml(input_ts: Ts) -> Ts {
     let has_only_lts = generics
         .params
         .iter()
-        .all(|p| matches!(p, GenericParam::Lifetime(_)));
+        .all(|p| matches!(p, syn::GenericParam::Lifetime(_)));
     let (impl_ts, ty_ts) = if has_only_lts && !generics.params.is_empty() {
         let lts_count = generics.params.len();
-        let undrscrs = repeat_n(quote! {'_}, lts_count);
-        let new_ty_generics = quote! {<#(#undrscrs),*>};
-        (quote! {}, new_ty_generics)
+        let undrscrs = std::iter::repeat_n(quote::quote! {'_}, lts_count);
+        let new_ty_generics = quote::quote! {<#(#undrscrs),*>};
+        (quote::quote! {}, new_ty_generics)
     } else {
-        (quote! { #impl_generics }, quote! { #ty_generics })
+        (
+            quote::quote! { #impl_generics },
+            quote::quote! { #ty_generics },
+        )
     };
-    let const_name_ts = quote! {_OPTIMAL_PACK_CHECK};
-    let impl_check_ts = quote! {
+    let const_name_ts = quote::quote! {_OPTIMAL_PACK_CHECK};
+    let impl_check_ts = quote::quote! {
         #[allow(unused_qualifications)]
         impl #impl_ts #ident #ty_ts #wh_clause {
             const #const_name_ts: () = {
@@ -148,11 +148,11 @@ pub fn optml(input_ts: Ts) -> Ts {
     let has_type_prms = generics
         .params
         .iter()
-        .any(|p| matches!(p, GenericParam::Type(_) | GenericParam::Const(_)));
+        .any(|p| matches!(p, syn::GenericParam::Type(_) | syn::GenericParam::Const(_)));
     let generated = if has_type_prms {
-        quote! {#impl_check_ts}
+        quote::quote! {#impl_check_ts}
     } else {
-        quote! {
+        quote::quote! {
             #impl_check_ts
             const _: () = #ident::#const_name_ts;
         }

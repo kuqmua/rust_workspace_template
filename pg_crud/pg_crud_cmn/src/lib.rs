@@ -1,29 +1,3 @@
-use loc_lib::{Location, ToErrString, loc, loc::Loc};
-use naming::{AndSc, AscUcc, DescUcc, DisplayToScStr, DisplayToUccStr, NotSc, OrSc};
-use optml::Optml;
-use pg_crud_cmn_macros::trait_al;
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use schemars::JsonSchema;
-use serde::{Deserialize, Deserializer, Serialize};
-use sqlx::{
-    encode::IsNull,
-    error::BoxDynError,
-    postgres::{PgArgumentBuffer, PgArguments, PgValueRef},
-    query::Query,
-    types::Json,
-    {Database, Decode, Encode, Postgres, Type},
-};
-use std::{
-    error::Error as StdErEr,
-    fmt::{
-        Formatter, Result as StdFmtResult, Write as _, {Debug, Display},
-    },
-};
-use strum_macros::EnumString;
-use thiserror::Error;
-use utoipa::ToSchema;
-use uuid::Uuid;
 pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;
@@ -37,7 +11,18 @@ pub trait DfltSomeOneEl: Sized {
 pub trait DfltSomeOneElMaxPageSize: Sized {
     fn dflt_some_one_el_max_page_size() -> Self;
 }
-#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, Eq, PartialEq, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    Eq,
+    PartialEq,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub enum Oprtr {
     And,
     AndNot,
@@ -50,8 +35,8 @@ impl DfltSomeOneEl for Oprtr {
         Self::default()
     }
 }
-impl Display for Oprtr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+impl std::fmt::Display for Oprtr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{self:?}")
     }
 }
@@ -62,14 +47,20 @@ impl Oprtr {
         let mut qp = String::with_capacity(8);
         if add_oprtr {
             let write_res = match *self {
-                Self::And | Self::AndNot => write!(&mut qp, "{AndSc}{SPACE}"),
-                Self::Or | Self::OrNot => write!(&mut qp, "{OrSc}{SPACE}"),
+                Self::And | Self::AndNot => {
+                    std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::AndSc, SPACE))
+                }
+                Self::Or | Self::OrNot => {
+                    std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::OrSc, SPACE))
+                }
             };
             if write_res.is_err() {
                 return String::default();
             }
         }
-        if matches!(*self, Self::AndNot | Self::OrNot) && write!(&mut qp, "{NotSc}{SPACE}").is_err()
+        if matches!(*self, Self::AndNot | Self::OrNot)
+            && std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::NotSc, SPACE))
+                .is_err()
         {
             return String::default();
         }
@@ -78,38 +69,48 @@ impl Oprtr {
 }
 #[cfg(test)]
 mod tests_oprtr_to_qp {
-    use super::Oprtr;
-    use naming::{AndSc, NotSc, OrSc};
     #[test]
     fn to_qp_includes_oprtr_when_requested() {
-        assert_eq!(Oprtr::And.to_qp(true), format!("{AndSc} "));
-        assert_eq!(Oprtr::Or.to_qp(true), format!("{OrSc} "));
+        assert_eq!(super::Oprtr::And.to_qp(true), format!("{} ", naming::AndSc));
+        assert_eq!(super::Oprtr::Or.to_qp(true), format!("{} ", naming::OrSc));
     }
     #[test]
     fn to_qp_includes_not_suffix_for_negative_variants() {
-        assert_eq!(Oprtr::AndNot.to_qp(true), format!("{AndSc} {NotSc} "));
-        assert_eq!(Oprtr::OrNot.to_qp(true), format!("{OrSc} {NotSc} "));
+        assert_eq!(
+            super::Oprtr::AndNot.to_qp(true),
+            format!("{} {} ", naming::AndSc, naming::NotSc)
+        );
+        assert_eq!(
+            super::Oprtr::OrNot.to_qp(true),
+            format!("{} {} ", naming::OrSc, naming::NotSc)
+        );
     }
     #[test]
     fn to_qp_omits_oprtr_when_disabled_and_keeps_not_only_for_negative_variants() {
-        assert_eq!(Oprtr::And.to_qp(false), "");
-        assert_eq!(Oprtr::Or.to_qp(false), "");
-        assert_eq!(Oprtr::AndNot.to_qp(false), format!("{NotSc} "));
-        assert_eq!(Oprtr::OrNot.to_qp(false), format!("{NotSc} "));
+        assert_eq!(super::Oprtr::And.to_qp(false), "");
+        assert_eq!(super::Oprtr::Or.to_qp(false), "");
+        assert_eq!(
+            super::Oprtr::AndNot.to_qp(false),
+            format!("{} ", naming::NotSc)
+        );
+        assert_eq!(
+            super::Oprtr::OrNot.to_qp(false),
+            format!("{} ", naming::NotSc)
+        );
     }
 }
-impl ToTokens for Oprtr {
-    fn to_tokens(&self, tokens: &mut Ts2) {
+impl quote::ToTokens for Oprtr {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match *self {
-            Self::And => quote! {And},
-            Self::Or => quote! {Or},
-            Self::AndNot => quote! {AndNot},
-            Self::OrNot => quote! {OrNot},
+            Self::And => quote::quote! {And},
+            Self::Or => quote::quote! {Or},
+            Self::AndNot => quote::quote! {AndNot},
+            Self::OrNot => quote::quote! {OrNot},
         }
         .to_tokens(tokens);
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, optml::Optml)]
 pub enum PgTypeGreaterThanVrt {
     EqNotGreaterThan,
     GreaterThan,
@@ -124,47 +125,53 @@ impl PgTypeGreaterThanVrt {
         }
     }
 }
-impl ToTokens for PgTypeGreaterThanVrt {
-    fn to_tokens(&self, tokens: &mut Ts2) {
+impl quote::ToTokens for PgTypeGreaterThanVrt {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match *self {
-            Self::EqNotGreaterThan => quote! {EqNotGreaterThan},
-            Self::GreaterThan => quote! {GreaterThan},
-            Self::NotGreaterThan => quote! {NotGreaterThan},
+            Self::EqNotGreaterThan => quote::quote! {EqNotGreaterThan},
+            Self::GreaterThan => quote::quote! {GreaterThan},
+            Self::NotGreaterThan => quote::quote! {NotGreaterThan},
         }
         .to_tokens(tokens);
     }
 }
-trait_al!(DebugClonePartialEqAl = Debug + Clone + PartialEq);
-trait_al!(DebugClonePartialEqSerializeAl = DebugClonePartialEqAl + Serialize);
-trait_al!(DebugClonePartialEqSerdeAl = DebugClonePartialEqSerializeAl + for<'__> Deserialize<'__>);
-trait_al!(DebugClonePartialEqSerdeDefaultSomeOneAl = DebugClonePartialEqSerdeAl + DfltSomeOneEl);
-trait_al!(SqlxEncodePgSqlxTypePgAl = for<'__> Encode<'__, Postgres> + Type<Postgres>);
-trait_al!(UtoipaToSchemaAndSchemarsJsonSchemaAl = for<'__> ToSchema<'__> + JsonSchema);
-trait_al!(TtAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
-trait_al!(CrAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
-trait_al!(CrForQueryAl = DebugClonePartialEqSerializeAl + SqlxEncodePgSqlxTypePgAl);
-trait_al!(SelAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
-trait_al!(WhAl = DebugClonePartialEqSerdeAl + for<'__> PgTypeWhFlt<'__>);
-trait_al!(RdAl = DebugClonePartialEqSerdeAl);
-trait_al!(RdIdsAl = DebugClonePartialEqSerdeAl);
-trait_al!(RdInnAl = DebugClonePartialEqAl);
-trait_al!(UpdAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
-trait_al!(UpdForQueryAl = DebugClonePartialEqSerializeAl);
+pg_crud_cmn_macros::trait_al!(DebugClonePartialEqAl = std::fmt::Debug + Clone + PartialEq);
+pg_crud_cmn_macros::trait_al!(
+    DebugClonePartialEqSerializeAl = DebugClonePartialEqAl + serde::Serialize
+);
+pg_crud_cmn_macros::trait_al!(DebugClonePartialEqSerdeAl = DebugClonePartialEqSerializeAl + for<'__> serde::Deserialize<'__>);
+pg_crud_cmn_macros::trait_al!(
+    DebugClonePartialEqSerdeDefaultSomeOneAl = DebugClonePartialEqSerdeAl + DfltSomeOneEl
+);
+pg_crud_cmn_macros::trait_al!(SqlxEncodePgSqlxTypePgAl = for<'__> sqlx::Encode<'__, sqlx::Postgres> + sqlx::Type<sqlx::Postgres>);
+pg_crud_cmn_macros::trait_al!(UtoipaToSchemaAndSchemarsJsonSchemaAl = for<'__> utoipa::ToSchema<'__> + schemars::JsonSchema);
+pg_crud_cmn_macros::trait_al!(TtAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+pg_crud_cmn_macros::trait_al!(CrAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+pg_crud_cmn_macros::trait_al!(
+    CrForQueryAl = DebugClonePartialEqSerializeAl + SqlxEncodePgSqlxTypePgAl
+);
+pg_crud_cmn_macros::trait_al!(SelAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+pg_crud_cmn_macros::trait_al!(WhAl = DebugClonePartialEqSerdeAl + for<'__> PgTypeWhFlt<'__>);
+pg_crud_cmn_macros::trait_al!(RdAl = DebugClonePartialEqSerdeAl);
+pg_crud_cmn_macros::trait_al!(RdIdsAl = DebugClonePartialEqSerdeAl);
+pg_crud_cmn_macros::trait_al!(RdInnAl = DebugClonePartialEqAl);
+pg_crud_cmn_macros::trait_al!(UpdAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
+pg_crud_cmn_macros::trait_al!(UpdForQueryAl = DebugClonePartialEqSerializeAl);
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub trait PgType {
     //difference between Cr and Tt - Cr may not contain generated by pg id
     type Tt: TtAl;
-    fn cr_tbl_col_qp(col: &dyn Display, _: bool) -> impl Display;
+    fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display;
     type Cr: CrAl;
     fn cr_qp(v: &Self::Cr, incr: &mut u64) -> Result<String, QpEr>;
     fn cr_qb(
         v: Self::Cr,
-        query: Query<'_, Postgres, PgArguments>,
-    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+        query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
     type Sel: SelAl;
     fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, QpEr>;
     type Wh: WhAl;
-    type Rd: RdAl + for<'__> Decode<'__, Postgres> + Type<Postgres>;
+    type Rd: RdAl + for<'__> sqlx::Decode<'__, sqlx::Postgres> + sqlx::Type<sqlx::Postgres>;
     fn normalize(v: Self::Rd) -> Self::Rd;
     type RdIds: RdIdsAl;
     fn sel_only_ids_qp(col: &str) -> Result<String, QpEr>;
@@ -181,8 +188,8 @@ pub trait PgType {
     ) -> Result<String, QpEr>;
     fn upd_qb(
         v: Self::UpdForQuery,
-        query: Query<'_, Postgres, PgArguments>,
-    ) -> Result<Query<'_, Postgres, PgArguments>, String>;
+        query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
     fn sel_only_updd_ids_qp(
         v: &Self::UpdForQuery,
         col: &str,
@@ -190,8 +197,8 @@ pub trait PgType {
     ) -> Result<String, QpEr>;
     fn sel_only_updd_ids_qb<'lt>(
         v: &'lt Self::UpdForQuery,
-        query: Query<'lt, Postgres, PgArguments>,
-    ) -> Result<Query<'lt, Postgres, PgArguments>, String>;
+        query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub trait PgTypePk {
@@ -282,14 +289,14 @@ pub trait PgTypeTestCases {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, Optml)]
+#[derive(Debug, Clone, PartialEq, optml::Optml)]
 pub struct PgTypeGreaterThanTest<T: PgType> {
     pub greater_than: <T as PgType>::Tt,
     pub cr: <T as PgType>::Cr,
     pub vrt: PgTypeGreaterThanVrt,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Optml)]
+#[derive(Debug, optml::Optml)]
 pub struct PgTypeLenGreaterThanTest<T: PgType> {
     pub cr: <T as PgType>::Cr,
     pub vrt: PgTypeGreaterThanVrt,
@@ -298,38 +305,67 @@ pub struct PgTypeLenGreaterThanTest<T: PgType> {
 pub trait PgTypeWhFlt<'query_lt> {
     fn qb(
         self,
-        query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String>;
-    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr>;
+        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
+    fn qp(
+        &self,
+        incr: &mut u64,
+        col: &dyn std::fmt::Display,
+        add_oprtr: bool,
+    ) -> Result<String, QpEr>;
 }
 //todo custom deserialization - must not contain more than one el
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub struct NlJsonObjPgTypeWhFlt<
-    T: Debug + PartialEq + Clone + for<'lt> PgTypeWhFlt<'lt> + AllEnumVrtsArrDfltSomeOneEl,
+    T: std::fmt::Debug + PartialEq + Clone + for<'lt> PgTypeWhFlt<'lt> + AllEnumVrtsArrDfltSomeOneEl,
 >(pub Option<NotEmptyUnqVec<T>>);
 impl<'query_lt, T> PgTypeWhFlt<'query_lt> for NlJsonObjPgTypeWhFlt<T>
 where
-    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+    T: std::fmt::Debug
+        + PartialEq
+        + Clone
+        + for<'t_lt> PgTypeWhFlt<'t_lt>
+        + AllEnumVrtsArrDfltSomeOneEl,
 {
     fn qb(
         self,
-        query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
+    {
         match self.0 {
             Some(v) => v.qb(query),
             None => Ok(query), //todo mb wrong
         }
     }
-    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+    fn qp(
+        &self,
+        incr: &mut u64,
+        col: &dyn std::fmt::Display,
+        add_oprtr: bool,
+    ) -> Result<String, QpEr> {
         self.0.as_ref().map_or_else(
             || Ok(format!("{col} = 'null'")),
             |v| v.qp(incr, col, add_oprtr),
         )
     }
 }
-impl<T> ToErrString for NlJsonObjPgTypeWhFlt<T>
+impl<T> loc_lib::ToErrString for NlJsonObjPgTypeWhFlt<T>
 where
-    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+    T: std::fmt::Debug
+        + PartialEq
+        + Clone
+        + for<'t_lt> PgTypeWhFlt<'t_lt>
+        + AllEnumVrtsArrDfltSomeOneEl,
 {
     fn to_err_string(&self) -> String {
         format!("{self:#?}")
@@ -337,19 +373,42 @@ where
 }
 impl<T> AllEnumVrtsArrDfltSomeOneEl for NlJsonObjPgTypeWhFlt<T>
 where
-    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+    T: std::fmt::Debug
+        + PartialEq
+        + Clone
+        + for<'t_lt> PgTypeWhFlt<'t_lt>
+        + AllEnumVrtsArrDfltSomeOneEl,
 {
     fn all_vrts_dflt_some_one_el() -> Vec<Self> {
         vec![Self(Some(DfltSomeOneEl::dflt_some_one_el()))]
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    loc_lib::Location,
+    optml::Optml,
+)]
 pub enum QpEr {
-    CheckedAdd { loc: Loc },
-    WriteIntoBuffer { loc: Loc },
+    CheckedAdd { loc: loc_lib::loc::Loc },
+    WriteIntoBuffer { loc: loc_lib::loc::Loc },
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub struct PgTypeWh<T> {
     v: NotEmptyUnqVec<T>,
     oprtr: Oprtr,
@@ -377,10 +436,12 @@ const _: () = {
     #[expect(clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
-    impl<'de, T: Debug + PartialEq + Clone + Deserialize<'de>> Deserialize<'de> for PgTypeWh<T> {
+    impl<'de, T: std::fmt::Debug + PartialEq + Clone + serde::Deserialize<'de>>
+        serde::Deserialize<'de> for PgTypeWh<T>
+    {
         fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
         where
-            __D: Deserializer<'de>,
+            __D: serde::Deserializer<'de>,
         {
             #[expect(non_camel_case_types)]
             #[doc(hidden)]
@@ -393,7 +454,10 @@ const _: () = {
             struct __FieldVisitor;
             impl _serde::de::Visitor<'_> for __FieldVisitor {
                 type Value = __Field;
-                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
+                fn expecting(
+                    &self,
+                    __f: &mut std::fmt::Formatter<'_>,
+                ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(__f, "field identifier")
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -427,13 +491,13 @@ const _: () = {
                     }
                 }
             }
-            impl<'de> Deserialize<'de> for __Field {
+            impl<'de> serde::Deserialize<'de> for __Field {
                 #[inline]
                 fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
                 where
-                    __D: Deserializer<'de>,
+                    __D: serde::Deserializer<'de>,
                 {
-                    Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                    serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
                 }
             }
             #[doc(hidden)]
@@ -441,12 +505,15 @@ const _: () = {
                 marker: _serde::__private228::PhantomData<PgTypeWh>,
                 lt: _serde::__private228::PhantomData<&'de ()>,
             }
-            impl<'de, T: Debug + PartialEq + Clone + Deserialize<'de>> _serde::de::Visitor<'de>
-                for __Visitor<'de, T>
+            impl<'de, T: std::fmt::Debug + PartialEq + Clone + serde::Deserialize<'de>>
+                _serde::de::Visitor<'de> for __Visitor<'de, T>
             {
                 type Value = PgTypeWh<T>;
-                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
-                    Formatter::write_str(__f, "struct PgTypeWh")
+                fn expecting(
+                    &self,
+                    __f: &mut std::fmt::Formatter<'_>,
+                ) -> _serde::__private228::fmt::Result {
+                    std::fmt::Formatter::write_str(__f, "struct PgTypeWh")
                 }
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
@@ -520,7 +587,7 @@ const _: () = {
             }
             #[doc(hidden)]
             const FIELDS: &[&str] = &["oprtr", "v"];
-            Deserializer::deserialize_struct(
+            serde::Deserializer::deserialize_struct(
                 __deserializer,
                 "PgTypeWh",
                 FIELDS,
@@ -535,8 +602,9 @@ const _: () = {
 impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T> {
     fn qb(
         self,
-        mut query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
+    {
         for el in self.v.0 {
             match PgTypeWhFlt::qb(el, query) {
                 Ok(v) => {
@@ -549,15 +617,21 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
         }
         Ok(query)
     }
-    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+    fn qp(
+        &self,
+        incr: &mut u64,
+        col: &dyn std::fmt::Display,
+        add_oprtr: bool,
+    ) -> Result<String, QpEr> {
         let mut acc = String::default();
         let mut add_oprtr_inn_h = false;
         for el in &self.v.0 {
             match PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h) {
                 Ok(v) => {
-                    use std::fmt::Write as _;
-                    if write!(acc, "{v} ").is_err() {
-                        return Err(QpEr::WriteIntoBuffer { loc: loc!() });
+                    if std::fmt::Write::write_fmt(&mut acc, format_args!("{v} ")).is_err() {
+                        return Err(QpEr::WriteIntoBuffer {
+                            loc: loc_lib::loc!(),
+                        });
                     }
                     add_oprtr_inn_h = true;
                 }
@@ -570,7 +644,9 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
         Ok(format!("{}({acc})", self.oprtr.to_qp(add_oprtr)))
     }
 }
-impl<T: Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl for PgTypeWh<T> {
+impl<T: std::fmt::Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl
+    for PgTypeWh<T>
+{
     fn dflt_some_one_el() -> Self {
         Self {
             oprtr: DfltSomeOneEl::dflt_some_one_el(),
@@ -578,7 +654,18 @@ impl<T: Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl f
         }
     }
 }
-#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, EnumString, Optml)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialEq,
+    Eq,
+    strum_macros::EnumString,
+    optml::Optml,
+)]
 #[strum(serialize_all = "snake_case")]
 pub enum Order {
     #[serde(rename(serialize = "asc", deserialize = "asc"))]
@@ -587,11 +674,11 @@ pub enum Order {
     #[serde(rename(serialize = "desc", deserialize = "desc"))]
     Desc,
 }
-impl Display for Order {
-    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+impl std::fmt::Display for Order {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Asc => write!(f, "{AscUcc}"),
-            Self::Desc => write!(f, "{DescUcc}"),
+            Self::Asc => write!(f, "{}", naming::AscUcc),
+            Self::Desc => write!(f, "{}", naming::DescUcc),
         }
     }
 }
@@ -603,20 +690,29 @@ impl DfltSomeOneEl for Order {
 impl Order {
     #[must_use]
     pub fn to_sc_str(&self) -> String {
-        DisplayToScStr::case(&self)
+        naming::DisplayToScStr::case(self)
     }
     #[must_use]
     pub fn to_ucc_str(&self) -> String {
-        DisplayToUccStr::case(&self)
+        naming::DisplayToUccStr::case(self)
     }
 }
-#[derive(Debug, Serialize, Deserialize, Optml)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
 pub struct OrderBy<ColGeneric> {
     pub col: ColGeneric,
     pub order: Option<Order>,
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 pub struct PgnBase {
     limit: i64,
@@ -639,8 +735,9 @@ impl PgnBase {
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
     fn qb(
         self,
-        mut query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
+    {
         if let Err(er) = query.try_bind(self.limit) {
             return Err(er.to_string());
         }
@@ -649,7 +746,7 @@ impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
         }
         Ok(query)
     }
-    fn qp(&self, incr: &mut u64, _: &dyn Display, _: bool) -> Result<String, QpEr> {
+    fn qp(&self, incr: &mut u64, _: &dyn std::fmt::Display, _: bool) -> Result<String, QpEr> {
         let limit_incr = match incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
             Err(er) => {
@@ -670,34 +767,46 @@ impl Default for PgnBase {
         Self::new_unchecked(DEFAULT_PAGINATION_LIMIT, 0)
     }
 }
-#[derive(Debug, Deserialize, JsonSchema, Optml)]
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
 struct PgnStartsWithZeroRaw {
     limit: i64,
     offset: i64,
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, ToSchema, JsonSchema, Optml,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 #[serde(try_from = "PgnStartsWithZeroRaw")]
 pub struct PgnStartsWithZero(PgnBase);
-#[derive(Debug, Serialize, Deserialize, Error, Location, Optml)]
+#[derive(
+    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, loc_lib::Location, optml::Optml,
+)]
 pub enum PgnStartsWithZeroTryNewEr {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
         limit: i64,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
     OffsetIsLessThanZero {
         #[eo_to_err_string_serde]
         offset: i64,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
         limit: i64,
         #[eo_to_err_string_serde]
         offset: i64,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
 impl PgnStartsWithZero {
@@ -712,11 +821,14 @@ impl PgnStartsWithZero {
     pub fn try_new(limit: i64, offset: i64) -> Result<Self, PgnStartsWithZeroTryNewEr> {
         if limit <= 0 || offset < 0 {
             if limit <= 0 {
-                Err(PgnStartsWithZeroTryNewEr::LimitIsLessThanOrEqToZero { limit, loc: loc!() })
+                Err(PgnStartsWithZeroTryNewEr::LimitIsLessThanOrEqToZero {
+                    limit,
+                    loc: loc_lib::loc!(),
+                })
             } else {
                 Err(PgnStartsWithZeroTryNewEr::OffsetIsLessThanZero {
                     offset,
-                    loc: loc!(),
+                    loc: loc_lib::loc!(),
                 })
             }
         } else if offset.checked_add(limit).is_some() {
@@ -725,7 +837,7 @@ impl PgnStartsWithZero {
             Err(PgnStartsWithZeroTryNewEr::OffsetPlusLimitIsIntOverflow {
                 limit,
                 offset,
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             })
         }
     }
@@ -739,11 +851,17 @@ impl TryFrom<PgnStartsWithZeroRaw> for PgnStartsWithZero {
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnStartsWithZero {
     fn qb(
         self,
-        query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
+    {
         self.0.qb(query)
     }
-    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+    fn qp(
+        &self,
+        incr: &mut u64,
+        col: &dyn std::fmt::Display,
+        add_oprtr: bool,
+    ) -> Result<String, QpEr> {
         self.0.qp(incr, col, add_oprtr)
     }
 }
@@ -760,7 +878,17 @@ impl DfltSomeOneElMaxPageSize for PgnStartsWithZero {
     }
 }
 //this needed coz serde Option<Opt<T>> #[serde(skip_serializing_if = "Option::is_none")] - if both opts: inn and parent is null then it skip - its not correct
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub struct V<T> {
     pub v: T,
 }
@@ -768,18 +896,29 @@ pub struct V<T> {
 pub trait IsStringEmpty {
     fn is_string_empty(&self) -> bool;
 }
-#[derive(Debug, Serialize, Deserialize, Error, Location, Optml)]
+#[derive(
+    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, loc_lib::Location, optml::Optml,
+)]
 pub enum NotEmptyUnqVecTryNewEr<T> {
     IsEmpty {
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
     NotUnq {
         #[eo_to_err_string_serde]
         v: T,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub struct NotEmptyUnqVec<T>(Vec<T>);
 impl<T> NotEmptyUnqVec<T> {
     #[must_use]
@@ -798,12 +937,14 @@ impl<T> NotEmptyUnqVec<T> {
 impl<T: PartialEq> NotEmptyUnqVec<T> {
     pub fn try_new(mut values: Vec<T>) -> Result<Self, NotEmptyUnqVecTryNewEr<T>> {
         if values.is_empty() {
-            return Err(NotEmptyUnqVecTryNewEr::IsEmpty { loc: loc!() });
+            return Err(NotEmptyUnqVecTryNewEr::IsEmpty {
+                loc: loc_lib::loc!(),
+            });
         }
         if let Some(duplicate) = take_fst_dup(&mut values) {
             return Err(NotEmptyUnqVecTryNewEr::NotUnq {
                 v: duplicate,
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             });
         }
         Ok(Self(values))
@@ -816,31 +957,38 @@ const _: () = {
     #[expect(clippy::useless_attribute)]
     extern crate serde as _serde;
     #[automatically_derived]
-    impl<'de, T: Debug + PartialEq + Deserialize<'de>> Deserialize<'de> for NotEmptyUnqVec<T> {
+    impl<'de, T: std::fmt::Debug + PartialEq + serde::Deserialize<'de>> serde::Deserialize<'de>
+        for NotEmptyUnqVec<T>
+    {
         fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
         where
-            __D: Deserializer<'de>,
+            __D: serde::Deserializer<'de>,
         {
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
-                T: Deserialize<'de>,
+                T: serde::Deserialize<'de>,
             {
                 marker: _serde::__private228::PhantomData<NotEmptyUnqVec<T>>,
                 lt: _serde::__private228::PhantomData<&'de ()>,
             }
             #[automatically_derived]
-            impl<'de, T: Debug + PartialEq + Deserialize<'de>> _serde::de::Visitor<'de> for __Visitor<'de, T> {
+            impl<'de, T: std::fmt::Debug + PartialEq + serde::Deserialize<'de>>
+                _serde::de::Visitor<'de> for __Visitor<'de, T>
+            {
                 type Value = NotEmptyUnqVec<T>;
-                fn expecting(&self, __f: &mut Formatter<'_>) -> _serde::__private228::fmt::Result {
-                    Formatter::write_str(__f, "tuple struct NotEmptyUnqVec")
+                fn expecting(
+                    &self,
+                    __f: &mut std::fmt::Formatter<'_>,
+                ) -> _serde::__private228::fmt::Result {
+                    std::fmt::Formatter::write_str(__f, "tuple struct NotEmptyUnqVec")
                 }
                 #[inline]
                 fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
                 where
-                    __E: Deserializer<'de>,
+                    __E: serde::Deserializer<'de>,
                 {
-                    let f0: Vec<T> = <Vec<T> as Deserialize>::deserialize(__e)?;
+                    let f0: Vec<T> = <Vec<T> as serde::Deserialize>::deserialize(__e)?;
                     Ok(NotEmptyUnqVec(f0))
                 }
                 #[inline]
@@ -861,7 +1009,7 @@ const _: () = {
                     }
                 }
             }
-            Deserializer::deserialize_newtype_struct(
+            serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
                 "NotEmptyUnqVec",
                 __Visitor {
@@ -902,73 +1050,82 @@ impl<T1> NotEmptyUnqVec<T1> {
 }
 #[cfg(test)]
 mod tests_not_empty_unq_vec {
-    use super::{NotEmptyUnqVec, NotEmptyUnqVecTryNewEr, first_duplicate_idx, take_fst_dup};
     #[derive(Debug, PartialEq, Eq)]
     struct NonClone(u8);
     #[test]
     fn not_empty_unq_vec_try_new_supports_non_clone_values() {
-        let er = NotEmptyUnqVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
+        let er = super::NotEmptyUnqVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
             .expect_err("adf2b8c1");
         match er {
-            NotEmptyUnqVecTryNewEr::NotUnq { v, .. } => assert_eq!(v, NonClone(1)),
-            NotEmptyUnqVecTryNewEr::IsEmpty { .. } => panic!("9f5e2a34"),
+            super::NotEmptyUnqVecTryNewEr::NotUnq { v, .. } => assert_eq!(v, NonClone(1)),
+            super::NotEmptyUnqVecTryNewEr::IsEmpty { .. } => panic!("9f5e2a34"),
         }
     }
     #[test]
     fn not_empty_unq_vec_try_new_returns_is_empty_for_empty_vec() {
-        let er = NotEmptyUnqVec::<u8>::try_new(Vec::new()).expect_err("3b41de7f");
-        assert!(matches!(er, NotEmptyUnqVecTryNewEr::IsEmpty { .. }));
+        let er = super::NotEmptyUnqVec::<u8>::try_new(Vec::new()).expect_err("3b41de7f");
+        assert!(matches!(er, super::NotEmptyUnqVecTryNewEr::IsEmpty { .. }));
     }
     #[test]
     fn first_duplicate_idx_returns_none_for_unq_input() {
         let values = vec![1u8, 2u8, 3u8];
-        assert!(first_duplicate_idx(&values).is_none());
+        assert!(super::first_duplicate_idx(&values).is_none());
     }
     #[test]
     fn first_duplicate_idx_returns_none_for_empty_and_single_input() {
-        assert!(first_duplicate_idx::<u8>(&[]).is_none());
-        assert!(first_duplicate_idx(&[1u8]).is_none());
+        assert!(super::first_duplicate_idx::<u8>(&[]).is_none());
+        assert!(super::first_duplicate_idx(&[1u8]).is_none());
     }
     #[test]
     fn first_duplicate_idx_returns_first_repeated_value_index() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
-        assert_eq!(first_duplicate_idx(&values), Some(2usize));
+        assert_eq!(super::first_duplicate_idx(&values), Some(2usize));
     }
     #[test]
     fn take_fst_dup_returns_none_for_unq_input() {
         let mut values = vec![1u8, 2u8, 3u8];
-        let actual = take_fst_dup(&mut values);
+        let actual = super::take_fst_dup(&mut values);
         assert!(actual.is_none());
         assert_eq!(values, vec![1u8, 2u8, 3u8]);
     }
     #[test]
     fn take_fst_dup_returns_first_duplicate_value() {
         let mut values = vec![7u8, 8u8, 8u8, 7u8];
-        let actual = take_fst_dup(&mut values);
+        let actual = super::take_fst_dup(&mut values);
         assert_eq!(actual, Some(8u8));
         assert_eq!(values.len(), 3usize);
     }
     #[test]
     fn as_slice_matches_to_vec_view() {
-        let values = NotEmptyUnqVec::try_new(vec![1u8, 2u8, 3u8]).expect("3f6e8a12");
+        let values = super::NotEmptyUnqVec::try_new(vec![1u8, 2u8, 3u8]).expect("3f6e8a12");
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
         assert_eq!(values.as_slice(), values.to_vec().as_slice());
     }
 }
 impl<'query_lt, T> PgTypeWhFlt<'query_lt> for NotEmptyUnqVec<T>
 where
-    T: Debug + PartialEq + Clone + for<'t_lt> PgTypeWhFlt<'t_lt> + AllEnumVrtsArrDfltSomeOneEl,
+    T: std::fmt::Debug
+        + PartialEq
+        + Clone
+        + for<'t_lt> PgTypeWhFlt<'t_lt>
+        + AllEnumVrtsArrDfltSomeOneEl,
 {
     fn qb(
         self,
-        mut query: Query<'query_lt, Postgres, PgArguments>,
-    ) -> Result<Query<'query_lt, Postgres, PgArguments>, String> {
+        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
+    {
         for el in self.0 {
             query = el.qb(query)?;
         }
         Ok(query)
     }
-    fn qp(&self, incr: &mut u64, col: &dyn Display, add_oprtr: bool) -> Result<String, QpEr> {
+    fn qp(
+        &self,
+        incr: &mut u64,
+        col: &dyn std::fmt::Display,
+        add_oprtr: bool,
+    ) -> Result<String, QpEr> {
         let mut acc = String::default();
         for (i, el) in self.0.iter().enumerate() {
             let v = el.qp(incr, col, if i == 0 { add_oprtr } else { true })?;
@@ -977,19 +1134,19 @@ where
         Ok(acc)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
 pub struct NonPkPgTypeRdIds(pub V<Option<()>>);
-impl Decode<'_, Postgres> for NonPkPgTypeRdIds {
-    fn decode(value: PgValueRef<'_>) -> Result<Self, BoxDynError> {
-        <Json<Self> as Decode<Postgres>>::decode(value).map(|v0| v0.0)
+impl sqlx::Decode<'_, sqlx::Postgres> for NonPkPgTypeRdIds {
+    fn decode(value: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
+        <sqlx::types::Json<Self> as sqlx::Decode<sqlx::Postgres>>::decode(value).map(|v0| v0.0)
     }
 }
-impl Type<Postgres> for NonPkPgTypeRdIds {
-    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
-        <Json<Self> as Type<Postgres>>::compatible(ty)
+impl sqlx::Type<sqlx::Postgres> for NonPkPgTypeRdIds {
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
-    fn type_info() -> <Postgres as Database>::TypeInfo {
-        <Json<Self> as Type<Postgres>>::type_info()
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <sqlx::types::Json<Self> as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
 impl Default for NonPkPgTypeRdIds {
@@ -997,7 +1154,7 @@ impl Default for NonPkPgTypeRdIds {
         Self(V { v: None })
     }
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum EqOprtr {
     Eq,
     IsNull,
@@ -1022,19 +1179,28 @@ pub trait PgTypeEqOprtr {
     PartialEq,
     Eq,
     PartialOrd,
-    Serialize,
-    Deserialize,
-    JsonSchema,
-    Optml,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 #[serde(try_from = "i32")]
 pub struct UnsignedPartOfI32(i32);
 #[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, JsonSchema, Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    loc_lib::Location,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 pub enum UnsignedPartOfI32TryFromI32Er {
     LessThanZero {
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
         #[eo_to_err_string_serde]
         v: i32,
     },
@@ -1045,29 +1211,32 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
         if v >= 0 {
             Ok(Self(v))
         } else {
-            Err(Self::Error::LessThanZero { v, loc: loc!() })
+            Err(Self::Error::LessThanZero {
+                v,
+                loc: loc_lib::loc!(),
+            })
         }
     }
 }
-impl ToErrString for UnsignedPartOfI32 {
+impl loc_lib::ToErrString for UnsignedPartOfI32 {
     fn to_err_string(&self) -> String {
         self.0.to_string()
     }
 }
-impl Type<Postgres> for UnsignedPartOfI32 {
-    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
-        <i32 as Type<Postgres>>::compatible(ty)
+impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <i32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
-    fn type_info() -> <Postgres as Database>::TypeInfo {
-        <i32 as Type<Postgres>>::type_info()
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <i32 as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
-impl Encode<'_, Postgres> for UnsignedPartOfI32 {
+impl sqlx::Encode<'_, sqlx::Postgres> for UnsignedPartOfI32 {
     fn encode_by_ref(
         &self,
-        buf: &mut PgArgumentBuffer,
-    ) -> Result<IsNull, Box<dyn StdErEr + Send + Sync>> {
-        <i32 as Encode<Postgres>>::encode_by_ref(&self.0, buf)
+        buf: &mut sqlx::postgres::PgArgumentBuffer,
+    ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+        <i32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
     }
 }
 impl UnsignedPartOfI32 {
@@ -1089,57 +1258,72 @@ impl DfltSomeOneEl for UnsignedPartOfI32 {
     PartialEq,
     Eq,
     PartialOrd,
-    Serialize,
-    Deserialize,
-    JsonSchema,
-    Optml,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
 #[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, JsonSchema, Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    loc_lib::Location,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 pub enum NotZeroUnsignedPartOfI32TryFromI32Er {
     IsZero {
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
     UnsignedPartOfI32TryFromI32Er {
         #[eo_loc]
         v: UnsignedPartOfI32TryFromI32Er,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
 impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     type Error = NotZeroUnsignedPartOfI32TryFromI32Er;
     fn try_from(v: i32) -> Result<Self, Self::Error> {
-        let v0 = UnsignedPartOfI32::try_from(v)
-            .map_err(|er| Self::Error::UnsignedPartOfI32TryFromI32Er { v: er, loc: loc!() })?;
+        let v0 = UnsignedPartOfI32::try_from(v).map_err(|er| {
+            Self::Error::UnsignedPartOfI32TryFromI32Er {
+                v: er,
+                loc: loc_lib::loc!(),
+            }
+        })?;
         if v0.0 == 0 {
-            Err(Self::Error::IsZero { loc: loc!() })
+            Err(Self::Error::IsZero {
+                loc: loc_lib::loc!(),
+            })
         } else {
             Ok(Self(v0))
         }
     }
 }
-impl ToErrString for NotZeroUnsignedPartOfI32 {
+impl loc_lib::ToErrString for NotZeroUnsignedPartOfI32 {
     fn to_err_string(&self) -> String {
         self.0.to_err_string()
     }
 }
-impl Type<Postgres> for NotZeroUnsignedPartOfI32 {
-    fn compatible(ty: &<Postgres as Database>::TypeInfo) -> bool {
-        <UnsignedPartOfI32 as Type<Postgres>>::compatible(ty)
+impl sqlx::Type<sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
+    fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+        <UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::compatible(ty)
     }
-    fn type_info() -> <Postgres as Database>::TypeInfo {
-        <UnsignedPartOfI32 as Type<Postgres>>::type_info()
+    fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+        <UnsignedPartOfI32 as sqlx::Type<sqlx::Postgres>>::type_info()
     }
 }
-impl Encode<'_, Postgres> for NotZeroUnsignedPartOfI32 {
+impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
     fn encode_by_ref(
         &self,
-        buf: &mut PgArgumentBuffer,
-    ) -> Result<IsNull, Box<dyn StdErEr + Send + Sync>> {
-        <UnsignedPartOfI32 as Encode<Postgres>>::encode_by_ref(&self.0, buf)
+        buf: &mut sqlx::postgres::PgArgumentBuffer,
+    ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+        <UnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&self.0, buf)
     }
 }
 impl NotZeroUnsignedPartOfI32 {
@@ -1153,14 +1337,28 @@ impl DfltSomeOneEl for NotZeroUnsignedPartOfI32 {
         Self(DfltSomeOneEl::dflt_some_one_el())
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema, JsonSchema, Optml)]
-pub enum SingleOrMultiple<T: Debug + PartialEq + Clone> {
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUnqVec<T>),
     Single(T),
 }
 pub fn incr_checked_add_one_returning_incr(incr: &mut u64) -> Result<u64, QpEr> {
     incr.checked_add(1).map_or_else(
-        || Err(QpEr::CheckedAdd { loc: loc!() }),
+        || {
+            Err(QpEr::CheckedAdd {
+                loc: loc_lib::loc!(),
+            })
+        },
         |v| {
             *incr = v;
             Ok(v)
@@ -1268,8 +1466,8 @@ pub fn string_test_cases_vec() -> [String; 12] {
     ]
 }
 #[must_use]
-pub fn uuid_uuid_test_cases_vec() -> [Uuid; 1] {
-    [Uuid::new_v4()]
+pub fn uuid_uuid_test_cases_vec() -> [uuid::Uuid; 1] {
+    [uuid::Uuid::new_v4()]
 }
 #[must_use]
 pub fn first_duplicate_idx<T>(values: &[T]) -> Option<usize>

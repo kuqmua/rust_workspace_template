@@ -1,5 +1,4 @@
 pub mod prm;
-use gen_quotes::dq_str;
 pub use naming_cmn::{
     AsRefStrToScStr, AsRefStrToScTs, AsRefStrToUccStr, AsRefStrToUccTs, AsRefStrToUpperScStr,
     AsRefStrToUpperScTs, DisplayToScStr, DisplayToScTs, DisplayToUccStr, DisplayToUccTs,
@@ -10,11 +9,8 @@ pub use naming_macros::{
     AsRefStrEnumWithUnitFieldsToScStr, AsRefStrEnumWithUnitFieldsToUccStr,
     AsRefStrEnumWithUnitFieldsToUpperScStr,
 };
-use optml::Optml;
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use std::fmt::{Display, Formatter, Result as FmtResult};
 pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
+type Ts2 = proc_macro2::TokenStream;
 naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["pk"],
     ["serde"],
@@ -414,34 +410,34 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["v"],
     ["not", "uuid"]
 ]);
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub struct HashMap;
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub struct HashMapUcc;
-impl Display for HashMapUcc {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl std::fmt::Display for HashMapUcc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "HashMap")
     }
 }
-impl ToTokens for HashMapUcc {
+impl quote::ToTokens for HashMapUcc {
     fn to_tokens(&self, tokens: &mut Ts2) {
-        quote! {HashMap}.to_tokens(tokens);
+        quote::quote! {HashMap}.to_tokens(tokens);
     }
 }
-#[derive(Debug, Clone, Copy, Optml)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
 pub struct HashMapSc;
-impl Display for HashMapSc {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl std::fmt::Display for HashMapSc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "hashmap")
     }
 }
-impl ToTokens for HashMapSc {
+impl quote::ToTokens for HashMapSc {
     fn to_tokens(&self, tokens: &mut Ts2) {
-        quote! {hashmap}.to_tokens(tokens);
+        quote::quote! {hashmap}.to_tokens(tokens);
     }
 }
-pub trait DisplayPlusToTokens: Display + ToTokens {}
-impl<T> DisplayPlusToTokens for T where T: Display + ToTokens {}
+pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
+impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
 pub trait SwaggerUrlPathSelfQuotesStr {
     fn swagger_url_path_self_quotes_str(&self, v: &str) -> String;
 }
@@ -450,7 +446,7 @@ where
     T: AsRefStrToScStr,
 {
     fn swagger_url_path_self_quotes_str(&self, v: &str) -> String {
-        dq_str(&format!("/{}/{}", v, self.case(),))
+        gen_quotes::dq_str(&format!("/{}/{}", v, self.case(),))
     }
 }
 pub trait SwaggerUrlPathSelfQuotesTokenStream {

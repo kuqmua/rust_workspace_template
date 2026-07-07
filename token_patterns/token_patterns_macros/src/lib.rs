@@ -9,11 +9,11 @@ fn gen_tp(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_ident = quote::format_ident!("{name}");
     quote::quote! {
-        #[derive(Debug, Clone, Copy, Optml)]
+        #[derive(Debug, Clone, Copy, optml::Optml)]
         pub struct #name_ident;
-        impl ToTokens for #name_ident {
-            fn to_tokens(&self, tokens: &mut Ts2) {
-                append_tokens(tokens, quote! {#body});
+        impl quote::ToTokens for #name_ident {
+            fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                append_tokens(tokens, quote::quote! {#body});
             }
         }
     }
@@ -38,10 +38,10 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let name_ident = quote::format_ident!("{name}");
     let part_streams = parts.into_iter().collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
-        #[derive(Debug, Clone, Copy, Optml)]
+        #[derive(Debug, Clone, Copy, optml::Optml)]
         pub struct #name_ident;
-        impl ToTokens for #name_ident {
-            fn to_tokens(&self, tokens: &mut Ts2) {
+        impl quote::ToTokens for #name_ident {
+            fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #(append_tokens(tokens, #part_streams);)*
             }
         }
@@ -64,8 +64,8 @@ pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_ident = quote::format_ident!("{name}");
     quote::quote! {
-        fn #name_ident() -> Ts2 {
-            quote! {#body}
+        fn #name_ident() -> proc_macro2::TokenStream {
+            quote::quote! {#body}
         }
     }
     .into()

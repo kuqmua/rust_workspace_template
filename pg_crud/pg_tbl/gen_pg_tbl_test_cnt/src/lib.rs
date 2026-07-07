@@ -1,9 +1,8 @@
 #[allow(unused_qualifications)]
 #[allow(clippy::absolute_paths)]
 mod tbl_example_gen_pg_tbl_mod {
-    use super::TblExample;
     #[allow(clippy::arbitrary_source_item_ordering)]
-    impl TblExample {
+    impl super::TblExample {
         #[must_use]
         pub const fn tbl_name() -> &'static str {
             "tbl_example"
@@ -165,10 +164,10 @@ mod tbl_example_gen_pg_tbl_mod {
                     for el_1651705d in &prms.payload.0 {
                         match el_1651705d.cr_qp(&mut incr) {
                             Ok(v_f4fdd10d) => {
-                                if {
-                                    use std::fmt::Write as _;
-                                    write!(acc_8a58994e, "({v_f4fdd10d}),")
-                                }
+                                if std::fmt::Write::write_fmt(
+                                    &mut acc_8a58994e,
+                                    format_args!("({v_f4fdd10d}),"),
+                                )
                                 .is_err()
                                 {
                                     let er_0 = pg_crud::QpEr::WriteIntoBuffer {
@@ -1402,10 +1401,9 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     };
                     let prefix = if extra_prms.is_empty() { "" } else { " " };
-                    if {
-                        use std::fmt::Write as _;
-                        write!(
-                            extra_prms,
+                    if std::fmt::Write::write_fmt(
+                        &mut extra_prms,
+                        format_args!(
                             "{}order by {} {}",
                             prefix,
                             match &prms.payload.order_by.col {
@@ -1418,8 +1416,8 @@ mod tbl_example_gen_pg_tbl_mod {
                                 || pg_crud::Order::default().to_sc_str(),
                                 pg_crud::Order::to_sc_str
                             )
-                        )
-                    }
+                        ),
+                    )
                     .is_err()
                     {
                         let er_0 = pg_crud::QpEr::WriteIntoBuffer {
@@ -1444,10 +1442,9 @@ mod tbl_example_gen_pg_tbl_mod {
                         *res.status_mut() = http::StatusCode::BAD_REQUEST;
                         return res;
                     }
-                    if {
-                        use std::fmt::Write as _;
-                        write!(
-                            extra_prms,
+                    if std::fmt::Write::write_fmt(
+                        &mut extra_prms,
+                        format_args!(
                             "{prefix}{}",
                             match pg_crud::PgTypeWhFlt::qp(
                                 &prms.payload.pgn,
@@ -1481,8 +1478,8 @@ mod tbl_example_gen_pg_tbl_mod {
                                     }
                                 }
                             }
-                        )
-                    }
+                        ),
+                    )
                     .is_err()
                     {
                         let er_0 = pg_crud::QpEr::WriteIntoBuffer {
@@ -2295,7 +2292,63 @@ mod tbl_example_gen_pg_tbl_mod {
                 let pks = {
                     let mut acc_a95eb175 = String::new();
                     for el_a72f3eac in &upd_for_query_vec {
-                        if { use std :: fmt :: Write as _ ; write ! (acc_a95eb175 , "{}," , match el_a72f3eac . upd_qp_pk (& mut incr) { Ok (v_f269a3b2) => v_f269a3b2 , Err (er_0) => { { let er = TblExampleUmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file : String :: from ("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs") , line : 1927 , col : 69 , })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } } }) } . is_err () { let er_0 = pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () } ; let er = TblExampleUmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file : String :: from ("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs") , line : 2319 , col : 80 , })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; }
+                        if std::fmt::Write::write_fmt(
+                            &mut acc_a95eb175,
+                            format_args!(
+                                "{},",
+                                match el_a72f3eac.upd_qp_pk(&mut incr) {
+                                    Ok(v_f269a3b2) => v_f269a3b2,
+                                    Err(er_0) => {
+                                        let er = TblExampleUmEr::Qp {
+                                            er: er_0,
+                                            loc: loc_lib::loc::Loc::new(
+                                                file!().to_owned(),
+                                                line!(),
+                                                column!(),
+                                                Some(loc_lib::loc::Occr {
+                                                    file: String::from(
+                                                        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+                                                    ),
+                                                    line: 1927,
+                                                    col: 69,
+                                                }),
+                                            ),
+                                        };
+                                        let mut res = axum::response::IntoResponse::into_response(
+                                            axum::Json(TblExampleUmResVrts::from_h(er)),
+                                        );
+                                        *res.status_mut() = http::StatusCode::BAD_REQUEST;
+                                        return res;
+                                    }
+                                }
+                            ),
+                        )
+                        .is_err()
+                        {
+                            let er_0 = pg_crud::QpEr::WriteIntoBuffer {
+                                loc: loc_lib::loc!(),
+                            };
+                            let er = TblExampleUmEr::Qp {
+                                er: er_0,
+                                loc: loc_lib::loc::Loc::new(
+                                    file!().to_owned(),
+                                    line!(),
+                                    column!(),
+                                    Some(loc_lib::loc::Occr {
+                                        file: String::from(
+                                            "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+                                        ),
+                                        line: 2319,
+                                        col: 80,
+                                    }),
+                                ),
+                            };
+                            let mut res = axum::response::IntoResponse::into_response(axum::Json(
+                                TblExampleUmResVrts::from_h(er),
+                            ));
+                            *res.status_mut() = http::StatusCode::BAD_REQUEST;
+                            return res;
+                        }
                     }
                     let _: Option<char> = acc_a95eb175.pop();
                     acc_a95eb175
@@ -6147,14 +6200,10 @@ mod tbl_example_gen_pg_tbl_mod {
     impl TblExampleCr {
         fn cr_qp(&self, incr: &mut u64) -> Result<String, pg_crud::QpEr> {
             let mut acc = String::new();
-            match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: cr_qp (& < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Cr as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el () , incr) { Ok (v_c3f0b59a) => { if { use std :: fmt :: Write as _ ; write ! (acc , "{v_c3f0b59a},") } . is_err () { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; } } , Err (er_0) => { return Err (er_0) ; } }
+            match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: cr_qp (& < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Cr as pg_crud :: DfltSomeOneEl > :: dflt_some_one_el () , incr) { Ok (v_c3f0b59a) => { if std::fmt::Write::write_fmt(&mut acc, format_args!("{v_c3f0b59a},")).is_err() { return Err (pg_crud :: QpEr :: WriteIntoBuffer { loc : loc_lib :: loc ! () }) ; } } , Err (er_0) => { return Err (er_0) ; } }
             match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::cr_qp(&self.col_0, incr) {
                 Ok(v_c3f0b59a) => {
-                    if {
-                        use std::fmt::Write as _;
-                        write!(acc, "{v_c3f0b59a},")
-                    }
-                    .is_err()
+                    if std::fmt::Write::write_fmt(&mut acc, format_args!("{v_c3f0b59a},")).is_err()
                     {
                         return Err(pg_crud::QpEr::WriteIntoBuffer {
                             loc: loc_lib::loc!(),
@@ -6167,11 +6216,7 @@ mod tbl_example_gen_pg_tbl_mod {
             }
             match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::cr_qp(&self.col_1, incr) {
                 Ok(v_c3f0b59a) => {
-                    if {
-                        use std::fmt::Write as _;
-                        write!(acc, "{v_c3f0b59a},")
-                    }
-                    .is_err()
+                    if std::fmt::Write::write_fmt(&mut acc, format_args!("{v_c3f0b59a},")).is_err()
                     {
                         return Err(pg_crud::QpEr::WriteIntoBuffer {
                             loc: loc_lib::loc!(),
@@ -6184,11 +6229,7 @@ mod tbl_example_gen_pg_tbl_mod {
             }
             match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::cr_qp(&self.col_2, incr) {
                 Ok(v_c3f0b59a) => {
-                    if {
-                        use std::fmt::Write as _;
-                        write!(acc, "{v_c3f0b59a},")
-                    }
-                    .is_err()
+                    if std::fmt::Write::write_fmt(&mut acc, format_args!("{v_c3f0b59a},")).is_err()
                     {
                         return Err(pg_crud::QpEr::WriteIntoBuffer {
                             loc: loc_lib::loc!(),
@@ -6733,7 +6774,7 @@ mod tbl_example_gen_pg_tbl_mod {
             match <pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::upd_qp(
                 &self.pk_col,
                 "",
-                TblExample::pk(),
+                super::TblExample::pk(),
                 "",
                 incr,
             ) {

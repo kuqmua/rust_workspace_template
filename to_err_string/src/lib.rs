@@ -1,49 +1,27 @@
-use axum::{
-    Error as AxumEr,
-    extract::rejection::{JsonDataError, JsonRejection, JsonSyntaxError},
-};
-use http::header::ToStrError;
-use http_body::SizeHint;
-use reqwest::{Error, StatusCode, header::HeaderMap};
-use serde_json::Error as SerdeJsonEr;
-use sqlx::{
-    Error as SqlxEr,
-    migrate::MigrateError,
-    types::chrono::{NaiveDate, NaiveDateTime, NaiveTime},
-    types::time::{PrimitiveDateTime, Time},
-    types::uuid::Error as UuidEr,
-    types::{BigDecimal, Decimal},
-};
-use std::{borrow::Cow, fmt::Debug, io::Error as IoEr};
-use time::error::ComponentRange;
-use to_err_string_macros::{
-    impl_to_err_string_as_ref_str, impl_to_err_string_const, impl_to_err_string_with,
-};
-use tracing::{dispatcher::SetGlobalDefaultError, log::SetLoggerError};
-impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
-impl_to_err_string_with!(HeaderMap, SizeHint => |v| debug_alt_to_string(v));
-impl_to_err_string_with!(
-    ToStrError,
-    AxumEr,
+to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
+to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| debug_alt_to_string(v));
+to_err_string_macros::impl_to_err_string_with!(
+    http::header::ToStrError,
+    axum::Error,
     usize,
-    ComponentRange,
-    UuidEr,
-    IoEr,
-    SqlxEr,
-    SerdeJsonEr,
-    Error,
-    StatusCode,
-    JsonDataError,
-    MigrateError,
-    JsonSyntaxError,
-    JsonRejection,
-    NaiveTime,
-    NaiveDate,
-    NaiveDateTime,
-    Time,
-    PrimitiveDateTime,
-    Decimal,
-    BigDecimal
+    time::error::ComponentRange,
+    sqlx::types::uuid::Error,
+    std::io::Error,
+    sqlx::Error,
+    serde_json::Error,
+    reqwest::Error,
+    reqwest::StatusCode,
+    axum::extract::rejection::JsonDataError,
+    sqlx::migrate::MigrateError,
+    axum::extract::rejection::JsonSyntaxError,
+    axum::extract::rejection::JsonRejection,
+    sqlx::types::chrono::NaiveTime,
+    sqlx::types::chrono::NaiveDate,
+    sqlx::types::chrono::NaiveDateTime,
+    sqlx::types::time::Time,
+    sqlx::types::time::PrimitiveDateTime,
+    sqlx::types::Decimal,
+    sqlx::types::BigDecimal
     => |v| v.to_string()
 );
 pub trait ToErrString {
@@ -59,7 +37,7 @@ where
 }
 impl<T> ToErrString for Option<T>
 where
-    T: Debug,
+    T: std::fmt::Debug,
 {
     fn to_err_string(&self) -> String {
         debug_to_string(self)
@@ -67,27 +45,27 @@ where
 }
 impl<T, E> ToErrString for Result<T, E>
 where
-    T: Debug,
-    E: Debug,
+    T: std::fmt::Debug,
+    E: std::fmt::Debug,
 {
     fn to_err_string(&self) -> String {
         debug_to_string(self)
     }
 }
-impl_to_err_string_as_ref_str!(String, str, Cow<'_, str>);
-impl_to_err_string_const!(
-    SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultEr",
-    SetLoggerError => "tracing::log::SetLoggerError",
+to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
+to_err_string_macros::impl_to_err_string_const!(
+    tracing::dispatcher::SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultEr",
+    tracing::log::SetLoggerError => "tracing::log::tracing::log::SetLoggerError",
 );
 fn debug_alt_to_string<T>(v: &T) -> String
 where
-    T: Debug,
+    T: std::fmt::Debug,
 {
     format!("{v:#?}")
 }
 fn debug_to_string<T>(v: &T) -> String
 where
-    T: Debug,
+    T: std::fmt::Debug,
 {
     format!("{v:?}")
 }
@@ -120,13 +98,15 @@ mod tests {
     }
     #[test]
     fn to_err_string_for_strings_and_str_refs() {
-        use std::borrow::Cow;
         let owned = String::from("abc");
         let borrowed = "xyz";
         assert_to_err_string(owned, "abc");
         assert_to_err_string(borrowed, "xyz");
-        assert_to_err_string(Cow::Borrowed("qwe"), "qwe");
-        assert_to_err_string(Cow::<'_, str>::Owned(String::from("rty")), "rty");
+        assert_to_err_string(std::borrow::Cow::Borrowed("qwe"), "qwe");
+        assert_to_err_string(
+            std::borrow::Cow::<'_, str>::Owned(String::from("rty")),
+            "rty",
+        );
     }
     #[test]
     fn to_err_string_for_result_values() {

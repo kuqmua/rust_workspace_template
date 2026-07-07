@@ -1,11 +1,11 @@
-use gen_quotes::dq_ts;
-use macros_helpers::{
+pub use gen_quotes::dq_ts;
+pub use macros_helpers::{
     AttrIdentStr, DClone, DCopy, DTsBuilder, FormatWithCargofmt, LocFieldAttr,
     ShouldWriteTsIntoFile, StatusCode, SynField, gen_field_loc_new_ts, gen_if_write_is_err_ts,
     gen_impl_display_ts, gen_impl_pub_try_new_for_ident_ts, gen_serde_version_of_named_syn_vrt,
     gen_simple_syn_punct, get_macro_attr_meta_list_ts, loc_syn_field, mb_write_ts_into_file,
 };
-use naming::{
+pub use naming::{
     AppStateSc, AsRefStrEnumWithUnitFieldsToScStr, AsRefStrEnumWithUnitFieldsToUccStr,
     AsRefStrToScStr, AsRefStrToScTs, BeginSc, BindedQuerySc, BodyBytesSc, BodySc, BodySizeErUcc,
     BySc, CheckBodySizeSc, CheckBodySizeUcc, CmErVrtsSc, CmLogicSc, CmnErVrtsSc, CmnLogicSc,
@@ -42,9 +42,9 @@ use naming::{
         TrySelfSc, UpdQpSelfSc,
     },
 };
-use optml::Optml;
-use panic_loc::panic_loc;
-use pg_crud_macros_cmn::{
+pub use optml::Optml;
+pub use panic_loc::panic_loc;
+pub use pg_crud_macros_cmn::{
     AddOprtrUndrscr, ColPrmUndrscr, EqOrEqUsingFields, Import, IncrPrmUndrscr, IsQbMut,
     cmn_d_ts_builder, er_enum_d_ts_builder, gen_impl_de_for_struct_ts,
     gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts, gen_impl_pg_crud_dflt_some_one_el_ts,
@@ -52,31 +52,32 @@ use pg_crud_macros_cmn::{
     gen_return_err_qp_er_write_into_buffer_ts, gen_v_dcl_ts, gen_v_init_ts, gen_vec_tokens_dcl_ts,
     impl_pg_type_wh_flt_for_ident_ts, mb_wrap_into_braces_ts,
 };
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use serde::Deserialize;
-use serde_json::from_str;
-use std::{
-    fmt::{Display, Formatter, Result as StdFmtResult, Write as _},
+pub use quote::{ToTokens, quote};
+pub use serde::Deserialize;
+pub use serde_json::from_str;
+pub use std::{
+    fmt::{Display, Formatter, Write},
     iter::once,
     panic::Location,
     str::FromStr,
 };
-use strum_macros::Display;
-use syn::{
+pub use strum_macros::Display;
+pub use syn::{
     AttrStyle, Attribute, Data, DeriveInput, Field, FieldMutability, Fields, FieldsNamed, Ident,
     Meta, Path, PathArguments, PathSegment, Type, TypePath, Variant, Visibility, parse2,
     punctuated::Punctuated, token::Brace, token::Bracket, token::Colon, token::Comma,
     token::PathSep, token::Pound,
 };
 #[allow(unused_imports)]
-use token_patterns::{
+pub use token_patterns::{
     AllowClippyArbitrarySrcItemOrdering, Bool, Char, CoreDefault,
     DeriveDebugSerdeSerializeSerdeDeserialize, DeriveDebugThiserrorLoc, Er0, Er1, Er2, Er3, F32,
     F64, FieldAttrSerdeSkipSerializingIfOptIsNone, I8, I16, I32, I64, MustUse,
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElCall, RefStr, SqlxAcquire, SqlxRow, StringTs, U8, U16, U32, U64,
 };
+type Ts2 = proc_macro2::TokenStream;
+type StdFmtResult = std::fmt::Result;
 fn compile_error_ts(msg: &str) -> Ts2 {
     quote! {compile_error!(#msg);}
 }

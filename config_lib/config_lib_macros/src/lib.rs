@@ -22,9 +22,9 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     let name = quote::format_ident!("{name_text}");
     let er_name = quote::format_ident!("{er_name_text}");
     quote::quote! {
-        #[derive(Debug, Clone, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
+        #[derive(Debug, Clone, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
         pub struct #name(pub String);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
+        #[derive(Debug, Clone, Copy, thiserror::Error, optml::Optml)]
         pub enum #er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
@@ -60,9 +60,9 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     let name = quote::format_ident!("{name_text}");
     let er_name = quote::format_ident!("{er_name_text}");
     quote::quote! {
-        #[derive(Debug, gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
-        pub struct #name(pub SecretBox<String>);
-        #[derive(Debug, Clone, Copy, Error, Optml)]
+        #[derive(Debug, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+        pub struct #name(pub secrecy::SecretBox<String>);
+        #[derive(Debug, Clone, Copy, thiserror::Error, optml::Optml)]
         pub enum #er_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
@@ -73,7 +73,7 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
                 try_map_non_empty_env_value(
                     v,
                     |is_empty| Self::Error::IsEmpty { is_empty },
-                    |v| Self(SecretBox::new(Box::new(v))),
+                    |v| Self(secrecy::SecretBox::new(Box::new(v))),
                 )
             }
         }
@@ -144,9 +144,9 @@ fn impl_try_from_parse_with_er_ty(
         },
     );
     quote::quote! {
-        #[derive(Debug, #(#derives,)* gen_getter_traits_for_struct_fields::GenGetterTrait, Optml)]
+        #[derive(Debug, #(#derives,)* gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
         pub struct #name(pub #inner);
-        #[derive(Debug, Error, Optml)]
+        #[derive(Debug, thiserror::Error, optml::Optml)]
         pub enum #er_name {
             #[error("{:?}", .#er_field)]
             #er_vrt { #er_field: #er_ty },

@@ -40,7 +40,6 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use super::{find_case_insensitive_pair, impl_from_str_for_enum_helper, mk_allowed_values};
     const PAIRS: [(&str, V); 2] = [("a", V::A), ("b", V::B)];
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     enum V {
@@ -49,38 +48,38 @@ mod tests {
     }
     #[test]
     fn helper_parses_values_case_insensitively() {
-        assert_eq!(impl_from_str_for_enum_helper("A", &PAIRS), Ok(V::A));
-        assert_eq!(impl_from_str_for_enum_helper("b", &PAIRS), Ok(V::B));
+        assert_eq!(super::impl_from_str_for_enum_helper("A", &PAIRS), Ok(V::A));
+        assert_eq!(super::impl_from_str_for_enum_helper("b", &PAIRS), Ok(V::B));
     }
     #[test]
     fn find_case_insensitive_pair_returns_none_for_unknown_value() {
-        assert_eq!(find_case_insensitive_pair("x", &PAIRS), None);
+        assert_eq!(super::find_case_insensitive_pair("x", &PAIRS), None);
     }
     #[test]
     fn helper_error_mentions_allowed_values() {
-        let er = impl_from_str_for_enum_helper("x", &PAIRS).expect_err("4d6330e7");
+        let er = super::impl_from_str_for_enum_helper("x", &PAIRS).expect_err("4d6330e7");
         assert!(er.contains("Unknown value: x"));
         assert!(er.contains("Allowed values: a, b"));
     }
     #[test]
     fn helper_error_keeps_variant_order_in_allowed_values() {
         let pairs = [("first", V::A), ("second", V::B)];
-        let er = impl_from_str_for_enum_helper("x", &pairs).expect_err("ee52fc8d");
+        let er = super::impl_from_str_for_enum_helper("x", &pairs).expect_err("ee52fc8d");
         assert!(er.contains("Allowed values: first, second"));
     }
     #[test]
     fn helper_error_handles_empty_variants() {
         let pairs: [(&str, V); 0] = [];
-        let er = impl_from_str_for_enum_helper("x", &pairs).expect_err("312f79de");
+        let er = super::impl_from_str_for_enum_helper("x", &pairs).expect_err("312f79de");
         assert_eq!(er, "Unknown value: x. Allowed values: ");
     }
     #[test]
     fn mk_allowed_values_formats_multiple_variants() {
-        assert_eq!(mk_allowed_values(&PAIRS), "a, b");
+        assert_eq!(super::mk_allowed_values(&PAIRS), "a, b");
     }
     #[test]
     fn mk_allowed_values_returns_empty_for_no_variants() {
         let pairs: [(&str, V); 0] = [];
-        assert_eq!(mk_allowed_values(&pairs), "");
+        assert_eq!(super::mk_allowed_values(&pairs), "");
     }
 }

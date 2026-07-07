@@ -1,52 +1,48 @@
-use optml::Optml;
-use proc_macro2::TokenStream as Ts2;
-use quote::{ToTokens, quote};
-use token_patterns_macros::{tp, tp_batch, tp_parts, ts_path_fn};
-tp!(SqlxAcquire, sqlx::Acquire);
-tp!(
+token_patterns_macros::tp!(SqlxAcquire, sqlx::Acquire);
+token_patterns_macros::tp!(
     AxumExtractRejectionJsonRejection,
     axum::extract::rejection::JsonRejection
 );
-tp!(AxumResIntoRes, axum::response::IntoResponse);
-tp!(ReqwestEr, reqwest::Error);
-tp!(ReqwestHeaderHeaderMap, reqwest::header::HeaderMap);
-tp!(HttpStatusCode, http::StatusCode);
-tp!(SqlxRow, sqlx::Row);
-tp!(SerdeSerialize, serde::Serialize);
-tp!(SerdeDeserialize, serde::Deserialize);
-tp!(UtoipaToSchema, utoipa::ToSchema);
-tp!(SchemarsJsonSchema, schemars::JsonSchema);
-tp!(LocLibLoc, loc_lib::Location);
-tp!(ThiserrorError, thiserror::Error);
-tp!(Char, char);
-tp!(RefStr, &str);
-tp!(StringTs, String);
-tp!(DeriveDebug, #[derive(Debug, Optml)]);
-tp!(DeriveDebugThiserrorLoc, #[derive(Debug, thiserror::Error, loc_lib::Location, Optml)]);
-tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, Optml)]);
-tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, Optml)]);
-tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, Optml)]);
-tp!(DeriveDebugCloneCopy, #[derive(Debug, Clone, Copy, Optml)]);
-tp!(StrSqlxColIndex, &'lt str: sqlx::ColumnIndex<R>,);
-tp!(
+token_patterns_macros::tp!(AxumResIntoRes, axum::response::IntoResponse);
+token_patterns_macros::tp!(ReqwestEr, reqwest::Error);
+token_patterns_macros::tp!(ReqwestHeaderHeaderMap, reqwest::header::HeaderMap);
+token_patterns_macros::tp!(HttpStatusCode, http::StatusCode);
+token_patterns_macros::tp!(SqlxRow, sqlx::Row);
+token_patterns_macros::tp!(SerdeSerialize, serde::Serialize);
+token_patterns_macros::tp!(SerdeDeserialize, serde::Deserialize);
+token_patterns_macros::tp!(UtoipaToSchema, utoipa::ToSchema);
+token_patterns_macros::tp!(SchemarsJsonSchema, schemars::JsonSchema);
+token_patterns_macros::tp!(LocLibLoc, loc_lib::Location);
+token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
+token_patterns_macros::tp!(Char, char);
+token_patterns_macros::tp!(RefStr, &str);
+token_patterns_macros::tp!(StringTs, String);
+token_patterns_macros::tp!(DeriveDebug, #[derive(Debug, Optml)]);
+token_patterns_macros::tp!(DeriveDebugThiserrorLoc, #[derive(Debug, thiserror::Error, loc_lib::Location, Optml)]);
+token_patterns_macros::tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, Optml)]);
+token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, Optml)]);
+token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, Optml)]);
+token_patterns_macros::tp!(DeriveDebugCloneCopy, #[derive(Debug, Clone, Copy, Optml)]);
+token_patterns_macros::tp!(StrSqlxColIndex, &'lt str: sqlx::ColumnIndex<R>,);
+token_patterns_macros::tp!(
     SqlxDecodeDecodeDatabase,
     sqlx::decode::Decode<'lt, R::Database>
 );
-tp!(SqlxTypesTypeDatabase, sqlx::types::Type<R::Database>);
-tp!(LocLibLocLoc, loc_lib::loc::Loc);
-tp!(LocScDoubleDotSpaceLocLibLocLoc, loc: loc_lib::loc::Loc);
-tp!(CoreDefault, ::core::default::Default::default());
-tp!(SqlxTypesTimeTimeMidnight, sqlx::types::time::Time::MIDNIGHT);
-tp!(
+token_patterns_macros::tp!(SqlxTypesTypeDatabase, sqlx::types::Type<R::Database>);
+token_patterns_macros::tp!(LocLibLocLoc, loc_lib::loc::Loc);
+token_patterns_macros::tp!(LocScDoubleDotSpaceLocLibLocLoc, loc: loc_lib::loc::Loc);
+token_patterns_macros::tp!(CoreDefault, ::core::default::Default::default());
+token_patterns_macros::tp!(SqlxTypesTimeTimeMidnight, sqlx::types::time::Time::MIDNIGHT);
+token_patterns_macros::tp!(
     SqlxTypesTimeOffsetDateTimeUnixEpoch,
     sqlx::types::time::OffsetDateTime::UNIX_EPOCH
 );
-tp!(Er0, er_0);
-tp!(Er1, er_1);
-tp!(Er2, er_2);
-tp!(Er3, er_3);
-tp!(FieldAttrSerdeSkipSerializingIfOptIsNone, #[serde(skip_serializing_if = "Option::is_none")]);
-tp_batch!(
+token_patterns_macros::tp!(Er0, er_0);
+token_patterns_macros::tp!(Er1, er_1);
+token_patterns_macros::tp!(Er2, er_2);
+token_patterns_macros::tp!(Er3, er_3);
+token_patterns_macros::tp!(FieldAttrSerdeSkipSerializingIfOptIsNone, #[serde(skip_serializing_if = "Option::is_none")]);
+token_patterns_macros::tp_batch!(
     (Bool, bool),
     (U8, u8),
     (U16, u16),
@@ -61,186 +57,190 @@ tp_batch!(
     (UuidUuid, uuid::Uuid),
     (StdFmtDisplay, std::fmt::Display)
 );
-tp_parts!(CrateDfltSomeOneEl, crate_path_ts(), dflt_some_one_el_ucc());
-tp_parts!(
+token_patterns_macros::tp_parts!(CrateDfltSomeOneEl, crate_path_ts(), dflt_some_one_el_ucc());
+token_patterns_macros::tp_parts!(
     CrateDfltSomeOneElCall,
     crate_path_ts(),
     dflt_some_one_el_ucc(),
     path_dflt_some_one_el_call()
 );
-tp_parts!(PgCrudDfltSomeOneEl, pg_crud(), dflt_some_one_el_ucc());
-tp_parts!(
+token_patterns_macros::tp_parts!(PgCrudDfltSomeOneEl, pg_crud(), dflt_some_one_el_ucc());
+token_patterns_macros::tp_parts!(
     PgCrudDfltSomeOneElCall,
     PgCrudDfltSomeOneEl,
     path_dflt_some_one_el_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneEl,
     pg_crud_cmn(),
     dflt_some_one_el_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneElCall,
     PgCrudCmnDfltSomeOneEl,
     path_dflt_some_one_el_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneEl,
     crate_path_ts(),
     all_vrts_dflt_some_one_el_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneElCall,
     CrateAllEnumVrtsArrDfltSomeOneEl,
     path_all_vrts_dflt_some_one_el_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudAllEnumVrtsArrDfltSomeOneEl,
     pg_crud(),
     all_vrts_dflt_some_one_el_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudAllEnumVrtsArrDfltSomeOneElCall,
     PgCrudAllEnumVrtsArrDfltSomeOneEl,
     path_all_vrts_dflt_some_one_el_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
     pg_crud_cmn(),
     all_vrts_dflt_some_one_el_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnAllEnumVrtsArrDfltSomeOneElCall,
     PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
     path_all_vrts_dflt_some_one_el_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateDfltSomeOneElMaxPageSize,
     crate_path_ts(),
     dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateDfltSomeOneElMaxPageSizeCall,
     crate_path_ts(),
     dflt_some_one_el_max_page_size_ucc(),
     path_dflt_some_one_el_max_page_size_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudDfltSomeOneElMaxPageSize,
     pg_crud(),
     dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElMaxPageSize,
     path_dflt_some_one_el_max_page_size_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneElMaxPageSize,
     pg_crud_cmn(),
     dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudCmnDfltSomeOneElMaxPageSize,
     path_dflt_some_one_el_max_page_size_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     crate_path_ts(),
     all_vrts_dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
     CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     path_all_vrts_dflt_some_one_el_max_page_size_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     pg_crud(),
     all_vrts_dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
     PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     path_all_vrts_dflt_some_one_el_max_page_size_call()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     pg_crud_cmn(),
     all_vrts_dflt_some_one_el_max_page_size_ucc()
 );
-tp_parts!(
+token_patterns_macros::tp_parts!(
     PgCrudCmnAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
     PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     path_all_vrts_dflt_some_one_el_max_page_size_call()
 );
-tp!(MustUse, #[must_use]);
-tp!(AllowClippyArbitrarySrcItemOrdering, #[allow(clippy::arbitrary_source_item_ordering)]);
-tp!(NoneTs, None);
-ts_path_fn!(
+token_patterns_macros::tp!(MustUse, #[must_use]);
+token_patterns_macros::tp!(AllowClippyArbitrarySrcItemOrdering, #[allow(clippy::arbitrary_source_item_ordering)]);
+token_patterns_macros::tp!(NoneTs, None);
+token_patterns_macros::ts_path_fn!(
     path_all_vrts_dflt_some_one_el_max_page_size_call,
     ::all_vrts_dflt_some_one_el_max_page_size()
 );
-ts_path_fn!(dflt_some_one_el_max_page_size_ucc, DfltSomeOneElMaxPageSize);
-ts_path_fn!(crate_path_ts, crate::);
-ts_path_fn!(pg_crud, pg_crud::);
-ts_path_fn!(pg_crud_cmn, pg_crud_cmn::);
-ts_path_fn!(dflt_some_one_el_ucc, DfltSomeOneEl);
-ts_path_fn!(all_vrts_dflt_some_one_el_ucc, AllEnumVrtsArrDfltSomeOneEl);
-ts_path_fn!(path_dflt_some_one_el_call, ::dflt_some_one_el());
-ts_path_fn!(
+token_patterns_macros::ts_path_fn!(dflt_some_one_el_max_page_size_ucc, DfltSomeOneElMaxPageSize);
+token_patterns_macros::ts_path_fn!(crate_path_ts, crate::);
+token_patterns_macros::ts_path_fn!(pg_crud, pg_crud::);
+token_patterns_macros::ts_path_fn!(pg_crud_cmn, pg_crud_cmn::);
+token_patterns_macros::ts_path_fn!(dflt_some_one_el_ucc, DfltSomeOneEl);
+token_patterns_macros::ts_path_fn!(all_vrts_dflt_some_one_el_ucc, AllEnumVrtsArrDfltSomeOneEl);
+token_patterns_macros::ts_path_fn!(path_dflt_some_one_el_call, ::dflt_some_one_el());
+token_patterns_macros::ts_path_fn!(
     path_dflt_some_one_el_max_page_size_call,
     ::dflt_some_one_el_max_page_size()
 );
-ts_path_fn!(
+token_patterns_macros::ts_path_fn!(
     all_vrts_dflt_some_one_el_max_page_size_ucc,
     AllEnumVrtsArrDfltSomeOneElMaxPageSize
 );
-ts_path_fn!(
+token_patterns_macros::ts_path_fn!(
     path_all_vrts_dflt_some_one_el_call,
     ::all_vrts_dflt_some_one_el()
 );
-fn append_tokens(tokens: &mut Ts2, part: impl ToTokens) {
+fn append_tokens(tokens: &mut proc_macro2::TokenStream, part: impl quote::ToTokens) {
     part.to_tokens(tokens);
 }
 #[cfg(test)]
 mod tests {
-    use super::{
-        Bool, CrateDfltSomeOneEl, CrateDfltSomeOneElCall, DeriveDebugCloneCopy, SqlxAcquire,
-        path_dflt_some_one_el_call, pg_crud, pg_crud_cmn,
-    };
-    use quote::{ToTokens, quote};
-    fn assert_tokens_eq(actual: impl ToTokens, expected: impl ToTokens) {
-        assert_eq!(quote! {#actual}.to_string(), quote! {#expected}.to_string());
+    fn assert_tokens_eq(actual: impl quote::ToTokens, expected: impl quote::ToTokens) {
+        assert_eq!(
+            quote::quote! {#actual}.to_string(),
+            quote::quote! {#expected}.to_string()
+        );
     }
     #[test]
     fn tp_struct_outputs_expected_tokens() {
-        assert_tokens_eq(SqlxAcquire, quote! {sqlx::Acquire});
+        assert_tokens_eq(super::SqlxAcquire, quote::quote! {sqlx::Acquire});
         assert_tokens_eq(
-            DeriveDebugCloneCopy,
-            quote! {#[derive(Debug, Clone, Copy, Optml)]},
+            super::DeriveDebugCloneCopy,
+            quote::quote! {#[derive(Debug, Clone, Copy, Optml)]},
         );
     }
     #[test]
     fn tp_parts_struct_outputs_expected_tokens() {
-        assert_tokens_eq(CrateDfltSomeOneEl, quote! {crate::DfltSomeOneEl});
         assert_tokens_eq(
-            CrateDfltSomeOneElCall,
-            quote! {crate::DfltSomeOneEl::dflt_some_one_el()},
+            super::CrateDfltSomeOneEl,
+            quote::quote! {crate::DfltSomeOneEl},
+        );
+        assert_tokens_eq(
+            super::CrateDfltSomeOneElCall,
+            quote::quote! {crate::DfltSomeOneEl::dflt_some_one_el()},
         );
     }
     #[test]
     fn tp_batch_struct_outputs_expected_tokens() {
-        assert_tokens_eq(Bool, quote! {bool});
+        assert_tokens_eq(super::Bool, quote::quote! {bool});
     }
     #[test]
     fn ts_path_fn_outputs_expected_tokens() {
-        assert_tokens_eq(pg_crud(), quote! {pg_crud::});
-        assert_tokens_eq(pg_crud_cmn(), quote! {pg_crud_cmn::});
+        assert_tokens_eq(super::pg_crud(), quote::quote! {pg_crud::});
+        assert_tokens_eq(super::pg_crud_cmn(), quote::quote! {pg_crud_cmn::});
     }
     #[test]
     fn path_helper_outputs_expected_tokens() {
-        assert_tokens_eq(path_dflt_some_one_el_call(), quote! {::dflt_some_one_el()});
+        assert_tokens_eq(
+            super::path_dflt_some_one_el_call(),
+            quote::quote! {::dflt_some_one_el()},
+        );
     }
 }

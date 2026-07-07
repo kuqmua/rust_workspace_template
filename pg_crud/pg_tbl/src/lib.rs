@@ -1,14 +1,10 @@
-use app_state::{
-    GetEnableApiGitCommitCheck, GetMaximumSizeOfHttpBodyInBytes, GetPgPool, GetSrcPlaceType,
-    GetTimezone,
-};
 pub use gen_pg_tbl::*;
 pub trait CombinationOfAppStateLogicTraits:
-    GetEnableApiGitCommitCheck
-    + GetMaximumSizeOfHttpBodyInBytes
-    + GetSrcPlaceType
-    + GetTimezone
-    + GetPgPool
+    app_state::GetEnableApiGitCommitCheck
+    + app_state::GetMaximumSizeOfHttpBodyInBytes
+    + app_state::GetSrcPlaceType
+    + app_state::GetTimezone
+    + app_state::GetPgPool
     + Send
     + Sync
 {
@@ -156,12 +152,6 @@ pub fn gen_dlo_query_string(tbl: &str, pk_field_name: &str) -> String {
 }
 #[cfg(test)]
 mod tests {
-    use super::{
-        gen_cm_query_string, gen_co_query_string, gen_col_eqs_case_acc_else_col_end_comma_um_qp,
-        gen_col_queals_v_comma_uo_qp, gen_delete_query_string, gen_dlo_query_string,
-        gen_dm_query_string, gen_rm_query_string, gen_ro_query_string, gen_um_query_string,
-        gen_uo_query_string, gen_when_col_id_then_v_um_qp,
-    };
     fn users_base() -> (&'static str, &'static str) {
         ("users", "id")
     }
@@ -171,67 +161,70 @@ mod tests {
     #[test]
     fn gen_cm_query_string_is_expected() {
         assert_q(
-            &gen_cm_query_string("users", "id,name", "($1,$2),($3,$4)", "id"),
+            &super::gen_cm_query_string("users", "id,name", "($1,$2),($3,$4)", "id"),
             "insert into users (id,name) values ($1,$2),($3,$4) returning id",
         );
     }
     #[test]
     fn gen_co_query_string_is_expected() {
         assert_q(
-            &gen_co_query_string("users", "id,name", "$1,$2", "id"),
+            &super::gen_co_query_string("users", "id,name", "$1,$2", "id"),
             "insert into users (id,name) values ($1,$2) returning id",
         );
     }
     #[test]
     fn gen_rm_query_string_is_expected() {
         assert_q(
-            &gen_rm_query_string("users", "id,name", "order by id"),
+            &super::gen_rm_query_string("users", "id,name", "order by id"),
             "select id,name from users order by id",
         );
     }
     #[test]
     fn gen_ro_query_string_is_expected() {
         assert_q(
-            &gen_ro_query_string("users", "id,name", "id = $1"),
+            &super::gen_ro_query_string("users", "id,name", "id = $1"),
             "select id,name from users where id = $1",
         );
     }
     #[test]
     fn gen_col_queals_v_comma_uo_qp_is_expected() {
-        assert_q(&gen_col_queals_v_comma_uo_qp("name", "$2"), "name = $2,");
+        assert_q(
+            &super::gen_col_queals_v_comma_uo_qp("name", "$2"),
+            "name = $2,",
+        );
     }
     #[test]
     fn gen_when_col_id_then_v_um_qp_is_expected() {
         assert_q(
-            &gen_when_col_id_then_v_um_qp("id", "$1", "$2"),
+            &super::gen_when_col_id_then_v_um_qp("id", "$1", "$2"),
             "when id = $1 then $2 ",
         );
     }
     #[test]
     fn gen_col_eqs_case_acc_else_col_end_comma_um_qp_is_expected() {
         assert_q(
-            &gen_col_eqs_case_acc_else_col_end_comma_um_qp("name", "when id = $1 then $2 "),
+            &super::gen_col_eqs_case_acc_else_col_end_comma_um_qp("name", "when id = $1 then $2 "),
             "name = case when id = $1 then $2 else name end,",
         );
     }
     #[test]
     fn gen_um_query_string_is_expected() {
         assert_q(
-            &gen_um_query_string("users", "name = case ... end,", "id", "$1,$2", "id,name"),
+            &super::gen_um_query_string("users", "name = case ... end,", "id", "$1,$2", "id,name"),
             "update users set name = case ... end, where id in ($1,$2) returning id,name",
         );
     }
     #[test]
     fn gen_uo_query_string_is_expected() {
         assert_q(
-            &gen_uo_query_string("users", "name = $2", "id", "$1", "id,name"),
+            &super::gen_uo_query_string("users", "name = $2", "id", "$1", "id,name"),
             "update users set name = $2 where id = $1 returning id,name",
         );
     }
     #[test]
     fn gen_dm_query_string_is_expected() {
         assert_q(
-            &gen_dm_query_string("users", "where id in ($1,$2)", "id"),
+            &super::gen_dm_query_string("users", "where id in ($1,$2)", "id"),
             "delete from users where id in ($1,$2) returning id",
         );
     }
@@ -239,20 +232,21 @@ mod tests {
     fn gen_dlo_query_string_is_expected() {
         let (tbl, pk) = users_base();
         assert_q(
-            &gen_dlo_query_string(tbl, pk),
+            &super::gen_dlo_query_string(tbl, pk),
             "delete from users where id = $1 returning id",
         );
     }
     #[test]
     fn gen_um_query_string_wraps_pk_selector_for_in_clause() {
-        let v = gen_um_query_string("users", "name = case ... end,", "id", "$1,$2", "id,name");
+        let v =
+            super::gen_um_query_string("users", "name = case ... end,", "id", "$1,$2", "id,name");
         assert!(v.contains("where id in ($1,$2)"));
     }
     #[test]
     fn gen_delete_query_string_uses_provided_filter_without_rewrite() {
         let (tbl, pk) = users_base();
         assert_q(
-            &gen_delete_query_string(tbl, pk, Some("where id in ($1,$2) and active = true")),
+            &super::gen_delete_query_string(tbl, pk, Some("where id in ($1,$2) and active = true")),
             "delete from users where id in ($1,$2) and active = true returning id",
         );
     }

@@ -7,21 +7,20 @@ pub fn impl_cfg_getter(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         )
         .into();
     }
-    let Some(trait_name) = workspace_macro_helpers::first_ident_at(&parts, 0) else {
+    let Some(trait_ts) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts("impl_cfg_getter expects trait name")
             .into();
     };
     let Some(fn_name) = workspace_macro_helpers::first_ident_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts("impl_cfg_getter expects fn name").into();
     };
-    let trait_ident = quote::format_ident!("{trait_name}");
     let fn_ident = quote::format_ident!("{fn_name}");
     let Some(ret_ty) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_ts("impl_cfg_getter expects return type")
             .into();
     };
     quote::quote! {
-        impl #trait_ident for ServerAppState<'_> {
+        impl #trait_ts for ServerAppState<'_> {
             fn #fn_ident(&self) -> &#ret_ty {
                 self.cfg_ref().#fn_ident()
             }

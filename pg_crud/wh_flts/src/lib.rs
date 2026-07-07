@@ -1,32 +1,27 @@
-use loc_lib::{Location, loc, loc::Loc};
-use optml::Optml;
-use pg_crud_cmn::{
-    DfltSomeOneEl, NotEmptyUnqVec, NotEmptyUnqVecTryNewEr, PgTypeWhFlt, QpEr,
-    incr_checked_add_one_returning_incr,
-};
-use regex::Regex;
-use schemars::{_private::alloc::borrow, JsonSchema, Schema, SchemaGenerator};
-use serde::{Deserialize, Serialize};
-use sqlx::{Encode, Postgres, Type, postgres::PgArguments, query::Query};
-use std::{
-    fmt::{Display, Formatter, Result as StdFmtResult, Write as _},
-    process::abort,
-};
-use thiserror::Error;
-use utoipa::ToSchema;
 gen_wh_flts::gen_wh_flts!({
     "pg_types_write_into_file": "False",
     "whole_write_into_file": "False"
 });
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub enum EncodeFormat {
     #[default]
     Base64,
     Escape,
     Hex,
 }
-impl Display for EncodeFormat {
-    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+impl std::fmt::Display for EncodeFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Self::Base64 => write!(f, "base64"),
             Self::Escape => write!(f, "escape"),
@@ -34,18 +29,18 @@ impl Display for EncodeFormat {
         }
     }
 }
-impl DfltSomeOneEl for EncodeFormat {
+impl pg_crud_cmn::DfltSomeOneEl for EncodeFormat {
     fn dflt_some_one_el() -> Self {
         Self::default()
     }
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Optml)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml)]
 #[serde(try_from = "String", into = "String")]
-pub struct RgxRgx(pub Regex);
+pub struct RgxRgx(pub regex::Regex);
 impl TryFrom<String> for RgxRgx {
     type Error = regex::Error;
     fn try_from(v: String) -> Result<Self, Self::Error> {
-        Regex::new(&v).map(RgxRgx)
+        regex::Regex::new(&v).map(RgxRgx)
     }
 }
 impl From<RgxRgx> for String {
@@ -69,14 +64,14 @@ impl PartialEq for RgxRgx {
 const _: () = {
     #[automatically_derived]
     #[allow(unused_braces)]
-    impl JsonSchema for RgxRgx {
-        fn schema_name() -> borrow::Cow<'static, str> {
-            borrow::Cow::Borrowed("RegexRegex")
+    impl schemars::JsonSchema for RgxRgx {
+        fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+            schemars::_private::alloc::borrow::Cow::Borrowed("RegexRegex")
         }
-        fn schema_id() -> borrow::Cow<'static, str> {
-            borrow::Cow::Borrowed("tests::RegexRegex")
+        fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+            schemars::_private::alloc::borrow::Cow::Borrowed("tests::RegexRegex")
         }
-        fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
             { generator.subschema_for::<String>() }
         }
         fn inline_schema() -> bool {
@@ -84,28 +79,38 @@ const _: () = {
         }
     }
 };
-impl Display for RgxRgx {
-    fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+impl std::fmt::Display for RgxRgx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
-impl DfltSomeOneEl for RgxRgx {
+impl pg_crud_cmn::DfltSomeOneEl for RgxRgx {
     fn dflt_some_one_el() -> Self {
-        match Regex::new("[a-z]+") {
+        match regex::Regex::new("[a-z]+") {
             Ok(v) => Self(v),
             Err(er) => {
                 eprintln!("22a9eda5: {er}");
-                abort();
+                std::process::abort();
             }
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub enum RgxCase {
     Insensitive,
     Sensitive,
 }
-impl DfltSomeOneEl for RgxCase {
+impl pg_crud_cmn::DfltSomeOneEl for RgxCase {
     fn dflt_some_one_el() -> Self {
         Self::Sensitive
     }
@@ -120,25 +125,35 @@ impl RgxCase {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema, Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
 pub struct Btwn<T>
 where
-    T: Type<Postgres> + for<'__> Encode<'__, Postgres>,
+    T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
 {
     start: T,
     end: T,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Error, Location, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    loc_lib::Location,
+    optml::Optml,
+)]
 pub enum BtwnTryNewEr<T> {
     StartMoreOrEqToEnd {
         #[eo_to_err_string_serde]
         start: T,
         #[eo_to_err_string_serde]
         end: T,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
-impl<T: Type<Postgres> + for<'__> Encode<'__, Postgres> + PartialOrd> Btwn<T> {
+impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + PartialOrd>
+    Btwn<T>
+{
     pub fn try_new(start: T, end: T) -> Result<Self, BtwnTryNewEr<T>> {
         if start < end {
             Ok(Self { start, end })
@@ -146,7 +161,7 @@ impl<T: Type<Postgres> + for<'__> Encode<'__, Postgres> + PartialOrd> Btwn<T> {
             Err(BtwnTryNewEr::StartMoreOrEqToEnd {
                 start,
                 end,
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             })
         }
     }
@@ -162,8 +177,8 @@ const _: () = {
         T: std::fmt::Debug
             + _serde::Deserialize<'de>
             + PartialOrd
-            + Type<Postgres>
-            + for<'__> Encode<'__, Postgres>,
+            + sqlx::Type<sqlx::Postgres>
+            + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
     {
         fn deserialize<__D>(__deserializer: __D) -> Result<Self, __D::Error>
         where
@@ -229,7 +244,9 @@ const _: () = {
             #[doc(hidden)]
             struct __Visitor<'de, T>
             where
-                T: _serde::Deserialize<'de> + Type<Postgres> + for<'__> Encode<'__, Postgres>,
+                T: _serde::Deserialize<'de>
+                    + sqlx::Type<sqlx::Postgres>
+                    + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
             {
                 marker: _serde::__private228::PhantomData<Btwn<T>>,
                 lt: _serde::__private228::PhantomData<&'de ()>,
@@ -239,8 +256,8 @@ const _: () = {
                 T: std::fmt::Debug
                     + _serde::Deserialize<'de>
                     + PartialOrd
-                    + Type<Postgres>
-                    + for<'__> Encode<'__, Postgres>,
+                    + sqlx::Type<sqlx::Postgres>
+                    + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
             {
                 type Value = Btwn<T>;
                 fn expecting(
@@ -332,21 +349,26 @@ const _: () = {
         }
     }
 };
-impl<T: DfltSomeOneEl + Type<Postgres> + for<'__> Encode<'__, Postgres>> DfltSomeOneEl for Btwn<T> {
+impl<
+    T: pg_crud_cmn::DfltSomeOneEl
+        + sqlx::Type<sqlx::Postgres>
+        + for<'__> sqlx::Encode<'__, sqlx::Postgres>,
+> pg_crud_cmn::DfltSomeOneEl for Btwn<T>
+{
     fn dflt_some_one_el() -> Self {
         Self {
-            start: DfltSomeOneEl::dflt_some_one_el(),
-            end: DfltSomeOneEl::dflt_some_one_el(),
+            start: pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el(),
+            end: pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el(),
         }
     }
 }
-impl<'lt, T: Send + Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt> PgTypeWhFlt<'lt>
-    for Btwn<T>
+impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + 'lt>
+    pg_crud_cmn::PgTypeWhFlt<'lt> for Btwn<T>
 {
     fn qb(
         self,
-        mut query: Query<'lt, Postgres, PgArguments>,
-    ) -> Result<Query<'lt, Postgres, PgArguments>, String> {
+        mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
         if let Err(er) = query.try_bind(self.start) {
             return Err(er.to_string());
         }
@@ -355,14 +377,19 @@ impl<'lt, T: Send + Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt> PgTyp
         }
         Ok(query)
     }
-    fn qp(&self, incr: &mut u64, _: &dyn Display, _: bool) -> Result<String, QpEr> {
-        let start_incr = match incr_checked_add_one_returning_incr(incr) {
+    fn qp(
+        &self,
+        incr: &mut u64,
+        _: &dyn std::fmt::Display,
+        _: bool,
+    ) -> Result<String, pg_crud_cmn::QpEr> {
+        let start_incr = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
             Err(er) => {
                 return Err(er);
             }
         };
-        let end_incr = match incr_checked_add_one_returning_incr(incr) {
+        let end_incr = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
             Err(er) => {
                 return Err(er);
@@ -371,7 +398,16 @@ impl<'lt, T: Send + Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt> PgTyp
         Ok(format!("between ${start_incr} and ${end_incr}"))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema, JsonSchema, Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
 pub struct PgTypeNotEmptyUnqVec<T>(Vec<T>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 impl<T> PgTypeNotEmptyUnqVec<T> {
@@ -385,10 +421,10 @@ impl<T> PgTypeNotEmptyUnqVec<T> {
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUnqVec<T> {
-    type Error = NotEmptyUnqVecTryNewEr<T>;
+    type Error = pg_crud_cmn::NotEmptyUnqVecTryNewEr<T>;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
-        NotEmptyUnqVec::try_new(v)
-            .map(NotEmptyUnqVec::into_vec)
+        pg_crud_cmn::NotEmptyUnqVec::try_new(v)
+            .map(pg_crud_cmn::NotEmptyUnqVec::into_vec)
             .map(Self)
     }
 }
@@ -465,9 +501,9 @@ const _: () = {
         }
     }
 };
-impl<T: DfltSomeOneEl> DfltSomeOneEl for PgTypeNotEmptyUnqVec<T> {
+impl<T: pg_crud_cmn::DfltSomeOneEl> pg_crud_cmn::DfltSomeOneEl for PgTypeNotEmptyUnqVec<T> {
     fn dflt_some_one_el() -> Self {
-        Self(vec![DfltSomeOneEl::dflt_some_one_el()])
+        Self(vec![pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el()])
     }
 }
 impl<T> Default for PgTypeNotEmptyUnqVec<T> {
@@ -481,12 +517,30 @@ impl<T> From<PgTypeNotEmptyUnqVec<T>> for Vec<T> {
     }
 }
 #[derive(
-    Debug, Default, Clone, PartialEq, Eq, PartialOrd, Serialize, Deserialize, JsonSchema, Optml,
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 #[serde(try_from = "Vec<T>")]
 pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
 #[derive(
-    Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Error, Location, JsonSchema, Optml,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    loc_lib::Location,
+    schemars::JsonSchema,
+    optml::Optml,
 )]
 pub enum BoundedVecTryNewEr {
     LenIsNotCorrect {
@@ -494,15 +548,18 @@ pub enum BoundedVecTryNewEr {
         wrong_len: usize,
         #[eo_to_err_string_serde]
         expected: usize,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
 enum Vrt {
     MinusOne,
     Normal,
 }
-impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH: usize>
-    BoundedVec<T, LENGTH>
+impl<
+    'lt,
+    T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + 'lt,
+    const LENGTH: usize,
+> BoundedVec<T, LENGTH>
 {
     #[must_use]
     pub fn into_inn(self) -> Vec<T> {
@@ -511,23 +568,23 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
     pub fn pg_type_qp(
         &self,
         incr: &mut u64,
-        col: &dyn Display,
+        col: &dyn std::fmt::Display,
         add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+    ) -> Result<String, pg_crud_cmn::QpEr> {
         self.qp(incr, col, add_oprtr, &Vrt::Normal)
     }
     pub fn pg_type_qp_minus_one(
         &self,
         incr: &mut u64,
-        col: &dyn Display,
+        col: &dyn std::fmt::Display,
         add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+    ) -> Result<String, pg_crud_cmn::QpEr> {
         self.qp(incr, col, add_oprtr, &Vrt::MinusOne)
     }
     pub fn qb(
         self,
-        mut query: Query<'lt, Postgres, PgArguments>,
-    ) -> Result<Query<'lt, Postgres, PgArguments>, String> {
+        mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
         for el in self.0 {
             if let Err(er) = query.try_bind(el) {
                 return Err(er.to_string());
@@ -538,25 +595,27 @@ impl<'lt, T: Type<Postgres> + for<'__> Encode<'__, Postgres> + 'lt, const LENGTH
     fn qp(
         &self,
         incr: &mut u64,
-        _: &dyn Display,
+        _: &dyn std::fmt::Display,
         _add_oprtr: bool,
         vrt: &Vrt,
-    ) -> Result<String, QpEr> {
+    ) -> Result<String, pg_crud_cmn::QpEr> {
         let mut acc = String::new();
         let len = match &vrt {
             Vrt::MinusOne => self.0.len().saturating_sub(1),
             Vrt::Normal => self.0.len(),
         };
         for _ in 0..len {
-            let v = match incr_checked_add_one_returning_incr(incr) {
+            let v = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
                 Ok(v) => v,
                 Err(er) => {
                     return Err(er);
                 }
             };
-            let write_res = write!(acc, "[${v}]");
+            let write_res = std::fmt::Write::write_fmt(&mut acc, format_args!("[${v}]"));
             if write_res.is_err() {
-                return Err(QpEr::WriteIntoBuffer { loc: loc!() });
+                return Err(pg_crud_cmn::QpEr::WriteIntoBuffer {
+                    loc: loc_lib::loc!(),
+                });
             }
         }
         Ok(acc)
@@ -576,63 +635,71 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
             Err(BoundedVecTryNewEr::LenIsNotCorrect {
                 wrong_len: len,
                 expected: LENGTH,
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             })
         }
     }
 }
-impl<T: Clone + DfltSomeOneEl, const LENGTH: usize> DfltSomeOneEl for BoundedVec<T, LENGTH> {
+impl<T: Clone + pg_crud_cmn::DfltSomeOneEl, const LENGTH: usize> pg_crud_cmn::DfltSomeOneEl
+    for BoundedVec<T, LENGTH>
+{
     fn dflt_some_one_el() -> Self {
-        Self(vec![<T as DfltSomeOneEl>::dflt_some_one_el(); LENGTH])
+        Self(vec![
+            <T as pg_crud_cmn::DfltSomeOneEl>::dflt_some_one_el();
+            LENGTH
+        ])
     }
 }
 #[cfg(test)]
 mod tests {
-    use super::{EncodeFormat, PgTypeNotEmptyUnqVec, RgxRgx};
-    use pg_crud_cmn::NotEmptyUnqVecTryNewEr;
-    use regex::Regex;
     #[derive(Debug, PartialEq, Eq)]
     struct NonClone(u8);
     #[test]
     fn pg_type_not_empty_unq_vec_try_from_ok() {
-        let rslt = PgTypeNotEmptyUnqVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);
+        let rslt = super::PgTypeNotEmptyUnqVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);
         if let Err(er) = rslt {
             panic!("5a6afcfa {er:?}");
         }
     }
     #[test]
     fn pg_type_not_empty_unq_vec_try_from_empty() {
-        let rslt = PgTypeNotEmptyUnqVec::<i32>::try_from(Vec::new());
-        assert!(matches!(rslt, Err(NotEmptyUnqVecTryNewEr::IsEmpty { .. })));
+        let rslt = super::PgTypeNotEmptyUnqVec::<i32>::try_from(Vec::new());
+        assert!(matches!(
+            rslt,
+            Err(pg_crud_cmn::NotEmptyUnqVecTryNewEr::IsEmpty { .. })
+        ));
     }
     #[test]
     fn pg_type_not_empty_unq_vec_try_from_not_unq() {
-        let rslt = PgTypeNotEmptyUnqVec::<i32>::try_from(vec![1i32, 2i32, 1i32]);
+        let rslt = super::PgTypeNotEmptyUnqVec::<i32>::try_from(vec![1i32, 2i32, 1i32]);
         assert!(matches!(
             rslt,
-            Err(NotEmptyUnqVecTryNewEr::NotUnq { v: 1i32, .. })
+            Err(pg_crud_cmn::NotEmptyUnqVecTryNewEr::NotUnq { v: 1i32, .. })
         ));
     }
     #[test]
     fn pg_type_not_empty_unq_vec_try_from_supports_non_clone_values() {
-        let rslt =
-            PgTypeNotEmptyUnqVec::<NonClone>::try_from(vec![NonClone(1), NonClone(2), NonClone(1)]);
+        let rslt = super::PgTypeNotEmptyUnqVec::<NonClone>::try_from(vec![
+            NonClone(1),
+            NonClone(2),
+            NonClone(1),
+        ]);
         assert!(matches!(
             rslt,
-            Err(NotEmptyUnqVecTryNewEr::NotUnq { v: NonClone(1), .. })
+            Err(pg_crud_cmn::NotEmptyUnqVecTryNewEr::NotUnq { v: NonClone(1), .. })
         ));
     }
     #[test]
     fn encode_format_display_is_stable() {
-        assert_eq!(EncodeFormat::Base64.to_string(), "base64");
-        assert_eq!(EncodeFormat::Escape.to_string(), "escape");
-        assert_eq!(EncodeFormat::Hex.to_string(), "hex");
+        assert_eq!(super::EncodeFormat::Base64.to_string(), "base64");
+        assert_eq!(super::EncodeFormat::Escape.to_string(), "escape");
+        assert_eq!(super::EncodeFormat::Hex.to_string(), "hex");
     }
     #[test]
     fn rgx_rgx_eq_compares_pattern_content() {
-        let left = RgxRgx(Regex::new(r"\d+").expect("8342ad27"));
-        let right = RgxRgx(Regex::new(r"\d+").expect("4d0fa8e3"));
-        let other = RgxRgx(Regex::new("[a-z]+").expect("abcc9a72"));
+        let left = super::RgxRgx(regex::Regex::new(r"\d+").expect("8342ad27"));
+        let right = super::RgxRgx(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
+        let other = super::RgxRgx(regex::Regex::new("[a-z]+").expect("abcc9a72"));
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

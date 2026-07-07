@@ -6,15 +6,11 @@
 // impl display like this this
 // eo_loc_field
 // https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
-use loc_lib::{Location, ToErrString, loc, loc::Loc};
-use optml::Optml;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use thiserror::Error;
-#[derive(Debug, Error, Location, Optml)]
+type HashMap<K, V> = std::collections::HashMap<K, V>;
+#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErOne {
-    //use ToErrString for hashmap ks instead of Display
-    //todo even for String in serialize deserialize version of er must be using ToErrString impl instead of std::fmt::Display
+    //use loc_lib::ToErrString for hashmap ks instead of Display
+    //todo even for String in serialize deserialize version of er must be using loc_lib::ToErrString impl instead of std::fmt::Display
     //todo test on using only loc as pnly field in named vrt
     Vrt {
         #[eo_to_err_string]
@@ -35,46 +31,46 @@ pub enum ErOne {
         hashmap_string_serde: HashMap<String, SerdeStruct>,
         #[eo_hashmap_k_string_v_loc]
         hashmap_string_loc: HashMap<String, ErUnnamedOne>,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
-#[derive(Debug, Error, Location, Optml)]
+#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErTwo {
     Another {
         #[eo_to_err_string_serde]
         sdasdasd: String,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
     Vrt {
         #[eo_to_err_string_serde]
         eo_display_with_serde_field: String,
-        loc: Loc,
+        loc: loc_lib::loc::Loc,
     },
 }
-#[derive(Debug, Error, Location, Optml)]
+#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErUnnamedOne {
     Something(ErTwo),
 }
-#[derive(Debug, Optml)]
+#[derive(Debug, optml::Optml)]
 pub struct DisplayStruct {
     pub display: String,
     pub something: bool,
 }
 //todo or mb two different traits - display foreign type and convert into serializable and deserializable type
-impl ToErrString for DisplayStruct {
+impl loc_lib::ToErrString for DisplayStruct {
     fn to_err_string(&self) -> String {
         format!("{self:?}")
     }
 }
 //todo rename fields
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Serialize, Deserialize, Optml)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
 pub struct SerdeStruct {
     pub one: String,
     pub three: u32,
     pub two: bool,
 }
-impl ToErrString for SerdeStruct {
+impl loc_lib::ToErrString for SerdeStruct {
     fn to_err_string(&self) -> String {
         format!("{self:?}")
     }
@@ -92,7 +88,7 @@ fn main() {
         },
         eo_loc_field: ErTwo::Vrt {
             eo_display_with_serde_field: String::from("v"),
-            loc: loc!(),
+            loc: loc_lib::loc!(),
         },
         eo_vec_display_field: vec![
             DisplayStruct {
@@ -119,11 +115,11 @@ fn main() {
         eo_vec_loc_field: vec![
             ErUnnamedOne::Something(ErTwo::Vrt {
                 eo_display_with_serde_field: String::from("v"),
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             }),
             ErUnnamedOne::Something(ErTwo::Vrt {
                 eo_display_with_serde_field: String::from("123"),
-                loc: loc!(),
+                loc: loc_lib::loc!(),
             }),
         ],
         hashmap_string_string: HashMap::from([
@@ -165,18 +161,18 @@ fn main() {
                 String::from("ksdfgadsfgsdfgdfgey"),
                 ErUnnamedOne::Something(ErTwo::Vrt {
                     eo_display_with_serde_field: String::from("vasdfgdgdfglue"),
-                    loc: loc!(),
+                    loc: loc_lib::loc!(),
                 }),
             ),
             (
                 String::from("kesdfgsdgfdfgy"),
                 ErUnnamedOne::Something(ErTwo::Vrt {
                     eo_display_with_serde_field: String::from("valsdfgdsafgdsgue"),
-                    loc: loc!(),
+                    loc: loc_lib::loc!(),
                 }),
             ),
         ]),
-        loc: loc!(),
+        loc: loc_lib::loc!(),
     };
     println!("{er:?}");
 }

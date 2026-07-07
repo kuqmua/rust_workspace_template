@@ -38,7 +38,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         });
         quote::quote! {
-            #[derive(Debug, Error, optml::Optml)]
+            #[derive(Debug, thiserror::Error, optml::Optml)]
             pub enum #ident_try_from_env_er_ucc {
                 #dotenv_ucc {
                     #dotenv_sc: dotenv::Error,

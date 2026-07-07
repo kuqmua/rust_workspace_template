@@ -1,19 +1,6 @@
-use naming::prm::PgTypeWhSelfUcc;
-use naming::{
-    AdjacentWithRangeUcc, BeforeUcc, BtwnUcc, CrntDateUcc, CrntTimeUcc, CrntTimestampUcc,
-    DisplayPlusToTokens, EqToEncodedStringRepresentationUcc, EqUcc, ExcludedUpperBoundUcc,
-    FindRangesThatFullyContainTheGivenRangeUcc, FindRangesWithinGivenRangeUcc,
-    GreaterThanCrntDateUcc, GreaterThanCrntTimeUcc, GreaterThanCrntTimestampUcc,
-    GreaterThanExcludedUpperBoundUcc, GreaterThanIncludedLowerBoundUcc, GreaterThanUcc, InUcc,
-    IncludedLowerBoundUcc, OverlapWithRangeUcc, RangeLenUcc, RgxUcc, StrictlyToLeftOfRangeUcc,
-    StrictlyToRightOfRangeUcc,
-};
-use optml::Optml;
-use proc_macro2::TokenStream as Ts2;
-use quote::quote;
-use strum_macros::{Display, EnumIter};
+type Ts2 = proc_macro2::TokenStream;
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(Debug, Clone, Display, EnumIter, Optml)]
+#[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
 pub enum PgTypeFlt {
     Eq { ident: Ts2 },
     GreaterThan { ident: Ts2 },
@@ -71,42 +58,42 @@ impl PgFlt for PgTypeFlt {
         }
     }
     fn prefix_wh_self_ucc(&self) -> Ts2 {
-        let v = PgTypeWhSelfUcc::from_display(&self.ucc());
-        quote! {#v}
+        let v = naming::prm::PgTypeWhSelfUcc::from_display(&self.ucc());
+        quote::quote! {#v}
     }
-    fn ucc(&self) -> &'static dyn DisplayPlusToTokens {
+    fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens {
         match &self {
-            Self::Eq { .. } => &EqUcc,
-            Self::GreaterThan { .. } => &GreaterThanUcc,
-            Self::Btwn { .. } => &BtwnUcc,
-            Self::In { .. } => &InUcc,
-            Self::Rgx => &RgxUcc,
-            Self::Before { .. } => &BeforeUcc,
-            Self::CrntDate => &CrntDateUcc,
-            Self::GreaterThanCrntDate => &GreaterThanCrntDateUcc,
-            Self::CrntTimestamp => &CrntTimestampUcc,
-            Self::GreaterThanCrntTimestamp => &GreaterThanCrntTimestampUcc,
-            Self::CrntTime => &CrntTimeUcc,
-            Self::GreaterThanCrntTime => &GreaterThanCrntTimeUcc,
-            Self::EqToEncodedStringRepresentation => &EqToEncodedStringRepresentationUcc,
-            Self::FindRangesWithinGivenRange { .. } => &FindRangesWithinGivenRangeUcc,
+            Self::Eq { .. } => &naming::EqUcc,
+            Self::GreaterThan { .. } => &naming::GreaterThanUcc,
+            Self::Btwn { .. } => &naming::BtwnUcc,
+            Self::In { .. } => &naming::InUcc,
+            Self::Rgx => &naming::RgxUcc,
+            Self::Before { .. } => &naming::BeforeUcc,
+            Self::CrntDate => &naming::CrntDateUcc,
+            Self::GreaterThanCrntDate => &naming::GreaterThanCrntDateUcc,
+            Self::CrntTimestamp => &naming::CrntTimestampUcc,
+            Self::GreaterThanCrntTimestamp => &naming::GreaterThanCrntTimestampUcc,
+            Self::CrntTime => &naming::CrntTimeUcc,
+            Self::GreaterThanCrntTime => &naming::GreaterThanCrntTimeUcc,
+            Self::EqToEncodedStringRepresentation => &naming::EqToEncodedStringRepresentationUcc,
+            Self::FindRangesWithinGivenRange { .. } => &naming::FindRangesWithinGivenRangeUcc,
             Self::FindRangesThatFullyContainTheGivenRange { .. } => {
-                &FindRangesThatFullyContainTheGivenRangeUcc
+                &naming::FindRangesThatFullyContainTheGivenRangeUcc
             }
-            Self::StrictlyToLeftOfRange { .. } => &StrictlyToLeftOfRangeUcc,
-            Self::StrictlyToRightOfRange { .. } => &StrictlyToRightOfRangeUcc,
-            Self::IncludedLowerBound { .. } => &IncludedLowerBoundUcc,
-            Self::ExcludedUpperBound { .. } => &ExcludedUpperBoundUcc,
-            Self::GreaterThanIncludedLowerBound { .. } => &GreaterThanIncludedLowerBoundUcc,
-            Self::GreaterThanExcludedUpperBound { .. } => &GreaterThanExcludedUpperBoundUcc,
-            Self::OverlapWithRange { .. } => &OverlapWithRangeUcc,
-            Self::AdjacentWithRange { .. } => &AdjacentWithRangeUcc,
-            Self::RangeLen => &RangeLenUcc,
+            Self::StrictlyToLeftOfRange { .. } => &naming::StrictlyToLeftOfRangeUcc,
+            Self::StrictlyToRightOfRange { .. } => &naming::StrictlyToRightOfRangeUcc,
+            Self::IncludedLowerBound { .. } => &naming::IncludedLowerBoundUcc,
+            Self::ExcludedUpperBound { .. } => &naming::ExcludedUpperBoundUcc,
+            Self::GreaterThanIncludedLowerBound { .. } => &naming::GreaterThanIncludedLowerBoundUcc,
+            Self::GreaterThanExcludedUpperBound { .. } => &naming::GreaterThanExcludedUpperBoundUcc,
+            Self::OverlapWithRange { .. } => &naming::OverlapWithRangeUcc,
+            Self::AdjacentWithRange { .. } => &naming::AdjacentWithRangeUcc,
+            Self::RangeLen => &naming::RangeLenUcc,
         }
     }
 }
 pub trait PgFlt {
     fn mb_generic(&self) -> Option<Ts2>;
     fn prefix_wh_self_ucc(&self) -> Ts2;
-    fn ucc(&self) -> &'static dyn DisplayPlusToTokens;
+    fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
 }
