@@ -19,5 +19,6 @@ syn = { workspace = true }
 uuid = { workspace = true }
 walkdir = { workspace = true }
 optml = { workspace = true }
+rayon = { workspace = true }
 [lints]
 workspace = true

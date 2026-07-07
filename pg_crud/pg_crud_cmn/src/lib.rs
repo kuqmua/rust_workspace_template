@@ -753,18 +753,11 @@ const _: () = {
     }
 };
 impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T> {
-    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
-        for el in self.v.0 {
-            match PgTypeWhFlt::qb(el, query) {
-                Ok(v) => {
-                    query = v;
-                }
-                Err(er) => {
-                    return Err(er);
-                }
-            }
-        }
-        Ok(query)
+    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+        self.v
+            .0
+            .into_iter()
+            .try_fold(query, |acc_query, el| PgTypeWhFlt::qb(el, acc_query))
     }
     fn qp(
         &self,
@@ -774,21 +767,16 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
     ) -> Result<QpFragment, QpEr> {
         let mut acc = String::default();
         let mut add_oprtr_inn_h = AddOprtr(false);
-        for el in &self.v.0 {
-            match PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h) {
-                Ok(v) => {
-                    if std::fmt::Write::write_fmt(&mut acc, format_args!("{v} ")).is_err() {
-                        return Err(QpEr::WriteIntoBuffer {
-                            loc: loc_lib::loc!(),
-                        });
-                    }
-                    add_oprtr_inn_h = AddOprtr(true);
-                }
-                Err(er) => {
-                    return Err(er);
-                }
+        self.v.0.iter().try_for_each(|el| {
+            let v = PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h)?;
+            if std::fmt::Write::write_fmt(&mut acc, format_args!("{v} ")).is_err() {
+                return Err(QpEr::WriteIntoBuffer {
+                    loc: loc_lib::loc!(),
+                });
             }
-        }
+            add_oprtr_inn_h = AddOprtr(true);
+            Ok(())
+        })?;
         let _: Option<char> = acc.pop();
         Ok(QpFragment(format!(
             "{}({acc})",
@@ -1296,11 +1284,10 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
-        for el in self.0 {
-            query = el.qb(query)?;
-        }
-        Ok(query)
+    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+        self.0
+            .into_iter()
+            .try_fold(query, |acc_query, el| el.qb(acc_query))
     }
     fn qp(
         &self,
@@ -1308,12 +1295,15 @@ where
         col: SqlColRef<'_>,
         add_oprtr: AddOprtr,
     ) -> Result<QpFragment, QpEr> {
-        let mut acc = String::default();
-        for (i, el) in self.0.iter().enumerate() {
-            let v = el.qp(incr, col, if i == 0 { add_oprtr } else { AddOprtr(true) })?;
-            acc.push_str(&v.0);
-        }
-        Ok(QpFragment(acc))
+        self.0
+            .iter()
+            .enumerate()
+            .try_fold(String::default(), |mut acc, (i, el)| {
+                let v = el.qp(incr, col, if i == 0 { add_oprtr } else { AddOprtr(true) })?;
+                acc.push_str(&v.0);
+                Ok(acc)
+            })
+            .map(QpFragment)
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
@@ -1714,12 +1704,11 @@ pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
 where
     T: PartialEq,
 {
-    for (idx, current) in values.iter().enumerate() {
-        if values.iter().take(idx).any(|prev| prev == current) {
-            return Some(DuplicateIdx(idx));
-        }
-    }
-    None
+    values
+        .iter()
+        .enumerate()
+        .find(|(idx, current)| values.iter().take(*idx).any(|prev| prev == *current))
+        .map(|(idx, _)| DuplicateIdx(idx))
 }
 #[must_use]
 pub fn take_fst_dup<T>(values: &mut Vec<T>) -> Option<T>

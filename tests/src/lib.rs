@@ -681,29 +681,37 @@ mod tests {
     }
     #[test]
     fn all_files_are_english_only() {
-        let mut ers = Vec::new();
         let exceptions = [
             "../pg_crud/pg_crud_cmn/src/lib.rs", //contain utf-8 String test
             "../CODE_IMPROVEMENT_PLAN.md",
             "../DEVELOPMENT_PLAN.md",
         ];
-        for el_d87f0495 in project_dir()
+        let paths = project_dir()
             .into_iter()
             .filter_entry(|el_6870bc3d| !is_ignored_dir_entry_name(el_6870bc3d.file_name()))
             .filter_map(Result::ok)
-        {
-            let path = el_d87f0495.path();
-            if !is_allowed_english_check_file(path) {
-                continue;
-            }
-            if is_exception(path, &exceptions) {
-                continue;
-            }
-            let Ok(v) = std::fs::read_to_string(path) else {
-                continue; //skip binary non-utf8 files
-            };
-            ers.extend(collect_non_english_symbol_ers(path, &v));
-        }
+            .map(walkdir::DirEntry::into_path)
+            .collect::<Vec<std::path::PathBuf>>();
+        let mut ers = rayon::iter::ParallelIterator::reduce(
+            rayon::iter::ParallelIterator::map(
+                rayon::iter::IntoParallelRefIterator::par_iter(&paths),
+                |path| {
+                    if !is_allowed_english_check_file(path) || is_exception(path, &exceptions) {
+                        return Vec::new();
+                    }
+                    let Ok(v) = std::fs::read_to_string(path) else {
+                        return Vec::new();
+                    };
+                    collect_non_english_symbol_ers(path, &v)
+                },
+            ),
+            Vec::new,
+            |mut acc, mut item| {
+                acc.append(&mut item);
+                acc
+            },
+        );
+        ers.sort();
         assert_joined_ers_empty_with_ctx(&ers, "8db37a2f", "non-english symbols:");
     }
     fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPanic) {
@@ -874,21 +882,19 @@ mod tests {
         ).expect("e098a1ff");
         let mut seen = std::collections::HashSet::new();
         for_each_rs_file_content(|_, v| {
-            for el_714b3d9c in rgx.find_iter(v) {
+            rgx.find_iter(v).for_each(|el_714b3d9c| {
                 let uuid = uuid::Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
                 assert!(uuid.get_version_num() == 4, "49b49b21");
                 assert!(seen.insert(uuid), "4cf9d239");
-            }
+            });
         });
     }
     #[test]
     fn check_workspace_dependencies_having_exact_version() {
         let workspace = workspace_tbl_from_cargo_toml();
-        for (_, v_5c36cb98) in
-            toml_val_as_tbl_ref(workspace.get("dependencies").expect("2376f58e"), "e117fa5a")
-        {
-            validate_workspace_dep_spec(v_5c36cb98);
-        }
+        toml_val_as_tbl_ref(workspace.get("dependencies").expect("2376f58e"), "e117fa5a")
+            .values()
+            .for_each(validate_workspace_dep_spec);
     }
     #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
     fn validate_workspace_dep_spec(v: &toml::Value) {
@@ -1030,8 +1036,15 @@ mod tests {
             &lints_from_cargo_set,
             &lints_exceptions_set,
         );
-        for lint in lints_missing_by_exception {
-            println!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997");
+        let missing_by_exception_msg = lints_missing_by_exception
+            .into_iter()
+            .map(|lint| {
+                format!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997")
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+        if !missing_by_exception_msg.is_empty() {
+            println!("{missing_by_exception_msg}");
         }
         assert!(
             lints_not_in_cargo_toml.is_empty(),
@@ -1101,15 +1114,10 @@ mod tests {
         lints_from_cargo_set: &std::collections::HashSet<&str>,
         lints_exceptions_set: &std::collections::HashSet<&str>,
     ) -> (Vec<&'lints str>, Vec<&'lints str>) {
-        let mut lints_not_in_cargo_toml = Vec::new();
-        let mut lints_missing_by_exception = Vec::new();
-        for lint in collect_missing_items(lints_to_check, lints_from_cargo_set) {
-            if lints_exceptions_set.contains(lint) {
-                lints_missing_by_exception.push(lint);
-            } else {
-                lints_not_in_cargo_toml.push(lint);
-            }
-        }
+        let (lints_missing_by_exception, lints_not_in_cargo_toml) =
+            collect_missing_items(lints_to_check, lints_from_cargo_set)
+                .into_iter()
+                .partition(|lint| lints_exceptions_set.contains(lint));
         (lints_not_in_cargo_toml, lints_missing_by_exception)
     }
     fn is_exception(path: &std::path::Path, exceptions: &[&str]) -> bool {
@@ -1185,13 +1193,10 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared duplicate finder keeps uniqueness checks reusable and consistent
     fn find_duplicate_strings(v: &[String]) -> Vec<String> {
         let mut seen = std::collections::HashSet::new();
-        let mut duplicates = Vec::new();
-        for el_45f4b8bc in v {
-            if !seen.insert(el_45f4b8bc.as_str()) {
-                duplicates.push(el_45f4b8bc.to_owned());
-            }
-        }
-        duplicates
+        v.iter()
+            .filter(|el_45f4b8bc| !seen.insert(el_45f4b8bc.as_str()))
+            .cloned()
+            .collect::<Vec<String>>()
     }
     #[allow(clippy::single_call_fn)] // reusable collector stays available for AST-policy tests and keeps collection logic separate from assertion wrappers
     fn collect_rs_ast_ers(
@@ -1267,22 +1272,23 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
     fn collect_non_english_symbol_ers(path: &std::path::Path, v: &str) -> Vec<String> {
-        let mut ers = Vec::new();
-        for (line_idx, line) in v.lines().enumerate() {
-            let line_number = line_idx.saturating_add(1);
-            for ch in line.chars() {
-                if !is_allowed_english_char(ch) {
-                    ers.push(format!(
-                        "{}:{} non-english symbol `{}` (U+{:04X})",
-                        path.display(),
-                        line_number,
-                        ch,
-                        u32::from(ch)
-                    ));
-                }
-            }
-        }
-        ers
+        v.lines()
+            .enumerate()
+            .flat_map(|(line_idx, line)| {
+                let line_number = line_idx.saturating_add(1);
+                line.chars()
+                    .filter(|ch| !is_allowed_english_char(*ch))
+                    .map(move |ch| {
+                        format!(
+                            "{}:{} non-english symbol `{}` (U+{:04X})",
+                            path.display(),
+                            line_number,
+                            ch,
+                            u32::from(ch)
+                        )
+                    })
+            })
+            .collect::<Vec<String>>()
     }
     #[allow(clippy::single_call_fn)] // shared character predicate keeps english-only symbol policy centralized
     fn is_allowed_english_char(ch: char) -> bool {
@@ -1381,14 +1387,18 @@ mod tests {
                     })
                     .collect::<std::collections::HashSet<_>>();
                 if !is_public_reexport_source_path(path) {
-                    for public_use_root in &visitor.public_use_roots {
-                        if !local_mod_names.contains(public_use_root) {
-                            ers.push(format!(
+                    ers.extend(
+                        visitor
+                            .public_use_roots
+                            .iter()
+                            .filter(|public_use_root| !local_mod_names.contains(*public_use_root))
+                            .map(|public_use_root| {
+                                format!(
                                 "{}: found public use import rooted at `{public_use_root}` outside facade re-export allowlist; use the explicit path at the usage site or add only intentional facade files to PUBLIC_REEXPORT_SOURCE_INCLUSIONS",
                                 path.display()
-                            ));
-                        }
-                    }
+                                )
+                            }),
+                    );
                 }
                 if visitor.found_use_rename {
                     ers.push(format!(
@@ -1563,9 +1573,7 @@ mod tests {
         msg: &str,
         times: usize,
     ) {
-        for _ in 0..times {
-            ers.push(format!("{}: {msg}", path.display()));
-        }
+        ers.extend(std::iter::repeat_with(|| format!("{}: {msg}", path.display())).take(times));
     }
     fn project_dir() -> walkdir::WalkDir {
         walkdir::WalkDir::new("../")
@@ -1579,15 +1587,13 @@ mod tests {
         exceptions: &[&str],
         mut on_file: impl FnMut(&std::path::Path),
     ) {
-        for entry in project_dir()
+        project_dir()
             .into_iter()
             .filter_entry(|el| !is_ignored_dir_entry_name(el.file_name()))
             .filter_map(Result::ok)
             .filter(|el| el.file_name() == "Cargo.toml")
             .filter(|el| !is_exception(el.path(), exceptions))
-        {
-            on_file(entry.path());
-        }
+            .for_each(|entry| on_file(entry.path()));
     }
     #[allow(clippy::single_call_fn)] // iterator builder is intentionally separated for readability and traversal reuse entrypoint
     fn rs_project_files() -> impl Iterator<Item = walkdir::DirEntry> {
@@ -1685,16 +1691,15 @@ mod tests {
         names: &mut std::collections::BTreeSet<String>,
     ) {
         let re = regex::Regex::new("\"([A-Za-z0-9]+As[A-Za-z0-9]+)\"").expect("f4e61b29");
-        for captures in re.captures_iter(tokens) {
-            let Some(base) = captures.get(1).map(|el| el.as_str()) else {
-                continue;
-            };
-            let Some((prefix, suffix)) = base.split_once("As") else {
-                continue;
-            };
-            let _: bool = names.insert(format!("{prefix}AsNn{suffix}"));
-            let _: bool = names.insert(format!("Opt{prefix}AsNl{suffix}"));
-        }
+        re.captures_iter(tokens)
+            .filter_map(|captures| {
+                let base = captures.get(1).map(|el| el.as_str())?;
+                base.split_once("As")
+            })
+            .for_each(|(prefix, suffix)| {
+                let _: bool = names.insert(format!("{prefix}AsNn{suffix}"));
+                let _: bool = names.insert(format!("Opt{prefix}AsNl{suffix}"));
+            });
     }
     #[allow(clippy::single_call_fn)] // config_lib helper macros declare domain wrapper structs from their first argument
     fn config_lib_domain_type_macro_path(path: &syn::Path) -> bool {
@@ -1866,13 +1871,9 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // walks upward from a source file to the owning crate manifest
     fn nearest_cargo_toml_path(path: &std::path::Path) -> Option<std::path::PathBuf> {
-        for ancestor in path.ancestors() {
-            let cargo_toml_path = ancestor.join("Cargo.toml");
-            if cargo_toml_path.exists() {
-                return Some(cargo_toml_path);
-            }
-        }
-        None
+        path.ancestors()
+            .map(|ancestor| ancestor.join("Cargo.toml"))
+            .find(|cargo_toml_path| cargo_toml_path.exists())
     }
     #[allow(clippy::single_call_fn)] // package-name based test crate filter keeps generated/test-only crates outside runtime policy
     fn is_test_crate(parsed: &toml::Table) -> bool {
@@ -1935,13 +1936,13 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
     fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
-        for entry in rs_project_files() {
-            let path = entry.path();
-            let Ok(v) = std::fs::read_to_string(path) else {
-                continue;
-            };
-            on_file(path, &v);
-        }
+        rs_project_files()
+            .filter_map(|entry| {
+                std::fs::read_to_string(entry.path())
+                    .ok()
+                    .map(|v| (entry, v))
+            })
+            .for_each(|(entry, v)| on_file(entry.path(), &v));
     }
     #[allow(clippy::single_call_fn)] // shared rust-file parser keeps read+parse flow reusable for AST-based checks and visitors
     fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
@@ -2000,18 +2001,18 @@ mod tests {
         let mut ers = Vec::new();
         for_each_cargo_toml_project_file(&[], |path| {
             let v = std::fs::read_to_string(path).expect("762c1d9e");
-            for mtch in rgx.find_iter(&v) {
+            ers.extend(rgx.find_iter(&v).map(|mtch| {
                 let line_nbr = v
                     .bytes()
                     .take(mtch.start())
                     .filter(|byte| *byte == b'\n')
                     .count()
                     .saturating_add(1);
-                ers.push(format!(
+                format!(
                     "{}:{line_nbr} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
                     path.display()
-                ));
-            }
+                )
+            }));
         });
         assert_joined_ers_empty_with_ctx(
             &ers,
@@ -2025,15 +2026,23 @@ mod tests {
         parsed: &toml::Table,
         ers: &mut Vec<String>,
     ) {
-        for dep_section in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            if let Some(deps) = parsed.get(dep_section).and_then(toml::Value::as_table) {
-                for (dep_name, dep_value) in deps {
-                    if !workspace_dep_entry_is_valid(dep_value) {
-                        ers.push(workspace_dep_entry_er(path, dep_name, dep_section));
-                    }
-                }
-            }
-        }
+        ers.extend(
+            ["dependencies", "dev-dependencies", "build-dependencies"]
+                .into_iter()
+                .filter_map(|dep_section| {
+                    parsed
+                        .get(dep_section)
+                        .and_then(toml::Value::as_table)
+                        .map(|deps| (dep_section, deps))
+                })
+                .flat_map(|(dep_section, deps)| {
+                    deps.iter()
+                        .filter(move |(_, dep_value)| !workspace_dep_entry_is_valid(dep_value))
+                        .map(move |(dep_name, _)| {
+                            workspace_dep_entry_er(path, dep_name, dep_section)
+                        })
+                }),
+        );
     }
     #[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
     fn workspace_dep_entry_is_valid(dep_value: &toml::Value) -> bool {
@@ -2070,31 +2079,33 @@ mod tests {
         let members_vec = workspace_members_as_strs(&workspace, "c1d4f7a2");
         let mut sorted = members_vec.clone();
         sorted.sort_unstable();
-        let mut ers = Vec::new();
-        for (k_4b1e6a8c, (got, expected)) in members_vec.iter().zip(sorted.iter()).enumerate() {
-            if got != expected {
-                ers.push(format!(
-                    "index {k_4b1e6a8c}: got `{got}`, expected `{expected}`"
-                ));
-            }
-        }
+        let ers = members_vec
+            .iter()
+            .zip(sorted.iter())
+            .enumerate()
+            .filter(|(_, (got, expected))| got != expected)
+            .map(|(k_4b1e6a8c, (got, expected))| {
+                format!("index {k_4b1e6a8c}: got `{got}`, expected `{expected}`")
+            })
+            .collect::<Vec<String>>();
         assert_joined_ers_empty_with_ctx(&ers, "b7c2e5f8", "members not sorted:");
     }
     #[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
     fn collect_workspace_member_missing_cargo_toml_ers(members: &[&str]) -> Vec<String> {
-        let mut ers = Vec::new();
-        for member_str in members {
-            let path = std::path::Path::new("..")
-                .join(member_str)
-                .join("Cargo.toml");
-            if !path.exists() {
-                ers.push(format!(
-                    "member `{member_str}` Cargo.toml not found at {}",
-                    path.display()
-                ));
-            }
-        }
-        ers
+        members
+            .iter()
+            .filter_map(|member_str| {
+                let path = std::path::Path::new("..")
+                    .join(member_str)
+                    .join("Cargo.toml");
+                (!path.exists()).then(|| {
+                    format!(
+                        "member `{member_str}` Cargo.toml not found at {}",
+                        path.display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>()
     }
     #[allow(clippy::single_call_fn)] // central member extraction keeps workspace-members readers strict and reusable across membership checks
     fn workspace_members_as_strs<'members_lt>(
@@ -2104,13 +2115,9 @@ mod tests {
         let Some(members) = workspace.get("members").and_then(toml::Value::as_array) else {
             panic!("{exp_id}");
         };
-        let mut output = Vec::with_capacity(members.len());
-        for member in members {
-            match member.as_str() {
-                Some(member_str) => output.push(member_str),
-                None => panic!("{exp_id}"),
-            }
-        }
-        output
+        members
+            .iter()
+            .map(|member| member.as_str().unwrap_or_else(|| panic!("{exp_id}")))
+            .collect::<Vec<&str>>()
     }
 }

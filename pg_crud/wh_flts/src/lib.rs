@@ -619,14 +619,15 @@ impl<
     }
     pub fn qb(
         self,
-        mut query: pg_crud_cmn::PgQuery<'lt>,
+        query: pg_crud_cmn::PgQuery<'lt>,
     ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
-        for el in self.0 {
-            if let Err(er) = query.0.try_bind(el) {
-                return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
-            }
-        }
-        Ok(query)
+        self.0.into_iter().try_fold(query, |mut acc_query, el| {
+            acc_query
+                .0
+                .try_bind(el)
+                .map_err(|er| pg_crud_cmn::PgQueryBindEr(er.to_string()))?;
+            Ok(acc_query)
+        })
     }
     fn qp(
         &self,
@@ -635,12 +636,11 @@ impl<
         _add_oprtr: pg_crud_cmn::AddOprtr,
         vrt: &Vrt,
     ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
-        let mut acc = String::new();
         let len = match &vrt {
             Vrt::MinusOne => self.0.len().saturating_sub(1),
             Vrt::Normal => self.0.len(),
         };
-        for _ in 0..len {
+        let acc = (0..len).try_fold(String::new(), |mut acc, _| {
             let v = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
                 Ok(v) => v,
                 Err(er) => {
@@ -653,7 +653,8 @@ impl<
                     loc: loc_lib::loc!(),
                 });
             }
-        }
+            Ok(acc)
+        })?;
         Ok(pg_crud_cmn::QpFragment(acc))
     }
     #[must_use]

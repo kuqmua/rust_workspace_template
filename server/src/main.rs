@@ -106,14 +106,10 @@ fn parse_separated_values<T>(
 fn parse_separated_values_with_capacity<T>(
     v: CorsAllowOriginTextRef<'_>,
     split_ch: CorsAllowOriginSplitCh,
-    mut parse_value: impl FnMut(&str) -> Option<T>,
+    parse_value: impl FnMut(&str) -> Option<T>,
 ) -> Vec<T> {
     let mut parsed = Vec::with_capacity(split_count(v, split_ch).0.saturating_add(1));
-    for segment in v.0.split(split_ch.0) {
-        if let Some(parsed_value) = parse_value(segment) {
-            parsed.push(parsed_value);
-        }
-    }
+    parsed.extend(v.0.split(split_ch.0).filter_map(parse_value));
     parsed
 }
 #[allow(clippy::single_call_fn)] // isolated to keep capacity estimation reusable for parser helpers
