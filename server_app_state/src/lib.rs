@@ -60,13 +60,13 @@ mod tests {
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
                     "postgres://db".to_owned(),
                 ))),
-                maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes(
-                    16_384,
-                ),
+                maximum_size_of_http_body_in_bytes:
+                    config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("d81f6a42"),
                 service_socket_address: config_lib::ServiceSocketAddress(
                     "127.0.0.1:3000".parse().expect("73f8bc91"),
                 ),
-                pg_pool_max_connections: config_lib::PgPoolMaxConnections(7),
+                pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
+                    .expect("f20c4a91"),
                 timezone: config_lib::Timezone(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("a95d3c17"),
                 ),

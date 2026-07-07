@@ -30,6 +30,18 @@ impl std::fmt::Debug for I32ParsingEr {
         self.0.fmt(f)
     }
 }
+pub struct U32ParsingEr(pub std::num::ParseIntError);
+impl std::fmt::Debug for U32ParsingEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+pub struct UsizeParsingEr(pub std::num::ParseIntError);
+impl std::fmt::Debug for UsizeParsingEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct TimezoneSeconds(i32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,27 +65,90 @@ config_lib_macros::impl_try_from_parse!(
     Clone,
     Copy
 );
-config_lib_macros::impl_try_from_parse!(
-    MaximumSizeOfHttpBodyInBytes,
-    TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr,
-    usize,
-    UsizeParsing,
-    usize_parsing,
-    std::num::ParseIntError,
-    Clone,
-    Copy
-);
+#[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+pub struct MaximumSizeOfHttpBodyInBytes(pub usize);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
+pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeEr {
+    #[error("maximum size of http body in bytes must be greater than zero")]
+    IsZero,
+}
+impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
+    type Error = MaximumSizeOfHttpBodyInBytesTryFromUsizeEr;
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == 0 {
+            Err(Self::Error::IsZero)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Debug, thiserror::Error, optml::Optml)]
+pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr {
+    #[error("{maximum_size_of_http_body_in_bytes:?}")]
+    MaximumSizeOfHttpBodyInBytes {
+        maximum_size_of_http_body_in_bytes: MaximumSizeOfHttpBodyInBytesTryFromUsizeEr,
+    },
+    #[error("{:?}", .usize_parsing)]
+    UsizeParsing { usize_parsing: UsizeParsingEr },
+}
+impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
+    type Error = TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        let parsed: usize =
+            parse_from_str_with_er(StdEnvVarOkRef(v.0.as_str()), |usize_parsing| {
+                Self::Error::UsizeParsing {
+                    usize_parsing: UsizeParsingEr(usize_parsing),
+                }
+            })?;
+        Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {
+            Self::Error::MaximumSizeOfHttpBodyInBytes {
+                maximum_size_of_http_body_in_bytes,
+            }
+        })
+    }
+}
 config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlEr);
-config_lib_macros::impl_try_from_parse!(
-    PgPoolMaxConnections,
-    TryFromStdEnvVarOkPgPoolMaxConnectionsEr,
-    u32,
-    U32Parsing,
-    u32_parsing,
-    std::num::ParseIntError,
-    Clone,
-    Copy
-);
+#[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+pub struct PgPoolMaxConnections(pub u32);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
+pub enum PgPoolMaxConnectionsTryFromU32Er {
+    #[error("pg pool max connections must be greater than zero")]
+    IsZero,
+}
+impl TryFrom<u32> for PgPoolMaxConnections {
+    type Error = PgPoolMaxConnectionsTryFromU32Er;
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0 {
+            Err(Self::Error::IsZero)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Debug, thiserror::Error, optml::Optml)]
+pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsEr {
+    #[error("{pg_pool_max_connections:?}")]
+    PgPoolMaxConnections {
+        pg_pool_max_connections: PgPoolMaxConnectionsTryFromU32Er,
+    },
+    #[error("{:?}", .u32_parsing)]
+    U32Parsing { u32_parsing: U32ParsingEr },
+}
+impl TryFromStdEnvVarOk for PgPoolMaxConnections {
+    type Error = TryFromStdEnvVarOkPgPoolMaxConnectionsEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        let parsed: u32 = parse_from_str_with_er(StdEnvVarOkRef(v.0.as_str()), |u32_parsing| {
+            Self::Error::U32Parsing {
+                u32_parsing: U32ParsingEr(u32_parsing),
+            }
+        })?;
+        Self::try_from(parsed).map_err(|pg_pool_max_connections| {
+            Self::Error::PgPoolMaxConnections {
+                pg_pool_max_connections,
+            }
+        })
+    }
+}
 config_lib_macros::impl_try_from_secret_url!(RedisUrl, TryFromStdEnvVarOkRedisUrlEr);
 config_lib_macros::impl_try_from_parse!(
     ServiceSocketAddress,
@@ -310,6 +385,14 @@ mod tests {
         );
     }
     #[test]
+    fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_zero() {
+        config_lib_macros::assert_parse_err_matches!(
+            super::MaximumSizeOfHttpBodyInBytes,
+            "0",
+            super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr::MaximumSizeOfHttpBodyInBytes { .. }
+        );
+    }
+    #[test]
     fn pg_pool_max_connections_parsing_returns_u32() {
         config_lib_macros::assert_parse_ok_matches!(
             super::PgPoolMaxConnections,
@@ -323,6 +406,14 @@ mod tests {
             super::PgPoolMaxConnections,
             "bad",
             super::TryFromStdEnvVarOkPgPoolMaxConnectionsEr::U32Parsing { .. }
+        );
+    }
+    #[test]
+    fn pg_pool_max_connections_parsing_returns_error_for_zero() {
+        config_lib_macros::assert_parse_err_matches!(
+            super::PgPoolMaxConnections,
+            "0",
+            super::TryFromStdEnvVarOkPgPoolMaxConnectionsEr::PgPoolMaxConnections { .. }
         );
     }
     #[test]

@@ -106,23 +106,26 @@ impl app_state::GetEnableApiGitCommitCheck for &Config {
 mod tests {
     #[test]
     fn generated_getters_return_expected_refs_and_values() {
-        let cfg = super::Config {
-            cors_allow_origin: config_lib::CorsAllowOrigin("*".to_owned()),
-            database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
-                "postgres://db".to_owned(),
-            ))),
-            maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes(16_384),
-            service_socket_address: config_lib::ServiceSocketAddress(
-                "127.0.0.1:8080".parse().expect("e7a3d5c1"),
-            ),
-            pg_pool_max_connections: config_lib::PgPoolMaxConnections(8),
-            timezone: config_lib::Timezone(
-                chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
-            ),
-            src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
-            tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
-            enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
-        };
+        let cfg =
+            super::Config {
+                cors_allow_origin: config_lib::CorsAllowOrigin("*".to_owned()),
+                database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
+                    "postgres://db".to_owned(),
+                ))),
+                maximum_size_of_http_body_in_bytes:
+                    config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a"),
+                service_socket_address: config_lib::ServiceSocketAddress(
+                    "127.0.0.1:8080".parse().expect("e7a3d5c1"),
+                ),
+                pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
+                    .expect("39a84c10"),
+                timezone: config_lib::Timezone(
+                    chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
+                ),
+                src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
+                tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+                enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
+            };
         assert_eq!(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),
             "*"
