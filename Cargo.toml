@@ -67,7 +67,7 @@ serde = { version = "=1.0.228", default-features = false, features = [
   "derive",
 ] }
 serde_derive = { version = "=1.0.228", default-features = false }
-serde_json = { version = "=1.0.148", default-features = false, features = [
+serde_json = { version = "=1.0.150", default-features = false, features = [
   "std",
 ] }
 toml = { version = "=0.9.8", default-features = false, features = [
@@ -80,13 +80,13 @@ scraper = { version = "=0.25.0", default-features = false, features = [
   "main",
   "errors",
 ] }
-regex = { version = "=1.12.2", default-features = false, features = [
+regex = { version = "=1.12.4", default-features = false, features = [
   "std",
   "perf",
   "unicode",
 ] }
 convert_case = { version = "=0.10.0", default-features = false }
-uuid = { version = "=1.19.0", default-features = false, features = [
+uuid = { version = "=1.23.4", default-features = false, features = [
   "std",
   "serde",
   "v4",
@@ -116,7 +116,7 @@ sqlx = { version = "=0.8.6", default-features = false, features = [
   "mac_address",
   "json",
 ] }
-axum = { version = "=0.8.8", default-features = false, features = [
+axum = { version = "=0.8.9", default-features = false, features = [
   "form",
   "http1",
   "json",
@@ -128,8 +128,8 @@ axum = { version = "=0.8.8", default-features = false, features = [
   "tower-log",
   "tracing",
 ] }
-tower = { version = "=0.5.2", default-features = false }
-tower-http = { version = "=0.6.8", default-features = false, features = [
+tower = { version = "=0.5.3", default-features = false }
+tower-http = { version = "=0.6.11", default-features = false, features = [
   "trace",
   "cors",
   "request-id",
@@ -139,8 +139,8 @@ tower_governor = { version = "=0.8.0", default-features = false, features = [
   "axum",
 ] }
 http-body = { version = "=1.0.1", default-features = false }
-http = { version = "=1.4.0", default-features = false }
-futures = { version = "=0.3.31", default-features = false, features = [
+http = { version = "=1.4.2", default-features = false }
+futures = { version = "=0.3.32", default-features = false, features = [
   "std",
   "async-await",
   "executor",
@@ -149,7 +149,7 @@ tracing = { version = "=0.1.44", default-features = false, features = [
   "std",
   "log",
 ] }
-tracing-subscriber = { version = "=0.3.22", default-features = false, features = [
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = [
   "ansi",
   "fmt",
   "registry",
@@ -162,12 +162,12 @@ num_cpus = { version = "=1.17.0", default-features = false }
 secrecy = { version = "=0.10.3", default-features = false, features = [
   "serde",
 ] }
-chrono = { version = "=0.4.42", default-features = false, features = [
+chrono = { version = "=0.4.45", default-features = false, features = [
   "std",
   "clock",
   "serde",
 ] }
-thiserror = { version = "=2.0.17", default-features = false }
+thiserror = { version = "=2.0.18", default-features = false }
 strum = { version = "=0.27.2", default-features = false }
 strum_macros = { version = "=0.27.2", default-features = false }
 dotenv = { version = "=0.15.0", default-features = false }
@@ -175,10 +175,10 @@ time = { version = "=0.3.47", default-features = false, features = [
   "std",
   "serde",
 ] }
-quote = { version = "=1.0.42", default-features = false, features = [
+quote = { version = "=1.0.46", default-features = false, features = [
   "proc-macro",
 ] }
-syn = { version = "=2.0.112", default-features = false, features = [
+syn = { version = "=2.0.118", default-features = false, features = [
   "clone-impls",
   "derive",
   "parsing",
@@ -189,18 +189,18 @@ syn = { version = "=2.0.112", default-features = false, features = [
   "visit-mut",
   "extra-traits",
 ] }
-proc-macro2 = { version = "=1.0.104", default-features = false, features = [
+proc-macro2 = { version = "=1.0.106", default-features = false, features = [
   "proc-macro",
 ] }
 utoipa = { version = "=4.1.0", default-features = false, features = [
   "axum_extras",
 ] } #=5.4.0 contains path bug, update later
-schemars = { version = "=1.2.0", default-features = false, features = [
+schemars = { version = "=1.2.1", default-features = false, features = [
   "derive",
   "std",
 ] }
-rayon = { version = "=1.11.0", default-features = false }
-bytes = { version = "=1.11.1", default-features = false, features = [
+rayon = { version = "=1.12.0", default-features = false }
+bytes = { version = "=1.12.0", default-features = false, features = [
   "std",
 ] }
 cargo_metadata = { version = "=0.23.1", default-features = false }
