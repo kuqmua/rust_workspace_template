@@ -84,7 +84,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 ```
 
 ```bash
-cargo test --features test-utils
+cargo test -p tests code_style
 ```
 
 ## Toolchain note
