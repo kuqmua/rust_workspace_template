@@ -1,7 +1,44 @@
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
 struct PgnStartsWithOneRaw {
-    limit: i64,
-    offset: i64,
+    limit: PgnStartsWithOneValue,
+    offset: PgnStartsWithOneValue,
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct PgnStartsWithOneValue(pub i64);
+impl From<i64> for PgnStartsWithOneValue {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for PgnStartsWithOneValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl loc_lib::ToErrString for PgnStartsWithOneValue {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_string())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct IsPrimaryKey(pub bool);
+impl From<bool> for IsPrimaryKey {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
 }
 #[derive(
     Debug,
@@ -24,50 +61,59 @@ pub struct PgnStartsWithOne(pg_crud_cmn::PgnBase);
 pub enum PgnStartsWithOneTryNewEr {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
-        limit: i64,
+        limit: PgnStartsWithOneValue,
         loc: loc_lib::loc::Loc,
     },
     OffsetIsLessThanOne {
         #[eo_to_err_string_serde]
-        offset: i64,
+        offset: PgnStartsWithOneValue,
         loc: loc_lib::loc::Loc,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
-        limit: i64,
+        limit: PgnStartsWithOneValue,
         #[eo_to_err_string_serde]
-        offset: i64,
+        offset: PgnStartsWithOneValue,
         loc: loc_lib::loc::Loc,
     },
 }
 impl PgnStartsWithOne {
     #[must_use]
-    pub const fn end(&self) -> i64 {
-        self.0.end()
+    pub const fn end(&self) -> PgnStartsWithOneValue {
+        PgnStartsWithOneValue(self.0.end().0)
     }
     #[must_use]
-    pub const fn start(&self) -> i64 {
-        self.0.start()
+    pub const fn start(&self) -> PgnStartsWithOneValue {
+        PgnStartsWithOneValue(self.0.start().0)
     }
-    pub fn try_new(limit: i64, offset: i64) -> Result<Self, PgnStartsWithOneTryNewEr> {
-        if limit <= 0 || offset < 1 {
-            if limit <= 0 {
+    pub fn try_new<L, O>(limit: L, offset: O) -> Result<Self, PgnStartsWithOneTryNewEr>
+    where
+        L: Into<PgnStartsWithOneValue>,
+        O: Into<PgnStartsWithOneValue>,
+    {
+        let limit_value = limit.into();
+        let offset_value = offset.into();
+        if limit_value.0 <= 0 || offset_value.0 < 1 {
+            if limit_value.0 <= 0 {
                 Err(PgnStartsWithOneTryNewEr::LimitIsLessThanOrEqToZero {
-                    limit,
+                    limit: limit_value,
                     loc: loc_lib::loc!(),
                 })
             } else {
                 Err(PgnStartsWithOneTryNewEr::OffsetIsLessThanOne {
-                    offset,
+                    offset: offset_value,
                     loc: loc_lib::loc!(),
                 })
             }
-        } else if offset.checked_add(limit).is_some() {
-            Ok(Self(pg_crud_cmn::PgnBase::new_unchecked(limit, offset)))
+        } else if offset_value.0.checked_add(limit_value.0).is_some() {
+            Ok(Self(pg_crud_cmn::PgnBase::new_unchecked(
+                limit_value.0,
+                offset_value.0,
+            )))
         } else {
             Err(PgnStartsWithOneTryNewEr::OffsetPlusLimitIsIntOverflow {
-                limit,
-                offset,
+                limit: limit_value,
+                offset: offset_value,
                 loc: loc_lib::loc!(),
             })
         }
@@ -82,16 +128,16 @@ impl TryFrom<PgnStartsWithOneRaw> for PgnStartsWithOne {
 impl<'lt> pg_crud_cmn::PgTypeWhFlt<'lt> for PgnStartsWithOne {
     fn qb(
         self,
-        query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
+        query: pg_crud_cmn::PgQuery<'lt>,
+    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
         self.0.qb(query)
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, pg_crud_cmn::QpEr> {
+        incr: &mut dyn pg_crud_cmn::QpIncrMut,
+        col: pg_crud_cmn::SqlColRef<'_>,
+        add_oprtr: pg_crud_cmn::AddOprtr,
+    ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
         self.0.qp(incr, col, add_oprtr)
     }
 }
@@ -108,13 +154,13 @@ impl pg_crud_cmn::DfltSomeOneElMaxPageSize for PgnStartsWithOne {
     #[inline]
     fn dflt_some_one_el_max_page_size() -> Self {
         let one: i32 = 1;
-        Self(pg_crud_cmn::PgnBase::new_unchecked(
-            (i32::MAX - one).into(),
-            one.into(),
-        ))
+        Self(pg_crud_cmn::PgnBase::new_unchecked(i32::MAX - one, one))
     }
 }
 #[must_use]
-pub fn mb_pk(v: bool) -> impl std::fmt::Display {
-    if v { "primary key" } else { "" }
+pub fn mb_pk<V>(v: V) -> impl std::fmt::Display
+where
+    V: Into<IsPrimaryKey>,
+{
+    if v.into().0 { "primary key" } else { "" }
 }

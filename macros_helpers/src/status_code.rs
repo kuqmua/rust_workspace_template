@@ -75,7 +75,7 @@ pub enum StatusCode {
 }
 impl StatusCode {
     #[must_use]
-    pub fn to_http_status_code_ts(&self) -> proc_macro2::TokenStream {
+    pub fn to_http_status_code_ts(&self) -> crate::GeneratedRustTs {
         let ts = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
@@ -140,21 +140,21 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        quote::quote! {http::StatusCode::#ts}
+        crate::GeneratedRustTs(quote::quote! {http::StatusCode::#ts})
     }
     #[must_use]
-    pub fn to_proc_macro_attr_view_ts(&self) -> proc_macro2::TokenStream {
+    pub fn to_proc_macro_attr_view_ts(&self) -> crate::GeneratedRustTs {
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
-            Ok(v) => v,
+            Ok(v) => crate::GeneratedRustTs(v),
             Err(er) => {
                 let msg = er.to_string();
-                quote::quote! {compile_error!(#msg);}
+                crate::GeneratedRustTs(quote::quote! {compile_error!(#msg);})
             }
         }
     }
     #[must_use]
-    pub fn to_status_code_description_ts(&self) -> proc_macro2::TokenStream {
-        match *self {
+    pub fn to_status_code_description_ts(&self) -> crate::GeneratedRustTs {
+        crate::GeneratedRustTs(match *self {
             Self::Continue100 => quote::quote! {"continue"},
             Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
             Self::Processing102 => quote::quote! {"processing"},
@@ -227,11 +227,11 @@ impl StatusCode {
             Self::NetworkAuthenticationRequired511 => {
                 quote::quote! {"network authentication required"}
             }
-        }
+        })
     }
     #[must_use]
-    pub fn to_status_code_ts(&self) -> proc_macro2::TokenStream {
-        match *self {
+    pub fn to_status_code_ts(&self) -> crate::GeneratedRustTs {
+        crate::GeneratedRustTs(match *self {
             Self::Continue100 => quote::quote! {100},
             Self::SwitchingProtocols101 => quote::quote! {101},
             Self::Processing102 => quote::quote! {102},
@@ -292,7 +292,7 @@ impl StatusCode {
             Self::LoopDetected508 => quote::quote! {508},
             Self::NotExtended510 => quote::quote! {510},
             Self::NetworkAuthenticationRequired511 => quote::quote! {511},
-        }
+        })
     }
 }
 impl TryFrom<&String> for StatusCode {
@@ -430,9 +430,12 @@ pub enum GetOnlyOneStatusCodeEr {
     #[error("19fc6512: supported status code attr not found")]
     NotFound,
 }
-pub fn get_only_one(vrt: &syn::Variant) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
+#[derive(Debug, Clone, Copy)]
+pub struct StatusCodeVariantRef<'variant_lt>(pub &'variant_lt syn::Variant);
+pub fn get_only_one(vrt: StatusCodeVariantRef<'_>) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
+    let variant = vrt.0;
     let mut opt_self = None;
-    for attr in &vrt.attrs {
+    for attr in &variant.attrs {
         if attr.path().segments.len() == 1
             && let Some(segment) = attr.path().segments.first()
             && let Ok(named_attr) = StatusCode::try_from(&segment.ident.to_string())

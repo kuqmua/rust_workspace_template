@@ -1,9 +1,12 @@
+#[derive(Clone, Copy)]
+struct ToScInput<'input_lt>(&'input_lt str);
+struct ScString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
-fn to_sc(input: &str) -> String {
-    let mut result = String::with_capacity(input.len());
+fn to_sc(input: ToScInput<'_>) -> ScString {
+    let mut result = String::with_capacity(input.0.len());
     let mut prev_is_undrscr = false;
     let mut prev_is_lowercase = false;
-    for el0 in input.chars() {
+    for el0 in input.0.chars() {
         if el0.is_alphabetic() {
             if el0.is_uppercase() {
                 if prev_is_lowercase && !prev_is_undrscr {
@@ -26,7 +29,7 @@ fn to_sc(input: &str) -> String {
             prev_is_lowercase = false;
         }
     }
-    result.trim_matches('_').to_owned()
+    ScString(result.trim_matches('_').to_owned())
 }
 #[proc_macro]
 pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -44,18 +47,18 @@ pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::T
         .expect("c5d09740")
         .into_iter()
         .map(|el| {
-            let sc = to_sc(&el);
+            let sc = to_sc(ToScInput(&el));
             El {
                 d_trait_name_ucc: {
-                    let v = naming::prm::DSelfUcc::from_display(&sc);
+                    let v = naming::prm::DSelfUcc::from_display(&sc.0);
                     quote::quote! {#v}
                 },
                 d_trait_name_sc: {
-                    let v = naming::prm::DSelfSc::from_display(&sc);
+                    let v = naming::prm::DSelfSc::from_display(&sc.0);
                     quote::quote! {#v}
                 },
                 d_trait_name_if_sc: {
-                    let v = naming::prm::DSelfIfSc::from_display(&sc);
+                    let v = naming::prm::DSelfIfSc::from_display(&sc.0);
                     quote::quote! {#v}
                 },
                 trait_type: el.parse::<proc_macro2::TokenStream>().expect("8672240f"),
@@ -257,14 +260,17 @@ pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::T
 mod tests {
     #[test]
     fn to_sc_handles_pascal_case() {
-        assert_eq!(super::to_sc("HelloWorld"), "hello_world");
+        assert_eq!(
+            super::to_sc(super::ToScInput("HelloWorld")).0,
+            "hello_world"
+        );
     }
     #[test]
     fn to_sc_collapses_non_alpha_chunks() {
-        assert_eq!(super::to_sc("A--B__C"), "a_b_c");
+        assert_eq!(super::to_sc(super::ToScInput("A--B__C")).0, "a_b_c");
     }
     #[test]
     fn to_sc_trims_edge_separators() {
-        assert_eq!(super::to_sc("__Hello__"), "hello");
+        assert_eq!(super::to_sc(super::ToScInput("__Hello__")).0, "hello");
     }
 }

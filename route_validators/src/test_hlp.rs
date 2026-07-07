@@ -1,30 +1,100 @@
+#![allow(clippy::shadow_reuse)]
 const MAX_BLOCK_ON_POLLS: usize = 4096;
 const BLOCK_ON_POLL_LIMIT_ER_ID: &str = "cf6e91ab";
 const EXPECT_OK_ER_ID: &str = "db9d2f63";
 const EXPECT_ER_ER_ID: &str = "2f755472";
 const REPLACE_HEADER_MISSING_SRC_ER_ID: &str = "c3a0f7be";
+pub(crate) struct TestExpId(pub &'static str);
+impl From<&'static str> for TestExpId {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for TestExpId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+struct TestPanicText(pub &'static str);
+impl From<&'static str> for TestPanicText {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for TestPanicText {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+pub(crate) struct TestHeaders(pub axum::http::HeaderMap);
+impl std::ops::Deref for TestHeaders {
+    type Target = axum::http::HeaderMap;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for TestHeaders {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+pub(crate) struct TestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
+impl<'headers_lt> From<&'headers_lt mut TestHeaders> for TestHeadersMutRef<'headers_lt> {
+    fn from(value: &'headers_lt mut TestHeaders) -> Self {
+        Self(&mut value.0)
+    }
+}
+impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap> for TestHeadersMutRef<'headers_lt> {
+    fn from(value: &'headers_lt mut axum::http::HeaderMap) -> Self {
+        Self(value)
+    }
+}
+pub(crate) struct TestHeaderValue(pub axum::http::HeaderValue);
+impl From<axum::http::HeaderValue> for TestHeaderValue {
+    fn from(value: axum::http::HeaderValue) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Deref for TestHeaderValue {
+    type Target = axum::http::HeaderValue;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+#[derive(Clone, Copy)]
+struct TestPollCount(pub usize);
+struct TestPollLimitReached(pub bool);
+impl std::ops::Not for TestPollLimitReached {
+    type Output = bool;
+    fn not(self) -> Self::Output {
+        !self.0
+    }
+}
 #[allow(clippy::single_call_fn)] // shared insertion guard keeps header setup helpers consistent
-fn insert_header_no_prev(
-    headers: &mut axum::http::HeaderMap,
+fn insert_header_no_prev<'headers_lt, ValueTy>(
+    headers: impl Into<TestHeadersMutRef<'headers_lt>>,
     name: impl axum::http::header::IntoHeaderName,
-    value: axum::http::HeaderValue,
-) {
-    let prev = headers.insert(name, value);
+    value: ValueTy,
+) where
+    ValueTy: Into<TestHeaderValue>,
+{
+    let headers = headers.into();
+    let prev = headers.0.insert(name, value.into().0);
     assert!(prev.is_none());
 }
 #[allow(clippy::single_call_fn)] // extracted to keep block_on loop hot path simple and reusable
-const fn is_block_on_poll_limit_reached(poll_count: usize) -> bool {
-    poll_count >= MAX_BLOCK_ON_POLLS
+const fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLimitReached {
+    TestPollLimitReached(poll_count.0 >= MAX_BLOCK_ON_POLLS)
 }
 #[allow(clippy::single_call_fn)] // keeps poll-count mutation centralized so block_on loop stays focused on state transitions
-fn incr_block_on_poll_count(poll_count: &mut usize) {
-    *poll_count = poll_count.saturating_add(1);
+fn incr_block_on_poll_count(poll_count: &mut TestPollCount) {
+    poll_count.0 = poll_count.0.saturating_add(1);
 }
 pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
     let mut future = std::pin::pin!(input_future);
     let waker = std::task::Waker::noop();
     let mut context = std::task::Context::from_waker(waker);
-    let mut poll_count = 0usize;
+    let mut poll_count = TestPollCount(0usize);
     loop {
         match future.as_mut().poll(&mut context) {
             std::task::Poll::Ready(output) => {
@@ -42,19 +112,20 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
     }
 }
 #[track_caller]
-pub(crate) fn panic_unexpected_variant(exp_id: &'static str) -> ! {
+pub(crate) fn panic_unexpected_variant(exp_id: impl Into<TestExpId>) -> ! {
+    let exp_id = exp_id.into();
     panic!("4fe6f2e6 id={exp_id}");
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper keeps variant-mapping panic behavior consistent for owned and borrowed paths
-fn map_or_panic_unexpected_variant<R>(map_res: Option<R>, exp_id: &'static str) -> R {
+fn map_or_panic_unexpected_variant<R>(map_res: Option<R>, exp_id: impl Into<TestExpId>) -> R {
     map_res.unwrap_or_else(|| panic_unexpected_variant(exp_id))
 }
 #[track_caller]
 pub(crate) fn expect_variant<T, R>(
     v: T,
     map: impl FnOnce(T) -> Option<R>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
 ) -> R {
     map_or_panic_unexpected_variant(map(v), exp_id)
 }
@@ -63,39 +134,44 @@ pub(crate) fn expect_variant<T, R>(
 pub(crate) fn expect_variant_ref<T, R>(
     v: &T,
     map: impl FnOnce(&T) -> Option<R>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
 ) -> R {
     map_or_panic_unexpected_variant(map(v), exp_id)
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared panic formatting keeps expectation failures consistent across helpers
 fn panic_unexpected_result(
-    er_id: &'static str,
-    fn_name: &'static str,
-    expected: &'static str,
-    exp_id: &'static str,
+    er_id: impl Into<TestPanicText>,
+    fn_name: impl Into<TestPanicText>,
+    expected: impl Into<TestPanicText>,
+    exp_id: impl Into<TestExpId>,
 ) -> ! {
+    let er_id = er_id.into();
+    let fn_name = fn_name.into();
+    let expected = expected.into();
+    let exp_id = exp_id.into();
     panic!("{er_id} unexpected {expected} for {fn_name}, id={exp_id}");
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared panic builder keeps explicit UUID-tagged panic path reusable for header-replace preconditions
-fn panic_replace_header_missing_src(exp_id: &'static str) -> ! {
+fn panic_replace_header_missing_src(exp_id: impl Into<TestExpId>) -> ! {
+    let exp_id = exp_id.into();
     panic!("{REPLACE_HEADER_MISSING_SRC_ER_ID} missing source header while replacing, id={exp_id}");
 }
 #[track_caller]
-pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: &'static str) -> T {
+pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
     v.unwrap_or_else(|_| panic_unexpected_result(EXPECT_OK_ER_ID, "expect_ok", "Err", exp_id))
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper keeps ok-result equality assertions concise and consistent across validator tests
-pub(crate) fn assert_ok_eq<T, E>(v: Result<T, E>, exp_id: &'static str, expected: &T)
+pub(crate) fn assert_ok_eq<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>, expected: &T)
 where
     T: PartialEq + std::fmt::Debug,
 {
     assert_eq!(&expect_ok(v, exp_id), expected);
 }
 #[track_caller]
-pub(crate) fn expect_er<T, E>(v: Result<T, E>, exp_id: &'static str) -> E {
+pub(crate) fn expect_er<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
     v.err()
         .unwrap_or_else(|| panic_unexpected_result(EXPECT_ER_ER_ID, "expect_er", "Ok", exp_id))
 }
@@ -103,19 +179,20 @@ pub(crate) fn expect_er<T, E>(v: Result<T, E>, exp_id: &'static str) -> E {
 #[allow(clippy::single_call_fn)] // shared helper centralizes error extraction and post-check mapping so higher-level helpers avoid repeating expect_er plumbing
 fn map_err<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     check: impl FnOnce(&E),
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
-    let er = expect_er(v, exp_id);
+    let exp_id = exp_id.into();
+    let er = expect_er(v, exp_id.0);
     check(&er);
-    map(er, exp_id)
+    map(er, exp_id.0)
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared mapper avoids repeating expect_er + variant extraction boilerplate in tests
 pub(crate) fn expect_er_mapped<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
     map_err(v, exp_id, |_| (), map)
@@ -124,7 +201,7 @@ pub(crate) fn expect_er_mapped<T, E, R>(
 #[allow(clippy::single_call_fn)] // shared helper composes result extraction with variant mapping for concise validator tests
 pub(crate) fn expect_er_variant<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     map: impl FnOnce(E) -> Option<R>,
 ) -> R {
     expect_er_mapped(v, exp_id, |er, mapped_exp_id| {
@@ -135,7 +212,7 @@ pub(crate) fn expect_er_variant<T, E, R>(
 #[allow(clippy::single_call_fn)] // shared helper supports variant extraction without moving the error value in tests
 pub(crate) fn expect_er_variant_ref<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R {
     expect_er_mapped(v, exp_id, |er, mapped_exp_id| {
@@ -146,7 +223,7 @@ pub(crate) fn expect_er_variant_ref<T, E, R>(
 #[allow(clippy::single_call_fn)] // shared helper composes status-code assertion with custom mapping to reduce repetition in variant helpers
 fn map_err_after_status_check<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: axum::http::StatusCode,
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R
@@ -165,7 +242,7 @@ where
 #[track_caller]
 pub(crate) fn assert_err_status_code<T, E>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: axum::http::StatusCode,
 ) -> E
 where
@@ -176,7 +253,7 @@ where
 #[track_caller]
 pub(crate) fn assert_err_status_code_only<T, E>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: axum::http::StatusCode,
 ) where
     E: crate::GetAxumHttpStatusCode,
@@ -187,7 +264,7 @@ pub(crate) fn assert_err_status_code_only<T, E>(
 #[allow(clippy::single_call_fn)] // shared helper composes status-code assertion with variant mapping to reduce repetitive test boilerplate
 pub(crate) fn assert_err_status_code_variant<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: axum::http::StatusCode,
     map: impl FnOnce(E) -> Option<R>,
 ) -> R
@@ -202,7 +279,7 @@ where
 #[allow(clippy::single_call_fn)] // shared helper supports status+variant assertions while borrowing the error for field reads
 pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: axum::http::StatusCode,
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R
@@ -217,45 +294,55 @@ where
 #[allow(clippy::single_call_fn)] // shared helper lets tests reuse err-variant extraction with optional status checks without duplicating branching
 pub(crate) fn expect_err_variant_ref_with_status<T, E, R>(
     v: Result<T, E>,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
     expected: Option<axum::http::StatusCode>,
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R
 where
     E: crate::GetAxumHttpStatusCode,
 {
+    let exp_id = exp_id.into();
     match expected {
-        Some(status_code) => assert_err_status_code_variant_ref(v, exp_id, status_code, map),
-        None => expect_er_variant_ref(v, exp_id, map),
+        Some(status_code) => assert_err_status_code_variant_ref(v, exp_id.0, status_code, map),
+        None => expect_er_variant_ref(v, exp_id.0, map),
     }
 }
-pub(crate) fn mk_headers_with_entry(
+pub(crate) fn mk_headers_with_entry<ValueTy>(
     name: impl axum::http::header::IntoHeaderName,
-    value: axum::http::HeaderValue,
-) -> axum::http::HeaderMap {
+    value: ValueTy,
+) -> TestHeaders
+where
+    ValueTy: Into<TestHeaderValue>,
+{
     let mut headers = axum::http::HeaderMap::new();
     insert_header_no_prev(&mut headers, name, value);
-    headers
+    TestHeaders(headers)
 }
 #[track_caller]
-pub(crate) fn replace_header_name(
-    headers: &mut axum::http::HeaderMap,
+pub(crate) fn replace_header_name<'headers_lt>(
+    headers: impl Into<TestHeadersMutRef<'headers_lt>>,
     from_name: impl axum::http::header::AsHeaderName,
     to_name: impl axum::http::header::IntoHeaderName,
-    exp_id: &'static str,
+    exp_id: impl Into<TestExpId>,
 ) {
+    let headers = headers.into();
     let value = headers
+        .0
         .remove(from_name)
         .unwrap_or_else(|| panic_replace_header_missing_src(exp_id));
-    insert_header_no_prev(headers, to_name, value);
+    insert_header_no_prev(headers.0, to_name, value);
 }
-pub(crate) fn non_utf8_header_value() -> axum::http::HeaderValue {
-    axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf")
+pub(crate) fn non_utf8_header_value() -> TestHeaderValue {
+    TestHeaderValue(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
 }
 #[track_caller]
-pub(crate) fn assert_panics(action: impl FnOnce() + std::panic::UnwindSafe, exp_id: &'static str) {
+pub(crate) fn assert_panics(
+    action: impl FnOnce() + std::panic::UnwindSafe,
+    exp_id: impl Into<TestExpId>,
+) {
+    let exp_id = exp_id.into();
     let panic_res = std::panic::catch_unwind(action);
-    drop(panic_res.expect_err(exp_id));
+    drop(panic_res.expect_err(exp_id.0));
 }
 #[cfg(test)]
 mod tests {
@@ -271,16 +358,19 @@ mod tests {
     }
     #[test]
     fn poll_limit_helper_returns_false_below_limit_and_true_at_limit() {
-        assert!(!super::is_block_on_poll_limit_reached(0));
-        assert!(super::is_block_on_poll_limit_reached(
-            super::MAX_BLOCK_ON_POLLS
+        assert!(!super::is_block_on_poll_limit_reached(
+            super::TestPollCount(0)
         ));
+        assert!(
+            super::is_block_on_poll_limit_reached(super::TestPollCount(super::MAX_BLOCK_ON_POLLS))
+                .0
+        );
     }
     #[test]
     fn poll_count_increment_helper_increments_once() {
-        let mut poll_count = 0usize;
+        let mut poll_count = super::TestPollCount(0usize);
         super::incr_block_on_poll_count(&mut poll_count);
-        assert_eq!(poll_count, 1usize);
+        assert_eq!(poll_count.0, 1usize);
     }
     #[test]
     fn expect_ok_returns_inner_value() {

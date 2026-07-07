@@ -202,7 +202,7 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                 }
                             }
                             macros_helpers::LocFieldAttr::EoHashMapKStringVToErrString | macros_helpers::LocFieldAttr::EoHashMapKStringVToErrStringSerde => {
-                                let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts(&quote::quote! {acc_06473093, "\n {k}: {}", &loc_lib::ToErrString::to_err_string(#v_sc)}, &quote::quote! {panic!("d030580a");});
+                                let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts(&quote::quote! {acc_06473093, "\n {}: {}", &loc_lib::ToErrString::to_err_string(k), &loc_lib::ToErrString::to_err_string(#v_sc)}, &quote::quote! {panic!("d030580a");});
                                 quote::quote! {
                                     #el0_ident.iter().fold(
                                         #string_ts::new(),
@@ -219,7 +219,8 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                                         let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts(&quote::quote! {acc_addfc699, "\n  {el_8b8f577e}"}, &quote::quote! {panic!("d0492fbf");});
                                         quote::quote! {
                                             acc_a47e1ba7,
-                                            "\n {k}: {}",
+                                            "\n {}: {}",
+                                            loc_lib::ToErrString::to_err_string(k),
                                             #v_sc.to_string().lines().fold(
                                                 #string_ts::new(),
                                                 |mut acc_addfc699, el_8b8f577e| {
@@ -312,28 +313,33 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                             let gen_field_ts = |ts: &dyn quote::ToTokens|quote::quote! {#el0_ident: {#ts}};
                             match macros_helpers::LocFieldAttr::try_from(el0).expect("449c3781") {
                                 macros_helpers::LocFieldAttr::EoToErrString => gen_field_ts(&quote::quote! {
-                                    loc_lib::ToErrString::to_err_string(&#el0_ident)
+                                    loc_lib::ToErrString::to_err_string(&#el0_ident).0
                                 }),
-                                macros_helpers::LocFieldAttr::EoToErrStringSerde | macros_helpers::LocFieldAttr::EoVecToErrStringSerde | macros_helpers::LocFieldAttr::EoHashMapKStringVToErrStringSerde => {
+                                macros_helpers::LocFieldAttr::EoToErrStringSerde | macros_helpers::LocFieldAttr::EoVecToErrStringSerde => {
                                     quote::quote! {#el0_ident}
                                 }
                                 macros_helpers::LocFieldAttr::EoLoc => gen_field_ts(&quote::quote! {
                                     #el0_ident.into_serde_version()
                                 }),
                                 macros_helpers::LocFieldAttr::EoVecToErrString => gen_field_ts(&quote::quote! {
-                                    #el0_ident.into_iter().map(|el|loc_lib::ToErrString::to_err_string(&el)).collect()
+                                    #el0_ident.into_iter().map(|el|loc_lib::ToErrString::to_err_string(&el).0).collect()
                                 }),
                                 macros_helpers::LocFieldAttr::EoVecLoc => gen_field_ts(&quote::quote! {
                                     #el0_ident.into_iter().map(|el|el.into_serde_version()).collect()
                                 }),
                                 macros_helpers::LocFieldAttr::EoHashMapKStringVToErrString => gen_field_ts(&quote::quote! {
                                     #el0_ident.into_iter().map(
-                                        |(k, v)|(k, loc_lib::ToErrString::to_err_string(&v))
+                                        |(k, v)|(loc_lib::ToErrString::to_err_string(&k).0, loc_lib::ToErrString::to_err_string(&v).0)
+                                    ).collect()
+                                }),
+                                macros_helpers::LocFieldAttr::EoHashMapKStringVToErrStringSerde => gen_field_ts(&quote::quote! {
+                                    #el0_ident.into_iter().map(
+                                        |(k, v)|(loc_lib::ToErrString::to_err_string(&k).0, v)
                                     ).collect()
                                 }),
                                 macros_helpers::LocFieldAttr::EoHashMapKStringVLoc => gen_field_ts(&quote::quote! {
                                     #el0_ident.into_iter().map(
-                                        |(k, v)|(k, v.into_serde_version())
+                                        |(k, v)|(loc_lib::ToErrString::to_err_string(&k).0, v.into_serde_version())
                                     ).collect()
                                 }),
                             }
@@ -350,10 +356,11 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 gen_impl_ident_into_serde_version_ts(&quote::quote! {#(#vrts_ts),*})
             };
             let enum_ident_with_serde_ts = {
-                let vrts_ts = data_enum
-                    .variants
-                    .iter()
-                    .map(macros_helpers::gen_serde_version_of_named_syn_vrt);
+                let vrts_ts = data_enum.variants.iter().map(|vrt| {
+                    macros_helpers::gen_serde_version_of_named_syn_vrt(
+                        macros_helpers::SynVariantRef(vrt),
+                    )
+                });
                 gen_enum_ident_with_serde_ts(&quote::quote! {#(#vrts_ts),*})
             };
             let impl_display_for_ident_with_serde_ts = macros_helpers::gen_impl_display_ts(

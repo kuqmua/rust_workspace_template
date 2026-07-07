@@ -110,6 +110,13 @@ pub enum RgxCase {
     Insensitive,
     Sensitive,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct RgxCasePostgreqlSyntax(pub &'static str);
+impl std::fmt::Display for RgxCasePostgreqlSyntax {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
 impl pg_crud_cmn::DfltSomeOneEl for RgxCase {
     fn dflt_some_one_el() -> Self {
         Self::Sensitive
@@ -117,10 +124,10 @@ impl pg_crud_cmn::DfltSomeOneEl for RgxCase {
 }
 impl RgxCase {
     #[must_use]
-    pub const fn postgreql_syntax(&self) -> &'static str {
+    pub const fn postgreql_syntax(&self) -> RgxCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => "~*",
-            Self::Sensitive => "~",
+            Self::Insensitive => RgxCasePostgreqlSyntax("~*"),
+            Self::Sensitive => RgxCasePostgreqlSyntax("~"),
         }
     }
 }
@@ -367,22 +374,22 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
 {
     fn qb(
         self,
-        mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
-        if let Err(er) = query.try_bind(self.start) {
-            return Err(er.to_string());
+        mut query: pg_crud_cmn::PgQuery<'lt>,
+    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
+        if let Err(er) = query.0.try_bind(self.start) {
+            return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
         }
-        if let Err(er) = query.try_bind(self.end) {
-            return Err(er.to_string());
+        if let Err(er) = query.0.try_bind(self.end) {
+            return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
         }
         Ok(query)
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        _: &dyn std::fmt::Display,
-        _: bool,
-    ) -> Result<String, pg_crud_cmn::QpEr> {
+        incr: &mut dyn pg_crud_cmn::QpIncrMut,
+        _: pg_crud_cmn::SqlColRef<'_>,
+        _: pg_crud_cmn::AddOprtr,
+    ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
         let start_incr = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
             Err(er) => {
@@ -395,7 +402,9 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
                 return Err(er);
             }
         };
-        Ok(format!("between ${start_incr} and ${end_incr}"))
+        Ok(pg_crud_cmn::QpFragment(format!(
+            "between ${start_incr} and ${end_incr}"
+        )))
     }
 }
 #[derive(
@@ -545,11 +554,38 @@ pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
 pub enum BoundedVecTryNewEr {
     LenIsNotCorrect {
         #[eo_to_err_string_serde]
-        wrong_len: usize,
+        wrong_len: BoundedVecLen,
         #[eo_to_err_string_serde]
-        expected: usize,
+        expected: BoundedVecLen,
         loc: loc_lib::loc::Loc,
     },
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct BoundedVecLen(pub usize);
+impl From<usize> for BoundedVecLen {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for BoundedVecLen {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl loc_lib::ToErrString for BoundedVecLen {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.to_string())
+    }
 }
 enum Vrt {
     MinusOne,
@@ -567,38 +603,38 @@ impl<
     }
     pub fn pg_type_qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, pg_crud_cmn::QpEr> {
+        incr: &mut dyn pg_crud_cmn::QpIncrMut,
+        col: pg_crud_cmn::SqlColRef<'_>,
+        add_oprtr: pg_crud_cmn::AddOprtr,
+    ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
         self.qp(incr, col, add_oprtr, &Vrt::Normal)
     }
     pub fn pg_type_qp_minus_one(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, pg_crud_cmn::QpEr> {
+        incr: &mut dyn pg_crud_cmn::QpIncrMut,
+        col: pg_crud_cmn::SqlColRef<'_>,
+        add_oprtr: pg_crud_cmn::AddOprtr,
+    ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
         self.qp(incr, col, add_oprtr, &Vrt::MinusOne)
     }
     pub fn qb(
         self,
-        mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
+        mut query: pg_crud_cmn::PgQuery<'lt>,
+    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
         for el in self.0 {
-            if let Err(er) = query.try_bind(el) {
-                return Err(er.to_string());
+            if let Err(er) = query.0.try_bind(el) {
+                return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
             }
         }
         Ok(query)
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        _: &dyn std::fmt::Display,
-        _add_oprtr: bool,
+        incr: &mut dyn pg_crud_cmn::QpIncrMut,
+        _: pg_crud_cmn::SqlColRef<'_>,
+        _add_oprtr: pg_crud_cmn::AddOprtr,
         vrt: &Vrt,
-    ) -> Result<String, pg_crud_cmn::QpEr> {
+    ) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
         let mut acc = String::new();
         let len = match &vrt {
             Vrt::MinusOne => self.0.len().saturating_sub(1),
@@ -618,7 +654,7 @@ impl<
                 });
             }
         }
-        Ok(acc)
+        Ok(pg_crud_cmn::QpFragment(acc))
     }
     #[must_use]
     pub const fn to_inn(&self) -> &Vec<T> {
@@ -633,8 +669,8 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
             Ok(Self(v))
         } else {
             Err(BoundedVecTryNewEr::LenIsNotCorrect {
-                wrong_len: len,
-                expected: LENGTH,
+                wrong_len: BoundedVecLen(len),
+                expected: BoundedVecLen(LENGTH),
                 loc: loc_lib::loc!(),
             })
         }

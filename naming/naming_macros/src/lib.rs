@@ -1,15 +1,25 @@
 const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
+struct GeneratedNamingTs(proc_macro2::TokenStream);
+#[derive(Clone, Copy)]
+struct EnumIdentRef<'ident_lt>(&'ident_lt syn::Ident);
+#[derive(Clone, Copy)]
+struct VrtMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
+impl quote::ToTokens for GeneratedNamingTs {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
 fn gen_impl_to_tokens_ts(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,
-) -> proc_macro2::TokenStream {
-    quote::quote! {
+) -> GeneratedNamingTs {
+    GeneratedNamingTs(quote::quote! {
         impl quote::ToTokens for #ts0 {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #ts1
             }
         }
-    }
+    })
 }
 #[proc_macro]
 pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -267,17 +277,19 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
 }
 fn gen_impl_trait_for_ident_ts(
     name_ts: &dyn quote::ToTokens,
-    ident: &syn::Ident,
-    vrts_matching_ts: &[proc_macro2::TokenStream],
-) -> proc_macro2::TokenStream {
+    ident: EnumIdentRef<'_>,
+    vrts_matching_ts: VrtMatchingTokensRef<'_>,
+) -> GeneratedNamingTs {
     let string_ts = token_patterns::StringTs;
-    quote::quote! {
-        impl naming::#name_ts for #ident {
+    let ident_ref = ident.0;
+    let vrt_tokens = vrts_matching_ts.0;
+    GeneratedNamingTs(quote::quote! {
+        impl naming::#name_ts for #ident_ref {
             fn case(&self) -> #string_ts {//todo mb write duplicate Trait with &str instead of String
-                match self {#(#vrts_matching_ts),*}
+                match self {#(#vrt_tokens),*}
             }
         }
-    }
+    })
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUccStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(
@@ -292,25 +304,27 @@ pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {AsRefStrToUccStr},
-        ident,
-        &data_enum
-            .variants
-            .iter()
-            .map(|el| match el.fields {
-                syn::Fields::Unit => {
-                    let el_ident = &el.ident;
-                    let el_ident_ucc_dq_ts =
-                        gen_quotes::dq_ts(&naming_cmn::ToTokensToUccStr::case(&el_ident));
-                    quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_ucc_dq_ts)}
-                }
-                syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
-                    panic!("4955c50d")
-                }
-            })
-            .collect::<Vec<proc_macro2::TokenStream>>(),
+        EnumIdentRef(ident),
+        VrtMatchingTokensRef(
+            &data_enum
+                .variants
+                .iter()
+                .map(|el| match el.fields {
+                    syn::Fields::Unit => {
+                        let el_ident = &el.ident;
+                        let el_ident_ucc_dq_ts =
+                            gen_quotes::dq_ts(&naming_cmn::ToTokensToUccStr::case(&el_ident));
+                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_ucc_dq_ts)}
+                    }
+                    syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
+                        panic!("4955c50d")
+                    }
+                })
+                .collect::<Vec<proc_macro2::TokenStream>>(),
+        ),
     );
     // println!("{generated}");
-    generated.into()
+    generated.0.into()
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToScStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_sc_str(
@@ -325,25 +339,27 @@ pub fn as_ref_str_enum_with_unit_fields_to_sc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {AsRefStrToScStr},
-        ident,
-        &data_enum
-            .variants
-            .iter()
-            .map(|el| match el.fields {
-                syn::Fields::Unit => {
-                    let el_ident = &el.ident;
-                    let el_ident_sc_dq_ts =
-                        gen_quotes::dq_ts(&naming_cmn::ToTokensToScStr::case(&el_ident));
-                    quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
-                }
-                syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
-                    panic!("b3ef2657")
-                }
-            })
-            .collect::<Vec<proc_macro2::TokenStream>>(),
+        EnumIdentRef(ident),
+        VrtMatchingTokensRef(
+            &data_enum
+                .variants
+                .iter()
+                .map(|el| match el.fields {
+                    syn::Fields::Unit => {
+                        let el_ident = &el.ident;
+                        let el_ident_sc_dq_ts =
+                            gen_quotes::dq_ts(&naming_cmn::ToTokensToScStr::case(&el_ident));
+                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
+                    }
+                    syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
+                        panic!("b3ef2657")
+                    }
+                })
+                .collect::<Vec<proc_macro2::TokenStream>>(),
+        ),
     );
     // println!("{generated}");
-    generated.into()
+    generated.0.into()
 }
 #[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperScStr)]
 pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(
@@ -358,21 +374,23 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {ToUpperScStr},
-        ident,
-        &data_enum
-            .variants
-            .iter()
-            .map(|el| match el.fields {
-                syn::Fields::Unit => {
-                    let el_ident = &el.ident;
-                    let el_ident_sc_dq_ts =
-                        gen_quotes::dq_ts(&naming_cmn::ToTokensToUpperScStr::case(&el_ident));
-                    quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
-                }
-                syn::Fields::Named(_) | syn::Fields::Unnamed(_) => panic!("b6fedcff"),
-            })
-            .collect::<Vec<proc_macro2::TokenStream>>(),
+        EnumIdentRef(ident),
+        VrtMatchingTokensRef(
+            &data_enum
+                .variants
+                .iter()
+                .map(|el| match el.fields {
+                    syn::Fields::Unit => {
+                        let el_ident = &el.ident;
+                        let el_ident_sc_dq_ts =
+                            gen_quotes::dq_ts(&naming_cmn::ToTokensToUpperScStr::case(&el_ident));
+                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
+                    }
+                    syn::Fields::Named(_) | syn::Fields::Unnamed(_) => panic!("b6fedcff"),
+                })
+                .collect::<Vec<proc_macro2::TokenStream>>(),
+        ),
     );
     // println!("{generated}");
-    generated.into()
+    generated.0.into()
 }

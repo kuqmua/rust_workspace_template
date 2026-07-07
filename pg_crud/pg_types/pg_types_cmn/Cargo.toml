@@ -11,7 +11,6 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-sqlx = { workspace = true }
 serde = { workspace = true }
 utoipa = { workspace = true }
 thiserror = { workspace = true }

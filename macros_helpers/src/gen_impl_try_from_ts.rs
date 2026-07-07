@@ -3,7 +3,7 @@ pub fn gen_impl_try_from_ts(
     for_type_ts: &dyn quote::ToTokens,
     er_type_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> proc_macro2::TokenStream {
+) -> crate::GeneratedRustTs {
     let v_sc = naming::VSc;
     quote::quote! {
         impl TryFrom<#from_type_ts> for #for_type_ts {
@@ -13,4 +13,5 @@ pub fn gen_impl_try_from_ts(
             }
         }
     }
+    .into()
 }

@@ -4,9 +4,39 @@ pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
 pub use try_from_env::TryFromEnv;
 const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StdEnvVarOk(pub String);
+impl From<String> for StdEnvVarOk {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct StdEnvVarOkRef<'value_lt>(pub &'value_lt str);
+#[derive(Debug, Clone, Copy)]
+pub struct EnvVarNameRef<'name_lt>(pub &'name_lt str);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnvVarName(pub String);
+impl std::fmt::Display for EnvVarName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChronoFixedOffsetEr(pub &'static str);
+pub struct I32ParsingEr(pub std::num::ParseIntError);
+impl std::fmt::Debug for I32ParsingEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TimezoneSeconds(i32);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct EastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
-    fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error>;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
 }
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
@@ -71,22 +101,26 @@ pub struct Timezone(pub chrono::FixedOffset);
 #[derive(Debug, thiserror::Error, optml::Optml)]
 pub enum TryFromStdEnvVarOkTimezoneEr {
     #[error("{chrono_fixed_offset:?}")]
-    ChronoFixedOffset { chrono_fixed_offset: &'static str },
-    #[error("{i32_parsing:?}")]
-    I32Parsing {
-        i32_parsing: std::num::ParseIntError,
+    ChronoFixedOffset {
+        chrono_fixed_offset: ChronoFixedOffsetEr,
     },
+    #[error("{i32_parsing:?}")]
+    I32Parsing { i32_parsing: I32ParsingEr },
 }
 impl TryFromStdEnvVarOk for Timezone {
     type Error = TryFromStdEnvVarOkTimezoneEr;
-    fn try_from_std_env_var_ok(v: String) -> Result<Self, Self::Error> {
-        let i32_v =
-            parse_from_str_with_er(&v, |i32_parsing| Self::Error::I32Parsing { i32_parsing })?;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        let i32_v = TimezoneSeconds(parse_from_str_with_er(
+            StdEnvVarOkRef(v.0.as_str()),
+            |i32_parsing| Self::Error::I32Parsing {
+                i32_parsing: I32ParsingEr(i32_parsing),
+            },
+        )?);
         parse_east_fixed_offset(i32_v)
             .map_err(|chrono_fixed_offset| Self::Error::ChronoFixedOffset {
                 chrono_fixed_offset,
             })
-            .map(Self)
+            .map(|timezone| Self(timezone.0))
     }
 }
 config_lib_macros::impl_try_from_parse_string_er!(
@@ -98,55 +132,58 @@ config_lib_macros::impl_try_from_parse_string_er!(
 );
 #[allow(clippy::single_call_fn)] // shared helper centralizes env var read + parse + error mapping for TryFromEnv derive output
 pub fn parse_required_env_var<T, ParseEr, Er, MapEnvVarEr, Parse, MapParseEr>(
-    env_var_name: &'static str,
+    env_var_name: EnvVarNameRef<'_>,
     map_env_var_er: MapEnvVarEr,
     parse: Parse,
     map_parse_er: MapParseEr,
 ) -> Result<T, Er>
 where
-    MapEnvVarEr: FnOnce(std::env::VarError, String) -> Er,
-    Parse: FnOnce(String) -> Result<T, ParseEr>,
+    MapEnvVarEr: FnOnce(std::env::VarError, EnvVarName) -> Er,
+    Parse: FnOnce(StdEnvVarOk) -> Result<T, ParseEr>,
     MapParseEr: FnOnce(ParseEr) -> Er,
 {
-    let v = std::env::var(env_var_name)
-        .map_err(|std_env_var_er| map_env_var_er(std_env_var_er, env_var_name.to_owned()))?;
-    parse(v).map_err(map_parse_er)
+    let v = std::env::var(env_var_name.0).map_err(|std_env_var_er| {
+        map_env_var_er(std_env_var_er, EnvVarName(env_var_name.0.to_owned()))
+    })?;
+    parse(StdEnvVarOk(v)).map_err(map_parse_er)
 }
 fn try_map_non_empty_env_value<T, Er>(
-    v: String,
+    v: StdEnvVarOk,
     mk_er: impl FnOnce(&'static str) -> Er,
     map_ok: impl FnOnce(String) -> T,
 ) -> Result<T, Er> {
-    if v.is_empty() {
+    if v.0.is_empty() {
         return Err(mk_er(ENV_VALUE_IS_EMPTY_MSG));
     }
-    Ok(map_ok(v))
+    Ok(map_ok(v.0))
 }
 fn parse_from_str_with_er<T, ParseEr, Er>(
-    v: &str,
+    v: StdEnvVarOkRef<'_>,
     mk_er: impl FnOnce(ParseEr) -> Er,
 ) -> Result<T, Er>
 where
     T: std::str::FromStr<Err = ParseEr>,
 {
-    v.parse::<T>().map_err(mk_er)
+    v.0.parse::<T>().map_err(mk_er)
 }
 #[allow(clippy::single_call_fn)] // extracted timezone conversion keeps conversion + message mapping reusable and directly testable
-fn parse_east_fixed_offset(v: i32) -> Result<chrono::FixedOffset, &'static str> {
-    chrono::FixedOffset::east_opt(v).ok_or(TIMEZONE_NOT_EAST_MSG)
+fn parse_east_fixed_offset(v: TimezoneSeconds) -> Result<EastFixedOffset, ChronoFixedOffsetEr> {
+    chrono::FixedOffset::east_opt(v.0)
+        .map(EastFixedOffset)
+        .ok_or(ChronoFixedOffsetEr(TIMEZONE_NOT_EAST_MSG))
 }
 #[cfg(test)]
 mod tests {
     #[derive(Debug, PartialEq, Eq)]
     enum ParseRequiredEnvVarTestEr {
-        EnvVar { env_var_name: String },
+        EnvVar { env_var_name: super::EnvVarName },
         Parse { parse: &'static str },
     }
     fn parse_env<T>(v: &str) -> Result<T, T::Error>
     where
         T: super::TryFromStdEnvVarOk,
     {
-        T::try_from_std_env_var_ok(v.to_owned())
+        T::try_from_std_env_var_ok(super::StdEnvVarOk(v.to_owned()))
     }
     #[test]
     fn cors_allow_origin_parsing_returns_value() {
@@ -333,13 +370,16 @@ mod tests {
     }
     #[test]
     fn parse_east_fixed_offset_returns_offset_for_valid_seconds() {
-        let parsed = super::parse_east_fixed_offset(3i32 * 3_600i32);
-        assert!(matches!(parsed, Ok(v) if v.local_minus_utc() == 3i32 * 3_600i32));
+        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds(3i32 * 3_600i32));
+        assert!(matches!(parsed, Ok(v) if v.0.local_minus_utc() == 3i32 * 3_600i32));
     }
     #[test]
     fn parse_east_fixed_offset_returns_error_for_out_of_range_seconds() {
-        let parsed = super::parse_east_fixed_offset(i32::MAX);
-        assert_eq!(parsed, Err(super::TIMEZONE_NOT_EAST_MSG));
+        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds(i32::MAX));
+        assert_eq!(
+            parsed,
+            Err(super::ChronoFixedOffsetEr(super::TIMEZONE_NOT_EAST_MSG))
+        );
     }
     #[test]
     fn timezone_parsing_returns_offset_error_when_out_of_range() {
@@ -353,9 +393,9 @@ mod tests {
     #[test]
     fn parse_required_env_var_parses_value_when_env_var_exists() {
         let parsed = super::parse_required_env_var(
-            "PATH",
+            super::EnvVarNameRef("PATH"),
             |_std_env_var_er, env_var_name| ParseRequiredEnvVarTestEr::EnvVar { env_var_name },
-            |v| Ok::<_, &'static str>(v.len()),
+            |v| Ok::<_, &'static str>(v.0.len()),
             |parse| ParseRequiredEnvVarTestEr::Parse { parse },
         );
         assert!(matches!(parsed, Ok(v) if v > 0));
@@ -363,7 +403,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_missing_env_var_error() {
         let parsed = super::parse_required_env_var(
-            "CONFIG_LIB_TEST_ENV_VAR_4E8A7F21",
+            super::EnvVarNameRef("CONFIG_LIB_TEST_ENV_VAR_4E8A7F21"),
             |_std_env_var_er, env_var_name| ParseRequiredEnvVarTestEr::EnvVar { env_var_name },
             Ok::<_, &'static str>,
             |parse| ParseRequiredEnvVarTestEr::Parse { parse },
@@ -371,14 +411,14 @@ mod tests {
         assert_eq!(
             parsed,
             Err(ParseRequiredEnvVarTestEr::EnvVar {
-                env_var_name: "CONFIG_LIB_TEST_ENV_VAR_4E8A7F21".to_owned()
+                env_var_name: super::EnvVarName("CONFIG_LIB_TEST_ENV_VAR_4E8A7F21".to_owned())
             })
         );
     }
     #[test]
     fn parse_required_env_var_maps_parse_error() {
         let parsed = super::parse_required_env_var(
-            "PATH",
+            super::EnvVarNameRef("PATH"),
             |_std_env_var_er, env_var_name| ParseRequiredEnvVarTestEr::EnvVar { env_var_name },
             |_v| Err::<(), _>("parse failed"),
             |parse| ParseRequiredEnvVarTestEr::Parse { parse },

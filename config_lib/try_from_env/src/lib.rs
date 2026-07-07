@@ -1,10 +1,3 @@
-#[allow(clippy::missing_const_for_fn)] // syn::Field access path is used for macro parsing only; const form is not useful here
-fn field_ident<'field_lt>(
-    field: &'field_lt syn::Field,
-    exp_id: &'static str,
-) -> &'field_lt syn::Ident {
-    field.ident.as_ref().unwrap_or_else(|| panic!("{exp_id}"))
-}
 #[proc_macro_derive(TryFromEnv)]
 pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_loc::panic_loc();
@@ -24,6 +17,9 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let fields_named = match data_struct.fields {
         syn::Fields::Named(v0) => v0.named,
         syn::Fields::Unnamed(_) | syn::Fields::Unit => panic!("330b2512"),
+    };
+    let field_ident = |field: &syn::Field, exp_id: &'static str| {
+        field.ident.clone().unwrap_or_else(|| panic!("{exp_id}"))
     };
     let er_ts = {
         let vrts_ts = fields_named.iter().map(|el| {
@@ -45,7 +41,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 },
                 #std_env_var_er_ucc {
                     #std_env_var_er_sc: std::env::VarError,
-                    env_var_name: String,
+                    env_var_name: config_lib::EnvVarName,
                 },
                 #(#vrts_ts),*
             }
@@ -81,11 +77,11 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let fields_init_ts = fields_named.iter().map(|el| {
             let el_ident = field_ident(el, "ebf4e1b2");
             let el_ident_quotes_upper_sc_string =
-                syn::LitStr::new(&naming::ToTokensToUpperScStr::case(el_ident), ident.span());
+                syn::LitStr::new(&naming::ToTokensToUpperScStr::case(&el_ident), ident.span());
             let el_ident_ucc_ts = naming::ToTokensToUccTs::case_or_panic(&el_ident);
             quote::quote! {
                 let #el_ident = config_lib::parse_required_env_var(
-                    #el_ident_quotes_upper_sc_string,
+                    config_lib::EnvVarNameRef(#el_ident_quotes_upper_sc_string),
                     |#std_env_var_er_sc, #env_var_name_sc| #ident_try_from_env_er_ucc::#std_env_var_er_ucc {
                         #std_env_var_er_sc,
                         #env_var_name_sc,
@@ -97,7 +93,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     |#el_ident| #ident_try_from_env_er_ucc::#el_ident_ucc_ts {
                         #el_ident,
                     },
-                )?.0;
+                )?;
             }
         });
         let fields_ts = fields_named.iter().map(|el| &el.ident);

@@ -8,72 +8,131 @@ const HEALTH_CHECK_OK_STATUS: axum::http::StatusCode = axum::http::StatusCode::O
 const HEALTH_CHECK_ER_STATUS: axum::http::StatusCode = axum::http::StatusCode::SERVICE_UNAVAILABLE;
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct GitInfo {
-    commit: std::borrow::Cow<'static, str>,
+    commit: git_info::GitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct NotFoundH {
-    commit: std::borrow::Cow<'static, str>,
-    msg: String,
-    open_api_specification: &'static str,
+    commit: git_info::GitCommitLinkCow,
+    msg: NotFoundMsg,
+    open_api_specification: OpenApiSpecificationPath,
+}
+#[derive(Debug, serde::Serialize, optml::Optml)]
+struct NotFoundMsg(String);
+impl std::fmt::Display for NotFoundMsg {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+#[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]
+struct OpenApiSpecificationPath(&'static str);
+#[derive(Debug, Clone, Copy, optml::Optml)]
+struct HttpUriRef<'uri_lt>(&'uri_lt axum::http::Uri);
+#[derive(Debug, Clone, Copy, optml::Optml)]
+struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+struct NoRouteMsgCapacity(usize);
+#[derive(Debug, Clone, Copy, optml::Optml)]
+struct HealthCheckSucceeded(bool);
+#[derive(Debug, Clone, Copy, optml::Optml)]
+struct HealthCheckStatus(axum::http::StatusCode);
+#[derive(Debug, optml::Optml)]
+struct JsonRes<T> {
+    payload: JsonPayload<T>,
+    status: HealthCheckStatus,
+}
+#[derive(Debug, optml::Optml)]
+struct JsonPayload<T>(axum::Json<T>);
+impl<T> axum::response::IntoResponse for JsonPayload<T>
+where
+    axum::Json<T>: axum::response::IntoResponse,
+{
+    fn into_response(self) -> axum::response::Response {
+        self.0.into_response()
+    }
+}
+impl<T> axum::response::IntoResponse for JsonRes<T>
+where
+    JsonPayload<T>: axum::response::IntoResponse,
+{
+    fn into_response(self) -> axum::response::Response {
+        (self.status.0, self.payload).into_response()
+    }
+}
+#[derive(Debug, Clone, optml::Optml)]
+pub struct CmnRoutes(pub axum::Router);
+#[derive(Clone, optml::Optml)]
+pub struct CmnRoutesAppState(pub std::sync::Arc<dyn CmnRoutesPrms>);
+impl std::fmt::Debug for CmnRoutesAppState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("CmnRoutesAppState").finish()
+    }
+}
+impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for CmnRoutesAppState
+where
+    AppStateTy: CmnRoutesPrms + 'static,
+{
+    fn from(value: std::sync::Arc<AppStateTy>) -> Self {
+        Self(value)
+    }
 }
 pub trait CmnRoutesPrms: git_info::GetGitCommitLink + app_state::GetPgPool + Send + Sync {}
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
-const fn mk_git_info_payload(commit: std::borrow::Cow<'static, str>) -> GitInfo {
+const fn mk_git_info_payload(commit: git_info::GitCommitLinkCow) -> GitInfo {
     GitInfo { commit }
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
-fn mk_no_route_msg(uri: &axum::http::Uri) -> String {
+fn mk_no_route_msg(uri: HttpUriRef<'_>) -> NotFoundMsg {
     mk_no_route_msg_for_suffix(get_uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
-fn mk_no_route_msg_for_suffix(uri_suffix: &str) -> String {
+fn mk_no_route_msg_for_suffix(uri_suffix: UriSuffixRef<'_>) -> NotFoundMsg {
     let cap = no_route_msg_capacity(uri_suffix);
-    let mut msg = String::with_capacity(cap);
+    let mut msg = String::with_capacity(cap.0);
     msg.push_str(NO_ROUTE_MSG_PREFIX);
-    msg.push_str(uri_suffix);
-    msg
+    msg.push_str(uri_suffix.0);
+    NotFoundMsg(msg)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
-const fn no_route_msg_capacity(uri_suffix: &str) -> usize {
-    NO_ROUTE_MSG_PREFIX.len().saturating_add(uri_suffix.len())
+const fn no_route_msg_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMsgCapacity {
+    NoRouteMsgCapacity(NO_ROUTE_MSG_PREFIX.len().saturating_add(uri_suffix.0.len()))
 }
 #[allow(clippy::single_call_fn)] // keeps route text construction consistent for path-only and path+query URIs
-fn get_uri_suffix(uri: &axum::http::Uri) -> &str {
-    uri.path_and_query()
-        .map_or_else(|| uri.path(), |v| v.as_str())
+fn get_uri_suffix(uri: HttpUriRef<'_>) -> UriSuffixRef<'_> {
+    UriSuffixRef(
+        uri.0
+            .path_and_query()
+            .map_or_else(|| uri.0.path(), |v| v.as_str()),
+    )
 }
 #[allow(clippy::single_call_fn)] // keeps fallback payload assembly in one place
-fn mk_not_found_payload(
-    uri: &axum::http::Uri,
-    commit: std::borrow::Cow<'static, str>,
-) -> NotFoundH {
+fn mk_not_found_payload(uri: HttpUriRef<'_>, commit: git_info::GitCommitLinkCow) -> NotFoundH {
     mk_not_found_payload_with_msg(mk_no_route_msg(uri), commit)
 }
 #[allow(clippy::single_call_fn)] // shared suffix-based assembly is reusable by handlers that already have a path suffix
 #[cfg(test)]
 fn mk_not_found_payload_for_suffix(
-    uri_suffix: &str,
-    commit: std::borrow::Cow<'static, str>,
+    uri_suffix: UriSuffixRef<'_>,
+    commit: git_info::GitCommitLinkCow,
 ) -> NotFoundH {
     mk_not_found_payload_with_msg(mk_no_route_msg_for_suffix(uri_suffix), commit)
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 const fn mk_not_found_payload_with_msg(
-    msg: String,
-    commit: std::borrow::Cow<'static, str>,
+    msg: NotFoundMsg,
+    commit: git_info::GitCommitLinkCow,
 ) -> NotFoundH {
     NotFoundH {
         commit,
         msg,
-        open_api_specification: SLASH_SWAGGER_UI,
+        open_api_specification: OpenApiSpecificationPath(SLASH_SWAGGER_UI),
     }
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
 fn mk_commit_json_res<S, T>(
     commit_src: &S,
     status: axum::http::StatusCode,
-    map: impl FnOnce(std::borrow::Cow<'static, str>) -> T,
-) -> (axum::http::StatusCode, axum::Json<T>)
+    map: impl FnOnce(git_info::GitCommitLinkCow) -> T,
+) -> JsonRes<T>
 where
     S: ?Sized + git_info::GetGitCommitLink,
 {
@@ -85,62 +144,69 @@ where
     )
 }
 #[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
-const fn mk_json_res<T>(
-    status: axum::http::StatusCode,
-    payload: T,
-) -> (axum::http::StatusCode, axum::Json<T>) {
-    (status, axum::Json(payload))
-}
-#[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
-const fn map_health_check_status(is_ok: bool) -> axum::http::StatusCode {
-    if is_ok {
-        HEALTH_CHECK_OK_STATUS
-    } else {
-        HEALTH_CHECK_ER_STATUS
+const fn mk_json_res<T>(status: axum::http::StatusCode, payload: T) -> JsonRes<T> {
+    JsonRes {
+        status: HealthCheckStatus(status),
+        payload: JsonPayload(axum::Json(payload)),
     }
 }
-#[allow(clippy::single_call_fn)] // named handler is clearer than inline closure for route wiring
-async fn health_check(
-    axum::extract::State(app_state_hc): axum::extract::State<std::sync::Arc<dyn CmnRoutesPrms>>,
-) -> axum::http::StatusCode {
-    map_health_check_status(
-        sqlx::query(HEALTH_CHECK_SQL)
-            .execute(app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref()))
-            .await
-            .is_ok(),
-    )
+#[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
+const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> HealthCheckStatus {
+    if is_ok.0 {
+        HealthCheckStatus(HEALTH_CHECK_OK_STATUS)
+    } else {
+        HealthCheckStatus(HEALTH_CHECK_ER_STATUS)
+    }
 }
-#[allow(clippy::single_call_fn)] // named handler is clearer than inline closure for route wiring
-async fn git_info(
-    axum::extract::State(app_state_76fb2013): axum::extract::State<
-        std::sync::Arc<dyn CmnRoutesPrms>,
-    >,
-) -> (axum::http::StatusCode, axum::Json<GitInfo>) {
-    mk_commit_json_res(
-        app_state_76fb2013.as_ref(),
-        axum::http::StatusCode::OK,
-        mk_git_info_payload,
+#[must_use]
+pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
+    let app_state = app_state_b9fc2d94.0;
+    CmnRoutes(
+        axum::Router::new()
+            .route(
+                SLASH_HEALTH_CHECK,
+                axum::routing::get(
+                    async |axum::extract::State(app_state_hc): axum::extract::State<
+                        std::sync::Arc<dyn CmnRoutesPrms>,
+                    >| {
+                        map_health_check_status(HealthCheckSucceeded(
+                            sqlx::query(HEALTH_CHECK_SQL)
+                                .execute(app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref()).0)
+                                .await
+                                .is_ok(),
+                        ))
+                        .0
+                    },
+                ),
+            )
+            .route(
+                SLASH_GIT_INFO,
+                axum::routing::get(
+                    async |axum::extract::State(app_state_76fb2013): axum::extract::State<
+                        std::sync::Arc<dyn CmnRoutesPrms>,
+                    >| {
+                        mk_commit_json_res(
+                            app_state_76fb2013.as_ref(),
+                            axum::http::StatusCode::OK,
+                            mk_git_info_payload,
+                        )
+                    },
+                ),
+            )
+            .fallback(
+                async |uri: axum::http::Uri,
+                       axum::extract::State(app_state_19103bd5): axum::extract::State<
+                    std::sync::Arc<dyn CmnRoutesPrms>,
+                >| {
+                    mk_commit_json_res(
+                        app_state_19103bd5.as_ref(),
+                        axum::http::StatusCode::NOT_FOUND,
+                        |commit| mk_not_found_payload(HttpUriRef(&uri), commit),
+                    )
+                },
+            )
+            .with_state(app_state),
     )
-}
-#[allow(clippy::single_call_fn)] // named handler isolates fallback behavior for maintenance
-async fn not_found(
-    uri: axum::http::Uri,
-    axum::extract::State(app_state_19103bd5): axum::extract::State<
-        std::sync::Arc<dyn CmnRoutesPrms>,
-    >,
-) -> (axum::http::StatusCode, axum::Json<NotFoundH>) {
-    mk_commit_json_res(
-        app_state_19103bd5.as_ref(),
-        axum::http::StatusCode::NOT_FOUND,
-        |commit| mk_not_found_payload(&uri, commit),
-    )
-}
-pub fn cmn_routes(app_state_b9fc2d94: std::sync::Arc<dyn CmnRoutesPrms>) -> axum::Router {
-    axum::Router::new()
-        .route(SLASH_HEALTH_CHECK, axum::routing::get(health_check))
-        .route(SLASH_GIT_INFO, axum::routing::get(git_info))
-        .fallback(not_found)
-        .with_state(app_state_b9fc2d94)
 }
 #[cfg(test)]
 mod tests {
@@ -150,15 +216,15 @@ mod tests {
         commit: &'static str,
     }
     impl git_info::GetGitCommitId for TestState {
-        fn get_git_commit_id(&self) -> String {
-            self.commit.to_owned()
+        fn get_git_commit_id(&self) -> git_info::GitCommitId {
+            git_info::GitCommitId(self.commit.to_owned())
         }
-        fn get_git_commit_id_ref(&self) -> Option<&str> {
-            Some(self.commit)
+        fn get_git_commit_id_ref(&self) -> Option<git_info::GitCommitIdRef<'_>> {
+            Some(git_info::GitCommitIdRef(self.commit))
         }
     }
     impl app_state::GetPgPool for TestState {
-        fn get_pg_pool(&self) -> &sqlx::PgPool {
+        fn get_pg_pool(&self) -> app_state::PgPoolRef<'_> {
             panic!("38f80f5f")
         }
     }
@@ -169,23 +235,29 @@ mod tests {
         })
     }
     fn test_commit_link() -> String {
-        git_info::git_commit_link(TEST_COMMIT)
+        git_info::git_commit_link(TEST_COMMIT).0
     }
     #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
-    fn test_commit_link_cow() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Owned(test_commit_link())
+    fn test_commit_link_cow() -> git_info::GitCommitLinkCow {
+        git_info::GitCommitLinkCow(std::borrow::Cow::Owned(test_commit_link()))
     }
-    const fn b_cow(v: &'static str) -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(v)
+    const fn b_cow(v: &'static str) -> git_info::GitCommitLinkCow {
+        git_info::GitCommitLinkCow(std::borrow::Cow::Borrowed(v))
+    }
+    const fn uri_ref(uri: &axum::http::Uri) -> super::HttpUriRef<'_> {
+        super::HttpUriRef(uri)
+    }
+    const fn suffix_ref(v: &str) -> super::UriSuffixRef<'_> {
+        super::UriSuffixRef(v)
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps git-info payload checks concise and consistent
     fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
-        assert_eq!(payload.commit, exp_commit);
+        assert_eq!(payload.commit.0, exp_commit);
     }
     #[allow(clippy::single_call_fn)] // shared assertion centralizes not-found payload checks used across direct and state-based tests
     fn assert_not_found_payload(payload: &super::NotFoundH, exp_uri_suffix: &str) {
         assert_no_route_msg(&payload.msg, exp_uri_suffix);
-        assert_eq!(payload.open_api_specification, super::SLASH_SWAGGER_UI);
+        assert_eq!(payload.open_api_specification.0, super::SLASH_SWAGGER_UI);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps not-found commit and payload checks coupled across tests
     fn assert_not_found_payload_with_commit(
@@ -193,12 +265,15 @@ mod tests {
         exp_commit: &str,
         exp_uri_suffix: &str,
     ) {
-        assert_eq!(payload.commit, exp_commit);
+        assert_eq!(payload.commit.0, exp_commit);
         assert_not_found_payload(payload, exp_uri_suffix);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps no-route message checks consistent across uri and suffix-based tests
-    fn assert_no_route_msg(actual: &str, uri_suffix: &str) {
-        assert_eq!(actual, super::mk_no_route_msg_for_suffix(uri_suffix));
+    fn assert_no_route_msg(actual: &super::NotFoundMsg, uri_suffix: &str) {
+        assert_eq!(
+            actual.0,
+            super::mk_no_route_msg_for_suffix(suffix_ref(uri_suffix)).0
+        );
     }
     #[test]
     fn git_info_response_shape_stays_stable() {
@@ -208,30 +283,36 @@ mod tests {
     #[test]
     fn not_found_response_shape_stays_stable() {
         let uri = axum::http::Uri::from_static("/unknown");
-        let not_found = super::mk_not_found_payload(&uri, b_cow("deadbeef"));
+        let not_found = super::mk_not_found_payload(uri_ref(&uri), b_cow("deadbeef"));
         assert_not_found_payload_with_commit(&not_found, "deadbeef", "/unknown");
     }
     #[test]
     fn no_route_msg_includes_uri() {
         let uri = axum::http::Uri::from_static("/missing/path");
-        assert_no_route_msg(&super::mk_no_route_msg(&uri), "/missing/path");
+        assert_no_route_msg(&super::mk_no_route_msg(uri_ref(&uri)), "/missing/path");
     }
     #[test]
     fn no_route_msg_for_suffix_uses_prefix_once() {
         assert_no_route_msg(
-            &super::mk_no_route_msg_for_suffix("/missing/path"),
+            &super::mk_no_route_msg_for_suffix(suffix_ref("/missing/path")),
             "/missing/path",
         );
     }
     #[test]
     fn get_uri_suffix_prefers_path_and_query_when_query_exists() {
         let uri = axum::http::Uri::from_static("/missing/path?limit=10");
-        assert_eq!(super::get_uri_suffix(&uri), "/missing/path?limit=10");
+        assert_eq!(
+            super::get_uri_suffix(uri_ref(&uri)).0,
+            "/missing/path?limit=10"
+        );
     }
     #[test]
     fn no_route_msg_keeps_query_parameters() {
         let uri = axum::http::Uri::from_static("/missing/path?limit=10");
-        assert_no_route_msg(&super::mk_no_route_msg(&uri), "/missing/path?limit=10");
+        assert_no_route_msg(
+            &super::mk_no_route_msg(uri_ref(&uri)),
+            "/missing/path?limit=10",
+        );
     }
     #[test]
     fn status_code_constants_are_stable_for_common_routes() {
@@ -256,7 +337,7 @@ mod tests {
     fn not_found_response_uses_uri_and_swagger_path() {
         let uri = axum::http::Uri::from_static("/missing");
         let commit_link = test_commit_link();
-        let payload = super::mk_not_found_payload(&uri, test_commit_link_cow());
+        let payload = super::mk_not_found_payload(uri_ref(&uri), test_commit_link_cow());
         assert_not_found_payload_with_commit(&payload, &commit_link, "/missing");
     }
     #[test]
@@ -264,7 +345,7 @@ mod tests {
         let uri = axum::http::Uri::from_static("/missing");
         let state = test_state();
         let payload = super::mk_not_found_payload(
-            &uri,
+            uri_ref(&uri),
             git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
         );
         assert_not_found_payload_with_commit(&payload, &test_commit_link(), "/missing");
@@ -272,7 +353,8 @@ mod tests {
     #[test]
     fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
         let commit_link = test_commit_link();
-        let payload = super::mk_not_found_payload_for_suffix("/missing", test_commit_link_cow());
+        let payload =
+            super::mk_not_found_payload_for_suffix(suffix_ref("/missing"), test_commit_link_cow());
         assert_not_found_payload_with_commit(&payload, &commit_link, "/missing");
     }
     #[test]
@@ -282,21 +364,21 @@ mod tests {
     #[test]
     fn no_route_msg_capacity_is_exact_for_uri_suffix() {
         assert_eq!(
-            super::no_route_msg_capacity("/abc?x=1"),
+            super::no_route_msg_capacity(suffix_ref("/abc?x=1")).0,
             "No route for /abc?x=1".len()
         );
     }
     #[test]
     fn map_health_check_status_returns_ok_for_success() {
         assert_eq!(
-            super::map_health_check_status(true),
+            super::map_health_check_status(super::HealthCheckSucceeded(true)).0,
             super::HEALTH_CHECK_OK_STATUS
         );
     }
     #[test]
     fn map_health_check_status_returns_unavailable_for_error() {
         assert_eq!(
-            super::map_health_check_status(false),
+            super::map_health_check_status(super::HealthCheckSucceeded(false)).0,
             super::HEALTH_CHECK_ER_STATUS
         );
     }
@@ -304,18 +386,18 @@ mod tests {
     fn mk_state_payload_uses_state_trait_object() {
         let state = test_state();
         assert_eq!(
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
+            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()).0,
             test_commit_link()
         );
     }
     #[test]
     fn mk_json_res_wraps_payload_with_status() {
-        let (status, payload) = super::mk_json_res(
+        let response = super::mk_json_res(
             axum::http::StatusCode::CREATED,
             super::mk_git_info_payload(b_cow(TEST_COMMIT)),
         );
-        assert_eq!(status, axum::http::StatusCode::CREATED);
-        assert_git_info_commit(&payload.0, TEST_COMMIT);
+        assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
+        assert_git_info_commit(&response.payload.0, TEST_COMMIT);
     }
     #[test]
     fn mk_state_payload_passes_commit_link_to_mapper() {
@@ -328,12 +410,12 @@ mod tests {
     }
     #[test]
     fn mk_commit_json_res_combines_status_and_commit_payload() {
-        let (status, payload) = super::mk_commit_json_res(
+        let response = super::mk_commit_json_res(
             test_state().as_ref(),
             axum::http::StatusCode::OK,
             super::mk_git_info_payload,
         );
-        assert_eq!(status, axum::http::StatusCode::OK);
-        assert_git_info_commit(&payload.0, test_commit_link().as_str());
+        assert_eq!(response.status.0, axum::http::StatusCode::OK);
+        assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
     }
 }

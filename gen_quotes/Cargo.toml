@@ -13,5 +13,6 @@ edition = "2024"
 
 [dependencies]
 proc-macro2 = { workspace = true }
+quote = { workspace = true }
 [lints]
 workspace = true

@@ -1,5 +1,121 @@
+#![allow(clippy::module_name_repetitions)]
 const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
 const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct LocFile(pub String);
+impl From<String> for LocFile {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl From<&str> for LocFile {
+    fn from(value: &str) -> Self {
+        Self(value.to_owned())
+    }
+}
+impl std::fmt::Display for LocFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct LocLine(pub u32);
+impl From<u32> for LocLine {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for LocLine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct LocCol(pub u32);
+impl From<u32> for LocCol {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for LocCol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct LocCommit(pub String);
+impl From<String> for LocCommit {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+#[derive(
+    Debug,
+    PartialEq,
+    Eq,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct LocDuration(pub std::time::Duration);
+impl From<std::time::Duration> for LocDuration {
+    fn from(value: std::time::Duration) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+struct LocFileRef<'file_lt>(pub &'file_lt str);
+struct FmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
+#[derive(Debug, Clone, Copy)]
+struct LocDisplayTimezone(pub chrono::FixedOffset);
+#[derive(Debug, Clone, Copy)]
+struct LocDateTime(pub chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -13,9 +129,9 @@ const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
     optml::Optml,
 )]
 pub struct Occr {
-    pub file: String,
-    pub line: u32,
-    pub col: u32,
+    pub file: LocFile,
+    pub line: LocLine,
+    pub col: LocCol,
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -31,103 +147,113 @@ pub struct Occr {
 )]
 pub struct Loc {
     #[allow(clippy::arbitrary_source_item_ordering)]
-    file: String,
-    commit: String,
-    duration: std::time::Duration,
+    file: LocFile,
+    commit: LocCommit,
+    duration: LocDuration,
     occr: Option<Occr>,
-    line: u32,
-    col: u32,
+    line: LocLine,
+    col: LocCol,
 }
-#[allow(clippy::arbitrary_source_item_ordering)]
+#[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
 impl Loc {
     #[allow(clippy::single_call_fn)] // shared offset accessor is reused by formatter and tests
-    const fn loc_display_timezone() -> Option<chrono::FixedOffset> {
-        chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS)
-    }
-    fn fmt_with_occr(
-        &self,
-        f: &mut std::fmt::Formatter<'_>,
-        mut fmt_primary: impl FnMut(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
-        mut fmt_occr: impl FnMut(&mut std::fmt::Formatter<'_>, &Occr) -> std::fmt::Result,
-    ) -> std::fmt::Result {
-        fmt_primary(f)?;
-        if let Some(v) = self.occr.as_ref() {
-            f.write_str(" (")?;
-            fmt_occr(f, v)?;
-            f.write_str(")")
-        } else {
-            Ok(())
-        }
+    fn loc_display_timezone() -> Option<LocDisplayTimezone> {
+        chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS).map(LocDisplayTimezone)
     }
     fn fmt_github_loc(
         &self,
-        f: &mut std::fmt::Formatter<'_>,
-        file: &str,
-        line: u32,
+        f: FmtRefMut<'_, '_>,
+        file: LocFileRef<'_>,
+        line: LocLine,
     ) -> std::fmt::Result {
         write!(
-            f,
+            f.0,
             "{}/blob/{}/{}#L{}",
             naming::GITHUB_URL,
-            self.commit,
-            file,
+            self.commit.0,
+            file.0,
             line
         )
     }
     fn fmt_src_loc(
-        f: &mut std::fmt::Formatter<'_>,
-        file: &str,
-        line: u32,
-        col: u32,
+        f: FmtRefMut<'_, '_>,
+        file: LocFileRef<'_>,
+        line: LocLine,
+        col: LocCol,
     ) -> std::fmt::Result {
-        write!(f, "{file}:{line}:{col}")
+        write!(f.0, "{}:{line}:{col}", file.0)
     }
     #[allow(clippy::single_call_fn)] // centralizes datetime + timezone composition so formatting can stay branch-light and tests can target conversion separately
-    fn datetime_with_tz(&self) -> Option<chrono::DateTime<chrono::FixedOffset>> {
-        let epoch = std::time::UNIX_EPOCH.checked_add(self.duration)?;
+    fn datetime_with_tz(&self) -> Option<LocDateTime> {
+        let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
         let offset = Self::loc_display_timezone()?;
-        Some(chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset))
+        Some(LocDateTime(
+            chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
+        ))
     }
-    fn fmt_datetime(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt_datetime(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
         match self.datetime_with_tz() {
-            Some(v) => write!(f, "{}", v.format("%Y-%m-%d %H:%M:%S")),
-            None => f.write_str(INCORRECT_DATETIME_MSG),
+            Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
+            None => f.0.write_str(INCORRECT_DATETIME_MSG),
         }
     }
-    fn fmt_github_place(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_with_occr(
-            f,
-            |fmtr| self.fmt_github_loc(fmtr, &self.file, self.line),
-            |fmtr, v| self.fmt_github_loc(fmtr, &v.file, v.line),
-        )
+    fn fmt_github_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
+        self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(&self.file.0), self.line)?;
+        if let Some(v) = self.occr.as_ref() {
+            f.0.write_str(" (")?;
+            self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(&v.file.0), v.line)?;
+            f.0.write_str(")")
+        } else {
+            Ok(())
+        }
     }
     fn fmt_place(
         &self,
         src_place_type: app_state::SrcPlaceType,
-        f: &mut std::fmt::Formatter<'_>,
+        f: FmtRefMut<'_, '_>,
     ) -> std::fmt::Result {
         match src_place_type {
             app_state::SrcPlaceType::Src => self.fmt_src_place(f),
             app_state::SrcPlaceType::Github => self.fmt_github_place(f),
         }
     }
-    fn fmt_src_place(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_with_occr(
-            f,
-            |fmtr| Self::fmt_src_loc(fmtr, &self.file, self.line, self.col),
-            |fmtr, v| Self::fmt_src_loc(fmtr, &v.file, v.line, v.col),
-        )
+    fn fmt_src_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
+        Self::fmt_src_loc(
+            FmtRefMut(f.0),
+            LocFileRef(&self.file.0),
+            self.line,
+            self.col,
+        )?;
+        if let Some(v) = self.occr.as_ref() {
+            f.0.write_str(" (")?;
+            Self::fmt_src_loc(FmtRefMut(f.0), LocFileRef(&v.file.0), v.line, v.col)?;
+            f.0.write_str(")")
+        } else {
+            Ok(())
+        }
     }
     #[must_use]
-    pub fn new(file: String, line: u32, col: u32, occr: Option<Occr>) -> Self {
+    pub fn new<FileTy, LineTy, ColTy>(
+        file: FileTy,
+        line: LineTy,
+        col: ColTy,
+        occr: Option<Occr>,
+    ) -> Self
+    where
+        FileTy: Into<LocFile>,
+        LineTy: Into<LocLine>,
+        ColTy: Into<LocCol>,
+    {
         Self {
-            file,
-            line,
-            col,
-            commit: git_info::PROJECT_GIT_INFO.commit.to_owned(),
-            duration: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default(),
+            file: file.into(),
+            line: line.into(),
+            col: col.into(),
+            commit: LocCommit(git_info::PROJECT_GIT_INFO.commit.0.to_owned()),
+            duration: LocDuration(
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default(),
+            ),
             occr,
         }
     }
@@ -135,14 +261,18 @@ impl Loc {
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)] //todo check somehow what its eq to std::time::Duration
 pub struct StdTimeDuration {
-    pub secs: u64,
-    pub nanos: u32,
+    pub secs: StdTimeDurationSecs,
+    pub nanos: StdTimeDurationNanos,
 }
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
+pub struct StdTimeDurationSecs(pub u64);
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
+pub struct StdTimeDurationNanos(pub u32);
 impl std::fmt::Display for Loc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), f)?;
+        self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), FmtRefMut(f))?;
         f.write_str(" ")?;
-        self.fmt_datetime(f)
+        self.fmt_datetime(FmtRefMut(f))
     }
 }
 #[cfg(test)]
@@ -153,7 +283,7 @@ mod tests {
     }
     impl std::fmt::Display for DatetimeFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.loc.fmt_datetime(f)
+            self.loc.fmt_datetime(super::FmtRefMut(f))
         }
     }
     struct PlaceFmt<'loc_lt> {
@@ -162,24 +292,24 @@ mod tests {
     }
     impl std::fmt::Display for PlaceFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.loc.fmt_place(self.src_place_type, f)
+            self.loc.fmt_place(self.src_place_type, super::FmtRefMut(f))
         }
     }
     fn test_loc(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Loc {
         super::Loc {
-            file: String::from("src/lib.rs"),
-            commit: String::from("abc123"),
-            duration,
+            file: super::LocFile(String::from("src/lib.rs")),
+            commit: super::LocCommit(String::from("abc123")),
+            duration: super::LocDuration(duration),
             occr,
-            line: 10,
-            col: 20,
+            line: super::LocLine(10),
+            col: super::LocCol(20),
         }
     }
     fn test_occr() -> super::Occr {
         super::Occr {
-            file: String::from("src/er.rs"),
-            line: 30,
-            col: 40,
+            file: super::LocFile(String::from("src/er.rs")),
+            line: super::LocLine(30),
+            col: super::LocCol(40),
         }
     }
     fn fmt_place(loc: &super::Loc, src_place_type: app_state::SrcPlaceType) -> String {
@@ -240,13 +370,16 @@ mod tests {
         let loc = test_loc(std::time::Duration::from_secs(0), None);
         let date_time = loc.datetime_with_tz().expect("f5c41dd8");
         assert_eq!(
-            date_time.format("%Y-%m-%d %H:%M:%S").to_string(),
+            date_time.0.format("%Y-%m-%d %H:%M:%S").to_string(),
             "1970-01-01 03:00:00"
         );
     }
     #[test]
     fn loc_display_timezone_uses_expected_offset() {
         let offset = super::Loc::loc_display_timezone().expect("5c53d969");
-        assert_eq!(offset.local_minus_utc(), super::LOC_DISPLAY_UTC_OFFSET_SECS);
+        assert_eq!(
+            offset.0.local_minus_utc(),
+            super::LOC_DISPLAY_UTC_OFFSET_SECS
+        );
     }
 }

@@ -1,4 +1,78 @@
 pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct PgnLimit(pub i64);
+impl From<i64> for PgnLimit {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+impl From<i32> for PgnLimit {
+    fn from(value: i32) -> Self {
+        Self(value.into())
+    }
+}
+impl std::fmt::Display for PgnLimit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl loc_lib::ToErrString for PgnLimit {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.to_string())
+    }
+}
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct PgnOffset(pub i64);
+impl From<i64> for PgnOffset {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+impl From<i32> for PgnOffset {
+    fn from(value: i32) -> Self {
+        Self(value.into())
+    }
+}
+impl std::fmt::Display for PgnOffset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl loc_lib::ToErrString for PgnOffset {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.to_string())
+    }
+}
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml)]
+pub struct PgnStart(pub i64);
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml)]
+pub struct PgnEnd(pub i64);
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;
 }
@@ -42,10 +116,10 @@ impl std::fmt::Display for Oprtr {
 }
 impl Oprtr {
     #[must_use]
-    pub fn to_qp(&self, add_oprtr: bool) -> String {
+    pub fn to_qp(&self, add_oprtr: AddOprtr) -> QpFragment {
         const SPACE: &str = " ";
         let mut qp = String::with_capacity(8);
-        if add_oprtr {
+        if add_oprtr.0 {
             let write_res = match *self {
                 Self::And | Self::AndNot => {
                     std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::AndSc, SPACE))
@@ -55,46 +129,52 @@ impl Oprtr {
                 }
             };
             if write_res.is_err() {
-                return String::default();
+                return QpFragment(String::default());
             }
         }
         if matches!(*self, Self::AndNot | Self::OrNot)
             && std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::NotSc, SPACE))
                 .is_err()
         {
-            return String::default();
+            return QpFragment(String::default());
         }
-        qp
+        QpFragment(qp)
     }
 }
 #[cfg(test)]
 mod tests_oprtr_to_qp {
     #[test]
     fn to_qp_includes_oprtr_when_requested() {
-        assert_eq!(super::Oprtr::And.to_qp(true), format!("{} ", naming::AndSc));
-        assert_eq!(super::Oprtr::Or.to_qp(true), format!("{} ", naming::OrSc));
+        assert_eq!(
+            super::Oprtr::And.to_qp(super::AddOprtr(true)).0,
+            format!("{} ", naming::AndSc)
+        );
+        assert_eq!(
+            super::Oprtr::Or.to_qp(super::AddOprtr(true)).0,
+            format!("{} ", naming::OrSc)
+        );
     }
     #[test]
     fn to_qp_includes_not_suffix_for_negative_variants() {
         assert_eq!(
-            super::Oprtr::AndNot.to_qp(true),
+            super::Oprtr::AndNot.to_qp(super::AddOprtr(true)).0,
             format!("{} {} ", naming::AndSc, naming::NotSc)
         );
         assert_eq!(
-            super::Oprtr::OrNot.to_qp(true),
+            super::Oprtr::OrNot.to_qp(super::AddOprtr(true)).0,
             format!("{} {} ", naming::OrSc, naming::NotSc)
         );
     }
     #[test]
     fn to_qp_omits_oprtr_when_disabled_and_keeps_not_only_for_negative_variants() {
-        assert_eq!(super::Oprtr::And.to_qp(false), "");
-        assert_eq!(super::Oprtr::Or.to_qp(false), "");
+        assert_eq!(super::Oprtr::And.to_qp(super::AddOprtr(false)).0, "");
+        assert_eq!(super::Oprtr::Or.to_qp(super::AddOprtr(false)).0, "");
         assert_eq!(
-            super::Oprtr::AndNot.to_qp(false),
+            super::Oprtr::AndNot.to_qp(super::AddOprtr(false)).0,
             format!("{} ", naming::NotSc)
         );
         assert_eq!(
-            super::Oprtr::OrNot.to_qp(false),
+            super::Oprtr::OrNot.to_qp(super::AddOprtr(false)).0,
             format!("{} ", naming::NotSc)
         );
     }
@@ -161,44 +241,38 @@ pg_crud_cmn_macros::trait_al!(UpdForQueryAl = DebugClonePartialEqSerializeAl);
 pub trait PgType {
     //difference between Cr and Tt - Cr may not contain generated by pg id
     type Tt: TtAl;
-    fn cr_tbl_col_qp(col: &dyn std::fmt::Display, _: bool) -> impl std::fmt::Display;
+    fn cr_tbl_col_qp(col: SqlColRef<'_>, is_pk: IsPk) -> QpFragment;
     type Cr: CrAl;
-    fn cr_qp(v: &Self::Cr, incr: &mut u64) -> Result<String, QpEr>;
-    fn cr_qb(
-        v: Self::Cr,
-        query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
+    fn cr_qp(v: &Self::Cr, incr: &mut dyn QpIncrMut) -> Result<QpFragment, QpEr>;
+    fn cr_qb(v: Self::Cr, query: PgQuery<'_>) -> Result<PgQuery<'_>, PgQueryBindEr>;
     type Sel: SelAl;
-    fn sel_qp(v: &Self::Sel, col: &str) -> Result<String, QpEr>;
+    fn sel_qp(v: &Self::Sel, col: SqlColRef<'_>) -> Result<QpFragment, QpEr>;
     type Wh: WhAl;
     type Rd: RdAl + for<'__> sqlx::Decode<'__, sqlx::Postgres> + sqlx::Type<sqlx::Postgres>;
     fn normalize(v: Self::Rd) -> Self::Rd;
     type RdIds: RdIdsAl;
-    fn sel_only_ids_qp(col: &str) -> Result<String, QpEr>;
+    fn sel_only_ids_qp(col: SqlColRef<'_>) -> Result<QpFragment, QpEr>;
     type RdInn: RdInnAl;
     fn into_inn(v: Self::Rd) -> Self::RdInn;
     type Upd: UpdAl;
     type UpdForQuery: UpdForQueryAl;
     fn upd_qp(
         v: &Self::UpdForQuery,
-        upd_accumulator: &str,
-        upd_target: &str,
-        upd_path: &str,
-        incr: &mut u64,
-    ) -> Result<String, QpEr>;
-    fn upd_qb(
-        v: Self::UpdForQuery,
-        query: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
+        upd_accumulator: SqlColRef<'_>,
+        upd_target: SqlColRef<'_>,
+        upd_path: SqlColRef<'_>,
+        incr: &mut dyn QpIncrMut,
+    ) -> Result<QpFragment, QpEr>;
+    fn upd_qb(v: Self::UpdForQuery, query: PgQuery<'_>) -> Result<PgQuery<'_>, PgQueryBindEr>;
     fn sel_only_updd_ids_qp(
         v: &Self::UpdForQuery,
-        col: &str,
-        incr: &mut u64,
-    ) -> Result<String, QpEr>;
+        col: SqlColRef<'_>,
+        incr: &mut dyn QpIncrMut,
+    ) -> Result<QpFragment, QpEr>;
     fn sel_only_updd_ids_qb<'lt>(
         v: &'lt Self::UpdForQuery,
-        query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
+        query: PgQuery<'lt>,
+    ) -> Result<PgQuery<'lt>, PgQueryBindEr>;
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub trait PgTypePk {
@@ -302,17 +376,100 @@ pub struct PgTypeLenGreaterThanTest<T: PgType> {
     pub vrt: PgTypeGreaterThanVrt,
     pub len_greater_than: UnsignedPartOfI32,
 }
+pub struct PgQuery<'query_lt>(
+    pub sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
+);
+impl std::fmt::Debug for PgQuery<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("PgQuery").finish()
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+pub struct PgQueryBindEr(pub String);
+impl From<String> for PgQueryBindEr {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for PgQueryBindEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml)]
+pub struct QpIncr(pub u64);
+impl std::fmt::Display for QpIncr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+pub trait QpIncrMut {
+    fn checked_add_one(&mut self) -> Option<QpIncr>;
+}
+impl QpIncrMut for QpIncr {
+    fn checked_add_one(&mut self) -> Option<QpIncr> {
+        self.0.checked_add(1).map(|v| {
+            *self = Self(v);
+            Self(v)
+        })
+    }
+}
+impl QpIncrMut for u64 {
+    fn checked_add_one(&mut self) -> Option<QpIncr> {
+        self.checked_add(1).map(|v| {
+            *self = v;
+            QpIncr(v)
+        })
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct AddOprtr(pub bool);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct IsPk(pub bool);
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+pub struct QpFragment(pub String);
+impl From<String> for QpFragment {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for QpFragment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+impl std::ops::Deref for QpFragment {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl std::fmt::Write for QpFragment {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        self.0.push_str(s);
+        Ok(())
+    }
+}
+#[derive(Clone, Copy)]
+pub struct SqlColRef<'col_lt>(pub &'col_lt dyn std::fmt::Display);
+impl std::fmt::Debug for SqlColRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("SqlColRef").finish()
+    }
+}
+impl std::fmt::Display for SqlColRef<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 pub trait PgTypeWhFlt<'query_lt> {
-    fn qb(
-        self,
-        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>;
+    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr>;
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, QpEr>;
+        incr: &mut dyn QpIncrMut,
+        col: SqlColRef<'_>,
+        add_oprtr: AddOprtr,
+    ) -> Result<QpFragment, QpEr>;
 }
 //todo custom deserialization - must not contain more than one el
 #[derive(
@@ -337,11 +494,7 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn qb(
-        self,
-        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
-    {
+    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
         match self.0 {
             Some(v) => v.qb(query),
             None => Ok(query), //todo mb wrong
@@ -349,12 +502,12 @@ where
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+        incr: &mut dyn QpIncrMut,
+        col: SqlColRef<'_>,
+        add_oprtr: AddOprtr,
+    ) -> Result<QpFragment, QpEr> {
         self.0.as_ref().map_or_else(
-            || Ok(format!("{col} = 'null'")),
+            || Ok(QpFragment(format!("{} = 'null'", col.0))),
             |v| v.qp(incr, col, add_oprtr),
         )
     }
@@ -367,8 +520,8 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn to_err_string(&self) -> String {
-        format!("{self:#?}")
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(format!("{self:#?}"))
     }
 }
 impl<T> AllEnumVrtsArrDfltSomeOneEl for NlJsonObjPgTypeWhFlt<T>
@@ -600,11 +753,7 @@ const _: () = {
     }
 };
 impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T> {
-    fn qb(
-        self,
-        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
-    {
+    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
         for el in self.v.0 {
             match PgTypeWhFlt::qb(el, query) {
                 Ok(v) => {
@@ -619,12 +768,12 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+        incr: &mut dyn QpIncrMut,
+        col: SqlColRef<'_>,
+        add_oprtr: AddOprtr,
+    ) -> Result<QpFragment, QpEr> {
         let mut acc = String::default();
-        let mut add_oprtr_inn_h = false;
+        let mut add_oprtr_inn_h = AddOprtr(false);
         for el in &self.v.0 {
             match PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h) {
                 Ok(v) => {
@@ -633,7 +782,7 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
                             loc: loc_lib::loc!(),
                         });
                     }
-                    add_oprtr_inn_h = true;
+                    add_oprtr_inn_h = AddOprtr(true);
                 }
                 Err(er) => {
                     return Err(er);
@@ -641,7 +790,10 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
             }
         }
         let _: Option<char> = acc.pop();
-        Ok(format!("{}({acc})", self.oprtr.to_qp(add_oprtr)))
+        Ok(QpFragment(format!(
+            "{}({acc})",
+            self.oprtr.to_qp(add_oprtr)
+        )))
     }
 }
 impl<T: std::fmt::Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl
@@ -687,14 +839,28 @@ impl DfltSomeOneEl for Order {
         Self::default()
     }
 }
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+pub struct OrderScStr(pub String);
+impl std::fmt::Display for OrderScStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+pub struct OrderUccStr(pub String);
+impl std::fmt::Display for OrderUccStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 impl Order {
     #[must_use]
-    pub fn to_sc_str(&self) -> String {
-        naming::DisplayToScStr::case(self)
+    pub fn to_sc_str(&self) -> OrderScStr {
+        OrderScStr(naming::DisplayToScStr::case(self))
     }
     #[must_use]
-    pub fn to_ucc_str(&self) -> String {
-        naming::DisplayToUccStr::case(self)
+    pub fn to_ucc_str(&self) -> OrderUccStr {
+        OrderUccStr(naming::DisplayToUccStr::case(self))
     }
 }
 #[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
@@ -715,38 +881,46 @@ pub struct OrderBy<ColGeneric> {
     optml::Optml,
 )]
 pub struct PgnBase {
-    limit: i64,
-    offset: i64,
+    limit: PgnLimit,
+    offset: PgnOffset,
 }
 impl PgnBase {
     #[must_use]
-    pub const fn end(&self) -> i64 {
-        self.offset.saturating_add(self.limit)
+    pub const fn end(&self) -> PgnEnd {
+        PgnEnd(self.offset.0.saturating_add(self.limit.0))
     }
     #[must_use]
-    pub const fn new_unchecked(limit: i64, offset: i64) -> Self {
-        Self { limit, offset }
+    pub fn new_unchecked<LimitTy, OffsetTy>(limit: LimitTy, offset: OffsetTy) -> Self
+    where
+        LimitTy: Into<PgnLimit>,
+        OffsetTy: Into<PgnOffset>,
+    {
+        Self {
+            limit: limit.into(),
+            offset: offset.into(),
+        }
     }
     #[must_use]
-    pub const fn start(&self) -> i64 {
-        self.offset
+    pub const fn start(&self) -> PgnStart {
+        PgnStart(self.offset.0)
     }
 }
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
-    fn qb(
-        self,
-        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
-    {
-        if let Err(er) = query.try_bind(self.limit) {
-            return Err(er.to_string());
+    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+        if let Err(er) = query.0.try_bind(self.limit.0) {
+            return Err(PgQueryBindEr(er.to_string()));
         }
-        if let Err(er) = query.try_bind(self.offset) {
-            return Err(er.to_string());
+        if let Err(er) = query.0.try_bind(self.offset.0) {
+            return Err(PgQueryBindEr(er.to_string()));
         }
         Ok(query)
     }
-    fn qp(&self, incr: &mut u64, _: &dyn std::fmt::Display, _: bool) -> Result<String, QpEr> {
+    fn qp(
+        &self,
+        incr: &mut dyn QpIncrMut,
+        _: SqlColRef<'_>,
+        _: AddOprtr,
+    ) -> Result<QpFragment, QpEr> {
         let limit_incr = match incr_checked_add_one_returning_incr(incr) {
             Ok(v) => v,
             Err(er) => {
@@ -759,7 +933,9 @@ impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
                 return Err(er);
             }
         };
-        Ok(format!("limit ${limit_incr} offset ${offset_incr}"))
+        Ok(QpFragment(format!(
+            "limit ${limit_incr} offset ${offset_incr}"
+        )))
     }
 }
 impl Default for PgnBase {
@@ -769,8 +945,8 @@ impl Default for PgnBase {
 }
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
 struct PgnStartsWithZeroRaw {
-    limit: i64,
-    offset: i64,
+    limit: PgnLimit,
+    offset: PgnOffset,
 }
 #[derive(
     Debug,
@@ -793,50 +969,59 @@ pub struct PgnStartsWithZero(PgnBase);
 pub enum PgnStartsWithZeroTryNewEr {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
-        limit: i64,
+        limit: PgnLimit,
         loc: loc_lib::loc::Loc,
     },
     OffsetIsLessThanZero {
         #[eo_to_err_string_serde]
-        offset: i64,
+        offset: PgnOffset,
         loc: loc_lib::loc::Loc,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
-        limit: i64,
+        limit: PgnLimit,
         #[eo_to_err_string_serde]
-        offset: i64,
+        offset: PgnOffset,
         loc: loc_lib::loc::Loc,
     },
 }
 impl PgnStartsWithZero {
     #[must_use]
-    pub const fn end(&self) -> i64 {
+    pub const fn end(&self) -> PgnEnd {
         self.0.end()
     }
     #[must_use]
-    pub const fn start(&self) -> i64 {
+    pub const fn start(&self) -> PgnStart {
         self.0.start()
     }
-    pub fn try_new(limit: i64, offset: i64) -> Result<Self, PgnStartsWithZeroTryNewEr> {
-        if limit <= 0 || offset < 0 {
-            if limit <= 0 {
+    pub fn try_new<LimitTy, OffsetTy>(
+        limit: LimitTy,
+        offset: OffsetTy,
+    ) -> Result<Self, PgnStartsWithZeroTryNewEr>
+    where
+        LimitTy: Into<PgnLimit>,
+        OffsetTy: Into<PgnOffset>,
+    {
+        let limit_value = limit.into();
+        let offset_value = offset.into();
+        if limit_value.0 <= 0 || offset_value.0 < 0 {
+            if limit_value.0 <= 0 {
                 Err(PgnStartsWithZeroTryNewEr::LimitIsLessThanOrEqToZero {
-                    limit,
+                    limit: limit_value,
                     loc: loc_lib::loc!(),
                 })
             } else {
                 Err(PgnStartsWithZeroTryNewEr::OffsetIsLessThanZero {
-                    offset,
+                    offset: offset_value,
                     loc: loc_lib::loc!(),
                 })
             }
-        } else if offset.checked_add(limit).is_some() {
-            Ok(Self(PgnBase::new_unchecked(limit, offset)))
+        } else if offset_value.0.checked_add(limit_value.0).is_some() {
+            Ok(Self(PgnBase::new_unchecked(limit_value, offset_value)))
         } else {
             Err(PgnStartsWithZeroTryNewEr::OffsetPlusLimitIsIntOverflow {
-                limit,
-                offset,
+                limit: limit_value,
+                offset: offset_value,
                 loc: loc_lib::loc!(),
             })
         }
@@ -849,19 +1034,15 @@ impl TryFrom<PgnStartsWithZeroRaw> for PgnStartsWithZero {
     }
 }
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnStartsWithZero {
-    fn qb(
-        self,
-        query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
-    {
+    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
         self.0.qb(query)
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+        incr: &mut dyn QpIncrMut,
+        col: SqlColRef<'_>,
+        add_oprtr: AddOprtr,
+    ) -> Result<QpFragment, QpEr> {
         self.0.qp(incr, col, add_oprtr)
     }
 }
@@ -874,7 +1055,7 @@ impl DfltSomeOneEl for PgnStartsWithZero {
 impl DfltSomeOneElMaxPageSize for PgnStartsWithZero {
     #[inline]
     fn dflt_some_one_el_max_page_size() -> Self {
-        Self(PgnBase::new_unchecked(i32::MAX.into(), 0))
+        Self(PgnBase::new_unchecked(i32::MAX, 0))
     }
 }
 //this needed coz serde Option<Opt<T>> #[serde(skip_serializing_if = "Option::is_none")] - if both opts: inn and parent is null then it skip - its not correct
@@ -893,8 +1074,10 @@ pub struct V<T> {
     pub v: T,
 }
 //todo ExactSizeIterator now is not a solution. er[E0658]: use of unstable library feature `exact_size_is_empty`. mb rewrite it later
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct IsStringEmptyRes(pub bool);
 pub trait IsStringEmpty {
-    fn is_string_empty(&self) -> bool;
+    fn is_string_empty(&self) -> IsStringEmptyRes;
 }
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, loc_lib::Location, optml::Optml,
@@ -1079,7 +1262,10 @@ mod tests_not_empty_unq_vec {
     #[test]
     fn first_duplicate_idx_returns_first_repeated_value_index() {
         let values = vec![7u8, 8u8, 8u8, 7u8];
-        assert_eq!(super::first_duplicate_idx(&values), Some(2usize));
+        assert_eq!(
+            super::first_duplicate_idx(&values),
+            Some(super::DuplicateIdx(2))
+        );
     }
     #[test]
     fn take_fst_dup_returns_none_for_unq_input() {
@@ -1110,11 +1296,7 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn qb(
-        self,
-        mut query: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Result<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String>
-    {
+    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
         for el in self.0 {
             query = el.qb(query)?;
         }
@@ -1122,16 +1304,16 @@ where
     }
     fn qp(
         &self,
-        incr: &mut u64,
-        col: &dyn std::fmt::Display,
-        add_oprtr: bool,
-    ) -> Result<String, QpEr> {
+        incr: &mut dyn QpIncrMut,
+        col: SqlColRef<'_>,
+        add_oprtr: AddOprtr,
+    ) -> Result<QpFragment, QpEr> {
         let mut acc = String::default();
         for (i, el) in self.0.iter().enumerate() {
-            let v = el.qp(incr, col, if i == 0 { add_oprtr } else { true })?;
-            acc.push_str(&v);
+            let v = el.qp(incr, col, if i == 0 { add_oprtr } else { AddOprtr(true) })?;
+            acc.push_str(&v.0);
         }
-        Ok(acc)
+        Ok(QpFragment(acc))
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
@@ -1161,11 +1343,18 @@ pub enum EqOprtr {
 }
 impl EqOprtr {
     #[must_use]
-    pub const fn to_query_str(&self) -> &'static str {
+    pub const fn to_query_str(&self) -> EqOprtrQueryStr {
         match &self {
-            Self::Eq => "=",
-            Self::IsNull => "is null",
+            Self::Eq => EqOprtrQueryStr("="),
+            Self::IsNull => EqOprtrQueryStr("is null"),
         }
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct EqOprtrQueryStr(pub &'static str);
+impl std::fmt::Display for EqOprtrQueryStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
     }
 }
 pub trait PgTypeEqOprtr {
@@ -1202,8 +1391,36 @@ pub enum UnsignedPartOfI32TryFromI32Er {
     LessThanZero {
         loc: loc_lib::loc::Loc,
         #[eo_to_err_string_serde]
-        v: i32,
+        v: UnsignedPartOfI32Raw,
     },
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    optml::Optml,
+)]
+pub struct UnsignedPartOfI32Raw(pub i32);
+impl From<i32> for UnsignedPartOfI32Raw {
+    fn from(value: i32) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for UnsignedPartOfI32Raw {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl loc_lib::ToErrString for UnsignedPartOfI32Raw {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.to_string())
+    }
 }
 impl TryFrom<i32> for UnsignedPartOfI32 {
     type Error = UnsignedPartOfI32TryFromI32Er;
@@ -1212,15 +1429,15 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
             Ok(Self(v))
         } else {
             Err(Self::Error::LessThanZero {
-                v,
+                v: UnsignedPartOfI32Raw(v),
                 loc: loc_lib::loc!(),
             })
         }
     }
 }
 impl loc_lib::ToErrString for UnsignedPartOfI32 {
-    fn to_err_string(&self) -> String {
-        self.0.to_string()
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_string())
     }
 }
 impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
@@ -1241,8 +1458,8 @@ impl sqlx::Encode<'_, sqlx::Postgres> for UnsignedPartOfI32 {
 }
 impl UnsignedPartOfI32 {
     #[must_use]
-    pub const fn get(&self) -> i32 {
-        self.0
+    pub const fn get(&self) -> Self {
+        *self
     }
 }
 impl DfltSomeOneEl for UnsignedPartOfI32 {
@@ -1306,7 +1523,7 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     }
 }
 impl loc_lib::ToErrString for NotZeroUnsignedPartOfI32 {
-    fn to_err_string(&self) -> String {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
         self.0.to_err_string()
     }
 }
@@ -1328,7 +1545,7 @@ impl sqlx::Encode<'_, sqlx::Postgres> for NotZeroUnsignedPartOfI32 {
 }
 impl NotZeroUnsignedPartOfI32 {
     #[must_use]
-    pub const fn get(&self) -> i32 {
+    pub const fn get(&self) -> UnsignedPartOfI32 {
         self.0.get()
     }
 }
@@ -1352,51 +1569,71 @@ pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUnqVec<T>),
     Single(T),
 }
-pub fn incr_checked_add_one_returning_incr(incr: &mut u64) -> Result<u64, QpEr> {
-    incr.checked_add(1).map_or_else(
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml)]
+pub struct DuplicateIdx(pub usize);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+pub struct UuidUuidTestCases(pub [uuid::Uuid; 1]);
+impl IntoIterator for UuidUuidTestCases {
+    type IntoIter = std::array::IntoIter<uuid::Uuid, 1>;
+    type Item = uuid::Uuid;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+pub fn incr_checked_add_one_returning_incr<IncrTy>(incr: &mut IncrTy) -> Result<QpIncr, QpEr>
+where
+    IncrTy: QpIncrMut + ?Sized,
+{
+    incr.checked_add_one().map_or_else(
         || {
             Err(QpEr::CheckedAdd {
                 loc: loc_lib::loc!(),
             })
         },
-        |v| {
-            *incr = v;
-            Ok(v)
-        },
+        Ok,
     )
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn i8_test_cases_vec() -> [i8; 3] {
     [i8::MIN, 0, i8::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn i16_test_cases_vec() -> [i16; 3] {
     [i16::MIN, 0, i16::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn i32_test_cases_vec() -> [i32; 3] {
     [i32::MIN, 0, i32::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn i64_test_cases_vec() -> [i64; 3] {
     [i64::MIN, 0, i64::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn u8_test_cases_vec() -> [u8; 3] {
     [u8::MIN, 0, u8::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn u16_test_cases_vec() -> [u16; 3] {
     [u16::MIN, 0, u16::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn u32_test_cases_vec() -> [u32; 3] {
     [u32::MIN, 0, u32::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn u64_test_cases_vec() -> [u64; 3] {
     [u64::MIN, 0, u64::MAX]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn f32_test_cases_vec() -> [f32; 18] {
     [
@@ -1420,6 +1657,7 @@ pub const fn f32_test_cases_vec() -> [f32; 18] {
         1e30,
     ]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn f64_test_cases_vec() -> [f64; 18] {
     [
@@ -1443,10 +1681,12 @@ pub const fn f64_test_cases_vec() -> [f64; 18] {
         1e300,
     ]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn bool_test_cases_vec() -> [bool; 2] {
     [true, false]
 }
+#[cfg(feature = "test-utils")]
 #[must_use]
 pub fn string_test_cases_vec() -> [String; 12] {
     #[allow(clippy::non_ascii_literal)]
@@ -1466,17 +1706,17 @@ pub fn string_test_cases_vec() -> [String; 12] {
     ]
 }
 #[must_use]
-pub fn uuid_uuid_test_cases_vec() -> [uuid::Uuid; 1] {
-    [uuid::Uuid::new_v4()]
+pub fn uuid_uuid_test_cases_vec() -> UuidUuidTestCases {
+    UuidUuidTestCases([uuid::Uuid::new_v4()])
 }
 #[must_use]
-pub fn first_duplicate_idx<T>(values: &[T]) -> Option<usize>
+pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
 where
     T: PartialEq,
 {
     for (idx, current) in values.iter().enumerate() {
         if values.iter().take(idx).any(|prev| prev == current) {
-            return Some(idx);
+            return Some(DuplicateIdx(idx));
         }
     }
     None
@@ -1487,5 +1727,5 @@ where
     T: PartialEq,
 {
     let duplicate_idx = first_duplicate_idx(values.as_slice())?;
-    Some(values.swap_remove(duplicate_idx))
+    Some(values.swap_remove(duplicate_idx.0))
 }

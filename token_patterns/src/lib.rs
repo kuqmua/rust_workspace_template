@@ -197,8 +197,9 @@ token_patterns_macros::ts_path_fn!(
     path_all_vrts_dflt_some_one_el_call,
     ::all_vrts_dflt_some_one_el()
 );
-fn append_tokens(tokens: &mut proc_macro2::TokenStream, part: impl quote::ToTokens) {
-    part.to_tokens(tokens);
+struct TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
+fn append_tokens(tokens: &mut TokensMut<'_>, part: impl quote::ToTokens) {
+    part.to_tokens(&mut *tokens.0);
 }
 #[cfg(test)]
 mod tests {

@@ -4,6 +4,10 @@ pub use config_lib::{
     GetServiceSocketAddress, GetSrcPlaceType, GetStartingCheckLink, GetTimezone, GetTracingLevel,
     types::SrcPlaceType, types::TracingLevel,
 };
+#[derive(Debug, Clone, Copy)]
+pub struct PgPoolRef<'pool_lt>(pub &'pool_lt sqlx::PgPool);
+#[derive(Debug, Clone)]
+pub struct PgPool(pub sqlx::PgPool);
 pub trait GetPgPool {
-    fn get_pg_pool(&self) -> &sqlx::PgPool;
+    fn get_pg_pool(&self) -> PgPoolRef<'_>;
 }

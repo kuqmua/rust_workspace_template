@@ -2,23 +2,58 @@ const COMMIT_HEADER_NAME: axum::http::HeaderName = axum::http::HeaderName::from_
 const NO_COMMIT_HEADER_MSG: &str = "no_commit_header";
 const COMMIT_NOT_EQ_MSG: &str =
     "different project commit provided, services must work only with eq project commits";
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CommitNotEqMsg(pub &'static str);
+impl loc_lib::ToErrString for CommitNotEqMsg {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_owned())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CommitToUse(pub &'static str);
+impl loc_lib::ToErrString for CommitToUse {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_owned())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NoCommitHeaderMsg(pub &'static str);
+impl loc_lib::ToErrString for NoCommitHeaderMsg {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_owned())
+    }
+}
+#[derive(Debug)]
+pub struct CommitToStrConversionEr(pub axum::http::header::ToStrError);
+impl loc_lib::ToErrString for CommitToStrConversionEr {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_string())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EnableApiGitCommitCheck(pub bool);
+impl From<bool> for EnableApiGitCommitCheck {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum CommitEr {
     CommitNotEq {
         #[eo_to_err_string]
-        commit_not_eq: &'static str,
+        commit_not_eq: CommitNotEqMsg,
         #[eo_to_err_string]
-        commit_to_use: &'static str,
+        commit_to_use: CommitToUse,
         loc: loc_lib::loc::Loc,
     },
     CommitToStrConversion {
         loc: loc_lib::loc::Loc,
         #[eo_to_err_string]
-        commit_to_str_conversion: axum::http::header::ToStrError,
+        commit_to_str_conversion: CommitToStrConversionEr,
     },
     NoCommitHeader {
         #[eo_to_err_string]
-        no_commit_header: &'static str,
+        no_commit_header: NoCommitHeaderMsg,
         loc: loc_lib::loc::Loc,
     },
 }
@@ -27,15 +62,15 @@ impl crate::GetAxumHttpStatusCode for CommitEr {
 }
 impl CommitEr {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
-    fn commit_not_eq(commit_to_use: &'static str) -> Self {
+    fn commit_not_eq(commit_to_use: CommitToUse) -> Self {
         Self::CommitNotEq {
-            commit_not_eq: COMMIT_NOT_EQ_MSG,
+            commit_not_eq: CommitNotEqMsg(COMMIT_NOT_EQ_MSG),
             commit_to_use,
             loc: loc_lib::loc!(),
         }
     }
     #[allow(clippy::single_call_fn)] // keeps header to-str conversion error construction reusable
-    fn commit_to_str_conversion(commit_to_str_conversion: axum::http::header::ToStrError) -> Self {
+    fn commit_to_str_conversion(commit_to_str_conversion: CommitToStrConversionEr) -> Self {
         Self::CommitToStrConversion {
             commit_to_str_conversion,
             loc: loc_lib::loc!(),
@@ -44,33 +79,37 @@ impl CommitEr {
     #[allow(clippy::single_call_fn)] // keeps missing-commit-header error construction reusable
     fn no_commit_header() -> Self {
         Self::NoCommitHeader {
-            no_commit_header: NO_COMMIT_HEADER_MSG,
+            no_commit_header: NoCommitHeaderMsg(NO_COMMIT_HEADER_MSG),
             loc: loc_lib::loc!(),
         }
     }
 }
 #[allow(clippy::single_call_fn)] // separates commit-value validation from header parsing for reuse and focused tests
-fn validate_commit_header_value(commit: &str) -> Result<(), CommitEr> {
-    git_info::validate_project_commit(commit).map_err(CommitEr::commit_not_eq)
+fn validate_commit_header_value(commit: crate::hdr_val::HeaderStrRef<'_>) -> Result<(), CommitEr> {
+    git_info::validate_project_commit(commit.0)
+        .map_err(|er| CommitToUse(er.0.0))
+        .map_err(CommitEr::commit_not_eq)
 }
 #[allow(clippy::single_call_fn)] // shared extractor keeps commit-header parsing reusable across commit-check entry points
-fn read_commit_header_str(headers: &axum::http::HeaderMap) -> Result<&str, CommitEr> {
+fn read_commit_header_str(
+    headers: crate::HeadersRef<'_>,
+) -> Result<crate::hdr_val::HeaderStrRef<'_>, CommitEr> {
     crate::hdr_val::get_required_header_str(
         headers,
         COMMIT_HEADER_NAME,
         CommitEr::no_commit_header,
-        CommitEr::commit_to_str_conversion,
+        |er| CommitEr::commit_to_str_conversion(CommitToStrConversionEr(er)),
     )
 }
 #[allow(clippy::single_call_fn)] // reusable validator keeps check_commit focused on feature-toggle behavior
-fn validate_commit_header(headers: &axum::http::HeaderMap) -> Result<(), CommitEr> {
+fn validate_commit_header(headers: crate::HeadersRef<'_>) -> Result<(), CommitEr> {
     validate_commit_header_value(read_commit_header_str(headers)?)
 }
 pub fn check_commit(
-    enable_api_git_commit_check: bool,
-    headers: &axum::http::HeaderMap,
+    enable_api_git_commit_check: EnableApiGitCommitCheck,
+    headers: crate::HeadersRef<'_>,
 ) -> Result<(), CommitEr> {
-    if !enable_api_git_commit_check {
+    if !enable_api_git_commit_check.0 {
         return Ok(());
     }
     validate_commit_header(headers)
@@ -79,25 +118,26 @@ pub fn check_commit(
 mod tests {
     const WRONG_COMMIT: &str = "deadbeef";
     fn check_commit_enabled(headers: &axum::http::HeaderMap) -> Result<(), super::CommitEr> {
-        super::check_commit(true, headers)
+        super::check_commit(true.into(), crate::HeadersRef(headers))
     }
-    fn mk_headers_with_commit_header_value(
-        value: axum::http::HeaderValue,
-    ) -> axum::http::HeaderMap {
+    fn mk_headers_with_commit_header_value<ValueTy>(value: ValueTy) -> crate::test_hlp::TestHeaders
+    where
+        ValueTy: Into<crate::test_hlp::TestHeaderValue>,
+    {
         crate::test_hlp::mk_headers_with_entry(super::COMMIT_HEADER_NAME, value)
     }
-    fn mk_headers_with_commit(commit: &str) -> axum::http::HeaderMap {
+    fn mk_headers_with_commit(commit: &str) -> crate::test_hlp::TestHeaders {
         mk_headers_with_commit_header_value(
             axum::http::HeaderValue::from_str(commit).expect("9f2db59c"),
         )
     }
-    fn mk_headers_with_wrong_commit() -> axum::http::HeaderMap {
+    fn mk_headers_with_wrong_commit() -> crate::test_hlp::TestHeaders {
         mk_headers_with_commit(WRONG_COMMIT)
     }
-    fn mk_headers_with_project_commit() -> axum::http::HeaderMap {
-        mk_headers_with_commit(git_info::PROJECT_GIT_INFO.commit)
+    fn mk_headers_with_project_commit() -> crate::test_hlp::TestHeaders {
+        mk_headers_with_commit(git_info::PROJECT_GIT_INFO.commit.0)
     }
-    fn mk_headers_with_non_utf8_commit() -> axum::http::HeaderMap {
+    fn mk_headers_with_non_utf8_commit() -> crate::test_hlp::TestHeaders {
         mk_headers_with_commit_header_value(crate::test_hlp::non_utf8_header_value())
     }
     fn check_commit_ok(
@@ -106,7 +146,10 @@ mod tests {
         exp_id: &'static str,
     ) {
         crate::test_hlp::expect_ok(
-            super::check_commit(enable_api_git_commit_check, headers),
+            super::check_commit(
+                enable_api_git_commit_check.into(),
+                crate::HeadersRef(headers),
+            ),
             exp_id,
         );
     }
@@ -125,7 +168,7 @@ mod tests {
         match v {
             super::CommitEr::NoCommitHeader {
                 no_commit_header, ..
-            } => Some(*no_commit_header),
+            } => Some(no_commit_header.0),
             super::CommitEr::CommitNotEq { .. } | super::CommitEr::CommitToStrConversion { .. } => {
                 None
             }
@@ -145,7 +188,7 @@ mod tests {
                 commit_not_eq,
                 commit_to_use,
                 ..
-            } => Some((*commit_not_eq, *commit_to_use)),
+            } => Some((commit_not_eq.0, commit_to_use.0)),
             super::CommitEr::CommitToStrConversion { .. }
             | super::CommitEr::NoCommitHeader { .. } => None,
         }
@@ -174,7 +217,7 @@ mod tests {
         assert_commit_not_eq_fields(
             fields,
             super::COMMIT_NOT_EQ_MSG,
-            git_info::project_git_commit_link_ref(),
+            git_info::project_git_commit_link_ref().0,
         );
     }
     #[allow(clippy::single_call_fn)] // shared helper keeps wrong-commit check+assert flow reusable across mismatch tests
@@ -202,7 +245,7 @@ mod tests {
         map: impl FnOnce(&super::CommitEr) -> Option<R>,
     ) -> R {
         crate::test_hlp::expect_err_variant_ref_with_status(
-            super::read_commit_header_str(headers),
+            super::read_commit_header_str(crate::HeadersRef(headers)),
             exp_id,
             None,
             map,
@@ -232,16 +275,16 @@ mod tests {
     fn get_commit_header_str_returns_header_value_when_present() {
         let headers = mk_headers_with_project_commit();
         crate::test_hlp::assert_ok_eq(
-            super::read_commit_header_str(&headers),
+            super::read_commit_header_str(crate::HeadersRef(&headers)).map(|v| v.0),
             "e1d07f53",
-            &git_info::PROJECT_GIT_INFO.commit,
+            &git_info::PROJECT_GIT_INFO.commit.0,
         );
     }
     #[test]
     fn validate_commit_header_returns_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
         let no_commit_header = crate::test_hlp::expect_er_variant_ref(
-            super::validate_commit_header(&headers),
+            super::validate_commit_header(crate::HeadersRef(&headers)),
             "31ea9a57",
             no_commit_header_msg,
         );
@@ -250,7 +293,10 @@ mod tests {
     #[test]
     fn validate_commit_header_accepts_project_commit() {
         let headers = mk_headers_with_project_commit();
-        crate::test_hlp::expect_ok(super::validate_commit_header(&headers), "4d60c385");
+        crate::test_hlp::expect_ok(
+            super::validate_commit_header(crate::HeadersRef(&headers)),
+            "4d60c385",
+        );
     }
     #[test]
     fn get_commit_header_str_returns_error_when_header_is_absent() {
@@ -272,7 +318,7 @@ mod tests {
     #[test]
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
         let fields = crate::test_hlp::expect_er_variant_ref(
-            super::validate_commit_header_value(WRONG_COMMIT),
+            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(WRONG_COMMIT)),
             "6804382f",
             commit_not_eq_fields,
         );
@@ -281,7 +327,9 @@ mod tests {
     #[test]
     fn validate_commit_header_value_accepts_project_commit() {
         crate::test_hlp::expect_ok(
-            super::validate_commit_header_value(git_info::PROJECT_GIT_INFO.commit),
+            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
+                git_info::PROJECT_GIT_INFO.commit.0,
+            )),
             "5ef927d2",
         );
     }

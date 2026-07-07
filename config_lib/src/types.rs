@@ -11,6 +11,33 @@ const SRC_PLACE_TYPE_ENV_VAR: &str = "SRC_PLACE_TYPE";
 const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
 const SRC_PLACE_TYPE_FIX_MSG: &str =
     "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TracingLevelName(&'static str);
+impl std::fmt::Display for TracingLevelName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug)]
+struct EnvVarResult(Result<String, std::env::VarError>);
+#[derive(Debug, Clone, Copy)]
+struct EnvVarNameRef<'name_lt>(&'name_lt str);
+#[derive(Debug, Clone, Copy)]
+struct EnvVarValueRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy)]
+struct ParseCtxRef(&'static str);
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct EnvParseEr(String);
+impl std::fmt::Display for EnvParseEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl AsRef<str> for EnvParseEr {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     std::fmt::Debug,
@@ -33,25 +60,28 @@ pub enum TracingLevel {
     Er,
 }
 impl TracingLevel {
-    const fn as_str(self) -> &'static str {
-        match self {
+    const fn as_str(self) -> TracingLevelName {
+        TracingLevelName(match self {
             Self::Trace => "trace",
             Self::Debug => "debug",
             Self::Info => "info",
             Self::Warn => "warn",
             Self::Er => "er",
-        }
+        })
     }
 }
 impl std::str::FromStr for TracingLevel {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::str_from_enum_macros::impl_from_str_for_enum_helper(s, &TRACING_LEVEL_PARSE_PAIRS)
+        crate::str_from_enum_macros::impl_from_str_for_enum_helper(
+            crate::str_from_enum_macros::EnumInputRef(s),
+            crate::str_from_enum_macros::EnumPairsRef(&TRACING_LEVEL_PARSE_PAIRS),
+        )
     }
 }
 impl std::fmt::Display for TracingLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", (*self).as_str())
+        write!(f, "{}", (*self).as_str().0)
     }
 }
 #[derive(
@@ -74,7 +104,10 @@ pub enum SrcPlaceType {
 impl std::str::FromStr for SrcPlaceType {
     type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::str_from_enum_macros::impl_from_str_for_enum_helper(s, &SRC_PLACE_TYPE_PARSE_PAIRS)
+        crate::str_from_enum_macros::impl_from_str_for_enum_helper(
+            crate::str_from_enum_macros::EnumInputRef(s),
+            crate::str_from_enum_macros::EnumPairsRef(&SRC_PLACE_TYPE_PARSE_PAIRS),
+        )
     }
 }
 impl SrcPlaceType {
@@ -84,7 +117,9 @@ impl SrcPlaceType {
         if let Err(er) = dotenv::dotenv() {
             eprintln!("dotenv::dotenv() failed in SrcPlaceType::from_env_or_dflt: {er}");
         }
-        let parsed = Self::parse_src_place_type_from_env_var(std::env::var(SRC_PLACE_TYPE_ENV_VAR));
+        let parsed = Self::parse_src_place_type_from_env_var(EnvVarResult(std::env::var(
+            SRC_PLACE_TYPE_ENV_VAR,
+        )));
         match parsed {
             Ok(v) => v,
             Err(msg) => {
@@ -94,35 +129,42 @@ impl SrcPlaceType {
         }
     }
     #[allow(clippy::single_call_fn)] // helper keeps env-read error context centralized and deterministic for tests
-    fn parse_src_place_type_from_env_var(
-        v: Result<String, std::env::VarError>,
-    ) -> Result<Self, String> {
-        parse_from_env_var_from_str(v, SRC_PLACE_TYPE_ENV_VAR, SRC_PLACE_TYPE_PARSE_CTX)
+    fn parse_src_place_type_from_env_var(v: EnvVarResult) -> Result<Self, EnvParseEr> {
+        parse_from_env_var_from_str(
+            v,
+            EnvVarNameRef(SRC_PLACE_TYPE_ENV_VAR),
+            ParseCtxRef(SRC_PLACE_TYPE_PARSE_CTX),
+        )
     }
 }
 #[allow(clippy::single_call_fn)] // helper centralizes env var context mapping for string parsers and is reused by enum parsing
 fn parse_from_env_var_with<T>(
-    env_v: Result<String, std::env::VarError>,
-    env_var_name: &str,
-    parse: impl FnOnce(&str) -> Result<T, String>,
-) -> Result<T, String> {
-    let raw_v = env_v.map_err(|er| format!("std::env::var(\"{env_var_name}\"): {er}"))?;
-    parse(&raw_v)
+    env_v: EnvVarResult,
+    env_var_name: EnvVarNameRef<'_>,
+    parse: impl FnOnce(EnvVarValueRef<'_>) -> Result<T, EnvParseEr>,
+) -> Result<T, EnvParseEr> {
+    let raw_v = env_v
+        .0
+        .map_err(|er| EnvParseEr(format!("std::env::var(\"{}\"): {er}", env_var_name.0)))?;
+    parse(EnvVarValueRef(&raw_v))
 }
 #[allow(clippy::single_call_fn)] // helper centralizes std::str::FromStr context formatting and keeps per-type parsing helpers minimal
-fn parse_from_str_with_ctx<T>(v: &str, parse_ctx: &'static str) -> Result<T, String>
+fn parse_from_str_with_ctx<T>(
+    v: EnvVarValueRef<'_>,
+    parse_ctx: ParseCtxRef,
+) -> Result<T, EnvParseEr>
 where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
 {
-    T::from_str(v).map_err(|er| format!("{parse_ctx}: {er}"))
+    T::from_str(v.0).map_err(|er| EnvParseEr(format!("{}: {er}", parse_ctx.0)))
 }
 #[allow(clippy::single_call_fn)] // helper composes env var read + std::str::FromStr context mapping for reuse across enum env parsers
 fn parse_from_env_var_from_str<T>(
-    env_v: Result<String, std::env::VarError>,
-    env_var_name: &str,
-    parse_ctx: &'static str,
-) -> Result<T, String>
+    env_v: EnvVarResult,
+    env_var_name: EnvVarNameRef<'_>,
+    parse_ctx: ParseCtxRef,
+) -> Result<T, EnvParseEr>
 where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
@@ -213,81 +255,92 @@ mod tests {
     #[test]
     fn parse_src_place_type_env_value_parses_case_insensitively() {
         let parsed = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
-            "GiThUb",
-            super::SRC_PLACE_TYPE_PARSE_CTX,
+            super::EnvVarValueRef("GiThUb"),
+            super::ParseCtxRef(super::SRC_PLACE_TYPE_PARSE_CTX),
         );
         assert_eq!(parsed, Ok(super::SrcPlaceType::Github));
     }
     #[test]
     fn parse_src_place_type_env_value_wraps_parse_context() {
         let er = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
-            "bad",
-            super::SRC_PLACE_TYPE_PARSE_CTX,
+            super::EnvVarValueRef("bad"),
+            super::ParseCtxRef(super::SRC_PLACE_TYPE_PARSE_CTX),
         )
         .expect_err("8c9f2a17");
-        assert!(er.contains("<SrcPlaceType as std::str::FromStr>::from_str(&v):"));
-        assert!(er.contains("Unknown value: bad"));
+        assert!(
+            er.as_ref()
+                .contains("<SrcPlaceType as std::str::FromStr>::from_str(&v):")
+        );
+        assert!(er.as_ref().contains("Unknown value: bad"));
     }
     #[test]
     fn parse_from_env_var_with_wraps_missing_var_context() {
         let parsed = super::parse_from_env_var_with(
-            Err(std::env::VarError::NotPresent),
-            super::SRC_PLACE_TYPE_ENV_VAR,
+            super::EnvVarResult(Err(std::env::VarError::NotPresent)),
+            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
             |_v| Ok(()),
         );
         let er = parsed.expect_err("d2f3b74a");
-        assert!(er.contains("std::env::var(\"SRC_PLACE_TYPE\")"));
+        assert!(er.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
     }
     #[test]
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
         let parsed = super::parse_from_env_var_with(
-            Ok(String::from("src")),
-            super::SRC_PLACE_TYPE_ENV_VAR,
-            |v| Ok(v.to_owned()),
+            super::EnvVarResult(Ok(String::from("src"))),
+            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            |v| Ok(v.0.to_owned()),
         );
         assert_eq!(parsed, Ok(String::from("src")));
     }
     #[test]
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
         let parsed = super::parse_from_env_var_from_str::<bool>(
-            Ok(String::from("true")),
-            super::SRC_PLACE_TYPE_ENV_VAR,
-            "bool parse",
+            super::EnvVarResult(Ok(String::from("true"))),
+            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::ParseCtxRef("bool parse"),
         );
         assert_eq!(parsed, Ok(true));
     }
     #[test]
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
         let er = super::parse_from_env_var_from_str::<bool>(
-            Ok(String::from("x")),
-            super::SRC_PLACE_TYPE_ENV_VAR,
-            "bool parse",
+            super::EnvVarResult(Ok(String::from("x"))),
+            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::ParseCtxRef("bool parse"),
         )
         .expect_err("7e4b3f19");
-        assert!(er.contains("bool parse:"));
+        assert!(er.as_ref().contains("bool parse:"));
     }
     #[test]
     fn parse_src_place_type_from_env_var_wraps_missing_var_context() {
-        let er = super::SrcPlaceType::parse_src_place_type_from_env_var(Err(
+        let er = super::SrcPlaceType::parse_src_place_type_from_env_var(super::EnvVarResult(Err(
             std::env::VarError::NotPresent,
-        ))
+        )))
         .expect_err("5a83f2be");
-        assert!(er.contains("std::env::var(\"SRC_PLACE_TYPE\")"));
+        assert!(er.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
     }
     #[test]
     fn parse_src_place_type_from_env_var_parses_ok_value() {
-        let parsed =
-            super::SrcPlaceType::parse_src_place_type_from_env_var(Ok(String::from("src")));
+        let parsed = super::SrcPlaceType::parse_src_place_type_from_env_var(super::EnvVarResult(
+            Ok(String::from("src")),
+        ));
         assert_eq!(parsed, Ok(super::SrcPlaceType::Src));
     }
     #[test]
     fn parse_from_str_with_ctx_parses_value_when_input_is_valid() {
-        let parsed = super::parse_from_str_with_ctx::<bool>("true", "bool parse");
+        let parsed = super::parse_from_str_with_ctx::<bool>(
+            super::EnvVarValueRef("true"),
+            super::ParseCtxRef("bool parse"),
+        );
         assert_eq!(parsed, Ok(true));
     }
     #[test]
     fn parse_from_str_with_ctx_wraps_context_when_parsing_fails() {
-        let er = super::parse_from_str_with_ctx::<bool>("x", "bool parse").expect_err("13fe8a6d");
-        assert!(er.contains("bool parse:"));
+        let er = super::parse_from_str_with_ctx::<bool>(
+            super::EnvVarValueRef("x"),
+            super::ParseCtxRef("bool parse"),
+        )
+        .expect_err("13fe8a6d");
+        assert!(er.as_ref().contains("bool parse:"));
     }
 }

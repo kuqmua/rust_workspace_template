@@ -61,8 +61,8 @@ impl TryFrom<&syn::Field> for LocFieldAttr {
     }
 }
 impl crate::attr_ident_str::AttrIdentStr for LocFieldAttr {
-    fn attr_ident_str(&self) -> &str {
-        match *self {
+    fn attr_ident_str(&self) -> crate::attr_ident_str::AttrIdentName<'_> {
+        crate::attr_ident_str::AttrIdentName(match *self {
             Self::EoToErrString => "eo_to_err_string",
             Self::EoToErrStringSerde => "eo_to_err_string_serde",
             Self::EoLoc => "eo_loc",
@@ -72,46 +72,52 @@ impl crate::attr_ident_str::AttrIdentStr for LocFieldAttr {
             Self::EoHashMapKStringVToErrString => "eo_hashmap_k_string_v_to_err_string",
             Self::EoHashMapKStringVToErrStringSerde => "eo_hashmap_k_string_v_to_err_string_serde",
             Self::EoHashMapKStringVLoc => "eo_hashmap_k_string_v_loc",
-        }
+        })
     }
 }
 impl LocFieldAttr {
     #[must_use]
-    pub fn to_attr_view_ts(&self) -> proc_macro2::TokenStream {
+    pub fn to_attr_view_ts(&self) -> crate::GeneratedRustTs {
         match format!(
             "#[{}]",
-            crate::attr_ident_str::AttrIdentStr::attr_ident_str(self)
+            crate::attr_ident_str::AttrIdentStr::attr_ident_str(self).0
         )
         .parse::<proc_macro2::TokenStream>()
         {
-            Ok(v) => v,
-            Err(er) => compile_error_ts(&er.to_string()),
+            Ok(v) => crate::GeneratedRustTs(v),
+            Err(er) => compile_error_ts(CompileErrorMsg(&er.to_string())),
         }
     }
 }
-fn compile_error_ts(msg: &str) -> proc_macro2::TokenStream {
-    quote::quote! {compile_error!(#msg);}
+#[derive(Debug, Clone, Copy)]
+struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
+#[derive(Debug, Clone, Copy)]
+pub struct SynVariantRef<'variant_lt>(pub &'variant_lt syn::Variant);
+fn compile_error_ts(msg: CompileErrorMsg<'_>) -> crate::GeneratedRustTs {
+    let msg_value = msg.0;
+    crate::GeneratedRustTs(quote::quote! {compile_error!(#msg_value);})
 }
 #[must_use]
-pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::TokenStream {
+pub fn gen_serde_version_of_named_syn_vrt(v: SynVariantRef<'_>) -> crate::GeneratedRustTs {
+    let variant = v.0;
     let hash_map_ucc = naming::HashMapUcc;
     let loc_sc = naming::LocSc;
     let string_ts = token_patterns::StringTs;
     let with_serde_ucc = naming::WithSerdeUcc;
-    let el_ident = &v.ident;
-    let fields = if let syn::Fields::Named(fields) = &v.fields {
+    let el_ident = &variant.ident;
+    let fields = if let syn::Fields::Named(fields) = &variant.fields {
         &fields.named
     } else {
-        return compile_error_ts("79b0f231: expected named variant fields");
+        return compile_error_ts(CompileErrorMsg("79b0f231: expected named variant fields"));
     };
     let fields_with_serde_ts = fields.iter().map(|el| {
         let Some(el_c25b655e_ident) = el.ident.as_ref() else {
-            return compile_error_ts("438aa90e: expected named field ident");
+            return compile_error_ts(CompileErrorMsg("438aa90e: expected named field ident"));
         };
         let ts = if *el_c25b655e_ident == *loc_sc.to_string() {
             quote::quote! {#loc_sc: loc_lib::loc::Loc}
         } else {
-            let get_1_hashmap_arg = || {
+            let get_hashmap_args = || {
                 let segments = if let syn::Type::Path(syn_type_path) = &el.ty {
                     &syn_type_path.path.segments
                 } else {
@@ -127,14 +133,7 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                     return None;
                 };
                 assert!(args.len() == 2, "47cde1b8");
-                assert!(
-                    quote::quote! {#string_ts}.to_string() == {
-                        let first_argument = args.iter().next()?;
-                        quote::quote! {#first_argument}.to_string()
-                    },
-                    "bbdda4ab"
-                );
-                args.iter().nth(1)
+                Some((args.iter().next()?, args.iter().nth(1)?))
             };
             let el_type_ts = {
                 let el_type = &el.ty;
@@ -142,7 +141,7 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
             };
             let loc_field_attr = match LocFieldAttr::try_from(el) {
                 Ok(parsed_attr) => parsed_attr,
-                Err(er) => return compile_error_ts(&format!("2db209a8: {er}")),
+                Err(er) => return compile_error_ts(CompileErrorMsg(&format!("2db209a8: {er}"))),
             };
             let el_type_with_serde_ts = match loc_field_attr {
                 LocFieldAttr::EoToErrString => quote::quote! {#string_ts},
@@ -153,7 +152,9 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                     .parse::<proc_macro2::TokenStream>()
                 {
                     Ok(parsed_ts) => parsed_ts,
-                    Err(er) => return compile_error_ts(&format!("201dc0a4: {er}")),
+                    Err(er) => {
+                        return compile_error_ts(CompileErrorMsg(&format!("201dc0a4: {er}")));
+                    }
                 },
                 LocFieldAttr::EoVecToErrString => {
                     quote::quote! {
@@ -164,11 +165,13 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                     let segments = if let syn::Type::Path(v0) = &el.ty {
                         &v0.path.segments
                     } else {
-                        return compile_error_ts("8d93bf20: expected path type");
+                        return compile_error_ts(CompileErrorMsg("8d93bf20: expected path type"));
                     };
                     assert!(segments.len() == 1, "0c65bbaa");
                     let Some(first_segment) = segments.iter().next() else {
-                        return compile_error_ts("595050cf: expected first path segment");
+                        return compile_error_ts(CompileErrorMsg(
+                            "595050cf: expected first path segment",
+                        ));
                     };
                     let el_vec_type_with_serde_ts = if let syn::PathArguments::AngleBracketed(
                         syn::AngleBracketedGenericArguments { args, .. },
@@ -179,9 +182,9 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                             "{}{}",
                             {
                                 let Some(first_arg) = args.iter().next() else {
-                                    return compile_error_ts(
+                                    return compile_error_ts(CompileErrorMsg(
                                         "e9b33787: expected first generic arg",
-                                    );
+                                    ));
                                 };
                                 quote::quote! {#first_arg}
                             },
@@ -190,39 +193,57 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                         .parse::<proc_macro2::TokenStream>()
                         {
                             Ok(parsed_ts) => parsed_ts,
-                            Err(er) => return compile_error_ts(&format!("22c364b9: {er}")),
+                            Err(er) => {
+                                return compile_error_ts(CompileErrorMsg(&format!(
+                                    "22c364b9: {er}"
+                                )));
+                            }
                         }
                     } else {
-                        return compile_error_ts("07c6ab44: expected angle bracketed args");
+                        return compile_error_ts(CompileErrorMsg(
+                            "07c6ab44: expected angle bracketed args",
+                        ));
                     };
                     quote::quote! {
                         Vec<#el_vec_type_with_serde_ts>
                     }
                 }
                 LocFieldAttr::EoHashMapKStringVToErrString => {
-                    if get_1_hashmap_arg().is_none() {
-                        return compile_error_ts("c1d03b71: expected HashMap<String, T>");
+                    if get_hashmap_args().is_none() {
+                        return compile_error_ts(CompileErrorMsg(
+                            "c1d03b71: expected HashMap<K, T>",
+                        ));
                     }
                     quote::quote! {
                         std::collections::HashMap<#string_ts, #string_ts>
                     }
                 }
                 LocFieldAttr::EoHashMapKStringVToErrStringSerde => {
-                    if get_1_hashmap_arg().is_none() {
-                        return compile_error_ts("e9c6a7d2: expected HashMap<String, T>");
+                    let Some((_, second_argument)) = get_hashmap_args() else {
+                        return compile_error_ts(CompileErrorMsg(
+                            "e9c6a7d2: expected HashMap<K, T>",
+                        ));
+                    };
+                    quote::quote! {
+                        std::collections::HashMap<#string_ts, #second_argument>
                     }
-                    el_type_ts
                 }
                 LocFieldAttr::EoHashMapKStringVLoc => {
-                    let Some(second_argument) = get_1_hashmap_arg() else {
-                        return compile_error_ts("c828da34: expected HashMap<String, T>");
+                    let Some((_, second_argument)) = get_hashmap_args() else {
+                        return compile_error_ts(CompileErrorMsg(
+                            "c828da34: expected HashMap<K, T>",
+                        ));
                     };
                     let el_hashmap_v_type_with_serde_ts =
                         match format!("{}{}", quote::quote! {#second_argument}, with_serde_ucc)
                             .parse::<proc_macro2::TokenStream>()
                         {
                             Ok(parsed_ts) => parsed_ts,
-                            Err(er) => return compile_error_ts(&format!("86307dbc: {er}")),
+                            Err(er) => {
+                                return compile_error_ts(CompileErrorMsg(&format!(
+                                    "86307dbc: {er}"
+                                )));
+                            }
                         };
                     quote::quote! {
                         std::collections::HashMap<#string_ts, #el_hashmap_v_type_with_serde_ts>
@@ -231,11 +252,11 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
             };
             quote::quote! {#el_c25b655e_ident: #el_type_with_serde_ts}
         };
-        quote::quote! {#ts,}
+        crate::GeneratedRustTs(quote::quote! {#ts,})
     });
-    quote::quote! {
+    crate::GeneratedRustTs(quote::quote! {
         #el_ident {
             #(#fields_with_serde_ts)*
         }
-    }
+    })
 }

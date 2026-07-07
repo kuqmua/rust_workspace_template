@@ -1,6 +1,8 @@
+#[derive(Debug)]
+pub struct LocSynField(pub syn::Field);
 #[must_use]
-pub fn loc_syn_field() -> syn::Field {
-    syn::Field {
+pub fn loc_syn_field() -> LocSynField {
+    LocSynField(syn::Field {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         mutability: syn::FieldMutability::None,
@@ -12,10 +14,11 @@ pub fn loc_syn_field() -> syn::Field {
             qself: None,
             path: syn::Path {
                 leading_colon: None,
-                segments: crate::gen_simple_syn_punct::gen_simple_syn_punct(&[
+                segments: crate::gen_simple_syn_punct::gen_simple_syn_punct([
                     "loc_lib", "loc", "Loc",
-                ]),
+                ])
+                .into(),
             },
         }),
-    }
+    })
 }

@@ -1,9 +1,11 @@
 pub use gen_quotes::dq_ts;
 pub use macros_helpers::{
-    AttrIdentStr, DClone, DCopy, DTsBuilder, FormatWithCargofmt, LocFieldAttr,
-    ShouldWriteTsIntoFile, StatusCode, SynField, gen_field_loc_new_ts, gen_if_write_is_err_ts,
-    gen_impl_display_ts, gen_impl_pub_try_new_for_ident_ts, gen_serde_version_of_named_syn_vrt,
-    gen_simple_syn_punct, get_macro_attr_meta_list_ts, loc_syn_field, mb_write_ts_into_file,
+    AttrIdentStr, DClone, DCopy, DTsBuilder, FieldLocCol, FieldLocFile, FieldLocLine,
+    FormatWithCargofmt, GeneratedRustTs, LocFieldAttr, ShouldWriteTsIntoFile, StatusCode, SynField,
+    SynFieldIdent, SynFieldType, SynFieldVis, SynPathSegments, SynVariantRef, TsRef,
+    gen_field_loc_new_ts, gen_if_write_is_err_ts, gen_impl_display_ts,
+    gen_impl_pub_try_new_for_ident_ts, gen_serde_version_of_named_syn_vrt, gen_simple_syn_punct,
+    get_macro_attr_meta_list_ts, loc_syn_field, mb_write_ts_into_file,
 };
 pub use naming::{
     AppStateSc, AsRefStrEnumWithUnitFieldsToScStr, AsRefStrEnumWithUnitFieldsToUccStr,
@@ -76,13 +78,20 @@ pub use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElCall, RefStr, SqlxAcquire, SqlxRow, StringTs, U8, U16, U32, U64,
 };
-fn compile_error_ts(msg: &str) -> proc_macro2::TokenStream {
-    quote! {compile_error!(#msg);}
+#[derive(Debug, Clone, Copy)]
+struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
+#[derive(Debug, Clone, Copy)]
+struct ParseTsText<'ts_lt>(&'ts_lt str);
+#[derive(Debug, Clone, Copy)]
+struct ParseErId<'er_id_lt>(&'er_id_lt str);
+fn compile_error_ts(msg: CompileErrorMsg<'_>) -> GeneratedRustTs {
+    let msg_value = msg.0;
+    GeneratedRustTs(quote! {compile_error!(#msg_value);})
 }
-fn parse_ts_or_compile_error(v: &str, er_id: &str) -> proc_macro2::TokenStream {
-    match v.parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => parsed_ts,
-        Err(er) => compile_error_ts(&format!("{er_id}: {er}")),
+fn parse_ts_or_compile_error(v: ParseTsText<'_>, er_id: ParseErId<'_>) -> GeneratedRustTs {
+    match v.0.parse::<proc_macro2::TokenStream>() {
+        Ok(parsed_ts) => GeneratedRustTs(parsed_ts),
+        Err(er) => compile_error_ts(CompileErrorMsg(&format!("{}: {er}", er_id.0))),
     }
 }
 //todo decide wh to do er log (mb add in some places)
@@ -108,7 +117,7 @@ fn parse_ts_or_compile_error(v: &str, er_id: &str) -> proc_macro2::TokenStream {
 //todo what is pub what is private
 //todo header Retry-After logic
 #[must_use]
-pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn gen_pg_tbl(input: TsRef<'_>) -> GeneratedRustTs {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, Optml)]
     struct SynVrt {
@@ -383,9 +392,9 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let import = Import::PgCrud;
     let import_ts = quote! {#import::};
     let return_err_qp_er_write_into_buffer_ts = gen_return_err_qp_er_write_into_buffer_ts(import);
-    let di: DeriveInput = match parse2(input) {
+    let di: DeriveInput = match parse2(input.0.clone()) {
         Ok(v) => v,
-        Err(er) => return er.to_compile_error(),
+        Err(er) => return GeneratedRustTs(er.to_compile_error()),
     };
     let gen_pg_tbl_config = match from_str::<GenPgTblConfig>(
         &get_macro_attr_meta_list_ts(
@@ -397,7 +406,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         Ok(v) => v,
         Err(er) => {
             let msg = format!("failed to parse GenPgTblConfig: {er}");
-            return quote! { compile_error!(#msg); };
+            return GeneratedRustTs(quote! { compile_error!(#msg); });
         }
     };
     let ident = &di.ident;
@@ -410,36 +419,40 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             let mut fields_without_pk = Vec::with_capacity(fields_named.named.len());
             for el in &fields_named.named {
                 let Some(fi) = el.ident.clone() else {
-                    return compile_error_ts("915ef2ce: expected named field ident");
+                    return compile_error_ts(CompileErrorMsg(
+                        "915ef2ce: expected named field ident",
+                    ));
                 };
                 let fi_len = fi.to_string().len();
                 let max_pg_col_len = 63;
                 //todo write runtime check
                 assert!(fi_len <= max_pg_col_len, "1266ae5a");
                 fields.push(SynField {
-                    vis: el.vis.clone(),
-                    type0: el.ty.clone(),
-                    ident: fi.clone(),
+                    vis: SynFieldVis(el.vis.clone()),
+                    type0: SynFieldType(el.ty.clone()),
+                    ident: SynFieldIdent(fi.clone()),
                 });
                 let mut is_pk = false;
                 {
                     for el0 in &el.attrs {
                         if el0.path().segments.len() == 1 {
                             let Some(first_segment) = el0.path().segments.first() else {
-                                return compile_error_ts("a9c3b38b: expected attr path segment");
+                                return compile_error_ts(CompileErrorMsg(
+                                    "a9c3b38b: expected attr path segment",
+                                ));
                             };
                             let first_segment_ident = &first_segment.ident;
                             let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
                             if first_segment_ident == &gen_pg_tbl_pk_sc_str {
                                 if opt_pk_field.is_some() {
-                                    return compile_error_ts(
+                                    return compile_error_ts(CompileErrorMsg(
                                         "1a75cea1: duplicate primary key field",
-                                    );
+                                    ));
                                 }
                                 opt_pk_field = Some(SynField {
-                                    vis: el.vis.clone(),
-                                    type0: el.ty.clone(),
-                                    ident: fi.clone(),
+                                    vis: SynFieldVis(el.vis.clone()),
+                                    type0: SynFieldType(el.ty.clone()),
+                                    ident: SynFieldIdent(fi.clone()),
                                 });
                                 is_pk = true;
                             }
@@ -448,21 +461,21 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 }
                 if !is_pk {
                     fields_without_pk.push(SynField {
-                        vis: el.vis.clone(),
-                        type0: el.ty.clone(),
-                        ident: fi.clone(),
+                        vis: SynFieldVis(el.vis.clone()),
+                        type0: SynFieldType(el.ty.clone()),
+                        ident: SynFieldIdent(fi.clone()),
                     });
                 }
             }
             let Some(pk_field) = opt_pk_field else {
-                return compile_error_ts("6a529a99: primary key field not found");
+                return compile_error_ts(CompileErrorMsg("6a529a99: primary key field not found"));
             };
             (pk_field, fields, fields_without_pk)
         } else {
-            return compile_error_ts("7f31872d: expected named struct fields");
+            return compile_error_ts(CompileErrorMsg("7f31872d: expected named struct fields"));
         }
     } else {
-        return compile_error_ts("bd4718d0: expected struct input");
+        return compile_error_ts(CompileErrorMsg("bd4718d0: expected struct input"));
     };
     let fields_len = fields.len();
     let fields_len_without_pk = fields_without_pk.len();
@@ -595,7 +608,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         let ts0 = gen_acc_string_pop_ts(acc_ts, ts);
         quote! {
             #ts0
-            Ok(#acc_ts)
+            Ok(#import_ts QpFragment(#acc_ts))
         }
     };
     let mut impl_ident_vec_ts = Vec::new();
@@ -666,7 +679,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         let fi_dq_ts = dq_ts(&fi);
                         let ft_pg_type_ts = gen_as_pg_type_path_ts(&ft);
                         quote! {
-                            #ft_pg_type_ts #CrTblColQpSc(&#fi_dq_ts, #is_pk_ts)
+                            #ft_pg_type_ts #CrTblColQpSc(#import_ts SqlColRef(&#fi_dq_ts), #import_ts IsPk(#is_pk_ts))
                         }
                     };
                 once(
@@ -726,7 +739,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     let ts0 = gen_match_ok_err_short_ts(
                         &quote! {#as_pg_crud_pg_type_pg_type_ts #SelQpSc(
                             #ColSc,
-                            #fi_string_dq_ts
+                            #import_ts SqlColRef(&#fi_string_dq_ts)
                         )},
                         &quote! {v_820e1163},
                         &quote! {{
@@ -749,7 +762,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 },
             );
             quote! {
-                fn #GenSelQpSc(#sel_borrow_pg_crud_not_empty_unq_vec_ident_sel_ts) -> Result<#StringTs, #import_ts #QpErUcc> {
+                fn #GenSelQpSc(#sel_borrow_pg_crud_not_empty_unq_vec_ident_sel_ts) -> Result<#import_ts QpFragment, #import_ts #QpErUcc> {
                     #ts0
                 }
             }
@@ -779,7 +792,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             }
         };
     let gen_ident_op_suffix_ts = |op: &Op, suffix: &str| {
-        parse_ts_or_compile_error(&format!("{ident}{op}{suffix}"), "79ab147e")
+        let ident_op_suffix = format!("{ident}{op}{suffix}");
+        parse_ts_or_compile_error(ParseTsText(&ident_op_suffix), ParseErId("79ab147e"))
     };
     let gen_ident_op_er_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Er");
     let gen_ident_op_res_vrts_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ResVrts");
@@ -789,17 +803,25 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             v.named.iter().enumerate().map(|(i, el)| {
                 let fi = &el.ident;
                 let Some(fi_ref) = fi.as_ref() else {
-                    return compile_error_ts("edbbd08a: expected named field ident");
+                    return compile_error_ts(CompileErrorMsg(
+                        "edbbd08a: expected named field ident",
+                    ))
+                    .0;
                 };
                 if *fi_ref == LocSc.to_string() {
-                    gen_field_loc_new_ts(loc.file(), loc.line(), loc.column())
+                    gen_field_loc_new_ts(
+                        FieldLocFile(loc.file()),
+                        FieldLocLine(loc.line()),
+                        FieldLocCol(loc.column()),
+                    )
+                    .0
                 } else {
                     let er_incr_sc = ErSelfSc::from_display(&i);
                     quote! {#fi: #er_incr_sc}
                 }
             })
         } else {
-            return compile_error_ts("10773d36: expected named variant fields");
+            return compile_error_ts(CompileErrorMsg("10773d36: expected named variant fields")).0;
         };
         quote! {
             #vrt_ident {
@@ -807,136 +829,141 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             }
         }
     };
-    let gen_op_er_init_eprintln_res_ts = |op: &Op, syn_vrt: &SynVrt, loc: &'static Location<'_>| {
-        let ident_op_er_ucc = gen_ident_op_er_ucc(op);
-        let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
-        let syn_vrt_init_ts = gen_init_ts(syn_vrt, loc);
-        let ts = wrap_into_axum_res_ts(
-            &quote! {#ident_op_res_vrts_ucc::#FromHSc(#ErSc)},
-            &match syn_vrt.get_opt_status_code() {
-                Some(v) => v.to_http_status_code_ts(),
-                None => return compile_error_ts("81efa954: status code attr not found"),
-            },
-            &AddReturn::True,
-        );
-        quote! {
-            let #ErSc = #ident_op_er_ucc::#syn_vrt_init_ts;
-            #ts
-        }
-    };
-    let new_syn_vrt =
-        |vrt_name: &dyn Display,
-         status_code: Option<StatusCode>,
-         vrt_fields: Vec<(LocFieldAttr, &dyn Display, Punctuated<PathSegment, PathSep>)>,
-         is_loc_first: bool|
-         -> SynVrt {
-            SynVrt {
-                vrt: Variant {
-                    attrs: {
-                        let mut attrs = Vec::new();
-                        if let Some(v) = status_code.as_ref() {
-                            let mut segments = Punctuated::new();
-                            segments.push(PathSegment {
-                                ident: Ident::new(
-                                    &AsRefStrToScStr::case(v),
-                                    proc_macro2::Span::call_site(),
-                                ),
-                                arguments: PathArguments::None,
+    let gen_op_er_init_eprintln_res_ts =
+        |op: &Op, syn_vrt: &SynVrt, loc: &'static Location<'_>| -> proc_macro2::TokenStream {
+            let ident_op_er_ucc = gen_ident_op_er_ucc(op);
+            let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
+            let syn_vrt_init_ts = gen_init_ts(syn_vrt, loc);
+            let ts = wrap_into_axum_res_ts(
+                &quote! {#ident_op_res_vrts_ucc::#FromHSc(#ErSc)},
+                &match syn_vrt.get_opt_status_code() {
+                    Some(v) => v.to_http_status_code_ts(),
+                    None => {
+                        return compile_error_ts(CompileErrorMsg(
+                            "81efa954: status code attr not found",
+                        ))
+                        .0;
+                    }
+                },
+                &AddReturn::True,
+            );
+            quote! {
+                let #ErSc = #ident_op_er_ucc::#syn_vrt_init_ts;
+                #ts
+            }
+        };
+    let new_syn_vrt = |vrt_name: &dyn Display,
+                       status_code: Option<StatusCode>,
+                       vrt_fields: Vec<(LocFieldAttr, &dyn Display, SynPathSegments)>,
+                       is_loc_first: bool|
+     -> SynVrt {
+        SynVrt {
+            vrt: Variant {
+                attrs: {
+                    let mut attrs = Vec::new();
+                    if let Some(v) = status_code.as_ref() {
+                        let mut segments = Punctuated::new();
+                        segments.push(PathSegment {
+                            ident: Ident::new(
+                                &AsRefStrToScStr::case(v),
+                                proc_macro2::Span::call_site(),
+                            ),
+                            arguments: PathArguments::None,
+                        });
+                        attrs.push(Attribute {
+                            pound_token: Pound {
+                                spans: [proc_macro2::Span::call_site()],
+                            },
+                            style: AttrStyle::Outer,
+                            bracket_token: Bracket::default(),
+                            meta: Meta::Path(Path {
+                                leading_colon: None,
+                                segments,
+                            }),
+                        });
+                    }
+                    attrs
+                },
+                ident: Ident::new(&vrt_name.to_string(), proc_macro2::Span::call_site()),
+                fields: Fields::Named(FieldsNamed {
+                    brace_token: Brace::default(),
+                    named: {
+                        let initial_fields = if is_loc_first {
+                            let mut named_fields_acc = Punctuated::new();
+                            named_fields_acc.push_value(loc_syn_field().0);
+                            named_fields_acc.push_punct(Comma {
+                                spans: [proc_macro2::Span::call_site()],
                             });
-                            attrs.push(Attribute {
-                                pound_token: Pound {
-                                    spans: [proc_macro2::Span::call_site()],
-                                },
-                                style: AttrStyle::Outer,
-                                bracket_token: Bracket::default(),
-                                meta: Meta::Path(Path {
-                                    leading_colon: None,
-                                    segments,
-                                }),
-                            });
-                        }
-                        attrs
-                    },
-                    ident: Ident::new(&vrt_name.to_string(), proc_macro2::Span::call_site()),
-                    fields: Fields::Named(FieldsNamed {
-                        brace_token: Brace::default(),
-                        named: {
-                            let initial_fields = if is_loc_first {
-                                let mut named_fields_acc = Punctuated::new();
-                                named_fields_acc.push_value(loc_syn_field());
+                            named_fields_acc
+                        } else {
+                            Punctuated::new()
+                        };
+                        let mut named_fields_acc = vrt_fields.into_iter().fold(
+                            initial_fields,
+                            |mut named_fields_acc, el| {
+                                named_fields_acc.push_value(Field {
+                                    attrs: vec![Attribute {
+                                        pound_token: Pound {
+                                            spans: [proc_macro2::Span::call_site()],
+                                        },
+                                        style: AttrStyle::Outer,
+                                        bracket_token: Bracket::default(),
+                                        meta: Meta::Path(Path {
+                                            leading_colon: None,
+                                            segments: {
+                                                let mut acc0 = Punctuated::new();
+                                                acc0.push(PathSegment {
+                                                    ident: Ident::new(
+                                                        AttrIdentStr::attr_ident_str(&el.0).0,
+                                                        proc_macro2::Span::call_site(),
+                                                    ),
+                                                    arguments: PathArguments::None,
+                                                });
+                                                acc0
+                                            },
+                                        }),
+                                    }],
+                                    vis: Visibility::Inherited,
+                                    mutability: FieldMutability::None,
+                                    ident: Some(Ident::new(
+                                        &el.1.to_string(),
+                                        proc_macro2::Span::call_site(),
+                                    )),
+                                    colon_token: Some(Colon {
+                                        spans: [proc_macro2::Span::call_site()],
+                                    }),
+                                    ty: Type::Path(TypePath {
+                                        qself: None,
+                                        path: Path {
+                                            leading_colon: None,
+                                            segments: el.2.into(),
+                                        },
+                                    }),
+                                });
                                 named_fields_acc.push_punct(Comma {
                                     spans: [proc_macro2::Span::call_site()],
                                 });
                                 named_fields_acc
-                            } else {
-                                Punctuated::new()
-                            };
-                            let mut named_fields_acc = vrt_fields.into_iter().fold(
-                                initial_fields,
-                                |mut named_fields_acc, el| {
-                                    named_fields_acc.push_value(Field {
-                                        attrs: vec![Attribute {
-                                            pound_token: Pound {
-                                                spans: [proc_macro2::Span::call_site()],
-                                            },
-                                            style: AttrStyle::Outer,
-                                            bracket_token: Bracket::default(),
-                                            meta: Meta::Path(Path {
-                                                leading_colon: None,
-                                                segments: {
-                                                    let mut acc0 = Punctuated::new();
-                                                    acc0.push(PathSegment {
-                                                        ident: Ident::new(
-                                                            AttrIdentStr::attr_ident_str(&el.0),
-                                                            proc_macro2::Span::call_site(),
-                                                        ),
-                                                        arguments: PathArguments::None,
-                                                    });
-                                                    acc0
-                                                },
-                                            }),
-                                        }],
-                                        vis: Visibility::Inherited,
-                                        mutability: FieldMutability::None,
-                                        ident: Some(Ident::new(
-                                            &el.1.to_string(),
-                                            proc_macro2::Span::call_site(),
-                                        )),
-                                        colon_token: Some(Colon {
-                                            spans: [proc_macro2::Span::call_site()],
-                                        }),
-                                        ty: Type::Path(TypePath {
-                                            qself: None,
-                                            path: Path {
-                                                leading_colon: None,
-                                                segments: el.2,
-                                            },
-                                        }),
-                                    });
-                                    named_fields_acc.push_punct(Comma {
-                                        spans: [proc_macro2::Span::call_site()],
-                                    });
-                                    named_fields_acc
-                                },
-                            );
-                            if !is_loc_first {
-                                named_fields_acc.push_value(loc_syn_field());
-                            }
-                            named_fields_acc
-                        },
-                    }),
-                    discriminant: None,
-                },
-                status_code,
-            }
-        };
+                            },
+                        );
+                        if !is_loc_first {
+                            named_fields_acc.push_value(loc_syn_field().0);
+                        }
+                        named_fields_acc
+                    },
+                }),
+                discriminant: None,
+            },
+            status_code,
+        }
+    };
     let qp_syn_vrt = new_syn_vrt(
         &QpUcc,
         Some(StatusCode::BadReq400),
         vec![(
             LocFieldAttr::EoLoc,
             &ErSc,
-            gen_simple_syn_punct(&[&PgCrudSc.to_string(), &QpErUcc.to_string()]),
+            gen_simple_syn_punct([&PgCrudSc.to_string(), &QpErUcc.to_string()]),
         )],
         false,
     );
@@ -1058,7 +1085,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     },
                 );
                 quote! {
-                    fn #CrQpSc(&self, #IncrSc: &mut u64) -> Result<#StringTs, #import_ts #QpErUcc> {
+                    fn #CrQpSc(&self, #IncrSc: &mut dyn #import_ts QpIncrMut) -> Result<#import_ts QpFragment, #import_ts #QpErUcc> {
                         #ts
                     }
                 }
@@ -1087,10 +1114,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         })
                     });
                 quote! {
-                    fn #CrQbSc(self, mut #QuerySc: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>) -> Result<
-                        sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
-                        String
-                    > {
+                    fn #CrQbSc(self, mut #QuerySc: #import_ts PgQuery<'_>) -> Result<#import_ts PgQuery<'_>, #import_ts PgQueryBindEr> {
                         #pk_ts
                         #binded_query_modifications_ts
                         Ok(#QuerySc)
@@ -1191,13 +1215,14 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 }
             },
         );
+        let fields_ident_type = fields
+            .iter()
+            .map(|el| (&el.ident.0, &el.type0.0))
+            .collect::<Vec<(&Ident, &Type)>>();
         let impl_de_for_ident_wh_ts = gen_impl_de_for_struct_ts(
             &ident_wh_ucc,
-            &fields
-                .iter()
-                .map(|el| (&el.ident, &el.type0))
-                .collect::<Vec<(&Ident, &Type)>>(),
-            fields_len,
+            pg_crud_macros_cmn::SynIdentTypeRefs(&fields_ident_type),
+            pg_crud_macros_cmn::DeLen(fields_len),
             &|_: &Ident, syn_type: &Type| {
                 let syn_type_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&syn_type);
                 gen_opt_type_dcl_ts(&quote! {#import_ts PgTypeWh<#syn_type_as_pg_type_wh_ts>})
@@ -1260,8 +1285,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 quote! {#import_ts PgTypeWhFlt::qp(
                                     v_da0f0616,
                                     incr,
-                                    &#fi_dq_ts,
-                                    is_first_push_to_extra_prms_already_happend,
+                                    #import_ts SqlColRef(&#fi_dq_ts),
+                                    #import_ts AddOprtr(is_first_push_to_extra_prms_already_happend),
                                 )}
                             },
                             &quote! {v_9e3f8fdd},
@@ -1284,7 +1309,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     )
                 });
                 quote! {
-                    Ok(match &self.0 {
+                    Ok(#import_ts QpFragment(match &self.0 {
                         Some(#VSc) => {
                             let mut #ExtraPrmsSc = #StringTs::from("where");
                             let mut is_first_push_to_extra_prms_already_happend = false;
@@ -1292,7 +1317,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             #ExtraPrmsSc
                         },
                         None => #StringTs::default()
-                    })
+                    }))
                 }
             },
             &IsQbMut::True,
@@ -1338,8 +1363,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             &quote! {#import_ts PgTypeWhFlt::qp(
                 &#PrmsSc.#PayloadSc.#WhManySc,
                 &mut #IncrSc,
-                &"",//useless //todo check if can be optimized
-                false//useless
+                #import_ts SqlColRef(&""),//useless //todo check if can be optimized
+                #import_ts AddOprtr(false)//useless
             )},
             &quote! {v_d1627695},
             &{
@@ -1355,7 +1380,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         )
     };
     let macros_helpers_loc_field_attr_eo_to_err_string_serde = LocFieldAttr::EoToErrStringSerde;
-    let string_syn_punct = gen_simple_syn_punct(&["String"]);
+    let string_syn_punct = gen_simple_syn_punct(["String"]);
     let try_bind_syn_vrt = new_syn_vrt(
         &TryBindUcc,
         Some(StatusCode::InternalServerEr500),
@@ -1368,14 +1393,14 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     );
     let gen_query_pg_type_wh_flt_qb_prms_payload_wh_query_ts = |op: &Op| {
         gen_match_qb_or_err_ts(
-            &quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #QuerySc)},
+            &quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
             &quote! {v_03a58371},
             &gen_op_er_init_eprintln_res_ts(op, &try_bind_syn_vrt, Location::caller()),
         )
     };
     let try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_ident_sel_sc =
         TryFromSqlxPgPgRowWithNotEmptyUnqVecSelfSelSc::from_display(&ident);
-    let simple_syn_punct_sqlx_error = gen_simple_syn_punct(&["sqlx", "Error"]);
+    let simple_syn_punct_sqlx_error = gen_simple_syn_punct(["sqlx", "Error"]);
     let macros_helpers_loc_field_attr_eo_to_err_string = LocFieldAttr::EoToErrString;
     let pg_syn_vrt = new_syn_vrt(
         &PgUcc,
@@ -1567,7 +1592,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             .collect::<Vec<proc_macro2::TokenStream>>(),
                     )
                 };
-                let fields_init_ts = &fields.iter().map(|el| &el.ident).collect::<Vec<&Ident>>();
+                let fields_init_ts = &fields.iter().map(|el| &el.ident.0).collect::<Vec<&Ident>>();
                 quote! {
                     fn #try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_ident_sel_sc(
                         #VSc: &sqlx::postgres::PgRow,
@@ -1612,7 +1637,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             let ft_ts = match &wrap_into_opt {
                                 WrapIntoOpt::False => gen_as_pg_type_rd_ids_ts(&ft),
                                 WrapIntoOpt::True => {
-                                    gen_opt_type_dcl_ts(&gen_as_pg_type_rd_ids_ts(&ft))
+                                    gen_opt_type_dcl_ts(&gen_as_pg_type_rd_ids_ts(&ft)).0
                                 }
                             };
                             quote! {pub #fi: #ft_ts}
@@ -1693,8 +1718,10 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             #impl_sqlx_row_for_ident_rd_ids_ts
         }
     };
-    let gen_ident_try_op_er_ucc =
-        |op: &Op| parse_ts_or_compile_error(&format!("{ident}Try{op}Er"), "6a5468b2");
+    let gen_ident_try_op_er_ucc = |op: &Op| {
+        let ident_try_op_er = format!("{ident}Try{op}Er");
+        parse_ts_or_compile_error(ParseTsText(&ident_try_op_er), ParseErId("6a5468b2"))
+    };
     let ident_try_rm_er_ucc = gen_ident_try_op_er_ucc(&Op::Rm);
     let gen_ident_op_er_with_serde_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ErWithSerde");
     let pg_crud_order_by_ts = quote! {#import_ts #OrderByUcc};
@@ -1703,7 +1730,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let ident_um_payload_ucc = SelfUmPayloadUcc::from_tokens(&ident);
     let ident_upd_try_new_er_ucc = SelfUpdTryNewErUcc::from_tokens(&ident);
     let ident_upd_for_query_ucc = SelfUpdForQueryUcc::from_tokens(&ident);
-    let path_v_ts = parse_ts_or_compile_error(&format!("{PgCrudSc}::{VUcc}"), "dbdbb7f2");
+    let path_v = format!("{PgCrudSc}::{VUcc}");
+    let path_v_ts = parse_ts_or_compile_error(ParseTsText(&path_v), ParseErId("dbdbb7f2"));
     let ident_upd_ts = {
         let gen_opt_v_ft_as_pg_type_upd_ts = |syn_type: &Type| {
             let syn_type_as_pg_type_upd_ts = gen_as_pg_type_upd_ts(&syn_type);
@@ -1744,8 +1772,12 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             &ident_upd_try_new_er_ucc,
             &{
                 let (left_ts, right_ts) = {
-                    let gen_ts =
-                        |ts: &dyn ToTokens| mb_wrap_into_braces_ts(ts, fields_len_without_pk > 1);
+                    let gen_ts = |ts: &dyn ToTokens| {
+                        mb_wrap_into_braces_ts(
+                            ts,
+                            pg_crud_macros_cmn::WrapIntoBraces(fields_len_without_pk > 1),
+                        )
+                    };
                     (
                         gen_ts(&gen_fields_named_without_pk_with_comma_ts(
                             &|el: &SynField| -> proc_macro2::TokenStream {
@@ -1771,16 +1803,17 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 }
             },
         );
+        let fields_ident_type = fields
+            .iter()
+            .map(|el| (&el.ident.0, &el.type0.0))
+            .collect::<Vec<(&Ident, &Type)>>();
         let impl_de_for_ident_upd_ts = gen_impl_de_for_struct_ts(
             &ident_upd_ucc,
-            &fields
-                .iter()
-                .map(|el| (&el.ident, &el.type0))
-                .collect::<Vec<(&Ident, &Type)>>(),
-            fields_len,
+            pg_crud_macros_cmn::SynIdentTypeRefs(&fields_ident_type),
+            pg_crud_macros_cmn::DeLen(fields_len),
             &|syn_ident: &Ident, syn_type: &Type| {
-                if syn_ident == pk_fi {
-                    quote! {#pk_ft_upd_ts}
+                if syn_ident == &pk_fi.0 {
+                    quote! {#pk_ft_upd_ts}.into()
                 } else {
                     gen_opt_v_ft_as_pg_type_upd_ts(syn_type)
                 }
@@ -1844,9 +1877,9 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 let ts = gen_match_ok_err_ts(
                     &quote! {#pk_ft_as_pg_type_ts #UpdQpSc(
                         &self.#pk_fi,
-                        "",
-                        #ident::#PkSc(),
-                        "",
+                        #import_ts SqlColRef(&""),
+                        #import_ts SqlColRef(&#ident::#PkSc()),
+                        #import_ts SqlColRef(&""),
                         #IncrSc,
                     )},
                     &VSc,
@@ -1855,7 +1888,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     &quote! {Err(#Er0)},
                 );
                 quote! {
-                    fn #UpdQpPkSc(&self, #IncrSc: &mut u64) -> Result<#StringTs, #import_ts #QpErUcc> {
+                    fn #UpdQpPkSc(&self, #IncrSc: &mut dyn #import_ts QpIncrMut) -> Result<#import_ts QpFragment, #import_ts #QpErUcc> {
                         #ts
                     }
                 }
@@ -1870,9 +1903,9 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             let fi_dq_ts = dq_ts(&fi);
                             quote! {#ft_as_pg_crud_pg_type_pg_type_ts #UpdQpSc(
                                 &#VSc.#VSc,
-                                #fi_dq_ts,
-                                #fi_dq_ts,
-                                "",
+                                #import_ts SqlColRef(&#fi_dq_ts),
+                                #import_ts SqlColRef(&#fi_dq_ts),
+                                #import_ts SqlColRef(&""),
                                 #IncrSc
                             )}
                         },
@@ -1884,8 +1917,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     quote! {
                         fn #upd_qp_fi_sc(
                             #VSc: &#import_ts V<#ft_as_pg_crud_pg_type_pg_type_ts #UpdForQueryUcc>,
-                            #IncrSc: &mut u64
-                        ) -> Result<#StringTs, #import_ts #QpErUcc> {
+                            #IncrSc: &mut dyn #import_ts QpIncrMut
+                        ) -> Result<#import_ts QpFragment, #import_ts #QpErUcc> {
                             #ts
                         }
                     }
@@ -1896,7 +1929,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     let ts = gen_match_ok_err_short_ts(
                         &quote! {#pk_as_pg_type_ts::#SelOnlyUpddIdsQpSc(
                             &self.#pk_fi,
-                            #pk_fi_dq_ts,
+                            #import_ts SqlColRef(&#pk_fi_dq_ts),
                             incr,
                         )},
                         &quote! {v},
@@ -1916,7 +1949,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                     gen_as_pg_type_path_ts(&el.type0);
                                 quote! {#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyUpddIdsQpSc(
                                     &v_90f79b11.#VSc,
-                                    #fi_dq_ts,
+                                    #import_ts SqlColRef(&#fi_dq_ts),
                                     incr,
                                 )}
                             },
@@ -1936,7 +1969,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     },
                 );
                 quote! {
-                    fn #SelOnlyUpddIdsQpSc(&self, #IncrSc: &mut u64) -> Result<#StringTs, #import_ts QpEr> {
+                    fn #SelOnlyUpddIdsQpSc(&self, #IncrSc: &mut dyn #import_ts QpIncrMut) -> Result<#import_ts QpFragment, #import_ts QpEr> {
                         #ts0
                     }
                 }
@@ -2018,11 +2051,11 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         vec![(
             macros_helpers_loc_field_attr_eo_to_err_string_serde,
             &NotUnqFieldSc,
-            gen_simple_syn_punct(&[&ident_sel_ucc.to_string()]),
+            gen_simple_syn_punct([&ident_sel_ucc.to_string()]),
         )],
         true,
     );
-    let simple_syn_punct_serde_error = gen_simple_syn_punct(&["serde_json", "Error"]);
+    let simple_syn_punct_serde_error = gen_simple_syn_punct(["serde_json", "Error"]);
     let serde_json_to_string_syn_vrt = new_syn_vrt(
         &SerdeJsonToStringUcc,
         None,
@@ -2033,7 +2066,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         )],
         false,
     );
-    let simple_syn_punct_reqwest_error = gen_simple_syn_punct(&["reqwest", "Error"]);
+    let simple_syn_punct_reqwest_error = gen_simple_syn_punct(["reqwest", "Error"]);
     let failed_to_get_res_text_syn_vrt = new_syn_vrt(
         &FailedToGetResTextUcc,
         Some(StatusCode::BadReq400),
@@ -2041,12 +2074,12 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             (
                 macros_helpers_loc_field_attr_eo_to_err_string,
                 &StatusCodeSc,
-                gen_simple_syn_punct(&["reqwest", "StatusCode"]),
+                gen_simple_syn_punct(["reqwest", "StatusCode"]),
             ),
             (
                 macros_helpers_loc_field_attr_eo_to_err_string,
                 &HeadersSc,
-                gen_simple_syn_punct(&["reqwest", "header", "HeaderMap"]),
+                gen_simple_syn_punct(["reqwest", "header", "HeaderMap"]),
             ),
             (
                 macros_helpers_loc_field_attr_eo_to_err_string,
@@ -2063,12 +2096,12 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             (
                 macros_helpers_loc_field_attr_eo_to_err_string,
                 &StatusCodeSc,
-                gen_simple_syn_punct(&["reqwest", "StatusCode"]),
+                gen_simple_syn_punct(["reqwest", "StatusCode"]),
             ),
             (
                 macros_helpers_loc_field_attr_eo_to_err_string,
                 &HeadersSc,
-                gen_simple_syn_punct(&["reqwest", "header", "HeaderMap"]),
+                gen_simple_syn_punct(["reqwest", "header", "HeaderMap"]),
             ),
             (
                 macros_helpers_loc_field_attr_eo_to_err_string_serde,
@@ -2099,7 +2132,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         vec![(
             LocFieldAttr::EoLoc,
             &CheckBodySizeSc,
-            gen_simple_syn_punct(&[
+            gen_simple_syn_punct([
                 &PgCrudSc.to_string(),
                 "check_body_size",
                 &BodySizeErUcc.to_string(),
@@ -2120,11 +2153,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let header_cnt_type_app_json_not_found_syn_vrt = new_syn_vrt(
         &HeaderContentTypeAppJsonNotFoundUcc,
         Some(StatusCode::BadReq400),
-        Vec::<(
-            LocFieldAttr,
-            &'static dyn Display,
-            Punctuated<PathSegment, PathSep>,
-        )>::default(),
+        Vec::<(LocFieldAttr, &'static dyn Display, SynPathSegments)>::default(),
         false,
     );
     let cmn_http_req_syn_vrts = {
@@ -2291,11 +2320,11 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let gen_loc_vrt_ts = |er_vrt: &Variant| -> proc_macro2::TokenStream {
         let vrt_ident = &er_vrt.ident;
         let Fields::Named(fields_named) = &er_vrt.fields else {
-            return compile_error_ts("2acd4725: expected named variant fields");
+            return compile_error_ts(CompileErrorMsg("2acd4725: expected named variant fields")).0;
         };
         let fields_mapped_into_ts = fields_named.named.iter().map(|field| {
             let Some(fi) = field.ident.as_ref() else {
-                return compile_error_ts("a21dc807: expected named field ident");
+                return compile_error_ts(CompileErrorMsg("a21dc807: expected named field ident")).0;
             };
             let loc_attr = if *fi == *LocSc.to_string() {
                 proc_macro2::TokenStream::new()
@@ -2304,21 +2333,32 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                 for el in &field.attrs {
                     if el.path().segments.len() == 1 {
                         let Some(segment) = el.path().segments.first() else {
-                            return compile_error_ts("5bd7ed8d: expected attr path segment");
+                            return compile_error_ts(CompileErrorMsg(
+                                "5bd7ed8d: expected attr path segment",
+                            ))
+                            .0;
                         };
                         if let Ok(v) =
                             { <LocFieldAttr as FromStr>::from_str(&segment.ident.to_string()) }
                         {
                             if loc_attr.is_some() {
-                                return compile_error_ts("9a469d36: duplicate loc field attr");
+                                return compile_error_ts(CompileErrorMsg(
+                                    "9a469d36: duplicate loc field attr",
+                                ))
+                                .0;
                             }
                             loc_attr = Some(v);
                         }
                     }
                 }
                 match loc_attr {
-                    Some(v) => v.to_attr_view_ts(),
-                    None => return compile_error_ts("d1003b2e: loc field attr not found"),
+                    Some(v) => v.to_attr_view_ts().0,
+                    None => {
+                        return compile_error_ts(CompileErrorMsg(
+                            "d1003b2e: loc field attr not found",
+                        ))
+                        .0;
+                    }
                 }
             };
             let ft = &field.ty;
@@ -2337,7 +2377,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         Op::Co => quote! {#ident_cr_ucc},
         Op::Uo => quote! {#ident_upd_ucc},
         Op::Cm | Op::Rm | Op::Ro | Op::Um | Op::Dm | Op::Dlo => {
-            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string())
+            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string()).0
         }
     };
     let gen_ident_op_prms_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Prms");
@@ -2484,7 +2524,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     let commit_header_addition_ts = quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::PROJECT_GIT_INFO.commit,
+                            git_info::PROJECT_GIT_INFO.commit.0,
                         )
                     };
                     let app_json_dq_ts = dq_ts(&"application/json");
@@ -2557,7 +2597,10 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 let fields_idents = fields_named.named.iter().map(|field| &field.ident);
                                 quote! {#(#fields_idents),*}
                             } else {
-                                return compile_error_ts("8dcafc1c: expected named variant fields");
+                                return compile_error_ts(CompileErrorMsg(
+                                    "8dcafc1c: expected named variant fields",
+                                ))
+                                .0;
                             };
                             quote! {
                                 #ident_op_res_vrts_ucc::#vrt_ident {
@@ -2575,7 +2618,11 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     }
                 };
                 let return_er_ts = {
-                    let field_loc_new_ts = gen_field_loc_new_ts(file!(), line!(), column!());
+                    let field_loc_new_ts = gen_field_loc_new_ts(
+                        FieldLocFile(file!()),
+                        FieldLocLine(line!()),
+                        FieldLocCol(column!()),
+                    );
                     quote! {
                         Err(#ident_try_op_er_ucc::#try_op_logic_er_with_serde_ucc {
                             #op_er_with_serde_sc,
@@ -2730,7 +2777,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             &{
                                 let fi_dq_ts = dq_ts(&el.ident);
                                 let ft_as_pg_crud_pg_type_pg_type_ts = gen_as_pg_type_path_ts(&el.type0);
-                                quote!{#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyIdsQpSc(#fi_dq_ts)}
+                                quote!{#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyIdsQpSc(#import_ts SqlColRef(&#fi_dq_ts))}
                             },
                             &quote!{v_aa341baf},
                             &quote!{{
@@ -2774,13 +2821,13 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 }
                             });
                             quote! {#import_ts gen_cm_query_string(
-                                #TblSc,
-                                #col_names_dq_ts,
-                                &{
+                                #import_ts PgTblNameRef(#TblSc),
+                                #import_ts PgTblSqlFragmentRef(#col_names_dq_ts),
+                                #import_ts PgTblSqlFragmentRef(&{
                                     #incr_init_ts
                                     #ts0
-                                },
-                                &#sel_only_ids_qp_ts
+                                }),
+                                #import_ts PgTblSqlFragmentRef(&#sel_only_ids_qp_ts)
                             )}
                         }
                         Op::Co => {
@@ -2790,10 +2837,10 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             );
                             quote! {
                                 #import_ts gen_co_query_string(
-                                    #TblSc,
-                                    #col_names_dq_ts,
-                                    &#ts,
-                                    &#sel_only_ids_qp_ts
+                                    #import_ts PgTblNameRef(#TblSc),
+                                    #import_ts PgTblSqlFragmentRef(#col_names_dq_ts),
+                                    #import_ts PgTblSqlFragmentRef(&#ts),
+                                    #import_ts PgTblSqlFragmentRef(&#sel_only_ids_qp_ts)
                                 )
                             }
                         }
@@ -2838,8 +2885,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                             &quote! {#pg_crud_pg_type_wh_flt_qp_ts(
                                                 &#PrmsSc.#PayloadSc.pgn,
                                                 &mut #IncrSc,
-                                                &"",
-                                                bool::default()
+                                                #import_ts SqlColRef(&""),
+                                                #import_ts AddOprtr(bool::default())
                                             )},
                                             &quote! {v_742be6cf},
                                         );
@@ -2852,16 +2899,16 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 )
                             };
                             quote! {#import_ts gen_rm_query_string(
-                                #TblSc,
-                                &#sel_qp_prms_payload_sel_ts,
-                                &{
+                                #import_ts PgTblNameRef(#TblSc),
+                                #import_ts PgTblSqlFragmentRef(&#sel_qp_prms_payload_sel_ts),
+                                #import_ts PgTblSqlFragmentRef(&{
                                     #incr_init_ts
                                     let mut #ExtraPrmsSc = #extra_prms_init_ts;
                                     let #PrefixSc = if extra_prms.is_empty() {""} else {" "};
                                     #if_write_is_err_curly_braces_0_ts
                                     #if_write_is_err_curly_braces_1_ts
                                     #ExtraPrmsSc
-                                }
+                                })
                             )}
                         }
                         Op::Ro => {
@@ -2871,15 +2918,15 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 &quote! {#pg_crud_pg_type_wh_flt_qp_ts(
                                     &#PrmsSc.#PayloadSc.#pk_fi,
                                     &mut 0,
-                                    &Self::#PkSc(),
-                                    false
+                                    #import_ts SqlColRef(&Self::#PkSc()),
+                                    #import_ts AddOprtr(false)
                                 )},
                                 &quote! {v_be9e7b7d},
                             );
                             quote! {#import_ts gen_ro_query_string(
-                                #TblSc,
-                                &#sel_qp_prms_payload_sel_ts,
-                                &#ts
+                                #import_ts PgTblNameRef(#TblSc),
+                                #import_ts PgTblSqlFragmentRef(&#sel_qp_prms_payload_sel_ts),
+                                #import_ts PgTblSqlFragmentRef(&#ts)
                             )}
                         }
                         Op::Um => {
@@ -2912,9 +2959,9 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                             );
                                             quote! {
                                                 acc_8ad06c8c.push_str(&#import_ts #GenWhenColIdThenVUmQpSc(
-                                                    Self::#PkSc(),
-                                                    &#ts0,
-                                                    &#ts1
+                                                    #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
+                                                    #import_ts PgTblSqlFragmentRef(&#ts0),
+                                                    #import_ts PgTblSqlFragmentRef(&#ts1)
                                                 ));
                                             }
                                         },
@@ -2926,12 +2973,12 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                             if #is_fi_upd_exists_sc {
                                                 acc_b86a253a.push_str(&
                                                     #import_ts gen_col_eqs_case_acc_else_col_end_comma_um_qp(
-                                                        #fi_dq_ts,
-                                                        &{
+                                                        #import_ts PgTblSqlFragmentRef(#fi_dq_ts),
+                                                        #import_ts PgTblSqlFragmentRef(&{
                                                             let mut acc_8ad06c8c = #StringTs::default();
                                                             #for_el_upd_fi_qp_ts
                                                             acc_8ad06c8c
-                                                        }
+                                                        })
                                                     )
                                                 );
                                             }
@@ -2979,11 +3026,11 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                         acc_fd44b0aa
                                     };
                                     #import_ts gen_um_query_string(
-                                        #TblSc,
-                                        &els,
-                                        Self::#PkSc(),
-                                        &pks,
-                                        &return_cols
+                                        #import_ts PgTblNameRef(#TblSc),
+                                        #import_ts PgTblSqlFragmentRef(&els),
+                                        #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
+                                        #import_ts PgTblSqlFragmentRef(&pks),
+                                        #import_ts PgTblSqlFragmentRef(&return_cols)
                                     )
                                 }
                             }
@@ -3006,8 +3053,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                             );
                                             quote! {
                                                 acc_683e37b8.push_str(&#import_ts #gen_col_queals_v_comma_uo_qp_sc(
-                                                    #fi_dq_ts,
-                                                    &#ts
+                                                    #import_ts PgTblSqlFragmentRef(#fi_dq_ts),
+                                                    #import_ts PgTblSqlFragmentRef(&#ts)
                                                 ));
                                             }
                                         },
@@ -3033,11 +3080,11 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                     let #PkQpSc = #extra_prms_pk_modification_ts;
                                     let return_cols = #ts;
                                     #import_ts gen_uo_query_string(
-                                        #TblSc,
-                                        &#ColsSc,
-                                        Self::#PkSc(),
-                                        &#PkQpSc,
-                                        &return_cols
+                                        #import_ts PgTblNameRef(#TblSc),
+                                        #import_ts PgTblSqlFragmentRef(&#ColsSc),
+                                        #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
+                                        #import_ts PgTblSqlFragmentRef(&#PkQpSc),
+                                        #import_ts PgTblSqlFragmentRef(&return_cols)
                                     )
                                 }
                             }
@@ -3047,17 +3094,17 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 &RmOrDm::Dm,
                             );
                             quote! {#import_ts gen_dm_query_string(
-                                #TblSc,
-                                &{
+                                #import_ts PgTblNameRef(#TblSc),
+                                #import_ts PgTblSqlFragmentRef(&{
                                     #incr_init_ts
                                     #extra_prms_init_ts
-                                },
-                                Self::#PkSc(),
+                                }),
+                                #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
                             )}
                         }
                         Op::Dlo => quote! {#import_ts gen_dlo_query_string(
-                            #TblSc,
-                            Self::#PkSc(),
+                            #import_ts PgTblNameRef(#TblSc),
+                            #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
                         )},
                     }
                 };
@@ -3074,7 +3121,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     match &op {
                         Op::Cm => {
                             let ts = gen_match_qb_or_err_short_ts(
-                                &quote! {el_7f862135.#CrQbSc(#QuerySc)},
+                                &quote! {el_7f862135.#CrQbSc(#import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
                                 &quote! {v_011a3eb4},
                             );
                             quote! {
@@ -3084,7 +3131,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             }
                         }
                         Op::Co => gen_match_qb_or_err_short_ts(
-                            &quote! {#PrmsSc.#PayloadSc.#CrQbSc(#QuerySc)},
+                            &quote! {#PrmsSc.#PayloadSc.#CrQbSc(#import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
                             &quote! {v_06f852cd},
                         ),
                         Op::Rm => {
@@ -3092,8 +3139,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             let ts = gen_match_qb_or_err_short_ts(
                                 &quote! {#pg_crud_pg_type_wh_flt_qb_ts(
                                     #PrmsSc.#PayloadSc.pgn,
-                                    #QuerySc,
-                                )},
+                                    #import_ts PgQuery(#QuerySc),
+                                ).map(|v| v.0).map_err(|er| er.0)},
                                 &quote! {v_9f7e487b},
                             );
                             quote! {
@@ -3102,7 +3149,10 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             }
                         }
                         Op::Ro => gen_match_qb_or_err_short_ts(
-                            &quote! {#pg_crud_pg_type_wh_flt_qb_ts(#PrmsSc.#PayloadSc.#pk_fi, #QuerySc)},
+                            &quote! {#pg_crud_pg_type_wh_flt_qb_ts(
+                                #PrmsSc.#PayloadSc.#pk_fi,
+                                #import_ts PgQuery(#QuerySc)
+                            ).map(|v| v.0).map_err(|er| er.0)},
                             &quote! {v_80ee6983},
                         ),
                         Op::Um => {
@@ -3118,8 +3168,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                                         gen_as_pg_type_path_ts(&el.type0);
                                                     quote! {#as_pg_crud_pg_type_pg_type_ts #UpdQbSc(
                                                         v_2edaa480.#VSc.clone(),
-                                                        #QuerySc,
-                                                    )}
+                                                        #import_ts PgQuery(#QuerySc),
+                                                    ).map(|v| v.0).map_err(|er| er.0)}
                                                 },
                                                 &quote! {v_600e67dc},
                                             );
@@ -3137,8 +3187,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 &gen_match_qb_or_err_short_ts(
                                     &quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                         el_a72f3eac.#pk_fi,
-                                        #QuerySc,
-                                    )},
+                                        #import_ts PgQuery(#QuerySc),
+                                    ).map(|v| v.0).map_err(|er| er.0)},
                                     &quote! {v_c40a4522},
                                 ),
                             );
@@ -3153,8 +3203,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                                     gen_as_pg_type_path_ts(&el.type0);
                                                 quote! {#as_pg_crud_pg_type_pg_type_ts sel_only_updd_ids_qb(
                                                     &v_47030ac2.#VSc,
-                                                    #QuerySc
-                                                )}
+                                                    #import_ts PgQuery(#QuerySc)
+                                                ).map(|v| v.0).map_err(|er| er.0)}
                                             },
                                             &quote! {v_c5b79b95},
                                         ),
@@ -3190,18 +3240,18 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                 };
                             let binded_query_modifications_ts = gen_binded_query_ts(
                                 quote! {v_ed87c152},
-                                quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #QuerySc)},
+                                quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
                             );
                             let binded_query_pk_modification_ts = gen_match_qb_or_err_short_ts(
                                 &quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                     #UpdForQuerySc.#pk_fi,
-                                    #QuerySc,
-                                )},
+                                    #import_ts PgQuery(#QuerySc),
+                                ).map(|v| v.0).map_err(|er| er.0)},
                                 &quote! {v_d64bac39},
                             );
                             let binded_query_sel_only_updd_ids_qb_ts = gen_binded_query_ts(
                                 quote! {v_b2902425},
-                                quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #QuerySc)},
+                                quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
                             );
                             quote! {
                                 #binded_query_modifications_ts
@@ -3217,8 +3267,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         Op::Dlo => gen_match_qb_or_err_short_ts(
                             &quote! {#import_ts PgTypeWhFlt::qb(
                                 #PrmsSc.#PayloadSc.#pk_fi,
-                                #QuerySc
-                            )},
+                                #import_ts PgQuery(#QuerySc)
+                            ).map(|v| v.0).map_err(|er| er.0)},
                             &quote! {v_3099ea0f},
                         ),
                     }
@@ -3231,7 +3281,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                             Location::caller(),
                         );
                     let ts = gen_match_ok_err_short_ts(
-                        &quote! {#AppStateSc.get_pg_pool().acquire().await},
+                        &quote! {#AppStateSc.get_pg_pool().0.acquire().await},
                         &quote! {v_4535ee48},
                         &quote! {{
                             #pg_syn_vrt_er_init_eprintln_res_creation_ts
@@ -3636,7 +3686,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         .build_enum(&proc_macro2::TokenStream::new(), &ident_op_res_vrts_ucc, &proc_macro2::TokenStream::new(), &{
                             let vrts_ts = type_vrts_from_req_res_syn_vrts
                                 .iter()
-                                .map(gen_serde_version_of_named_syn_vrt);
+                                .map(|vrt| gen_serde_version_of_named_syn_vrt(SynVariantRef(vrt)));
                             let desirable_type_ts = gen_op_result_type_ts(op);
                             quote! {{
                                 #DesirableUcc(#desirable_type_ts),
@@ -3654,7 +3704,10 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         let vrts_ts = type_vrts_from_req_res_syn_vrts.iter().map(|el| {
                             let vrt_ident = &el.ident;
                             let Fields::Named(fields_named) = &el.fields else {
-                                return compile_error_ts("10764d2b: expected named variant fields");
+                                return compile_error_ts(CompileErrorMsg(
+                                    "10764d2b: expected named variant fields",
+                                ))
+                                .0;
                             };
                             let fields_mapped_into_ts = {
                                 let fields_ts = fields_named.named.iter().map(|field| &field.ident);
@@ -3729,7 +3782,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                                     vec![(
                                         macros_helpers_loc_field_attr_eo_to_err_string,
                                         &op.op_er_with_serde_sc(),
-                                        gen_simple_syn_punct(&[
+                                        gen_simple_syn_punct([
                                             &ident_op_er_with_serde_ucc.to_string()
                                         ]),
                                     )],
@@ -3990,7 +4043,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| {
                 let fi0 = &el.ident;
                 let ft0 = &el.type0;
-                let ts0 = if fi == fi0 {
+                let ts0 = if fi == &fi0.0 {
                     quote! {#ts}
                 } else {
                     let ts1 = gen_as_pg_type_path_ts(&ft0);
@@ -4003,14 +4056,20 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
             |fi: &Ident, el_ts: &dyn ToTokens| gen_ident_cr_ts(fi, &el_ts);
         let gen_ident_cr_cnt_el_ts = |fi: &Ident| gen_ident_cr_ts(fi, &ElSc);
         let gen_tbl_test_name_fi_ts = |test_name: &str, fi: &Ident| {
-            parse_ts_or_compile_error(&format!("tbl_{test_name}_{fi}"), "eb30c1e4")
+            let tbl_test_name_fi = format!("tbl_{test_name}_{fi}");
+            parse_ts_or_compile_error(ParseTsText(&tbl_test_name_fi), ParseErId("eb30c1e4"))
         };
         let mut tbl_fis_init_vec_ts = Vec::new();
         let mut tbl_test_name_fis_vec_ts = Vec::new();
         let mut fill_tbl_fis_vec_ts = |test_names: Vec<&str>| {
             for el0 in test_names {
-                let gen_init_variable_name_ts =
-                    |fi: &Ident| parse_ts_or_compile_error(&format!("tbl_{el0}_{fi}"), "2003ad9f");
+                let gen_init_variable_name_ts = |fi: &Ident| {
+                    let init_variable_name = format!("tbl_{el0}_{fi}");
+                    parse_ts_or_compile_error(
+                        ParseTsText(&init_variable_name),
+                        ParseErId("2003ad9f"),
+                    )
+                };
                 tbl_fis_init_vec_ts.push(gen_fields_named_without_pk_without_comma_ts(
                     &|el: &SynField| {
                         let fi = &el.ident;
@@ -4654,7 +4713,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     let fi0 = &el0.ident;
                     if pk_fi == fi0 {
                         some_pk_wh_init_ts.clone()
-                    } else if fi0 == fi {
+                    } else if &fi0.0 == fi {
                         gen_some_pg_type_wh_try_new_and_ts(&ts)
                     } else {
                         none_ts.clone()
@@ -4842,7 +4901,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         let gen_rd_ids_upper_fields_init_without_pk_ts = |fi: &Ident| {
             gen_fields_named_without_pk_with_comma_ts(&|syn_field: &SynField| {
                 let fi0 = &syn_field.ident;
-                let ts = if fi == fi0 {
+                let ts = if fi == &fi0.0 {
                     let ts0 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
                     quote! {Some(#ts0 upd_to_rd_ids(&upd))}
                 } else {
@@ -4854,7 +4913,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         let gen_upd_prms_init_without_pk_ts = |fi: &Ident| {
             gen_fields_named_without_pk_with_comma_ts(&|syn_field: &SynField| {
                 let fi0 = &syn_field.ident;
-                if fi == fi0 {
+                if fi == &fi0.0 {
                     let ts = gen_v_init_ts0(&quote! {#UpdSc.clone()});
                     quote! {Some(#ts)}
                 } else {
@@ -4869,7 +4928,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
              expect_uuid_1: &str| {
                 gen_fields_named_without_pk_with_comma_ts(&|syn_field: &SynField| {
                     let fi0 = &syn_field.ident;
-                    let ts = if fi == fi0 {
+                    let ts = if fi == &fi0.0 {
                         let ts0 = gen_v_init_ts0(&{
                             let ts1 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
                             let expect_0 = dq_ts(&expect_uuid_0);
@@ -5514,33 +5573,33 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                     tokio::runtime::Builder::new_multi_thread().worker_threads(num_cpus::get()).enable_all().build().expect("38823c21").block_on(async {
                         //todo mb refactor
                         let mut #ConfigSc = #config_path_ts {
-                            service_socket_address: <config_lib::ServiceSocketAddress as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            service_socket_address: <config_lib::ServiceSocketAddress as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "127.0.0.1:0".to_owned()
-                            ).expect("b5b3915a").0,
-                            database_url: <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("b5b3915a").0,
+                            database_url: <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "postgres://postgres:postgres@127.0.0.1:5432/postgres?connect_timeout=10".to_owned()
-                            ).expect("f9c20f05").0,
-                            timezone: <config_lib::Timezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("f9c20f05").0,
+                            timezone: <config_lib::Timezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "10800".to_owned()
-                            ).expect("d00d8998").0,
-                            tracing_level: <config_lib::TracingLevel as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("d00d8998").0,
+                            tracing_level: <config_lib::TracingLevel as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "er".to_owned()
-                            ).expect("957178c9").0,
-                            src_place_type: <config_lib::SrcPlaceType as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("957178c9").0,
+                            src_place_type: <config_lib::SrcPlaceType as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "src".to_owned()
-                            ).expect("bec0950e").0,
-                            enable_api_git_commit_check: <config_lib::EnableApiGitCommitCheck as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("bec0950e").0,
+                            enable_api_git_commit_check: <config_lib::EnableApiGitCommitCheck as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "true".to_owned()
-                            ).expect("31f02640").0,
-                            maximum_size_of_http_body_in_bytes: <config_lib::MaximumSizeOfHttpBodyInBytes as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("31f02640").0,
+                            maximum_size_of_http_body_in_bytes: <config_lib::MaximumSizeOfHttpBodyInBytes as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "1048576000".to_owned()
-                            ).expect("93b2f818").0,
-                            pg_pool_max_connections: <config_lib::PgPoolMaxConnections as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("93b2f818").0,
+                            pg_pool_max_connections: <config_lib::PgPoolMaxConnections as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "50".to_owned()
-                            ).expect("7c4e9f12").0,
-                            cors_allow_origin: <config_lib::CorsAllowOrigin as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                            )).expect("7c4e9f12").0,
+                            cors_allow_origin: <config_lib::CorsAllowOrigin as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "http://127.0.0.1".to_owned()
-                            ).expect("a1b2c3d4").0,
+                            )).expect("a1b2c3d4").0,
                         };
                         let #PgPoolSc = sqlx::postgres::PgPoolOptions::new()
                         .max_connections(50)
@@ -5608,7 +5667,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_ts = tokio::spawn(async move {
                             let #AppStateSc = std::sync::Arc::new(server_app_state::ServerAppState {
-                                #PgPoolSc: #PgPoolForTokioSpawnSyncMoveSc.clone(),
+                                #PgPoolSc: app_state::PgPool(#PgPoolForTokioSpawnSyncMoveSc.clone()),
                                 #ConfigSc,
                                 project_git_info: &git_info::PROJECT_GIT_INFO,
                             });
@@ -5664,7 +5723,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     mb_write_ts_into_file(
         gen_pg_tbl_config.tests_write_into_file,
         "gen_pg_tbl_Tests",
-        &generated_ident_tests_ts,
+        TsRef(&generated_ident_tests_ts),
         &FormatWithCargofmt::True,
     );
     let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
@@ -5685,7 +5744,7 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     mb_write_ts_into_file(
         gen_pg_tbl_config.cmn_write_into_file,
         "gen_pg_tbl_cmn",
-        &cmn_ts,
+        TsRef(&cmn_ts),
         &FormatWithCargofmt::True,
     );
     let gend = {
@@ -5721,8 +5780,8 @@ pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     mb_write_ts_into_file(
         gen_pg_tbl_config.whole_write_into_file,
         "gen_pg_tbl",
-        &gend,
+        TsRef(&gend),
         &FormatWithCargofmt::True,
     );
-    gend
+    GeneratedRustTs(gend)
 }

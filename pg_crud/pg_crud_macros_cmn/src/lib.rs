@@ -2,6 +2,7 @@ mod flts;
 pub use flts::*;
 pub use gen_quotes::dq_ts;
 pub use macros_helpers::DTsBuilder;
+pub use macros_helpers::GeneratedRustTs;
 pub use macros_helpers::gen_impl_display_ts;
 pub use macros_helpers::gen_impl_to_err_string_ts;
 pub use naming::prm::{SelfCrUcc, SelfSelUcc, SelfWhUcc};
@@ -37,8 +38,71 @@ pub use token_patterns::{
 #[derive(Debug, Clone, Optml)]
 pub enum DeriveOrImpl {
     Derive,
-    Impl(proc_macro2::TokenStream),
+    Impl(GeneratedRustTs),
 }
+#[derive(Debug, Clone, Default)]
+pub struct GeneratedRustTsVec(pub Vec<GeneratedRustTs>);
+impl ToTokens for GeneratedRustTsVec {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        for ts in &self.0 {
+            ts.to_tokens(tokens);
+        }
+    }
+}
+impl FromIterator<GeneratedRustTs> for GeneratedRustTsVec {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = GeneratedRustTs>,
+    {
+        Self(iter.into_iter().collect())
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct NnOrNlStr(pub &'static str);
+impl Display for NnOrNlStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone)]
+pub struct IsNlPrefixStr(pub String);
+impl Display for IsNlPrefixStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct ImportScStr(pub &'static str);
+impl Display for ImportScStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct ImportPathStr(pub &'static str);
+impl Display for ImportPathStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct DimNbr(pub usize);
+#[derive(Debug, Clone, Copy)]
+pub struct StructElsLen(pub usize);
+#[derive(Debug, Clone, Copy)]
+pub struct DeLen(pub usize);
+#[derive(Debug, Clone, Copy)]
+pub struct WrapIntoBraces(pub bool);
+#[derive(Debug, Clone)]
+pub struct ParseTsStrings(pub Vec<String>);
+#[derive(Debug, Clone, Copy)]
+pub struct ParseTsTextRef<'lt>(pub &'lt str);
+#[derive(Debug, Clone, Copy)]
+pub struct ParseErIdRef<'lt>(pub &'lt str);
+#[derive(Debug, Clone, Copy)]
+pub struct PanicUuidRef<'lt>(pub &'lt str);
+#[derive(Debug, Clone, Copy)]
+pub struct SynIdentTypeRefs<'lt>(pub &'lt [(&'lt Ident, &'lt Type)]);
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum IsStdrtNn {
     False,
@@ -65,31 +129,31 @@ pub enum IsNl {
 }
 impl IsNl {
     #[must_use]
-    pub fn mb_opt_wrap(&self, ts: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    pub fn mb_opt_wrap(&self, ts: GeneratedRustTs) -> GeneratedRustTs {
         match &self {
             Self::False => ts,
-            Self::True => quote! {Option<#ts>},
+            Self::True => quote! {Option<#ts>}.into(),
         }
     }
     #[must_use]
-    pub fn mb_some_wrap(&self, ts: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    pub fn mb_some_wrap(&self, ts: GeneratedRustTs) -> GeneratedRustTs {
         match &self {
             Self::False => ts,
-            Self::True => quote! {Some(#ts)},
+            Self::True => quote! {Some(#ts)}.into(),
         }
     }
     #[must_use]
-    pub const fn nn_or_nl_str(&self) -> &str {
+    pub const fn nn_or_nl_str(&self) -> NnOrNlStr {
         match &self {
-            Self::False => "Nn",
-            Self::True => "Nl",
+            Self::False => NnOrNlStr("Nn"),
+            Self::True => NnOrNlStr("Nl"),
         }
     }
     #[must_use]
-    pub fn prefix_str(&self) -> String {
+    pub fn prefix_str(&self) -> IsNlPrefixStr {
         match &self {
-            Self::False => String::default(),
-            Self::True => String::from("StdOptOpt"),
+            Self::False => IsNlPrefixStr(String::default()),
+            Self::True => IsNlPrefixStr(String::from("StdOptOpt")),
         }
     }
     #[must_use]
@@ -136,25 +200,26 @@ impl Import {
         }
     }
     #[must_use]
-    pub const fn sc_str(&self) -> &'static str {
+    pub const fn sc_str(&self) -> ImportScStr {
         match &self {
-            Self::Crate => "crate",
-            Self::PgCrud => "pg_crud",
-            Self::PgCrudCmn => "pg_crud_cmn",
+            Self::Crate => ImportScStr("crate"),
+            Self::PgCrud => ImportScStr("pg_crud"),
+            Self::PgCrudCmn => ImportScStr("pg_crud_cmn"),
         }
     }
     #[must_use]
-    pub const fn to_path(&self) -> &'static str {
+    pub const fn to_path(&self) -> ImportPathStr {
         match &self {
-            Self::Crate => "crate",
-            Self::PgCrud => "pg_crud",
-            Self::PgCrudCmn => "pg_crud_cmn",
+            Self::Crate => ImportPathStr("crate"),
+            Self::PgCrud => ImportPathStr("pg_crud"),
+            Self::PgCrudCmn => ImportPathStr("pg_crud_cmn"),
         }
     }
 }
 impl ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        parse_ts_or_compile_error(self.sc_str(), "d8636ee5").to_tokens(tokens);
+        parse_ts_or_compile_error(ParseTsTextRef(self.sc_str().0), ParseErIdRef("d8636ee5"))
+            .to_tokens(tokens);
     }
 }
 bool_enum_to_tokens!(AddOprtrUndrscr, false => AddOprtrSc, true => quote! {_});
@@ -203,12 +268,12 @@ pub enum EqOprtrH {
 }
 impl EqOprtrH {
     #[must_use]
-    pub fn to_tokens_path(&self, import: &Import) -> proc_macro2::TokenStream {
+    pub fn to_tokens_path(&self, import: &Import) -> GeneratedRustTs {
         let ts = match &self {
             Self::Eq => quote! {Eq},
             Self::IsNull => quote! {IsNull},
         };
-        quote! {#import::#EqOprtrUcc::#ts}
+        quote! {#import::#EqOprtrUcc::#ts}.into()
     }
 }
 //todo mb reuse with other structs
@@ -253,13 +318,13 @@ pub fn gen_pg_type_wh_ts(
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_qb_mut: &IsQbMut,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let ident = SelfWhUcc::from_tokens(&prefix);
     let pg_type_tokens_wh_ts = {
         let vrts_ts = vrts.iter().map(|el| {
             let el_ucc = el.ucc();
             let prefix_wh_self_ucc = el.prefix_wh_self_ucc();
-            let opt_type_ts: Option<proc_macro2::TokenStream> = el.mb_generic();
+            let opt_type_ts: Option<GeneratedRustTs> = el.mb_generic();
             let type_ts = opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote! {<#v>});
             quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
         });
@@ -331,11 +396,12 @@ pub fn gen_pg_type_wh_ts(
         #impl_loc_lib_to_err_string_for_pg_type_tokens_wh_ts
         #impl_all_vrts_dflt_some_one_el_for_pg_type_tokens_wh_ts
     }
+    .into()
 }
 pub fn gen_impl_to_err_string_no_generics_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_to_err_string_ts(
         &proc_macro2::TokenStream::new(),
         ident,
@@ -343,9 +409,7 @@ pub fn gen_impl_to_err_string_no_generics_ts(
         ts,
     )
 }
-pub fn gen_impl_display_and_to_err_string_debug_ts(
-    ident: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+pub fn gen_impl_display_and_to_err_string_debug_ts(ident: &dyn ToTokens) -> GeneratedRustTs {
     let impl_display_ts = gen_impl_display_ts(
         &proc_macro2::TokenStream::new(),
         ident,
@@ -358,44 +422,48 @@ pub fn gen_impl_display_and_to_err_string_debug_ts(
         #impl_display_ts
         #impl_to_err_string_ts
     }
+    .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_ts() -> proc_macro2::TokenStream {
-    quote! {pg_crud_cmn::#QpErUcc}
+pub fn pg_crud_cmn_qp_er_ts() -> GeneratedRustTs {
+    quote! {pg_crud_cmn::#QpErUcc}.into()
 }
 #[must_use]
-pub fn gen_dim_nbr_pgn_ts(dim_nbr: usize) -> proc_macro2::TokenStream {
-    parse_ts_or_compile_error(&format!("dim{dim_nbr}_pgn"), "7c3a91b2")
+pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> GeneratedRustTs {
+    parse_ts_or_compile_error(
+        ParseTsTextRef(&format!("dim{}_pgn", dim_nbr.0)),
+        ParseErIdRef("7c3a91b2"),
+    )
 }
-pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> proc_macro2::TokenStream {
+pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> gen_quotes::QuotedLiteralTs {
     dq_ts(&format!("struct {v}"))
 }
 pub fn gen_struct_ident_with_nbr_els_dq_ts(
     ident: &dyn DisplayPlusToTokens,
-    len: usize,
-) -> proc_macro2::TokenStream {
-    dq_ts(&format!("struct {ident} with {len} els"))
+    len: StructElsLen,
+) -> gen_quotes::QuotedLiteralTs {
+    dq_ts(&format!("struct {ident} with {} els", len.0))
 }
-pub fn gen_sqlx_types_json_type_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {sqlx::types::Json<#type_ts>}
+pub fn gen_sqlx_types_json_type_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {sqlx::types::Json<#type_ts>}.into()
 }
-pub fn gen_opt_type_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {Option<#type_ts>}
+pub fn gen_opt_type_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {Option<#type_ts>}.into()
 }
-pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {Vec<#type_ts>}
+pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {Vec<#type_ts>}.into()
 }
 pub fn gen_de_dq_ts(
     ident: &dyn DisplayPlusToTokens,
-    len: usize,
+    len: DeLen,
 ) -> (
-    proc_macro2::TokenStream,
-    proc_macro2::TokenStream,
-    proc_macro2::TokenStream,
+    gen_quotes::QuotedLiteralTs,
+    gen_quotes::QuotedLiteralTs,
+    gen_quotes::QuotedLiteralTs,
 ) {
     let struct_pg_type_ident_wh_tokens_dq_ts = gen_struct_ident_dq_ts(ident);
     let struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts =
-        gen_struct_ident_with_nbr_els_dq_ts(ident, len);
+        gen_struct_ident_with_nbr_els_dq_ts(ident, StructElsLen(len.0));
     let pg_type_ident_wh_tokens_dq_ts = dq_ts(&ident);
     (
         struct_pg_type_ident_wh_tokens_dq_ts,
@@ -409,7 +477,7 @@ pub fn gen_impl_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ident_generic_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let path_trait_ts = import.dflt_some_one_el();
     quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
@@ -418,12 +486,13 @@ pub fn gen_impl_dflt_some_one_el_ts(
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let path_trait_ts = import.all_vrts_dflt_some_one_el();
     quote! {
         impl #path_trait_ts for #ident {
@@ -432,6 +501,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
     impl_generic_ts: &dyn ToTokens,
@@ -439,7 +509,7 @@ pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ident_generic_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let path_trait_ts = import.dflt_some_one_el_max_page_size();
     quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
@@ -448,12 +518,13 @@ pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let path_trait_ts = import.all_vrts_dflt_some_one_el_max_page_size();
     let all_vrts_dflt_some_one_el_max_page_size_sc = AllVrtsDfltSomeOneElMaxPageSizeSc;
     quote! {
@@ -463,11 +534,12 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -480,7 +552,7 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     lt_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrud,
@@ -492,19 +564,19 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
 pub fn gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrud, ident, ts)
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -517,7 +589,7 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     lt_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrud,
@@ -529,7 +601,7 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(&Import::PgCrud, ident, ts)
 }
 pub fn impl_pg_type_wh_flt_for_ident_ts(
@@ -543,44 +615,45 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
     is_qb_mut: &IsQbMut,
     qb_ts: &dyn ToTokens,
     import: &Import,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #impl_generic_ts #import ::#PgTypeWhFltUcc<'lt> for #ident_ts #ident_generic_ts {
             fn #QpSc(
                 &self,
-                #incr_prm_undrscr: &mut #U64,
-                #col_prm_undrscr: &dyn #StdFmtDisplay,
-                #add_oprtr_undrscr: #Bool
-            ) -> Result<#StringTs, #import::#QpErUcc> {
+                #incr_prm_undrscr: &mut dyn #import::QpIncrMut,
+                #col_prm_undrscr: #import::SqlColRef<'_>,
+                #add_oprtr_undrscr: #import::AddOprtr
+            ) -> Result<#import::QpFragment, #import::#QpErUcc> {
                 #qp_ts
             }
-            fn #QbSc(self, #is_qb_mut query: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>) -> Result<
-                sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-                String
+            fn #QbSc(self, #is_qb_mut query: #import::PgQuery<'lt>) -> Result<
+                #import::PgQuery<'lt>,
+                #import::PgQueryBindEr
             > {
                 #qb_ts
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         impl sqlx::Encode<'_, sqlx::Postgres> for #ident_ts {
             fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
                 sqlx::Encode::<sqlx::Postgres>::encode_by_ref(&#ts, buf)
             }
         }
-    }
+    }.into()
 }
 pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn ToTokens,
     type_ts: &dyn ToTokens,
     ok_v_match_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         impl sqlx::Decode<'_, sqlx::Postgres> for #ident_ts {
             fn decode(#ValueSc: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
@@ -590,12 +663,12 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
                 }
             }
         }
-    }
+    }.into()
 }
 pub fn gen_impl_sqlx_type_for_ident_ts(
     ident_ts: &dyn ToTokens,
     type_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         impl sqlx::Type<sqlx::Postgres> for #ident_ts {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
@@ -606,18 +679,20 @@ pub fn gen_impl_sqlx_type_for_ident_ts(
             }
         }
     }
+    .into()
 }
 pub fn gen_impl_sqlx_type_and_encode_for_ident_ts(
     ident_ts: &dyn ToTokens,
     type_ts: &dyn ToTokens,
     encode_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let impl_type_ts = gen_impl_sqlx_type_for_ident_ts(ident_ts, type_ts);
     let impl_encode_ts = gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(ident_ts, encode_ts);
     quote! {
         #impl_type_ts
         #impl_encode_ts
     }
+    .into()
 }
 pub fn gen_impl_pg_type_ts(
     import: &Import,
@@ -654,37 +729,32 @@ pub fn gen_impl_pg_type_ts(
     sel_only_updd_ids_qp_ts: &dyn ToTokens,
     is_sel_only_updd_ids_qb_mut: &IsSelOnlyUpddIdsQbMut,
     sel_only_updd_ids_qb_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
-    let query_pg_args_ts =
-        quote! {sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>};
+) -> GeneratedRustTs {
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #import :: #PgTypeUcc for #ident {
             type #TtUcc = #ident_tt_ucc;
-            fn #CrTblColQpSc(#ColSc: &dyn #StdFmtDisplay, #is_pk_undrscr: #Bool) -> impl #StdFmtDisplay {
+            fn #CrTblColQpSc(#ColSc: #import::SqlColRef<'_>, #is_pk_undrscr: #import::IsPk) -> #import::QpFragment {
                 #cr_tbl_col_qp_ts
             }
             type #CrUcc = #ident_cr_ucc;
             fn #CrQpSc(
                 #cr_qp_v_undrscr: &Self::#CrUcc,
-                #cr_qp_incr_undrscr: &mut #U64
-            ) -> Result<#StringTs, #import ::#QpErUcc> {
+                #cr_qp_incr_undrscr: &mut dyn #import::QpIncrMut
+            ) -> Result<#import::QpFragment, #import ::#QpErUcc> {
                 #cr_qp_ts
             }
             fn #CrQbSc(
                 #cr_qb_v_undrscr: Self::#CrUcc,
-                #is_cr_qb_mut #QuerySc: #query_pg_args_ts
-            ) -> Result<
-                #query_pg_args_ts,
-                String
-            > {
+                #is_cr_qb_mut #QuerySc: #import::PgQuery<'_>
+            ) -> Result<#import::PgQuery<'_>, #import::PgQueryBindEr> {
                 #cr_qb_ts
             }
             type #SelUcc = #ident_sel_ucc;
             fn #SelQpSc(
                 #sel_qp_v_undrscr: &Self::#SelUcc,
-                #ColSc: #RefStr,
-            ) -> Result<#StringTs, #import ::#QpErUcc> {
+                #ColSc: #import::SqlColRef<'_>,
+            ) -> Result<#import::QpFragment, #import ::#QpErUcc> {
                 #sel_qp_ts
             }
             type #WhUcc = #ident_wh_ucc;
@@ -694,8 +764,8 @@ pub fn gen_impl_pg_type_ts(
             }
             type #RdIdsUcc = #rd_ids_ts;
             fn #SelOnlyIdsQpSc(
-                #ColSc: #RefStr
-            ) -> Result<#StringTs, #import ::#QpErUcc> {
+                #ColSc: #import::SqlColRef<'_>
+            ) -> Result<#import::QpFragment, #import ::#QpErUcc> {
                 #sel_only_ids_qp_ts
             }
             type #RdInnUcc = #ident_rd_inn_ucc;
@@ -707,42 +777,39 @@ pub fn gen_impl_pg_type_ts(
             #[allow(unused_variables)]
             fn #UpdQpSc(
                 #upd_qp_v_undrscr: &Self::#UpdForQueryUcc,
-                #upd_qp_accumulator_undrscr: #RefStr,
-                #upd_qp_target_undrscr: #RefStr,
-                #upd_qp_path_undrscr: #RefStr,
-                #IncrSc: &mut #U64
-            ) -> Result<#StringTs, #import ::#QpErUcc> {
+                #upd_qp_accumulator_undrscr: #import::SqlColRef<'_>,
+                #upd_qp_target_undrscr: #import::SqlColRef<'_>,
+                #upd_qp_path_undrscr: #import::SqlColRef<'_>,
+                #IncrSc: &mut dyn #import::QpIncrMut
+            ) -> Result<#import::QpFragment, #import ::#QpErUcc> {
                 #upd_qp_ts
             }
             fn #UpdQbSc(
                 #VSc: Self::#UpdForQueryUcc,
-                #is_upd_qb_mut #QuerySc: sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>
-            ) -> Result<
-                sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>,
-                String
-            > {
+                #is_upd_qb_mut #QuerySc: #import::PgQuery<'_>
+            ) -> Result<#import::PgQuery<'_>, #import::PgQueryBindEr> {
                 #upd_qb_ts
             }
             fn #SelOnlyUpddIdsQpSc(
                 #VSc: &Self::#UpdForQueryUcc,
-                #ColSc: #RefStr,
-                #IncrSc: &mut #U64,
-            ) -> Result<#StringTs, #import ::#QpErUcc> {
+                #ColSc: #import::SqlColRef<'_>,
+                #IncrSc: &mut dyn #import::QpIncrMut,
+            ) -> Result<#import::QpFragment, #import ::#QpErUcc> {
                 #sel_only_updd_ids_qp_ts
             }
             fn #SelOnlyUpddIdsQbSc<'lt>(
                 #VSc: &'lt Self::#UpdForQueryUcc,
-                #is_sel_only_updd_ids_qb_mut #QuerySc: sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>
-            ) -> Result<sqlx::query::Query<'lt, sqlx::Postgres, sqlx::postgres::PgArguments>, String> {
+                #is_sel_only_updd_ids_qb_mut #QuerySc: #import::PgQuery<'lt>
+            ) -> Result<#import::PgQuery<'lt>, #import::PgQueryBindEr> {
                 #sel_only_updd_ids_qb_ts
             }
         }
-    }
+    }.into()
 }
 pub fn gen_impl_pg_type_not_pk_for_ident_ts(
     import: &Import,
     ident: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let ident_cr_ucc = SelfCrUcc::from_tokens(&ident);
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
@@ -751,17 +818,19 @@ pub fn gen_impl_pg_type_not_pk_for_ident_ts(
             type #CrUcc = #ident_cr_ucc;
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
+fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
     quote! {
         fn #OptVecCrSc() -> Option<Vec<#path_ts::#CrUcc>> {
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
@@ -770,7 +839,7 @@ fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro2::
 fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #RdIdsTo2DimsVecRdInnSc(
             #RdIdsSc: &#path_ts::#RdIdsUcc
@@ -778,6 +847,7 @@ fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(
             #ts
         }
     }
+    .into()
 }
 fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
     method_name_ts: &dyn ToTokens,
@@ -785,7 +855,7 @@ fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
     path_ts: &dyn ToTokens,
     return_type_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #method_name_ts(
             #VSc: #type_ts
@@ -793,12 +863,13 @@ fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
+fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
     quote! {
         fn #UpdToRdIdsSc(
             #VSc: &#path_ts::#UpdUcc
@@ -806,6 +877,7 @@ fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
@@ -815,7 +887,7 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
     import: Import,
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #RdIdsToOptVRdDfltSomeOneElSc(
             #VSc: &#path_ts::#RdIdsUcc
@@ -823,6 +895,7 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
@@ -831,7 +904,7 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
 fn gen_previous_rd_and_opt_upd_into_rd_ts(
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #PreviousRdAndOptUpdIntoRdSc(
             #RdSc: #path_ts::#RdUcc,
@@ -840,15 +913,13 @@ fn gen_previous_rd_and_opt_upd_into_rd_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_rd_ts(
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+fn gen_rd_ids_and_cr_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
     quote! {
         fn #RdIdsAndCrIntoRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -857,6 +928,7 @@ fn gen_rd_ids_and_cr_into_rd_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
@@ -866,7 +938,7 @@ fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
     import: Import,
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #RdIdsAndCrIntoOptVRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -875,15 +947,13 @@ fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_tt_ts(
-    path_ts: &dyn ToTokens,
-    ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+fn gen_rd_ids_and_cr_into_tt_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> GeneratedRustTs {
     quote! {
         fn #RdIdsAndCrIntoTtSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -892,13 +962,14 @@ fn gen_rd_ids_and_cr_into_tt_ts(
             #ts
         }
     }
+    .into()
 }
 pub fn gen_rd_ids_and_cr_into_wh_eq_ts(
     rd_ids_ts: &dyn ToTokens,
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #RdIdsAndCrIntoWhEqSc(
             #RdIdsSc: #rd_ids_ts,
@@ -907,6 +978,7 @@ pub fn gen_rd_ids_and_cr_into_wh_eq_ts(
             #ts
         }
     }
+    .into()
 }
 pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
     import: &Import,
@@ -914,7 +986,7 @@ pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         fn #RdIdsAndCrIntoVecWhEqUsingFieldsSc(
             #RdIdsSc: #rd_ids_ts,
@@ -923,6 +995,7 @@ pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
             #ts
         }
     }
+    .into()
 }
 #[expect(
     clippy::single_call_fn,
@@ -934,7 +1007,7 @@ fn gen_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts(
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let return_type_ts = gen_opt_type_dcl_ts(&quote! {#import::NotEmptyUnqVec<#wh_ts>});
     quote! {
         fn #RdIdsAndCrIntoOptVecWhEqToFieldSc(
@@ -944,13 +1017,14 @@ fn gen_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts(
             #ts
         }
     }
+    .into()
 }
 pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     cfg_ts: &dyn ToTokens,
     import: &Import,
     type_ts: &dyn ToTokens,
     ident: &dyn ToTokens,
-    opt_vec_cr_ts: Option<&proc_macro2::TokenStream>,
+    opt_vec_cr_ts: Option<&GeneratedRustTs>,
     rd_ids_to_2_dims_vec_rd_inn_ts: &dyn ToTokens,
     rd_inn_into_rd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
     rd_inn_into_upd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
@@ -962,10 +1036,10 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     rd_ids_and_cr_into_tt_ts: &dyn ToTokens,
     rd_ids_and_cr_into_wh_eq_ts: &dyn ToTokens,
     rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&proc_macro2::TokenStream>,
-    pg_type_opt_vec_wh_greater_than_test_ts: Option<&proc_macro2::TokenStream>,
-    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&proc_macro2::TokenStream>,
-) -> proc_macro2::TokenStream {
+    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&GeneratedRustTs>,
+    pg_type_opt_vec_wh_greater_than_test_ts: Option<&GeneratedRustTs>,
+    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&GeneratedRustTs>,
+) -> GeneratedRustTs {
     let self_pg_type_as_pg_type_ts = quote! {<#SelfUcc::#PgTypeUcc as #import::#PgTypeUcc>};
     let self_pg_type_as_pg_type_rd_ids_ts = quote! {#self_pg_type_as_pg_type_ts::#RdIdsUcc};
     let self_pg_type_as_pg_type_cr_ts = quote! {#self_pg_type_as_pg_type_ts::#CrUcc};
@@ -1091,46 +1165,49 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
             #rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts_gnrtd
         }
     }
+    .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> proc_macro2::TokenStream {
-    quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}
+pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> GeneratedRustTs {
+    quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}.into()
 }
 pub fn gen_impl_crate_is_string_empty_for_ident_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         impl pg_crud_cmn::IsStringEmpty for #ident {
-            fn is_string_empty(&self) -> bool {
-                #ts
+            fn is_string_empty(&self) -> pg_crud_cmn::IsStringEmptyRes {
+                pg_crud_cmn::IsStringEmptyRes(#ts)
             }
         }
     }
+    .into()
 }
-pub fn gen_match_try_new_in_de_ts(
-    ident: &dyn ToTokens,
-    init_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+pub fn gen_match_try_new_in_de_ts(ident: &dyn ToTokens, init_ts: &dyn ToTokens) -> GeneratedRustTs {
     quote! {
         match #ident::try_new(#init_ts) {
             Ok(v) => Ok(v),
             Err(er) => Err(serde::de::Error::custom(format!("{er:?}")))
         }
     }
+    .into()
 }
 pub fn gen_impl_de_for_struct_ts(
     ident: &dyn DisplayPlusToTokens,
-    vec_ident_type: &[(&Ident, &Type)],
-    _len: usize,
-    gen_type_ts: &dyn Fn(&Ident, &Type) -> proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    let raw_ident_ts = parse_ts_or_compile_error(&format!("{ident}Raw"), "a1b2c3d4");
-    let raw_fields_ts = vec_ident_type.iter().map(|(fi, ty)| {
+    vec_ident_type: SynIdentTypeRefs<'_>,
+    _len: DeLen,
+    gen_type_ts: &dyn Fn(&Ident, &Type) -> GeneratedRustTs,
+) -> GeneratedRustTs {
+    let raw_ident_ts = parse_ts_or_compile_error(
+        ParseTsTextRef(&format!("{ident}Raw")),
+        ParseErIdRef("a1b2c3d4"),
+    );
+    let raw_fields_ts = vec_ident_type.0.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
         quote! { #fi: #type_ts, }
     });
-    let try_from_fields_ts = vec_ident_type.iter().map(|(fi, _)| {
+    let try_from_fields_ts = vec_ident_type.0.iter().map(|(fi, _)| {
         quote! { raw.#fi }
     });
     quote! {
@@ -1158,29 +1235,29 @@ pub fn gen_impl_de_for_struct_ts(
                 }
             }
         };
-    }
+    }.into()
 }
-pub fn wrap_into_scopes_ts(ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {(#ts)}
+pub fn wrap_into_scopes_ts(ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {(#ts)}.into()
 }
-pub fn mb_wrap_into_braces_ts(ts: &dyn ToTokens, wrap: bool) -> proc_macro2::TokenStream {
-    if wrap {
+pub fn mb_wrap_into_braces_ts(ts: &dyn ToTokens, wrap: WrapIntoBraces) -> GeneratedRustTs {
+    if wrap.0 {
         wrap_into_scopes_ts(&ts)
     } else {
-        quote! {#ts}
+        quote! {#ts}.into()
     }
 }
-pub fn gen_v_dcl_ts(import: &Import, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {#import::V<#ts>}
+pub fn gen_v_dcl_ts(import: &Import, ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {#import::V<#ts>}.into()
 }
-pub fn gen_v_init_ts(import: &Import, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
-    quote! {#import::V { #VSc: #ts }}
+pub fn gen_v_init_ts(import: &Import, ts: &dyn ToTokens) -> GeneratedRustTs {
+    quote! {#import::V { #VSc: #ts }}.into()
 }
 pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         impl #import::#PgTypeEqOprtrUcc for #ident {
             fn oprtr(&self) -> #import::#EqOprtrUcc {
@@ -1188,40 +1265,43 @@ pub fn impl_pg_type_eq_oprtr_for_ident_ts(
             }
         }
     }
+    .into()
 }
 #[must_use]
-pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> proc_macro2::TokenStream {
+pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> GeneratedRustTs {
     quote! {
         #import::QpEr::WriteIntoBuffer {
             loc: loc_lib::loc!()
         }
     }
+    .into()
 }
 #[must_use]
-pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> proc_macro2::TokenStream {
+pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> GeneratedRustTs {
     let ts = gen_qp_er_write_into_buffer_ts(import);
-    quote! {return Err(#ts);}
+    quote! {return Err(#ts);}.into()
 }
 #[must_use]
-pub fn parse_strs_to_ts2_vec(v: Vec<String>, uuid: &str) -> Vec<proc_macro2::TokenStream> {
-    v.into_iter()
-        .map(|el| parse_ts_or_compile_error(&el, uuid))
-        .collect::<Vec<proc_macro2::TokenStream>>()
+pub fn parse_strs_to_ts2_vec(v: ParseTsStrings, uuid: ParseErIdRef<'_>) -> GeneratedRustTsVec {
+    v.0.into_iter()
+        .map(|el| parse_ts_or_compile_error(ParseTsTextRef(&el), uuid))
+        .collect::<GeneratedRustTsVec>()
 }
 #[must_use]
 pub fn gen_mod_with_pub_use_ts(
     mod_name: &dyn ToTokens,
-    content_ts: &[proc_macro2::TokenStream],
-) -> proc_macro2::TokenStream {
+    content_ts: &GeneratedRustTsVec,
+) -> GeneratedRustTs {
     quote! {
         #[allow(unused_qualifications)]
         #[allow(clippy::absolute_paths)]
         #[allow(clippy::arbitrary_source_item_ordering)]
         mod #mod_name {
-            #(#content_ts)*
+            #content_ts
         }
         pub use #mod_name::*;
     }
+    .into()
 }
 #[must_use]
 pub fn cmn_d_ts_builder() -> DTsBuilder {
@@ -1256,7 +1336,7 @@ pub fn gen_match_ok_assign_or_return_err_ts(
     expr_ts: &dyn ToTokens,
     assign_target_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => {
@@ -1267,12 +1347,13 @@ pub fn gen_match_ok_assign_or_return_err_ts(
             }
         }
     }
+    .into()
 }
 #[must_use]
 pub fn gen_match_ok_or_return_err_ts(
     expr_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => #ok_v_ts,
@@ -1281,15 +1362,16 @@ pub fn gen_match_ok_or_return_err_ts(
             }
         }
     }
+    .into()
 }
 #[must_use]
 pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
     import: &Import,
     expr_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-    panic_uuid: &str,
-) -> proc_macro2::TokenStream {
-    let panic_uuid_ts = dq_ts(&panic_uuid);
+    panic_uuid: PanicUuidRef<'_>,
+) -> GeneratedRustTs {
+    let panic_uuid_ts = dq_ts(&panic_uuid.0);
     quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => Some(#ok_v_ts),
@@ -1299,13 +1381,14 @@ pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
             }
         }
     }
+    .into()
 }
 #[must_use]
 pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
     expr_ts: &dyn ToTokens,
     some_v_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-) -> proc_macro2::TokenStream {
+) -> GeneratedRustTs {
     let match_ts = gen_match_ok_assign_or_return_err_ts(expr_ts, &QuerySc, ok_v_ts);
     quote! {
         if let Some(#some_v_ts) = &#VSc.0 {
@@ -1313,13 +1396,14 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
         }
         Ok(#QuerySc)
     }
+    .into()
 }
-fn parse_ts_or_compile_error(v: &str, er_id: &str) -> proc_macro2::TokenStream {
-    match v.parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => parsed_ts,
+fn parse_ts_or_compile_error(v: ParseTsTextRef<'_>, er_id: ParseErIdRef<'_>) -> GeneratedRustTs {
+    match v.0.parse::<proc_macro2::TokenStream>() {
+        Ok(parsed_ts) => parsed_ts.into(),
         Err(er) => {
-            let msg = format!("{er_id}: {er}");
-            quote! {compile_error!(#msg);}
+            let msg = format!("{}: {er}", er_id.0);
+            quote! {compile_error!(#msg);}.into()
         }
     }
 }

@@ -25,13 +25,36 @@ to_err_string_macros::impl_to_err_string_with!(
     => |v| v.to_string()
 );
 pub trait ToErrString {
-    fn to_err_string(&self) -> String;
+    fn to_err_string(&self) -> ToErrStringValue;
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ToErrStringValue(pub String);
+impl From<String> for ToErrStringValue {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for ToErrStringValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl AsRef<str> for ToErrStringValue {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl std::ops::Deref for ToErrStringValue {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.0.as_str()
+    }
 }
 impl<T> ToErrString for &T
 where
     T: ToErrString + ?Sized,
 {
-    fn to_err_string(&self) -> String {
+    fn to_err_string(&self) -> ToErrStringValue {
         (*self).to_err_string()
     }
 }
@@ -39,7 +62,7 @@ impl<T> ToErrString for Option<T>
 where
     T: std::fmt::Debug,
 {
-    fn to_err_string(&self) -> String {
+    fn to_err_string(&self) -> ToErrStringValue {
         debug_to_string(self)
     }
 }
@@ -48,7 +71,7 @@ where
     T: std::fmt::Debug,
     E: std::fmt::Debug,
 {
-    fn to_err_string(&self) -> String {
+    fn to_err_string(&self) -> ToErrStringValue {
         debug_to_string(self)
     }
 }
@@ -57,32 +80,34 @@ to_err_string_macros::impl_to_err_string_const!(
     tracing::dispatcher::SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultEr",
     tracing::log::SetLoggerError => "tracing::log::tracing::log::SetLoggerError",
 );
-fn debug_alt_to_string<T>(v: &T) -> String
+#[derive(Debug, Clone, Copy)]
+struct StaticStrToOwnedInput(pub &'static str);
+fn debug_alt_to_string<T>(v: &T) -> ToErrStringValue
 where
     T: std::fmt::Debug,
 {
-    format!("{v:#?}")
+    ToErrStringValue(format!("{v:#?}"))
 }
-fn debug_to_string<T>(v: &T) -> String
+fn debug_to_string<T>(v: &T) -> ToErrStringValue
 where
     T: std::fmt::Debug,
 {
-    format!("{v:?}")
+    ToErrStringValue(format!("{v:?}"))
 }
-fn as_ref_str_to_owned<T>(v: &T) -> String
+fn as_ref_str_to_owned<T>(v: &T) -> ToErrStringValue
 where
     T: ?Sized + AsRef<str>,
 {
-    v.as_ref().to_owned()
+    ToErrStringValue(v.as_ref().to_owned())
 }
-fn static_str_to_owned(v: &'static str) -> String {
-    v.to_owned()
+fn static_str_to_owned(v: StaticStrToOwnedInput) -> ToErrStringValue {
+    ToErrStringValue(v.0.to_owned())
 }
 #[cfg(test)]
 mod tests {
     #[allow(clippy::single_call_fn)] // shared assertion keeps ToErrString behavior checks concise and consistent
     fn assert_to_err_string(v: impl super::ToErrString, exp: &str) {
-        assert_eq!(v.to_err_string(), exp);
+        assert_eq!(v.to_err_string().0, exp);
     }
     #[test]
     fn to_err_string_for_primitives_and_options() {

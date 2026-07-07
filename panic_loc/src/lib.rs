@@ -2,9 +2,20 @@
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
 const PANIC_NO_LOCATION_MSG: &str = "panic occurred but can't get location information...";
+#[derive(Clone, Copy)]
+struct PanicFile<'file_lt>(&'file_lt str);
+#[derive(Clone, Copy)]
+struct PanicLine(u32);
+#[derive(Clone, Copy)]
+struct PanicCol(u32);
+struct PanicWithLocationMsg(String);
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place
-fn panic_with_location_msg(file: &str, line: u32, col: u32) -> String {
-    format!("panic occurred in {file}:{line}:{col}")
+fn panic_with_location_msg(
+    file: PanicFile<'_>,
+    line: PanicLine,
+    col: PanicCol,
+) -> PanicWithLocationMsg {
+    PanicWithLocationMsg(format!("panic occurred in {}:{}:{}", file.0, line.0, col.0))
 }
 pub fn panic_loc() {
     PANIC_HOOK_ONCE.call_once(|| {
@@ -12,7 +23,12 @@ pub fn panic_loc() {
             if let Some(location) = panic_info.location() {
                 eprintln!(
                     "{}",
-                    panic_with_location_msg(location.file(), location.line(), location.column())
+                    panic_with_location_msg(
+                        PanicFile(location.file()),
+                        PanicLine(location.line()),
+                        PanicCol(location.column())
+                    )
+                    .0
                 );
             } else {
                 eprintln!("{PANIC_NO_LOCATION_MSG}");
@@ -37,7 +53,12 @@ mod tests {
     #[test]
     fn panic_with_location_message_is_formatted_as_expected() {
         assert_eq!(
-            super::panic_with_location_msg("src/lib.rs", 7, 11),
+            super::panic_with_location_msg(
+                super::PanicFile("src/lib.rs"),
+                super::PanicLine(7),
+                super::PanicCol(11)
+            )
+            .0,
             "panic occurred in src/lib.rs:7:11"
         );
     }

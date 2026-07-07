@@ -1,12 +1,58 @@
+#[derive(Debug)]
+pub struct Body(pub axum::body::Body);
+impl From<axum::body::Body> for Body {
+    fn from(value: axum::body::Body) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct BodySizeLimitBytes(pub usize);
+impl From<usize> for BodySizeLimitBytes {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl loc_lib::ToErrString for BodySizeLimitBytes {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_string())
+    }
+}
+#[derive(Debug)]
+pub struct BodySizeAxumEr(pub axum::Error);
+impl loc_lib::ToErrString for BodySizeAxumEr {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(self.0.to_string())
+    }
+}
+#[derive(Debug)]
+pub struct BodySizeHint(pub http_body::SizeHint);
+impl loc_lib::ToErrString for BodySizeHint {
+    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+        loc_lib::ToErrStringValue(format!("{:#?}", self.0))
+    }
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BodyBytes(pub bytes::Bytes);
+impl std::ops::Deref for BodyBytes {
+    type Target = [u8];
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref()
+    }
+}
+impl AsRef<[u8]> for BodyBytes {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum BodySizeEr {
     ReachedMaximumSizeOfBody {
         #[eo_to_err_string]
-        er: axum::Error,
+        er: BodySizeAxumEr,
         #[eo_to_err_string_serde]
-        maximum_size_of_body_limit_in_bytes: usize,
+        maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
         #[eo_to_err_string]
-        size_hint: http_body::SizeHint,
+        size_hint: BodySizeHint,
         loc: loc_lib::loc::Loc,
     },
 }
@@ -16,9 +62,9 @@ impl crate::GetAxumHttpStatusCode for BodySizeEr {
 impl BodySizeEr {
     #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
     fn reached_maximum_size_of_body(
-        er: axum::Error,
-        maximum_size_of_body_limit_in_bytes: usize,
-        size_hint: http_body::SizeHint,
+        er: BodySizeAxumEr,
+        maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
+        size_hint: BodySizeHint,
     ) -> Self {
         Self::ReachedMaximumSizeOfBody {
             er,
@@ -28,14 +74,27 @@ impl BodySizeEr {
         }
     }
 }
-pub async fn check_body_size(
-    body: axum::body::Body,
-    limit: usize,
-) -> Result<bytes::Bytes, BodySizeEr> {
-    let size_hint = axum::body::HttpBody::size_hint(&body);
-    axum::body::to_bytes(body, limit)
+pub async fn check_body_size<BodyTy, LimitTy>(
+    body: BodyTy,
+    limit: LimitTy,
+) -> Result<BodyBytes, BodySizeEr>
+where
+    BodyTy: Into<Body>,
+    LimitTy: Into<BodySizeLimitBytes>,
+{
+    let body_value = body.into();
+    let limit_value = limit.into();
+    let size_hint = axum::body::HttpBody::size_hint(&body_value.0);
+    axum::body::to_bytes(body_value.0, limit_value.0)
         .await
-        .map_err(|er: axum::Error| BodySizeEr::reached_maximum_size_of_body(er, limit, size_hint))
+        .map(BodyBytes)
+        .map_err(|er: axum::Error| {
+            BodySizeEr::reached_maximum_size_of_body(
+                BodySizeAxumEr(er),
+                limit_value,
+                BodySizeHint(size_hint),
+            )
+        })
 }
 #[cfg(test)]
 mod tests {
@@ -58,36 +117,36 @@ mod tests {
                 maximum_size_of_body_limit_in_bytes,
                 size_hint,
                 ..
-            } => (*maximum_size_of_body_limit_in_bytes, size_hint.upper()),
+            } => (maximum_size_of_body_limit_in_bytes.0, size_hint.0.upper()),
         }
     }
     fn assert_reached_max_size_limit(body: axum::body::Body, limit: usize, exp_id: &'static str) {
         let (maximum_size_of_body_limit_in_bytes, _) = expect_reached_max_size(body, limit, exp_id);
         assert_eq!(maximum_size_of_body_limit_in_bytes, limit);
     }
+    fn assert_body_bytes_eq(
+        body: axum::body::Body,
+        limit: usize,
+        exp_id: &'static str,
+        exp: &'static [u8],
+    ) {
+        let actual = crate::test_hlp::expect_ok(
+            crate::test_hlp::block_on(super::check_body_size(body, limit)),
+            exp_id,
+        );
+        assert_eq!(actual.0, bytes::Bytes::from_static(exp));
+    }
     #[test]
     fn check_body_size_returns_bytes_when_body_fits_limit() {
-        crate::test_hlp::assert_ok_eq(
-            crate::test_hlp::block_on(super::check_body_size(axum::body::Body::from("ok"), 8)),
-            "2fb3e958",
-            &bytes::Bytes::from_static(b"ok"),
-        );
+        assert_body_bytes_eq(axum::body::Body::from("ok"), 8, "2fb3e958", b"ok");
     }
     #[test]
     fn check_body_size_returns_bytes_when_size_eq_limit() {
-        crate::test_hlp::assert_ok_eq(
-            crate::test_hlp::block_on(super::check_body_size(axum::body::Body::from("ok"), 2)),
-            "1736f4db",
-            &bytes::Bytes::from_static(b"ok"),
-        );
+        assert_body_bytes_eq(axum::body::Body::from("ok"), 2, "1736f4db", b"ok");
     }
     #[test]
     fn check_body_size_returns_bytes_for_empty_body_with_zero_limit() {
-        crate::test_hlp::assert_ok_eq(
-            crate::test_hlp::block_on(super::check_body_size(axum::body::Body::empty(), 0)),
-            "44c8ad59",
-            &bytes::Bytes::from_static(b""),
-        );
+        assert_body_bytes_eq(axum::body::Body::empty(), 0, "44c8ad59", b"");
     }
     #[test]
     fn check_body_size_returns_error_when_body_exceeds_limit() {

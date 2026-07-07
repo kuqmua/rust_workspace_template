@@ -1,12 +1,22 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
 pub enum PgTypeFlt {
-    Eq { ident: proc_macro2::TokenStream },
-    GreaterThan { ident: proc_macro2::TokenStream },
-    Btwn { ident: proc_macro2::TokenStream },
-    In { ident: proc_macro2::TokenStream },
+    Eq {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    GreaterThan {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    Btwn {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    In {
+        ident: macros_helpers::GeneratedRustTs,
+    },
     Rgx,
-    Before { ident: proc_macro2::TokenStream },
+    Before {
+        ident: macros_helpers::GeneratedRustTs,
+    },
     CrntDate,
     GreaterThanCrntDate,
     CrntTimestamp,
@@ -14,21 +24,41 @@ pub enum PgTypeFlt {
     CrntTime,
     GreaterThanCrntTime,
     EqToEncodedStringRepresentation,
-    FindRangesWithinGivenRange { ident: proc_macro2::TokenStream },
-    FindRangesThatFullyContainTheGivenRange { ident: proc_macro2::TokenStream },
-    StrictlyToLeftOfRange { ident: proc_macro2::TokenStream },
-    StrictlyToRightOfRange { ident: proc_macro2::TokenStream },
-    IncludedLowerBound { ident: proc_macro2::TokenStream },
-    ExcludedUpperBound { ident: proc_macro2::TokenStream },
-    GreaterThanIncludedLowerBound { ident: proc_macro2::TokenStream },
-    GreaterThanExcludedUpperBound { ident: proc_macro2::TokenStream },
-    OverlapWithRange { ident: proc_macro2::TokenStream },
-    AdjacentWithRange { ident: proc_macro2::TokenStream },
+    FindRangesWithinGivenRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    FindRangesThatFullyContainTheGivenRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    StrictlyToLeftOfRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    StrictlyToRightOfRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    IncludedLowerBound {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    ExcludedUpperBound {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    GreaterThanIncludedLowerBound {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    GreaterThanExcludedUpperBound {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    OverlapWithRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
+    AdjacentWithRange {
+        ident: macros_helpers::GeneratedRustTs,
+    },
     RangeLen,
     //BitVecPositionEq,//currently deactivated
 }
 impl PgFlt for PgTypeFlt {
-    fn mb_generic(&self) -> Option<proc_macro2::TokenStream> {
+    fn mb_generic(&self) -> Option<macros_helpers::GeneratedRustTs> {
         match &self {
             Self::Eq { ident }
             | Self::GreaterThan { ident }
@@ -56,9 +86,9 @@ impl PgFlt for PgTypeFlt {
             | Self::RangeLen => None,
         }
     }
-    fn prefix_wh_self_ucc(&self) -> proc_macro2::TokenStream {
+    fn prefix_wh_self_ucc(&self) -> macros_helpers::GeneratedRustTs {
         let v = naming::prm::PgTypeWhSelfUcc::from_display(&self.ucc());
-        quote::quote! {#v}
+        macros_helpers::GeneratedRustTs(quote::quote! {#v})
     }
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens {
         match &self {
@@ -92,7 +122,7 @@ impl PgFlt for PgTypeFlt {
     }
 }
 pub trait PgFlt {
-    fn mb_generic(&self) -> Option<proc_macro2::TokenStream>;
-    fn prefix_wh_self_ucc(&self) -> proc_macro2::TokenStream;
+    fn mb_generic(&self) -> Option<macros_helpers::GeneratedRustTs>;
+    fn prefix_wh_self_ucc(&self) -> macros_helpers::GeneratedRustTs;
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
 }

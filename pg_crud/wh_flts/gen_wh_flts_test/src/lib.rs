@@ -16,12 +16,13 @@ wh_flts = {path = "../../wh_flts"}
 test-utils = []"#,
             &format!(
                 "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse wh_flts::*;\n{}",
-                gen_wh_flts_src::gen_wh_flts(&quote::quote! {
+                gen_wh_flts_src::gen_wh_flts(gen_wh_flts_src::GenWhFltsInput(&quote::quote! {
                     {
                         "pg_types_write_into_file": "False",
                         "whole_write_into_file": "False"
                     }
-                })
+                }))
+                .0
             ),
         );
     }

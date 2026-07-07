@@ -1,15 +1,19 @@
 #[proc_macro]
 pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let Some((types_raw, closure)) = workspace_macro_helpers::split_fat_arrow(input.into()) else {
+    let Some((types_raw, closure)) = workspace_macro_helpers::split_fat_arrow(
+        workspace_macro_helpers::MacroTokens(input.into()),
+    ) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_to_err_string_with expects types => |value| body",
         )
+        .0
         .into();
     };
     let Some((value, body)) = workspace_macro_helpers::closure_ident_and_body(closure) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_to_err_string_with expects closure",
         )
+        .0
         .into();
     };
     let value_ident = quote::format_ident!("{value}");
@@ -18,9 +22,9 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
         .collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> String {
+            fn to_err_string(&self) -> ToErrStringValue {
                 let #value_ident = self;
-                #body
+                ToErrStringValue::from(#body)
             }
         })*
     }
@@ -30,7 +34,9 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
 pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut types = Vec::new();
     let mut msgs = Vec::new();
-    for part in workspace_macro_helpers::split_top_level_commas(input.into()) {
+    for part in workspace_macro_helpers::split_top_level_commas(
+        workspace_macro_helpers::MacroTokens(input.into()),
+    ) {
         if part.is_empty() {
             continue;
         }
@@ -38,6 +44,7 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
             return workspace_macro_helpers::compile_error_ts(
                 "impl_to_err_string_const expects type => msg",
             )
+            .0
             .into();
         };
         types.push(ty);
@@ -45,8 +52,8 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
     }
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> String {
-                static_str_to_owned(#msgs)
+            fn to_err_string(&self) -> ToErrStringValue {
+                static_str_to_owned(StaticStrToOwnedInput(#msgs))
             }
         })*
     }
@@ -54,13 +61,15 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
 }
 #[proc_macro]
 pub fn impl_to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let types = workspace_macro_helpers::split_top_level_commas(input.into())
-        .into_iter()
-        .filter(|part| !part.is_empty())
-        .collect::<Vec<proc_macro2::TokenStream>>();
+    let types = workspace_macro_helpers::split_top_level_commas(
+        workspace_macro_helpers::MacroTokens(input.into()),
+    )
+    .into_iter()
+    .filter(|part| !part.is_empty())
+    .collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #(impl ToErrString for #types {
-            fn to_err_string(&self) -> String {
+            fn to_err_string(&self) -> ToErrStringValue {
                 as_ref_str_to_owned(self)
             }
         })*

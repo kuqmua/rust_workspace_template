@@ -12,7 +12,6 @@ edition = "2024"
 
 [dependencies]
 chrono = { workspace = true }
-sqlx = { workspace = true }
 config_lib = { workspace = true }
 cmn_routes = { workspace = true }
 git_info = { workspace = true }
@@ -23,6 +22,7 @@ optml = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
 secrecy = { workspace = true }
+sqlx = { workspace = true }
 tokio = { workspace = true }
 [lints]
 workspace = true

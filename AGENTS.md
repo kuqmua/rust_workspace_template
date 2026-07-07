@@ -13,6 +13,7 @@
 - Prefer immutable data.
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
+- Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
 - Use a single async runtime across workspace.
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
@@ -42,6 +43,7 @@
 - Commit debug prints.
 - Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
 - Create type aliases with `type`; use explicit types at usage sites.
+- Expose primitive or external crate types in domain boundaries when a repository domain wrapper type can be used instead.
 - Use `unwrap()`.
 - Use `expect()` or `panic!()` in library code except in `proc-macro`, tests, or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.

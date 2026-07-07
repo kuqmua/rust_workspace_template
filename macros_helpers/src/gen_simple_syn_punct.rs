@@ -1,17 +1,43 @@
-fn mk_path_segment(v: &str) -> syn::PathSegment {
-    syn::PathSegment {
-        ident: proc_macro2::Ident::new(v, proc_macro2::Span::call_site()),
-        arguments: syn::PathArguments::None,
+#[derive(Debug, Clone)]
+pub struct SynPathSegment(pub syn::PathSegment);
+impl From<SynPathSegment> for syn::PathSegment {
+    fn from(value: SynPathSegment) -> Self {
+        value.0
     }
 }
+#[derive(Debug, Clone)]
+pub struct SynPathSegments(pub syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
+impl From<SynPathSegments> for syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
+    fn from(value: SynPathSegments) -> Self {
+        value.0
+    }
+}
+impl quote::ToTokens for SynPathSegments {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+#[allow(clippy::single_call_fn)] // named constructor keeps syn::PathSegment assembly separate from punctuation loop
+fn mk_path_segment<S>(v: S) -> SynPathSegment
+where
+    S: AsRef<str>,
+{
+    SynPathSegment(syn::PathSegment {
+        ident: proc_macro2::Ident::new(v.as_ref(), proc_macro2::Span::call_site()),
+        arguments: syn::PathArguments::None,
+    })
+}
 #[must_use]
-pub fn gen_simple_syn_punct(
-    v: &[&str],
-) -> syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
+pub fn gen_simple_syn_punct<I, S>(v: I) -> SynPathSegments
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
     let mut acc = syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
-    if let Some((last, rest)) = v.split_last() {
-        for el in rest {
-            acc.push_value(mk_path_segment(el));
+    let mut iter = v.into_iter().peekable();
+    while let Some(el) = iter.next() {
+        acc.push_value(mk_path_segment(el).into());
+        if iter.peek().is_some() {
             acc.push_punct(syn::token::PathSep {
                 spans: [
                     proc_macro2::Span::call_site(),
@@ -19,19 +45,18 @@ pub fn gen_simple_syn_punct(
                 ],
             });
         }
-        acc.push_value(mk_path_segment(last));
     }
-    acc
+    SynPathSegments(acc)
 }
 #[must_use]
-pub fn string_syn_punct() -> syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
-    gen_simple_syn_punct(&["std", "string", "String"])
+pub fn string_syn_punct() -> SynPathSegments {
+    gen_simple_syn_punct(["std", "string", "String"])
 }
 #[cfg(test)]
 mod tests {
     #[test]
     fn gen_simple_syn_punct_builds_three_segment_path() {
-        let punct = super::gen_simple_syn_punct(&["std", "string", "String"]);
+        let punct = super::gen_simple_syn_punct(["std", "string", "String"]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
             "std :: string :: String"
@@ -39,12 +64,12 @@ mod tests {
     }
     #[test]
     fn gen_simple_syn_punct_builds_single_segment_path() {
-        let punct = super::gen_simple_syn_punct(&["Only"]);
+        let punct = super::gen_simple_syn_punct(["Only"]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]
     fn gen_simple_syn_punct_returns_empty_path_on_empty_input() {
-        let punct = super::gen_simple_syn_punct(&[]);
-        assert!(punct.is_empty());
+        let punct = super::gen_simple_syn_punct(std::iter::empty::<&str>());
+        assert!(punct.0.is_empty());
     }
 }

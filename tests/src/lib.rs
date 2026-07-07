@@ -26,6 +26,65 @@ mod tests {
         "useless_borrows_in_formatting",
     ];
     const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
+    const DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS: &[&str] = &[
+        "../app_state/src/lib.rs",
+        "../cmn_routes/src/lib.rs",
+        "../config_lib/config_lib_macros/src/lib.rs",
+        "../config_lib/src/lib.rs",
+        "../config_lib/src/str_from_enum_macros.rs",
+        "../config_lib/src/types.rs",
+        "../config_lib/try_from_env/src/lib.rs",
+        "../gen_quotes/src/lib.rs",
+        "../git_info/src/lib.rs",
+        "../loc_lib/loc_test/src/main.rs",
+        "../loc_lib/src/loc.rs",
+        "../macros_helpers/gen_derive_ts_builder/src/lib.rs",
+        "../macros_helpers/src/attr_ident_str.rs",
+        "../macros_helpers/src/gen_field_loc_new_ts.rs",
+        "../macros_helpers/src/gen_if_write_is_err_ts.rs",
+        "../macros_helpers/src/gen_impl_dflt_ts.rs",
+        "../macros_helpers/src/gen_impl_display_ts.rs",
+        "../macros_helpers/src/gen_impl_from_ts.rs",
+        "../macros_helpers/src/gen_impl_to_err_string_ts.rs",
+        "../macros_helpers/src/gen_impl_try_from_ts.rs",
+        "../macros_helpers/src/gen_new_or_try_new.rs",
+        "../macros_helpers/src/gen_pub_type_al_ts.rs",
+        "../macros_helpers/src/gen_simple_syn_punct.rs",
+        "../macros_helpers/src/get_macro_attr.rs",
+        "../macros_helpers/src/loc.rs",
+        "../macros_helpers/src/loc_syn_field.rs",
+        "../macros_helpers/src/pgn_start_end_init_ts.rs",
+        "../macros_helpers/src/rs_file_path.rs",
+        "../macros_helpers/src/status_code.rs",
+        "../macros_helpers/src/syn_field.rs",
+        "../macros_helpers/src/test_hlp.rs",
+        "../macros_helpers/src/wrap_derive.rs",
+        "../macros_helpers/src/write_string_into_file.rs",
+        "../macros_helpers/src/write_ts_into_file.rs",
+        "../naming/naming_cmn/src/lib.rs",
+        "../naming/naming_macros/src/lib.rs",
+        "../naming/src/lib.rs",
+        "../optml/src/lib.rs",
+        "../panic_loc/src/lib.rs",
+        "../pg_crud/pg_crud_macros_cmn/src/flts.rs",
+        "../pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+        "../pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs",
+        "../pg_crud/pg_types/gen_pg_types_src/src/lib.rs",
+        "../route_validators/src/check_body_size.rs",
+        "../route_validators/src/check_commit.rs",
+        "../route_validators/src/hdr_val.rs",
+        "../route_validators/src/test_hlp.rs",
+        "../pg_crud/pg_types/pg_types_cmn/src/lib.rs",
+        "../server_tbl_example/src/lib.rs",
+        "../server_app_state/src/lib.rs",
+        "../server_config/src/lib.rs",
+        "../server/src/main.rs",
+        "../tests/src/domain_type_policy_fixture.rs",
+        "../to_err_string/src/lib.rs",
+        "../token_patterns/token_patterns_macros/src/lib.rs",
+        "../token_patterns/src/lib.rs",
+        "../workspace_macro_helpers/src/lib.rs",
+    ];
     #[derive(Debug, Clone, Copy, optml::Optml)]
     enum ExpectOrPanic {
         Expect,
@@ -300,6 +359,256 @@ mod tests {
                 i.ident
             ));
             syn::visit::visit_item_type(self, i);
+        }
+    }
+    struct DeclaredDomainTypeVisitor {
+        names: std::collections::BTreeSet<String>,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_test_only_cfg_attr(i) {
+                return;
+            }
+            syn::visit::visit_item(self, i);
+        }
+        fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+            let _: bool = self.names.insert(i.ident.to_string());
+            syn::visit::visit_item_enum(self, i);
+        }
+        fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+            let _: bool = self.names.insert(i.ident.to_string());
+            syn::visit::visit_item_struct(self, i);
+        }
+        fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+            let _: bool = self.names.insert(i.ident.to_string());
+            syn::visit::visit_item_trait(self, i);
+        }
+        fn visit_item_union(&mut self, i: &'ast syn::ItemUnion) {
+            let _: bool = self.names.insert(i.ident.to_string());
+            syn::visit::visit_item_union(self, i);
+        }
+        fn visit_macro(&mut self, i: &'ast syn::Macro) {
+            if path_ends_with(&i.path, &["gen_pg_types", "gen_pg_types"]) {
+                collect_gen_pg_types_domain_names(&i.tokens.to_string(), &mut self.names);
+            }
+            if config_lib_domain_type_macro_path(&i.path) {
+                collect_first_macro_ident_domain_name(&i.tokens.to_string(), &mut self.names);
+            }
+            if path_ends_with(&i.path, &["bool_enum_to_tokens"]) {
+                collect_first_macro_ident_domain_name(&i.tokens.to_string(), &mut self.names);
+            }
+            if path_ends_with(&i.path, &["gen_derive_ts_builder", "gen_derive_ts_builder"]) {
+                let _: bool = self.names.insert(String::from("DTsBuilder"));
+            }
+            syn::visit::visit_macro(self, i);
+        }
+    }
+    struct DomainTypePolicyVisitor<'types> {
+        ers: Vec<String>,
+        generic_scopes: Vec<std::collections::BTreeSet<String>>,
+        repo_types: &'types std::collections::BTreeSet<String>,
+    }
+    impl DomainTypePolicyVisitor<'_> {
+        fn check_fields(
+            &mut self,
+            fields: &syn::Fields,
+            ctx: &str,
+            allow_single_newtype_raw: bool,
+        ) {
+            if allow_single_newtype_raw
+                && matches!(fields, syn::Fields::Unnamed(unnamed_fields) if unnamed_fields.unnamed.len() == 1)
+            {
+                return;
+            }
+            for field in fields {
+                self.check_ty(&field.ty, ctx);
+            }
+        }
+        fn check_path_arguments(&mut self, arguments: &syn::PathArguments, ctx: &str) {
+            match arguments {
+                syn::PathArguments::AngleBracketed(args) => {
+                    for arg in &args.args {
+                        if let syn::GenericArgument::Type(ty) = arg {
+                            self.check_ty(ty, ctx);
+                        }
+                    }
+                }
+                syn::PathArguments::Parenthesized(args) => {
+                    for ty in &args.inputs {
+                        self.check_ty(ty, ctx);
+                    }
+                    match &args.output {
+                        syn::ReturnType::Default => {}
+                        syn::ReturnType::Type(_, ty) => self.check_ty(ty, ctx),
+                    }
+                }
+                syn::PathArguments::None => {}
+            }
+        }
+        fn check_sig(&mut self, sig: &syn::Signature, ctx: &str) {
+            self.push_generics(&sig.generics);
+            for input in &sig.inputs {
+                match input {
+                    syn::FnArg::Receiver(_) => {}
+                    syn::FnArg::Typed(pat_ty) => {
+                        self.check_ty(&pat_ty.ty, &format!("{ctx} parameter"));
+                    }
+                }
+            }
+            match &sig.output {
+                syn::ReturnType::Default => {}
+                syn::ReturnType::Type(_, ty) => {
+                    self.check_ty(ty, &format!("{ctx} return type"));
+                }
+            }
+            self.pop_generics();
+        }
+        fn check_ty(&mut self, ty: &syn::Type, ctx: &str) {
+            match ty {
+                syn::Type::Array(ty_array) => self.check_ty(&ty_array.elem, ctx),
+                syn::Type::Group(ty_group) => self.check_ty(&ty_group.elem, ctx),
+                syn::Type::Paren(ty_paren) => self.check_ty(&ty_paren.elem, ctx),
+                syn::Type::Path(ty_path) => self.check_ty_path(ty_path, ctx),
+                syn::Type::Reference(ty_reference) => self.check_ty(&ty_reference.elem, ctx),
+                syn::Type::Slice(ty_slice) => self.check_ty(&ty_slice.elem, ctx),
+                syn::Type::Tuple(ty_tuple) => {
+                    for elem in &ty_tuple.elems {
+                        self.check_ty(elem, ctx);
+                    }
+                }
+                syn::Type::BareFn(_)
+                | syn::Type::ImplTrait(_)
+                | syn::Type::Infer(_)
+                | syn::Type::Macro(_)
+                | syn::Type::Never(_)
+                | syn::Type::Ptr(_)
+                | syn::Type::TraitObject(_)
+                | syn::Type::Verbatim(_)
+                | _ => {}
+            }
+        }
+        fn check_ty_path(&mut self, ty_path: &syn::TypePath, ctx: &str) {
+            if let Some(qself) = &ty_path.qself {
+                self.check_ty(&qself.ty, ctx);
+                for segment in &ty_path.path.segments {
+                    self.check_path_arguments(&segment.arguments, ctx);
+                }
+                return;
+            }
+            let Some(segment) = ty_path.path.segments.last() else {
+                return;
+            };
+            let ident = segment.ident.to_string();
+            if path_first_segment_is_self(&ty_path.path) {
+                self.check_path_arguments(&segment.arguments, ctx);
+                return;
+            }
+            if is_structural_generic_container(&ident) {
+                self.check_path_arguments(&segment.arguments, ctx);
+                return;
+            }
+            if self.path_starts_with_allowed_type_ident(&ty_path.path) {
+                for path_segment in &ty_path.path.segments {
+                    self.check_path_arguments(&path_segment.arguments, ctx);
+                }
+                return;
+            }
+            if self.is_allowed_type_ident(&ident) {
+                self.check_path_arguments(&segment.arguments, ctx);
+                return;
+            }
+            self.ers.push(format!(
+                "{ctx} uses `{}`; use a repository domain wrapper type and initialize it with From/TryFrom instead of exposing raw external or primitive types",
+                path_to_string(&ty_path.path)
+            ));
+            self.check_path_arguments(&segment.arguments, ctx);
+        }
+        fn is_allowed_type_ident(&self, ident: &str) -> bool {
+            ident == "Self"
+                || self.repo_types.contains(ident)
+                || self
+                    .generic_scopes
+                    .iter()
+                    .rev()
+                    .any(|scope| scope.contains(ident))
+        }
+        fn path_starts_with_allowed_type_ident(&self, path: &syn::Path) -> bool {
+            path.segments.len() > 1
+                && path
+                    .segments
+                    .first()
+                    .is_some_and(|segment| self.is_allowed_type_ident(&segment.ident.to_string()))
+        }
+        fn pop_generics(&mut self) {
+            let popped = self.generic_scopes.pop();
+            assert!(popped.is_some(), "1cb23b63");
+        }
+        fn push_generics(&mut self, generics: &syn::Generics) {
+            let mut names = std::collections::BTreeSet::new();
+            for param in &generics.params {
+                if let syn::GenericParam::Type(type_param) = param {
+                    let _: bool = names.insert(type_param.ident.to_string());
+                }
+            }
+            self.generic_scopes.push(names);
+        }
+    }
+    impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
+        fn visit_item(&mut self, i: &'ast syn::Item) {
+            if has_test_only_cfg_attr(i) {
+                return;
+            }
+            syn::visit::visit_item(self, i);
+        }
+        fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+            self.push_generics(&i.generics);
+            for variant in &i.variants {
+                self.check_fields(
+                    &variant.fields,
+                    &format!("enum `{}` variant", i.ident),
+                    false,
+                );
+            }
+            self.pop_generics();
+        }
+        fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+            if item_fn_is_proc_macro(i) {
+                return;
+            }
+            self.check_sig(&i.sig, &format!("function `{}`", i.sig.ident));
+        }
+        fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+            if i.trait_.is_some() {
+                return;
+            }
+            self.push_generics(&i.generics);
+            for item in &i.items {
+                if let syn::ImplItem::Fn(item_fn) = item
+                    && !attrs_contain_test_only_cfg(&item_fn.attrs)
+                {
+                    self.check_sig(&item_fn.sig, &format!("method `{}`", item_fn.sig.ident));
+                }
+            }
+            self.pop_generics();
+        }
+        fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+            self.push_generics(&i.generics);
+            self.check_fields(&i.fields, &format!("struct `{}` field", i.ident), true);
+            self.pop_generics();
+        }
+        fn visit_item_trait(&mut self, i: &'ast syn::ItemTrait) {
+            self.push_generics(&i.generics);
+            for item in &i.items {
+                if let syn::TraitItem::Fn(item_fn) = item
+                    && !attrs_contain_test_only_cfg(&item_fn.attrs)
+                {
+                    self.check_sig(
+                        &item_fn.sig,
+                        &format!("trait method `{}`", item_fn.sig.ident),
+                    );
+                }
+            }
+            self.pop_generics();
         }
     }
     #[test]
@@ -1061,6 +1370,33 @@ mod tests {
         );
     }
     #[test]
+    fn domain_boundaries_use_repository_declared_types() {
+        let repo_types = declared_domain_type_names();
+        assert_rs_ast_ers_empty_with_ctx(
+            "a7f9c3e1",
+            "raw external or primitive types found in domain boundaries; use repository domain wrapper types initialized with From/TryFrom:",
+            |path, ast, ers| {
+                if !domain_type_policy_should_check_path(path) {
+                    return;
+                }
+                let visitor = visit_syn_file(
+                    ast,
+                    DomainTypePolicyVisitor {
+                        ers: Vec::new(),
+                        generic_scopes: Vec::new(),
+                        repo_types: &repo_types,
+                    },
+                );
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
+            },
+        );
+    }
+    #[test]
     fn no_unwrap_in_source_code() {
         assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
             let visitor = visit_syn_file(ast, UnwrapVisitor { found_count: 0 });
@@ -1246,6 +1582,12 @@ mod tests {
                 .zip(segments.iter().rev())
                 .all(|(got, exp)| got.ident == *exp)
     }
+    #[allow(clippy::single_call_fn)] // names Self-path handling separately from domain type path traversal
+    fn path_first_segment_is_self(path: &syn::Path) -> bool {
+        path.segments
+            .first()
+            .is_some_and(|segment| segment.ident == "Self")
+    }
     fn expr_call_path(call: &syn::ExprCall) -> Option<&syn::Path> {
         match call.func.as_ref() {
             syn::Expr::Path(path) => Some(&path.path),
@@ -1291,6 +1633,49 @@ mod tests {
             | _ => None,
         }
     }
+    #[allow(clippy::single_call_fn)] // extracts repo macro domain type discovery from the visitor traversal
+    fn collect_gen_pg_types_domain_names(
+        tokens: &str,
+        names: &mut std::collections::BTreeSet<String>,
+    ) {
+        let re = regex::Regex::new("\"([A-Za-z0-9]+As[A-Za-z0-9]+)\"").expect("f4e61b29");
+        for captures in re.captures_iter(tokens) {
+            let Some(base) = captures.get(1).map(|el| el.as_str()) else {
+                continue;
+            };
+            let Some((prefix, suffix)) = base.split_once("As") else {
+                continue;
+            };
+            let _: bool = names.insert(format!("{prefix}AsNn{suffix}"));
+            let _: bool = names.insert(format!("Opt{prefix}AsNl{suffix}"));
+        }
+    }
+    #[allow(clippy::single_call_fn)] // config_lib helper macros declare domain wrapper structs from their first argument
+    fn config_lib_domain_type_macro_path(path: &syn::Path) -> bool {
+        path_ends_with(
+            path,
+            &["config_lib_macros", "impl_try_from_non_empty_string"],
+        ) || path_ends_with(path, &["config_lib_macros", "impl_try_from_secret_url"])
+            || path_ends_with(path, &["config_lib_macros", "impl_try_from_parse"])
+            || path_ends_with(
+                path,
+                &["config_lib_macros", "impl_try_from_parse_string_er"],
+            )
+    }
+    #[allow(clippy::single_call_fn)] // macro-generated domain wrapper names are the first ident in these macro inputs
+    fn collect_first_macro_ident_domain_name(
+        tokens: &str,
+        names: &mut std::collections::BTreeSet<String>,
+    ) {
+        let re = regex::Regex::new(r"^\s*([A-Za-z][A-Za-z0-9_]*)\s*,").expect("fc65b7c4");
+        if let Some(name) = re
+            .captures(tokens)
+            .and_then(|captures| captures.get(1))
+            .map(|name| name.as_str())
+        {
+            let _: bool = names.insert(name.to_owned());
+        }
+    }
     #[allow(clippy::single_call_fn)] // keeps Arc type policy readable apart from syn type matching
     fn type_contains_segment(ty: &syn::Type, segment: &str) -> bool {
         match ty {
@@ -1334,6 +1719,67 @@ mod tests {
             || path_ends_with(path, &["tokio", "net", "TcpStream", "connect"])
             || path_ends_with(path, &["tokio", "net", "TcpListener", "bind"])
             || path_ends_with(path, &["tokio", "net", "UdpSocket", "bind"])
+    }
+    #[allow(clippy::single_call_fn)] // extracted to keep the domain policy test focused on assertion flow
+    fn declared_domain_type_names() -> std::collections::BTreeSet<String> {
+        let mut names = std::collections::BTreeSet::new();
+        for_each_rs_syn_file(|_, ast| {
+            let visitor = visit_syn_file(
+                ast,
+                DeclaredDomainTypeVisitor {
+                    names: std::collections::BTreeSet::new(),
+                },
+            );
+            names.extend(visitor.names);
+        });
+        names
+    }
+    #[allow(clippy::single_call_fn)] // keeps phased domain policy rollout controlled from one predicate
+    fn domain_type_policy_should_check_path(path: &std::path::Path) -> bool {
+        if is_exception(path, DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS) {
+            return true;
+        }
+        if std::env::var_os("DOMAIN_TYPE_POLICY_CHECK_ALL").is_none() {
+            return false;
+        }
+        let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
+            return false;
+        };
+        let Some(parsed) = read_toml_table(&cargo_toml_path) else {
+            return false;
+        };
+        !is_test_crate(&parsed)
+    }
+    #[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
+    fn is_structural_generic_container(ident: &str) -> bool {
+        matches!(
+            ident,
+            "Option"
+                | "Result"
+                | "Vec"
+                | "Box"
+                | "Cow"
+                | "Arc"
+                | "Rc"
+                | "Pin"
+                | "PhantomData"
+                | "HashMap"
+                | "BTreeMap"
+                | "HashSet"
+                | "BTreeSet"
+        )
+    }
+    #[allow(clippy::single_call_fn)] // proc-macro entrypoints must keep the compiler-required TokenStream ABI
+    fn item_fn_is_proc_macro(item: &syn::ItemFn) -> bool {
+        item.attrs.iter().any(|attr| {
+            attr.path().is_ident("proc_macro")
+                || attr.path().is_ident("proc_macro_derive")
+                || attr.path().is_ident("proc_macro_attribute")
+        })
+    }
+    #[allow(clippy::single_call_fn)] // shared attr-list wrapper avoids exposing cfg-test matching at visitor callsites
+    fn attrs_contain_test_only_cfg(attrs: &[syn::Attribute]) -> bool {
+        attrs.iter().any(attr_is_test_only_cfg)
     }
     #[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
     fn item_fn_is_unit_test(item: &syn::ItemFn) -> bool {
