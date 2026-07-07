@@ -11,16 +11,3 @@ keywords = ["keyword"]
 categories = ["category"]
 [lints]
 workspace = true
-[dependencies]
-chrono = { workspace = true }
-uuid = { workspace = true }
-sqlx = { workspace = true }
-serde = { workspace = true }
-thiserror = { workspace = true }
-loc_lib = {path = "../../../loc_lib"}
-pg_crud_cmn = {path = "../../pg_crud_cmn"}
-pg_types_cmn = {path = "../pg_types_cmn"}
-wh_flts = {path = "../../wh_flts"}
-optml = {path = "../../../optml"}
-[features]
-test-utils = []
