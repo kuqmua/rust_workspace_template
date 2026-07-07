@@ -12,26 +12,13 @@ pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from, to_err_string)]
 pub struct PgnLimit(pub i64);
-impl From<i64> for PgnLimit {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
 impl From<i32> for PgnLimit {
     fn from(value: i32) -> Self {
         Self(value.into())
-    }
-}
-impl std::fmt::Display for PgnLimit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-impl loc_lib::ToErrString for PgnLimit {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.to_string())
     }
 }
 #[derive(
@@ -47,26 +34,13 @@ impl loc_lib::ToErrString for PgnLimit {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from, to_err_string)]
 pub struct PgnOffset(pub i64);
-impl From<i64> for PgnOffset {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
 impl From<i32> for PgnOffset {
     fn from(value: i32) -> Self {
         Self(value.into())
-    }
-}
-impl std::fmt::Display for PgnOffset {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-impl loc_lib::ToErrString for PgnOffset {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.to_string())
     }
 }
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml)]
@@ -384,25 +358,12 @@ impl std::fmt::Debug for PgQuery<'_> {
         f.debug_tuple("PgQuery").finish()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(display, from)]
 pub struct PgQueryBindEr(pub String);
-impl From<String> for PgQueryBindEr {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for PgQueryBindEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::Newtype)]
+#[newtype(display)]
 pub struct QpIncr(pub u64);
-impl std::fmt::Display for QpIncr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 pub trait QpIncrMut {
     fn checked_add_one(&mut self) -> Option<QpIncr>;
 }
@@ -426,24 +387,9 @@ impl QpIncrMut for u64 {
 pub struct AddOprtr(pub bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 pub struct IsPk(pub bool);
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(display, deref, from)]
 pub struct QpFragment(pub String);
-impl From<String> for QpFragment {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for QpFragment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-impl std::ops::Deref for QpFragment {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 impl std::fmt::Write for QpFragment {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
         self.0.push_str(s);

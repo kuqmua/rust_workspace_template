@@ -20,5 +20,6 @@ bytes = { workspace = true }
 git_info = { workspace = true }
 loc_lib = { workspace = true }
 optml = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

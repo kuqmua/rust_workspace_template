@@ -4,26 +4,11 @@ struct QuotePrefix(&'static str);
 struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
 struct QuotePanicId(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(display, as_ref_str, deref)]
 pub struct QuotedLiteral(pub String);
 #[derive(Debug, Clone)]
 pub struct QuotedLiteralTs(pub proc_macro2::TokenStream);
-impl std::fmt::Display for QuotedLiteral {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl AsRef<str> for QuotedLiteral {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl std::ops::Deref for QuotedLiteral {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.0.as_str()
-    }
-}
 impl quote::ToTokens for QuotedLiteralTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.clone());

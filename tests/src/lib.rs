@@ -46,7 +46,6 @@ mod tests {
             "../cmn_routes/src/lib.rs",
             "../config_lib/config_lib_macros/src/lib.rs",
             "../config_lib/src/lib.rs",
-            "../config_lib/src/str_from_enum_macros.rs",
             "../config_lib/src/types.rs",
             "../config_lib/try_from_env/src/lib.rs",
             "../gen_quotes/src/lib.rs",

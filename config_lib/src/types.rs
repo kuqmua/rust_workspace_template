@@ -36,12 +36,12 @@ impl AsRef<str> for EnvParseEr {
     Clone,
     Copy,
     strum_macros::EnumIter,
-    strum_macros::VariantNames,
     serde::Serialize,
     serde::Deserialize,
     PartialEq,
     Eq,
     optml::Optml,
+    newtype::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum TracingLevel {
@@ -63,15 +63,6 @@ impl TracingLevel {
         })
     }
 }
-impl std::str::FromStr for TracingLevel {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::str_from_enum_macros::impl_from_str_for_enum_helper(
-            crate::str_from_enum_macros::EnumInputRef(s),
-            crate::str_from_enum_macros::EnumVariantsRef(<Self as strum::VariantNames>::VARIANTS),
-        )
-    }
-}
 impl std::fmt::Display for TracingLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", (*self).as_str().0)
@@ -86,25 +77,16 @@ impl std::fmt::Display for TracingLevel {
     Eq,
     strum_macros::Display,
     strum_macros::EnumIter,
-    strum_macros::VariantNames,
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
+    newtype::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum SrcPlaceType {
     #[default]
     Github,
     Src,
-}
-impl std::str::FromStr for SrcPlaceType {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        crate::str_from_enum_macros::impl_from_str_for_enum_helper(
-            crate::str_from_enum_macros::EnumInputRef(s),
-            crate::str_from_enum_macros::EnumVariantsRef(<Self as strum::VariantNames>::VARIANTS),
-        )
-    }
 }
 impl SrcPlaceType {
     #[must_use]

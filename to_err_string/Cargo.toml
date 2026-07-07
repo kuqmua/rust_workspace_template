@@ -21,5 +21,6 @@ sqlx = { workspace = true }
 serde_json = { workspace = true }
 http = { workspace = true }
 to_err_string_macros = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

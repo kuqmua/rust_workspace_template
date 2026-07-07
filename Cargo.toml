@@ -19,6 +19,7 @@ members = [
   "naming/naming_cmn",
   "naming/naming_cmn_macros",
   "naming/naming_macros",
+  "newtype",
   "optml",
   "panic_loc",
   "pg_crud",
@@ -231,6 +232,7 @@ naming = { path = "./naming", version = "0.1.0" }
 naming_cmn = { path = "./naming/naming_cmn", version = "0.1.0" }
 naming_cmn_macros = { path = "./naming/naming_cmn_macros", version = "0.1.0" }
 naming_macros = { path = "./naming/naming_macros", version = "0.1.0" }
+newtype = { path = "./newtype", version = "0.1.0" }
 optml = { path = "./optml", version = "0.1.0" }
 panic_loc = { path = "./panic_loc", version = "0.1.0" }
 pg_crud = { path = "./pg_crud", version = "0.1.0" }

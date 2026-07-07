@@ -1,29 +1,14 @@
-#[derive(Debug)]
+#[derive(Debug, newtype::Newtype)]
+#[newtype(from)]
 pub struct Body(pub axum::body::Body);
-impl From<axum::body::Body> for Body {
-    fn from(value: axum::body::Body) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
+)]
+#[newtype(from, to_err_string)]
 pub struct BodySizeLimitBytes(pub usize);
-impl From<usize> for BodySizeLimitBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl loc_lib::ToErrString for BodySizeLimitBytes {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Newtype)]
+#[newtype(to_err_string)]
 pub struct BodySizeAxumEr(pub axum::Error);
-impl loc_lib::ToErrString for BodySizeAxumEr {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
 #[derive(Debug)]
 pub struct BodySizeHint(pub http_body::SizeHint);
 impl loc_lib::ToErrString for BodySizeHint {

@@ -27,29 +27,9 @@ to_err_string_macros::impl_to_err_string_with!(
 pub trait ToErrString {
     fn to_err_string(&self) -> ToErrStringValue;
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(display, as_ref_str, deref, from)]
 pub struct ToErrStringValue(pub String);
-impl From<String> for ToErrStringValue {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for ToErrStringValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl AsRef<str> for ToErrStringValue {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl std::ops::Deref for ToErrStringValue {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.0.as_str()
-    }
-}
 impl<T> ToErrString for &T
 where
     T: ToErrString + ?Sized,

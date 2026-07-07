@@ -1,4 +1,3 @@
-pub mod str_from_enum_macros;
 pub mod types;
 pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
 pub use try_from_env::TryFromEnv;
