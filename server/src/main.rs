@@ -1,9 +1,5 @@
-#[cfg(test)]
-type SplitByChar<'split_lt> = std::str::Split<'split_lt, char>;
 const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
-// cross-thread shared axum state is cloned into tower/hyper worker tasks
-type SharedAppState = std::sync::Arc<server_app_state::ServerAppState<'static>>;
 #[derive(Debug, thiserror::Error)]
 enum RunServerEr {
     #[error("failed to bind service socket: {0}")]
@@ -22,15 +18,24 @@ enum RunServerEr {
     Serve(std::io::Error),
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
-fn mk_api_routes(app_state: &SharedAppState) -> axum::Router {
+fn mk_api_routes(
+    app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
+) -> axum::Router {
     axum::Router::new()
-        .merge(cmn_routes::cmn_routes(SharedAppState::clone(app_state)))
-        .merge(server_tbl_example::TblExample::routes(
-            SharedAppState::clone(app_state),
-        ))
+        .merge(cmn_routes::cmn_routes(std::sync::Arc::<
+            server_app_state::ServerAppState<'static>,
+        >::clone(app_state)))
+        .merge(server_tbl_example::TblExample::routes(std::sync::Arc::<
+            server_app_state::ServerAppState<'static>,
+        >::clone(
+            app_state
+        )))
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
-fn mk_app_state(config: server_config::Config, pg_pool: sqlx::PgPool) -> SharedAppState {
+fn mk_app_state(
+    config: server_config::Config,
+    pg_pool: sqlx::PgPool,
+) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
     std::sync::Arc::new(server_app_state::ServerAppState {
         pg_pool,
         config,
@@ -75,7 +80,7 @@ fn parse_cors_allow_origin(v: &str) -> Vec<axum::http::HeaderValue> {
 }
 #[allow(clippy::single_call_fn)] // generic splitter is test-only and keeps separator behavior assertions deterministic
 #[cfg(test)]
-fn split_by_char(v: &str, split_ch: char) -> SplitByChar<'_> {
+fn split_by_char(v: &str, split_ch: char) -> std::str::Split<'_, char> {
     v.split(split_ch)
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused

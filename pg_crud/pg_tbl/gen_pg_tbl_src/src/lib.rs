@@ -76,13 +76,11 @@ pub use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSizeCall,
     PgCrudDfltSomeOneElCall, RefStr, SqlxAcquire, SqlxRow, StringTs, U8, U16, U32, U64,
 };
-type Ts2 = proc_macro2::TokenStream;
-type StdFmtResult = std::fmt::Result;
-fn compile_error_ts(msg: &str) -> Ts2 {
+fn compile_error_ts(msg: &str) -> proc_macro2::TokenStream {
     quote! {compile_error!(#msg);}
 }
-fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
-    match v.parse::<Ts2>() {
+fn parse_ts_or_compile_error(v: &str, er_id: &str) -> proc_macro2::TokenStream {
+    match v.parse::<proc_macro2::TokenStream>() {
         Ok(parsed_ts) => parsed_ts,
         Err(er) => compile_error_ts(&format!("{er_id}: {er}")),
     }
@@ -110,7 +108,7 @@ fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
 //todo what is pub what is private
 //todo header Retry-After logic
 #[must_use]
-pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
+pub fn gen_pg_tbl(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, Optml)]
     struct SynVrt {
@@ -130,9 +128,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         True,
     }
     impl ToTokens for AddBorrow {
-        fn to_tokens(&self, tokens: &mut Ts2) {
+        fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
             match &self {
-                Self::False => Ts2::new().to_tokens(tokens),
+                Self::False => proc_macro2::TokenStream::new().to_tokens(tokens),
                 Self::True => quote! {&}.to_tokens(tokens),
             }
         }
@@ -222,27 +220,27 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         fn op_payload_example_sc(self) -> impl DisplayPlusToTokens {
             SelfPayloadExampleSc::from_display(&self)
         }
-        fn self_h_sc_ts(self) -> Ts2 {
+        fn self_h_sc_ts(self) -> proc_macro2::TokenStream {
             let v = SelfHSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
         }
         fn self_sc_str(self) -> String {
             AsRefStrToScStr::case(&self.to_string())
         }
-        fn self_sc_ts(self) -> Ts2 {
+        fn self_sc_ts(self) -> proc_macro2::TokenStream {
             AsRefStrToScTs::case_or_panic(&self.to_string())
         }
-        fn try_self_h_sc_ts(self) -> Ts2 {
+        fn try_self_h_sc_ts(self) -> proc_macro2::TokenStream {
             let v = TrySelfHSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
         }
-        fn try_self_sc_ts(self) -> Ts2 {
+        fn try_self_sc_ts(self) -> proc_macro2::TokenStream {
             let v = TrySelfSc::from_tokens(&self.self_sc_ts());
             quote! {#v}
         }
     }
     impl Display for Op {
-        fn fmt(&self, f: &mut Formatter<'_>) -> StdFmtResult {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
             write!(
                 f,
                 "{}",
@@ -533,22 +531,26 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let pub_sel_pg_crud_not_empty_unq_vec_ident_sel_ts = {
         quote! {pub #sel_pg_crud_not_empty_unq_vec_ident_sel_ts}
     };
-    let gen_fields_named_with_comma_ts = |fn0: &dyn Fn(&SynField) -> Ts2| -> Ts2 {
-        let fields_ts = fields.iter().map(fn0);
-        quote! {#(#fields_ts),*}
-    };
-    let gen_fields_named_without_comma_ts = |fn0: &dyn Fn(&SynField) -> Ts2| -> Ts2 {
-        let fields_ts = fields.iter().map(fn0);
-        quote! {#(#fields_ts)*}
-    };
-    let gen_fields_named_without_pk_with_comma_ts = |fn0: &dyn Fn(&SynField) -> Ts2| -> Ts2 {
-        let fields_ts = fields_without_pk.iter().map(fn0);
-        quote! {#(#fields_ts),*}
-    };
-    let gen_fields_named_without_pk_without_comma_ts = |fn0: &dyn Fn(&SynField) -> Ts2| -> Ts2 {
-        let fields_ts = fields_without_pk.iter().map(fn0);
-        quote! {#(#fields_ts)*}
-    };
+    let gen_fields_named_with_comma_ts =
+        |fn0: &dyn Fn(&SynField) -> proc_macro2::TokenStream| -> proc_macro2::TokenStream {
+            let fields_ts = fields.iter().map(fn0);
+            quote! {#(#fields_ts),*}
+        };
+    let gen_fields_named_without_comma_ts =
+        |fn0: &dyn Fn(&SynField) -> proc_macro2::TokenStream| -> proc_macro2::TokenStream {
+            let fields_ts = fields.iter().map(fn0);
+            quote! {#(#fields_ts)*}
+        };
+    let gen_fields_named_without_pk_with_comma_ts =
+        |fn0: &dyn Fn(&SynField) -> proc_macro2::TokenStream| -> proc_macro2::TokenStream {
+            let fields_ts = fields_without_pk.iter().map(fn0);
+            quote! {#(#fields_ts),*}
+        };
+    let gen_fields_named_without_pk_without_comma_ts =
+        |fn0: &dyn Fn(&SynField) -> proc_macro2::TokenStream| -> proc_macro2::TokenStream {
+            let fields_ts = fields_without_pk.iter().map(fn0);
+            quote! {#(#fields_ts)*}
+        };
     let gen_match_ok_err_ts = |ts0: &dyn ToTokens,
                                ts1: &dyn ToTokens,
                                ts2: &dyn ToTokens,
@@ -567,9 +569,13 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
     let none_ts = quote! {None};
     let fields_named_with_comma_none_ts =
-        gen_fields_named_with_comma_ts(&|_: &SynField| -> Ts2 { none_ts.clone() });
+        gen_fields_named_with_comma_ts(&|_: &SynField| -> proc_macro2::TokenStream {
+            none_ts.clone()
+        });
     let fields_named_without_pk_with_comma_none_ts =
-        gen_fields_named_without_pk_with_comma_ts(&|_: &SynField| -> Ts2 { none_ts.clone() });
+        gen_fields_named_without_pk_with_comma_ts(&|_: &SynField| -> proc_macro2::TokenStream {
+            none_ts.clone()
+        });
     let gen_acc_string_pop_ts = |acc_ts: &dyn ToTokens, ts: &dyn ToTokens| {
         let opt_char_ts = gen_opt_type_dcl_ts(&Char);
         quote! {
@@ -602,8 +608,11 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         .d_serde_serialize()
         .d_utoipa_to_schema();
     let ident_prep_pg_er_ucc = SelfPrepPgErUcc::from_tokens(&ident);
-    let ident_prep_pg_er_ts =
-        er_enum_d_ts_builder.build_enum(&Ts2::new(), &ident_prep_pg_er_ucc, &Ts2::new(), &{
+    let ident_prep_pg_er_ts = er_enum_d_ts_builder.build_enum(
+        &proc_macro2::TokenStream::new(),
+        &ident_prep_pg_er_ucc,
+        &proc_macro2::TokenStream::new(),
+        &{
             let ts = quote! {
                 #[eo_to_err_string]
                 er: sqlx::Error,
@@ -617,7 +626,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     #ts
                 },
             }}
-        });
+        },
+    );
     impl_ident_vec_ts.push({
         let pub_fn_tbl_ts = quote! {
             #MustUse
@@ -671,7 +681,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         &el.type0, &el.ident, false,
                     )
                 }))
-                .collect::<Vec<Ts2>>()
+                .collect::<Vec<proc_macro2::TokenStream>>()
             };
             quote! {
                 pub async fn #PrepPgTblSc(#PoolSc: &sqlx::Pool<sqlx::Postgres>, tbl: &str) -> Result<(), #ident_prep_pg_er_ucc> {
@@ -773,7 +783,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     };
     let gen_ident_op_er_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Er");
     let gen_ident_op_res_vrts_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ResVrts");
-    let gen_init_ts = |syn_vrt: &SynVrt, loc: &'static Location<'_>| -> Ts2 {
+    let gen_init_ts = |syn_vrt: &SynVrt, loc: &'static Location<'_>| -> proc_macro2::TokenStream {
         let vrt_ident = &syn_vrt.vrt.ident;
         let fields_ts = if let Fields::Named(v) = &syn_vrt.vrt.fields {
             v.named.iter().enumerate().map(|(i, el)| {
@@ -945,7 +955,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let gen_v_init_ts0 = |ts: &dyn ToTokens| gen_v_init_ts(&import, &ts);
     let gen_impl_pg_crud_dflt_some_one_el_for_tokens_no_lt_ts =
         |impl_ident: &dyn ToTokens, ts: &dyn ToTokens| {
-            gen_impl_pg_crud_dflt_some_one_el_ts(&impl_ident, &Ts2::new(), &ts)
+            gen_impl_pg_crud_dflt_some_one_el_ts(&impl_ident, &proc_macro2::TokenStream::new(), &ts)
         };
     let gen_fi_dflt_some_one_el_call_ts =
         |ts: &dyn ToTokens| quote! {#ts: #PgCrudDfltSomeOneElCall};
@@ -978,16 +988,21 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             .d_serde_serialize()
             .d_serde_deserialize()
             .d_utoipa_to_schema()
-            .build_struct(&Ts2::new(), &ident_cr_ucc, &Ts2::new(), &{
-                let ts = gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| {
-                    let fi = &el.ident;
-                    let el_syn_field_ty_as_pg_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
-                    quote! {
-                        pub #fi: #el_syn_field_ty_as_pg_type_cr_ts
-                    }
-                });
-                quote! {{#ts}}
-            });
+            .build_struct(
+                &proc_macro2::TokenStream::new(),
+                &ident_cr_ucc,
+                &proc_macro2::TokenStream::new(),
+                &{
+                    let ts = gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| {
+                        let fi = &el.ident;
+                        let el_syn_field_ty_as_pg_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
+                        quote! {
+                            pub #fi: #el_syn_field_ty_as_pg_type_cr_ts
+                        }
+                    });
+                    quote! {{#ts}}
+                },
+            );
         let impl_ident_cr_ts = {
             let pk_ft_as_dflt_some_one_el_call_ts = {
                 let pk_ft_as_pg_type_cr_ts = gen_as_pg_type_cr_ts(&pk_ft);
@@ -1108,9 +1123,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     };
     let gen_no_fields_provided_er_ts = |er_ucc: &dyn ToTokens| {
         er_enum_d_ts_builder.build_enum(
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             er_ucc,
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             &quote! {{
                 #NoFieldsProvidedUcc {
                     #[eo_to_err_string]
@@ -1122,16 +1137,17 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let ident_wh_ucc = SelfWhManyUcc::from_tokens(&ident);
     let ident_wh_try_new_er_ucc = SelfWhManyTryNewErUcc::from_tokens(&ident);
     let ident_wh_ts = {
-        let fields_dcl_ts = gen_fields_named_with_comma_ts(&|el: &SynField| -> Ts2 {
-            let fi = &el.ident;
-            let el_syn_field_ty_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&el.type0);
-            let opt_pg_type_wh_syn_field_ty_as_pg_type_wh_ts = gen_opt_type_dcl_ts(
-                &quote! {#import_ts PgTypeWh<#el_syn_field_ty_as_pg_type_wh_ts>},
-            );
-            quote! {
-                #fi: #opt_pg_type_wh_syn_field_ty_as_pg_type_wh_ts
-            }
-        });
+        let fields_dcl_ts =
+            gen_fields_named_with_comma_ts(&|el: &SynField| -> proc_macro2::TokenStream {
+                let fi = &el.ident;
+                let el_syn_field_ty_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&el.type0);
+                let opt_pg_type_wh_syn_field_ty_as_pg_type_wh_ts = gen_opt_type_dcl_ts(
+                    &quote! {#import_ts PgTypeWh<#el_syn_field_ty_as_pg_type_wh_ts>},
+                );
+                quote! {
+                    #fi: #opt_pg_type_wh_syn_field_ty_as_pg_type_wh_ts
+                }
+            });
         let ident_wh_ts = {
             let ident_wh_struct_ts = DTsBuilder::new()
                 .make_pub()
@@ -1140,9 +1156,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 .d_serde_serialize()
                 .d_utoipa_to_schema()
                 .build_struct(
-                    &Ts2::new(),
+                    &proc_macro2::TokenStream::new(),
                     &ident_wh_ucc,
-                    &Ts2::new(),
+                    &proc_macro2::TokenStream::new(),
                     &quote! {{#fields_dcl_ts}},
                 );
             quote! {
@@ -1152,13 +1168,13 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let ident_wh_try_new_er_ts = gen_no_fields_provided_er_ts(&ident_wh_try_new_er_ucc);
         let impl_pub_try_new_for_ident_wh_ts = gen_impl_pub_try_new_for_ident_ts(
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             &ident_wh_ucc,
             &fields_dcl_ts,
             &ident_wh_try_new_er_ucc,
             &{
                 let gen_fields_ts = |add_borrow: AddBorrow| {
-                    gen_fields_named_with_comma_ts(&|el: &SynField| -> Ts2 {
+                    gen_fields_named_with_comma_ts(&|el: &SynField| -> proc_macro2::TokenStream {
                         let fi = &el.ident;
                         quote! {#add_borrow #fi}
                     })
@@ -1216,14 +1232,19 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             .d_serde_serialize()
             .d_serde_deserialize()
             .d_utoipa_to_schema()
-            .build_struct(&Ts2::new(), &opt_ident_wh_ucc, &Ts2::new(), &{
-                let opt_ident_rd_ids_stdrt_nn_ts = gen_opt_type_dcl_ts(&ident_wh_ucc);
-                quote! {(pub #opt_ident_rd_ids_stdrt_nn_ts);}
-            });
+            .build_struct(
+                &proc_macro2::TokenStream::new(),
+                &opt_ident_wh_ucc,
+                &proc_macro2::TokenStream::new(),
+                &{
+                    let opt_ident_rd_ids_stdrt_nn_ts = gen_opt_type_dcl_ts(&ident_wh_ucc);
+                    quote! {(pub #opt_ident_rd_ids_stdrt_nn_ts);}
+                },
+            );
         let impl_pg_type_wh_flt_for_opt_ident_wh_ts = impl_pg_type_wh_flt_for_ident_ts(
             &quote! {<'lt>},
             &opt_ident_wh_ucc,
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             &IncrPrmUndrscr::False,
             &ColPrmUndrscr::True,
             &AddOprtrUndrscr::True,
@@ -1246,7 +1267,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                             &quote! {v_9e3f8fdd},
                             &{
                                 let ts = if i == fields_len_without_pk {
-                                    Ts2::new()
+                                    proc_macro2::TokenStream::new()
                                 } else {
                                     quote! {is_first_push_to_extra_prms_already_happend = true;}
                                 };
@@ -1391,9 +1412,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             let ident_sel_enum_ts = cmn_d_ts_builder()
             .d_copy()
             .build_enum(
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &ident_sel_ucc,
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &{
                     let vrts = gen_fields_named_with_comma_ts(&|el: &SynField| {
                         let serde_ident_ts = dq_ts(&el.ident);
@@ -1413,9 +1434,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             }
         };
         let impl_display_for_ident_sel_ts = gen_impl_display_ts(
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             &ident_sel_ucc,
-            &Ts2::new(),
+            &proc_macro2::TokenStream::new(),
             &quote! {write!(f, "{}", serde_json::to_string(&self).unwrap_or_else(|el_2636212f|format!("cannot serialize into json: {el_2636212f:?}")))},
         );
         let impl_loc_lib_to_err_string_for_ident_sel_ts =
@@ -1446,32 +1467,38 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 .d_partial_eq()
                 .d_serde_serialize()
                 .d_serde_deserialize()
-                .build_struct(&Ts2::new(), &ident_rd_ucc, &Ts2::new(), &{
-                    let field_opt_pk_ts = {
-                        let opt_v_pk_ft_as_pg_type_rd_ts =
-                            gen_opt_type_dcl_ts(&gen_v_dcl_ts0(&gen_as_pg_type_rd_ts(&pk_ft)));
-                        quote! {
-                            #FieldAttrSerdeSkipSerializingIfOptIsNone
-                            pub #pk_fi: #opt_v_pk_ft_as_pg_type_rd_ts
-                        }
-                    };
-                    let fields_opts_without_pk_ts =
-                        gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| -> Ts2 {
-                            let field_vis = &el.vis;
-                            let fi = &el.ident;
-                            let opt_v_ft_as_pg_type_rd_ts = gen_opt_type_dcl_ts(&gen_v_dcl_ts0(
-                                &gen_as_pg_type_rd_ts(&el.type0),
-                            ));
+                .build_struct(
+                    &proc_macro2::TokenStream::new(),
+                    &ident_rd_ucc,
+                    &proc_macro2::TokenStream::new(),
+                    &{
+                        let field_opt_pk_ts = {
+                            let opt_v_pk_ft_as_pg_type_rd_ts =
+                                gen_opt_type_dcl_ts(&gen_v_dcl_ts0(&gen_as_pg_type_rd_ts(&pk_ft)));
                             quote! {
                                 #FieldAttrSerdeSkipSerializingIfOptIsNone
-                                #field_vis #fi: #opt_v_ft_as_pg_type_rd_ts
+                                pub #pk_fi: #opt_v_pk_ft_as_pg_type_rd_ts
                             }
-                        });
-                    quote! {{
-                        #field_opt_pk_ts,
-                        #fields_opts_without_pk_ts
-                    }}
-                });
+                        };
+                        let fields_opts_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                            &|el: &SynField| -> proc_macro2::TokenStream {
+                                let field_vis = &el.vis;
+                                let fi = &el.ident;
+                                let opt_v_ft_as_pg_type_rd_ts = gen_opt_type_dcl_ts(
+                                    &gen_v_dcl_ts0(&gen_as_pg_type_rd_ts(&el.type0)),
+                                );
+                                quote! {
+                                    #FieldAttrSerdeSkipSerializingIfOptIsNone
+                                    #field_vis #fi: #opt_v_ft_as_pg_type_rd_ts
+                                }
+                            },
+                        );
+                        quote! {{
+                            #field_opt_pk_ts,
+                            #fields_opts_without_pk_ts
+                        }}
+                    },
+                );
             quote! {
                 #AllowClippyArbitrarySrcItemOrdering
                 #ident_rd_struct_ts
@@ -1537,7 +1564,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                     &el.ident,
                                 )
                             })
-                            .collect::<Vec<Ts2>>(),
+                            .collect::<Vec<proc_macro2::TokenStream>>(),
                     )
                 };
                 let fields_init_ts = &fields.iter().map(|el| &el.ident).collect::<Vec<&Ident>>();
@@ -1571,8 +1598,11 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     };
     let ident_rd_ids_ts = {
         let ident_rd_ids_ts = {
-            let ident_rd_ids_struct_ts =
-                cmn_d_ts_builder().build_struct(&Ts2::new(), &ident_rd_ids_ucc, &Ts2::new(), &{
+            let ident_rd_ids_struct_ts = cmn_d_ts_builder().build_struct(
+                &proc_macro2::TokenStream::new(),
+                &ident_rd_ids_ucc,
+                &proc_macro2::TokenStream::new(),
+                &{
                     enum WrapIntoOpt {
                         False,
                         True,
@@ -1595,7 +1625,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         #pk_ts,
                         #ts
                     }}
-                });
+                },
+            );
             quote! {
                 #AllowClippyArbitrarySrcItemOrdering
                 #ident_rd_ids_struct_ts
@@ -1679,14 +1710,15 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             gen_opt_type_dcl_ts(&quote! {#path_v_ts<#syn_type_as_pg_type_upd_ts>})
         };
         let fields_dcl_ts = {
-            let fields_named_without_pk_ts =
-                gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| -> Ts2 {
+            let fields_named_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                &|el: &SynField| -> proc_macro2::TokenStream {
                     let fi = &el.ident;
                     let opt_v_ft_as_pg_type_upd_ts = gen_opt_v_ft_as_pg_type_upd_ts(&el.type0);
                     quote! {
                         #fi: #opt_v_ft_as_pg_type_upd_ts
                     }
-                });
+                },
+            );
             quote! {
                 #pk_fi: #pk_ft_upd_ts,
                 #fields_named_without_pk_ts
@@ -1694,9 +1726,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let ident_upd_ts = {
             let ident_upd_struct_ts = serde_ser_utoipa_d_ts_builder.build_struct(
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &ident_upd_ucc,
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &quote! {{#fields_dcl_ts}},
             );
             quote! {
@@ -1716,7 +1748,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         |ts: &dyn ToTokens| mb_wrap_into_braces_ts(ts, fields_len_without_pk > 1);
                     (
                         gen_ts(&gen_fields_named_without_pk_with_comma_ts(
-                            &|el: &SynField| -> Ts2 {
+                            &|el: &SynField| -> proc_macro2::TokenStream {
                                 let fi = &el.ident;
                                 quote! {&#fi}
                             },
@@ -1725,7 +1757,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     )
                 };
                 let fields_inialization_ts =
-                    gen_fields_named_with_comma_ts(&|el: &SynField| -> Ts2 {
+                    gen_fields_named_with_comma_ts(&|el: &SynField| -> proc_macro2::TokenStream {
                         let fi = &el.ident;
                         quote! {#fi}
                     });
@@ -1779,12 +1811,12 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
     let ident_upd_for_query_ts = {
         let ident_upd_for_query_ts = {
             let ident_upd_for_query_struct_ts = serde_ser_utoipa_d_ts_builder.build_struct(
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &ident_upd_for_query_ucc,
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &{
-                    let fields_named_without_pk_ts =
-                        gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| -> Ts2 {
+                    let fields_named_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                        &|el: &SynField| -> proc_macro2::TokenStream {
                             let fi = &el.ident;
                             let opt_v_ft_as_pg_type_upd_for_query_ts = {
                                 let syn_type_as_pg_type_upd_for_query_ts =
@@ -1794,7 +1826,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                 )
                             };
                             quote! {#fi: #opt_v_ft_as_pg_type_upd_for_query_ts}
-                        });
+                        },
+                    );
                     quote! {{
                         #pk_fi: #pk_ft_upd_for_query_ts,
                         #fields_named_without_pk_ts
@@ -1910,8 +1943,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             };
             let upd_h_ts = gen_from_h_ts(&ident_upd_ucc, &{
                 let pk_ft_as_pg_type_upd_for_query_ts = gen_as_pg_type_upd_for_query_ts(&pk_ft);
-                let fields_named_without_pk_ts =
-                    gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| -> Ts2 {
+                let fields_named_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                    &|el: &SynField| -> proc_macro2::TokenStream {
                         let fi = &el.ident;
                         let ts = gen_v_init_ts0(&{
                             let ft_as_pg_type_upd_for_query_ts =
@@ -1919,7 +1952,8 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                             quote! {#ft_as_pg_type_upd_for_query_ts::from(v_0e64c53a.#VSc)}
                         });
                         quote! {#fi: #VSc.#fi.map(|v_0e64c53a| #ts)}
-                    });
+                    },
+                );
                 quote! {
                     Self {
                         #pk_fi: #pk_ft_as_pg_type_upd_for_query_ts::from(#VSc.#pk_fi),
@@ -2133,7 +2167,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         if is_pub {
             quote! {pub}
         } else {
-            Ts2::new()
+            proc_macro2::TokenStream::new()
         }
     };
     let gen_pub_h_pk_fi_pk_inn_type_h_ts = |ts: &dyn ToTokens| {
@@ -2254,7 +2288,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             #VSc
         }
     };
-    let gen_loc_vrt_ts = |er_vrt: &Variant| -> Ts2 {
+    let gen_loc_vrt_ts = |er_vrt: &Variant| -> proc_macro2::TokenStream {
         let vrt_ident = &er_vrt.ident;
         let Fields::Named(fields_named) = &er_vrt.fields else {
             return compile_error_ts("2acd4725: expected named variant fields");
@@ -2264,7 +2298,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 return compile_error_ts("a21dc807: expected named field ident");
             };
             let loc_attr = if *fi == *LocSc.to_string() {
-                Ts2::new()
+                proc_macro2::TokenStream::new()
             } else {
                 let mut loc_attr: Option<LocFieldAttr> = None;
                 for el in &field.attrs {
@@ -3408,7 +3442,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                 .d_serde_serialize()
                                 .d_serde_deserialize()
                                 .d_utoipa_to_schema()
-                                .build_struct(&Ts2::new(),&ident_op_payload_ucc, &Ts2::new(), &dcl_ts);
+                                .build_struct(&proc_macro2::TokenStream::new(),&ident_op_payload_ucc, &proc_macro2::TokenStream::new(), &dcl_ts);
                             quote! {
                                 #AllowClippyArbitrarySrcItemOrdering
                                 #ident_op_payload_struct_ts
@@ -3480,18 +3514,18 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         let vec_ident_upd_ts = gen_vec_tokens_dcl_ts(&ident_upd_ucc);
                         let ident_op_payload_vec_ts = serde_ser_utoipa_d_ts_builder
                             .build_struct(
-                                &Ts2::new(),
+                                &proc_macro2::TokenStream::new(),
                                 &ident_op_payload_ucc,
-                                &Ts2::new(),
+                                &proc_macro2::TokenStream::new(),
                                 &quote! {(#vec_ident_upd_ts);},
                             );
                         let ident_op_payload_try_new_er_ucc =
                             gen_ident_op_suffix_ts(op, "PayloadTryNewEr");
                         let ident_op_payload_try_new_er_ts = er_enum_d_ts_builder
                             .build_enum(
-                                &Ts2::new(),
+                                &proc_macro2::TokenStream::new(),
                                 &ident_op_payload_try_new_er_ucc,
-                                &Ts2::new(),
+                                &proc_macro2::TokenStream::new(),
                                 &quote! {{
                                     #NotUnqPkUcc {
                                         #[eo_to_err_string]
@@ -3502,7 +3536,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                 }},
                             );
                         let impl_pub_try_new_for_ident_op_payload_ts = gen_impl_pub_try_new_for_ident_ts(
-                            &Ts2::new(),
+                            &proc_macro2::TokenStream::new(),
                             &gen_ident_op_payload_ucc(op),
                             &quote! {#VSc: #vec_ident_upd_ts},
                             &ident_op_payload_try_new_er_ucc,
@@ -3570,7 +3604,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                             quote! {{#ts}}
                         },
                     ),
-                    Op::Co | Op::Uo => Ts2::new(),
+                    Op::Co | Op::Uo => proc_macro2::TokenStream::new(),
                 }
             };
             let prms_ts = {
@@ -3580,7 +3614,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     .d_debug()
                     .d_clone_if(derive_clone)
                     .d_copy_if(derive_copy)
-                    .build_struct(&Ts2::new(),&gen_ident_op_prms_ucc(op), &Ts2::new(), &{
+                    .build_struct(&proc_macro2::TokenStream::new(),&gen_ident_op_prms_ucc(op), &proc_macro2::TokenStream::new(), &{
                         let ident_op_payload_ucc = gen_ident_op_payload_ucc(op);
                         quote! {{
                             pub #PayloadSc: #ident_op_payload_ucc,
@@ -3599,7 +3633,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                         .d_debug()
                         .d_serde_serialize()
                         .d_serde_deserialize()
-                        .build_enum(&Ts2::new(), &ident_op_res_vrts_ucc, &Ts2::new(), &{
+                        .build_enum(&proc_macro2::TokenStream::new(), &ident_op_res_vrts_ucc, &proc_macro2::TokenStream::new(), &{
                             let vrts_ts = type_vrts_from_req_res_syn_vrts
                                 .iter()
                                 .map(gen_serde_version_of_named_syn_vrt);
@@ -3650,7 +3684,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                 };
                 let ident_op_er_ts = {
                     let ident_op_er_enum_ts = er_enum_d_ts_builder
-                        .build_enum(&Ts2::new(), &ident_op_er_ucc, &Ts2::new(), &{
+                        .build_enum(&proc_macro2::TokenStream::new(), &ident_op_er_ucc, &proc_macro2::TokenStream::new(), &{
                             let vrts_ts = type_vrts_from_req_res_syn_vrts
                                 .iter()
                                 .map(gen_loc_vrt_ts);
@@ -3669,7 +3703,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             };
             let try_op_ts = {
                 let enum_ts = er_enum_d_ts_builder
-                    .build_enum(&Ts2::new(), &gen_ident_try_op_er_ucc(op), &Ts2::new(), &{
+                    .build_enum(&proc_macro2::TokenStream::new(), &gen_ident_try_op_er_ucc(op), &proc_macro2::TokenStream::new(), &{
                         let syn_vrts: &Vec<Variant> = match &op {
                             Op::Rm | Op::Ro => &{
                                 let mut acc = cmn_http_req_syn_vrts.clone();
@@ -3731,10 +3765,14 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         (quote! {#oprtr_ts Or}, quote! {#oprtr_ts And})
     };
     let generated_ident_tests_ts = {
-        fn gen_assert_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens) -> Ts2 {
+        fn gen_assert_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens) -> proc_macro2::TokenStream {
             quote! {assert!(#ts0,#ts1);}
         }
-        fn gen_assert_eq_ts(ts0: &dyn ToTokens, ts1: &dyn ToTokens, ts2: &dyn ToTokens) -> Ts2 {
+        fn gen_assert_eq_ts(
+            ts0: &dyn ToTokens,
+            ts1: &dyn ToTokens,
+            ts2: &dyn ToTokens,
+        ) -> proc_macro2::TokenStream {
             quote! {assert_eq!(#ts0,#ts1,#ts2);}
         }
         let gen_pk_wh_eq_ts = |ts0: &dyn ToTokens| {
@@ -3858,7 +3896,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                     gen_fields_named_without_pk_with_comma_ts(&|el: &SynField| {
                         let fi = &el.ident;
                         let mb_dot_clone_ts = match &add_dot_clone {
-                            AddDotClone::False => Ts2::new(),
+                            AddDotClone::False => proc_macro2::TokenStream::new(),
                             AddDotClone::True => quote! {.clone()},
                         };
                         let ft_ts = gen_as_pg_type_test_cases_path_ts(&el.type0);
@@ -4029,7 +4067,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                                 },
                             )
                         } else {
-                            Ts2::new()
+                            proc_macro2::TokenStream::new()
                         }
                     });
                 quote! {
@@ -4526,9 +4564,9 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
             };
             let gen_rd_test_ts =
                 |test_name: &str,
-                 gen_method_call_ts: &dyn Fn(&Ident, &Type) -> Ts2,
-                 gen_cr_ts: &dyn Fn(&Ident) -> Ts2,
-                 gen_ts: &dyn Fn(&SynField) -> Ts2| {
+                 gen_method_call_ts: &dyn Fn(&Ident, &Type) -> proc_macro2::TokenStream,
+                 gen_cr_ts: &dyn Fn(&Ident) -> proc_macro2::TokenStream,
+                 gen_ts: &dyn Fn(&SynField) -> proc_macro2::TokenStream| {
                     gen_fields_named_without_pk_without_comma_ts(&|el: &SynField| {
                         let fi = &el.ident;
                         let ft = &el.type0;
@@ -4826,7 +4864,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         };
         let gen_rd_fields_after_upd_ts =
             |fi: &Ident,
-             else_fn: &dyn Fn(&Ident) -> Ts2,
+             else_fn: &dyn Fn(&Ident) -> proc_macro2::TokenStream,
              expect_uuid_0: &str,
              expect_uuid_1: &str| {
                 gen_fields_named_without_pk_with_comma_ts(&|syn_field: &SynField| {
@@ -4879,7 +4917,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                             );
                         }
                     } else {
-                        Ts2::new()
+                        proc_macro2::TokenStream::new()
                     };
                     let fi_rd_ids_to_2_dims_vec_rd_inn_acc_sc =
                         SelfRdIdsTo2DimsVecRdInnAccSc::from_tokens(&fi);
@@ -4990,7 +5028,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
                             .await.expect("e6998b47");
                         }
                     } else {
-                        Ts2::new()
+                        proc_macro2::TokenStream::new()
                     };
                     let fi_rd_ids_to_2_dims_vec_rd_inn_acc_sc =
                         SelfRdIdsTo2DimsVecRdInnAccSc::from_tokens(&fi);
@@ -5630,7 +5668,7 @@ pub fn gen_pg_tbl(input: Ts2) -> Ts2 {
         &FormatWithCargofmt::True,
     );
     let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
-        ShouldWriteTsIntoFile::False => Ts2::new(),
+        ShouldWriteTsIntoFile::False => proc_macro2::TokenStream::new(),
         ShouldWriteTsIntoFile::True => generated_ident_tests_ts,
     };
     let cmn_ts = quote! {

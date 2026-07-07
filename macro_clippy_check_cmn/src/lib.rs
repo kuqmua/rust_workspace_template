@@ -10,7 +10,7 @@ const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 6] = [
     "warnings",
 ];
 #[cfg(feature = "test-utils")]
-const CARGO_CHECK_STEPS: [CargoCheckStep<'static>; 2] = [
+const CARGO_CHECK_STEPS: [(&[&str], &str, &str); 2] = [
     (&CARGO_FMT_ARGS, "8dc4f045", "2a1deb01"),
     (
         &CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
@@ -18,8 +18,6 @@ const CARGO_CHECK_STEPS: [CargoCheckStep<'static>; 2] = [
         "2c037283",
     ),
 ];
-#[cfg(feature = "test-utils")]
-type CargoCheckStep<'step_lt> = (&'step_lt [&'step_lt str], &'step_lt str, &'step_lt str);
 #[cfg(feature = "test-utils")]
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum FileSnapshot {
@@ -98,7 +96,7 @@ fn run_cargo_checked(
 }
 #[cfg(feature = "test-utils")]
 #[allow(clippy::single_call_fn)] // centralizes ordered cargo check execution to keep command flow reusable and consistent
-fn run_cargo_check_steps(target_crate_dir: &std::path::Path, steps: &[CargoCheckStep<'_>]) {
+fn run_cargo_check_steps(target_crate_dir: &std::path::Path, steps: &[(&[&str], &str, &str)]) {
     for (args, cmd_spawn_er_id, failed_id) in steps {
         run_cargo_checked(target_crate_dir, args, cmd_spawn_er_id, failed_id);
     }

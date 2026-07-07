@@ -1,13 +1,12 @@
-type Ts2 = proc_macro2::TokenStream;
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
 pub enum PgTypeFlt {
-    Eq { ident: Ts2 },
-    GreaterThan { ident: Ts2 },
-    Btwn { ident: Ts2 },
-    In { ident: Ts2 },
+    Eq { ident: proc_macro2::TokenStream },
+    GreaterThan { ident: proc_macro2::TokenStream },
+    Btwn { ident: proc_macro2::TokenStream },
+    In { ident: proc_macro2::TokenStream },
     Rgx,
-    Before { ident: Ts2 },
+    Before { ident: proc_macro2::TokenStream },
     CrntDate,
     GreaterThanCrntDate,
     CrntTimestamp,
@@ -15,21 +14,21 @@ pub enum PgTypeFlt {
     CrntTime,
     GreaterThanCrntTime,
     EqToEncodedStringRepresentation,
-    FindRangesWithinGivenRange { ident: Ts2 },
-    FindRangesThatFullyContainTheGivenRange { ident: Ts2 },
-    StrictlyToLeftOfRange { ident: Ts2 },
-    StrictlyToRightOfRange { ident: Ts2 },
-    IncludedLowerBound { ident: Ts2 },
-    ExcludedUpperBound { ident: Ts2 },
-    GreaterThanIncludedLowerBound { ident: Ts2 },
-    GreaterThanExcludedUpperBound { ident: Ts2 },
-    OverlapWithRange { ident: Ts2 },
-    AdjacentWithRange { ident: Ts2 },
+    FindRangesWithinGivenRange { ident: proc_macro2::TokenStream },
+    FindRangesThatFullyContainTheGivenRange { ident: proc_macro2::TokenStream },
+    StrictlyToLeftOfRange { ident: proc_macro2::TokenStream },
+    StrictlyToRightOfRange { ident: proc_macro2::TokenStream },
+    IncludedLowerBound { ident: proc_macro2::TokenStream },
+    ExcludedUpperBound { ident: proc_macro2::TokenStream },
+    GreaterThanIncludedLowerBound { ident: proc_macro2::TokenStream },
+    GreaterThanExcludedUpperBound { ident: proc_macro2::TokenStream },
+    OverlapWithRange { ident: proc_macro2::TokenStream },
+    AdjacentWithRange { ident: proc_macro2::TokenStream },
     RangeLen,
     //BitVecPositionEq,//currently deactivated
 }
 impl PgFlt for PgTypeFlt {
-    fn mb_generic(&self) -> Option<Ts2> {
+    fn mb_generic(&self) -> Option<proc_macro2::TokenStream> {
         match &self {
             Self::Eq { ident }
             | Self::GreaterThan { ident }
@@ -57,7 +56,7 @@ impl PgFlt for PgTypeFlt {
             | Self::RangeLen => None,
         }
     }
-    fn prefix_wh_self_ucc(&self) -> Ts2 {
+    fn prefix_wh_self_ucc(&self) -> proc_macro2::TokenStream {
         let v = naming::prm::PgTypeWhSelfUcc::from_display(&self.ucc());
         quote::quote! {#v}
     }
@@ -93,7 +92,7 @@ impl PgFlt for PgTypeFlt {
     }
 }
 pub trait PgFlt {
-    fn mb_generic(&self) -> Option<Ts2>;
-    fn prefix_wh_self_ucc(&self) -> Ts2;
+    fn mb_generic(&self) -> Option<proc_macro2::TokenStream>;
+    fn prefix_wh_self_ucc(&self) -> proc_macro2::TokenStream;
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
 }

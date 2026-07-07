@@ -6,10 +6,6 @@ const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const HEALTH_CHECK_OK_STATUS: axum::http::StatusCode = axum::http::StatusCode::OK;
 const HEALTH_CHECK_ER_STATUS: axum::http::StatusCode = axum::http::StatusCode::SERVICE_UNAVAILABLE;
-// cross-thread shared axum route state must outlive cloned service tasks
-type DynArcCmnRoutesPrms = std::sync::Arc<dyn CmnRoutesPrms>;
-type CmnState = axum::extract::State<DynArcCmnRoutesPrms>;
-type JsonRes<T> = (axum::http::StatusCode, axum::Json<T>);
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct GitInfo {
     commit: std::borrow::Cow<'static, str>,
@@ -77,7 +73,7 @@ fn mk_commit_json_res<S, T>(
     commit_src: &S,
     status: axum::http::StatusCode,
     map: impl FnOnce(std::borrow::Cow<'static, str>) -> T,
-) -> JsonRes<T>
+) -> (axum::http::StatusCode, axum::Json<T>)
 where
     S: ?Sized + git_info::GetGitCommitLink,
 {
@@ -89,7 +85,10 @@ where
     )
 }
 #[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
-const fn mk_json_res<T>(status: axum::http::StatusCode, payload: T) -> JsonRes<T> {
+const fn mk_json_res<T>(
+    status: axum::http::StatusCode,
+    payload: T,
+) -> (axum::http::StatusCode, axum::Json<T>) {
     (status, axum::Json(payload))
 }
 #[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
@@ -101,7 +100,9 @@ const fn map_health_check_status(is_ok: bool) -> axum::http::StatusCode {
     }
 }
 #[allow(clippy::single_call_fn)] // named handler is clearer than inline closure for route wiring
-async fn health_check(axum::extract::State(app_state_hc): CmnState) -> axum::http::StatusCode {
+async fn health_check(
+    axum::extract::State(app_state_hc): axum::extract::State<std::sync::Arc<dyn CmnRoutesPrms>>,
+) -> axum::http::StatusCode {
     map_health_check_status(
         sqlx::query(HEALTH_CHECK_SQL)
             .execute(app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref()))
@@ -110,7 +111,11 @@ async fn health_check(axum::extract::State(app_state_hc): CmnState) -> axum::htt
     )
 }
 #[allow(clippy::single_call_fn)] // named handler is clearer than inline closure for route wiring
-async fn git_info(axum::extract::State(app_state_76fb2013): CmnState) -> JsonRes<GitInfo> {
+async fn git_info(
+    axum::extract::State(app_state_76fb2013): axum::extract::State<
+        std::sync::Arc<dyn CmnRoutesPrms>,
+    >,
+) -> (axum::http::StatusCode, axum::Json<GitInfo>) {
     mk_commit_json_res(
         app_state_76fb2013.as_ref(),
         axum::http::StatusCode::OK,
@@ -120,15 +125,17 @@ async fn git_info(axum::extract::State(app_state_76fb2013): CmnState) -> JsonRes
 #[allow(clippy::single_call_fn)] // named handler isolates fallback behavior for maintenance
 async fn not_found(
     uri: axum::http::Uri,
-    axum::extract::State(app_state_19103bd5): CmnState,
-) -> JsonRes<NotFoundH> {
+    axum::extract::State(app_state_19103bd5): axum::extract::State<
+        std::sync::Arc<dyn CmnRoutesPrms>,
+    >,
+) -> (axum::http::StatusCode, axum::Json<NotFoundH>) {
     mk_commit_json_res(
         app_state_19103bd5.as_ref(),
         axum::http::StatusCode::NOT_FOUND,
         |commit| mk_not_found_payload(&uri, commit),
     )
 }
-pub fn cmn_routes(app_state_b9fc2d94: DynArcCmnRoutesPrms) -> axum::Router {
+pub fn cmn_routes(app_state_b9fc2d94: std::sync::Arc<dyn CmnRoutesPrms>) -> axum::Router {
     axum::Router::new()
         .route(SLASH_HEALTH_CHECK, axum::routing::get(health_check))
         .route(SLASH_GIT_INFO, axum::routing::get(git_info))

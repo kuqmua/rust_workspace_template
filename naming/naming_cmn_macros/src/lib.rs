@@ -54,13 +54,13 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
             }
         }
         pub trait #ts_trait_ident {
-            fn case_or_panic(&self) -> Ts2;
+            fn case_or_panic(&self) -> proc_macro2::TokenStream;
         }
         impl<T> #ts_trait_ident for T
         where
             T: #str_trait_ident,
         {
-            fn case_or_panic(&self) -> Ts2 {
+            fn case_or_panic(&self) -> proc_macro2::TokenStream {
                 to_ts_or_panic(&#str_trait_ident::case(self))
             }
         }

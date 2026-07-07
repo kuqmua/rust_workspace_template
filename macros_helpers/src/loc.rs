@@ -117,15 +117,12 @@ pub fn gen_serde_version_of_named_syn_vrt(v: &syn::Variant) -> proc_macro2::Toke
                 } else {
                     return None;
                 };
-                assert!(segments.len() == 1, "114c28f3");
-                let first_segment = segments.iter().next()?;
-                {
-                    assert!(first_segment.ident == hash_map_ucc.to_string(), "5e1bc6b1");
-                };
+                let last_segment = segments.iter().next_back()?;
+                assert!(last_segment.ident == hash_map_ucc.to_string(), "5e1bc6b1");
                 let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
                     args,
                     ..
-                }) = &first_segment.arguments
+                }) = &last_segment.arguments
                 else {
                     return None;
                 };

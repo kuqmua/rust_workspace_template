@@ -290,6 +290,18 @@ mod tests {
             syn::visit::visit_item_use(self, i);
         }
     }
+    struct TypeAliasVisitor {
+        ers: Vec<String>,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
+        fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
+            self.ers.push(format!(
+                "type alias `{}` found; use the explicit type at usage sites instead of creating a type alias",
+                i.ident
+            ));
+            syn::visit::visit_item_type(self, i);
+        }
+    }
     #[test]
     fn all_crates_have_publish_false() {
         assert_root_workspace_cargo_policy("f2a8c5d3", |path, parsed, ers| {
@@ -1029,6 +1041,22 @@ mod tests {
                         path.display()
                     ));
                 }
+            },
+        );
+    }
+    #[test]
+    fn no_type_aliases_in_rust_sources() {
+        assert_rs_ast_ers_empty_with_ctx(
+            "c6e4f7a1",
+            "type aliases found; use explicit types at usage sites:",
+            |path, ast, ers| {
+                let visitor = visit_syn_file(ast, TypeAliasVisitor { ers: Vec::new() });
+                ers.extend(
+                    visitor
+                        .ers
+                        .into_iter()
+                        .map(|er| format!("{}: {er}", path.display())),
+                );
             },
         );
     }

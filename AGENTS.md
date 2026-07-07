@@ -41,6 +41,7 @@
 - Leave commented dead code.
 - Commit debug prints.
 - Use import or re-export aliases with `as`, including `use ... as ...` and `pub use ... as ...`; use the original item name or rename the item at its definition when a rename is explicitly required.
+- Create type aliases with `type`; use explicit types at usage sites.
 - Use `unwrap()`.
 - Use `expect()` or `panic!()` in library code except in `proc-macro`, tests, or generated test code inside `quote!`.
 - Ignore `Result` or swallow errors.

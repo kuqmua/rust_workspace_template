@@ -1,4 +1,3 @@
-type Ts2 = proc_macro2::TokenStream;
 naming_cmn_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
     str_case(self_ref.as_ref(), convert_case::Case::UpperCamel)
 });

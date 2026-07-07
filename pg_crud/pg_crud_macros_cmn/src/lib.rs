@@ -34,11 +34,10 @@ pub use token_patterns::{
     PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall, PgCrudCmnDfltSomeOneElMaxPageSize,
     PgCrudDfltSomeOneEl, PgCrudDfltSomeOneElMaxPageSize, RefStr, StdFmtDisplay, StringTs, U64,
 };
-type Ts2 = proc_macro2::TokenStream;
 #[derive(Debug, Clone, Optml)]
 pub enum DeriveOrImpl {
     Derive,
-    Impl(Ts2),
+    Impl(proc_macro2::TokenStream),
 }
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum IsStdrtNn {
@@ -66,14 +65,14 @@ pub enum IsNl {
 }
 impl IsNl {
     #[must_use]
-    pub fn mb_opt_wrap(&self, ts: Ts2) -> Ts2 {
+    pub fn mb_opt_wrap(&self, ts: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         match &self {
             Self::False => ts,
             Self::True => quote! {Option<#ts>},
         }
     }
     #[must_use]
-    pub fn mb_some_wrap(&self, ts: Ts2) -> Ts2 {
+    pub fn mb_some_wrap(&self, ts: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         match &self {
             Self::False => ts,
             Self::True => quote! {Some(#ts)},
@@ -154,24 +153,24 @@ impl Import {
     }
 }
 impl ToTokens for Import {
-    fn to_tokens(&self, tokens: &mut Ts2) {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         parse_ts_or_compile_error(self.sc_str(), "d8636ee5").to_tokens(tokens);
     }
 }
 bool_enum_to_tokens!(AddOprtrUndrscr, false => AddOprtrSc, true => quote! {_});
 bool_enum_to_tokens!(ColPrmUndrscr, false => ColSc, true => quote! {_});
 bool_enum_to_tokens!(IncrPrmUndrscr, false => IncrSc, true => quote! {_});
-bool_enum_to_tokens!(IsCrQbMut, false => Ts2::new(), true => MutSc);
-bool_enum_to_tokens!(IsQbMut, false => Ts2::new(), true => MutSc);
-bool_enum_to_tokens!(IsSelOnlyCrdIdsQbMut, false => Ts2::new(), true => MutSc);
-bool_enum_to_tokens!(IsSelOnlyUpddIdsQbMut, false => Ts2::new(), true => MutSc);
+bool_enum_to_tokens!(IsCrQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
+bool_enum_to_tokens!(IsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
+bool_enum_to_tokens!(IsSelOnlyCrdIdsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
+bool_enum_to_tokens!(IsSelOnlyUpddIdsQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
 bool_enum_to_tokens!(IsSelQpColFieldForErMsgUsed, false => quote! {_}, true => ColFieldForErMsgSc);
 bool_enum_to_tokens!(IsSelQpIsPgTypeUsed, false => quote! {_}, true => quote! {is_pg_type});
 bool_enum_to_tokens!(IsSelQpSelfSelUsed, false => quote! {_}, true => VSc);
-bool_enum_to_tokens!(IsUpdQbMut, false => Ts2::new(), true => MutSc);
+bool_enum_to_tokens!(IsUpdQbMut, false => proc_macro2::TokenStream::new(), true => MutSc);
 bool_enum_to_tokens!(IsUpdQpSelfUpdUsed, false => quote! {_}, true => VSc);
-bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => Ts2::new(), true => quote! {, schemars::JsonSchema});
-bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => Ts2::new(), true => quote! {, utoipa::ToSchema});
+bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote! {, schemars::JsonSchema});
+bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote! {, utoipa::ToSchema});
 #[derive(Debug, Clone, Copy, Optml)]
 pub enum RdOrUpd {
     Rd,
@@ -204,7 +203,7 @@ pub enum EqOprtrH {
 }
 impl EqOprtrH {
     #[must_use]
-    pub fn to_tokens_path(&self, import: &Import) -> Ts2 {
+    pub fn to_tokens_path(&self, import: &Import) -> proc_macro2::TokenStream {
         let ts = match &self {
             Self::Eq => quote! {Eq},
             Self::IsNull => quote! {IsNull},
@@ -254,14 +253,14 @@ pub fn gen_pg_type_wh_ts(
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_qb_mut: &IsQbMut,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let ident = SelfWhUcc::from_tokens(&prefix);
     let pg_type_tokens_wh_ts = {
         let vrts_ts = vrts.iter().map(|el| {
             let el_ucc = el.ucc();
             let prefix_wh_self_ucc = el.prefix_wh_self_ucc();
-            let opt_type_ts: Option<Ts2> = el.mb_generic();
-            let type_ts = opt_type_ts.map_or_else(Ts2::new, |v| quote! {<#v>});
+            let opt_type_ts: Option<proc_macro2::TokenStream> = el.mb_generic();
+            let type_ts = opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote! {<#v>});
             quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
         });
         quote! {
@@ -275,7 +274,7 @@ pub fn gen_pg_type_wh_ts(
     let impl_pg_type_pg_type_wh_flt_for_pg_type_tokens_wh_ts = impl_pg_type_wh_flt_for_ident_ts(
         &quote! {<'lt>},
         &ident,
-        &Ts2::new(),
+        &proc_macro2::TokenStream::new(),
         &IncrPrmUndrscr::False,
         &ColPrmUndrscr::False,
         &AddOprtrUndrscr::False,
@@ -333,14 +332,24 @@ pub fn gen_pg_type_wh_ts(
         #impl_all_vrts_dflt_some_one_el_for_pg_type_tokens_wh_ts
     }
 }
-pub fn gen_impl_to_err_string_no_generics_ts(ident: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
-    gen_impl_to_err_string_ts(&Ts2::new(), ident, &Ts2::new(), ts)
-}
-pub fn gen_impl_display_and_to_err_string_debug_ts(ident: &dyn ToTokens) -> Ts2 {
-    let impl_display_ts = gen_impl_display_ts(
-        &Ts2::new(),
+pub fn gen_impl_to_err_string_no_generics_ts(
+    ident: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
+    gen_impl_to_err_string_ts(
+        &proc_macro2::TokenStream::new(),
         ident,
-        &Ts2::new(),
+        &proc_macro2::TokenStream::new(),
+        ts,
+    )
+}
+pub fn gen_impl_display_and_to_err_string_debug_ts(
+    ident: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
+    let impl_display_ts = gen_impl_display_ts(
+        &proc_macro2::TokenStream::new(),
+        ident,
+        &proc_macro2::TokenStream::new(),
         &quote! {write!(f, "{self:?}")},
     );
     let impl_to_err_string_ts =
@@ -351,29 +360,39 @@ pub fn gen_impl_display_and_to_err_string_debug_ts(ident: &dyn ToTokens) -> Ts2 
     }
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_ts() -> Ts2 {
+pub fn pg_crud_cmn_qp_er_ts() -> proc_macro2::TokenStream {
     quote! {pg_crud_cmn::#QpErUcc}
 }
 #[must_use]
-pub fn gen_dim_nbr_pgn_ts(dim_nbr: usize) -> Ts2 {
+pub fn gen_dim_nbr_pgn_ts(dim_nbr: usize) -> proc_macro2::TokenStream {
     parse_ts_or_compile_error(&format!("dim{dim_nbr}_pgn"), "7c3a91b2")
 }
-pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> Ts2 {
+pub fn gen_struct_ident_dq_ts(v: &dyn Display) -> proc_macro2::TokenStream {
     dq_ts(&format!("struct {v}"))
 }
-pub fn gen_struct_ident_with_nbr_els_dq_ts(ident: &dyn DisplayPlusToTokens, len: usize) -> Ts2 {
+pub fn gen_struct_ident_with_nbr_els_dq_ts(
+    ident: &dyn DisplayPlusToTokens,
+    len: usize,
+) -> proc_macro2::TokenStream {
     dq_ts(&format!("struct {ident} with {len} els"))
 }
-pub fn gen_sqlx_types_json_type_dcl_ts(type_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_sqlx_types_json_type_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {sqlx::types::Json<#type_ts>}
 }
-pub fn gen_opt_type_dcl_ts(type_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_opt_type_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {Option<#type_ts>}
 }
-pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {Vec<#type_ts>}
 }
-pub fn gen_de_dq_ts(ident: &dyn DisplayPlusToTokens, len: usize) -> (Ts2, Ts2, Ts2) {
+pub fn gen_de_dq_ts(
+    ident: &dyn DisplayPlusToTokens,
+    len: usize,
+) -> (
+    proc_macro2::TokenStream,
+    proc_macro2::TokenStream,
+    proc_macro2::TokenStream,
+) {
     let struct_pg_type_ident_wh_tokens_dq_ts = gen_struct_ident_dq_ts(ident);
     let struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts =
         gen_struct_ident_with_nbr_els_dq_ts(ident, len);
@@ -390,7 +409,7 @@ pub fn gen_impl_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ident_generic_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let path_trait_ts = import.dflt_some_one_el();
     quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
@@ -404,7 +423,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let path_trait_ts = import.all_vrts_dflt_some_one_el();
     quote! {
         impl #path_trait_ts for #ident {
@@ -420,7 +439,7 @@ pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ident_generic_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let path_trait_ts = import.dflt_some_one_el_max_page_size();
     quote! {
         impl #impl_generic_ts #path_trait_ts for #ident #ident_generic_ts {
@@ -434,7 +453,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let path_trait_ts = import.all_vrts_dflt_some_one_el_max_page_size();
     let all_vrts_dflt_some_one_el_max_page_size_sc = AllVrtsDfltSomeOneElMaxPageSizeSc;
     quote! {
@@ -445,37 +464,52 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
         }
     }
 }
-pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(ident: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
-    gen_impl_dflt_some_one_el_ts(&Ts2::new(), &Import::PgCrudCmn, ident, &Ts2::new(), ts)
+pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(
+    ident: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
+    gen_impl_dflt_some_one_el_ts(
+        &proc_macro2::TokenStream::new(),
+        &Import::PgCrudCmn,
+        ident,
+        &proc_macro2::TokenStream::new(),
+        ts,
+    )
 }
 pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     lt_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
-    gen_impl_dflt_some_one_el_ts(&Ts2::new(), &Import::PgCrud, ident, lt_ts, ts)
+) -> proc_macro2::TokenStream {
+    gen_impl_dflt_some_one_el_ts(
+        &proc_macro2::TokenStream::new(),
+        &Import::PgCrud,
+        ident,
+        lt_ts,
+        ts,
+    )
 }
 pub fn gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrud, ident, ts)
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     gen_impl_dflt_some_one_el_max_page_size_ts(
-        &Ts2::new(),
+        &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
         ident,
-        &Ts2::new(),
+        &proc_macro2::TokenStream::new(),
         ts,
     )
 }
@@ -483,13 +517,19 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     lt_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
-    gen_impl_dflt_some_one_el_max_page_size_ts(&Ts2::new(), &Import::PgCrud, ident, lt_ts, ts)
+) -> proc_macro2::TokenStream {
+    gen_impl_dflt_some_one_el_max_page_size_ts(
+        &proc_macro2::TokenStream::new(),
+        &Import::PgCrud,
+        ident,
+        lt_ts,
+        ts,
+    )
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_max_page_size_ts(
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(&Import::PgCrud, ident, ts)
 }
 pub fn impl_pg_type_wh_flt_for_ident_ts(
@@ -503,7 +543,7 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
     is_qb_mut: &IsQbMut,
     qb_ts: &dyn ToTokens,
     import: &Import,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
         impl #impl_generic_ts #import ::#PgTypeWhFltUcc<'lt> for #ident_ts #ident_generic_ts {
@@ -527,7 +567,7 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
 pub fn gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         impl sqlx::Encode<'_, sqlx::Postgres> for #ident_ts {
             fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
@@ -540,7 +580,7 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn ToTokens,
     type_ts: &dyn ToTokens,
     ok_v_match_ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         impl sqlx::Decode<'_, sqlx::Postgres> for #ident_ts {
             fn decode(#ValueSc: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
@@ -552,7 +592,10 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
         }
     }
 }
-pub fn gen_impl_sqlx_type_for_ident_ts(ident_ts: &dyn ToTokens, type_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_impl_sqlx_type_for_ident_ts(
+    ident_ts: &dyn ToTokens,
+    type_ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         impl sqlx::Type<sqlx::Postgres> for #ident_ts {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
@@ -568,7 +611,7 @@ pub fn gen_impl_sqlx_type_and_encode_for_ident_ts(
     ident_ts: &dyn ToTokens,
     type_ts: &dyn ToTokens,
     encode_ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let impl_type_ts = gen_impl_sqlx_type_for_ident_ts(ident_ts, type_ts);
     let impl_encode_ts = gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(ident_ts, encode_ts);
     quote! {
@@ -611,7 +654,7 @@ pub fn gen_impl_pg_type_ts(
     sel_only_updd_ids_qp_ts: &dyn ToTokens,
     is_sel_only_updd_ids_qb_mut: &IsSelOnlyUpddIdsQbMut,
     sel_only_updd_ids_qb_ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let query_pg_args_ts =
         quote! {sqlx::query::Query<'_, sqlx::Postgres, sqlx::postgres::PgArguments>};
     quote! {
@@ -696,7 +739,10 @@ pub fn gen_impl_pg_type_ts(
         }
     }
 }
-pub fn gen_impl_pg_type_not_pk_for_ident_ts(import: &Import, ident: &dyn ToTokens) -> Ts2 {
+pub fn gen_impl_pg_type_not_pk_for_ident_ts(
+    import: &Import,
+    ident: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     let ident_cr_ucc = SelfCrUcc::from_tokens(&ident);
     quote! {
         #AllowClippyArbitrarySrcItemOrdering
@@ -710,7 +756,7 @@ pub fn gen_impl_pg_type_not_pk_for_ident_ts(import: &Import, ident: &dyn ToToken
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {
         fn #OptVecCrSc() -> Option<Vec<#path_ts::#CrUcc>> {
             #ts
@@ -721,7 +767,10 @@ fn gen_opt_vec_cr_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_rd_ids_to_2_dims_vec_rd_inn_ts(
+    path_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsTo2DimsVecRdInnSc(
             #RdIdsSc: &#path_ts::#RdIdsUcc
@@ -736,7 +785,7 @@ fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
     path_ts: &dyn ToTokens,
     return_type_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         fn #method_name_ts(
             #VSc: #type_ts
@@ -749,7 +798,7 @@ fn gen_rd_inn_into_rd_or_upd_with_new_or_try_new_unwraped_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_upd_to_rd_ids_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {
         fn #UpdToRdIdsSc(
             #VSc: &#path_ts::#UpdUcc
@@ -766,7 +815,7 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
     import: Import,
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsToOptVRdDfltSomeOneElSc(
             #VSc: &#path_ts::#RdIdsUcc
@@ -779,7 +828,10 @@ fn gen_rd_ids_to_opt_v_rd_dflt_some_one_el_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_previous_rd_and_opt_upd_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_previous_rd_and_opt_upd_into_rd_ts(
+    path_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         fn #PreviousRdAndOptUpdIntoRdSc(
             #RdSc: #path_ts::#RdUcc,
@@ -793,7 +845,10 @@ fn gen_previous_rd_and_opt_upd_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTok
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_rd_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_rd_ids_and_cr_into_rd_ts(
+    path_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsAndCrIntoRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -811,7 +866,7 @@ fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
     import: Import,
     path_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsAndCrIntoOptVRdSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -825,7 +880,10 @@ fn gen_rd_ids_and_cr_into_opt_v_rd_ts(
     clippy::single_call_fn,
     reason = "keeps generated method snippets separated"
 )]
-fn gen_rd_ids_and_cr_into_tt_ts(path_ts: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+fn gen_rd_ids_and_cr_into_tt_ts(
+    path_ts: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsAndCrIntoTtSc(
             #RdIdsSc: #path_ts::#RdIdsUcc,
@@ -840,7 +898,7 @@ pub fn gen_rd_ids_and_cr_into_wh_eq_ts(
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsAndCrIntoWhEqSc(
             #RdIdsSc: #rd_ids_ts,
@@ -856,7 +914,7 @@ pub fn gen_rd_ids_and_cr_into_vec_wh_eq_using_fields_ts(
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         fn #RdIdsAndCrIntoVecWhEqUsingFieldsSc(
             #RdIdsSc: #rd_ids_ts,
@@ -876,7 +934,7 @@ fn gen_rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts(
     cr_ts: &dyn ToTokens,
     wh_ts: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let return_type_ts = gen_opt_type_dcl_ts(&quote! {#import::NotEmptyUnqVec<#wh_ts>});
     quote! {
         fn #RdIdsAndCrIntoOptVecWhEqToFieldSc(
@@ -892,7 +950,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     import: &Import,
     type_ts: &dyn ToTokens,
     ident: &dyn ToTokens,
-    opt_vec_cr_ts: Option<&Ts2>,
+    opt_vec_cr_ts: Option<&proc_macro2::TokenStream>,
     rd_ids_to_2_dims_vec_rd_inn_ts: &dyn ToTokens,
     rd_inn_into_rd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
     rd_inn_into_upd_with_new_or_try_new_unwraped_ts: &dyn ToTokens,
@@ -904,10 +962,10 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     rd_ids_and_cr_into_tt_ts: &dyn ToTokens,
     rd_ids_and_cr_into_wh_eq_ts: &dyn ToTokens,
     rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn ToTokens,
-    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&Ts2>,
-    pg_type_opt_vec_wh_greater_than_test_ts: Option<&Ts2>,
-    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&Ts2>,
-) -> Ts2 {
+    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&proc_macro2::TokenStream>,
+    pg_type_opt_vec_wh_greater_than_test_ts: Option<&proc_macro2::TokenStream>,
+    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&proc_macro2::TokenStream>,
+) -> proc_macro2::TokenStream {
     let self_pg_type_as_pg_type_ts = quote! {<#SelfUcc::#PgTypeUcc as #import::#PgTypeUcc>};
     let self_pg_type_as_pg_type_rd_ids_ts = quote! {#self_pg_type_as_pg_type_ts::#RdIdsUcc};
     let self_pg_type_as_pg_type_cr_ts = quote! {#self_pg_type_as_pg_type_ts::#CrUcc};
@@ -1035,10 +1093,13 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     }
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> Ts2 {
+pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> proc_macro2::TokenStream {
     quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}
 }
-pub fn gen_impl_crate_is_string_empty_for_ident_ts(ident: &dyn ToTokens, ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_impl_crate_is_string_empty_for_ident_ts(
+    ident: &dyn ToTokens,
+    ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         impl pg_crud_cmn::IsStringEmpty for #ident {
             fn is_string_empty(&self) -> bool {
@@ -1047,7 +1108,10 @@ pub fn gen_impl_crate_is_string_empty_for_ident_ts(ident: &dyn ToTokens, ts: &dy
         }
     }
 }
-pub fn gen_match_try_new_in_de_ts(ident: &dyn ToTokens, init_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_match_try_new_in_de_ts(
+    ident: &dyn ToTokens,
+    init_ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         match #ident::try_new(#init_ts) {
             Ok(v) => Ok(v),
@@ -1059,8 +1123,8 @@ pub fn gen_impl_de_for_struct_ts(
     ident: &dyn DisplayPlusToTokens,
     vec_ident_type: &[(&Ident, &Type)],
     _len: usize,
-    gen_type_ts: &dyn Fn(&Ident, &Type) -> Ts2,
-) -> Ts2 {
+    gen_type_ts: &dyn Fn(&Ident, &Type) -> proc_macro2::TokenStream,
+) -> proc_macro2::TokenStream {
     let raw_ident_ts = parse_ts_or_compile_error(&format!("{ident}Raw"), "a1b2c3d4");
     let raw_fields_ts = vec_ident_type.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
@@ -1096,27 +1160,27 @@ pub fn gen_impl_de_for_struct_ts(
         };
     }
 }
-pub fn wrap_into_scopes_ts(ts: &dyn ToTokens) -> Ts2 {
+pub fn wrap_into_scopes_ts(ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {(#ts)}
 }
-pub fn mb_wrap_into_braces_ts(ts: &dyn ToTokens, wrap: bool) -> Ts2 {
+pub fn mb_wrap_into_braces_ts(ts: &dyn ToTokens, wrap: bool) -> proc_macro2::TokenStream {
     if wrap {
         wrap_into_scopes_ts(&ts)
     } else {
         quote! {#ts}
     }
 }
-pub fn gen_v_dcl_ts(import: &Import, ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_v_dcl_ts(import: &Import, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {#import::V<#ts>}
 }
-pub fn gen_v_init_ts(import: &Import, ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_v_init_ts(import: &Import, ts: &dyn ToTokens) -> proc_macro2::TokenStream {
     quote! {#import::V { #VSc: #ts }}
 }
 pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     import: &Import,
     ident: &dyn ToTokens,
     ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         impl #import::#PgTypeEqOprtrUcc for #ident {
             fn oprtr(&self) -> #import::#EqOprtrUcc {
@@ -1126,7 +1190,7 @@ pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     }
 }
 #[must_use]
-pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> Ts2 {
+pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> proc_macro2::TokenStream {
     quote! {
         #import::QpEr::WriteIntoBuffer {
             loc: loc_lib::loc!()
@@ -1134,18 +1198,21 @@ pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> Ts2 {
     }
 }
 #[must_use]
-pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> Ts2 {
+pub fn gen_return_err_qp_er_write_into_buffer_ts(import: Import) -> proc_macro2::TokenStream {
     let ts = gen_qp_er_write_into_buffer_ts(import);
     quote! {return Err(#ts);}
 }
 #[must_use]
-pub fn parse_strs_to_ts2_vec(v: Vec<String>, uuid: &str) -> Vec<Ts2> {
+pub fn parse_strs_to_ts2_vec(v: Vec<String>, uuid: &str) -> Vec<proc_macro2::TokenStream> {
     v.into_iter()
         .map(|el| parse_ts_or_compile_error(&el, uuid))
-        .collect::<Vec<Ts2>>()
+        .collect::<Vec<proc_macro2::TokenStream>>()
 }
 #[must_use]
-pub fn gen_mod_with_pub_use_ts(mod_name: &dyn ToTokens, content_ts: &[Ts2]) -> Ts2 {
+pub fn gen_mod_with_pub_use_ts(
+    mod_name: &dyn ToTokens,
+    content_ts: &[proc_macro2::TokenStream],
+) -> proc_macro2::TokenStream {
     quote! {
         #[allow(unused_qualifications)]
         #[allow(clippy::absolute_paths)]
@@ -1189,7 +1256,7 @@ pub fn gen_match_ok_assign_or_return_err_ts(
     expr_ts: &dyn ToTokens,
     assign_target_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => {
@@ -1202,7 +1269,10 @@ pub fn gen_match_ok_assign_or_return_err_ts(
     }
 }
 #[must_use]
-pub fn gen_match_ok_or_return_err_ts(expr_ts: &dyn ToTokens, ok_v_ts: &dyn ToTokens) -> Ts2 {
+pub fn gen_match_ok_or_return_err_ts(
+    expr_ts: &dyn ToTokens,
+    ok_v_ts: &dyn ToTokens,
+) -> proc_macro2::TokenStream {
     quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => #ok_v_ts,
@@ -1218,7 +1288,7 @@ pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
     expr_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
     panic_uuid: &str,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let panic_uuid_ts = dq_ts(&panic_uuid);
     quote! {
         match #expr_ts {
@@ -1235,7 +1305,7 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
     expr_ts: &dyn ToTokens,
     some_v_ts: &dyn ToTokens,
     ok_v_ts: &dyn ToTokens,
-) -> Ts2 {
+) -> proc_macro2::TokenStream {
     let match_ts = gen_match_ok_assign_or_return_err_ts(expr_ts, &QuerySc, ok_v_ts);
     quote! {
         if let Some(#some_v_ts) = &#VSc.0 {
@@ -1244,8 +1314,8 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
         Ok(#QuerySc)
     }
 }
-fn parse_ts_or_compile_error(v: &str, er_id: &str) -> Ts2 {
-    match v.parse::<Ts2>() {
+fn parse_ts_or_compile_error(v: &str, er_id: &str) -> proc_macro2::TokenStream {
+    match v.parse::<proc_macro2::TokenStream>() {
         Ok(parsed_ts) => parsed_ts,
         Err(er) => {
             let msg = format!("{er_id}: {er}");

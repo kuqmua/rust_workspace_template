@@ -1,5 +1,3 @@
-type Ts = proc_macro::TokenStream;
-type Ts2 = proc_macro2::TokenStream;
 #[proc_macro_derive(
     Location,
     attributes(
@@ -14,7 +12,7 @@ type Ts2 = proc_macro2::TokenStream;
         eo_hashmap_k_string_v_loc,
     )
 )]
-pub fn loc(input: Ts) -> Ts {
+pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
     enum SuportedEnumVrt {
         Named,
@@ -67,12 +65,12 @@ pub fn loc(input: Ts) -> Ts {
         all_eq.expect("b9da972a")
     };
     let mb_generic_prms_ts = if generic_prms.is_empty() {
-        Ts2::new()
+        proc_macro2::TokenStream::new()
     } else {
         quote::quote! {<#(#generic_prms),*>}
     };
     let mb_generic_prms_loc_lib_to_err_string_anns_ts = if generic_prms.is_empty() {
-        Ts2::new()
+        proc_macro2::TokenStream::new()
     } else {
         let v = generic_prms
             .iter()
@@ -117,7 +115,7 @@ pub fn loc(input: Ts) -> Ts {
                         .map(|el0| el0.ident.as_ref().expect("971ace15"))
                         .collect::<Vec<&syn::Ident>>();
                         if acc_ts.is_empty() {
-                            Ts2::new()
+                            proc_macro2::TokenStream::new()
                         }
                         else {
                             quote::quote! {#(#acc_ts),*,}
@@ -428,7 +426,7 @@ pub fn loc(input: Ts) -> Ts {
                             },
                             naming::WithSerdeUcc
                         )
-                        .parse::<Ts2>()
+                        .parse::<proc_macro2::TokenStream>()
                         .expect("9ff40f7e")
                     };
                     quote::quote! {#el_ident(#inn_type_with_serde_ts)}

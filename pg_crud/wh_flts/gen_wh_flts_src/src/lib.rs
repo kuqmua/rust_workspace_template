@@ -16,13 +16,14 @@ pub use serde_json::from_str;
 pub use std::fmt::Display;
 pub use strum::IntoEnumIterator;
 pub use token_patterns::{PgCrudCmnDfltSomeOneEl, PgCrudCmnDfltSomeOneElCall};
-type Ts2 = proc_macro2::TokenStream;
 #[must_use]
-pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
+pub fn gen_wh_flts(input_ts: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     #[derive(Clone, Optml)]
     enum Generic {
         False,
-        True { mb_extra_traits_ts: Option<Ts2> },
+        True {
+            mb_extra_traits_ts: Option<proc_macro2::TokenStream>,
+        },
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Clone, Optml)]
@@ -57,7 +58,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
     let import = Import::PgCrudCmn;
     let t_ts = quote! {T};
     let t_ann_generic_ts = quote! {<#t_ts>};
-    let proc_macro2_ts_new = Ts2::new();
+    let proc_macro2_ts_new = proc_macro2::TokenStream::new();
     let pub_v_t_ts = quote! {pub #VSc: T};
     let v_dflt_some_one_el_ts = quote! {
         #VSc: #PgCrudCmnDfltSomeOneElCall
@@ -84,7 +85,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
             })
             .d_schemars_json_schema()
             .build_struct(
-                &Ts2::new(),
+                &proc_macro2::TokenStream::new(),
                 &ident,
                 &match &generic {
                     Generic::False => proc_macro2_ts_new.clone(),
@@ -103,7 +104,7 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
                                         ts: &dyn ToTokens| {
         gen_impl_dflt_some_one_el_ts(
             &match &generic {
-                Generic::False => Ts2::new(),
+                Generic::False => proc_macro2::TokenStream::new(),
                 Generic::True { mb_extra_traits_ts } => mb_extra_traits_ts.as_ref().map_or_else(
                     || quote! {<T: #PgCrudCmnDfltSomeOneEl>},
                     |v| quote! {<T: #v + #PgCrudCmnDfltSomeOneEl>},
@@ -292,12 +293,12 @@ pub fn gen_wh_flts(input_ts: &Ts2) -> Ts2 {
         };
     let gen_pg_type_dims_helpers = |pg_type_ptrn: &PgTypePtrn| match pg_type_ptrn {
         PgTypePtrn::Stdrt => (
-            Ts2::new(),
-            Ts2::new(),
-            Ts2::new(),
+            proc_macro2::TokenStream::new(),
+            proc_macro2::TokenStream::new(),
+            proc_macro2::TokenStream::new(),
             PgTypeKind::Stdrt,
-            Ts2::new(),
-            Ts2::new(),
+            proc_macro2::TokenStream::new(),
+            proc_macro2::TokenStream::new(),
         ),
     };
     let pg_type_ts = {

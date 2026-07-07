@@ -10,7 +10,6 @@ pub use naming_macros::{
     AsRefStrEnumWithUnitFieldsToUpperScStr,
 };
 pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
-type Ts2 = proc_macro2::TokenStream;
 naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["pk"],
     ["serde"],
@@ -420,7 +419,7 @@ impl std::fmt::Display for HashMapUcc {
     }
 }
 impl quote::ToTokens for HashMapUcc {
-    fn to_tokens(&self, tokens: &mut Ts2) {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         quote::quote! {HashMap}.to_tokens(tokens);
     }
 }
@@ -432,7 +431,7 @@ impl std::fmt::Display for HashMapSc {
     }
 }
 impl quote::ToTokens for HashMapSc {
-    fn to_tokens(&self, tokens: &mut Ts2) {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         quote::quote! {hashmap}.to_tokens(tokens);
     }
 }
@@ -450,14 +449,17 @@ where
     }
 }
 pub trait SwaggerUrlPathSelfQuotesTokenStream {
-    fn swagger_url_path_self_quotes_ts(&self, v: &str) -> Ts2;
+    fn swagger_url_path_self_quotes_ts(&self, v: &str) -> proc_macro2::TokenStream;
 }
 impl<T> SwaggerUrlPathSelfQuotesTokenStream for T
 where
     T: SwaggerUrlPathSelfQuotesStr,
 {
-    fn swagger_url_path_self_quotes_ts(&self, v: &str) -> Ts2 {
-        match self.swagger_url_path_self_quotes_str(v).parse::<Ts2>() {
+    fn swagger_url_path_self_quotes_ts(&self, v: &str) -> proc_macro2::TokenStream {
+        match self
+            .swagger_url_path_self_quotes_str(v)
+            .parse::<proc_macro2::TokenStream>()
+        {
             Ok(parsed_ts) => parsed_ts,
             Err(er) => {
                 let msg = er.to_string();

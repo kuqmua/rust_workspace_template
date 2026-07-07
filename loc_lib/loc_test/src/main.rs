@@ -6,7 +6,6 @@
 // impl display like this this
 // eo_loc_field
 // https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
-type HashMap<K, V> = std::collections::HashMap<K, V>;
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErOne {
     //use loc_lib::ToErrString for hashmap ks instead of Display
@@ -26,11 +25,11 @@ pub enum ErOne {
         #[eo_vec_loc]
         eo_vec_loc_field: Vec<ErUnnamedOne>, //IN SERIALIZE DESERIALIZE Vec<nested>
         #[eo_hashmap_k_string_v_to_err_string]
-        hashmap_string_string: HashMap<String, DisplayStruct>,
+        hashmap_string_string: std::collections::HashMap<String, DisplayStruct>,
         #[eo_hashmap_k_string_v_to_err_string_serde]
-        hashmap_string_serde: HashMap<String, SerdeStruct>,
+        hashmap_string_serde: std::collections::HashMap<String, SerdeStruct>,
         #[eo_hashmap_k_string_v_loc]
-        hashmap_string_loc: HashMap<String, ErUnnamedOne>,
+        hashmap_string_loc: std::collections::HashMap<String, ErUnnamedOne>,
         loc: loc_lib::loc::Loc,
     },
 }
@@ -122,7 +121,7 @@ fn main() {
                 loc: loc_lib::loc!(),
             }),
         ],
-        hashmap_string_string: HashMap::from([
+        hashmap_string_string: std::collections::HashMap::from([
             (
                 String::from("kesdfsfdsfsd"),
                 DisplayStruct {
@@ -138,7 +137,7 @@ fn main() {
                 },
             ),
         ]),
-        hashmap_string_serde: HashMap::from([
+        hashmap_string_serde: std::collections::HashMap::from([
             (
                 String::from("kdfgsdfgdsfgey"),
                 SerdeStruct {
@@ -156,7 +155,7 @@ fn main() {
                 },
             ),
         ]),
-        hashmap_string_loc: HashMap::from([
+        hashmap_string_loc: std::collections::HashMap::from([
             (
                 String::from("ksdfgadsfgsdfgdfgey"),
                 ErUnnamedOne::Something(ErTwo::Vrt {

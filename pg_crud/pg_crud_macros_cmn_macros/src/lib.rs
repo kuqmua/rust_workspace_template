@@ -44,7 +44,7 @@ pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenS
             True,
         }
         impl ToTokens for #name_ident {
-            fn to_tokens(&self, tokens: &mut Ts2) {
+            fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 match &self {
                     Self::False => (#false_ts).to_tokens(tokens),
                     Self::True => (#true_ts).to_tokens(tokens),
