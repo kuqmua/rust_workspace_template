@@ -6,14 +6,14 @@ struct ParseTsText<'ts_lt>(&'ts_lt str);
 struct ParseErId<'er_id_lt>(&'er_id_lt str);
 fn compile_error_ts(msg: CompileErrorMsg<'_>) -> macros_helpers::GeneratedRustTs {
     let msg_value = msg.0;
-    macros_helpers::GeneratedRustTs(quote::quote! {compile_error!(#msg_value);})
+    macros_helpers::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
 }
 fn parse_ts_or_compile_error(
     v: ParseTsText<'_>,
     er_id: ParseErId<'_>,
 ) -> macros_helpers::GeneratedRustTs {
     match v.0.parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => macros_helpers::GeneratedRustTs(parsed_ts),
+        Ok(parsed_ts) => macros_helpers::GeneratedRustTs::from(parsed_ts),
         Err(er) => compile_error_ts(CompileErrorMsg(&format!("{}: {er}", er_id.0))),
     }
 }
@@ -321,9 +321,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     let import_ts = quote::quote! {#import::};
     let return_err_qp_er_write_into_buffer_ts =
         pg_crud_macros_cmn::gen_return_err_qp_er_write_into_buffer_ts(import);
-    let di: syn::DeriveInput = match syn::parse2(input.0.clone()) {
+    let di: syn::DeriveInput = match syn::parse2(input.as_ref().clone()) {
         Ok(v) => v,
-        Err(er) => return macros_helpers::GeneratedRustTs(er.to_compile_error()),
+        Err(er) => return macros_helpers::GeneratedRustTs::from(er.to_compile_error()),
     };
     let gen_pg_tbl_config = match serde_json::from_str::<GenPgTblConfig>(
         &macros_helpers::get_macro_attr_meta_list_ts(
@@ -335,7 +335,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         Ok(v) => v,
         Err(er) => {
             let msg = format!("failed to parse GenPgTblConfig: {er}");
-            return macros_helpers::GeneratedRustTs(quote::quote! { compile_error!(#msg); });
+            return macros_helpers::GeneratedRustTs::from(quote::quote! { compile_error!(#msg); });
         }
     };
     let AllowClippyArbitrarySrcItemOrdering = token_patterns::AllowClippyArbitrarySrcItemOrdering;
@@ -545,9 +545,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     //todo write runtime check
                     assert!(fi_len <= max_pg_col_len, "1266ae5a");
                     let field = macros_helpers::SynField {
-                        vis: macros_helpers::SynFieldVis(el.vis.clone()),
-                        type0: macros_helpers::SynFieldType(el.ty.clone()),
-                        ident: macros_helpers::SynFieldIdent(fi),
+                        vis: macros_helpers::SynFieldVis::from(el.vis.clone()),
+                        type0: macros_helpers::SynFieldType::from(el.ty.clone()),
+                        ident: macros_helpers::SynFieldIdent::from(fi),
                     };
                     fields.push(field.clone());
                     let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
@@ -724,7 +724,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         let ts0 = gen_acc_string_pop_ts(acc_ts, ts);
         quote::quote! {
             #ts0
-            Ok(#import_ts QpFragment(#acc_ts))
+            Ok(#import_ts QpFragment::try_from(#acc_ts).unwrap_or_else(#import_ts QpFragment::from))
         }
     };
     let mut impl_ident_vec_ts = Vec::new();
@@ -795,7 +795,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         let fi_dq_ts = gen_quotes::dq_ts(&fi);
                         let ft_pg_type_ts = gen_as_pg_type_path_ts(&ft);
                         quote::quote! {
-                            #ft_pg_type_ts #CrTblColQpSc(#import_ts SqlColRef(&#fi_dq_ts), #import_ts IsPk(#is_pk_ts))
+                            #ft_pg_type_ts #CrTblColQpSc(#import_ts SqlColRef::from(&#fi_dq_ts), #import_ts IsPk::from(#is_pk_ts))
                         }
                     };
                 std::iter::once(
@@ -855,7 +855,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     let ts0 = gen_match_ok_err_short_ts(
                         &quote::quote! {#as_pg_crud_pg_type_pg_type_ts #SelQpSc(
                             #ColSc,
-                            #import_ts SqlColRef(&#fi_string_dq_ts)
+                            #import_ts SqlColRef::from(&#fi_string_dq_ts)
                         )},
                         &quote::quote! {v_820e1163},
                         &quote::quote! {{
@@ -925,22 +925,23 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     return compile_error_ts(CompileErrorMsg(
                         "edbbd08a: expected named field ident",
                     ))
-                    .0;
+                    .into();
                 };
                 if *fi_ref == LocSc.to_string() {
                     macros_helpers::gen_field_loc_new_ts(
-                        macros_helpers::FieldLocFile(loc.file()),
-                        macros_helpers::FieldLocLine(loc.line()),
-                        macros_helpers::FieldLocCol(loc.column()),
+                        macros_helpers::FieldLocFile::from(loc.file()),
+                        macros_helpers::FieldLocLine::from(loc.line()),
+                        macros_helpers::FieldLocCol::from(loc.column()),
                     )
-                    .0
+                    .into()
                 } else {
                     let er_incr_sc = naming::prm::ErSelfSc::from_display(&i);
                     quote::quote! {#fi: #er_incr_sc}
                 }
             })
         } else {
-            return compile_error_ts(CompileErrorMsg("10773d36: expected named variant fields")).0;
+            return compile_error_ts(CompileErrorMsg("10773d36: expected named variant fields"))
+                .into();
         };
         quote::quote! {
             #vrt_ident {
@@ -963,7 +964,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     return compile_error_ts(CompileErrorMsg(
                         "81efa954: status code attr not found",
                     ))
-                    .0;
+                    .into();
                 }
             },
             &AddReturn::True,
@@ -1015,7 +1016,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     named: {
                         let initial_fields = if is_loc_first {
                             let mut named_fields_acc = syn::punctuated::Punctuated::new();
-                            named_fields_acc.push_value(macros_helpers::loc_syn_field().0);
+                            named_fields_acc.push_value(macros_helpers::loc_syn_field().into());
                             named_fields_acc.push_punct(syn::token::Comma {
                                 spans: [proc_macro2::Span::call_site()],
                             });
@@ -1039,7 +1040,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                                 let mut acc0 = syn::punctuated::Punctuated::new();
                                                 acc0.push(syn::PathSegment {
                                                     ident: syn::Ident::new(
-                                                        macros_helpers::AttrIdentStr::attr_ident_str(&el.0).0,
+                                                        macros_helpers::AttrIdentStr::attr_ident_str(&el.0).as_ref(),
                                                         proc_macro2::Span::call_site(),
                                                     ),
                                                     arguments: syn::PathArguments::None,
@@ -1072,7 +1073,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             },
                         );
                         if !is_loc_first {
-                            named_fields_acc.push_value(macros_helpers::loc_syn_field().0);
+                            named_fields_acc.push_value(macros_helpers::loc_syn_field().into());
                         }
                         named_fields_acc
                     },
@@ -1357,12 +1358,12 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         );
         let fields_ident_type = fields
             .iter()
-            .map(|el| (&el.ident.0, &el.type0.0))
+            .map(|el| (el.ident.as_ref(), el.type0.as_ref()))
             .collect::<Vec<(&syn::Ident, &syn::Type)>>();
         let impl_de_for_ident_wh_ts = pg_crud_macros_cmn::gen_impl_de_for_struct_ts(
             &ident_wh_ucc,
-            pg_crud_macros_cmn::SynIdentTypeRefs(&fields_ident_type),
-            pg_crud_macros_cmn::DeLen(fields_len),
+            pg_crud_macros_cmn::SynIdentTypeRefs::from(fields_ident_type.as_slice()),
+            pg_crud_macros_cmn::DeLen::from(fields_len),
             &|_: &syn::Ident, syn_type: &syn::Type| {
                 let syn_type_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&syn_type);
                 pg_crud_macros_cmn::gen_opt_type_dcl_ts(
@@ -1407,9 +1408,24 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 &{
                     let opt_ident_rd_ids_stdrt_nn_ts =
                         pg_crud_macros_cmn::gen_opt_type_dcl_ts(&ident_wh_ucc);
-                    quote::quote! {(pub #opt_ident_rd_ids_stdrt_nn_ts);}
+                    quote::quote! {(#opt_ident_rd_ids_stdrt_nn_ts);}
                 },
             );
+        let impl_opt_ident_wh_accessors_ts = {
+            let opt_ident_wh_inner_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(&ident_wh_ucc);
+            quote::quote! {
+                impl #opt_ident_wh_ucc {
+                    #[must_use]
+                    pub const fn as_ref(&self) -> Option<&#ident_wh_ucc> {
+                        self.0.as_ref()
+                    }
+                    #[must_use]
+                    pub fn into_option(self) -> #opt_ident_wh_inner_ts {
+                        self.0
+                    }
+                }
+            }
+        };
         let impl_pg_type_wh_flt_for_opt_ident_wh_ts =
             pg_crud_macros_cmn::impl_pg_type_wh_flt_for_ident_ts(
                 &quote::quote! {<'lt>},
@@ -1430,8 +1446,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 quote::quote! {#import_ts PgTypeWhFlt::qp(
                                     v_da0f0616,
                                     incr,
-                                    #import_ts SqlColRef(&#fi_dq_ts),
-                                    #import_ts AddOprtr(is_first_push_to_extra_prms_already_happend),
+                                    #import_ts SqlColRef::from(&#fi_dq_ts),
+                                    #import_ts AddOprtr::from(is_first_push_to_extra_prms_already_happend),
                                 )}
                             },
                             &quote::quote! {v_9e3f8fdd},
@@ -1454,7 +1470,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     )
                 });
                     quote::quote! {
-                        Ok(#import_ts QpFragment(match &self.0 {
+                        Ok(#import_ts QpFragment::try_from(match self.as_ref() {
                             Some(#VSc) => {
                                 let mut #ExtraPrmsSc = #StringTs::from("where");
                                 let mut is_first_push_to_extra_prms_already_happend = false;
@@ -1462,14 +1478,14 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 #ExtraPrmsSc
                             },
                             None => #StringTs::default()
-                        }))
+                        }).unwrap_or_else(#import_ts QpFragment::from))
                     }
                 },
                 &pg_crud_macros_cmn::IsQbMut::True,
                 &{
                     let ts = gen_if_let_some_ts(
                         &quote::quote! {v_27176ffb},
-                        &quote::quote! {self.0},
+                        &quote::quote! {self.into_option()},
                         &gen_fields_named_without_comma_ts(&|el: &macros_helpers::SynField| {
                             let fi = &el.ident;
                             gen_if_let_some_ts(
@@ -1497,6 +1513,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             );
         quote::quote! {
             #opt_ident_wh_ts
+            #impl_opt_ident_wh_accessors_ts
             #impl_pg_type_wh_flt_for_opt_ident_wh_ts
             #impl_pg_crud_dflt_some_one_el_for_opt_ident_wh_ts
         }
@@ -1508,8 +1525,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             &quote::quote! {#import_ts PgTypeWhFlt::qp(
                 &#PrmsSc.#PayloadSc.#WhManySc,
                 &mut #IncrSc,
-                #import_ts SqlColRef(&""),//useless //todo check if can be optimized
-                #import_ts AddOprtr(false)//useless
+                #import_ts SqlColRef::from(&""),//useless //todo check if can be optimized
+                #import_ts AddOprtr::from(false)//useless
             )},
             &quote::quote! {v_d1627695},
             &{
@@ -1539,7 +1556,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     );
     let gen_query_pg_type_wh_flt_qb_prms_payload_wh_query_ts = |op: &Op| {
         gen_match_qb_or_err_ts(
-            &quote::quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
+            &quote::quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
             &quote::quote! {v_03a58371},
             &gen_op_er_init_eprintln_res_ts(op, &try_bind_syn_vrt, std::panic::Location::caller()),
         )
@@ -1750,7 +1767,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 };
                 let fields_init_ts = &fields
                     .iter()
-                    .map(|el| &el.ident.0)
+                    .map(|el| el.ident.as_ref())
                     .collect::<Vec<&syn::Ident>>();
                 quote::quote! {
                     fn #try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_ident_sel_sc(
@@ -1797,12 +1814,10 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                          wrap_into_opt: &WrapIntoOpt| {
                             let ft_ts = match &wrap_into_opt {
                                 WrapIntoOpt::False => gen_as_pg_type_rd_ids_ts(&ft),
-                                WrapIntoOpt::True => {
-                                    pg_crud_macros_cmn::gen_opt_type_dcl_ts(
-                                        &gen_as_pg_type_rd_ids_ts(&ft),
-                                    )
-                                    .0
-                                }
+                                WrapIntoOpt::True => pg_crud_macros_cmn::gen_opt_type_dcl_ts(
+                                    &gen_as_pg_type_rd_ids_ts(&ft),
+                                )
+                                .into(),
                             };
                             quote::quote! {pub #fi: #ft_ts}
                         };
@@ -1945,7 +1960,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     let gen_ts = |ts: &dyn quote::ToTokens| {
                         pg_crud_macros_cmn::mb_wrap_into_braces_ts(
                             ts,
-                            pg_crud_macros_cmn::WrapIntoBraces(fields_len_without_pk > 1),
+                            pg_crud_macros_cmn::WrapIntoBraces::from(fields_len_without_pk > 1),
                         )
                     };
                     (
@@ -1976,14 +1991,14 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         );
         let fields_ident_type = fields
             .iter()
-            .map(|el| (&el.ident.0, &el.type0.0))
+            .map(|el| (el.ident.as_ref(), el.type0.as_ref()))
             .collect::<Vec<(&syn::Ident, &syn::Type)>>();
         let impl_de_for_ident_upd_ts = pg_crud_macros_cmn::gen_impl_de_for_struct_ts(
             &ident_upd_ucc,
-            pg_crud_macros_cmn::SynIdentTypeRefs(&fields_ident_type),
-            pg_crud_macros_cmn::DeLen(fields_len),
+            pg_crud_macros_cmn::SynIdentTypeRefs::from(fields_ident_type.as_slice()),
+            pg_crud_macros_cmn::DeLen::from(fields_len),
             &|syn_ident: &syn::Ident, syn_type: &syn::Type| {
-                if syn_ident == &pk_fi.0 {
+                if syn_ident == pk_fi.as_ref() {
                     quote::quote! {#pk_ft_upd_ts}.into()
                 } else {
                     gen_opt_v_ft_as_pg_type_upd_ts(syn_type)
@@ -2048,9 +2063,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 let ts = gen_match_ok_err_ts(
                     &quote::quote! {#pk_ft_as_pg_type_ts #UpdQpSc(
                         &self.#pk_fi,
-                        #import_ts SqlColRef(&""),
-                        #import_ts SqlColRef(&#ident::#PkSc()),
-                        #import_ts SqlColRef(&""),
+                        #import_ts SqlColRef::from(&""),
+                        #import_ts SqlColRef::from(&#ident::#PkSc()),
+                        #import_ts SqlColRef::from(&""),
                         #IncrSc,
                     )},
                     &VSc,
@@ -2074,9 +2089,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             let fi_dq_ts = gen_quotes::dq_ts(&fi);
                             quote::quote! {#ft_as_pg_crud_pg_type_pg_type_ts #UpdQpSc(
                                 &#VSc.#VSc,
-                                #import_ts SqlColRef(&#fi_dq_ts),
-                                #import_ts SqlColRef(&#fi_dq_ts),
-                                #import_ts SqlColRef(&""),
+                                #import_ts SqlColRef::from(&#fi_dq_ts),
+                                #import_ts SqlColRef::from(&#fi_dq_ts),
+                                #import_ts SqlColRef::from(&""),
                                 #IncrSc
                             )}
                         },
@@ -2100,7 +2115,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     let ts = gen_match_ok_err_short_ts(
                         &quote::quote! {#pk_as_pg_type_ts::#SelOnlyUpddIdsQpSc(
                             &self.#pk_fi,
-                            #import_ts SqlColRef(&#pk_fi_dq_ts),
+                            #import_ts SqlColRef::from(&#pk_fi_dq_ts),
                             incr,
                         )},
                         &quote::quote! {v},
@@ -2120,7 +2135,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                     gen_as_pg_type_path_ts(&el.type0);
                                 quote::quote! {#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyUpddIdsQpSc(
                                     &v_90f79b11.#VSc,
-                                    #import_ts SqlColRef(&#fi_dq_ts),
+                                    #import_ts SqlColRef::from(&#fi_dq_ts),
                                     incr,
                                 )}
                             },
@@ -2504,11 +2519,13 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     let gen_loc_vrt_ts = |er_vrt: &syn::Variant| -> proc_macro2::TokenStream {
         let vrt_ident = &er_vrt.ident;
         let syn::Fields::Named(fields_named) = &er_vrt.fields else {
-            return compile_error_ts(CompileErrorMsg("2acd4725: expected named variant fields")).0;
+            return compile_error_ts(CompileErrorMsg("2acd4725: expected named variant fields"))
+                .into();
         };
         let fields_mapped_into_ts = fields_named.named.iter().map(|field| {
             let Some(fi) = field.ident.as_ref() else {
-                return compile_error_ts(CompileErrorMsg("a21dc807: expected named field ident")).0;
+                return compile_error_ts(CompileErrorMsg("a21dc807: expected named field ident"))
+                    .into();
             };
             let loc_attr = if *fi == *LocSc.to_string() {
                 proc_macro2::TokenStream::new()
@@ -2526,15 +2543,15 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 let loc_attr = loc_attrs.next();
                 if loc_attrs.next().is_some() {
                     return compile_error_ts(CompileErrorMsg("9a469d36: duplicate loc field attr"))
-                        .0;
+                        .into();
                 }
                 match loc_attr {
-                    Some(v) => v.to_attr_view_ts().0,
+                    Some(v) => v.to_attr_view_ts().into(),
                     None => {
                         return compile_error_ts(CompileErrorMsg(
                             "d1003b2e: loc field attr not found",
                         ))
-                        .0;
+                        .into();
                     }
                 }
             };
@@ -2554,7 +2571,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         Op::Co => quote::quote! {#ident_cr_ucc},
         Op::Uo => quote::quote! {#ident_upd_ucc},
         Op::Cm | Op::Rm | Op::Ro | Op::Um | Op::Dm | Op::Dlo => {
-            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string()).0
+            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string()).into()
         }
     };
     let gen_ident_op_prms_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Prms");
@@ -2702,7 +2719,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     let commit_header_addition_ts = quote::quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::PROJECT_GIT_INFO.commit.0,
+                            git_info::PROJECT_GIT_INFO.commit.as_ref(),
                         )
                     };
                     let app_json_dq_ts = gen_quotes::dq_ts(&"application/json");
@@ -2778,7 +2795,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 return compile_error_ts(CompileErrorMsg(
                                     "8dcafc1c: expected named variant fields",
                                 ))
-                                .0;
+                                .into();
                             };
                             quote::quote! {
                                 #ident_op_res_vrts_ucc::#vrt_ident {
@@ -2797,9 +2814,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 };
                 let return_er_ts = {
                     let field_loc_new_ts = macros_helpers::gen_field_loc_new_ts(
-                        macros_helpers::FieldLocFile(file!()),
-                        macros_helpers::FieldLocLine(line!()),
-                        macros_helpers::FieldLocCol(column!()),
+                        macros_helpers::FieldLocFile::from(file!()),
+                        macros_helpers::FieldLocLine::from(line!()),
+                        macros_helpers::FieldLocCol::from(column!()),
                     );
                     quote::quote! {
                         Err(#ident_try_op_er_ucc::#try_op_logic_er_with_serde_ucc {
@@ -2917,7 +2934,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         | Op::Dlo => prms_logic_ts0,
                         Op::Um => quote::quote! {
                             #prms_logic_ts0
-                            let #UpdForQueryVecSc = #PrmsSc.#PayloadSc.0.into_iter()
+                            let #UpdForQueryVecSc = #PrmsSc.#PayloadSc.into_vec().into_iter()
                             .map(#ident_upd_for_query_ucc::#FromHSc)
                             .collect::<Vec<#ident_upd_for_query_ucc>>();
                         },
@@ -2962,7 +2979,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             &{
                                 let fi_dq_ts = gen_quotes::dq_ts(&el.ident);
                                 let ft_as_pg_crud_pg_type_pg_type_ts = gen_as_pg_type_path_ts(&el.type0);
-                                quote::quote! {#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyIdsQpSc(#import_ts SqlColRef(&#fi_dq_ts))}
+                                quote::quote! {#ft_as_pg_crud_pg_type_pg_type_ts #SelOnlyIdsQpSc(#import_ts SqlColRef::from(&#fi_dq_ts))}
                             },
                             &quote::quote! {v_aa341baf},
                             &quote::quote! {{
@@ -3000,19 +3017,19 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                     &Er0,
                                 );
                                 quote::quote! {
-                                    for el_1651705d in &#PrmsSc.#PayloadSc.0 {
+                                    for el_1651705d in #PrmsSc.#PayloadSc.as_slice() {
                                         #ts
                                     }
                                 }
                             });
                             quote::quote! {#import_ts gen_cm_query_string(
-                                #import_ts PgTblNameRef(#TblSc),
-                                #import_ts PgTblSqlFragmentRef(#col_names_dq_ts),
-                                #import_ts PgTblSqlFragmentRef(&{
+                                #import_ts PgTblNameRef::from(#TblSc),
+                                #import_ts PgTblSqlFragmentRef::from(#col_names_dq_ts),
+                                #import_ts PgTblSqlFragmentRef::from(&{
                                     #incr_init_ts
                                     #ts0
                                 }),
-                                #import_ts PgTblSqlFragmentRef(&#sel_only_ids_qp_ts)
+                                #import_ts PgTblSqlFragmentRef::from(&#sel_only_ids_qp_ts)
                             )}
                         }
                         Op::Co => {
@@ -3022,10 +3039,10 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             );
                             quote::quote! {
                                 #import_ts gen_co_query_string(
-                                    #import_ts PgTblNameRef(#TblSc),
-                                    #import_ts PgTblSqlFragmentRef(#col_names_dq_ts),
-                                    #import_ts PgTblSqlFragmentRef(&#ts),
-                                    #import_ts PgTblSqlFragmentRef(&#sel_only_ids_qp_ts)
+                                    #import_ts PgTblNameRef::from(#TblSc),
+                                    #import_ts PgTblSqlFragmentRef::from(#col_names_dq_ts),
+                                    #import_ts PgTblSqlFragmentRef::from(&#ts),
+                                    #import_ts PgTblSqlFragmentRef::from(&#sel_only_ids_qp_ts)
                                 )
                             }
                         }
@@ -3070,8 +3087,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                             &quote::quote! {#pg_crud_pg_type_wh_flt_qp_ts(
                                                 &#PrmsSc.#PayloadSc.pgn,
                                                 &mut #IncrSc,
-                                                #import_ts SqlColRef(&""),
-                                                #import_ts AddOprtr(bool::default())
+                                                #import_ts SqlColRef::from(&""),
+                                                #import_ts AddOprtr::from(bool::default())
                                             )},
                                             &quote::quote! {v_742be6cf},
                                         );
@@ -3084,9 +3101,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 )
                             };
                             quote::quote! {#import_ts gen_rm_query_string(
-                                #import_ts PgTblNameRef(#TblSc),
-                                #import_ts PgTblSqlFragmentRef(&#sel_qp_prms_payload_sel_ts),
-                                #import_ts PgTblSqlFragmentRef(&{
+                                #import_ts PgTblNameRef::from(#TblSc),
+                                #import_ts PgTblSqlFragmentRef::from(&#sel_qp_prms_payload_sel_ts),
+                                #import_ts PgTblSqlFragmentRef::from(&{
                                     #incr_init_ts
                                     let mut #ExtraPrmsSc = #extra_prms_init_ts;
                                     let #PrefixSc = if extra_prms.is_empty() {""} else {" "};
@@ -3103,15 +3120,15 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 &quote::quote! {#pg_crud_pg_type_wh_flt_qp_ts(
                                     &#PrmsSc.#PayloadSc.#pk_fi,
                                     &mut 0,
-                                    #import_ts SqlColRef(&Self::#PkSc()),
-                                    #import_ts AddOprtr(false)
+                                    #import_ts SqlColRef::from(&Self::#PkSc()),
+                                    #import_ts AddOprtr::from(false)
                                 )},
                                 &quote::quote! {v_be9e7b7d},
                             );
                             quote::quote! {#import_ts gen_ro_query_string(
-                                #import_ts PgTblNameRef(#TblSc),
-                                #import_ts PgTblSqlFragmentRef(&#sel_qp_prms_payload_sel_ts),
-                                #import_ts PgTblSqlFragmentRef(&#ts)
+                                #import_ts PgTblNameRef::from(#TblSc),
+                                #import_ts PgTblSqlFragmentRef::from(&#sel_qp_prms_payload_sel_ts),
+                                #import_ts PgTblSqlFragmentRef::from(&#ts)
                             )}
                         }
                         Op::Um => {
@@ -3144,9 +3161,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                             );
                                             quote::quote! {
                                                 acc_8ad06c8c.push_str(&#import_ts #GenWhenColIdThenVUmQpSc(
-                                                    #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
-                                                    #import_ts PgTblSqlFragmentRef(&#ts0),
-                                                    #import_ts PgTblSqlFragmentRef(&#ts1)
+                                                    #import_ts PgTblSqlFragmentRef::from(Self::#PkSc()),
+                                                    #import_ts PgTblSqlFragmentRef::from(&#ts0),
+                                                    #import_ts PgTblSqlFragmentRef::from(&#ts1)
                                                 ));
                                             }
                                         },
@@ -3158,8 +3175,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                             if #is_fi_upd_exists_sc {
                                                 acc_b86a253a.push_str(&
                                                     #import_ts gen_col_eqs_case_acc_else_col_end_comma_um_qp(
-                                                        #import_ts PgTblSqlFragmentRef(#fi_dq_ts),
-                                                        #import_ts PgTblSqlFragmentRef(&{
+                                                        #import_ts PgTblSqlFragmentRef::from(#fi_dq_ts),
+                                                        #import_ts PgTblSqlFragmentRef::from(&{
                                                             let mut acc_8ad06c8c = #StringTs::default();
                                                             #for_el_upd_fi_qp_ts
                                                             acc_8ad06c8c
@@ -3211,11 +3228,11 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                         acc_fd44b0aa
                                     };
                                     #import_ts gen_um_query_string(
-                                        #import_ts PgTblNameRef(#TblSc),
-                                        #import_ts PgTblSqlFragmentRef(&els),
-                                        #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
-                                        #import_ts PgTblSqlFragmentRef(&pks),
-                                        #import_ts PgTblSqlFragmentRef(&return_cols)
+                                        #import_ts PgTblNameRef::from(#TblSc),
+                                        #import_ts PgTblSqlFragmentRef::from(&els),
+                                        #import_ts PgTblSqlFragmentRef::from(Self::#PkSc()),
+                                        #import_ts PgTblSqlFragmentRef::from(&pks),
+                                        #import_ts PgTblSqlFragmentRef::from(&return_cols)
                                     )
                                 }
                             }
@@ -3238,8 +3255,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                             );
                                             quote::quote! {
                                                 acc_683e37b8.push_str(&#import_ts #gen_col_queals_v_comma_uo_qp_sc(
-                                                    #import_ts PgTblSqlFragmentRef(#fi_dq_ts),
-                                                    #import_ts PgTblSqlFragmentRef(&#ts)
+                                                    #import_ts PgTblSqlFragmentRef::from(#fi_dq_ts),
+                                                    #import_ts PgTblSqlFragmentRef::from(&#ts)
                                                 ));
                                             }
                                         },
@@ -3265,11 +3282,11 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                     let #PkQpSc = #extra_prms_pk_modification_ts;
                                     let return_cols = #ts;
                                     #import_ts gen_uo_query_string(
-                                        #import_ts PgTblNameRef(#TblSc),
-                                        #import_ts PgTblSqlFragmentRef(&#ColsSc),
-                                        #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
-                                        #import_ts PgTblSqlFragmentRef(&#PkQpSc),
-                                        #import_ts PgTblSqlFragmentRef(&return_cols)
+                                        #import_ts PgTblNameRef::from(#TblSc),
+                                        #import_ts PgTblSqlFragmentRef::from(&#ColsSc),
+                                        #import_ts PgTblSqlFragmentRef::from(Self::#PkSc()),
+                                        #import_ts PgTblSqlFragmentRef::from(&#PkQpSc),
+                                        #import_ts PgTblSqlFragmentRef::from(&return_cols)
                                     )
                                 }
                             }
@@ -3279,17 +3296,17 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 &RmOrDm::Dm,
                             );
                             quote::quote! {#import_ts gen_dm_query_string(
-                                #import_ts PgTblNameRef(#TblSc),
-                                #import_ts PgTblSqlFragmentRef(&{
+                                #import_ts PgTblNameRef::from(#TblSc),
+                                #import_ts PgTblSqlFragmentRef::from(&{
                                     #incr_init_ts
                                     #extra_prms_init_ts
                                 }),
-                                #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
+                                #import_ts PgTblSqlFragmentRef::from(Self::#PkSc()),
                             )}
                         }
                         Op::Dlo => quote::quote! {#import_ts gen_dlo_query_string(
-                            #import_ts PgTblNameRef(#TblSc),
-                            #import_ts PgTblSqlFragmentRef(Self::#PkSc()),
+                            #import_ts PgTblNameRef::from(#TblSc),
+                            #import_ts PgTblSqlFragmentRef::from(Self::#PkSc()),
                         )},
                     }
                 };
@@ -3306,17 +3323,17 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     match &op {
                         Op::Cm => {
                             let ts = gen_match_qb_or_err_short_ts(
-                                &quote::quote! {el_7f862135.#CrQbSc(#import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
+                                &quote::quote! {el_7f862135.#CrQbSc(#import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                                 &quote::quote! {v_011a3eb4},
                             );
                             quote::quote! {
-                                for el_7f862135 in #PrmsSc.#PayloadSc.0 {
+                                for el_7f862135 in #PrmsSc.#PayloadSc.into_vec() {
                                     #ts
                                 }
                             }
                         }
                         Op::Co => gen_match_qb_or_err_short_ts(
-                            &quote::quote! {#PrmsSc.#PayloadSc.#CrQbSc(#import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
+                            &quote::quote! {#PrmsSc.#PayloadSc.#CrQbSc(#import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                             &quote::quote! {v_06f852cd},
                         ),
                         Op::Rm => {
@@ -3324,8 +3341,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             let ts = gen_match_qb_or_err_short_ts(
                                 &quote::quote! {#pg_crud_pg_type_wh_flt_qb_ts(
                                     #PrmsSc.#PayloadSc.pgn,
-                                    #import_ts PgQuery(#QuerySc),
-                                ).map(|v| v.0).map_err(|er| er.0)},
+                                    #import_ts PgQuery::from(#QuerySc),
+                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                                 &quote::quote! {v_9f7e487b},
                             );
                             quote::quote! {
@@ -3336,8 +3353,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         Op::Ro => gen_match_qb_or_err_short_ts(
                             &quote::quote! {#pg_crud_pg_type_wh_flt_qb_ts(
                                 #PrmsSc.#PayloadSc.#pk_fi,
-                                #import_ts PgQuery(#QuerySc)
-                            ).map(|v| v.0).map_err(|er| er.0)},
+                                #import_ts PgQuery::from(#QuerySc)
+                            ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                             &quote::quote! {v_80ee6983},
                         ),
                         Op::Um => {
@@ -3353,8 +3370,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                                         gen_as_pg_type_path_ts(&el.type0);
                                                     quote::quote! {#as_pg_crud_pg_type_pg_type_ts #UpdQbSc(
                                                         v_2edaa480.#VSc.clone(),
-                                                        #import_ts PgQuery(#QuerySc),
-                                                    ).map(|v| v.0).map_err(|er| er.0)}
+                                                        #import_ts PgQuery::from(#QuerySc),
+                                                    ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)}
                                                 },
                                                 &quote::quote! {v_600e67dc},
                                             );
@@ -3372,8 +3389,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 &gen_match_qb_or_err_short_ts(
                                     &quote::quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                         el_a72f3eac.#pk_fi,
-                                        #import_ts PgQuery(#QuerySc),
-                                    ).map(|v| v.0).map_err(|er| er.0)},
+                                        #import_ts PgQuery::from(#QuerySc),
+                                    ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                                     &quote::quote! {v_c40a4522},
                                 ),
                             );
@@ -3388,8 +3405,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                                     gen_as_pg_type_path_ts(&el.type0);
                                                 quote::quote! {#as_pg_crud_pg_type_pg_type_ts sel_only_updd_ids_qb(
                                                     &v_47030ac2.#VSc,
-                                                    #import_ts PgQuery(#QuerySc)
-                                                ).map(|v| v.0).map_err(|er| er.0)}
+                                                    #import_ts PgQuery::from(#QuerySc)
+                                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)}
                                             },
                                             &quote::quote! {v_c5b79b95},
                                         ),
@@ -3425,18 +3442,18 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                 };
                             let binded_query_modifications_ts = gen_binded_query_ts(
                                 quote::quote! {v_ed87c152},
-                                quote::quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
+                                quote::quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                             );
                             let binded_query_pk_modification_ts = gen_match_qb_or_err_short_ts(
                                 &quote::quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                     #UpdForQuerySc.#pk_fi,
-                                    #import_ts PgQuery(#QuerySc),
-                                ).map(|v| v.0).map_err(|er| er.0)},
+                                    #import_ts PgQuery::from(#QuerySc),
+                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                                 &quote::quote! {v_d64bac39},
                             );
                             let binded_query_sel_only_updd_ids_qb_ts = gen_binded_query_ts(
                                 quote::quote! {v_b2902425},
-                                quote::quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts PgQuery(#QuerySc)).map(|v| v.0).map_err(|er| er.0)},
+                                quote::quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                             );
                             quote::quote! {
                                 #binded_query_modifications_ts
@@ -3452,8 +3469,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         Op::Dlo => gen_match_qb_or_err_short_ts(
                             &quote::quote! {#import_ts PgTypeWhFlt::qb(
                                 #PrmsSc.#PayloadSc.#pk_fi,
-                                #import_ts PgQuery(#QuerySc)
-                            ).map(|v| v.0).map_err(|er| er.0)},
+                                #import_ts PgQuery::from(#QuerySc)
+                            ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
                             &quote::quote! {v_3099ea0f},
                         ),
                     }
@@ -3466,7 +3483,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             std::panic::Location::caller(),
                         );
                     let ts = gen_match_ok_err_short_ts(
-                        &quote::quote! {#AppStateSc.get_pg_pool().0.acquire().await},
+                        &quote::quote! {#AppStateSc.get_pg_pool().as_ref().acquire().await},
                         &quote::quote! {v_4535ee48},
                         &quote::quote! {{
                             #pg_syn_vrt_er_init_eprintln_res_creation_ts
@@ -3694,13 +3711,28 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         }
                     };
                 match &op {
-                    Op::Cm => gen_prms_payload_and_dflt_ts(
-                        &{
-                            let vec_ident_cr_ts = pg_crud_macros_cmn::gen_vec_tokens_dcl_ts(&ident_cr_ucc);
-                            quote::quote! {(pub #vec_ident_cr_ts);}
-                        },
-                        &quote::quote! {(vec![#PgCrudDfltSomeOneElCall])},
-                    ),
+                    Op::Cm => {
+                        let ident_op_payload_ucc = gen_ident_op_payload_ucc(op);
+                        let vec_ident_cr_ts =
+                            pg_crud_macros_cmn::gen_vec_tokens_dcl_ts(&ident_cr_ucc);
+                        let payload_ts = gen_prms_payload_and_dflt_ts(
+                            &quote::quote! {(#vec_ident_cr_ts);},
+                            &quote::quote! {(vec![#PgCrudDfltSomeOneElCall])},
+                        );
+                        quote::quote! {
+                            #payload_ts
+                            impl #ident_op_payload_ucc {
+                                #[must_use]
+                                pub const fn as_slice(&self) -> &[#ident_cr_ucc] {
+                                    self.0.as_slice()
+                                }
+                                #[must_use]
+                                pub fn into_vec(self) -> #vec_ident_cr_ts {
+                                    self.0
+                                }
+                            }
+                        }
+                    }
                     Op::Rm => gen_prms_payload_and_dflt_ts(
                         &quote::quote! {{
                             #pub_wh_opt_ident_wh_ts,
@@ -3770,12 +3802,15 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                     }
                                 }},
                             );
-                        let impl_pub_try_new_for_ident_op_payload_ts = macros_helpers::gen_impl_pub_try_new_for_ident_ts(
-                            &proc_macro2::TokenStream::new(),
-                            &gen_ident_op_payload_ucc(op),
-                            &quote::quote! {#VSc: #vec_ident_upd_ts},
-                            &ident_op_payload_try_new_er_ucc,
-                            &quote::quote! {
+                        let impl_pub_try_new_for_ident_op_payload_ts = quote::quote! {
+                            impl #ident_op_payload_ucc {
+                                #[must_use]
+                                pub fn into_vec(self) -> #vec_ident_upd_ts {
+                                    self.0
+                                }
+                                pub fn try_new(
+                                    #VSc: #vec_ident_upd_ts,
+                                ) -> Result<Self, #ident_op_payload_try_new_er_ucc> {
                                 let mut acc_6bf275fc = Vec::new();
                                 for el_35facc3a in &#VSc {
                                     if acc_6bf275fc.contains(&&el_35facc3a.#pk_fi) {
@@ -3787,8 +3822,9 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                                     acc_6bf275fc.push(&el_35facc3a.#pk_fi);
                                 }
                                 Ok(Self(#VSc))
-                            },
-                        );
+                                }
+                            }
+                        };
                         let impl_de_for_ident_um_payload_ts = quote::quote! {
                             #[allow(unused_qualifications)]
                             #[allow(clippy::absolute_paths)]
@@ -3871,7 +3907,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         .build_enum(&proc_macro2::TokenStream::new(), &ident_op_res_vrts_ucc, &proc_macro2::TokenStream::new(), &{
                             let vrts_ts = type_vrts_from_req_res_syn_vrts
                                 .iter()
-                                .map(|vrt| macros_helpers::gen_serde_version_of_named_syn_vrt(macros_helpers::SynVariantRef(vrt)));
+                                .map(|vrt| macros_helpers::gen_serde_version_of_named_syn_vrt(macros_helpers::SynVariantRef::from(vrt)));
                             let desirable_type_ts = gen_op_result_type_ts(op);
                             quote::quote! {{
                                 #DesirableUcc(#desirable_type_ts),
@@ -3891,8 +3927,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             let syn::Fields::Named(fields_named) = &el.fields else {
                                 return compile_error_ts(CompileErrorMsg(
                                     "10764d2b: expected named variant fields",
-                                ))
-                                .0;
+                                )).into();
                             };
                             let fields_mapped_into_ts = {
                                 let fields_ts = fields_named.named.iter().map(|field| &field.ident);
@@ -4236,7 +4271,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
             gen_fields_named_without_pk_with_comma_ts(&|el: &macros_helpers::SynField| {
                 let fi0 = &el.ident;
                 let ft0 = &el.type0;
-                let ts0 = if fi == &fi0.0 {
+                let ts0 = if fi == fi0.as_ref() {
                     quote::quote! {#ts}
                 } else {
                     let ts1 = gen_as_pg_type_path_ts(&ft0);
@@ -4917,7 +4952,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                     let fi0 = &el0.ident;
                     if pk_fi == fi0 {
                         some_pk_wh_init_ts.clone()
-                    } else if &fi0.0 == fi {
+                    } else if fi0.as_ref() == fi {
                         gen_some_pg_type_wh_try_new_and_ts(&ts)
                     } else {
                         none_ts.clone()
@@ -5115,7 +5150,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         let gen_rd_ids_upper_fields_init_without_pk_ts = |fi: &syn::Ident| {
             gen_fields_named_without_pk_with_comma_ts(&|syn_field: &macros_helpers::SynField| {
                 let fi0 = &syn_field.ident;
-                let ts = if fi == &fi0.0 {
+                let ts = if fi == fi0.as_ref() {
                     let ts0 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
                     quote::quote! {Some(#ts0 upd_to_rd_ids(&upd))}
                 } else {
@@ -5127,7 +5162,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
         let gen_upd_prms_init_without_pk_ts = |fi: &syn::Ident| {
             gen_fields_named_without_pk_with_comma_ts(&|syn_field: &macros_helpers::SynField| {
                 let fi0 = &syn_field.ident;
-                if fi == &fi0.0 {
+                if fi == fi0.as_ref() {
                     let ts = gen_v_init_ts0(&quote::quote! {#UpdSc.clone()});
                     quote::quote! {Some(#ts)}
                 } else {
@@ -5143,7 +5178,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                 gen_fields_named_without_pk_with_comma_ts(
                     &|syn_field: &macros_helpers::SynField| {
                         let fi0 = &syn_field.ident;
-                        let ts = if fi == &fi0.0 {
+                        let ts = if fi == fi0.as_ref() {
                             let ts0 = gen_v_init_ts0(&{
                                 let ts1 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
                                 let expect_0 = gen_quotes::dq_ts(&expect_uuid_0);
@@ -5884,7 +5919,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_ts = tokio::spawn(async move {
                             let #AppStateSc = std::sync::Arc::new(server_app_state::ServerAppState {
-                                #PgPoolSc: app_state::PgPool(#PgPoolForTokioSpawnSyncMoveSc.clone()),
+                                #PgPoolSc: app_state::PgPool::from(#PgPoolForTokioSpawnSyncMoveSc.clone()),
                                 #ConfigSc,
                                 project_git_info: &git_info::PROJECT_GIT_INFO,
                             });
@@ -5940,7 +5975,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.tests_write_into_file,
         "gen_pg_tbl_Tests",
-        macros_helpers::TsRef(&generated_ident_tests_ts),
+        macros_helpers::TsRef::from(&generated_ident_tests_ts),
         &macros_helpers::FormatWithCargofmt::True,
     );
     let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
@@ -5961,7 +5996,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.cmn_write_into_file,
         "gen_pg_tbl_cmn",
-        macros_helpers::TsRef(&cmn_ts),
+        macros_helpers::TsRef::from(&cmn_ts),
         &macros_helpers::FormatWithCargofmt::True,
     );
     let gend = {
@@ -5997,8 +6032,8 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.whole_write_into_file,
         "gen_pg_tbl",
-        macros_helpers::TsRef(&gend),
+        macros_helpers::TsRef::from(&gend),
         &macros_helpers::FormatWithCargofmt::True,
     );
-    macros_helpers::GeneratedRustTs(gend)
+    macros_helpers::GeneratedRustTs::from(gend)
 }

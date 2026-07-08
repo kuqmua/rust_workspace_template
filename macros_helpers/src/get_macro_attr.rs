@@ -1,12 +1,22 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MacroAttrRef<'lt>(pub &'lt syn::Attribute);
+pub struct MacroAttrRef<'lt>(&'lt syn::Attribute);
+impl<'lt> From<&'lt syn::Attribute> for MacroAttrRef<'lt> {
+    fn from(value: &'lt syn::Attribute) -> Self {
+        Self(value)
+    }
+}
 impl quote::ToTokens for MacroAttrRef<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct MacroAttrMetaListTsRef<'lt>(pub &'lt proc_macro2::TokenStream);
+pub struct MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
+impl<'lt> From<&'lt proc_macro2::TokenStream> for MacroAttrMetaListTsRef<'lt> {
+    fn from(value: &'lt proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
 impl std::ops::Deref for MacroAttrMetaListTsRef<'_> {
     type Target = proc_macro2::TokenStream;
     fn deref(&self) -> &Self::Target {
@@ -85,7 +95,7 @@ where
 {
     let attr = try_get_macro_attr(attrs, attr_path)?;
     if let syn::Meta::List(v) = &attr.0.meta {
-        Ok(MacroAttrMetaListTsRef(&v.tokens))
+        Ok(MacroAttrMetaListTsRef::from(&v.tokens))
     } else {
         Err(MacroAttrEr::AttrNotList)
     }

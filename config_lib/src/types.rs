@@ -19,6 +19,23 @@ struct EnvVarValueRef<'value_lt>(&'value_lt str);
 struct ParseCtxRef(&'static str);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct EnvParseEr(String);
+impl From<super::ConfigLibStringWrapperTryFromStringEr> for EnvParseEr {
+    fn from(value: super::ConfigLibStringWrapperTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for EnvParseEr {
+    type Error = super::ConfigLibStringWrapperTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for EnvParseEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -121,9 +138,10 @@ fn parse_from_env_var_with<T>(
     env_var_name: EnvVarNameRef<'_>,
     parse: impl FnOnce(EnvVarValueRef<'_>) -> Result<T, EnvParseEr>,
 ) -> Result<T, EnvParseEr> {
-    let raw_v = env_v
-        .0
-        .map_err(|er| EnvParseEr(format!("std::env::var(\"{}\"): {er}", env_var_name.0)))?;
+    let raw_v = env_v.0.map_err(|er| {
+        EnvParseEr::try_from(format!("std::env::var(\"{}\"): {er}", env_var_name.0))
+            .unwrap_or_else(EnvParseEr::from)
+    })?;
     parse(EnvVarValueRef(&raw_v))
 }
 #[allow(clippy::single_call_fn)] // helper centralizes std::str::FromStr context formatting and keeps per-type parsing helpers minimal
@@ -135,7 +153,9 @@ where
     T: std::str::FromStr,
     T::Err: std::fmt::Display,
 {
-    T::from_str(v.0).map_err(|er| EnvParseEr(format!("{}: {er}", parse_ctx.0)))
+    T::from_str(v.0).map_err(|er| {
+        EnvParseEr::try_from(format!("{}: {er}", parse_ctx.0)).unwrap_or_else(EnvParseEr::from)
+    })
 }
 #[allow(clippy::single_call_fn)] // helper composes env var read + std::str::FromStr context mapping for reuse across enum env parsers
 fn parse_from_env_var_from_str<T>(

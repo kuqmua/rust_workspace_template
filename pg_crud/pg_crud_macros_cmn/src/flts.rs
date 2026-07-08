@@ -88,7 +88,7 @@ impl PgFlt for PgTypeFlt {
     }
     fn prefix_wh_self_ucc(&self) -> macros_helpers::GeneratedRustTs {
         let v = naming::prm::PgTypeWhSelfUcc::from_display(&self.ucc());
-        macros_helpers::GeneratedRustTs(quote::quote! {#v})
+        macros_helpers::GeneratedRustTs::from(quote::quote! {#v})
     }
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens {
         match &self {

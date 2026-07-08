@@ -19,10 +19,26 @@ struct PgnStartsWithOneRaw {
     newtype::Newtype,
 )]
 #[newtype(display, from, to_err_string)]
-pub struct PgnStartsWithOneValue(pub i64);
+pub struct PgnStartsWithOneValue(i64);
+impl PgnStartsWithOneValue {
+    #[must_use]
+    pub const fn get(self) -> i64 {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
 #[newtype(from)]
-pub struct IsPrimaryKey(pub bool);
+pub struct IsPrimaryKey(bool);
+impl From<IsPrimaryKey> for bool {
+    fn from(value: IsPrimaryKey) -> Self {
+        value.0
+    }
+}
+impl From<pg_crud_cmn::IsPk> for IsPrimaryKey {
+    fn from(value: pg_crud_cmn::IsPk) -> Self {
+        Self::from(bool::from(value))
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -62,12 +78,12 @@ pub enum PgnStartsWithOneTryNewEr {
 }
 impl PgnStartsWithOne {
     #[must_use]
-    pub const fn end(&self) -> PgnStartsWithOneValue {
-        PgnStartsWithOneValue(self.0.end().0)
+    pub fn end(&self) -> PgnStartsWithOneValue {
+        PgnStartsWithOneValue::from(self.0.end().get())
     }
     #[must_use]
-    pub const fn start(&self) -> PgnStartsWithOneValue {
-        PgnStartsWithOneValue(self.0.start().0)
+    pub fn start(&self) -> PgnStartsWithOneValue {
+        PgnStartsWithOneValue::from(self.0.start().get())
     }
     pub fn try_new<L, O>(limit: L, offset: O) -> Result<Self, PgnStartsWithOneTryNewEr>
     where
@@ -76,8 +92,8 @@ impl PgnStartsWithOne {
     {
         let limit_value = limit.into();
         let offset_value = offset.into();
-        if limit_value.0 <= 0 || offset_value.0 < 1 {
-            if limit_value.0 <= 0 {
+        if limit_value.get() <= 0 || offset_value.get() < 1 {
+            if limit_value.get() <= 0 {
                 Err(PgnStartsWithOneTryNewEr::LimitIsLessThanOrEqToZero {
                     limit: limit_value,
                     loc: loc_lib::loc!(),
@@ -88,10 +104,10 @@ impl PgnStartsWithOne {
                     loc: loc_lib::loc!(),
                 })
             }
-        } else if offset_value.0.checked_add(limit_value.0).is_some() {
+        } else if offset_value.get().checked_add(limit_value.get()).is_some() {
             Ok(Self(pg_crud_cmn::PgnBase::new_unchecked(
-                limit_value.0,
-                offset_value.0,
+                limit_value.get(),
+                offset_value.get(),
             )))
         } else {
             Err(PgnStartsWithOneTryNewEr::OffsetPlusLimitIsIntOverflow {
@@ -145,5 +161,9 @@ pub fn mb_pk<V>(v: V) -> impl std::fmt::Display
 where
     V: Into<IsPrimaryKey>,
 {
-    if v.into().0 { "primary key" } else { "" }
+    if bool::from(v.into()) {
+        "primary key"
+    } else {
+        ""
+    }
 }

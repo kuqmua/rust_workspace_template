@@ -1,3 +1,4 @@
+const TO_ERR_STRING_VALUE_MAX_LEN: usize = 1_048_576;
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
 to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
 to_err_string_macros::impl_to_err_string_with!(
@@ -27,9 +28,48 @@ to_err_string_macros::impl_to_err_string_with!(
 pub trait ToErrString {
     fn to_err_string(&self) -> ToErrStringValue;
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ToErrStringValueTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for ToErrStringValueTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(
+                    f,
+                    "to error string value length {len} exceeds maximum {max}"
+                )
+            }
+        }
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
 #[newtype(display, as_ref_str, deref)]
-pub struct ToErrStringValue(pub String);
+pub struct ToErrStringValue(String);
+impl ToErrStringValue {
+    #[must_use]
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+impl From<ToErrStringValueTryFromStringEr> for ToErrStringValue {
+    fn from(value: ToErrStringValueTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for ToErrStringValue {
+    type Error = ToErrStringValueTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > TO_ERR_STRING_VALUE_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: TO_ERR_STRING_VALUE_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl<T> ToErrString for &T
 where
     T: ToErrString + ?Sized,
@@ -66,22 +106,22 @@ fn debug_to_string<T>(v: &T) -> ToErrStringValue
 where
     T: std::fmt::Debug,
 {
-    ToErrStringValue(format!("{v:?}"))
+    ToErrStringValue::try_from(format!("{v:?}")).unwrap_or_else(ToErrStringValue::from)
 }
 fn as_ref_str_to_owned<T>(v: &T) -> ToErrStringValue
 where
     T: ?Sized + AsRef<str>,
 {
-    ToErrStringValue(v.as_ref().to_owned())
+    ToErrStringValue::try_from(v.as_ref().to_owned()).unwrap_or_else(ToErrStringValue::from)
 }
 fn static_str_to_owned(v: StaticStrToOwnedInput) -> ToErrStringValue {
-    ToErrStringValue(v.0.to_owned())
+    ToErrStringValue::try_from(v.0.to_owned()).unwrap_or_else(ToErrStringValue::from)
 }
 #[cfg(test)]
 mod tests {
     #[allow(clippy::single_call_fn)] // shared assertion keeps ToErrString behavior checks concise and consistent
     fn assert_to_err_string(v: impl super::ToErrString, exp: &str) {
-        assert_eq!(v.to_err_string().0, exp);
+        assert_eq!(v.to_err_string().as_ref(), exp);
     }
     #[test]
     fn to_err_string_for_primitives_and_options() {

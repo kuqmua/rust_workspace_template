@@ -4,27 +4,27 @@ struct TryFromParseTs(proc_macro::TokenStream);
 #[proc_macro]
 pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(
             "impl_try_from_non_empty_string expects name, error name",
         )
-        .0
+        .into_inner()
         .into();
     }
     let Some(name_text) = workspace_macro_helpers::first_ident_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_try_from_non_empty_string expects name",
         )
-        .0
+        .into_inner()
         .into();
     };
     let Some(er_name_text) = workspace_macro_helpers::first_ident_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_try_from_non_empty_string expects error name",
         )
-        .0
+        .into_inner()
         .into();
     };
     let name = quote::format_ident!("{name_text}");
@@ -49,25 +49,25 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
 #[proc_macro]
 pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(
             "impl_try_from_secret_url expects name, error name",
         )
-        .0
+        .into_inner()
         .into();
     }
     let Some(name_text) = workspace_macro_helpers::first_ident_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts("impl_try_from_secret_url expects name")
-            .0
+            .into_inner()
             .into();
     };
     let Some(er_name_text) = workspace_macro_helpers::first_ident_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_try_from_secret_url expects error name",
         )
-        .0
+        .into_inner()
         .into();
     };
     let name = quote::format_ident!("{name_text}");
@@ -116,35 +116,35 @@ fn impl_try_from_parse_with_er_ty(
             workspace_macro_helpers::compile_error_ts(
                 "impl_try_from_parse expects name, error name, inner type and error variant",
             )
-            .0
+            .into_inner()
             .into(),
         );
     }
     let Some(name_text) = workspace_macro_helpers::first_ident_at(&parts, 0) else {
         return TryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects name")
-                .0
+                .into_inner()
                 .into(),
         );
     };
     let Some(er_name_text) = workspace_macro_helpers::first_ident_at(&parts, 1) else {
         return TryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error name")
-                .0
+                .into_inner()
                 .into(),
         );
     };
     let Some(er_vrt_text) = workspace_macro_helpers::first_ident_at(&parts, 3) else {
         return TryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error variant")
-                .0
+                .into_inner()
                 .into(),
         );
     };
     let Some(er_field_text) = workspace_macro_helpers::first_ident_at(&parts, 4) else {
         return TryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error field")
-                .0
+                .into_inner()
                 .into(),
         );
     };
@@ -155,7 +155,7 @@ fn impl_try_from_parse_with_er_ty(
     let Some(inner) = workspace_macro_helpers::part_at(&parts, 2) else {
         return TryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects inner type")
-                .0
+                .into_inner()
                 .into(),
         );
     };
@@ -194,30 +194,30 @@ fn impl_try_from_parse_with_er_ty(
 #[proc_macro]
 pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_ts(
             "assert_parse_ok_matches expects type, value, pattern",
         )
-        .0
+        .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts("assert_parse_ok_matches expects type")
-            .0
+            .into_inner()
             .into();
     };
     let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts("assert_parse_ok_matches expects value")
-            .0
+            .into_inner()
             .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_ts(
             "assert_parse_ok_matches expects pattern",
         )
-        .0
+        .into_inner()
         .into();
     };
     quote::quote! {
@@ -228,30 +228,30 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
 #[proc_macro]
 pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_ts(
             "assert_parse_err_matches expects type, value, pattern",
         )
-        .0
+        .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts("assert_parse_err_matches expects type")
-            .0
+            .into_inner()
             .into();
     };
     let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts("assert_parse_err_matches expects value")
-            .0
+            .into_inner()
             .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_ts(
             "assert_parse_err_matches expects pattern",
         )
-        .0
+        .into_inner()
         .into();
     };
     quote::quote! {
@@ -262,27 +262,27 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
 #[proc_macro]
 pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(
             "assert_empty_parse_err_matches expects type, pattern",
         )
-        .0
+        .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_ts(
             "assert_empty_parse_err_matches expects type",
         )
-        .0
+        .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_ts(
             "assert_empty_parse_err_matches expects pattern",
         )
-        .0
+        .into_inner()
         .into();
     };
     quote::quote! {

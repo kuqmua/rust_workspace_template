@@ -1,5 +1,5 @@
 #[derive(Debug, Clone)]
-pub struct IfWriteIsErrTs(pub proc_macro2::TokenStream);
+pub struct IfWriteIsErrTs(proc_macro2::TokenStream);
 impl quote::ToTokens for IfWriteIsErrTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);

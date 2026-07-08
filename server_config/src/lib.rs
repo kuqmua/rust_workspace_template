@@ -24,7 +24,7 @@ impl app_state::GetDatabaseUrl for Config {
 }
 impl app_state::GetMaximumSizeOfHttpBodyInBytes for Config {
     fn get_maximum_size_of_http_body_in_bytes(&self) -> &usize {
-        &self.maximum_size_of_http_body_in_bytes.0
+        &self.maximum_size_of_http_body_in_bytes
     }
 }
 impl app_state::GetServiceSocketAddress for Config {
@@ -34,12 +34,12 @@ impl app_state::GetServiceSocketAddress for Config {
 }
 impl app_state::GetPgPoolMaxConnections for Config {
     fn get_pg_pool_max_connections(&self) -> &u32 {
-        &self.pg_pool_max_connections.0
+        &self.pg_pool_max_connections
     }
 }
 impl app_state::GetTimezone for Config {
     fn get_timezone(&self) -> &chrono::FixedOffset {
-        &self.timezone.0
+        &self.timezone
     }
 }
 impl app_state::GetSrcPlaceType for Config {
@@ -119,9 +119,10 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
                     .expect("39a84c10"),
-                timezone: config_lib::Timezone(
+                timezone: config_lib::Timezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
-                ),
+                )
+                .expect("50e91ec9"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),

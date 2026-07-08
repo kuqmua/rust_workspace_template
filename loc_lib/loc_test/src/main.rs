@@ -6,6 +6,7 @@
 // impl display like this this
 // eo_loc_field
 // https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
+const LOC_TEST_TEXT_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErOne {
     //use loc_lib::ToErrString for hashmap ks instead of Display
@@ -45,7 +46,37 @@ pub enum ErOne {
     newtype::Newtype,
 )]
 #[newtype(to_err_string_as_ref_str)]
-pub struct LocTestText(pub String);
+pub struct LocTestText(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LocTestTextTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for LocTestTextTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "loc test text length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<LocTestTextTryFromStringEr> for LocTestText {
+    fn from(value: LocTestTextTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for LocTestText {
+    type Error = LocTestTextTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > LOC_TEST_TEXT_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: LOC_TEST_TEXT_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -58,7 +89,7 @@ pub struct LocTestText(pub String);
     newtype::Newtype,
 )]
 #[newtype(from, to_err_string)]
-pub struct LocTestFlag(pub bool);
+pub struct LocTestFlag(bool);
 #[derive(
     Debug,
     Clone,
@@ -71,7 +102,7 @@ pub struct LocTestFlag(pub bool);
     newtype::Newtype,
 )]
 #[newtype(from, to_err_string)]
-pub struct LocTestCount(pub u32);
+pub struct LocTestCount(u32);
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErTwo {
     Another {
@@ -97,7 +128,8 @@ pub struct DisplayStruct {
 //todo or mb two different traits - display foreign type and convert into serializable and deserializable type
 impl loc_lib::ToErrString for DisplayStruct {
     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(format!("{self:?}"))
+        loc_lib::ToErrStringValue::try_from(format!("{self:?}"))
+            .unwrap_or_else(loc_lib::ToErrStringValue::from)
     }
 }
 //todo rename fields
@@ -110,19 +142,20 @@ pub struct SerdeStruct {
 }
 impl loc_lib::ToErrString for SerdeStruct {
     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(format!("{self:?}"))
+        loc_lib::ToErrStringValue::try_from(format!("{self:?}"))
+            .unwrap_or_else(loc_lib::ToErrStringValue::from)
     }
 }
 fn main() {
     let er = ErOne::Vrt {
         eo_display_field: DisplayStruct {
             display: LocTestText(String::from("v")),
-            something: LocTestFlag(true),
+            something: LocTestFlag::from(true),
         },
         eo_serde: SerdeStruct {
             one: LocTestText(String::from("v")),
-            two: LocTestFlag(true),
-            three: LocTestCount(42),
+            two: LocTestFlag::from(true),
+            three: LocTestCount::from(42),
         },
         eo_loc_field: ErTwo::Vrt {
             eo_display_with_serde_field: LocTestText(String::from("v")),
@@ -131,23 +164,23 @@ fn main() {
         eo_vec_display_field: vec![
             DisplayStruct {
                 display: LocTestText(String::from("08708789")),
-                something: LocTestFlag(true),
+                something: LocTestFlag::from(true),
             },
             DisplayStruct {
                 display: LocTestText(String::from("7565757")),
-                something: LocTestFlag(true),
+                something: LocTestFlag::from(true),
             },
         ],
         eo_vec_serde: vec![
             SerdeStruct {
                 one: LocTestText(String::from("v")),
-                two: LocTestFlag(true),
-                three: LocTestCount(42),
+                two: LocTestFlag::from(true),
+                three: LocTestCount::from(42),
             },
             SerdeStruct {
                 one: LocTestText(String::from("97697697")),
-                two: LocTestFlag(false),
-                three: LocTestCount(422),
+                two: LocTestFlag::from(false),
+                three: LocTestCount::from(422),
             },
         ],
         eo_vec_loc_field: vec![
@@ -165,14 +198,14 @@ fn main() {
                 LocTestText(String::from("kesdfsfdsfsd")),
                 DisplayStruct {
                     display: LocTestText(String::from("vasfdsdfsdflue")),
-                    something: LocTestFlag(true),
+                    something: LocTestFlag::from(true),
                 },
             ),
             (
                 LocTestText(String::from("ksdfsdfsdfsdfey")),
                 DisplayStruct {
                     display: LocTestText(String::from("valsfdsfdsfdsue")),
-                    something: LocTestFlag(true),
+                    something: LocTestFlag::from(true),
                 },
             ),
         ]),
@@ -181,16 +214,16 @@ fn main() {
                 LocTestText(String::from("kdfgsdfgdsfgey")),
                 SerdeStruct {
                     one: LocTestText(String::from("valusdfgdsgdsfgde")),
-                    two: LocTestFlag(true),
-                    three: LocTestCount(42),
+                    two: LocTestFlag::from(true),
+                    three: LocTestCount::from(42),
                 },
             ),
             (
                 LocTestText(String::from("ksdfgdsfgsdfgey")),
                 SerdeStruct {
                     one: LocTestText(String::from("valsdfgdsgdue")),
-                    two: LocTestFlag(true),
-                    three: LocTestCount(42),
+                    two: LocTestFlag::from(true),
+                    three: LocTestCount::from(42),
                 },
             ),
         ]),

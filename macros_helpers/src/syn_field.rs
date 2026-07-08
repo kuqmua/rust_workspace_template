@@ -5,7 +5,17 @@ pub struct SynField {
     pub vis: SynFieldVis,
 }
 #[derive(Debug, Clone, PartialEq)]
-pub struct SynFieldIdent(pub syn::Ident);
+pub struct SynFieldIdent(syn::Ident);
+impl From<syn::Ident> for SynFieldIdent {
+    fn from(value: syn::Ident) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Ident> for SynFieldIdent {
+    fn as_ref(&self) -> &syn::Ident {
+        &self.0
+    }
+}
 impl std::ops::Deref for SynFieldIdent {
     type Target = syn::Ident;
     fn deref(&self) -> &Self::Target {
@@ -23,7 +33,17 @@ impl std::fmt::Display for SynFieldIdent {
     }
 }
 #[derive(Debug, Clone)]
-pub struct SynFieldType(pub syn::Type);
+pub struct SynFieldType(syn::Type);
+impl From<syn::Type> for SynFieldType {
+    fn from(value: syn::Type) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Type> for SynFieldType {
+    fn as_ref(&self) -> &syn::Type {
+        &self.0
+    }
+}
 impl std::ops::Deref for SynFieldType {
     type Target = syn::Type;
     fn deref(&self) -> &Self::Target {
@@ -36,7 +56,17 @@ impl quote::ToTokens for SynFieldType {
     }
 }
 #[derive(Debug, Clone)]
-pub struct SynFieldVis(pub syn::Visibility);
+pub struct SynFieldVis(syn::Visibility);
+impl From<syn::Visibility> for SynFieldVis {
+    fn from(value: syn::Visibility) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Visibility> for SynFieldVis {
+    fn as_ref(&self) -> &syn::Visibility {
+        &self.0
+    }
+}
 impl std::ops::Deref for SynFieldVis {
     type Target = syn::Visibility;
     fn deref(&self) -> &Self::Target {

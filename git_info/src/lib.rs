@@ -1,6 +1,7 @@
 pub use naming::GITHUB_URL;
 const TREE_SEGMENT: &str = "/tree/";
 const BASE_GIT_COMMIT_LINK_LEN: usize = GITHUB_URL.len() + TREE_SEGMENT.len();
+const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
 const PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
     args = ["--always", "--abbrev=40"],
     prefix = "https://github.com/kuqmua/rust_workspace_template/tree/"
@@ -14,7 +15,7 @@ const PROJECT_GIT_COMMIT_ID: GitCommitIdRef<'_> = PROJECT_GIT_INFO.commit;
 #[derive(
     Debug, Clone, Copy, Hash, PartialEq, Eq, Default, serde_derive::Serialize, optml::Optml,
 )]
-pub struct GitCommitIdRef<'commit_lt>(pub &'commit_lt str);
+pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
 impl AsRef<str> for GitCommitIdRef<'_> {
     fn as_ref(&self) -> &str {
         self.0
@@ -36,7 +37,20 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
     }
 }
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
-pub struct GitCommitId(pub String);
+pub struct GitCommitId(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GitInfoStringTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for GitInfoStringTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "git info string length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
 impl AsRef<str> for GitCommitId {
     fn as_ref(&self) -> &str {
         self.0.as_str()
@@ -44,20 +58,42 @@ impl AsRef<str> for GitCommitId {
 }
 impl From<GitCommitIdRef<'_>> for GitCommitId {
     fn from(value: GitCommitIdRef<'_>) -> Self {
-        Self(value.0.to_owned())
+        Self::try_from(value.0.to_owned()).unwrap_or_else(Self::from)
+    }
+}
+impl From<GitInfoStringTryFromStringEr> for GitCommitId {
+    fn from(value: GitInfoStringTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for GitCommitId {
+    type Error = GitInfoStringTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
-pub struct GitCommitIdCow<'commit_lt>(pub std::borrow::Cow<'commit_lt, str>);
+pub struct GitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
+impl<'commit_lt> From<std::borrow::Cow<'commit_lt, str>> for GitCommitIdCow<'commit_lt> {
+    fn from(value: std::borrow::Cow<'commit_lt, str>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<str> for GitCommitIdCow<'_> {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
-pub struct GitCommitIdFallback(pub Option<GitCommitId>);
+pub struct GitCommitIdFallback(Option<GitCommitId>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
-pub struct GitCommitLink(pub String);
+pub struct GitCommitLink(String);
 impl AsRef<str> for GitCommitLink {
     fn as_ref(&self) -> &str {
         self.0.as_str()
@@ -65,7 +101,24 @@ impl AsRef<str> for GitCommitLink {
 }
 impl From<GitCommitLinkCow> for GitCommitLink {
     fn from(value: GitCommitLinkCow) -> Self {
-        Self(value.0.into_owned())
+        Self::try_from(value.0.into_owned()).unwrap_or_else(Self::from)
+    }
+}
+impl From<GitInfoStringTryFromStringEr> for GitCommitLink {
+    fn from(value: GitInfoStringTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for GitCommitLink {
+    type Error = GitInfoStringTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
     }
 }
 impl PartialEq<ProjectGitCommitLinkRef> for GitCommitLink {
@@ -79,7 +132,12 @@ impl PartialEq<String> for GitCommitLink {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde_derive::Serialize, optml::Optml)]
-pub struct GitCommitLinkCow(pub std::borrow::Cow<'static, str>);
+pub struct GitCommitLinkCow(std::borrow::Cow<'static, str>);
+impl From<std::borrow::Cow<'static, str>> for GitCommitLinkCow {
+    fn from(value: std::borrow::Cow<'static, str>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<str> for GitCommitLinkCow {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
@@ -91,7 +149,7 @@ impl std::fmt::Display for GitCommitLinkCow {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-pub struct ProjectGitCommitLinkRef(pub &'static str);
+pub struct ProjectGitCommitLinkRef(&'static str);
 impl AsRef<str> for ProjectGitCommitLinkRef {
     fn as_ref(&self) -> &str {
         self.0
@@ -103,7 +161,7 @@ impl std::fmt::Display for ProjectGitCommitLinkRef {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-pub struct IsProjectCommit(pub bool);
+pub struct IsProjectCommit(bool);
 impl std::ops::Not for IsProjectCommit {
     type Output = bool;
     fn not(self) -> Self::Output {
@@ -111,7 +169,18 @@ impl std::ops::Not for IsProjectCommit {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-pub struct GitCommitLinkCapacity(pub usize);
+pub struct GitCommitLinkCapacity(usize);
+impl From<usize> for GitCommitLinkCapacity {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Deref for GitCommitLinkCapacity {
+    type Target = usize;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 impl PartialEq<usize> for GitCommitLinkCapacity {
     fn eq(&self, other: &usize) -> bool {
         self.0 == *other
@@ -120,7 +189,22 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
 #[derive(Debug, optml::Optml)]
 struct GitCommitLinkOutputRefMut<'output_lt>(pub &'output_lt mut String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-pub struct ValidateProjectCommitEr(pub ProjectGitCommitLinkRef);
+pub struct ValidateProjectCommitEr(ProjectGitCommitLinkRef);
+impl AsRef<ProjectGitCommitLinkRef> for ValidateProjectCommitEr {
+    fn as_ref(&self) -> &ProjectGitCommitLinkRef {
+        &self.0
+    }
+}
+impl From<ValidateProjectCommitEr> for ProjectGitCommitLinkRef {
+    fn from(value: ValidateProjectCommitEr) -> Self {
+        value.0
+    }
+}
+impl From<ProjectGitCommitLinkRef> for &'static str {
+    fn from(value: ProjectGitCommitLinkRef) -> Self {
+        value.0
+    }
+}
 #[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
 pub struct ProjectGitInfo<'commit_lt> {
     pub commit: GitCommitIdRef<'commit_lt>,

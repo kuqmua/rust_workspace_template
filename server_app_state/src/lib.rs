@@ -34,12 +34,12 @@ server_app_state_macros::impl_cfg_getter!(
 );
 impl app_state::GetPgPool for ServerAppState<'_> {
     fn get_pg_pool(&self) -> app_state::PgPoolRef<'_> {
-        app_state::PgPoolRef(&self.pg_pool.0)
+        app_state::PgPoolRef::from(self.pg_pool.as_ref())
     }
 }
 impl AsRef<str> for ServerAppState<'_> {
     fn as_ref(&self) -> &str {
-        self.project_git_info.commit.0
+        self.project_git_info.commit.as_ref()
     }
 }
 #[cfg(test)]
@@ -48,7 +48,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
         git_info::ProjectGitInfo {
-            commit: git_info::GitCommitIdRef(TEST_COMMIT),
+            commit: git_info::GitCommitIdRef::from(TEST_COMMIT),
         }
     }
     fn mk_st<'state_lt>(
@@ -67,14 +67,15 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
                     .expect("f20c4a91"),
-                timezone: config_lib::Timezone(
+                timezone: config_lib::Timezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("a95d3c17"),
-                ),
+                )
+                .expect("e8714250"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
             },
-            pg_pool: app_state::PgPool(
+            pg_pool: app_state::PgPool::from(
                 sqlx::PgPool::connect_lazy("postgres://usr:pwd@localhost:5432/db")
                     .expect("4bd3f0a1"),
             ),
@@ -103,8 +104,8 @@ mod tests {
     async fn get_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
         let st = mk_st(&git_info);
-        let lhs = std::ptr::from_ref(app_state::GetPgPool::get_pg_pool(&st).0);
-        let rhs = std::ptr::from_ref(&st.pg_pool.0);
+        let lhs = std::ptr::from_ref(app_state::GetPgPool::get_pg_pool(&st).as_ref());
+        let rhs = std::ptr::from_ref(st.pg_pool.as_ref());
         assert_eq!(lhs, rhs);
     }
     #[tokio::test]

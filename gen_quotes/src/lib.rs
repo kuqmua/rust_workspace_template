@@ -1,3 +1,4 @@
+const QUOTED_LITERAL_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, Copy)]
 struct QuotePrefix(&'static str);
 #[derive(Debug, Clone, Copy)]
@@ -6,9 +7,49 @@ struct QuoteChar(char);
 struct QuotePanicId(&'static str);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
 #[newtype(display, as_ref_str, deref)]
-pub struct QuotedLiteral(pub String);
+pub struct QuotedLiteral(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum QuotedLiteralTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for QuotedLiteralTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "quoted literal length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<QuotedLiteralTryFromStringEr> for QuotedLiteral {
+    fn from(value: QuotedLiteralTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for QuotedLiteral {
+    type Error = QuotedLiteralTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > QUOTED_LITERAL_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: QUOTED_LITERAL_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(Debug, Clone)]
-pub struct QuotedLiteralTs(pub proc_macro2::TokenStream);
+pub struct QuotedLiteralTs(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for QuotedLiteralTs {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
+impl From<QuotedLiteralTs> for proc_macro2::TokenStream {
+    fn from(value: QuotedLiteralTs) -> Self {
+        value.0
+    }
+}
 impl quote::ToTokens for QuotedLiteralTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.clone());
@@ -27,10 +68,11 @@ where
     out.push_str(prefix.0);
     out.push(quote_ch.0);
     if std::fmt::Write::write_fmt(&mut out, format_args!("{v}")).is_err() {
-        return QuotedLiteral(format!("{}{}{v}{}", prefix.0, quote_ch.0, quote_ch.0));
+        return QuotedLiteral::try_from(format!("{}{}{v}{}", prefix.0, quote_ch.0, quote_ch.0))
+            .unwrap_or_else(QuotedLiteral::from);
     }
     out.push(quote_ch.0);
-    QuotedLiteral(out)
+    QuotedLiteral::try_from(out).unwrap_or_else(QuotedLiteral::from)
 }
 #[allow(clippy::single_call_fn)] // shared with prefix-aware token quote wrapper to keep parse+panic-id flow in one place
 fn quote_literal_ts<Dsp>(
@@ -42,7 +84,7 @@ fn quote_literal_ts<Dsp>(
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    QuotedLiteralTs(
+    QuotedLiteralTs::from(
         quote_literal(prefix, quote_ch, v)
             .0
             .parse::<proc_macro2::TokenStream>()
@@ -136,7 +178,7 @@ mod tests {
         assert_eq!(actual.0, expected);
     }
     fn assert_quote_ts(actual: &super::QuotedLiteralTs, expected: &str) {
-        assert_eq!(actual.0.to_string(), expected);
+        assert_eq!(actual.to_string(), expected);
     }
     #[test]
     fn quote_str_helpers_return_expected_literals() {
@@ -167,14 +209,12 @@ mod tests {
         assert_quote_str(&super::binary_dq_str(&""), "b\"\"");
         assert!(
             super::single_quotes_ts("")
-                .0
                 .to_string()
                 .contains("compile_error !")
         );
         assert_quote_ts(&super::dq_ts(&""), "\"\"");
         assert!(
             super::binary_single_quotes_ts("")
-                .0
                 .to_string()
                 .contains("compile_error !")
         );

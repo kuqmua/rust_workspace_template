@@ -438,11 +438,36 @@ impl quote::ToTokens for HashMapSc {
 pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
 impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
 #[derive(Debug, Clone, Copy)]
-pub struct SwaggerUrlPathPrefix<'prefix_lt>(pub &'prefix_lt str);
+pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
+impl<'prefix_lt> From<&'prefix_lt str> for SwaggerUrlPathPrefix<'prefix_lt> {
+    fn from(value: &'prefix_lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for SwaggerUrlPathPrefix<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 #[derive(Debug, Clone)]
-pub struct SwaggerUrlPathSelfQuotesStrValue(pub gen_quotes::QuotedLiteral);
+pub struct SwaggerUrlPathSelfQuotesStrValue(gen_quotes::QuotedLiteral);
+impl From<gen_quotes::QuotedLiteral> for SwaggerUrlPathSelfQuotesStrValue {
+    fn from(value: gen_quotes::QuotedLiteral) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for SwaggerUrlPathSelfQuotesStrValue {
+    fn as_ref(&self) -> &str {
+        self.0.as_ref()
+    }
+}
 #[derive(Debug, Clone)]
-pub struct SwaggerUrlPathSelfQuotesTs(pub gen_quotes::QuotedLiteralTs);
+pub struct SwaggerUrlPathSelfQuotesTs(gen_quotes::QuotedLiteralTs);
+impl From<gen_quotes::QuotedLiteralTs> for SwaggerUrlPathSelfQuotesTs {
+    fn from(value: gen_quotes::QuotedLiteralTs) -> Self {
+        Self(value)
+    }
+}
 impl quote::ToTokens for SwaggerUrlPathSelfQuotesTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
@@ -462,7 +487,11 @@ where
         &self,
         v: SwaggerUrlPathPrefix<'_>,
     ) -> SwaggerUrlPathSelfQuotesStrValue {
-        SwaggerUrlPathSelfQuotesStrValue(gen_quotes::dq_str(&format!("/{}/{}", v.0, self.case(),)))
+        SwaggerUrlPathSelfQuotesStrValue::from(gen_quotes::dq_str(&format!(
+            "/{}/{}",
+            v.as_ref(),
+            self.case(),
+        )))
     }
 }
 pub trait SwaggerUrlPathSelfQuotesTokenStream {
@@ -481,14 +510,15 @@ where
     ) -> SwaggerUrlPathSelfQuotesTs {
         match self
             .swagger_url_path_self_quotes_str(v)
-            .0
-            .0
+            .as_ref()
             .parse::<proc_macro2::TokenStream>()
         {
-            Ok(parsed_ts) => SwaggerUrlPathSelfQuotesTs(gen_quotes::QuotedLiteralTs(parsed_ts)),
+            Ok(parsed_ts) => {
+                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::QuotedLiteralTs::from(parsed_ts))
+            }
             Err(er) => {
                 let msg = er.to_string();
-                SwaggerUrlPathSelfQuotesTs(gen_quotes::QuotedLiteralTs(
+                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::QuotedLiteralTs::from(
                     quote::quote! {compile_error!(#msg);},
                 ))
             }

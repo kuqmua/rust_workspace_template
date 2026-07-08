@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct WrittenFilePath(pub std::path::PathBuf);
+pub struct WrittenFilePath(std::path::PathBuf);
 impl From<std::path::PathBuf> for WrittenFilePath {
     fn from(value: std::path::PathBuf) -> Self {
         Self(value)
@@ -11,21 +11,41 @@ impl AsRef<std::path::Path> for WrittenFilePath {
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct WrittenFilePathRef<'path_lt>(pub &'path_lt std::path::Path);
+pub struct WrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::Path> for WrittenFilePathRef<'path_lt> {
+    fn from(value: &'path_lt std::path::Path) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<std::path::Path> for WrittenFilePathRef<'_> {
     fn as_ref(&self) -> &std::path::Path {
         self.0
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct StringFileContentRef<'cnt_lt>(pub &'cnt_lt str);
+pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
+impl<'cnt_lt> From<&'cnt_lt str> for StringFileContentRef<'cnt_lt> {
+    fn from(value: &'cnt_lt str) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<str> for StringFileContentRef<'_> {
     fn as_ref(&self) -> &str {
         self.0
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ShouldWriteString(pub bool);
+pub struct ShouldWriteString(bool);
+impl From<bool> for ShouldWriteString {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+impl From<ShouldWriteString> for bool {
+    fn from(value: ShouldWriteString) -> Self {
+        value.0
+    }
+}
 impl std::ops::Not for ShouldWriteString {
     type Output = bool;
     fn not(self) -> Self::Output {
@@ -46,13 +66,13 @@ impl WritePathOutcome {
         }
     }
     #[must_use]
-    pub const fn is_changed(&self) -> ShouldWriteString {
-        ShouldWriteString(matches!(self, Self::Changed(_)))
+    pub fn is_changed(&self) -> ShouldWriteString {
+        ShouldWriteString::from(matches!(self, Self::Changed(_)))
     }
     #[must_use]
     pub fn path(&self) -> WrittenFilePathRef<'_> {
         match self {
-            Self::Changed(path) | Self::Unchanged(path) => WrittenFilePathRef(path.0.as_path()),
+            Self::Changed(path) | Self::Unchanged(path) => WrittenFilePathRef::from(path.as_ref()),
         }
     }
 }
@@ -61,19 +81,19 @@ fn should_write_string_into_file(
     path: WrittenFilePathRef<'_>,
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
-    let path_ref = path.0;
-    let string_cnt_ref = string_cnt.0;
+    let path_ref = path.as_ref();
+    let string_cnt_ref = string_cnt.as_ref();
     match std::fs::metadata(path_ref) {
         Ok(v) => {
             let new_len_u64 = u64::try_from(string_cnt_ref.len())
                 .map_err(|_er| std::io::Error::other("2f4d7a8c failed converting string length"))?;
             if v.len() != new_len_u64 {
-                return Ok(ShouldWriteString(true));
+                return Ok(ShouldWriteString::from(true));
             }
             std::fs::read_to_string(path_ref)
-                .map(|old_cnt| ShouldWriteString(old_cnt != string_cnt_ref))
+                .map(|old_cnt| ShouldWriteString::from(old_cnt != string_cnt_ref))
         }
-        Err(er) if er.kind() == std::io::ErrorKind::NotFound => Ok(ShouldWriteString(true)),
+        Err(er) if er.kind() == std::io::ErrorKind::NotFound => Ok(ShouldWriteString::from(true)),
         Err(er) => Err(er),
     }
 }
@@ -91,7 +111,10 @@ fn should_write_with_same_len_diff(
         ));
     }
     std::fs::write(path, old)?;
-    should_write_string_into_file(WrittenFilePathRef(path), StringFileContentRef(new))
+    should_write_string_into_file(
+        WrittenFilePathRef::from(path),
+        StringFileContentRef::from(new),
+    )
 }
 #[allow(clippy::single_call_fn)] // shared test helper checks changed-length short-circuit path via metadata length comparison
 #[cfg(test)]
@@ -106,14 +129,14 @@ fn should_write_with_diff_len(
         ));
     }
     std::fs::write(path, old)?;
-    should_write_string_into_file(WrittenFilePathRef(path), StringFileContentRef(new))
+    should_write_string_into_file(
+        WrittenFilePathRef::from(path),
+        StringFileContentRef::from(new),
+    )
 }
 #[allow(clippy::single_call_fn)] // central mapping keeps changed/unchanged outcome construction consistent
-const fn mk_write_path_outcome(
-    path: WrittenFilePath,
-    is_changed: ShouldWriteString,
-) -> WritePathOutcome {
-    if is_changed.0 {
+fn mk_write_path_outcome(path: WrittenFilePath, is_changed: ShouldWriteString) -> WritePathOutcome {
+    if bool::from(is_changed) {
         WritePathOutcome::Changed(path)
     } else {
         WritePathOutcome::Unchanged(path)
@@ -125,8 +148,8 @@ fn write_string_if_needed(
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
     let should_write = should_write_string_into_file(path, string_cnt)?;
-    if should_write.0 {
-        std::fs::write(path.0, string_cnt.0)?;
+    if bool::from(should_write) {
+        std::fs::write(path.as_ref(), string_cnt.as_ref())?;
     }
     Ok(should_write)
 }
@@ -136,8 +159,8 @@ pub(crate) fn try_write_string_into_path_with_outcome(
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<WritePathOutcome> {
     let path_ref = path.as_ref();
-    let should_write = write_string_if_needed(WrittenFilePathRef(path_ref), string_cnt)?;
-    let path_buf = WrittenFilePath(path_ref.to_path_buf());
+    let should_write = write_string_if_needed(WrittenFilePathRef::from(path_ref), string_cnt)?;
+    let path_buf = WrittenFilePath::from(path_ref.to_path_buf());
     Ok(mk_write_path_outcome(path_buf, should_write))
 }
 #[allow(clippy::single_call_fn)] // shared write helper keeps change-outcome API reusable for extension-based write callers
@@ -182,13 +205,13 @@ where
 #[cfg(test)]
 mod tests {
     fn cnt(v: &str) -> super::StringFileContentRef<'_> {
-        super::StringFileContentRef(v)
+        super::StringFileContentRef::from(v)
     }
     fn path_ref(v: &std::path::Path) -> super::WrittenFilePathRef<'_> {
-        super::WrittenFilePathRef(v)
+        super::WrittenFilePathRef::from(v)
     }
     fn written_path(v: std::path::PathBuf) -> super::WrittenFilePath {
-        super::WrittenFilePath(v)
+        super::WrittenFilePath::from(v)
     }
     fn txt_path(name: &str) -> std::path::PathBuf {
         crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(name))
@@ -210,8 +233,8 @@ mod tests {
         outcome: &super::WritePathOutcome,
         expected_changed: bool,
     ) {
-        assert_eq!(outcome.path().0, path);
-        assert_eq!(outcome.is_changed().0, expected_changed);
+        assert_eq!(outcome.path().as_ref(), path);
+        assert_eq!(bool::from(outcome.is_changed()), expected_changed);
         cleanup(path);
     }
     #[test]
@@ -236,7 +259,7 @@ mod tests {
             "macros_helpers_try_write_file",
         ));
         let path = super::try_write_string_into_file(&base, cnt("qwe")).expect("6676e082");
-        assert_content_and_cleanup(path.0.as_path(), "qwe");
+        assert_content_and_cleanup(path.as_ref(), "qwe");
     }
     #[test]
     fn try_write_string_into_path_writes_exact_path_without_extension_rewrite() {
@@ -250,7 +273,7 @@ mod tests {
         let path = txt_path("macros_helpers_should_write_missing");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt("abc")).expect("f5d2cb68");
-        assert!(should_write.0);
+        assert!(bool::from(should_write));
     }
     #[test]
     fn should_write_string_into_file_returns_false_when_content_is_eq() {
@@ -258,7 +281,7 @@ mod tests {
         std::fs::write(&path, "same").expect("68e4f52d");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt("same")).expect("3e7adf2f");
-        assert!(!should_write.0);
+        assert!(!bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]
@@ -267,7 +290,7 @@ mod tests {
         std::fs::write(&path, "old").expect("a2fd8473");
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt("new")).expect("52c9a1db");
-        assert!(should_write.0);
+        assert!(bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]
@@ -275,14 +298,14 @@ mod tests {
         let path = txt_path("macros_helpers_should_write_same_len_diff");
         let should_write =
             super::should_write_with_same_len_diff(&path, "abc", "xyz").expect("517fd0c9");
-        assert!(should_write.0);
+        assert!(bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]
     fn should_write_string_into_file_returns_true_for_diff_len_content() {
         let path = txt_path("macros_helpers_should_write_diff_len");
         let should_write = super::should_write_with_diff_len(&path, "abcd", "a").expect("e2d99b73");
-        assert!(should_write.0);
+        assert!(bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]
@@ -290,7 +313,7 @@ mod tests {
         let path = txt_path("macros_helpers_write_if_needed_eq");
         std::fs::write(&path, "same").expect("924bdc58");
         let wrote = super::write_string_if_needed(path_ref(&path), cnt("same")).expect("9f27b9cb");
-        assert!(!wrote.0);
+        assert!(!bool::from(wrote));
         assert_content_and_cleanup(path.as_path(), "same");
     }
     #[test]
@@ -298,7 +321,7 @@ mod tests {
         let path = txt_path("macros_helpers_write_if_needed_diff");
         std::fs::write(&path, "old").expect("9b4ab8ad");
         let wrote = super::write_string_if_needed(path_ref(&path), cnt("new")).expect("4e4ce16d");
-        assert!(wrote.0);
+        assert!(bool::from(wrote));
         assert_content_and_cleanup(path.as_path(), "new");
     }
     #[test]
@@ -358,8 +381,8 @@ mod tests {
         let path = crate::rs_file_path::rs_file_path(&base);
         let outcome =
             super::try_write_string_into_file_with_outcome(&base, cnt("abc")).expect("57cf209a");
-        assert_eq!(outcome.path().0, path.0.as_path());
-        assert!(outcome.is_changed().0);
+        assert_eq!(outcome.path().as_ref(), path.0.as_path());
+        assert!(bool::from(outcome.is_changed()));
         assert_content_and_cleanup(path.0.as_path(), "abc");
     }
     #[test]
@@ -371,8 +394,8 @@ mod tests {
         std::fs::write(&path, "abc").expect("2199f0a7");
         let outcome =
             super::try_write_string_into_file_with_outcome(&base, cnt("abc")).expect("f60721a2");
-        assert_eq!(outcome.path().0, path.0.as_path());
-        assert!(!outcome.is_changed().0);
+        assert_eq!(outcome.path().as_ref(), path.0.as_path());
+        assert!(!bool::from(outcome.is_changed()));
         cleanup(path.0.as_path());
     }
     #[test]

@@ -1,23 +1,24 @@
 #[derive(Debug, newtype::Newtype)]
 #[newtype(from)]
-pub struct Body(pub axum::body::Body);
+pub struct Body(axum::body::Body);
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
 )]
 #[newtype(from, to_err_string)]
-pub struct BodySizeLimitBytes(pub usize);
+pub struct BodySizeLimitBytes(usize);
 #[derive(Debug, newtype::Newtype)]
 #[newtype(to_err_string)]
-pub struct BodySizeAxumEr(pub axum::Error);
+pub struct BodySizeAxumEr(axum::Error);
 #[derive(Debug)]
-pub struct BodySizeHint(pub http_body::SizeHint);
+pub struct BodySizeHint(http_body::SizeHint);
 impl loc_lib::ToErrString for BodySizeHint {
     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(format!("{:#?}", self.0))
+        loc_lib::ToErrStringValue::try_from(format!("{:#?}", self.0))
+            .unwrap_or_else(loc_lib::ToErrStringValue::from)
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BodyBytes(pub bytes::Bytes);
+pub struct BodyBytes(bytes::Bytes);
 impl std::ops::Deref for BodyBytes {
     type Target = [u8];
     fn deref(&self) -> &Self::Target {

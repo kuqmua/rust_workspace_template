@@ -1,6 +1,34 @@
 #![allow(clippy::module_name_repetitions)]
 const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
 const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
+const LOC_FILE_MAX_LEN: usize = 1_048_576;
+const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LocFileTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LocCommitTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for LocFileTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "loc file length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl std::fmt::Display for LocCommitTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "loc commit length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -14,7 +42,29 @@ const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
     newtype::Newtype,
 )]
 #[newtype(display)]
-pub struct LocFile(pub String);
+pub struct LocFile(String);
+impl AsRef<str> for LocFile {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl From<LocFileTryFromStringEr> for LocFile {
+    fn from(value: LocFileTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for LocFile {
+    type Error = LocFileTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > LOC_FILE_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: LOC_FILE_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -29,7 +79,7 @@ pub struct LocFile(pub String);
     newtype::Newtype,
 )]
 #[newtype(display, from)]
-pub struct LocLine(pub u32);
+pub struct LocLine(u32);
 #[derive(
     Debug,
     PartialEq,
@@ -44,7 +94,7 @@ pub struct LocLine(pub u32);
     newtype::Newtype,
 )]
 #[newtype(display, from)]
-pub struct LocCol(pub u32);
+pub struct LocCol(u32);
 #[derive(
     Debug,
     PartialEq,
@@ -56,7 +106,29 @@ pub struct LocCol(pub u32);
     schemars::JsonSchema,
     optml::Optml,
 )]
-pub struct LocCommit(pub String);
+pub struct LocCommit(String);
+impl AsRef<str> for LocCommit {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl From<LocCommitTryFromStringEr> for LocCommit {
+    fn from(value: LocCommitTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for LocCommit {
+    type Error = LocCommitTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > LOC_COMMIT_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: LOC_COMMIT_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -71,7 +143,7 @@ pub struct LocCommit(pub String);
     newtype::Newtype,
 )]
 #[newtype(from)]
-pub struct LocDuration(pub std::time::Duration);
+pub struct LocDuration(std::time::Duration);
 #[derive(Debug, Clone, Copy)]
 struct LocFileRef<'file_lt>(pub &'file_lt str);
 struct FmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
@@ -133,7 +205,7 @@ impl Loc {
             f.0,
             "{}/blob/{}/{}#L{}",
             naming::GITHUB_URL,
-            self.commit.0,
+            self.commit.as_ref(),
             file.0,
             line
         )
@@ -161,10 +233,10 @@ impl Loc {
         }
     }
     fn fmt_github_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
-        self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(&self.file.0), self.line)?;
+        self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(self.file.as_ref()), self.line)?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(" (")?;
-            self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(&v.file.0), v.line)?;
+            self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(v.file.as_ref()), v.line)?;
             f.0.write_str(")")
         } else {
             Ok(())
@@ -183,13 +255,13 @@ impl Loc {
     fn fmt_src_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
         Self::fmt_src_loc(
             FmtRefMut(f.0),
-            LocFileRef(&self.file.0),
+            LocFileRef(self.file.as_ref()),
             self.line,
             self.col,
         )?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(" (")?;
-            Self::fmt_src_loc(FmtRefMut(f.0), LocFileRef(&v.file.0), v.line, v.col)?;
+            Self::fmt_src_loc(FmtRefMut(f.0), LocFileRef(v.file.as_ref()), v.line, v.col)?;
             f.0.write_str(")")
         } else {
             Ok(())
@@ -208,10 +280,11 @@ impl Loc {
         ColTy: Into<LocCol>,
     {
         Self {
-            file: LocFile(file.as_ref().to_owned()),
+            file: LocFile::try_from(file.as_ref().to_owned()).unwrap_or_else(LocFile::from),
             line: line.into(),
             col: col.into(),
-            commit: LocCommit(git_info::PROJECT_GIT_INFO.commit.0.to_owned()),
+            commit: LocCommit::try_from(git_info::PROJECT_GIT_INFO.commit.as_ref().to_owned())
+                .unwrap_or_else(LocCommit::from),
             duration: LocDuration(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
@@ -228,9 +301,31 @@ pub struct StdTimeDuration {
     pub nanos: StdTimeDurationNanos,
 }
 #[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
-pub struct StdTimeDurationSecs(pub u64);
+pub struct StdTimeDurationSecs(u64);
+impl From<u64> for StdTimeDurationSecs {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Deref for StdTimeDurationSecs {
+    type Target = u64;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 #[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
-pub struct StdTimeDurationNanos(pub u32);
+pub struct StdTimeDurationNanos(u32);
+impl From<u32> for StdTimeDurationNanos {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Deref for StdTimeDurationNanos {
+    type Target = u32;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 impl std::fmt::Display for Loc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), FmtRefMut(f))?;
@@ -260,8 +355,10 @@ mod tests {
     }
     fn test_loc(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Loc {
         super::Loc {
-            file: super::LocFile(String::from("src/lib.rs")),
-            commit: super::LocCommit(String::from("abc123")),
+            file: super::LocFile::try_from(String::from("src/lib.rs"))
+                .unwrap_or_else(super::LocFile::from),
+            commit: super::LocCommit::try_from(String::from("abc123"))
+                .unwrap_or_else(super::LocCommit::from),
             duration: super::LocDuration(duration),
             occr,
             line: super::LocLine(10),
@@ -270,7 +367,8 @@ mod tests {
     }
     fn test_occr() -> super::Occr {
         super::Occr {
-            file: super::LocFile(String::from("src/er.rs")),
+            file: super::LocFile::try_from(String::from("src/er.rs"))
+                .unwrap_or_else(super::LocFile::from),
             line: super::LocLine(30),
             col: super::LocCol(40),
         }

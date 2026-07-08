@@ -3,13 +3,13 @@ pub fn trait_al(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let text = input.to_string();
     let Some((name, bounds)) = text.split_once('=') else {
         return workspace_macro_helpers::compile_error_ts("trait_al expects Name = Bounds")
-            .0
+            .into_inner()
             .into();
     };
     let name_ident = quote::format_ident!("{}", name.trim());
     let Ok(bounds_ts) = bounds.parse::<proc_macro2::TokenStream>() else {
         return workspace_macro_helpers::compile_error_ts("trait_al failed to parse bounds")
-            .0
+            .into_inner()
             .into();
     };
     quote::quote! {

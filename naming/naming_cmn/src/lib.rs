@@ -1,3 +1,4 @@
+const CASE_STRING_MAX_LEN: usize = 1_048_576;
 naming_cmn_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
     str_case(self_ref.as_ref(), CaseKind(convert_case::Case::UpperCamel)).0
 });
@@ -50,6 +51,36 @@ naming_cmn_macros::case_trait_pair!(
 struct CaseKind(convert_case::Case<'static>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct CaseString(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum CaseStringTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for CaseStringTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "case string length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<CaseStringTryFromStringEr> for CaseString {
+    fn from(value: CaseStringTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for CaseString {
+    type Error = CaseStringTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > CASE_STRING_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: CASE_STRING_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl AsRef<str> for CaseString {
     fn as_ref(&self) -> &str {
         self.0.as_str()
@@ -98,7 +129,8 @@ fn str_case<S>(v: S, case: CaseKind) -> CaseString
 where
     S: AsRef<str>,
 {
-    CaseString(convert_case::Casing::to_case(&v.as_ref(), case.0))
+    CaseString::try_from(convert_case::Casing::to_case(&v.as_ref(), case.0))
+        .unwrap_or_else(CaseString::from)
 }
 #[cfg(test)]
 mod tests {

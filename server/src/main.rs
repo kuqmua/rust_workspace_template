@@ -51,14 +51,11 @@ fn mk_api_routes(
 ) -> ApiRoutes {
     ApiRoutes(
         axum::Router::new()
-            .merge(
-                cmn_routes::cmn_routes(cmn_routes::CmnRoutesAppState::from(std::sync::Arc::<
+            .merge(axum::Router::from(cmn_routes::cmn_routes(
+                cmn_routes::CmnRoutesAppState::from(std::sync::Arc::<
                     server_app_state::ServerAppState<'static>,
-                >::clone(
-                    app_state
-                )))
-                .0,
-            )
+                >::clone(app_state)),
+            )))
             .merge(server_tbl_example::TblExample::routes(std::sync::Arc::<
                 server_app_state::ServerAppState<'static>,
             >::clone(
@@ -72,7 +69,7 @@ fn mk_app_state(
     pg_pool: sqlx::PgPool,
 ) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
     std::sync::Arc::new(server_app_state::ServerAppState {
-        pg_pool: app_state::PgPool(pg_pool),
+        pg_pool: app_state::PgPool::from(pg_pool),
         config,
         project_git_info: &git_info::PROJECT_GIT_INFO,
     })

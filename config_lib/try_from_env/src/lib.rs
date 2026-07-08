@@ -81,7 +81,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let el_ident_ucc_ts = naming::ToTokensToUccTs::case_or_panic(&el_ident);
             quote::quote! {
                 let #el_ident = config_lib::parse_required_env_var(
-                    config_lib::EnvVarNameRef(#el_ident_quotes_upper_sc_string),
+                    config_lib::EnvVarNameRef::from(#el_ident_quotes_upper_sc_string),
                     |#std_env_var_er_sc, #env_var_name_sc| #ident_try_from_env_er_ucc::#std_env_var_er_ucc {
                         #std_env_var_er_sc,
                         #env_var_name_sc,

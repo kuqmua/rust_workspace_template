@@ -56,7 +56,7 @@ impl TryFrom<&syn::Field> for LocFieldAttr {
 }
 impl crate::attr_ident_str::AttrIdentStr for LocFieldAttr {
     fn attr_ident_str(&self) -> crate::attr_ident_str::AttrIdentName<'_> {
-        crate::attr_ident_str::AttrIdentName(match *self {
+        crate::attr_ident_str::AttrIdentName::from(match *self {
             Self::EoToErrString => "eo_to_err_string",
             Self::EoToErrStringSerde => "eo_to_err_string_serde",
             Self::EoLoc => "eo_loc",
@@ -74,11 +74,11 @@ impl LocFieldAttr {
     pub fn to_attr_view_ts(&self) -> crate::GeneratedRustTs {
         match format!(
             "#[{}]",
-            crate::attr_ident_str::AttrIdentStr::attr_ident_str(self).0
+            crate::attr_ident_str::AttrIdentStr::attr_ident_str(self).as_ref()
         )
         .parse::<proc_macro2::TokenStream>()
         {
-            Ok(v) => crate::GeneratedRustTs(v),
+            Ok(v) => crate::GeneratedRustTs::from(v),
             Err(er) => compile_error_ts(CompileErrorMsg(&er.to_string())),
         }
     }
@@ -86,10 +86,15 @@ impl LocFieldAttr {
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
 #[derive(Debug, Clone, Copy)]
-pub struct SynVariantRef<'variant_lt>(pub &'variant_lt syn::Variant);
+pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
+impl<'variant_lt> From<&'variant_lt syn::Variant> for SynVariantRef<'variant_lt> {
+    fn from(value: &'variant_lt syn::Variant) -> Self {
+        Self(value)
+    }
+}
 fn compile_error_ts(msg: CompileErrorMsg<'_>) -> crate::GeneratedRustTs {
     let msg_value = msg.0;
-    crate::GeneratedRustTs(quote::quote! {compile_error!(#msg_value);})
+    crate::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
 }
 #[must_use]
 pub fn gen_serde_version_of_named_syn_vrt(v: SynVariantRef<'_>) -> crate::GeneratedRustTs {
@@ -246,9 +251,9 @@ pub fn gen_serde_version_of_named_syn_vrt(v: SynVariantRef<'_>) -> crate::Genera
             };
             quote::quote! {#el_c25b655e_ident: #el_type_with_serde_ts}
         };
-        crate::GeneratedRustTs(quote::quote! {#ts,})
+        crate::GeneratedRustTs::from(quote::quote! {#ts,})
     });
-    crate::GeneratedRustTs(quote::quote! {
+    crate::GeneratedRustTs::from(quote::quote! {
         #el_ident {
             #(#fields_with_serde_ts)*
         }

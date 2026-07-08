@@ -1,5 +1,10 @@
 #[derive(Debug)]
-pub struct LocSynField(pub syn::Field);
+pub struct LocSynField(syn::Field);
+impl From<LocSynField> for syn::Field {
+    fn from(value: LocSynField) -> Self {
+        value.0
+    }
+}
 #[must_use]
 pub fn loc_syn_field() -> LocSynField {
     LocSynField(syn::Field {

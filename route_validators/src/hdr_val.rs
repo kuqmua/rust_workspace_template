@@ -1,5 +1,16 @@
 #[derive(Debug, Clone, Copy)]
-pub struct HeadersRef<'headers_lt>(pub &'headers_lt axum::http::HeaderMap);
+pub struct HeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
+impl<'headers_lt> From<&'headers_lt axum::http::HeaderMap> for HeadersRef<'headers_lt> {
+    fn from(value: &'headers_lt axum::http::HeaderMap) -> Self {
+        Self(value)
+    }
+}
+#[cfg(test)]
+impl<'headers_lt> From<&'headers_lt crate::test_hlp::TestHeaders> for HeadersRef<'headers_lt> {
+    fn from(value: &'headers_lt crate::test_hlp::TestHeaders) -> Self {
+        Self(value.as_ref())
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct HeaderValueRef<'header_value_lt>(pub &'header_value_lt axum::http::HeaderValue);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -90,7 +101,7 @@ mod tests {
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::HeaderStrRef<'_>, TestEr> {
         super::get_required_header_str(
-            super::HeadersRef(headers),
+            super::HeadersRef::from(headers),
             name,
             || TestEr::NoHeader,
             |_| TestEr::ToStr,
@@ -100,14 +111,14 @@ mod tests {
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::HeaderValueRef<'_>, TestEr> {
-        super::get_required_header(super::HeadersRef(headers), name, || TestEr::NoHeader)
+        super::get_required_header(super::HeadersRef::from(headers), name, || TestEr::NoHeader)
     }
     fn get_bool_header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<bool, TestEr> {
         super::get_required_header_str_parsed(
-            super::HeadersRef(headers),
+            super::HeadersRef::from(headers),
             name,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,
@@ -190,7 +201,7 @@ mod tests {
     fn get_required_header_mapped_applies_mapping_for_present_header() {
         let headers = mk_test_headers_static("abc");
         let actual = super::get_required_header_mapped(
-            super::HeadersRef(&headers),
+            super::HeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |v| {
@@ -206,7 +217,7 @@ mod tests {
         let headers = axum::http::HeaderMap::new();
         let mut parse_called = false;
         let actual = super::get_required_header_str_parsed(
-            super::HeadersRef(&headers),
+            super::HeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,
@@ -223,7 +234,7 @@ mod tests {
         let headers = mk_test_headers(crate::test_hlp::non_utf8_header_value());
         let mut parse_called = false;
         let actual = super::get_required_header_str_parsed(
-            super::HeadersRef(&headers),
+            super::HeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,

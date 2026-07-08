@@ -1,10 +1,25 @@
 #[must_use]
 #[derive(Debug, Clone, Copy)]
-pub struct FieldLocFile(pub &'static str);
+pub struct FieldLocFile(&'static str);
+impl From<&'static str> for FieldLocFile {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct FieldLocLine(pub u32);
+pub struct FieldLocLine(u32);
+impl From<u32> for FieldLocLine {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct FieldLocCol(pub u32);
+pub struct FieldLocCol(u32);
+impl From<u32> for FieldLocCol {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
 #[must_use]
 pub fn gen_field_loc_new_ts(
     file: FieldLocFile,
@@ -28,12 +43,12 @@ pub fn gen_field_loc_new_ts(
                 line!(),
                 column!(),
                 Some(loc_lib::loc::Occr {
-                    file: loc_lib::loc::LocFile(String::from(#file_ts)),
-                    line: loc_lib::loc::LocLine(#line_ts),
-                    col: loc_lib::loc::LocCol(#col_ts),
+                    file: loc_lib::loc::LocFile::try_from(String::from(#file_ts)).unwrap_or_else(loc_lib::loc::LocFile::from),
+                    line: loc_lib::loc::LocLine::from(#line_ts),
+                    col: loc_lib::loc::LocCol::from(#col_ts),
                 })
             )
         }
     };
-    crate::GeneratedRustTs(quote::quote! {#loc_sc: #loc_new_ts})
+    crate::GeneratedRustTs::from(quote::quote! {#loc_sc: #loc_new_ts})
 }

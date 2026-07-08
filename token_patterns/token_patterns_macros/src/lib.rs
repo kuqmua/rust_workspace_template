@@ -3,11 +3,14 @@ struct GenTpOutput(proc_macro2::TokenStream);
 fn gen_tp(input: GenTpInput) -> GenTpOutput {
     let mut iter = input.0.into_iter();
     let Some(name) = workspace_macro_helpers::first_ident(&mut iter) else {
-        return GenTpOutput(workspace_macro_helpers::compile_error_ts("tp expects type name").0);
+        return GenTpOutput(
+            workspace_macro_helpers::compile_error_ts("tp expects type name").into_inner(),
+        );
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
         return GenTpOutput(
-            workspace_macro_helpers::compile_error_ts("tp expects comma after type name").0,
+            workspace_macro_helpers::compile_error_ts("tp expects comma after type name")
+                .into_inner(),
         );
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
@@ -29,19 +32,19 @@ pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro]
 pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens(input.into()),
+        workspace_macro_helpers::MacroTokens::from_into(input),
     );
     if parts.len() < 2 {
         return workspace_macro_helpers::compile_error_ts(
             "tp_parts expects type name and at least one part",
         )
-        .0
+        .into_inner()
         .into();
     }
     let mut name_iter = parts.remove(0).into_iter();
     let Some(name) = workspace_macro_helpers::first_ident(&mut name_iter) else {
         return workspace_macro_helpers::compile_error_ts("tp_parts expects type name")
-            .0
+            .into_inner()
             .into();
     };
     let name_ident = quote::format_ident!("{name}");
@@ -62,14 +65,14 @@ pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
     let Some(name) = workspace_macro_helpers::first_ident(&mut iter) else {
         return workspace_macro_helpers::compile_error_ts("ts_path_fn expects function name")
-            .0
+            .into_inner()
             .into();
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
         return workspace_macro_helpers::compile_error_ts(
             "ts_path_fn expects comma after function name",
         )
-        .0
+        .into_inner()
         .into();
     }
     let body = iter.collect::<proc_macro2::TokenStream>();

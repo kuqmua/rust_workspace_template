@@ -4,6 +4,7 @@ const SLASH_GIT_INFO: &str = "/git_info";
 const SLASH_SWAGGER_UI: &str = "/swagger-ui";
 const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
+const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
 const HEALTH_CHECK_OK_STATUS: axum::http::StatusCode = axum::http::StatusCode::OK;
 const HEALTH_CHECK_ER_STATUS: axum::http::StatusCode = axum::http::StatusCode::SERVICE_UNAVAILABLE;
 #[derive(Debug, serde::Serialize, optml::Optml)]
@@ -18,6 +19,36 @@ struct NotFoundH {
 }
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct NotFoundMsg(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum NotFoundMsgTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for NotFoundMsgTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "not found message length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<NotFoundMsgTryFromStringEr> for NotFoundMsg {
+    fn from(value: NotFoundMsgTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for NotFoundMsg {
+    type Error = NotFoundMsgTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > NOT_FOUND_MSG_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: NOT_FOUND_MSG_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for NotFoundMsg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
@@ -59,9 +90,14 @@ where
     }
 }
 #[derive(Debug, Clone, optml::Optml)]
-pub struct CmnRoutes(pub axum::Router);
+pub struct CmnRoutes(axum::Router);
+impl From<CmnRoutes> for axum::Router {
+    fn from(value: CmnRoutes) -> Self {
+        value.0
+    }
+}
 #[derive(Clone, optml::Optml)]
-pub struct CmnRoutesAppState(pub std::sync::Arc<dyn CmnRoutesPrms>);
+pub struct CmnRoutesAppState(std::sync::Arc<dyn CmnRoutesPrms>);
 impl std::fmt::Debug for CmnRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("CmnRoutesAppState").finish()
@@ -90,7 +126,7 @@ fn mk_no_route_msg_for_suffix(uri_suffix: UriSuffixRef<'_>) -> NotFoundMsg {
     let mut msg = String::with_capacity(cap.0);
     msg.push_str(NO_ROUTE_MSG_PREFIX);
     msg.push_str(uri_suffix.0);
-    NotFoundMsg(msg)
+    NotFoundMsg::try_from(msg).unwrap_or_else(NotFoundMsg::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 const fn no_route_msg_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMsgCapacity {
@@ -171,7 +207,10 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                     >| {
                         map_health_check_status(HealthCheckSucceeded(
                             sqlx::query(HEALTH_CHECK_SQL)
-                                .execute(app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref()).0)
+                                .execute(
+                                    app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref())
+                                        .as_ref(),
+                                )
                                 .await
                                 .is_ok(),
                         ))
@@ -217,10 +256,10 @@ mod tests {
     }
     impl git_info::GetGitCommitId for TestState {
         fn get_git_commit_id(&self) -> git_info::GitCommitId {
-            git_info::GitCommitId(self.commit.to_owned())
+            git_info::GitCommitId::from(git_info::GitCommitIdRef::from(self.commit))
         }
         fn get_git_commit_id_ref(&self) -> Option<git_info::GitCommitIdRef<'_>> {
-            Some(git_info::GitCommitIdRef(self.commit))
+            Some(git_info::GitCommitIdRef::from(self.commit))
         }
     }
     impl app_state::GetPgPool for TestState {
@@ -235,14 +274,14 @@ mod tests {
         })
     }
     fn test_commit_link() -> String {
-        git_info::git_commit_link(TEST_COMMIT).0
+        git_info::git_commit_link(TEST_COMMIT).as_ref().to_owned()
     }
     #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
     fn test_commit_link_cow() -> git_info::GitCommitLinkCow {
-        git_info::GitCommitLinkCow(std::borrow::Cow::Owned(test_commit_link()))
+        git_info::GitCommitLinkCow::from(std::borrow::Cow::Owned(test_commit_link()))
     }
-    const fn b_cow(v: &'static str) -> git_info::GitCommitLinkCow {
-        git_info::GitCommitLinkCow(std::borrow::Cow::Borrowed(v))
+    fn b_cow(v: &'static str) -> git_info::GitCommitLinkCow {
+        git_info::GitCommitLinkCow::from(std::borrow::Cow::Borrowed(v))
     }
     const fn uri_ref(uri: &axum::http::Uri) -> super::HttpUriRef<'_> {
         super::HttpUriRef(uri)
@@ -252,7 +291,7 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps git-info payload checks concise and consistent
     fn assert_git_info_commit(payload: &super::GitInfo, exp_commit: &str) {
-        assert_eq!(payload.commit.0, exp_commit);
+        assert_eq!(payload.commit.as_ref(), exp_commit);
     }
     #[allow(clippy::single_call_fn)] // shared assertion centralizes not-found payload checks used across direct and state-based tests
     fn assert_not_found_payload(payload: &super::NotFoundH, exp_uri_suffix: &str) {
@@ -265,7 +304,7 @@ mod tests {
         exp_commit: &str,
         exp_uri_suffix: &str,
     ) {
-        assert_eq!(payload.commit.0, exp_commit);
+        assert_eq!(payload.commit.as_ref(), exp_commit);
         assert_not_found_payload(payload, exp_uri_suffix);
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps no-route message checks consistent across uri and suffix-based tests
@@ -386,7 +425,7 @@ mod tests {
     fn mk_state_payload_uses_state_trait_object() {
         let state = test_state();
         assert_eq!(
-            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()).0,
+            git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()).as_ref(),
             test_commit_link()
         );
     }

@@ -9,7 +9,17 @@ pub enum ShouldWriteTsIntoFile {
     True,
 }
 #[derive(Debug, Clone, Copy)]
-pub struct TsRef<'ts_lt>(pub &'ts_lt proc_macro2::TokenStream);
+pub struct TsRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
+impl<'ts_lt> From<&'ts_lt proc_macro2::TokenStream> for TsRef<'ts_lt> {
+    fn from(value: &'ts_lt proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<proc_macro2::TokenStream> for TsRef<'_> {
+    fn as_ref(&self) -> &proc_macro2::TokenStream {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
 struct RustfmtPath<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy)]
@@ -40,18 +50,20 @@ fn try_write_ts_into_file<P>(
 where
     P: AsRef<std::path::Path>,
 {
+    let string_cnt = ts.as_ref().to_string();
     crate::write_string_into_file::try_write_string_into_file_with_outcome(
         file_name,
-        crate::write_string_into_file::StringFileContentRef(&ts.0.to_string()),
+        crate::write_string_into_file::StringFileContentRef::from(string_cnt.as_str()),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps rustfmt-trigger policy in one reusable decision helper
-const fn should_run_rustfmt(
+fn should_run_rustfmt(
     format_with_cargofmt: FormatWithCargofmt,
     wr_outcome: &crate::write_string_into_file::WritePathOutcome,
 ) -> ShouldRunRustfmt {
     ShouldRunRustfmt(
-        wr_outcome.is_changed().0 && matches!(format_with_cargofmt, FormatWithCargofmt::True),
+        bool::from(wr_outcome.is_changed())
+            && matches!(format_with_cargofmt, FormatWithCargofmt::True),
     )
 }
 pub fn try_mb_write_ts_into_file<P>(
@@ -68,7 +80,7 @@ where
     }
     let wr_outcome = try_write_ts_into_file(file_name, ts)?;
     if should_run_rustfmt(*format_with_cargofmt, &wr_outcome).0 {
-        try_run_rustfmt(RustfmtPath(wr_outcome.path().0))?;
+        try_run_rustfmt(RustfmtPath(wr_outcome.path().as_ref()))?;
     }
     Ok(())
 }
@@ -101,7 +113,7 @@ mod tests {
         super::mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::False,
             &base,
-            super::TsRef(&ts),
+            super::TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         );
         let _er = std::fs::metadata(&path).expect_err("7be5f201");
@@ -116,7 +128,7 @@ mod tests {
         super::mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef(&ts),
+            super::TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         );
         crate::test_hlp::assert_file_content(
@@ -141,7 +153,7 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef(&ts),
+            super::TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
         .expect("6fee9f6f");
@@ -162,7 +174,7 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef(&ts),
+            super::TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
         .expect("f341cde7");
@@ -183,7 +195,7 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef(&ts),
+            super::TsRef::from(&ts),
             &super::FormatWithCargofmt::True,
         )
         .expect("00a995a4");

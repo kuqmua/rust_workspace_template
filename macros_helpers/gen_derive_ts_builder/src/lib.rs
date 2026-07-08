@@ -1,6 +1,37 @@
+const SC_STRING_MAX_LEN: usize = 1_048_576;
 #[derive(Clone, Copy)]
 struct ToScInput<'input_lt>(&'input_lt str);
 struct ScString(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ScStringTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for ScStringTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "snake case string length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<ScStringTryFromStringEr> for ScString {
+    fn from(value: ScStringTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for ScString {
+    type Error = ScStringTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > SC_STRING_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: SC_STRING_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_sc(input: ToScInput<'_>) -> ScString {
     let normalized = input
@@ -9,7 +40,7 @@ fn to_sc(input: ToScInput<'_>) -> ScString {
         .filter(|part| !part.is_empty())
         .collect::<Vec<&str>>()
         .join(" ");
-    ScString(naming::AsRefStrToScStr::case(&normalized))
+    ScString::try_from(naming::AsRefStrToScStr::case(&normalized)).unwrap_or_else(ScString::from)
 }
 #[proc_macro]
 pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {

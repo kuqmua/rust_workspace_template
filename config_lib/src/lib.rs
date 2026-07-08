@@ -3,30 +3,91 @@ pub use gen_getter_traits_for_struct_fields::GenGetterTraitsForStructFields;
 pub use try_from_env::TryFromEnv;
 const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
+const CONFIG_LIB_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StdEnvVarOk(pub String);
+pub struct StdEnvVarOk(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConfigLibStringWrapperTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for ConfigLibStringWrapperTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(
+                    f,
+                    "config string wrapper length {len} exceeds maximum {max}"
+                )
+            }
+        }
+    }
+}
+impl From<ConfigLibStringWrapperTryFromStringEr> for StdEnvVarOk {
+    fn from(value: ConfigLibStringWrapperTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for StdEnvVarOk {
+    type Error = ConfigLibStringWrapperTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct StdEnvVarOkRef<'value_lt>(pub &'value_lt str);
+pub struct StdEnvVarOkRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for StdEnvVarOkRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct EnvVarNameRef<'name_lt>(pub &'name_lt str);
+pub struct EnvVarNameRef<'name_lt>(&'name_lt str);
+impl<'name_lt> From<&'name_lt str> for EnvVarNameRef<'name_lt> {
+    fn from(value: &'name_lt str) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
 #[newtype(display)]
-pub struct EnvVarName(pub String);
+pub struct EnvVarName(String);
+impl From<ConfigLibStringWrapperTryFromStringEr> for EnvVarName {
+    fn from(value: ConfigLibStringWrapperTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for EnvVarName {
+    type Error = ConfigLibStringWrapperTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ChronoFixedOffsetEr(pub &'static str);
-pub struct I32ParsingEr(pub std::num::ParseIntError);
+pub struct ChronoFixedOffsetEr(&'static str);
+pub struct I32ParsingEr(std::num::ParseIntError);
 impl std::fmt::Debug for I32ParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-pub struct U32ParsingEr(pub std::num::ParseIntError);
+pub struct U32ParsingEr(std::num::ParseIntError);
 impl std::fmt::Debug for U32ParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-pub struct UsizeParsingEr(pub std::num::ParseIntError);
+pub struct UsizeParsingEr(std::num::ParseIntError);
 impl std::fmt::Debug for UsizeParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -56,7 +117,13 @@ config_lib_macros::impl_try_from_parse!(
     Copy
 );
 #[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
-pub struct MaximumSizeOfHttpBodyInBytes(pub usize);
+pub struct MaximumSizeOfHttpBodyInBytes(usize);
+impl std::ops::Deref for MaximumSizeOfHttpBodyInBytes {
+    type Target = usize;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeEr {
     #[error("maximum size of http body in bytes must be greater than zero")]
@@ -99,7 +166,13 @@ impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
 }
 config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlEr);
 #[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
-pub struct PgPoolMaxConnections(pub u32);
+pub struct PgPoolMaxConnections(u32);
+impl std::ops::Deref for PgPoolMaxConnections {
+    type Target = u32;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum PgPoolMaxConnectionsTryFromU32Er {
     #[error("pg pool max connections must be greater than zero")]
@@ -162,7 +235,19 @@ config_lib_macros::impl_try_from_non_empty_string!(
     TryFromStdEnvVarOkStartingCheckLinkEr
 );
 #[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
-pub struct Timezone(pub chrono::FixedOffset);
+pub struct Timezone(chrono::FixedOffset);
+impl std::ops::Deref for Timezone {
+    type Target = chrono::FixedOffset;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl TryFrom<chrono::FixedOffset> for Timezone {
+    type Error = ChronoFixedOffsetEr;
+    fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {
+        parse_east_fixed_offset(TimezoneSeconds(value.local_minus_utc())).map(|_| Self(value))
+    }
+}
 #[derive(Debug, thiserror::Error, optml::Optml)]
 pub enum TryFromStdEnvVarOkTimezoneEr {
     #[error("{chrono_fixed_offset:?}")]
@@ -208,9 +293,12 @@ where
     MapParseEr: FnOnce(ParseEr) -> Er,
 {
     let v = std::env::var(env_var_name.0).map_err(|std_env_var_er| {
-        map_env_var_er(std_env_var_er, EnvVarName(env_var_name.0.to_owned()))
+        map_env_var_er(
+            std_env_var_er,
+            EnvVarName::try_from(env_var_name.0.to_owned()).unwrap_or_else(EnvVarName::from),
+        )
     })?;
-    parse(StdEnvVarOk(v)).map_err(map_parse_er)
+    parse(StdEnvVarOk::try_from(v).unwrap_or_else(StdEnvVarOk::from)).map_err(map_parse_er)
 }
 fn try_map_non_empty_env_value<T, Er>(
     v: StdEnvVarOk,
@@ -248,7 +336,9 @@ mod tests {
     where
         T: super::TryFromStdEnvVarOk,
     {
-        T::try_from_std_env_var_ok(super::StdEnvVarOk(v.to_owned()))
+        T::try_from_std_env_var_ok(
+            super::StdEnvVarOk::try_from(v.to_owned()).unwrap_or_else(super::StdEnvVarOk::from),
+        )
     }
     #[test]
     fn cors_allow_origin_parsing_returns_value() {
@@ -492,7 +582,10 @@ mod tests {
         assert_eq!(
             parsed,
             Err(ParseRequiredEnvVarTestEr::EnvVar {
-                env_var_name: super::EnvVarName("CONFIG_LIB_TEST_ENV_VAR_4E8A7F21".to_owned())
+                env_var_name: super::EnvVarName::try_from(
+                    "CONFIG_LIB_TEST_ENV_VAR_4E8A7F21".to_owned()
+                )
+                .unwrap_or_else(super::EnvVarName::from)
             })
         );
     }

@@ -45,6 +45,7 @@ mod tests {
             "../pg_crud/pg_types/src/lib.rs",
             "../route_validators/src/lib.rs",
         ];
+        const PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS: &[&str] = &[];
         const DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS: &[&str] = &[
             "../app_state/src/lib.rs",
             "../cmn_routes/src/lib.rs",
@@ -416,6 +417,8 @@ mod tests {
         struct StringWrapperFromVisitor<'names_lt> {
             ers: Vec<String>,
             string_wrapper_names: &'names_lt std::collections::BTreeSet<String>,
+            try_from_string_len_checked_names: std::collections::BTreeSet<String>,
+            try_from_string_names: std::collections::BTreeSet<String>,
         }
         impl StringWrapperFromVisitor<'_> {
             fn check_from_impl(&mut self, item: &syn::ItemImpl) {
@@ -442,14 +445,62 @@ mod tests {
                     ));
                 }
             }
+            fn check_try_from_impl(&mut self, item: &syn::ItemImpl) {
+                if !item_impl_is_try_from_string(item) {
+                    return;
+                }
+                let Some(ident) = item_impl_self_ty_ident(item) else {
+                    return;
+                };
+                if !self.string_wrapper_names.contains(&ident) {
+                    return;
+                }
+                let _: bool = self.try_from_string_names.insert(ident.clone());
+                if item_impl_contains_len_call(item) {
+                    let _: bool = self.try_from_string_len_checked_names.insert(ident);
+                }
+            }
         }
         impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
             fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
                 self.check_from_impl(i);
+                self.check_try_from_impl(i);
                 syn::visit::visit_item_impl(self, i);
             }
             fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
                 self.check_newtype_attr(i);
+                syn::visit::visit_item_struct(self, i);
+            }
+        }
+        struct LenMethodCallVisitor {
+            found: bool,
+        }
+        impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
+            fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+                if i.method == "len" {
+                    self.found = true;
+                }
+                syn::visit::visit_expr_method_call(self, i);
+            }
+        }
+        struct PublicTupleWrapperFieldVisitor {
+            ers: Vec<String>,
+        }
+        impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+                if item_struct_vis_is_public(i)
+                    && item_struct_is_single_field_tuple_wrapper(i)
+                    && item_struct_single_field_is_public(i)
+                {
+                    let ident = i.ident.to_string();
+                    if PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS.contains(&ident.as_str()) {
+                        return;
+                    }
+                    self.ers.push(format!(
+                        "public tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
+                        i.ident
+                    ));
+                }
                 syn::visit::visit_item_struct(self, i);
             }
         }
@@ -658,6 +709,9 @@ mod tests {
                 syn::visit::visit_item(self, i);
             }
             fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
+                if ident_is_diagnostic_try_from_string_error(&i.ident) {
+                    return;
+                }
                 self.push_generics(&i.generics);
                 i.variants.iter().for_each(|variant| {
                     self.check_fields(
@@ -685,7 +739,11 @@ mod tests {
                         syn::ImplItem::Fn(item_fn)
                             if !attrs_contain_test_only_cfg(&item_fn.attrs) =>
                         {
-                            Some(item_fn)
+                            if method_is_explicit_wrapper_accessor(&item_fn.sig.ident) {
+                                None
+                            } else {
+                                Some(item_fn)
+                            }
                         }
                         syn::ImplItem::Const(_)
                         | syn::ImplItem::Macro(_)
@@ -1559,8 +1617,47 @@ mod tests {
                         StringWrapperFromVisitor {
                             ers: Vec::new(),
                             string_wrapper_names: &string_wrapper_names,
+                            try_from_string_names: std::collections::BTreeSet::new(),
+                            try_from_string_len_checked_names: std::collections::BTreeSet::new(),
                         },
                     );
+                    ers.extend(string_wrapper_names.iter().filter_map(|name| {
+                        if visitor.try_from_string_names.contains(name) {
+                            None
+                        } else {
+                            Some(format!(
+                                "{}: string wrapper `{name}` must implement `TryFrom<String>` with a length check",
+                                path.display()
+                            ))
+                        }
+                    }));
+                    ers.extend(string_wrapper_names.iter().filter_map(|name| {
+                        if visitor.try_from_string_len_checked_names.contains(name) {
+                            None
+                        } else {
+                            Some(format!(
+                                "{}: string wrapper `{name}` implements `TryFrom<String>` without a `.len()` check",
+                                path.display()
+                            ))
+                        }
+                    }));
+                    ers.extend(
+                        visitor
+                            .ers
+                            .into_iter()
+                            .map(|er| format!("{}: {er}", path.display())),
+                    );
+                },
+            );
+        }
+        #[test]
+        fn public_tuple_wrappers_do_not_expose_inner_field() {
+            assert_rs_ast_ers_empty_with_ctx(
+                "b7c84e2a",
+                "public tuple wrappers must not expose inner fields; initialize them through From/TryFrom:",
+                |path, ast, ers| {
+                    let visitor =
+                        visit_syn_file(ast, PublicTupleWrapperFieldVisitor { ers: Vec::new() });
                     ers.extend(
                         visitor
                             .ers
@@ -1788,6 +1885,18 @@ mod tests {
                 path_ends_with(path, &["From"]) && from_trait_arg_is_string(path)
             })
         }
+        #[allow(clippy::single_call_fn)] // names the TryFrom<String> trait-shape check for the string-wrapper policy visitor
+        fn item_impl_is_try_from_string(item: &syn::ItemImpl) -> bool {
+            item.trait_.as_ref().is_some_and(|(_, path, _)| {
+                path_ends_with(path, &["TryFrom"]) && from_trait_arg_is_string(path)
+            })
+        }
+        #[allow(clippy::single_call_fn)] // keeps length-check detection local to the string-wrapper TryFrom policy
+        fn item_impl_contains_len_call(item: &syn::ItemImpl) -> bool {
+            let mut visitor = LenMethodCallVisitor { found: false };
+            syn::visit::Visit::visit_item_impl(&mut visitor, item);
+            visitor.found
+        }
         #[allow(clippy::single_call_fn)] // extracts impl target type name for string-wrapper diagnostics
         fn item_impl_self_ty_ident(item: &syn::ItemImpl) -> Option<String> {
             match item.self_ty.as_ref() {
@@ -1816,9 +1925,6 @@ mod tests {
         #[allow(clippy::single_call_fn)] // isolates From<String> generic-argument parsing from impl visitor flow
         fn from_trait_arg_is_string(path: &syn::Path) -> bool {
             path.segments.last().is_some_and(|segment| {
-                if segment.ident != "From" {
-                    return false;
-                }
                 match &segment.arguments {
                     syn::PathArguments::AngleBracketed(args) => {
                         args.args.iter().any(|arg| {
@@ -1837,6 +1943,32 @@ mod tests {
                     .is_some_and(|field| type_path_ends_with_ident(&field.ty, "String")),
                 syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
             }
+        }
+        #[allow(clippy::single_call_fn)] // names the tuple-newtype shape used by the wrapper field visibility policy
+        fn item_struct_is_single_field_tuple_wrapper(item: &syn::ItemStruct) -> bool {
+            matches!(&item.fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1)
+        }
+        #[allow(clippy::single_call_fn)] // keeps public API visibility matching explicit for wrapper field policy
+        fn item_struct_vis_is_public(item: &syn::ItemStruct) -> bool {
+            matches!(item.vis, syn::Visibility::Public(_))
+        }
+        #[allow(clippy::single_call_fn)] // isolates tuple field visibility parsing from policy diagnostics
+        fn item_struct_single_field_is_public(item: &syn::ItemStruct) -> bool {
+            match &item.fields {
+                syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => fields
+                    .unnamed
+                    .first()
+                    .is_some_and(|field| matches!(field.vis, syn::Visibility::Public(_))),
+                syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
+            }
+        }
+        #[allow(clippy::single_call_fn)] // diagnostic conversion errors intentionally carry raw length metadata
+        fn ident_is_diagnostic_try_from_string_error(ident: &syn::Ident) -> bool {
+            ident.to_string().ends_with("TryFromStringEr")
+        }
+        #[allow(clippy::single_call_fn)] // explicit wrapper escape hatches are allowed to expose their inner representation
+        fn method_is_explicit_wrapper_accessor(ident: &syn::Ident) -> bool {
+            matches!(ident.to_string().as_str(), "get" | "into_inner")
         }
         fn type_path_ends_with_ident(ty: &syn::Type, ident: &str) -> bool {
             match ty {

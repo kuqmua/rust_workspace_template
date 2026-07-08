@@ -1,7 +1,32 @@
 #[derive(Debug, Clone, Copy)]
-pub struct GenWhFltsInput<'input_lt>(pub &'input_lt proc_macro2::TokenStream);
+pub struct GenWhFltsInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
+impl<'input_lt> From<&'input_lt proc_macro2::TokenStream> for GenWhFltsInput<'input_lt> {
+    fn from(value: &'input_lt proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<proc_macro2::TokenStream> for GenWhFltsInput<'_> {
+    fn as_ref(&self) -> &proc_macro2::TokenStream {
+        self.0
+    }
+}
 #[derive(Debug)]
-pub struct GenWhFltsTs(pub proc_macro2::TokenStream);
+pub struct GenWhFltsTs(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for GenWhFltsTs {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
+impl From<GenWhFltsTs> for proc_macro2::TokenStream {
+    fn from(value: GenWhFltsTs) -> Self {
+        value.0
+    }
+}
+impl std::fmt::Display for GenWhFltsTs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 #[must_use]
 pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
     #[derive(Clone, optml::Optml)]
@@ -34,14 +59,14 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
         whole_write_into_file: macros_helpers::ShouldWriteTsIntoFile,
     }
     panic_loc::panic_loc();
-    let gen_wh_flts_config = match serde_json::from_str::<GenWhFltsConfig>(&input_ts.0.to_string())
-    {
-        Ok(v) => v,
-        Err(er) => {
-            let msg = format!("failed to parse GenWhFltsConfig: {er}");
-            return GenWhFltsTs(quote::quote! { compile_error!(#msg); });
-        }
-    };
+    let gen_wh_flts_config =
+        match serde_json::from_str::<GenWhFltsConfig>(&input_ts.as_ref().to_string()) {
+            Ok(v) => v,
+            Err(er) => {
+                let msg = format!("failed to parse GenWhFltsConfig: {er}");
+                return GenWhFltsTs::from(quote::quote! { compile_error!(#msg); });
+            }
+        };
     let col_sc = naming::ColSc;
     let er_sc = naming::ErSc;
     let incr_sc = naming::IncrSc;
@@ -192,25 +217,31 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
             quote::quote! {
                 #mb_dims_ies_init_ts
                 #v_match_incr_checked_add_one_init_ts
-                Ok(#import::QpFragment(format!(
+                Ok(#import::QpFragment::try_from(format!(
                     #format_ts,
                     #self_oprtr_to_qp_ts
                     #col_sc,
                     #mb_extra_prms_ts
                     #self_sc.rgx_case.postgreql_syntax(),
                     #v_sc
-                )))
+                ))?)
             }
         };
     let if_let_err_query_try_bind_self_v_to_string_ts = quote::quote! {
-        if let Err(#er_sc) = #query_sc.0.try_bind(#self_sc.#v_sc.to_string()) {
-            return Err(#import::PgQueryBindEr(#er_sc.to_string()));
+        if let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc.to_string()) {
+            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                Ok(v) => v,
+                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+            });
         }
         Ok(#query_sc)
     };
     let if_let_err_query_try_bind_self_v_ts = quote::quote! {
-        if let Err(#er_sc) = #query_sc.0.try_bind(#self_sc.#v_sc) {
-            return Err(#import::PgQueryBindEr(#er_sc.to_string()));
+        if let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc) {
+            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                Ok(v) => v,
+                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+            });
         }
     };
     let qb_one_v_ts = quote::quote! {
@@ -285,13 +316,13 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
             quote::quote! {
                 #mb_dims_ies_init_ts
                 #v_match_incr_checked_add_one_init_ts
-                Ok(#import::QpFragment(format!(
+                Ok(#import::QpFragment::try_from(format!(
                     #format_ts,
                     #self_oprtr_to_qp_ts
                     #col_sc,
                     #mb_extra_prms_ts
                     #v_sc
-                )))
+                ))?)
             }
         };
     let gen_pg_type_dims_helpers = |pg_type_ptrn: &PgTypePtrn| match pg_type_ptrn {
@@ -380,13 +411,13 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 #v_match_self_v_qp_init_ts
-                                Ok(#import::QpFragment(format!(
+                                Ok(#import::QpFragment::try_from(format!(
                                     #format_ts,
                                     #self_oprtr_to_qp_ts
                                     #col_sc,
                                     #mb_extra_prms_ts
                                     #v_sc
-                                )))
+                                ))?)
                             }
                         },
                         is_qb_mut_true,
@@ -443,21 +474,24 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                                     let _: Option<char> = acc.pop();
                                     acc
                                 };
-                                Ok(#import::QpFragment(format!(
+                                Ok(#import::QpFragment::try_from(format!(
                                     #format_ts,
                                     #self_oprtr_to_qp_ts
                                     #col_sc,
                                     #mb_extra_prms_ts
                                     #v_sc
-                                )))
+                                ))?)
                             }
                         },
                         is_qb_mut_true,
                         quote::quote! {
                             #mb_dims_qb_ts
                             for el in #self_sc.#v_sc.into_vec() {
-                                if let Err(#er_sc) = #query_sc.0.try_bind(el) {
-                                    return Err(#import::PgQueryBindEr(#er_sc.to_string()));
+                                if let Err(#er_sc) = #query_sc.as_mut().try_bind(el) {
+                                    return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                                        Ok(v) => v,
+                                        Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                                    });
                                 }
                             }
                             Ok(#query_sc)
@@ -512,12 +546,12 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                                 ));
                                 quote::quote! {
                                     #mb_dims_ies_init_ts
-                                    Ok(#import::QpFragment(format!(
+                                    Ok(#import::QpFragment::try_from(format!(
                                         #format_ts,
                                         #self_oprtr_to_qp_ts
                                         #col_sc,
                                         #mb_extra_prms_ts
-                                    )))
+                                    ))?)
                                 }
                             },
                             is_qb_mut_false,
@@ -557,21 +591,24 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 #v_match_incr_checked_add_one_init_ts
-                                Ok(#import::QpFragment(format!(
+                                Ok(#import::QpFragment::try_from(format!(
                                     #format_ts,
                                     #self_oprtr_to_qp_ts
                                     #col_sc,
                                     #mb_extra_prms_ts
                                     &#self_sc.encode_format,
                                     #v_sc
-                                )))
+                                ))?)
                             }
                         },
                         is_qb_mut_true,
                         quote::quote! {
                             #mb_dims_qb_ts
-                            if let Err(#er_sc) = #query_sc.0.try_bind(self.encoded_string_representation) {
-                                return Err(#import::PgQueryBindEr(#er_sc.to_string()));
+                            if let Err(#er_sc) = #query_sc.as_mut().try_bind(self.encoded_string_representation) {
+                                return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                                    Ok(v) => v,
+                                    Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                                });
                             }
                             Ok(#query_sc)
                         },
@@ -628,7 +665,7 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                             #mb_dims_ies_init_ts
                             let oprtr = <T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc);
                             let oprtr_query_str = oprtr.to_query_str();
-                            Ok(#import::QpFragment(format!(
+                            Ok(#import::QpFragment::try_from(format!(
                                 #format_ts,
                                 #self_oprtr_to_qp_ts
                                 #col_sc,
@@ -639,16 +676,19 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
                                     },
                                     #import::EqOprtr::IsNull => oprtr_query_str.to_string(),
                                 }
-                            )))
+                            ))?)
                         }
                     };
                 let gen_eq_oprtr_qb_ts = |ts: &dyn quote::ToTokens| {
                     quote::quote! {
                         #ts
                         if matches!(&<T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc), #import::EqOprtr::Eq)
-                            && let Err(#er_sc) = #query_sc.0.try_bind(#self_sc.#v_sc)
+                            && let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc)
                         {
-                            return Err(#import::PgQueryBindEr(#er_sc.to_string()));
+                            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                                Ok(v) => v,
+                                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                            });
                         }
                         Ok(#query_sc)
                     }
@@ -771,7 +811,7 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
         macros_helpers::mb_write_ts_into_file(
             gen_wh_flts_config.pg_types_write_into_file,
             "gen_wh_flts_pg_types",
-            macros_helpers::TsRef(&gend),
+            macros_helpers::TsRef::from(&gend),
             &macros_helpers::FormatWithCargofmt::True,
         );
         gend
@@ -782,16 +822,16 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
     };
     let gend = pg_crud_macros_cmn::gen_mod_with_pub_use_ts(
         &quote::format_ident!("gen_wh_flts_mod"),
-        &pg_crud_macros_cmn::GeneratedRustTsVec(vec![
-            macros_helpers::GeneratedRustTs(imports_ts),
-            macros_helpers::GeneratedRustTs(pg_type_ts),
+        &pg_crud_macros_cmn::GeneratedRustTsVec::from(vec![
+            macros_helpers::GeneratedRustTs::from(imports_ts),
+            macros_helpers::GeneratedRustTs::from(pg_type_ts),
         ]),
     );
     macros_helpers::mb_write_ts_into_file(
         gen_wh_flts_config.whole_write_into_file,
         "gen_wh_flts",
-        macros_helpers::TsRef(&gend),
+        macros_helpers::TsRef::from(gend.as_ref()),
         &macros_helpers::FormatWithCargofmt::True,
     );
-    GenWhFltsTs(gend.0)
+    GenWhFltsTs::from(proc_macro2::TokenStream::from(gend))
 }

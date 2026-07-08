@@ -36,11 +36,21 @@ impl pg_crud_cmn::DfltSomeOneEl for EncodeFormat {
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml)]
 #[serde(try_from = "String", into = "String")]
-pub struct RgxRgx(pub regex::Regex);
+pub struct RgxRgx(regex::Regex);
+impl From<regex::Regex> for RgxRgx {
+    fn from(value: regex::Regex) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<regex::Regex> for RgxRgx {
+    fn as_ref(&self) -> &regex::Regex {
+        &self.0
+    }
+}
 impl TryFrom<String> for RgxRgx {
     type Error = regex::Error;
     fn try_from(v: String) -> Result<Self, Self::Error> {
-        regex::Regex::new(&v).map(RgxRgx)
+        regex::Regex::new(&v).map(Self::from)
     }
 }
 impl From<RgxRgx> for String {
@@ -111,7 +121,17 @@ pub enum RgxCase {
     Sensitive,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-pub struct RgxCasePostgreqlSyntax(pub &'static str);
+pub struct RgxCasePostgreqlSyntax(&'static str);
+impl From<&'static str> for RgxCasePostgreqlSyntax {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for RgxCasePostgreqlSyntax {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 impl std::fmt::Display for RgxCasePostgreqlSyntax {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)
@@ -124,10 +144,10 @@ impl pg_crud_cmn::DfltSomeOneEl for RgxCase {
 }
 impl RgxCase {
     #[must_use]
-    pub const fn postgreql_syntax(&self) -> RgxCasePostgreqlSyntax {
+    pub fn postgreql_syntax(&self) -> RgxCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => RgxCasePostgreqlSyntax("~*"),
-            Self::Sensitive => RgxCasePostgreqlSyntax("~"),
+            Self::Insensitive => RgxCasePostgreqlSyntax::from("~*"),
+            Self::Sensitive => RgxCasePostgreqlSyntax::from("~"),
         }
     }
 }
@@ -376,11 +396,17 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
         self,
         mut query: pg_crud_cmn::PgQuery<'lt>,
     ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
-        if let Err(er) = query.0.try_bind(self.start) {
-            return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
+        if let Err(er) = query.as_mut().try_bind(self.start) {
+            return Err(match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
+                Ok(v) => v,
+                Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
+            });
         }
-        if let Err(er) = query.0.try_bind(self.end) {
-            return Err(pg_crud_cmn::PgQueryBindEr(er.to_string()));
+        if let Err(er) = query.as_mut().try_bind(self.end) {
+            return Err(match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
+                Ok(v) => v,
+                Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
+            });
         }
         Ok(query)
     }
@@ -402,9 +428,9 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
                 return Err(er);
             }
         };
-        Ok(pg_crud_cmn::QpFragment(format!(
+        Ok(pg_crud_cmn::QpFragment::try_from(format!(
             "between ${start_incr} and ${end_incr}"
-        )))
+        ))?)
     }
 }
 #[derive(
@@ -571,10 +597,16 @@ pub enum BoundedVecTryNewEr {
     schemars::JsonSchema,
     optml::Optml,
 )]
-pub struct BoundedVecLen(pub usize);
+pub struct BoundedVecLen(usize);
 impl From<usize> for BoundedVecLen {
     fn from(value: usize) -> Self {
         Self(value)
+    }
+}
+impl BoundedVecLen {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
     }
 }
 impl std::fmt::Display for BoundedVecLen {
@@ -584,7 +616,8 @@ impl std::fmt::Display for BoundedVecLen {
 }
 impl loc_lib::ToErrString for BoundedVecLen {
     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.to_string())
+        loc_lib::ToErrStringValue::try_from(self.to_string())
+            .unwrap_or_else(loc_lib::ToErrStringValue::from)
     }
 }
 enum Vrt {
@@ -622,10 +655,12 @@ impl<
         query: pg_crud_cmn::PgQuery<'lt>,
     ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
         self.0.into_iter().try_fold(query, |mut acc_query, el| {
-            acc_query
-                .0
-                .try_bind(el)
-                .map_err(|er| pg_crud_cmn::PgQueryBindEr(er.to_string()))?;
+            acc_query.as_mut().try_bind(el).map_err(
+                |er| match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
+                    Ok(v) => v,
+                    Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
+                },
+            )?;
             Ok(acc_query)
         })
     }
@@ -655,7 +690,7 @@ impl<
             }
             Ok(acc)
         })?;
-        Ok(pg_crud_cmn::QpFragment(acc))
+        Ok(pg_crud_cmn::QpFragment::try_from(acc)?)
     }
     #[must_use]
     pub const fn to_inn(&self) -> &Vec<T> {
@@ -670,8 +705,8 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
             Ok(Self(v))
         } else {
             Err(BoundedVecTryNewEr::LenIsNotCorrect {
-                wrong_len: BoundedVecLen(len),
-                expected: BoundedVecLen(LENGTH),
+                wrong_len: BoundedVecLen::from(len),
+                expected: BoundedVecLen::from(LENGTH),
                 loc: loc_lib::loc!(),
             })
         }
@@ -734,9 +769,9 @@ mod tests {
     }
     #[test]
     fn rgx_rgx_eq_compares_pattern_content() {
-        let left = super::RgxRgx(regex::Regex::new(r"\d+").expect("8342ad27"));
-        let right = super::RgxRgx(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
-        let other = super::RgxRgx(regex::Regex::new("[a-z]+").expect("abcc9a72"));
+        let left = super::RgxRgx::from(regex::Regex::new(r"\d+").expect("8342ad27"));
+        let right = super::RgxRgx::from(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
+        let other = super::RgxRgx::from(regex::Regex::new("[a-z]+").expect("abcc9a72"));
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

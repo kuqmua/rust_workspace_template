@@ -1,6 +1,7 @@
+const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
 #[must_use]
 #[derive(Debug, Clone)]
-pub struct MacroTokens(pub proc_macro2::TokenStream);
+pub struct MacroTokens(proc_macro2::TokenStream);
 impl From<proc_macro2::TokenStream> for MacroTokens {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
@@ -9,6 +10,18 @@ impl From<proc_macro2::TokenStream> for MacroTokens {
 impl From<MacroTokens> for proc_macro2::TokenStream {
     fn from(value: MacroTokens) -> Self {
         value.0
+    }
+}
+impl MacroTokens {
+    pub fn from_into<T>(value: T) -> Self
+    where
+        T: Into<proc_macro2::TokenStream>,
+    {
+        Self(value.into())
+    }
+    #[must_use]
+    pub fn into_inner(self) -> proc_macro2::TokenStream {
+        self.0
     }
 }
 impl IntoIterator for MacroTokens {
@@ -37,7 +50,7 @@ impl syn::parse::Parse for MacroTokens {
                 tokens.extend([token]);
                 rest = next;
             }
-            Ok((Self(tokens), rest))
+            Ok((Self::from(tokens), rest))
         })
     }
 }
@@ -97,7 +110,37 @@ impl syn::parse::Parse for TopLevelCommaParts {
 }
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FirstIdent(pub String);
+pub struct FirstIdent(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FirstIdentTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for FirstIdentTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "first ident length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<FirstIdentTryFromStringEr> for FirstIdent {
+    fn from(value: FirstIdentTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for FirstIdent {
+    type Error = FirstIdentTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > FIRST_IDENT_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: FIRST_IDENT_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for FirstIdent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -105,7 +148,7 @@ impl std::fmt::Display for FirstIdent {
 }
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct FirstCommaStripped(pub bool);
+pub struct FirstCommaStripped(bool);
 impl std::ops::Not for FirstCommaStripped {
     type Output = bool;
     fn not(self) -> Self::Output {
@@ -114,7 +157,7 @@ impl std::ops::Not for FirstCommaStripped {
 }
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PartIndex(pub usize);
+pub struct PartIndex(usize);
 impl From<usize> for PartIndex {
     fn from(value: usize) -> Self {
         Self(value)
@@ -139,7 +182,9 @@ where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
     match input.next()? {
-        proc_macro2::TokenTree::Ident(ident) => Some(FirstIdent(ident.to_string())),
+        proc_macro2::TokenTree::Ident(ident) => {
+            Some(FirstIdent::try_from(ident.to_string()).unwrap_or_else(FirstIdent::from))
+        }
         proc_macro2::TokenTree::Group(group)
             if group.delimiter() == proc_macro2::Delimiter::None =>
         {
@@ -163,7 +208,7 @@ pub fn part_at<I>(parts: &TopLevelCommaParts, idx: I) -> Option<MacroTokens>
 where
     I: Into<PartIndex>,
 {
-    parts.get(idx.into().0).cloned().map(MacroTokens)
+    parts.get(idx.into().0).cloned().map(MacroTokens::from)
 }
 #[must_use]
 pub fn first_ident_at<I>(parts: &TopLevelCommaParts, idx: I) -> Option<FirstIdent>
@@ -194,7 +239,7 @@ where
             };
             let _: syn::Token![=>] = syn::parse2(arrow).ok()?;
             after.extend(iter);
-            return Some((MacroTokens(before), MacroTokens(after)));
+            return Some((MacroTokens::from(before), MacroTokens::from(after)));
         }
         before.extend([token]);
     }
@@ -220,5 +265,8 @@ where
         }
     }
     let parsed = syn::parse2::<ClosureIdentAndBody>(input.into().0).ok()?;
-    Some((FirstIdent(parsed.ident.to_string()), parsed.body))
+    Some((
+        FirstIdent::try_from(parsed.ident.to_string()).unwrap_or_else(FirstIdent::from),
+        parsed.body,
+    ))
 }

@@ -31,20 +31,20 @@ mod tbl_example_gen_pg_tbl_mod {
             if let Err(er) = sqlx::query(&format!(
                 "create table if not exists {tbl} ({},{},{},{})",
                 <pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::cr_tbl_col_qp(
-                    pg_crud::SqlColRef(&"pk_col"),
-                    pg_crud::IsPk(true),
+                    pg_crud::SqlColRef::from(&"pk_col"),
+                    pg_crud::IsPk::from(true),
                 ),
                 <pg_crud::I16AsNnInt2 as pg_crud::PgType>::cr_tbl_col_qp(
-                    pg_crud::SqlColRef(&"col_0"),
-                    pg_crud::IsPk(false),
+                    pg_crud::SqlColRef::from(&"col_0"),
+                    pg_crud::IsPk::from(false),
                 ),
                 <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::cr_tbl_col_qp(
-                    pg_crud::SqlColRef(&"col_1"),
-                    pg_crud::IsPk(false),
+                    pg_crud::SqlColRef::from(&"col_1"),
+                    pg_crud::IsPk::from(false),
                 ),
                 <pg_crud::I32AsNnInt4 as pg_crud::PgType>::cr_tbl_col_qp(
-                    pg_crud::SqlColRef(&"col_2"),
-                    pg_crud::IsPk(false),
+                    pg_crud::SqlColRef::from(&"col_2"),
+                    pg_crud::IsPk::from(false),
                 )
             ))
             .execute(pool)
@@ -76,7 +76,7 @@ mod tbl_example_gen_pg_tbl_mod {
         ) -> Result<String, pg_crud::QpEr> {
             let mut acc = String::new();
             for el in sel.to_vec() {
-                acc . push_str (& match el { TblExampleSel :: PkCol (col) => match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef(&"pk_col")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col0 (col) => match < pg_crud :: I16AsNnInt2 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef(&"col_0")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col1 (col) => match < pg_crud :: OptI16AsNlInt2 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef(&"col_1")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col2 (col) => match < pg_crud :: I32AsNnInt4 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef(&"col_2")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } }) ;
+                acc . push_str (& match el { TblExampleSel :: PkCol (col) => match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef::from(&"pk_col")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col0 (col) => match < pg_crud :: I16AsNnInt2 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef::from(&"col_0")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col1 (col) => match < pg_crud :: OptI16AsNlInt2 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef::from(&"col_1")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } , TblExampleSel :: Col2 (col) => match < pg_crud :: I32AsNnInt4 as pg_crud :: PgType > :: sel_qp (col , pg_crud::SqlColRef::from(&"col_2")) { Ok (v_820e1163) => v_820e1163 , Err (er_0) => { { return Err (er_0) ; } } } }) ;
                 acc.push(',');
             }
             let _: Option<char> = acc.pop();
@@ -100,11 +100,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -129,11 +130,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -155,11 +157,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -172,12 +175,12 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_cm_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef("pk_col,col_0,col_1,col_2"),
-                pg_crud::PgTblSqlFragmentRef(&{
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from("pk_col,col_0,col_1,col_2"),
+                pg_crud::PgTblSqlFragmentRef::from(&{
                     let mut incr: u64 = 0;
                     let mut acc_8a58994e = String::new();
-                    for el_1651705d in &prms.payload.0 {
+                    for el_1651705d in prms.payload.as_slice() {
                         match el_1651705d.cr_qp(&mut incr) {
                             Ok(v_f4fdd10d) => {
                                 if std::fmt::Write::write_fmt(
@@ -196,11 +199,14 @@ mod tbl_example_gen_pg_tbl_mod {
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
-                                                file: loc_lib::loc::LocFile(String::from(
-                                                    "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                )),
-                                                line: loc_lib::loc::LocLine(2319),
-                                                col: loc_lib::loc::LocCol(80),
+                                                file: loc_lib::loc::LocFile::try_from(
+                                                    String::from(
+                                                        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+                                                    ),
+                                                )
+                                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                line: loc_lib::loc::LocLine::from(2319),
+                                                col: loc_lib::loc::LocCol::from(80),
                                             }),
                                         ),
                                     };
@@ -219,11 +225,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(2319),
-                                            col: loc_lib::loc::LocCol(80),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(2319),
+                                            col: loc_lib::loc::LocCol::from(80),
                                         }),
                                     ),
                                 };
@@ -238,11 +245,11 @@ mod tbl_example_gen_pg_tbl_mod {
                     let _: Option<char> = acc_8a58994e.pop();
                     acc_8a58994e
                 }),
-                pg_crud::PgTblSqlFragmentRef(&{
+                pg_crud::PgTblSqlFragmentRef::from(&{
                     let mut acc_a35168d8 = String::new();
-                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
+                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef::from(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(2319), col: loc_lib::loc::LocCol::from(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_0"),
+                        pg_crud::SqlColRef::from(&"col_0"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -255,11 +262,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -271,7 +279,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     }
                     match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_1"),
+                        pg_crud::SqlColRef::from(&"col_1"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -284,11 +292,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -300,7 +309,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     }
                     match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_2"),
+                        pg_crud::SqlColRef::from(&"col_2"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -313,11 +322,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -334,11 +344,11 @@ mod tbl_example_gen_pg_tbl_mod {
             );
             let binded_query = {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
-                for el_7f862135 in prms.payload.0 {
+                for el_7f862135 in prms.payload.into_vec() {
                     match el_7f862135
-                        .cr_qb(pg_crud::PgQuery(query))
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .cr_qb(pg_crud::PgQuery::from(query))
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_011a3eb4) => {
                             query = v_011a3eb4;
@@ -351,11 +361,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -369,7 +380,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleCmEr::Pg {
@@ -379,11 +390,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -404,11 +416,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -430,11 +443,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -471,13 +485,13 @@ mod tbl_example_gen_pg_tbl_mod {
                                                         line!(),
                                                         column!(),
                                                         Some(loc_lib::loc::Occr {
-                                                            file: loc_lib::loc::LocFile(
+                                                            file: loc_lib::loc::LocFile::try_from(
                                                                 String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
                                                                 ),
-                                                            ),
-                                                            line: loc_lib::loc::LocLine(3204),
-                                                            col: loc_lib::loc::LocCol(45),
+                                                            ).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                            line: loc_lib::loc::LocLine::from(3204),
+                                                            col: loc_lib::loc::LocCol::from(45),
                                                         }),
                                                     ),
                                                 };
@@ -496,11 +510,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     line!(),
                                                     column!(),
                                                     Some(loc_lib::loc::Occr {
-                                                        file: loc_lib::loc::LocFile(String::from(
+                                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                        )),
-                                                        line: loc_lib::loc::LocLine(3204),
-                                                        col: loc_lib::loc::LocCol(45),
+                                                        )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                        line: loc_lib::loc::LocLine::from(3204),
+                                                        col: loc_lib::loc::LocCol::from(45),
                                                     }),
                                                 ),
                                             };
@@ -529,11 +543,14 @@ mod tbl_example_gen_pg_tbl_mod {
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
-                                                file: loc_lib::loc::LocFile(String::from(
-                                                    "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                )),
-                                                line: loc_lib::loc::LocLine(3219),
-                                                col: loc_lib::loc::LocCol(37),
+                                                file: loc_lib::loc::LocFile::try_from(
+                                                    String::from(
+                                                        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+                                                    ),
+                                                )
+                                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                line: loc_lib::loc::LocLine::from(3219),
+                                                col: loc_lib::loc::LocCol::from(37),
                                             }),
                                         ),
                                     };
@@ -550,11 +567,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3219),
-                                            col: loc_lib::loc::LocCol(37),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3219),
+                                            col: loc_lib::loc::LocCol::from(37),
                                         }),
                                     ),
                                 };
@@ -578,11 +596,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -626,11 +645,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -640,7 +660,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/cm");
             let future = reqwest::Client::new()
                 .post(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -654,11 +677,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -678,11 +702,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -701,11 +726,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -747,11 +773,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -788,11 +815,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -817,11 +845,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -843,11 +872,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -860,9 +890,9 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_co_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef("pk_col,col_0,col_1,col_2"),
-                pg_crud::PgTblSqlFragmentRef(&match prms.payload.cr_qp(&mut 0) {
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from("pk_col,col_0,col_1,col_2"),
+                pg_crud::PgTblSqlFragmentRef::from(&match prms.payload.cr_qp(&mut 0) {
                     Ok(v_3267d57d) => v_3267d57d,
                     Err(er_0) => {
                         let er = TblExampleCoEr::Qp {
@@ -872,11 +902,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2319),
-                                    col: loc_lib::loc::LocCol(80),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2319),
+                                    col: loc_lib::loc::LocCol::from(80),
                                 }),
                             ),
                         };
@@ -887,11 +918,11 @@ mod tbl_example_gen_pg_tbl_mod {
                         return res;
                     }
                 }),
-                pg_crud::PgTblSqlFragmentRef(&{
+                pg_crud::PgTblSqlFragmentRef::from(&{
                     let mut acc_a35168d8 = String::new();
-                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCoEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
+                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef::from(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCoEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(2319), col: loc_lib::loc::LocCol::from(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_0"),
+                        pg_crud::SqlColRef::from(&"col_0"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -904,11 +935,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -920,7 +952,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     }
                     match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_1"),
+                        pg_crud::SqlColRef::from(&"col_1"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -933,11 +965,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -949,7 +982,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     }
                     match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::sel_only_ids_qp(
-                        pg_crud::SqlColRef(&"col_2"),
+                        pg_crud::SqlColRef::from(&"col_2"),
                     ) {
                         Ok(v_aa341baf) => {
                             acc_a35168d8.push_str(&v_aa341baf);
@@ -962,11 +995,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -985,9 +1019,9 @@ mod tbl_example_gen_pg_tbl_mod {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
                 match prms
                     .payload
-                    .cr_qb(pg_crud::PgQuery(query))
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .cr_qb(pg_crud::PgQuery::from(query))
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                 {
                     Ok(v_06f852cd) => {
                         query = v_06f852cd;
@@ -1000,11 +1034,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(3002),
-                                    col: loc_lib::loc::LocCol(25),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(3002),
+                                    col: loc_lib::loc::LocCol::from(25),
                                 }),
                             ),
                         };
@@ -1017,7 +1052,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleCoEr::Pg {
@@ -1027,11 +1062,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -1052,11 +1088,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -1078,11 +1115,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -1096,7 +1134,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleCoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleCoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleCoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleCoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -1108,11 +1146,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3230),
-                                            col: loc_lib::loc::LocCol(37),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3230),
+                                            col: loc_lib::loc::LocCol::from(37),
                                         }),
                                     ),
                                 };
@@ -1129,11 +1168,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3230),
-                                        col: loc_lib::loc::LocCol(37),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3230),
+                                        col: loc_lib::loc::LocCol::from(37),
                                     }),
                                 ),
                             };
@@ -1153,11 +1193,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -1201,11 +1242,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -1215,7 +1257,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/co");
             let future = reqwest::Client::new()
                 .post(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -1229,11 +1274,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -1253,11 +1299,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -1276,11 +1323,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -1322,11 +1370,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -1363,11 +1412,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -1392,11 +1442,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -1418,11 +1469,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -1435,8 +1487,8 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_rm_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef(&match Self::gen_sel_qp(&prms.payload.sel) {
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from(&match Self::gen_sel_qp(&prms.payload.sel) {
                     Ok(v_357219fb) => v_357219fb,
                     Err(er_0) => {
                         let er = TblExampleRmEr::Qp {
@@ -1446,11 +1498,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(911),
-                                    col: loc_lib::loc::LocCol(74),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(911),
+                                    col: loc_lib::loc::LocCol::from(74),
                                 }),
                             ),
                         };
@@ -1461,13 +1514,13 @@ mod tbl_example_gen_pg_tbl_mod {
                         return res;
                     }
                 }),
-                pg_crud::PgTblSqlFragmentRef(&{
+                pg_crud::PgTblSqlFragmentRef::from(&{
                     let mut incr: u64 = 0;
                     let mut extra_prms = match pg_crud::PgTypeWhFlt::qp(
                         &prms.payload.wh_many,
                         &mut incr,
-                        pg_crud::SqlColRef(&""),
-                        pg_crud::AddOprtr(false),
+                        pg_crud::SqlColRef::from(&""),
+                        pg_crud::AddOprtr::from(false),
                     ) {
                         Ok(v_d1627695) => v_d1627695,
                         Err(er_0) => {
@@ -1478,11 +1531,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(1300),
-                                        col: loc_lib::loc::LocCol(21),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(1300),
+                                        col: loc_lib::loc::LocCol::from(21),
                                     }),
                                 ),
                             };
@@ -1523,11 +1577,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2319),
-                                    col: loc_lib::loc::LocCol(80),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2319),
+                                    col: loc_lib::loc::LocCol::from(80),
                                 }),
                             ),
                         };
@@ -1544,8 +1599,8 @@ mod tbl_example_gen_pg_tbl_mod {
                             match pg_crud::PgTypeWhFlt::qp(
                                 &prms.payload.pgn,
                                 &mut incr,
-                                pg_crud::SqlColRef(&""),
-                                pg_crud::AddOprtr(bool::default())
+                                pg_crud::SqlColRef::from(&""),
+                                pg_crud::AddOprtr::from(bool::default())
                             ) {
                                 Ok(v_742be6cf) => v_742be6cf,
                                 Err(er_0) => {
@@ -1557,11 +1612,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
-                                                    file: loc_lib::loc::LocFile(String::from(
+                                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                    )),
-                                                    line: loc_lib::loc::LocLine(2319),
-                                                    col: loc_lib::loc::LocCol(80),
+                                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                    line: loc_lib::loc::LocLine::from(2319),
+                                                    col: loc_lib::loc::LocCol::from(80),
                                                 }),
                                             ),
                                         };
@@ -1587,11 +1642,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2319),
-                                    col: loc_lib::loc::LocCol(80),
+                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2319),
+                                    col: loc_lib::loc::LocCol::from(80),
                                 }),
                             ),
                         };
@@ -1606,23 +1661,25 @@ mod tbl_example_gen_pg_tbl_mod {
             );
             let binded_query = {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
-                match pg_crud::PgTypeWhFlt::qb(prms.payload.wh_many, pg_crud::PgQuery(query)) {
+                match pg_crud::PgTypeWhFlt::qb(prms.payload.wh_many, pg_crud::PgQuery::from(query))
+                {
                     Ok(v_03a58371) => {
-                        query = v_03a58371.0;
+                        query = v_03a58371.into_inner();
                     }
                     Err(er_0) => {
                         let er = TblExampleRmEr::TryBind {
-                            try_bind: er_0.0,
+                            try_bind: er_0.into_inner(),
                             loc: loc_lib::loc::Loc::new(
                                 file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(1324),
-                                    col: loc_lib::loc::LocCol(68),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(1324),
+                                    col: loc_lib::loc::LocCol::from(68),
                                 }),
                             ),
                         };
@@ -1633,23 +1690,24 @@ mod tbl_example_gen_pg_tbl_mod {
                         return res;
                     }
                 }
-                match pg_crud::PgTypeWhFlt::qb(prms.payload.pgn, pg_crud::PgQuery(query)) {
+                match pg_crud::PgTypeWhFlt::qb(prms.payload.pgn, pg_crud::PgQuery::from(query)) {
                     Ok(v_9f7e487b) => {
-                        query = v_9f7e487b.0;
+                        query = v_9f7e487b.into_inner();
                     }
                     Err(er_0) => {
                         let er = TblExampleRmEr::TryBind {
-                            try_bind: er_0.0,
+                            try_bind: er_0.into_inner(),
                             loc: loc_lib::loc::Loc::new(
                                 file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(3002),
-                                    col: loc_lib::loc::LocCol(25),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(3002),
+                                    col: loc_lib::loc::LocCol::from(25),
                                 }),
                             ),
                         };
@@ -1662,7 +1720,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleRmEr::Pg {
@@ -1672,11 +1730,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -1697,11 +1756,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -1716,7 +1776,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 {
                     let mut rows = binded_query.fetch(executor_acquire.as_mut());
                     let mut acc_d16ac269 = Vec::new();
-                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => Some (match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }) , None => None , } , Err (er_0) => { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3265), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } { acc_d16ac269 . push (v_d9cc2c36) ; }
+                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => Some (match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(1353), col: loc_lib::loc::LocCol::from(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }) , None => None , } , Err (er_0) => { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3265), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } { acc_d16ac269 . push (v_d9cc2c36) ; }
                     acc_d16ac269
                 }
             };
@@ -1752,11 +1812,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -1766,7 +1827,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/rm");
             let future = reqwest::Client::new()
                 .post(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -1780,11 +1844,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -1804,11 +1869,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -1827,11 +1893,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -1873,11 +1940,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -1914,11 +1982,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -1943,11 +2012,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -1969,11 +2039,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -1986,8 +2057,8 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_ro_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef(&match Self::gen_sel_qp(&prms.payload.sel) {
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from(&match Self::gen_sel_qp(&prms.payload.sel) {
                     Ok(v_357219fb) => v_357219fb,
                     Err(er_0) => {
                         let er = TblExampleRoEr::Qp {
@@ -1997,11 +2068,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(911),
-                                    col: loc_lib::loc::LocCol(74),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(911),
+                                    col: loc_lib::loc::LocCol::from(74),
                                 }),
                             ),
                         };
@@ -2012,11 +2084,11 @@ mod tbl_example_gen_pg_tbl_mod {
                         return res;
                     }
                 }),
-                pg_crud::PgTblSqlFragmentRef(&match pg_crud::PgTypeWhFlt::qp(
+                pg_crud::PgTblSqlFragmentRef::from(&match pg_crud::PgTypeWhFlt::qp(
                     &prms.payload.pk_col,
                     &mut 0,
-                    pg_crud::SqlColRef(&Self::pk()),
-                    pg_crud::AddOprtr(false),
+                    pg_crud::SqlColRef::from(&Self::pk()),
+                    pg_crud::AddOprtr::from(false),
                 ) {
                     Ok(v_be9e7b7d) => v_be9e7b7d,
                     Err(er_0) => {
@@ -2027,11 +2099,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2319),
-                                    col: loc_lib::loc::LocCol(80),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2319),
+                                    col: loc_lib::loc::LocCol::from(80),
                                 }),
                             ),
                         };
@@ -2045,23 +2118,24 @@ mod tbl_example_gen_pg_tbl_mod {
             );
             let binded_query = {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
-                match pg_crud::PgTypeWhFlt::qb(prms.payload.pk_col, pg_crud::PgQuery(query)) {
+                match pg_crud::PgTypeWhFlt::qb(prms.payload.pk_col, pg_crud::PgQuery::from(query)) {
                     Ok(v_80ee6983) => {
-                        query = v_80ee6983.0;
+                        query = v_80ee6983.into_inner();
                     }
                     Err(er_0) => {
                         let er = TblExampleRoEr::TryBind {
-                            try_bind: er_0.0,
+                            try_bind: er_0.into_inner(),
                             loc: loc_lib::loc::Loc::new(
                                 file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(3002),
-                                    col: loc_lib::loc::LocCol(25),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(3002),
+                                    col: loc_lib::loc::LocCol::from(25),
                                 }),
                             ),
                         };
@@ -2074,7 +2148,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleRoEr::Pg {
@@ -2084,11 +2158,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -2109,11 +2184,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -2125,7 +2201,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
             };
             let v = {
-                match binded_query . fetch_one (executor_acquire . as_mut ()) . await { Ok (v_b27d7d79) => { match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } } , Err (er_0) => { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3276), col: loc_lib::loc::LocCol(78) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } }
+                match binded_query . fetch_one (executor_acquire . as_mut ()) . await { Ok (v_b27d7d79) => { match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(1353), col: loc_lib::loc::LocCol::from(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } } , Err (er_0) => { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3276), col: loc_lib::loc::LocCol::from(78) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } }
             };
             let mut res = axum::response::IntoResponse::into_response(axum::Json(
                 TblExampleRoResVrts::Desirable(v),
@@ -2159,11 +2235,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -2173,7 +2250,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/ro");
             let future = reqwest::Client::new()
                 .post(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -2187,11 +2267,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -2211,11 +2292,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -2234,11 +2316,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -2280,11 +2363,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -2321,11 +2405,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -2350,11 +2435,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -2376,11 +2462,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -2412,8 +2499,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         if is_col_0_upd_exist {
                             acc_b86a253a.push_str(&pg_crud::gen_col_eqs_case_acc_else_col_end_comma_um_qp(
-                                pg_crud::PgTblSqlFragmentRef("col_0"),
-                                pg_crud::PgTblSqlFragmentRef(&{
+                                pg_crud::PgTblSqlFragmentRef::from("col_0"),
+                                pg_crud::PgTblSqlFragmentRef::from(&{
                                     let mut acc_8ad06c8c = String::default();
                                     for el_a72f3eac in &upd_for_query_vec {
                                         if let Some(v_3ea04126) = &el_a72f3eac.col_0 {
@@ -2427,11 +2514,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2452,11 +2539,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2468,9 +2555,9 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 }
                                             };
                                             acc_8ad06c8c.push_str(&pg_crud::gen_when_col_id_then_v_um_qp(
-                                                pg_crud::PgTblSqlFragmentRef(Self::pk()),
-                                                pg_crud::PgTblSqlFragmentRef(&pk_qp),
-                                                pg_crud::PgTblSqlFragmentRef(&col_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
+                                                pg_crud::PgTblSqlFragmentRef::from(&pk_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(&col_qp),
                                             ));
                                         }
                                     }
@@ -2489,8 +2576,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         if is_col_1_upd_exist {
                             acc_b86a253a.push_str(&pg_crud::gen_col_eqs_case_acc_else_col_end_comma_um_qp(
-                                pg_crud::PgTblSqlFragmentRef("col_1"),
-                                pg_crud::PgTblSqlFragmentRef(&{
+                                pg_crud::PgTblSqlFragmentRef::from("col_1"),
+                                pg_crud::PgTblSqlFragmentRef::from(&{
                                     let mut acc_8ad06c8c = String::default();
                                     for el_a72f3eac in &upd_for_query_vec {
                                         if let Some(v_3ea04126) = &el_a72f3eac.col_1 {
@@ -2504,11 +2591,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2529,11 +2616,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2545,9 +2632,9 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 }
                                             };
                                             acc_8ad06c8c.push_str(&pg_crud::gen_when_col_id_then_v_um_qp(
-                                                pg_crud::PgTblSqlFragmentRef(Self::pk()),
-                                                pg_crud::PgTblSqlFragmentRef(&pk_qp),
-                                                pg_crud::PgTblSqlFragmentRef(&col_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
+                                                pg_crud::PgTblSqlFragmentRef::from(&pk_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(&col_qp),
                                             ));
                                         }
                                     }
@@ -2566,8 +2653,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         if is_col_2_upd_exist {
                             acc_b86a253a.push_str(&pg_crud::gen_col_eqs_case_acc_else_col_end_comma_um_qp(
-                                pg_crud::PgTblSqlFragmentRef("col_2"),
-                                pg_crud::PgTblSqlFragmentRef(&{
+                                pg_crud::PgTblSqlFragmentRef::from("col_2"),
+                                pg_crud::PgTblSqlFragmentRef::from(&{
                                     let mut acc_8ad06c8c = String::default();
                                     for el_a72f3eac in &upd_for_query_vec {
                                         if let Some(v_3ea04126) = &el_a72f3eac.col_2 {
@@ -2581,11 +2668,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2606,11 +2693,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
-                                                                file: loc_lib::loc::LocFile(String::from(
+                                                                file: loc_lib::loc::LocFile::try_from(String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                                )),
-                                                                line: loc_lib::loc::LocLine(2319),
-                                                                col: loc_lib::loc::LocCol(80),
+                                                                )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                                line: loc_lib::loc::LocLine::from(2319),
+                                                                col: loc_lib::loc::LocCol::from(80),
                                                             }),
                                                         ),
                                                     };
@@ -2622,9 +2709,9 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 }
                                             };
                                             acc_8ad06c8c.push_str(&pg_crud::gen_when_col_id_then_v_um_qp(
-                                                pg_crud::PgTblSqlFragmentRef(Self::pk()),
-                                                pg_crud::PgTblSqlFragmentRef(&pk_qp),
-                                                pg_crud::PgTblSqlFragmentRef(&col_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
+                                                pg_crud::PgTblSqlFragmentRef::from(&pk_qp),
+                                                pg_crud::PgTblSqlFragmentRef::from(&col_qp),
                                             ));
                                         }
                                     }
@@ -2653,11 +2740,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
-                                                    file: loc_lib::loc::LocFile(String::from(
+                                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                    )),
-                                                    line: loc_lib::loc::LocLine(1927),
-                                                    col: loc_lib::loc::LocCol(69),
+                                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                    line: loc_lib::loc::LocLine::from(1927),
+                                                    col: loc_lib::loc::LocCol::from(69),
                                                 }),
                                             ),
                                         };
@@ -2682,11 +2769,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(2319),
-                                        col: loc_lib::loc::LocCol(80),
+                                        )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(2319),
+                                        col: loc_lib::loc::LocCol::from(80),
                                     }),
                                 ),
                             };
@@ -2715,11 +2802,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(2319),
-                                            col: loc_lib::loc::LocCol(80),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(2319),
+                                            col: loc_lib::loc::LocCol::from(80),
                                         }),
                                     ),
                                 };
@@ -2734,11 +2822,11 @@ mod tbl_example_gen_pg_tbl_mod {
                     acc_fd44b0aa
                 };
                 pg_crud::gen_um_query_string(
-                    pg_crud::PgTblNameRef(tbl),
-                    pg_crud::PgTblSqlFragmentRef(&els),
-                    pg_crud::PgTblSqlFragmentRef(Self::pk()),
-                    pg_crud::PgTblSqlFragmentRef(&pks),
-                    pg_crud::PgTblSqlFragmentRef(&return_cols),
+                    pg_crud::PgTblNameRef::from(tbl),
+                    pg_crud::PgTblSqlFragmentRef::from(&els),
+                    pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
+                    pg_crud::PgTblSqlFragmentRef::from(&pks),
+                    pg_crud::PgTblSqlFragmentRef::from(&return_cols),
                 )
             };
             let binded_query = {
@@ -2754,11 +2842,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -2770,10 +2859,10 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::upd_qb(
                             v_2edaa480.v.clone(),
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_600e67dc) => {
                                 query = v_600e67dc;
@@ -2786,11 +2875,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -2814,11 +2904,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -2830,10 +2921,10 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::upd_qb(
                             v_2edaa480.v.clone(),
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_600e67dc) => {
                                 query = v_600e67dc;
@@ -2846,11 +2937,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -2874,11 +2966,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -2890,10 +2983,10 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                         match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::upd_qb(
                             v_2edaa480.v.clone(),
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_600e67dc) => {
                                 query = v_600e67dc;
@@ -2906,11 +2999,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -2926,10 +3020,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 for el_a72f3eac in &upd_for_query_vec {
                     match <pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::upd_qb(
                         el_a72f3eac.pk_col,
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_c40a4522) => {
                             query = v_c40a4522;
@@ -2942,11 +3036,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -2962,10 +3057,10 @@ mod tbl_example_gen_pg_tbl_mod {
                     if let Some(v_47030ac2) = &el_a72f3eac.col_0 {
                         match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_updd_ids_qb(
                             &v_47030ac2.v,
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_c5b79b95) => {
                                 query = v_c5b79b95;
@@ -2978,11 +3073,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -2999,10 +3095,10 @@ mod tbl_example_gen_pg_tbl_mod {
                     if let Some(v_47030ac2) = &el_a72f3eac.col_1 {
                         match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::sel_only_updd_ids_qb(
                             &v_47030ac2.v,
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_c5b79b95) => {
                                 query = v_c5b79b95;
@@ -3015,11 +3111,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -3036,10 +3133,10 @@ mod tbl_example_gen_pg_tbl_mod {
                     if let Some(v_47030ac2) = &el_a72f3eac.col_2 {
                         match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::sel_only_updd_ids_qb(
                             &v_47030ac2.v,
-                            pg_crud::PgQuery(query),
+                            pg_crud::PgQuery::from(query),
                         )
-                        .map(|v| v.0)
-                        .map_err(|er| er.0)
+                        .map(pg_crud::PgQuery::into_inner)
+                        .map_err(pg_crud::PgQueryBindEr::into_inner)
                         {
                             Ok(v_c5b79b95) => {
                                 query = v_c5b79b95;
@@ -3052,11 +3149,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3002),
-                                            col: loc_lib::loc::LocCol(25),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3002),
+                                            col: loc_lib::loc::LocCol::from(25),
                                         }),
                                     ),
                                 };
@@ -3071,7 +3169,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleUmEr::Pg {
@@ -3081,11 +3179,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -3106,11 +3205,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -3132,11 +3232,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -3173,13 +3274,13 @@ mod tbl_example_gen_pg_tbl_mod {
                                                         line!(),
                                                         column!(),
                                                         Some(loc_lib::loc::Occr {
-                                                            file: loc_lib::loc::LocFile(
+                                                            file: loc_lib::loc::LocFile::try_from(
                                                                 String::from(
                                                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
                                                                 ),
-                                                            ),
-                                                            line: loc_lib::loc::LocLine(3204),
-                                                            col: loc_lib::loc::LocCol(45),
+                                                            ).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                            line: loc_lib::loc::LocLine::from(3204),
+                                                            col: loc_lib::loc::LocCol::from(45),
                                                         }),
                                                     ),
                                                 };
@@ -3198,11 +3299,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     line!(),
                                                     column!(),
                                                     Some(loc_lib::loc::Occr {
-                                                        file: loc_lib::loc::LocFile(String::from(
+                                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                        )),
-                                                        line: loc_lib::loc::LocLine(3204),
-                                                        col: loc_lib::loc::LocCol(45),
+                                                        )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                        line: loc_lib::loc::LocLine::from(3204),
+                                                        col: loc_lib::loc::LocCol::from(45),
                                                     }),
                                                 ),
                                             };
@@ -3231,11 +3332,14 @@ mod tbl_example_gen_pg_tbl_mod {
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
-                                                file: loc_lib::loc::LocFile(String::from(
-                                                    "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                )),
-                                                line: loc_lib::loc::LocLine(3219),
-                                                col: loc_lib::loc::LocCol(37),
+                                                file: loc_lib::loc::LocFile::try_from(
+                                                    String::from(
+                                                        "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
+                                                    ),
+                                                )
+                                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                line: loc_lib::loc::LocLine::from(3219),
+                                                col: loc_lib::loc::LocCol::from(37),
                                             }),
                                         ),
                                     };
@@ -3252,11 +3356,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3219),
-                                            col: loc_lib::loc::LocCol(37),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3219),
+                                            col: loc_lib::loc::LocCol::from(37),
                                         }),
                                     ),
                                 };
@@ -3280,11 +3385,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -3328,11 +3434,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -3342,7 +3449,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/um");
             let future = reqwest::Client::new()
                 .patch(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -3356,11 +3466,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -3380,11 +3491,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -3403,11 +3515,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -3449,11 +3562,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -3490,11 +3604,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -3519,11 +3634,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -3545,11 +3661,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -3568,8 +3685,8 @@ mod tbl_example_gen_pg_tbl_mod {
                     let mut acc_683e37b8 = String::new();
                     if let Some(v_2d144436) = &upd_for_query.col_0 {
                         acc_683e37b8.push_str(&pg_crud::gen_col_queals_v_comma_uo_qp(
-                            pg_crud::PgTblSqlFragmentRef("col_0"),
-                            pg_crud::PgTblSqlFragmentRef(
+                            pg_crud::PgTblSqlFragmentRef::from("col_0"),
+                            pg_crud::PgTblSqlFragmentRef::from(
                                 &match TblExampleUpdForQuery::upd_qp_col_0(v_2d144436, &mut incr) {
                                     Ok(v_1ec12051) => v_1ec12051,
                                     Err(er_0) => {
@@ -3580,11 +3697,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
-                                                    file: loc_lib::loc::LocFile(String::from(
+                                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                    )),
-                                                    line: loc_lib::loc::LocLine(2319),
-                                                    col: loc_lib::loc::LocCol(80),
+                                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                    line: loc_lib::loc::LocLine::from(2319),
+                                                    col: loc_lib::loc::LocCol::from(80),
                                                 }),
                                             ),
                                         };
@@ -3600,8 +3717,8 @@ mod tbl_example_gen_pg_tbl_mod {
                     }
                     if let Some(v_2d144436) = &upd_for_query.col_1 {
                         acc_683e37b8.push_str(&pg_crud::gen_col_queals_v_comma_uo_qp(
-                            pg_crud::PgTblSqlFragmentRef("col_1"),
-                            pg_crud::PgTblSqlFragmentRef(
+                            pg_crud::PgTblSqlFragmentRef::from("col_1"),
+                            pg_crud::PgTblSqlFragmentRef::from(
                                 &match TblExampleUpdForQuery::upd_qp_col_1(v_2d144436, &mut incr) {
                                     Ok(v_1ec12051) => v_1ec12051,
                                     Err(er_0) => {
@@ -3612,11 +3729,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
-                                                    file: loc_lib::loc::LocFile(String::from(
+                                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                    )),
-                                                    line: loc_lib::loc::LocLine(2319),
-                                                    col: loc_lib::loc::LocCol(80),
+                                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                    line: loc_lib::loc::LocLine::from(2319),
+                                                    col: loc_lib::loc::LocCol::from(80),
                                                 }),
                                             ),
                                         };
@@ -3632,8 +3749,8 @@ mod tbl_example_gen_pg_tbl_mod {
                     }
                     if let Some(v_2d144436) = &upd_for_query.col_2 {
                         acc_683e37b8.push_str(&pg_crud::gen_col_queals_v_comma_uo_qp(
-                            pg_crud::PgTblSqlFragmentRef("col_2"),
-                            pg_crud::PgTblSqlFragmentRef(
+                            pg_crud::PgTblSqlFragmentRef::from("col_2"),
+                            pg_crud::PgTblSqlFragmentRef::from(
                                 &match TblExampleUpdForQuery::upd_qp_col_2(v_2d144436, &mut incr) {
                                     Ok(v_1ec12051) => v_1ec12051,
                                     Err(er_0) => {
@@ -3644,11 +3761,11 @@ mod tbl_example_gen_pg_tbl_mod {
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
-                                                    file: loc_lib::loc::LocFile(String::from(
+                                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                                    )),
-                                                    line: loc_lib::loc::LocLine(2319),
-                                                    col: loc_lib::loc::LocCol(80),
+                                                    )).unwrap_or_else(loc_lib::loc::LocFile::from),
+                                                    line: loc_lib::loc::LocLine::from(2319),
+                                                    col: loc_lib::loc::LocCol::from(80),
                                                 }),
                                             ),
                                         };
@@ -3675,11 +3792,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(1927),
-                                    col: loc_lib::loc::LocCol(69),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(1927),
+                                    col: loc_lib::loc::LocCol::from(69),
                                 }),
                             ),
                         };
@@ -3700,11 +3818,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2319),
-                                    col: loc_lib::loc::LocCol(80),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2319),
+                                    col: loc_lib::loc::LocCol::from(80),
                                 }),
                             ),
                         };
@@ -3716,11 +3835,11 @@ mod tbl_example_gen_pg_tbl_mod {
                     }
                 };
                 pg_crud::gen_uo_query_string(
-                    pg_crud::PgTblNameRef(tbl),
-                    pg_crud::PgTblSqlFragmentRef(&cols),
-                    pg_crud::PgTblSqlFragmentRef(Self::pk()),
-                    pg_crud::PgTblSqlFragmentRef(&pk_qp),
-                    pg_crud::PgTblSqlFragmentRef(&return_cols),
+                    pg_crud::PgTblNameRef::from(tbl),
+                    pg_crud::PgTblSqlFragmentRef::from(&cols),
+                    pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
+                    pg_crud::PgTblSqlFragmentRef::from(&pk_qp),
+                    pg_crud::PgTblSqlFragmentRef::from(&return_cols),
                 )
             };
             let binded_query = {
@@ -3728,10 +3847,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_ed87c152) = &upd_for_query.col_0 {
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::upd_qb(
                         v_ed87c152.v.clone(),
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3744,11 +3863,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3763,10 +3883,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_ed87c152) = &upd_for_query.col_1 {
                     match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::upd_qb(
                         v_ed87c152.v.clone(),
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3779,11 +3899,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3798,10 +3919,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_ed87c152) = &upd_for_query.col_2 {
                     match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::upd_qb(
                         v_ed87c152.v.clone(),
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3814,11 +3935,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3832,10 +3954,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 match <pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::upd_qb(
                     upd_for_query.pk_col,
-                    pg_crud::PgQuery(query),
+                    pg_crud::PgQuery::from(query),
                 )
-                .map(|v| v.0)
-                .map_err(|er| er.0)
+                .map(pg_crud::PgQuery::into_inner)
+                .map_err(pg_crud::PgQueryBindEr::into_inner)
                 {
                     Ok(v_d64bac39) => {
                         query = v_d64bac39;
@@ -3848,11 +3970,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(3002),
-                                    col: loc_lib::loc::LocCol(25),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(3002),
+                                    col: loc_lib::loc::LocCol::from(25),
                                 }),
                             ),
                         };
@@ -3866,10 +3989,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_b2902425) = &upd_for_query.col_0 {
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_updd_ids_qb(
                         &v_b2902425.v,
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3882,11 +4005,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3901,10 +4025,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_b2902425) = &upd_for_query.col_1 {
                     match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::sel_only_updd_ids_qb(
                         &v_b2902425.v,
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3917,11 +4041,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3936,10 +4061,10 @@ mod tbl_example_gen_pg_tbl_mod {
                 if let Some(v_b2902425) = &upd_for_query.col_2 {
                     match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::sel_only_updd_ids_qb(
                         &v_b2902425.v,
-                        pg_crud::PgQuery(query),
+                        pg_crud::PgQuery::from(query),
                     )
-                    .map(|v| v.0)
-                    .map_err(|er| er.0)
+                    .map(pg_crud::PgQuery::into_inner)
+                    .map_err(pg_crud::PgQueryBindEr::into_inner)
                     {
                         Ok(v_result) => {
                             query = v_result;
@@ -3952,11 +4077,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3002),
-                                        col: loc_lib::loc::LocCol(25),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3002),
+                                        col: loc_lib::loc::LocCol::from(25),
                                     }),
                                 ),
                             };
@@ -3970,7 +4096,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleUoEr::Pg {
@@ -3980,11 +4106,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4005,11 +4132,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4031,11 +4159,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -4049,7 +4178,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleUoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleUoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleUoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleUoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -4061,11 +4190,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3230),
-                                            col: loc_lib::loc::LocCol(37),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3230),
+                                            col: loc_lib::loc::LocCol::from(37),
                                         }),
                                     ),
                                 };
@@ -4082,11 +4212,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3230),
-                                        col: loc_lib::loc::LocCol(37),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3230),
+                                        col: loc_lib::loc::LocCol::from(37),
                                     }),
                                 ),
                             };
@@ -4106,11 +4237,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -4154,11 +4286,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -4168,7 +4301,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/uo");
             let future = reqwest::Client::new()
                 .patch(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -4182,11 +4318,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -4206,11 +4343,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -4229,11 +4367,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -4275,11 +4414,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -4316,11 +4456,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -4345,11 +4486,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -4371,11 +4513,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -4388,14 +4531,14 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_dm_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef(&{
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from(&{
                     let mut incr: u64 = 0;
                     match pg_crud::PgTypeWhFlt::qp(
                         &prms.payload.wh_many,
                         &mut incr,
-                        pg_crud::SqlColRef(&""),
-                        pg_crud::AddOprtr(false),
+                        pg_crud::SqlColRef::from(&""),
+                        pg_crud::AddOprtr::from(false),
                     ) {
                         Ok(v_d1627695) => v_d1627695,
                         Err(er_0) => {
@@ -4406,11 +4549,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(1300),
-                                        col: loc_lib::loc::LocCol(21),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(1300),
+                                        col: loc_lib::loc::LocCol::from(21),
                                     }),
                                 ),
                             };
@@ -4422,27 +4566,29 @@ mod tbl_example_gen_pg_tbl_mod {
                         }
                     }
                 }),
-                pg_crud::PgTblSqlFragmentRef(Self::pk()),
+                pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
             );
             let binded_query = {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
-                match pg_crud::PgTypeWhFlt::qb(prms.payload.wh_many, pg_crud::PgQuery(query)) {
+                match pg_crud::PgTypeWhFlt::qb(prms.payload.wh_many, pg_crud::PgQuery::from(query))
+                {
                     Ok(v_03a58371) => {
-                        query = v_03a58371.0;
+                        query = v_03a58371.into_inner();
                     }
                     Err(er_0) => {
                         let er = TblExampleDmEr::TryBind {
-                            try_bind: er_0.0,
+                            try_bind: er_0.into_inner(),
                             loc: loc_lib::loc::Loc::new(
                                 file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(1324),
-                                    col: loc_lib::loc::LocCol(68),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(1324),
+                                    col: loc_lib::loc::LocCol::from(68),
                                 }),
                             ),
                         };
@@ -4455,7 +4601,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleDmEr::Pg {
@@ -4465,11 +4611,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4490,11 +4637,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4516,11 +4664,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -4534,7 +4683,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     let mut rows = binded_query.fetch(executor.as_mut());
                     let mut acc_d16ac269 = Vec::new();
-                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => Some (v_69ecb6a9) , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } , None => None , } , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } { acc_d16ac269 . push (v_d9cc2c36) ; }
+                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => Some (v_69ecb6a9) , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3213), col: loc_lib::loc::LocCol::from(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3213), col: loc_lib::loc::LocCol::from(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } , None => None , } , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3219), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3219), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } { acc_d16ac269 . push (v_d9cc2c36) ; }
                     acc_d16ac269
                 };
                 if let Err(er_0) = executor.commit().await {
@@ -4545,11 +4694,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -4596,11 +4746,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -4610,7 +4761,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/dm");
             let future = reqwest::Client::new()
                 .delete(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -4624,11 +4778,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -4648,11 +4803,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -4671,11 +4827,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -4717,11 +4874,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -4761,11 +4919,12 @@ mod tbl_example_gen_pg_tbl_mod {
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
-                            file: loc_lib::loc::LocFile(String::from(
+                            file: loc_lib::loc::LocFile::try_from(String::from(
                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                            )),
-                            line: loc_lib::loc::LocLine(2555),
-                            col: loc_lib::loc::LocCol(25),
+                            ))
+                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                            line: loc_lib::loc::LocLine::from(2555),
+                            col: loc_lib::loc::LocCol::from(25),
                         }),
                     ),
                 };
@@ -4790,11 +4949,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2564),
-                                col: loc_lib::loc::LocCol(33),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2564),
+                                col: loc_lib::loc::LocCol::from(33),
                             }),
                         ),
                     };
@@ -4816,11 +4976,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2609),
-                                    col: loc_lib::loc::LocCol(37),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2609),
+                                    col: loc_lib::loc::LocCol::from(37),
                                 }),
                             ),
                         };
@@ -4833,28 +4994,29 @@ mod tbl_example_gen_pg_tbl_mod {
                 },
             };
             let query_string = pg_crud::gen_dlo_query_string(
-                pg_crud::PgTblNameRef(tbl),
-                pg_crud::PgTblSqlFragmentRef(Self::pk()),
+                pg_crud::PgTblNameRef::from(tbl),
+                pg_crud::PgTblSqlFragmentRef::from(Self::pk()),
             );
             let binded_query = {
                 let mut query = sqlx::query::<sqlx::Postgres>(&query_string);
-                match pg_crud::PgTypeWhFlt::qb(prms.payload.pk_col, pg_crud::PgQuery(query)) {
+                match pg_crud::PgTypeWhFlt::qb(prms.payload.pk_col, pg_crud::PgQuery::from(query)) {
                     Ok(v_3099ea0f) => {
-                        query = v_3099ea0f.0;
+                        query = v_3099ea0f.into_inner();
                     }
                     Err(er_0) => {
                         let er = TblExampleDloEr::TryBind {
-                            try_bind: er_0.0,
+                            try_bind: er_0.into_inner(),
                             loc: loc_lib::loc::Loc::new(
                                 file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(3002),
-                                    col: loc_lib::loc::LocCol(25),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(3002),
+                                    col: loc_lib::loc::LocCol::from(25),
                                 }),
                             ),
                         };
@@ -4867,7 +5029,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().0.acquire().await {
+            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleDloEr::Pg {
@@ -4877,11 +5039,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4902,11 +5065,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(3165),
-                                col: loc_lib::loc::LocCol(29),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(3165),
+                                col: loc_lib::loc::LocCol::from(29),
                             }),
                         ),
                     };
@@ -4928,11 +5092,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2207),
-                                    col: loc_lib::loc::LocCol(65),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2207),
+                                    col: loc_lib::loc::LocCol::from(65),
                                 }),
                             ),
                         };
@@ -4946,7 +5111,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => v_69ecb6a9 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDloEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDloEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => v_69ecb6a9 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDloEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDloEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile::try_from(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")).unwrap_or_else(loc_lib::loc::LocFile::from), line: loc_lib::loc::LocLine::from(3230), col: loc_lib::loc::LocCol::from(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -4958,11 +5123,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
-                                            file: loc_lib::loc::LocFile(String::from(
+                                            file: loc_lib::loc::LocFile::try_from(String::from(
                                                 "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                            )),
-                                            line: loc_lib::loc::LocLine(3230),
-                                            col: loc_lib::loc::LocCol(37),
+                                            ))
+                                            .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                            line: loc_lib::loc::LocLine::from(3230),
+                                            col: loc_lib::loc::LocCol::from(37),
                                         }),
                                     ),
                                 };
@@ -4979,11 +5145,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
-                                        file: loc_lib::loc::LocFile(String::from(
+                                        file: loc_lib::loc::LocFile::try_from(String::from(
                                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                        )),
-                                        line: loc_lib::loc::LocLine(3230),
-                                        col: loc_lib::loc::LocCol(37),
+                                        ))
+                                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                        line: loc_lib::loc::LocLine::from(3230),
+                                        col: loc_lib::loc::LocCol::from(37),
                                     }),
                                 ),
                             };
@@ -5003,11 +5170,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2217),
-                                col: loc_lib::loc::LocCol(65),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2217),
+                                col: loc_lib::loc::LocCol::from(65),
                             }),
                         ),
                     };
@@ -5054,11 +5222,12 @@ mod tbl_example_gen_pg_tbl_mod {
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
-                                    file: loc_lib::loc::LocFile(String::from(
+                                    file: loc_lib::loc::LocFile::try_from(String::from(
                                         "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                    )),
-                                    line: loc_lib::loc::LocLine(2396),
-                                    col: loc_lib::loc::LocCol(81),
+                                    ))
+                                    .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                    line: loc_lib::loc::LocLine::from(2396),
+                                    col: loc_lib::loc::LocCol::from(81),
                                 }),
                             ),
                         });
@@ -5068,7 +5237,10 @@ mod tbl_example_gen_pg_tbl_mod {
             let url = format!("{endpoint_loc}/{tbl}/dlo");
             let future = reqwest::Client::new()
                 .delete(&url)
-                .header(&"commit".to_owned(), git_info::PROJECT_GIT_INFO.commit.0)
+                .header(
+                    &"commit".to_owned(),
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                )
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(payload)
                 .send();
@@ -5082,11 +5254,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2440),
-                                col: loc_lib::loc::LocCol(68),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2440),
+                                col: loc_lib::loc::LocCol::from(68),
                             }),
                         ),
                     });
@@ -5106,11 +5279,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2461),
-                                col: loc_lib::loc::LocCol(78),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2461),
+                                col: loc_lib::loc::LocCol::from(78),
                             }),
                         ),
                     });
@@ -5129,11 +5303,12 @@ mod tbl_example_gen_pg_tbl_mod {
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
-                                file: loc_lib::loc::LocFile(String::from(
+                                file: loc_lib::loc::LocFile::try_from(String::from(
                                     "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                                )),
-                                line: loc_lib::loc::LocLine(2472),
-                                col: loc_lib::loc::LocCol(63),
+                                ))
+                                .unwrap_or_else(loc_lib::loc::LocFile::from),
+                                line: loc_lib::loc::LocLine::from(2472),
+                                col: loc_lib::loc::LocCol::from(63),
                             }),
                         ),
                     });
@@ -5174,11 +5349,12 @@ mod tbl_example_gen_pg_tbl_mod {
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
-                        file: loc_lib::loc::LocFile(String::from(
+                        file: loc_lib::loc::LocFile::try_from(String::from(
                             "pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-                        )),
-                        line: loc_lib::loc::LocLine(2512),
-                        col: loc_lib::loc::LocCol(83),
+                        ))
+                        .unwrap_or_else(loc_lib::loc::LocFile::from),
+                        line: loc_lib::loc::LocLine::from(2512),
+                        col: loc_lib::loc::LocCol::from(83),
                     }),
                 ),
             })
@@ -5347,7 +5523,17 @@ mod tbl_example_gen_pg_tbl_mod {
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde :: Serialize, serde :: Deserialize, utoipa :: ToSchema)]
-    pub struct TblExampleCmPayload(pub Vec<TblExampleCr>);
+    pub struct TblExampleCmPayload(Vec<TblExampleCr>);
+    impl TblExampleCmPayload {
+        #[must_use]
+        pub const fn as_slice(&self) -> &[TblExampleCr] {
+            self.0.as_slice()
+        }
+        #[must_use]
+        pub fn into_vec(self) -> Vec<TblExampleCr> {
+            self.0
+        }
+    }
     impl pg_crud::DfltSomeOneEl for TblExampleCmPayload {
         fn dflt_some_one_el() -> Self {
             Self(vec![pg_crud::DfltSomeOneEl::dflt_some_one_el()])
@@ -6024,6 +6210,10 @@ mod tbl_example_gen_pg_tbl_mod {
         },
     }
     impl TblExampleUmPayload {
+        #[must_use]
+        pub fn into_vec(self) -> Vec<TblExampleUpd> {
+            self.0
+        }
         pub fn try_new(v: Vec<TblExampleUpd>) -> Result<Self, TblExampleUmPayloadTryNewEr> {
             let mut acc_6bf275fc = Vec::new();
             for el_35facc3a in &v {
@@ -6761,7 +6951,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
             }
             let _: Option<char> = acc.pop();
-            Ok(pg_crud::QpFragment(acc))
+            Ok(pg_crud::QpFragment::try_from(acc).unwrap_or_else(pg_crud::QpFragment::from))
         }
         fn cr_qb(
             self,
@@ -6889,7 +7079,17 @@ mod tbl_example_gen_pg_tbl_mod {
         }
     }
     #[derive(Debug, Clone, serde :: Serialize, serde :: Deserialize, utoipa :: ToSchema)]
-    pub struct StdOptOptTblExampleWhMany(pub Option<TblExampleWhMany>);
+    pub struct StdOptOptTblExampleWhMany(Option<TblExampleWhMany>);
+    impl StdOptOptTblExampleWhMany {
+        #[must_use]
+        pub const fn as_ref(&self) -> Option<&TblExampleWhMany> {
+            self.0.as_ref()
+        }
+        #[must_use]
+        pub fn into_option(self) -> Option<TblExampleWhMany> {
+            self.0
+        }
+    }
     #[allow(clippy::arbitrary_source_item_ordering)]
     impl<'lt> pg_crud::PgTypeWhFlt<'lt> for StdOptOptTblExampleWhMany {
         fn qp(
@@ -6898,7 +7098,7 @@ mod tbl_example_gen_pg_tbl_mod {
             _: pg_crud::SqlColRef<'_>,
             _: pg_crud::AddOprtr,
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
-            Ok(pg_crud::QpFragment(match &self.0 {
+            Ok(pg_crud::QpFragment::try_from(match self.as_ref() {
                 Some(v) => {
                     let mut extra_prms = String::from("where");
                     let mut is_first_push_to_extra_prms_already_happend = false;
@@ -6906,8 +7106,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         match pg_crud::PgTypeWhFlt::qp(
                             v_da0f0616,
                             incr,
-                            pg_crud::SqlColRef(&"pk_col"),
-                            pg_crud::AddOprtr(is_first_push_to_extra_prms_already_happend),
+                            pg_crud::SqlColRef::from(&"pk_col"),
+                            pg_crud::AddOprtr::from(is_first_push_to_extra_prms_already_happend),
                         ) {
                             Ok(v_9e3f8fdd) => {
                                 extra_prms.push_str(&v_9e3f8fdd);
@@ -6922,8 +7122,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         match pg_crud::PgTypeWhFlt::qp(
                             v_da0f0616,
                             incr,
-                            pg_crud::SqlColRef(&"col_0"),
-                            pg_crud::AddOprtr(is_first_push_to_extra_prms_already_happend),
+                            pg_crud::SqlColRef::from(&"col_0"),
+                            pg_crud::AddOprtr::from(is_first_push_to_extra_prms_already_happend),
                         ) {
                             Ok(v_9e3f8fdd) => {
                                 extra_prms.push_str(&v_9e3f8fdd);
@@ -6938,8 +7138,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         match pg_crud::PgTypeWhFlt::qp(
                             v_da0f0616,
                             incr,
-                            pg_crud::SqlColRef(&"col_1"),
-                            pg_crud::AddOprtr(is_first_push_to_extra_prms_already_happend),
+                            pg_crud::SqlColRef::from(&"col_1"),
+                            pg_crud::AddOprtr::from(is_first_push_to_extra_prms_already_happend),
                         ) {
                             Ok(v_9e3f8fdd) => {
                                 extra_prms.push_str(&v_9e3f8fdd);
@@ -6954,8 +7154,8 @@ mod tbl_example_gen_pg_tbl_mod {
                         match pg_crud::PgTypeWhFlt::qp(
                             v_da0f0616,
                             incr,
-                            pg_crud::SqlColRef(&"col_2"),
-                            pg_crud::AddOprtr(is_first_push_to_extra_prms_already_happend),
+                            pg_crud::SqlColRef::from(&"col_2"),
+                            pg_crud::AddOprtr::from(is_first_push_to_extra_prms_already_happend),
                         ) {
                             Ok(v_9e3f8fdd) => {
                                 extra_prms.push_str(&v_9e3f8fdd);
@@ -6968,13 +7168,14 @@ mod tbl_example_gen_pg_tbl_mod {
                     extra_prms
                 }
                 None => String::default(),
-            }))
+            })
+            .unwrap_or_else(pg_crud::QpFragment::from))
         }
         fn qb(
             self,
             mut query: pg_crud::PgQuery<'lt>,
         ) -> Result<pg_crud::PgQuery<'lt>, pg_crud::PgQueryBindEr> {
-            if let Some(v_27176ffb) = self.0 {
+            if let Some(v_27176ffb) = self.into_option() {
                 if let Some(v_b12d6fe0) = v_27176ffb.pk_col {
                     match pg_crud::PgTypeWhFlt::qb(v_b12d6fe0, query) {
                         Ok(v_edaee3b2) => {
@@ -7049,7 +7250,8 @@ mod tbl_example_gen_pg_tbl_mod {
     }
     impl loc_lib::ToErrString for TblExampleSel {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue(format!("{self}"))
+            loc_lib::ToErrStringValue::try_from(format!("{self}"))
+                .unwrap_or_else(loc_lib::ToErrStringValue::from)
         }
     }
     impl pg_crud::AllEnumVrtsArrDfltSomeOneEl for TblExampleSel {
@@ -7294,9 +7496,9 @@ mod tbl_example_gen_pg_tbl_mod {
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
             match <pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud::PgType>::upd_qp(
                 &self.pk_col,
-                pg_crud::SqlColRef(&""),
-                pg_crud::SqlColRef(&super::TblExample::pk()),
-                pg_crud::SqlColRef(&""),
+                pg_crud::SqlColRef::from(&""),
+                pg_crud::SqlColRef::from(&super::TblExample::pk()),
+                pg_crud::SqlColRef::from(&""),
                 incr,
             ) {
                 Ok(v) => Ok(v),
@@ -7309,9 +7511,9 @@ mod tbl_example_gen_pg_tbl_mod {
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
             match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::upd_qp(
                 &v.v,
-                pg_crud::SqlColRef(&"col_0"),
-                pg_crud::SqlColRef(&"col_0"),
-                pg_crud::SqlColRef(&""),
+                pg_crud::SqlColRef::from(&"col_0"),
+                pg_crud::SqlColRef::from(&"col_0"),
+                pg_crud::SqlColRef::from(&""),
                 incr,
             ) {
                 Ok(v_f75dfd93) => Ok(v_f75dfd93),
@@ -7324,9 +7526,9 @@ mod tbl_example_gen_pg_tbl_mod {
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
             match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::upd_qp(
                 &v.v,
-                pg_crud::SqlColRef(&"col_1"),
-                pg_crud::SqlColRef(&"col_1"),
-                pg_crud::SqlColRef(&""),
+                pg_crud::SqlColRef::from(&"col_1"),
+                pg_crud::SqlColRef::from(&"col_1"),
+                pg_crud::SqlColRef::from(&""),
                 incr,
             ) {
                 Ok(v_f75dfd93) => Ok(v_f75dfd93),
@@ -7339,9 +7541,9 @@ mod tbl_example_gen_pg_tbl_mod {
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
             match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::upd_qp(
                 &v.v,
-                pg_crud::SqlColRef(&"col_2"),
-                pg_crud::SqlColRef(&"col_2"),
-                pg_crud::SqlColRef(&""),
+                pg_crud::SqlColRef::from(&"col_2"),
+                pg_crud::SqlColRef::from(&"col_2"),
+                pg_crud::SqlColRef::from(&""),
                 incr,
             ) {
                 Ok(v_f75dfd93) => Ok(v_f75dfd93),
@@ -7353,12 +7555,12 @@ mod tbl_example_gen_pg_tbl_mod {
             incr: &mut dyn pg_crud::QpIncrMut,
         ) -> Result<pg_crud::QpFragment, pg_crud::QpEr> {
             let mut acc = String::new();
-            acc . push_str (& match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_updd_ids_qp (& self . pk_col , pg_crud::SqlColRef(&"pk_col") , incr ,) { Ok (v) => v , Err (er_0) => { { return Err (er_0) ; } } }) ;
+            acc . push_str (& match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_updd_ids_qp (& self . pk_col , pg_crud::SqlColRef::from(&"pk_col") , incr ,) { Ok (v) => v , Err (er_0) => { { return Err (er_0) ; } } }) ;
             if let Some(v_90f79b11) = &self.col_0 {
                 acc.push_str(
                     &match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_updd_ids_qp(
                         &v_90f79b11.v,
-                        pg_crud::SqlColRef(&"col_0"),
+                        pg_crud::SqlColRef::from(&"col_0"),
                         incr,
                     ) {
                         Ok(v_47a6f597) => v_47a6f597,
@@ -7372,7 +7574,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 acc.push_str(
                     &match <pg_crud::OptI16AsNlInt2 as pg_crud::PgType>::sel_only_updd_ids_qp(
                         &v_90f79b11.v,
-                        pg_crud::SqlColRef(&"col_1"),
+                        pg_crud::SqlColRef::from(&"col_1"),
                         incr,
                     ) {
                         Ok(v_47a6f597) => v_47a6f597,
@@ -7386,7 +7588,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 acc.push_str(
                     &match <pg_crud::I32AsNnInt4 as pg_crud::PgType>::sel_only_updd_ids_qp(
                         &v_90f79b11.v,
-                        pg_crud::SqlColRef(&"col_2"),
+                        pg_crud::SqlColRef::from(&"col_2"),
                         incr,
                     ) {
                         Ok(v_47a6f597) => v_47a6f597,
@@ -7397,7 +7599,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 );
             }
             let _: Option<char> = acc.pop();
-            Ok(pg_crud::QpFragment(acc))
+            Ok(pg_crud::QpFragment::try_from(acc).unwrap_or_else(pg_crud::QpFragment::from))
         }
         fn from_h(v: TblExampleUpd) -> Self {
             Self { pk_col : < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: UpdForQuery :: from (v . pk_col) , col_0 : v . col_0 . map (| v_0e64c53a | pg_crud :: V { v : < pg_crud :: I16AsNnInt2 as pg_crud :: PgType > :: UpdForQuery :: from (v_0e64c53a . v) }) , col_1 : v . col_1 . map (| v_0e64c53a | pg_crud :: V { v : < pg_crud :: OptI16AsNlInt2 as pg_crud :: PgType > :: UpdForQuery :: from (v_0e64c53a . v) }) , col_2 : v . col_2 . map (| v_0e64c53a | pg_crud :: V { v : < pg_crud :: I32AsNnInt4 as pg_crud :: PgType > :: UpdForQuery :: from (v_0e64c53a . v) }) }

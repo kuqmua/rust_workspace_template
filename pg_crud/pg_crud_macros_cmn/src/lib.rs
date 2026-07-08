@@ -1,12 +1,18 @@
 mod flts;
 pub use flts::*;
+const IS_NL_PREFIX_STR_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, optml::Optml)]
 pub enum DeriveOrImpl {
     Derive,
     Impl(macros_helpers::GeneratedRustTs),
 }
 #[derive(Debug, Clone, Default)]
-pub struct GeneratedRustTsVec(pub Vec<macros_helpers::GeneratedRustTs>);
+pub struct GeneratedRustTsVec(Vec<macros_helpers::GeneratedRustTs>);
+impl From<Vec<macros_helpers::GeneratedRustTs>> for GeneratedRustTsVec {
+    fn from(value: Vec<macros_helpers::GeneratedRustTs>) -> Self {
+        Self(value)
+    }
+}
 impl quote::ToTokens for GeneratedRustTsVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.iter().map(quote::ToTokens::to_token_stream));
@@ -21,51 +27,190 @@ impl FromIterator<macros_helpers::GeneratedRustTs> for GeneratedRustTsVec {
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct NnOrNlStr(pub &'static str);
+pub struct NnOrNlStr(&'static str);
+impl From<&'static str> for NnOrNlStr {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for NnOrNlStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone)]
-pub struct IsNlPrefixStr(pub String);
+pub struct IsNlPrefixStr(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IsNlPrefixStrTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for IsNlPrefixStrTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "is nl prefix string length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<IsNlPrefixStrTryFromStringEr> for IsNlPrefixStr {
+    fn from(value: IsNlPrefixStrTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for IsNlPrefixStr {
+    type Error = IsNlPrefixStrTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > IS_NL_PREFIX_STR_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: IS_NL_PREFIX_STR_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for IsNlPrefixStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct ImportScStr(pub &'static str);
+pub struct ImportScStr(&'static str);
+impl From<&'static str> for ImportScStr {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for ImportScStr {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 impl std::fmt::Display for ImportScStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct ImportPathStr(pub &'static str);
+pub struct ImportPathStr(&'static str);
+impl From<&'static str> for ImportPathStr {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for ImportPathStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct DimNbr(pub usize);
+pub struct DimNbr(usize);
+impl From<usize> for DimNbr {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl DimNbr {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct StructElsLen(pub usize);
+pub struct StructElsLen(usize);
+impl From<usize> for StructElsLen {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl StructElsLen {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct DeLen(pub usize);
+pub struct DeLen(usize);
+impl From<usize> for DeLen {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl DeLen {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct WrapIntoBraces(pub bool);
+pub struct WrapIntoBraces(bool);
+impl From<bool> for WrapIntoBraces {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+impl From<WrapIntoBraces> for bool {
+    fn from(value: WrapIntoBraces) -> Self {
+        value.0
+    }
+}
 #[derive(Debug, Clone)]
-pub struct ParseTsStrings(pub Vec<String>);
+pub struct ParseTsStrings(Vec<String>);
+impl From<Vec<String>> for ParseTsStrings {
+    fn from(value: Vec<String>) -> Self {
+        Self(value)
+    }
+}
+impl ParseTsStrings {
+    #[must_use]
+    pub fn into_vec(self) -> Vec<String> {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct ParseTsTextRef<'lt>(pub &'lt str);
+pub struct ParseTsTextRef<'lt>(&'lt str);
+impl<'lt> From<&'lt str> for ParseTsTextRef<'lt> {
+    fn from(value: &'lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for ParseTsTextRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct ParseErIdRef<'lt>(pub &'lt str);
+pub struct ParseErIdRef<'lt>(&'lt str);
+impl<'lt> From<&'lt str> for ParseErIdRef<'lt> {
+    fn from(value: &'lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for ParseErIdRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct PanicUuidRef<'lt>(pub &'lt str);
+pub struct PanicUuidRef<'lt>(&'lt str);
+impl<'lt> From<&'lt str> for PanicUuidRef<'lt> {
+    fn from(value: &'lt str) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<str> for PanicUuidRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy)]
-pub struct SynIdentTypeRefs<'lt>(pub &'lt [(&'lt syn::Ident, &'lt syn::Type)]);
+pub struct SynIdentTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
+impl<'lt> From<&'lt [(&'lt syn::Ident, &'lt syn::Type)]> for SynIdentTypeRefs<'lt> {
+    fn from(value: &'lt [(&'lt syn::Ident, &'lt syn::Type)]) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum IsStdrtNn {
     False,
@@ -112,17 +257,20 @@ impl IsNl {
         }
     }
     #[must_use]
-    pub const fn nn_or_nl_str(&self) -> NnOrNlStr {
+    pub fn nn_or_nl_str(&self) -> NnOrNlStr {
         match &self {
-            Self::False => NnOrNlStr("Nn"),
-            Self::True => NnOrNlStr("Nl"),
+            Self::False => NnOrNlStr::from("Nn"),
+            Self::True => NnOrNlStr::from("Nl"),
         }
     }
     #[must_use]
     pub fn prefix_str(&self) -> IsNlPrefixStr {
         match &self {
-            Self::False => IsNlPrefixStr(String::default()),
-            Self::True => IsNlPrefixStr(String::from("StdOptOpt")),
+            Self::False => {
+                IsNlPrefixStr::try_from(String::default()).unwrap_or_else(IsNlPrefixStr::from)
+            }
+            Self::True => IsNlPrefixStr::try_from(String::from("StdOptOpt"))
+                .unwrap_or_else(IsNlPrefixStr::from),
         }
     }
     #[must_use]
@@ -169,26 +317,29 @@ impl Import {
         }
     }
     #[must_use]
-    pub const fn sc_str(&self) -> ImportScStr {
+    pub fn sc_str(&self) -> ImportScStr {
         match &self {
-            Self::Crate => ImportScStr("crate"),
-            Self::PgCrud => ImportScStr("pg_crud"),
-            Self::PgCrudCmn => ImportScStr("pg_crud_cmn"),
+            Self::Crate => ImportScStr::from("crate"),
+            Self::PgCrud => ImportScStr::from("pg_crud"),
+            Self::PgCrudCmn => ImportScStr::from("pg_crud_cmn"),
         }
     }
     #[must_use]
-    pub const fn to_path(&self) -> ImportPathStr {
+    pub fn to_path(&self) -> ImportPathStr {
         match &self {
-            Self::Crate => ImportPathStr("crate"),
-            Self::PgCrud => ImportPathStr("pg_crud"),
-            Self::PgCrudCmn => ImportPathStr("pg_crud_cmn"),
+            Self::Crate => ImportPathStr::from("crate"),
+            Self::PgCrud => ImportPathStr::from("pg_crud"),
+            Self::PgCrudCmn => ImportPathStr::from("pg_crud_cmn"),
         }
     }
 }
 impl quote::ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        parse_ts_or_compile_error(ParseTsTextRef(self.sc_str().0), ParseErIdRef("d8636ee5"))
-            .to_tokens(tokens);
+        parse_ts_or_compile_error(
+            ParseTsTextRef::from(self.sc_str().as_ref()),
+            ParseErIdRef::from("d8636ee5"),
+        )
+        .to_tokens(tokens);
     }
 }
 pg_crud_macros_cmn_macros::bool_enum_to_tokens!(AddOprtrUndrscr, false => naming::AddOprtrSc, true => quote::quote! {_});
@@ -793,8 +944,8 @@ pub fn pg_crud_cmn_qp_er_ts() -> macros_helpers::GeneratedRustTs {
 #[must_use]
 pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::GeneratedRustTs {
     parse_ts_or_compile_error(
-        ParseTsTextRef(&format!("dim{}_pgn", dim_nbr.0)),
-        ParseErIdRef("7c3a91b2"),
+        ParseTsTextRef::from(format!("dim{}_pgn", dim_nbr.get()).as_str()),
+        ParseErIdRef::from("7c3a91b2"),
     )
 }
 pub fn gen_struct_ident_dq_ts(v: &dyn std::fmt::Display) -> gen_quotes::QuotedLiteralTs {
@@ -804,7 +955,7 @@ pub fn gen_struct_ident_with_nbr_els_dq_ts(
     ident: &dyn naming::DisplayPlusToTokens,
     len: StructElsLen,
 ) -> gen_quotes::QuotedLiteralTs {
-    gen_quotes::dq_ts(&format!("struct {ident} with {} els", len.0))
+    gen_quotes::dq_ts(&format!("struct {ident} with {} els", len.get()))
 }
 pub fn gen_sqlx_types_json_type_dcl_ts(
     type_ts: &dyn quote::ToTokens,
@@ -827,7 +978,7 @@ pub fn gen_de_dq_ts(
 ) {
     let struct_pg_type_ident_wh_tokens_dq_ts = gen_struct_ident_dq_ts(ident);
     let struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts =
-        gen_struct_ident_with_nbr_els_dq_ts(ident, StructElsLen(len.0));
+        gen_struct_ident_with_nbr_els_dq_ts(ident, StructElsLen::from(len.get()));
     let pg_type_ident_wh_tokens_dq_ts = gen_quotes::dq_ts(&ident);
     (
         struct_pg_type_ident_wh_tokens_dq_ts,
@@ -4159,7 +4310,7 @@ pub fn gen_impl_crate_is_string_empty_for_ident_ts(
     quote::quote! {
         impl pg_crud_cmn::IsStringEmpty for #ident {
             fn is_string_empty(&self) -> pg_crud_cmn::IsStringEmptyRes {
-                pg_crud_cmn::IsStringEmptyRes(#ts)
+                pg_crud_cmn::IsStringEmptyRes::from(#ts)
             }
         }
     }
@@ -4186,8 +4337,8 @@ pub fn gen_impl_de_for_struct_ts(
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_ident_ts = parse_ts_or_compile_error(
-        ParseTsTextRef(&format!("{ident}Raw")),
-        ParseErIdRef("a1b2c3d4"),
+        ParseTsTextRef::from(format!("{ident}Raw").as_str()),
+        ParseErIdRef::from("a1b2c3d4"),
     );
     let raw_fields_ts = vec_ident_type.0.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
@@ -4230,7 +4381,7 @@ pub fn mb_wrap_into_braces_ts(
     ts: &dyn quote::ToTokens,
     wrap: WrapIntoBraces,
 ) -> macros_helpers::GeneratedRustTs {
-    if wrap.0 {
+    if bool::from(wrap) {
         wrap_into_scopes_ts(&ts)
     } else {
         quote::quote! {#ts}.into()
@@ -4924,8 +5075,9 @@ pub fn gen_return_err_qp_er_write_into_buffer_ts(
 }
 #[must_use]
 pub fn parse_strs_to_ts2_vec(v: ParseTsStrings, uuid: ParseErIdRef<'_>) -> GeneratedRustTsVec {
-    v.0.into_iter()
-        .map(|el| parse_ts_or_compile_error(ParseTsTextRef(&el), uuid))
+    v.into_vec()
+        .into_iter()
+        .map(|el| parse_ts_or_compile_error(ParseTsTextRef::from(el.as_str()), uuid))
         .collect::<GeneratedRustTsVec>()
 }
 #[must_use]
@@ -5273,7 +5425,7 @@ pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
     ok_v_ts: &dyn quote::ToTokens,
     panic_uuid: PanicUuidRef<'_>,
 ) -> macros_helpers::GeneratedRustTs {
-    let panic_uuid_ts = gen_quotes::dq_ts(&panic_uuid.0);
+    let panic_uuid_ts = gen_quotes::dq_ts(panic_uuid.as_ref());
     quote::quote! {
         match #expr_ts {
             Ok(#ok_v_ts) => Some(#ok_v_ts),
@@ -5434,10 +5586,10 @@ fn parse_ts_or_compile_error(
     v: ParseTsTextRef<'_>,
     er_id: ParseErIdRef<'_>,
 ) -> macros_helpers::GeneratedRustTs {
-    match v.0.parse::<proc_macro2::TokenStream>() {
+    match v.as_ref().parse::<proc_macro2::TokenStream>() {
         Ok(parsed_ts) => parsed_ts.into(),
         Err(er) => {
-            let msg = format!("{}: {er}", er_id.0);
+            let msg = format!("{}: {er}", er_id.as_ref());
             quote::quote! {compile_error!(#msg);}.into()
         }
     }

@@ -290,7 +290,7 @@ fn gen_to_err_string_ts(
             quote::quote! {
                 impl loc_lib::ToErrString for #ident {
                     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue(AsRef::<str>::as_ref(&self.0).to_owned())
+                        loc_lib::ToErrStringValue::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(loc_lib::ToErrStringValue::from)
                     }
                 }
             }
@@ -299,7 +299,7 @@ fn gen_to_err_string_ts(
             quote::quote! {
                 impl loc_lib::ToErrString for #ident {
                     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue(format!("{:?}", self.0))
+                        loc_lib::ToErrStringValue::try_from(format!("{:?}", self.0)).unwrap_or_else(loc_lib::ToErrStringValue::from)
                     }
                 }
             }
@@ -308,7 +308,7 @@ fn gen_to_err_string_ts(
             quote::quote! {
                 impl loc_lib::ToErrString for #ident {
                     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue(self.0.to_string())
+                        loc_lib::ToErrStringValue::try_from(self.0.to_string()).unwrap_or_else(loc_lib::ToErrStringValue::from)
                     }
                 }
             }

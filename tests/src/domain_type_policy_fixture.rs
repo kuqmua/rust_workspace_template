@@ -1,5 +1,36 @@
 struct DomainId(u32);
 struct DomainName(String);
+const DOMAIN_NAME_MAX_LEN: usize = 1_048_576;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DomainNameTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for DomainNameTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(f, "domain name length {len} exceeds maximum {max}")
+            }
+        }
+    }
+}
+impl From<DomainNameTryFromStringEr> for DomainName {
+    fn from(value: DomainNameTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for DomainName {
+    type Error = DomainNameTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > DOMAIN_NAME_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: DOMAIN_NAME_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 struct DomainEntity {
     id: DomainId,
     name: DomainName,

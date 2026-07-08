@@ -1,12 +1,22 @@
 #[derive(Debug, Clone)]
-pub struct SynPathSegment(pub syn::PathSegment);
+pub struct SynPathSegment(syn::PathSegment);
+impl From<syn::PathSegment> for SynPathSegment {
+    fn from(value: syn::PathSegment) -> Self {
+        Self(value)
+    }
+}
 impl From<SynPathSegment> for syn::PathSegment {
     fn from(value: SynPathSegment) -> Self {
         value.0
     }
 }
 #[derive(Debug, Clone)]
-pub struct SynPathSegments(pub syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
+pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
+impl From<syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>> for SynPathSegments {
+    fn from(value: syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>) -> Self {
+        Self(value)
+    }
+}
 impl From<SynPathSegments> for syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
     fn from(value: SynPathSegments) -> Self {
         value.0
@@ -22,7 +32,7 @@ fn mk_path_segment<S>(v: S) -> SynPathSegment
 where
     S: AsRef<str>,
 {
-    SynPathSegment(syn::PathSegment {
+    SynPathSegment::from(syn::PathSegment {
         ident: proc_macro2::Ident::new(v.as_ref(), proc_macro2::Span::call_site()),
         arguments: syn::PathArguments::None,
     })
@@ -46,7 +56,7 @@ where
             });
         }
     }
-    SynPathSegments(acc)
+    SynPathSegments::from(acc)
 }
 #[must_use]
 pub fn string_syn_punct() -> SynPathSegments {

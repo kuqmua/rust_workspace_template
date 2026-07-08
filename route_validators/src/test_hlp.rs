@@ -33,6 +33,11 @@ impl std::ops::Deref for TestHeaders {
         &self.0
     }
 }
+impl AsRef<axum::http::HeaderMap> for TestHeaders {
+    fn as_ref(&self) -> &axum::http::HeaderMap {
+        &self.0
+    }
+}
 impl std::ops::DerefMut for TestHeaders {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0

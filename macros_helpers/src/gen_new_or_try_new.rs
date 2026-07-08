@@ -211,7 +211,7 @@ mod tests {
         let body: proc_macro2::TokenStream = "Self{v}".parse().expect("7ad6dd07");
         let ts = super::gen_impl_new_for_ident_ts(&ident, &empty_ts(), &prms, &body);
         assert_eq!(
-            cmpct(&ts.0.to_string()),
+            cmpct(&ts.to_string()),
             cmpct("impl Cfg { fn new(v:usize) -> Self { Self{v} } }")
         );
     }
@@ -222,7 +222,7 @@ mod tests {
         let body: proc_macro2::TokenStream = "Self{v}".parse().expect("46fb1c80");
         let ts = super::gen_impl_const_new_for_ident_ts(&ident, &empty_ts(), &prms, &body);
         assert_eq!(
-            cmpct(&ts.0.to_string()),
+            cmpct(&ts.to_string()),
             cmpct("impl Cfg { const fn new(v:usize) -> Self { Self{v} } }")
         );
     }
@@ -234,7 +234,7 @@ mod tests {
         let body: proc_macro2::TokenStream = "Self{v}".parse().expect("29ac89d5");
         let ts = super::gen_impl_pub_const_new_for_ident_ts(&ident, &attr, &prms, &body);
         assert_eq!(
-            cmpct(&ts.0.to_string()),
+            cmpct(&ts.to_string()),
             cmpct("impl Cfg { #[inline] pub const fn new(v:usize) -> Self { Self{v} } }")
         );
     }

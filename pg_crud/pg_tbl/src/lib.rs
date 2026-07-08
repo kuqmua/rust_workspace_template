@@ -1,4 +1,5 @@
 pub use gen_pg_tbl::*;
+const PG_TBL_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait CombinationOfAppStateLogicTraits:
     app_state::GetEnableApiGitCommitCheck
     + app_state::GetMaximumSizeOfHttpBodyInBytes
@@ -25,21 +26,80 @@ enum UpdateSelectorFmt {
     InList,
 }
 #[derive(Debug, Clone, Copy)]
-pub struct PgTblNameRef<'lt>(pub &'lt str);
+pub struct PgTblNameRef<'lt>(&'lt str);
+impl<'lt, T> From<&'lt T> for PgTblNameRef<'lt>
+where
+    T: AsRef<str> + ?Sized,
+{
+    fn from(value: &'lt T) -> Self {
+        Self(value.as_ref())
+    }
+}
+impl AsRef<str> for PgTblNameRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 impl std::fmt::Display for PgTblNameRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct PgTblSqlFragmentRef<'lt>(pub &'lt str);
+pub struct PgTblSqlFragmentRef<'lt>(&'lt str);
+impl<'lt, T> From<&'lt T> for PgTblSqlFragmentRef<'lt>
+where
+    T: AsRef<str> + ?Sized,
+{
+    fn from(value: &'lt T) -> Self {
+        Self(value.as_ref())
+    }
+}
+impl AsRef<str> for PgTblSqlFragmentRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 impl std::fmt::Display for PgTblSqlFragmentRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)
     }
 }
 #[derive(Debug, Clone)]
-pub struct PgTblQueryString(pub String);
+pub struct PgTblQueryString(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PgTblStringWrapperTryFromStringEr {
+    TooLong { len: usize, max: usize },
+}
+impl std::fmt::Display for PgTblStringWrapperTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong { len, max } => {
+                write!(
+                    f,
+                    "pg tbl string wrapper length {len} exceeds maximum {max}"
+                )
+            }
+        }
+    }
+}
+impl From<PgTblStringWrapperTryFromStringEr> for PgTblQueryString {
+    fn from(value: PgTblStringWrapperTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for PgTblQueryString {
+    type Error = PgTblStringWrapperTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > PG_TBL_STRING_WRAPPER_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: PG_TBL_STRING_WRAPPER_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for PgTblQueryString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
@@ -52,7 +112,24 @@ impl std::ops::Deref for PgTblQueryString {
     }
 }
 #[derive(Debug, Clone)]
-pub struct PgTblQpFragment(pub String);
+pub struct PgTblQpFragment(String);
+impl From<PgTblStringWrapperTryFromStringEr> for PgTblQpFragment {
+    fn from(value: PgTblStringWrapperTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for PgTblQpFragment {
+    type Error = PgTblStringWrapperTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > PG_TBL_STRING_WRAPPER_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: value.len(),
+                max: PG_TBL_STRING_WRAPPER_MAX_LEN,
+            });
+        }
+        Ok(Self(value))
+    }
+}
 impl std::fmt::Display for PgTblQpFragment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.0)
@@ -72,12 +149,14 @@ fn gen_insert_query_string(
     insert_values_fmt: InsertValuesFmt,
 ) -> PgTblQueryString {
     match insert_values_fmt {
-        InsertValuesFmt::Raw => PgTblQueryString(format!(
+        InsertValuesFmt::Raw => PgTblQueryString::try_from(format!(
             "insert into {tbl} ({cols}) values {values} returning {cols_to_return}"
-        )),
-        InsertValuesFmt::Wrapped => PgTblQueryString(format!(
+        ))
+        .unwrap_or_else(PgTblQueryString::from),
+        InsertValuesFmt::Wrapped => PgTblQueryString::try_from(format!(
             "insert into {tbl} ({cols}) values ({values}) returning {cols_to_return}"
-        )),
+        ))
+        .unwrap_or_else(PgTblQueryString::from),
     }
 }
 fn gen_select_query_string(
@@ -88,10 +167,12 @@ fn gen_select_query_string(
 ) -> PgTblQueryString {
     match select_where_fmt {
         SelectWhereFmt::Plain => {
-            PgTblQueryString(format!("select {sel_string} from {tbl} {wh_string}"))
+            PgTblQueryString::try_from(format!("select {sel_string} from {tbl} {wh_string}"))
+                .unwrap_or_else(PgTblQueryString::from)
         }
         SelectWhereFmt::Where => {
-            PgTblQueryString(format!("select {sel_string} from {tbl} where {wh_string}"))
+            PgTblQueryString::try_from(format!("select {sel_string} from {tbl} where {wh_string}"))
+                .unwrap_or_else(PgTblQueryString::from)
         }
     }
 }
@@ -104,12 +185,12 @@ fn gen_update_query_string(
     update_selector_fmt: UpdateSelectorFmt,
 ) -> PgTblQueryString {
     match update_selector_fmt {
-        UpdateSelectorFmt::Eq => PgTblQueryString(format!(
+        UpdateSelectorFmt::Eq => PgTblQueryString::try_from(format!(
             "update {tbl} set {cols_or_els} where {pk_field_name} = {pk_selector} returning {cols_to_return}"
-        )),
-        UpdateSelectorFmt::InList => PgTblQueryString(format!(
+        )).unwrap_or_else(PgTblQueryString::from),
+        UpdateSelectorFmt::InList => PgTblQueryString::try_from(format!(
             "update {tbl} set {cols_or_els} where {pk_field_name} in ({pk_selector}) returning {cols_to_return}"
-        )),
+        )).unwrap_or_else(PgTblQueryString::from),
     }
 }
 fn gen_delete_query_string(
@@ -119,11 +200,15 @@ fn gen_delete_query_string(
 ) -> PgTblQueryString {
     wh_string.map_or_else(
         || {
-            PgTblQueryString(format!(
+            PgTblQueryString::try_from(format!(
                 "delete from {tbl} where {pk_field_name} = $1 returning {pk_field_name}"
             ))
+            .unwrap_or_else(PgTblQueryString::from)
         },
-        |v| PgTblQueryString(format!("delete from {tbl} {v} returning {pk_field_name}")),
+        |v| {
+            PgTblQueryString::try_from(format!("delete from {tbl} {v} returning {pk_field_name}"))
+                .unwrap_or_else(PgTblQueryString::from)
+        },
     )
 }
 #[must_use]
@@ -165,7 +250,7 @@ pub fn gen_col_queals_v_comma_uo_qp(
     col: PgTblSqlFragmentRef<'_>,
     value: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment(format!("{col} = {value},"))
+    PgTblQpFragment::try_from(format!("{col} = {value},")).unwrap_or_else(PgTblQpFragment::from)
 }
 #[must_use]
 pub fn gen_when_col_id_then_v_um_qp(
@@ -173,14 +258,16 @@ pub fn gen_when_col_id_then_v_um_qp(
     id: PgTblSqlFragmentRef<'_>,
     value: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment(format!("when {col} = {id} then {value} "))
+    PgTblQpFragment::try_from(format!("when {col} = {id} then {value} "))
+        .unwrap_or_else(PgTblQpFragment::from)
 }
 #[must_use]
 pub fn gen_col_eqs_case_acc_else_col_end_comma_um_qp(
     col: PgTblSqlFragmentRef<'_>,
     acc: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment(format!("{col} = case {acc}else {col} end,"))
+    PgTblQpFragment::try_from(format!("{col} = case {acc}else {col} end,"))
+        .unwrap_or_else(PgTblQpFragment::from)
 }
 //todo extra param for cols_to_return instead of pk_field_name in "returning {pk_field_name}""
 #[must_use]
@@ -236,10 +323,10 @@ pub fn gen_dlo_query_string(
 #[cfg(test)]
 mod tests {
     fn tbl(v: &'static str) -> super::PgTblNameRef<'static> {
-        super::PgTblNameRef(v)
+        super::PgTblNameRef::from(v)
     }
     fn sql(v: &'static str) -> super::PgTblSqlFragmentRef<'static> {
-        super::PgTblSqlFragmentRef(v)
+        super::PgTblSqlFragmentRef::from(v)
     }
     fn users_base() -> (
         super::PgTblNameRef<'static>,

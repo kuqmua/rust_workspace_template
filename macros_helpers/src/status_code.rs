@@ -140,21 +140,21 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        crate::GeneratedRustTs(quote::quote! {http::StatusCode::#ts})
+        crate::GeneratedRustTs::from(quote::quote! {http::StatusCode::#ts})
     }
     #[must_use]
     pub fn to_proc_macro_attr_view_ts(&self) -> crate::GeneratedRustTs {
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
-            Ok(v) => crate::GeneratedRustTs(v),
+            Ok(v) => crate::GeneratedRustTs::from(v),
             Err(er) => {
                 let msg = er.to_string();
-                crate::GeneratedRustTs(quote::quote! {compile_error!(#msg);})
+                crate::GeneratedRustTs::from(quote::quote! {compile_error!(#msg);})
             }
         }
     }
     #[must_use]
     pub fn to_status_code_description_ts(&self) -> crate::GeneratedRustTs {
-        crate::GeneratedRustTs(match *self {
+        crate::GeneratedRustTs::from(match *self {
             Self::Continue100 => quote::quote! {"continue"},
             Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
             Self::Processing102 => quote::quote! {"processing"},
@@ -231,7 +231,7 @@ impl StatusCode {
     }
     #[must_use]
     pub fn to_status_code_ts(&self) -> crate::GeneratedRustTs {
-        crate::GeneratedRustTs(match *self {
+        crate::GeneratedRustTs::from(match *self {
             Self::Continue100 => quote::quote! {100},
             Self::SwitchingProtocols101 => quote::quote! {101},
             Self::Processing102 => quote::quote! {102},
@@ -431,7 +431,12 @@ pub enum GetOnlyOneStatusCodeEr {
     NotFound,
 }
 #[derive(Debug, Clone, Copy)]
-pub struct StatusCodeVariantRef<'variant_lt>(pub &'variant_lt syn::Variant);
+pub struct StatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
+impl<'variant_lt> From<&'variant_lt syn::Variant> for StatusCodeVariantRef<'variant_lt> {
+    fn from(value: &'variant_lt syn::Variant) -> Self {
+        Self(value)
+    }
+}
 pub fn get_only_one(vrt: StatusCodeVariantRef<'_>) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
     let variant = vrt.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
