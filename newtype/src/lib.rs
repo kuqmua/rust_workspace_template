@@ -65,9 +65,10 @@ pub fn enum_from_str(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStre
 fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     let attrs = parse_newtype_attrs(&input.attrs)?;
     validate_newtype_attrs(&attrs, input)?;
+    let inner_ty = tuple_struct_one_field_ty(input)?;
+    validate_newtype_inner_ty_attrs(&attrs, inner_ty)?;
     let ident = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-    let inner_ty = tuple_struct_one_field_ty(input)?;
     let display_ts = attrs.contains(NewtypeOption::Display).then(|| {
         quote::quote! {
             impl #impl_generics std::fmt::Display for #ident #ty_generics #where_clause {
@@ -297,6 +298,16 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: &syn::DeriveInput) -> syn
     }
     Ok(())
 }
+#[allow(clippy::single_call_fn)] // string wrapper policy belongs to newtype validation before From impl generation
+fn validate_newtype_inner_ty_attrs(attrs: &NewtypeAttrs, inner_ty: &syn::Type) -> syn::Result<()> {
+    if attrs.contains(NewtypeOption::From) && type_path_ends_with_ident(inner_ty, "String") {
+        return Err(syn::Error::new_spanned(
+            inner_ty,
+            "#[newtype(from)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead",
+        ));
+    }
+    Ok(())
+}
 #[allow(clippy::single_call_fn)] // tuple field extraction is separate to keep derive input validation explicit
 fn tuple_struct_one_field_ty(input: &syn::DeriveInput) -> syn::Result<&syn::Type> {
     let data_struct = match &input.data {
@@ -327,6 +338,17 @@ fn tuple_struct_one_field_ty(input: &syn::DeriveInput) -> syn::Result<&syn::Type
         .first()
         .map(|field| &field.ty)
         .ok_or_else(|| syn::Error::new_spanned(input, "Newtype field not found"))
+}
+#[allow(clippy::single_call_fn)] // newtype validation only needs terminal path ident matching for concrete String wrappers
+fn type_path_ends_with_ident(ty: &syn::Type, ident: &str) -> bool {
+    match ty {
+        syn::Type::Path(v) if v.qself.is_none() => v
+            .path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == ident),
+        syn::Type::Path(_) | _ => false,
+    }
 }
 #[allow(clippy::single_call_fn)] // proc-macro generated getter names need local snake_case conversion without adding another dependency
 fn ident_to_snake(ident: &syn::Ident) -> String {
@@ -382,4 +404,23 @@ fn gen_to_err_string_ts(
             }
         }
     })
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn newtype_from_string_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(Newtype)]
+            #[newtype(from)]
+            struct Name(String);
+        };
+        let result = super::gen_newtype_ts(&input);
+        assert!(result.is_err(), "f9b7c2a1");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "#[newtype(from)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead"
+            );
+        }
+    }
 }
