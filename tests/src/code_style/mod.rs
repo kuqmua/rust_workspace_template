@@ -45,64 +45,42 @@ const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../route_validators/src/lib.rs",
 ];
 const PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS: &[&str] = &[];
-const DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS: &[&str] = &[
-    "../app_state/src/lib.rs",
-    "../cmn_routes/src/lib.rs",
-    "../config_lib/config_lib_macros/src/lib.rs",
-    "../config_lib/src/lib.rs",
-    "../config_lib/src/types.rs",
-    "../config_lib/try_from_env/src/lib.rs",
-    "../gen_quotes/src/lib.rs",
-    "../git_info/src/lib.rs",
-    "../loc_lib/loc_test/src/main.rs",
-    "../loc_lib/src/loc.rs",
-    "../macros_helpers/gen_derive_ts_builder/src/lib.rs",
-    "../macros_helpers/src/attr_ident_str.rs",
-    "../macros_helpers/src/gen_field_loc_new_ts.rs",
-    "../macros_helpers/src/gen_if_write_is_err_ts.rs",
-    "../macros_helpers/src/gen_impl_dflt_ts.rs",
-    "../macros_helpers/src/gen_impl_display_ts.rs",
-    "../macros_helpers/src/gen_impl_from_ts.rs",
-    "../macros_helpers/src/gen_impl_to_err_string_ts.rs",
-    "../macros_helpers/src/gen_impl_try_from_ts.rs",
-    "../macros_helpers/src/gen_new_or_try_new.rs",
-    "../macros_helpers/src/gen_pub_type_al_ts.rs",
-    "../macros_helpers/src/gen_simple_syn_punct.rs",
-    "../macros_helpers/src/get_macro_attr.rs",
-    "../macros_helpers/src/loc.rs",
-    "../macros_helpers/src/loc_syn_field.rs",
-    "../macros_helpers/src/pgn_start_end_init_ts.rs",
-    "../macros_helpers/src/rs_file_path.rs",
-    "../macros_helpers/src/status_code.rs",
-    "../macros_helpers/src/syn_field.rs",
-    "../macros_helpers/src/test_hlp.rs",
-    "../macros_helpers/src/wrap_derive.rs",
-    "../macros_helpers/src/write_string_into_file.rs",
-    "../macros_helpers/src/write_ts_into_file.rs",
-    "../naming/naming_cmn/src/lib.rs",
-    "../naming/naming_macros/src/lib.rs",
-    "../naming/src/lib.rs",
-    "../optml/src/lib.rs",
-    "../panic_loc/src/lib.rs",
-    "../pg_crud/pg_crud_macros_cmn/src/flts.rs",
-    "../pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs",
-    "../pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs",
-    "../pg_crud/pg_types/gen_pg_types_src/src/lib.rs",
-    "../route_validators/src/check_body_size.rs",
-    "../route_validators/src/check_commit.rs",
-    "../route_validators/src/hdr_val.rs",
-    "../route_validators/src/test_hlp.rs",
-    "../pg_crud/pg_types/pg_types_cmn/src/lib.rs",
-    "../server_tbl_example/src/lib.rs",
-    "../server_app_state/src/lib.rs",
-    "../server_config/src/lib.rs",
-    "../server/src/main.rs",
-    "../tests/src/domain_type_policy_fixture.rs",
-    "../to_err_string/src/lib.rs",
-    "../token_patterns/token_patterns_macros/src/lib.rs",
-    "../token_patterns/src/lib.rs",
-    "../workspace_macro_helpers/src/lib.rs",
+const DOMAIN_TYPE_POLICY_SOURCE_EXCEPTIONS: &[DomainTypePolicySourceException] = &[
+    DomainTypePolicySourceException {
+        path: "../newtype/src/lib.rs",
+        reason: "proc-macro implementation necessarily exposes syn/proc_macro2 token parsing helpers internally",
+    },
+    DomainTypePolicySourceException {
+        path: "../pg_crud/pg_crud_macros_cmn/src/lib.rs",
+        reason: "macro code-generation context stores concrete naming/token marker types from shared macro helper crates",
+    },
+    DomainTypePolicySourceException {
+        path: "../tests/src/code_style/mod.rs",
+        reason: "meta test harness inspects syn/toml/path primitives while enforcing repository source policies",
+    },
+    DomainTypePolicySourceException {
+        path: "../tests/src/code_style/snapshot.rs",
+        reason: "meta test harness stores parsed source snapshots as syn/toml/path primitives for policy checks",
+    },
 ];
+const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
+    ExternalLeafWrapperNameException {
+        ident: "GeneratedRustTs",
+        reason: "public macro-helper API name describes generated Rust tokens and is already used across generator crates",
+    },
+    ExternalLeafWrapperNameException {
+        ident: "PgQuery",
+        reason: "public pg_crud query-builder wrapper name is part of generated CRUD trait signatures",
+    },
+];
+struct DomainTypePolicySourceException {
+    path: &'static str,
+    reason: &'static str,
+}
+struct ExternalLeafWrapperNameException {
+    ident: &'static str,
+    reason: &'static str,
+}
 #[derive(Debug, Clone, Copy, optml::Optml)]
 enum ExpectOrPanic {
     Expect,
@@ -396,6 +374,46 @@ impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
                 i.ident
             ));
         syn::visit::visit_item_type(self, i);
+    }
+}
+struct ConstantAliasVisitor {
+    ers: Vec<String>,
+}
+impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        let local_constant_name = i.ident.to_string();
+        if local_constant_name == "_" {
+            return;
+        }
+        if let syn::Expr::Path(expression_path) = i.expr.as_ref()
+            && expression_path.qself.is_none()
+            && expression_path.path.segments.last().is_some_and(|segment| {
+                let segment_identifier = segment.ident.to_string();
+                segment_identifier
+                    .chars()
+                    .any(|symbol| symbol.is_ascii_alphabetic())
+                    && segment_identifier.chars().all(|symbol| {
+                        symbol.is_ascii_uppercase() || symbol.is_ascii_digit() || symbol == '_'
+                    })
+            })
+        {
+            self.ers.push(format!(
+                "`{local_constant_name}` aliases `{}`; use the source constant directly",
+                path_to_string(&expression_path.path)
+            ));
+        }
+        syn::visit::visit_item_const(self, i);
+    }
+}
+struct TestStringLiteralVisitor {
+    values: Vec<String>,
+}
+impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
+    fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
+        if let syn::Lit::Str(literal_string) = &i.lit {
+            self.values.push(literal_string.value());
+        }
+        syn::visit::visit_expr_lit(self, i);
     }
 }
 struct StringWrapperNameVisitor {
@@ -825,6 +843,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         };
         let expected_prefix = ident_to_upper_camel_fragment(&first_segment.ident);
         let ident = item.ident.to_string();
+        if is_external_leaf_wrapper_name_exception(&ident) {
+            return;
+        }
         if ident.starts_with(&expected_prefix) {
             return;
         }
@@ -916,6 +937,15 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             .iter()
             .find_map(|segment| self.external_root_segment_from_arguments(&segment.arguments))
     }
+}
+#[allow(clippy::single_call_fn)] // validates every external wrapper naming exception has an explicit reason before matching idents
+fn is_external_leaf_wrapper_name_exception(ident: &str) -> bool {
+    EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS
+        .iter()
+        .any(|exception| {
+            assert!(!exception.reason.is_empty(), "c7ab0f62");
+            exception.ident == ident
+        })
 }
 fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPanic) {
     struct ExpectVisitor {
@@ -1726,21 +1756,24 @@ fn string_wrapper_names(ast: &syn::File) -> std::collections::BTreeSet<String> {
     )
     .names
 }
-#[allow(clippy::single_call_fn)] // keeps phased domain policy rollout controlled from one predicate
+#[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: &std::path::Path) -> bool {
-    if is_exception(path, DOMAIN_TYPE_POLICY_SOURCE_INCLUSIONS) {
-        return true;
-    }
-    if std::env::var_os("DOMAIN_TYPE_POLICY_CHECK_ALL").is_none() {
+    if is_domain_type_policy_source_exception(path) {
         return false;
     }
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return false;
     };
-    let Some(parsed) = read_toml_table(&cargo_toml_path) else {
-        return false;
-    };
-    !is_test_crate(&parsed)
+    read_toml_table(&cargo_toml_path).is_some()
+}
+#[allow(clippy::single_call_fn)] // validates every domain policy exception has an explicit reason before matching paths
+fn is_domain_type_policy_source_exception(path: &std::path::Path) -> bool {
+    DOMAIN_TYPE_POLICY_SOURCE_EXCEPTIONS
+        .iter()
+        .any(|exception| {
+            assert!(!exception.reason.is_empty(), "dd9a2f7c");
+            is_exception(path, &[exception.path])
+        })
 }
 #[allow(clippy::single_call_fn)] // keeps public re-export allowlist separate from use-import visitor diagnostics
 fn is_public_reexport_source_path(path: &std::path::Path) -> bool {

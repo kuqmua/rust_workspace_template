@@ -161,8 +161,8 @@ categories = ["category"]
 #[cfg(feature = "test-utils")]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-    struct TmpDir(std::path::PathBuf);
-    impl TmpDir {
+    struct StdTmpDir(std::path::PathBuf);
+    impl StdTmpDir {
         fn new() -> Self {
             let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             let path = std::env::temp_dir().join(format!(
@@ -177,7 +177,7 @@ mod tests {
             &self.0
         }
     }
-    impl Drop for TmpDir {
+    impl Drop for StdTmpDir {
         fn drop(&mut self) {
             if let Err(er) = std::fs::remove_dir_all(&self.0)
                 && er.kind() != std::io::ErrorKind::NotFound
@@ -188,7 +188,7 @@ mod tests {
     }
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
-        let dir = TmpDir::new();
+        let dir = StdTmpDir::new();
         let path = dir.path().join("crate_dir");
         std::fs::create_dir_all(&path).expect("9b0e24f1");
         let guard = super::RemoveDirOnDrop { path: path.clone() };
@@ -197,7 +197,7 @@ mod tests {
     }
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
-        let dir = TmpDir::new();
+        let dir = StdTmpDir::new();
         let path = dir.path().join("missing_dir");
         super::remove_dir_all_if_exists(&path, "f39c05aa");
         assert!(!path.exists());

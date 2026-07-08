@@ -188,7 +188,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         quote::quote! {
             #ts
             pub rgx_case: RgxCase,
-            pub #v_sc: RgxRgx
+            pub #v_sc: RegexRgx
         }
     };
     let add_rgx_case_and_v_dflt_init_ts = |ts: &dyn quote::ToTokens| {

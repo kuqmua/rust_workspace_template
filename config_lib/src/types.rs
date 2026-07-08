@@ -1,4 +1,3 @@
-const SRC_PLACE_TYPE_ENV_VAR: &str = "SRC_PLACE_TYPE";
 const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
 const SRC_PLACE_TYPE_FIX_MSG: &str =
     "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
@@ -113,7 +112,7 @@ impl SrcPlaceType {
             eprintln!("dotenv::dotenv() failed in SrcPlaceType::from_env_or_dflt: {er}");
         }
         let parsed = Self::parse_src_place_type_from_env_var(StdEnvVarResult(std::env::var(
-            SRC_PLACE_TYPE_ENV_VAR,
+            contract_constants::env_names::SRC_PLACE_TYPE,
         )));
         match parsed {
             Ok(v) => v,
@@ -127,7 +126,7 @@ impl SrcPlaceType {
     fn parse_src_place_type_from_env_var(v: StdEnvVarResult) -> Result<Self, EnvParseEr> {
         parse_from_env_var_from_str(
             v,
-            EnvVarNameRef(SRC_PLACE_TYPE_ENV_VAR),
+            EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
             ParseCtxRef(SRC_PLACE_TYPE_PARSE_CTX),
         )
     }
@@ -264,7 +263,7 @@ mod tests {
     fn parse_from_env_var_with_wraps_missing_var_context() {
         let parsed = super::parse_from_env_var_with(
             super::StdEnvVarResult(Err(std::env::VarError::NotPresent)),
-            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
             |_v| Ok(()),
         );
         let er = parsed.expect_err("d2f3b74a");
@@ -274,7 +273,7 @@ mod tests {
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
         let parsed = super::parse_from_env_var_with(
             super::StdEnvVarResult(Ok(String::from("src"))),
-            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
             |v| Ok(v.0.to_owned()),
         );
         assert_eq!(parsed, Ok(String::from("src")));
@@ -283,7 +282,7 @@ mod tests {
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
         let parsed = super::parse_from_env_var_from_str::<bool>(
             super::StdEnvVarResult(Ok(String::from("true"))),
-            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
             super::ParseCtxRef("bool parse"),
         );
         assert_eq!(parsed, Ok(true));
@@ -292,7 +291,7 @@ mod tests {
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
         let er = super::parse_from_env_var_from_str::<bool>(
             super::StdEnvVarResult(Ok(String::from("x"))),
-            super::EnvVarNameRef(super::SRC_PLACE_TYPE_ENV_VAR),
+            super::EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
             super::ParseCtxRef("bool parse"),
         )
         .expect_err("7e4b3f19");

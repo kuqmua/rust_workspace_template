@@ -8,10 +8,9 @@ pub(crate) mod test_hlp;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AxumHttpStatusCode(axum::http::StatusCode);
 impl AxumHttpStatusCode {
-    #[must_use]
-    pub const fn from_status_code(value: axum::http::StatusCode) -> Self {
-        Self(value)
-    }
+    pub const BAD_REQUEST: Self = Self(axum::http::StatusCode::BAD_REQUEST);
+    pub const IM_A_TEAPOT: Self = Self(axum::http::StatusCode::IM_A_TEAPOT);
+    pub const PAYLOAD_TOO_LARGE: Self = Self(axum::http::StatusCode::PAYLOAD_TOO_LARGE);
     #[must_use]
     pub const fn get(self) -> axum::http::StatusCode {
         self.0
@@ -33,7 +32,7 @@ mod tests {
     struct TestEr;
     impl super::GetAxumHttpStatusCode for TestEr {
         const AXUM_HTTP_STATUS_CODE: super::AxumHttpStatusCode =
-            super::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::IM_A_TEAPOT);
+            super::AxumHttpStatusCode::IM_A_TEAPOT;
     }
     #[test]
     fn get_axum_http_status_code_default_method_returns_associated_const() {

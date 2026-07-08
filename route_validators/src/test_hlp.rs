@@ -464,12 +464,12 @@ mod tests {
         }
         impl crate::GetAxumHttpStatusCode for TestEr {
             const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST);
+                crate::AxumHttpStatusCode::BAD_REQUEST;
         }
         let _: () = super::assert_err_status_code_variant::<(), TestEr, ()>(
             Err(TestEr::A),
             "c1d74a8e",
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST),
+            crate::AxumHttpStatusCode::BAD_REQUEST,
             |er| match er {
                 TestEr::A => Some(()),
             },
@@ -483,12 +483,12 @@ mod tests {
         }
         impl crate::GetAxumHttpStatusCode for TestEr {
             const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST);
+                crate::AxumHttpStatusCode::BAD_REQUEST;
         }
         let v = super::assert_err_status_code_variant_ref::<(), TestEr, u8>(
             Err(TestEr::A(7)),
             "8afb4ffd",
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST),
+            crate::AxumHttpStatusCode::BAD_REQUEST,
             |er| match er {
                 TestEr::A(v) => Some(*v),
             },
@@ -538,17 +538,17 @@ mod tests {
         struct TestErr;
         impl crate::GetAxumHttpStatusCode for TestErr {
             const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST);
+                crate::AxumHttpStatusCode::BAD_REQUEST;
         }
         let _err = super::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
             "4a1791d2",
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST),
+            crate::AxumHttpStatusCode::BAD_REQUEST,
         );
         super::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
             "773c5af2",
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST),
+            crate::AxumHttpStatusCode::BAD_REQUEST,
         );
     }
 }

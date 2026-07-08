@@ -44,7 +44,7 @@ pub enum BodySizeEr {
 }
 impl crate::GetAxumHttpStatusCode for BodySizeEr {
     const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-        crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::PAYLOAD_TOO_LARGE);
+        crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE;
 }
 impl BodySizeEr {
     #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
@@ -93,7 +93,7 @@ mod tests {
         crate::test_hlp::assert_err_status_code_variant_ref(
             crate::test_hlp::block_on(super::check_body_size(body, limit)),
             exp_id,
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::PAYLOAD_TOO_LARGE),
+            crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE,
             |v| Some(reached_max_size_fields(v)),
         )
     }
@@ -155,7 +155,7 @@ mod tests {
         crate::test_hlp::assert_err_status_code_only(
             crate::test_hlp::block_on(super::check_body_size(axum::body::Body::from("too-big"), 1)),
             "7ed49ba1",
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::PAYLOAD_TOO_LARGE),
+            crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE,
         );
     }
     #[test]

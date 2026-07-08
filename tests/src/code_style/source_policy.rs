@@ -227,6 +227,60 @@ fn no_type_aliases_in_rust_sources() {
     );
 }
 #[test]
+fn no_simple_constant_aliases_in_rust_sources() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        "a51f0d3b",
+        "simple constant aliases found; use the source constant directly:",
+        |path, ast, ers| {
+            let visitor =
+                super::visit_syn_file(ast, super::ConstantAliasVisitor { ers: Vec::new() });
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|er| format!("{}: {er}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn no_duplicated_string_literals_in_non_policy_test_code() {
+    let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
+    super::for_each_rs_syn_file(|path, ast| {
+        let path_text = path.display().to_string();
+        if !path_text.contains("/tests/src/")
+            || path_text.contains("/tests/src/code_style/")
+            || path_text.ends_with("/tests/src/lib.rs")
+        {
+            return;
+        }
+        let visitor =
+            super::visit_syn_file(ast, super::TestStringLiteralVisitor { values: Vec::new() });
+        visitor
+            .values
+            .into_iter()
+            .filter(|literal_value| literal_value.len() > 3)
+            .for_each(|literal_value| {
+                literal_locations_by_value
+                    .entry(literal_value)
+                    .or_default()
+                    .push(path_text.clone());
+            });
+    });
+    let ers = literal_locations_by_value
+        .into_iter()
+        .filter(|(_, locations)| locations.len() > 1)
+        .map(|(literal_value, locations)| {
+            format!("duplicated string literal {literal_value:?} in {locations:?}")
+        })
+        .collect::<Vec<String>>();
+    super::assert_joined_ers_empty_with_ctx(
+        &ers,
+        "de729a31",
+        "duplicated string literals found in non-policy test code:",
+    );
+}
+#[test]
 fn no_unwrap_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
         let visitor = super::visit_syn_file(ast, super::UnwrapVisitor { found_count: 0 });

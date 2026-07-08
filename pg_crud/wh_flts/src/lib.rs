@@ -36,32 +36,32 @@ impl pg_crud_cmn::DfltSomeOneEl for EncodeFormat {
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml)]
 #[serde(try_from = "String", into = "String")]
-pub struct RgxRgx(regex::Regex);
-impl From<regex::Regex> for RgxRgx {
+pub struct RegexRgx(regex::Regex);
+impl From<regex::Regex> for RegexRgx {
     fn from(value: regex::Regex) -> Self {
         Self(value)
     }
 }
-impl AsRef<regex::Regex> for RgxRgx {
+impl AsRef<regex::Regex> for RegexRgx {
     fn as_ref(&self) -> &regex::Regex {
         &self.0
     }
 }
-impl TryFrom<String> for RgxRgx {
+impl TryFrom<String> for RegexRgx {
     type Error = regex::Error;
     fn try_from(v: String) -> Result<Self, Self::Error> {
         regex::Regex::new(&v).map(Self::from)
     }
 }
-impl From<RgxRgx> for String {
-    fn from(v: RgxRgx) -> Self {
+impl From<RegexRgx> for String {
+    fn from(v: RegexRgx) -> Self {
         v.0.as_str().to_owned()
     }
 }
 // #[automatically_derived]
 // impl ::core::marker::StructuralPartialEq for RegexRegex {}
 // #[automatically_derived]
-impl PartialEq for RgxRgx {
+impl PartialEq for RegexRgx {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.0.as_str() == other.0.as_str()
@@ -74,7 +74,7 @@ impl PartialEq for RgxRgx {
 const _: () = {
     #[automatically_derived]
     #[allow(unused_braces)]
-    impl schemars::JsonSchema for RgxRgx {
+    impl schemars::JsonSchema for RegexRgx {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed("RegexRegex")
         }
@@ -89,12 +89,12 @@ const _: () = {
         }
     }
 };
-impl std::fmt::Display for RgxRgx {
+impl std::fmt::Display for RegexRgx {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
-impl pg_crud_cmn::DfltSomeOneEl for RgxRgx {
+impl pg_crud_cmn::DfltSomeOneEl for RegexRgx {
     fn dflt_some_one_el() -> Self {
         match regex::Regex::new("[a-z]+") {
             Ok(v) => Self(v),
@@ -769,9 +769,9 @@ mod tests {
     }
     #[test]
     fn rgx_rgx_eq_compares_pattern_content() {
-        let left = super::RgxRgx::from(regex::Regex::new(r"\d+").expect("8342ad27"));
-        let right = super::RgxRgx::from(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
-        let other = super::RgxRgx::from(regex::Regex::new("[a-z]+").expect("abcc9a72"));
+        let left = super::RegexRgx::from(regex::Regex::new(r"\d+").expect("8342ad27"));
+        let right = super::RegexRgx::from(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
+        let other = super::RegexRgx::from(regex::Regex::new("[a-z]+").expect("abcc9a72"));
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

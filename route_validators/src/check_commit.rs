@@ -38,8 +38,7 @@ pub enum CommitEr {
     },
 }
 impl crate::GetAxumHttpStatusCode for CommitEr {
-    const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-        crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST);
+    const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode = crate::AxumHttpStatusCode::BAD_REQUEST;
 }
 impl CommitEr {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
@@ -147,7 +146,7 @@ mod tests {
         crate::test_hlp::assert_err_status_code_only(
             check_commit_enabled(headers),
             exp_id,
-            crate::AxumHttpStatusCode::from_status_code(axum::http::StatusCode::BAD_REQUEST),
+            crate::AxumHttpStatusCode::BAD_REQUEST,
         );
     }
     #[allow(clippy::single_call_fn)] // shared extractor keeps NoCommitHeader variant matching reusable across tests
@@ -221,9 +220,7 @@ mod tests {
         crate::test_hlp::expect_err_variant_ref_with_status(
             check_commit_enabled(headers),
             exp_id,
-            Some(crate::AxumHttpStatusCode::from_status_code(
-                axum::http::StatusCode::BAD_REQUEST,
-            )),
+            Some(crate::AxumHttpStatusCode::BAD_REQUEST),
             map,
         )
     }
