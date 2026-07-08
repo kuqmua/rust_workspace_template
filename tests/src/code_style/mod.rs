@@ -1,3 +1,9 @@
+mod cargo_policy;
+mod domain_type_policy;
+mod lint_sync;
+mod runtime_policy;
+mod snapshot;
+mod source_policy;
 const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
 const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     "disallowed_fields",
@@ -548,78 +554,6 @@ struct ExternalLeafWrapperNameVisitor<'types> {
     ers: Vec<String>,
     repo_crates: &'types std::collections::BTreeSet<String>,
 }
-struct RsSourceFile {
-    ast: syn::File,
-    content: String,
-    path: std::path::PathBuf,
-}
-struct CargoTomlSourceFile {
-    content: String,
-    parsed: toml::Table,
-    path: std::path::PathBuf,
-}
-struct CodebaseSnapshot {
-    cargo_toml_files: Vec<CargoTomlSourceFile>,
-    metadata: cargo_metadata::Metadata,
-    rs_files: Vec<RsSourceFile>,
-    workspace_crate_names: std::collections::BTreeSet<String>,
-}
-impl CodebaseSnapshot {
-    #[allow(clippy::single_call_fn)] // named constructor keeps snapshot initialization readable at the thread-local OnceCell call site
-    fn build() -> Self {
-        let metadata = workspace_metadata_uncached();
-        let workspace_members = workspace_member_ids(&metadata);
-        let workspace_crate_names = metadata
-            .packages
-            .iter()
-            .filter(|package| workspace_members.contains(&package.id))
-            .map(|package| package.name.to_string())
-            .collect();
-        let cargo_toml_files = metadata
-            .packages
-            .iter()
-            .filter(|package| workspace_members.contains(&package.id))
-            .filter_map(|package| {
-                let path = package.manifest_path.as_std_path().to_path_buf();
-                let content = std::fs::read_to_string(&path).ok()?;
-                let parsed = content.parse::<toml::Table>().ok()?;
-                Some(CargoTomlSourceFile {
-                    content,
-                    parsed,
-                    path,
-                })
-            })
-            .collect();
-        let rs_files = rs_project_files_uncached()
-            .filter(|entry| !is_exception(entry.path(), &GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS))
-            .filter_map(|entry| {
-                let path = entry.into_path();
-                let content = std::fs::read_to_string(&path).ok()?;
-                let ast = syn::parse_file(&content).expect("5e7a83eb");
-                Some(RsSourceFile { ast, content, path })
-            })
-            .collect();
-        Self {
-            cargo_toml_files,
-            metadata,
-            rs_files,
-            workspace_crate_names,
-        }
-    }
-    fn cargo_toml_file(&self, path: &std::path::Path) -> Option<&CargoTomlSourceFile> {
-        self.cargo_toml_files
-            .iter()
-            .find(|cargo_toml| cargo_toml.path == path)
-    }
-    fn package_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
-        let workspace_members = workspace_member_ids(&self.metadata);
-        self.metadata
-            .packages
-            .iter()
-            .filter(move |package| workspace_members.contains(&package.id))
-            .map(|package| package.manifest_path.as_std_path())
-    }
-}
 impl DomainTypePolicyVisitor<'_> {
     fn check_fields(&mut self, fields: &syn::Fields, ctx: &str, allow_single_newtype_raw: bool) {
         if allow_single_newtype_raw
@@ -986,85 +920,6 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             .find_map(|segment| self.external_root_segment_from_arguments(&segment.arguments))
     }
 }
-#[test]
-fn all_crates_have_publish_false() {
-    assert_root_workspace_cargo_policy("f2a8c5d3", |path, parsed, ers| {
-        let publish = parsed
-            .get("package")
-            .and_then(|v_1c7b4e9d| v_1c7b4e9d.get("publish"));
-        if publish != Some(&toml::Value::Boolean(false)) {
-            ers.push(format!("{}: missing `publish = false`", path.display()));
-        }
-    });
-}
-#[test]
-fn all_crates_have_workspace_lints() {
-    assert_root_workspace_cargo_policy("d5f1a4e7", |path, parsed, ers| {
-        match parsed
-            .get("lints")
-            .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
-        {
-            Some(lints_tbl) => {
-                if lints_tbl.get("workspace") != Some(&toml::Value::Boolean(true)) {
-                    ers.push(format!(
-                        "{}: [lints] missing `workspace = true`",
-                        path.display()
-                    ));
-                }
-            }
-            None => {
-                ers.push(format!("{}: missing [lints] section", path.display()));
-            }
-        }
-    });
-}
-#[test]
-fn all_crates_use_edition_2024() {
-    assert_root_workspace_cargo_policy("a3d7f1c8", |path, parsed, ers| {
-        let edition = parsed
-            .get("package")
-            .and_then(|v_6d9f2a3e| v_6d9f2a3e.get("edition"))
-            .and_then(toml::Value::as_str);
-        if edition != Some("2024") {
-            ers.push(format!("{}: edition is not \"2024\"", path.display()));
-        }
-    });
-}
-#[test]
-fn all_files_are_english_only() {
-    let exceptions = [
-        "../pg_crud/pg_crud_cmn/src/lib.rs", //contain utf-8 String test
-        "../CODE_IMPROVEMENT_PLAN.md",
-        "../DEVELOPMENT_PLAN.md",
-    ];
-    let paths = project_dir()
-        .into_iter()
-        .filter_entry(|el_6870bc3d| !is_ignored_dir_entry_name(el_6870bc3d.file_name()))
-        .filter_map(Result::ok)
-        .map(walkdir::DirEntry::into_path)
-        .collect::<Vec<std::path::PathBuf>>();
-    let mut ers = rayon::iter::ParallelIterator::reduce(
-        rayon::iter::ParallelIterator::map(
-            rayon::iter::IntoParallelRefIterator::par_iter(&paths),
-            |path| {
-                if !is_allowed_english_check_file(path) || is_exception(path, &exceptions) {
-                    return Vec::new();
-                }
-                let Ok(v) = std::fs::read_to_string(path) else {
-                    return Vec::new();
-                };
-                collect_non_english_symbol_ers(path, &v)
-            },
-        ),
-        Vec::new,
-        |mut acc, mut item| {
-            acc.append(&mut item);
-            acc
-        },
-    );
-    ers.sort();
-    assert_joined_ers_empty_with_ctx(&ers, "8db37a2f", "non-english symbols:");
-}
 fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPanic) {
     struct ExpectVisitor {
         ers: Vec<String>,
@@ -1121,51 +976,6 @@ fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPani
     }
     assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}",);
 }
-#[test]
-fn check_expect_contains_only_unq_uuid_v4() {
-    check_expect_or_panic_contains_only_unq_uuid_v4(ExpectOrPanic::Expect);
-}
-#[test]
-fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lints() {
-    assert_workspace_lints_match(
-        RustOrClippy::Clippy,
-        "clippy-driver",
-        true,
-        "8895ca50",
-        &CLIPPY_LINT_EXCEPTIONS,
-    );
-}
-#[test]
-fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() {
-    assert_workspace_lints_match(
-        RustOrClippy::Rust,
-        "rustc",
-        false,
-        "3c20b457",
-        //todo on commit momment seems like this lints still not added to rustc, but in the list of rustc -W help
-        &[
-            "fuzzy_provenance_casts",
-            "lossy_provenance_casts",
-            "multiple_supertrait_upcastable",
-            "must_not_suspend",
-            "non_exhaustive_omitted_patterns",
-            "supertrait_item_shadowing_definition",
-            "supertrait_item_shadowing_usage",
-            "aarch_64_softfloat_neon",
-            "dflt_overrides_dflt_fields",
-            "test_unstable_lint",
-            "resolving_to_items_shadowing_supertrait_items",
-            "shadowing_supertrait_items",
-            "unqualified_local_imports", //need to use some kind of different test flag or something for this
-            "unreachable_cfg_select_predicates",
-            "default_overrides_default_fields",
-            "linker_info",
-            "duplicate_features",
-            "deprecated_llvm_intrinsic",
-            "tail_call_track_caller",
-        ],
-    );
-}
 #[allow(clippy::single_call_fn)] // shared lint-compare wrapper keeps clippy/rust lint test flow aligned and reduces duplicate wiring
 fn assert_workspace_lints_match(
     rust_or_clippy: RustOrClippy,
@@ -1217,32 +1027,6 @@ fn assert_cmd_output_ok(
 #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 fn normalize_lint_name(v: &str) -> String {
     v.replace('-', "_")
-}
-#[test]
-fn check_panic_contains_only_unq_uuid_v4() {
-    check_expect_or_panic_contains_only_unq_uuid_v4(ExpectOrPanic::Panic);
-}
-#[test]
-fn check_rs_files_contains_only_unq_uuid_v4() {
-    let rgx = regex::Regex::new(
-        r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b",
-    )
-    .expect("e098a1ff");
-    let mut seen = std::collections::HashSet::new();
-    for_each_rs_file_content(|_, v| {
-        rgx.find_iter(v).for_each(|el_714b3d9c| {
-            let uuid = uuid::Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
-            assert!(uuid.get_version_num() == 4, "49b49b21");
-            assert!(seen.insert(uuid), "4cf9d239");
-        });
-    });
-}
-#[test]
-fn check_workspace_dependencies_having_exact_version() {
-    let workspace = workspace_tbl_from_cargo_toml();
-    toml_val_as_tbl_ref(workspace.get("dependencies").expect("2376f58e"), "e117fa5a")
-        .values()
-        .for_each(validate_workspace_dep_spec);
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: &toml::Value) {
@@ -1418,21 +1202,6 @@ fn env_keys_from_file(path: &str) -> Vec<String> {
         .map(str::to_owned)
         .collect()
 }
-#[test]
-fn env_and_envexample_have_same_keys() {
-    let env_keys = env_keys_from_file("../server/.env");
-    let example_keys = env_keys_from_file("../server/.envexample");
-    let env_keys_set = str_set(&env_keys);
-    let example_keys_set = str_set(&example_keys);
-    let mut ers = collect_missing_key_ers(&env_keys, &example_keys_set, ".env", ".envexample");
-    ers.extend(collect_missing_key_ers(
-        &example_keys,
-        &env_keys_set,
-        ".envexample",
-        ".env",
-    ));
-    assert_joined_ers_empty_sorted(&mut ers, "c8d2f1a3");
-}
 #[allow(clippy::single_call_fn)] // shared set-difference collector keeps missing-item checks reusable across lint and env-key tests
 fn collect_missing_items<'items>(
     items: &'items [String],
@@ -1577,59 +1346,11 @@ fn assert_rs_ast_ers_empty_with_ctx(
 }
 #[allow(clippy::single_call_fn)] // shared parser keeps Cargo.toml read+parse behavior centralized for policy collectors
 fn read_toml_table(path: &std::path::Path) -> Option<toml::Table> {
-    with_codebase_snapshot(|snapshot| {
-        snapshot
-            .cargo_toml_file(path)
-            .map(|cargo_toml| cargo_toml.parsed.clone())
-            .or_else(|| {
-                let v = std::fs::read_to_string(path).ok()?;
-                v.parse::<toml::Table>().ok()
-            })
-    })
+    snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
 #[allow(clippy::single_call_fn)] // shared lookup avoids rereading workspace manifests in text-based Cargo.toml style checks
 fn cargo_toml_content(path: &std::path::Path) -> Option<String> {
-    with_codebase_snapshot(|snapshot| {
-        snapshot
-            .cargo_toml_file(path)
-            .map(|cargo_toml| cargo_toml.content.clone())
-    })
-}
-#[test]
-fn no_dbg_macro_in_source_code() {
-    assert_rs_ast_ers_empty_with_ctx("f1c7a4e3", "dbg!() found:", |path, ast, ers| {
-        let visitor = visit_syn_file(ast, DbgVisitor { found: false });
-        if visitor.found {
-            ers.push(format!("{}: contains dbg!()", path.display()));
-        }
-    });
-}
-#[test]
-fn no_for_loops_in_source_code() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "f4c2a9e1",
-        "for loops found; use iterator methods such as `map`, `filter`, `fold`, `try_fold`, `for_each`, or `try_for_each` instead:",
-        |path, ast, ers| {
-            if is_exception(path, &FOR_LOOP_SOURCE_EXCEPTIONS) {
-                return;
-            }
-            let visitor = visit_syn_file(ast, ForLoopVisitor { found_count: 0 });
-            push_repeated_file_er(
-                ers,
-                path,
-                "contains `for` loop; use iterator methods instead",
-                visitor.found_count,
-            );
-        },
-    );
-}
-#[test]
-fn no_empty_lines_in_rust_files() {
-    let mut ers = Vec::new();
-    for_each_rs_file_content(|path, v| {
-        ers.extend(collect_empty_line_ers(path, v));
-    });
-    assert_joined_ers_empty_with_ctx(&ers, "3d2fc8a1", "empty lines found in Rust files:");
+    snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
 #[allow(clippy::single_call_fn)] // isolates empty-line diagnostics so file-level test stays focused on traversal and assertion
 fn collect_empty_line_ers(path: &std::path::Path, v: &str) -> Vec<String> {
@@ -1676,419 +1397,26 @@ fn collect_non_english_symbol_ers(path: &std::path::Path, v: &str) -> Vec<String
 fn is_allowed_english_char(ch: char) -> bool {
     matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}') || ch.is_ascii()
 }
-#[test]
-fn no_todo_or_unimplemented_macro_in_source_code() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "c4e9a2d7",
-        "todo!/unimplemented! found:",
-        |path, ast, ers| {
-            let visitor = visit_syn_file(
-                ast,
-                TodoUnimplVisitor {
-                    todo_found: 0,
-                    unimplemented_found: 0,
-                },
-            );
-            push_repeated_file_er(ers, path, "contains todo!()", visitor.todo_found);
-            push_repeated_file_er(
-                ers,
-                path,
-                "contains unimplemented!()",
-                visitor.unimplemented_found,
-            );
-        },
-    );
-}
-#[test]
-fn no_macro_rules_in_source_code() {
-    let macro_name = "macro_rules";
-    let forbidden = format!("{macro_name}!");
-    let mut ers = Vec::new();
-    for_each_rs_file_content(|path, v| {
-        if v.contains(&forbidden) {
-            ers.push(format!(
-                "{}: contains {forbidden}; use a workspace proc-macro crate instead",
-                path.display()
-            ));
-        }
-    });
-    assert_joined_ers_empty_with_ctx(
-        &ers,
-        "b6e2a9f4",
-        "macro_rules found; use workspace proc-macro crates instead:",
-    );
-}
-#[test]
-fn no_include_asset_macros_outside_allowlist() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "a6d4f2c9",
-        "include_str!() or include_bytes!() found outside explicit generated/test fixture allowlist:",
-        |path, ast, ers| {
-            if is_exception(path, &INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS) {
-                return;
-            }
-            let visitor = visit_syn_file(ast, IncludeAssetMacroVisitor { ers: Vec::new() });
-            ers.extend(visitor.ers.into_iter().map(|er| {
-                    format!(
-                        "{}: {er}; add only generated/test fixture files to INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS",
-                        path.display()
-                    )
-                }));
-        },
-    );
-}
-#[test]
-fn no_non_public_use_imports_in_rust_sources() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "b4e7c2a9",
-        "use imports found outside explicit facade re-export files; prefer explicit paths at usage sites:",
-        |path, ast, ers| {
-            let visitor = visit_syn_file(
-                ast,
-                UseImportVisitor {
-                    found_non_public_use_import: false,
-                    found_use_rename: false,
-                    public_use_roots: Vec::new(),
-                },
-            );
-            if visitor.found_non_public_use_import {
-                ers.push(format!(
-                    "{}: found non-public use import; use the explicit path at the usage site",
-                    path.display()
-                ));
-            }
-            let local_mod_names = ast
-                .items
-                .iter()
-                .filter_map(|item| {
-                    if let syn::Item::Mod(item_mod) = item {
-                        Some(item_mod.ident.to_string())
-                    } else {
-                        None
-                    }
-                })
-                .collect::<std::collections::HashSet<_>>();
-            if !is_public_reexport_source_path(path) {
-                ers.extend(
-                        visitor
-                            .public_use_roots
-                            .iter()
-                            .filter(|public_use_root| !local_mod_names.contains(*public_use_root))
-                            .map(|public_use_root| {
-                                format!(
-                                "{}: found public use import rooted at `{public_use_root}` outside facade re-export allowlist; use the explicit path at the usage site or add only intentional facade files to PUBLIC_REEXPORT_SOURCE_INCLUSIONS",
-                                path.display()
-                                )
-                            }),
-                    );
-            }
-            if visitor.found_use_rename {
-                ers.push(format!(
-                        "{}: found use rename with `as`; use the original item name or rename the item at its definition",
-                        path.display()
-                    ));
-            }
-        },
-    );
-}
-#[test]
-fn no_type_aliases_in_rust_sources() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "c6e4f7a1",
-        "type aliases found; use explicit types at usage sites:",
-        |path, ast, ers| {
-            let visitor = visit_syn_file(ast, TypeAliasVisitor { ers: Vec::new() });
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn string_wrappers_do_not_use_from_string() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "e2a6b9c4",
-        "string wrappers must validate length; use TryFrom<String> with a length check instead of From<String>:",
-        |path, ast, ers| {
-            let string_wrapper_names = string_wrapper_names(ast);
-            let visitor = visit_syn_file(
-                ast,
-                StringWrapperFromVisitor {
-                    ers: Vec::new(),
-                    string_wrapper_names: &string_wrapper_names,
-                    try_from_string_names: std::collections::BTreeSet::new(),
-                    try_from_string_len_checked_names: std::collections::BTreeSet::new(),
-                },
-            );
-            ers.extend(string_wrapper_names.iter().filter_map(|name| {
-                        if visitor.try_from_string_names.contains(name) {
-                            None
-                        } else {
-                            Some(format!(
-                                "{}: string wrapper `{name}` must implement `TryFrom<String>` with a length check",
-                                path.display()
-                            ))
-                        }
-                    }));
-            ers.extend(string_wrapper_names.iter().filter_map(|name| {
-                        if visitor.try_from_string_len_checked_names.contains(name) {
-                            None
-                        } else {
-                            Some(format!(
-                                "{}: string wrapper `{name}` implements `TryFrom<String>` without a `.len()` check",
-                                path.display()
-                            ))
-                        }
-                    }));
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn public_tuple_wrappers_do_not_expose_inner_field() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "b7c84e2a",
-        "public tuple wrappers must not expose inner fields; initialize them through From/TryFrom:",
-        |path, ast, ers| {
-            let visitor = visit_syn_file(ast, PublicTupleWrapperFieldVisitor { ers: Vec::new() });
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn domain_boundaries_use_repository_declared_types() {
-    let repo_crates = workspace_crate_names();
-    let repo_types = declared_domain_type_names();
-    assert_rs_ast_ers_empty_with_ctx(
-        "a7f9c3e1",
-        "raw external or primitive types found in domain boundaries; use repository domain wrapper types initialized with From/TryFrom:",
-        |path, ast, ers| {
-            if !domain_type_policy_should_check_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(
-                ast,
-                DomainTypePolicyVisitor {
-                    ers: Vec::new(),
-                    generic_scopes: Vec::new(),
-                    repo_crates: &repo_crates,
-                    repo_types: &repo_types,
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn external_leaf_tuple_wrappers_include_crate_name() {
-    let repo_crates = workspace_crate_names();
-    assert_rs_ast_ers_empty_with_ctx(
-        "b93d2a8c",
-        "tuple wrappers over external types must include the external crate name:",
-        |path, ast, ers| {
-            if !domain_type_policy_should_check_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(
-                ast,
-                ExternalLeafWrapperNameVisitor {
-                    ers: Vec::new(),
-                    repo_crates: &repo_crates,
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn no_unwrap_in_source_code() {
-    assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
-        let visitor = visit_syn_file(ast, UnwrapVisitor { found_count: 0 });
-        push_repeated_file_er(ers, path, "unwrap() call", visitor.found_count);
-    });
-}
-#[test]
-fn runtime_code_does_not_use_expect_unwrap_or_panic() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "c71f2a8d",
-        "runtime code contains forbidden expect/unwrap/panic calls; use Result with a \
-             thiserror-like error enum instead:",
-        |path, ast, ers| {
-            if !is_runtime_policy_source_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(ast, RuntimePanicExpectUnwrapVisitor { ers: Vec::new() });
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn runtime_code_does_not_use_mutex() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "e3f8a1c5",
-        "runtime code contains Mutex; use it only for justified interior mutability:",
-        |path, ast, ers| {
-            if !is_runtime_policy_source_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(ast, RuntimeMutexVisitor { found_count: 0 });
-            push_repeated_file_er(ers, path, "Mutex type usage", visitor.found_count);
-        },
-    );
-}
-#[test]
-fn runtime_arc_usage_is_limited_to_cross_thread_state() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "f9c2d4a8",
-        "runtime Arc usage must be limited to explicit cross-thread shared state:",
-        |path, ast, ers| {
-            if !is_runtime_policy_source_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(
-                ast,
-                RuntimeArcVisitor {
-                    allow_arc_value_usage: path.ends_with("server/src/main.rs"),
-                    ers: Vec::new(),
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn async_functions_do_not_make_blocking_executor_calls() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "a8e1c6f3",
-        "async functions contain blocking executor calls:",
-        |path, ast, ers| {
-            if !is_runtime_policy_source_path(path) {
-                return;
-            }
-            let visitor = visit_syn_file(
-                ast,
-                AsyncBlockingCallVisitor {
-                    async_fn_depth: 0,
-                    ers: Vec::new(),
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
-#[test]
-fn unit_tests_do_not_create_external_service_clients() {
-    assert_rs_ast_ers_empty_with_ctx(
-        "d1f5b9c7",
-        "unit tests contain external-service clients; use deterministic local fakes instead:",
-        |path, ast, ers| {
-            let visitor = visit_syn_file(
-                ast,
-                UnitTestExternalServiceVisitor {
-                    test_depth: 0,
-                    ers: Vec::new(),
-                },
-            );
-            ers.extend(
-                visitor
-                    .ers
-                    .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
-            );
-        },
-    );
-}
 #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
 fn push_repeated_file_er(ers: &mut Vec<String>, path: &std::path::Path, msg: &str, times: usize) {
     ers.extend(std::iter::repeat_with(|| format!("{}: {msg}", path.display())).take(times));
 }
-fn project_dir() -> walkdir::WalkDir {
-    walkdir::WalkDir::new("../")
-}
-fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {
-    std::thread_local! {
-        static SNAPSHOT: std::cell::OnceCell<CodebaseSnapshot> = const { std::cell::OnceCell::new() };
-    }
-    SNAPSHOT.with(|snapshot| f(snapshot.get_or_init(CodebaseSnapshot::build)))
-}
 #[allow(clippy::single_call_fn)] // shared ignore predicate keeps directory filtering rules consistent across walkers
 fn is_ignored_dir_entry_name(name: &std::ffi::OsStr) -> bool {
-    name == "target" || name == ".git"
-}
-#[allow(clippy::single_call_fn)] // uncached metadata loader is used only while building the shared codebase snapshot
-fn workspace_metadata_uncached() -> cargo_metadata::Metadata {
-    cargo_metadata::MetadataCommand::new()
-        .manifest_path("../Cargo.toml")
-        .exec()
-        .expect("c84e9d1f")
-}
-#[allow(clippy::single_call_fn)] // workspace package id set is reused by metadata-backed snapshot readers
-fn workspace_member_ids(
-    metadata: &cargo_metadata::Metadata,
-) -> std::collections::HashSet<&cargo_metadata::PackageId> {
-    metadata.workspace_members.iter().collect()
+    snapshot::is_ignored_dir_entry_name(name)
 }
 #[allow(clippy::single_call_fn)] // package names are used to distinguish workspace paths from external crate paths
 fn workspace_crate_names() -> std::collections::BTreeSet<String> {
-    with_codebase_snapshot(|snapshot| snapshot.workspace_crate_names.clone())
+    snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
 }
 #[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so workspace package manifests match Cargo's view of the workspace
 fn for_each_cargo_toml_project_file(exceptions: &[&str], on_file: impl FnMut(&std::path::Path)) {
-    with_codebase_snapshot(|snapshot| {
+    snapshot::with_codebase_snapshot(|snapshot| {
         snapshot
             .package_manifest_paths()
             .filter(|path| !is_exception(path, exceptions))
             .for_each(on_file);
     });
-}
-#[allow(clippy::single_call_fn)] // uncached walker is used only by the shared codebase snapshot builder
-fn rs_project_files_uncached() -> impl Iterator<Item = walkdir::DirEntry> {
-    project_dir()
-        .into_iter()
-        .filter_entry(|el| {
-            !is_ignored_dir_entry_name(el.file_name())
-                && (el.file_type().is_dir() || is_rs_file_path(el.path()))
-        })
-        .filter_map(Result::ok)
-        .filter(|el| is_rs_file_path(el.path()))
 }
 #[allow(clippy::single_call_fn)] // shared extension gate keeps english-only file selection centralized and reusable
 fn is_allowed_english_check_file(path: &std::path::Path) -> bool {
@@ -2101,10 +1429,6 @@ fn is_allowed_english_check_ext(ext: Option<&str>) -> bool {
         ext,
         Some("rs" | "toml" | "md" | "txt" | "yml" | "yaml" | "json")
     )
-}
-#[allow(clippy::single_call_fn)] // shared rust-extension predicate keeps rs walker filters consistent
-fn is_rs_file_path(path: &std::path::Path) -> bool {
-    path.extension().and_then(std::ffi::OsStr::to_str) == Some("rs")
 }
 fn path_has_segment(path: &syn::Path, segment: &str) -> bool {
     path.segments.iter().any(|el| el.ident == segment)
@@ -2577,20 +1901,20 @@ fn attr_is_test_only_cfg(attr: &syn::Attribute) -> bool {
 }
 #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
 fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
-    with_codebase_snapshot(|snapshot| {
+    snapshot::with_codebase_snapshot(|snapshot| {
         snapshot
-            .rs_files
+            .rs_files()
             .iter()
-            .for_each(|file| on_file(&file.path, &file.content));
+            .for_each(|file| on_file(file.path(), file.content()));
     });
 }
 #[allow(clippy::single_call_fn)] // shared rust-file parser keeps read+parse flow reusable for AST-based checks and visitors
 fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
-    with_codebase_snapshot(|snapshot| {
+    snapshot::with_codebase_snapshot(|snapshot| {
         snapshot
-            .rs_files
+            .rs_files()
             .iter()
-            .for_each(|file| on_file(&file.path, &file.ast));
+            .for_each(|file| on_file(file.path(), file.ast()));
     });
 }
 fn workspace_tbl_from_cargo_toml() -> toml::value::Table {
@@ -2625,38 +1949,6 @@ fn toml_val_as_tbl_ref<'value_lt>(
         | toml::Value::Datetime(_)
         | toml::Value::Array(_) => panic!("{uuid}"),
     }
-}
-#[test]
-fn workspace_crates_must_use_workspace_dependencies() {
-    assert_cargo_toml_ers_empty(
-        &[
-            "../Cargo.toml", //workspace
-        ],
-        "5f8a6d17",
-        collect_non_workspace_dep_ers,
-    );
-}
-#[test]
-fn workspace_dependencies_use_inline_table_style() {
-    let rgx =
-        regex::Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$").expect("ac15d6b9");
-    let mut ers = Vec::new();
-    for_each_cargo_toml_project_file(&[], |path| {
-        let v = cargo_toml_content(path).expect("762c1d9e");
-        ers.extend(rgx.find_iter(&v).map(|mtch| {
-                let line_nbr = v
-                    .bytes()
-                    .take(mtch.start())
-                    .filter(|byte| *byte == b'\n')
-                    .count()
-                    .saturating_add(1);
-                format!(
-                    "{}:{line_nbr} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
-                    path.display()
-                )
-            }));
-    });
-    assert_joined_ers_empty_with_ctx(&ers, "d7a3c5b1", "dotted workspace dependency style found:");
 }
 #[allow(clippy::single_call_fn)] // shared collector keeps workspace-dependency policy checks reusable and centralized
 fn collect_non_workspace_dep_ers(
@@ -2701,30 +1993,6 @@ fn workspace_dep_entry_er(path: &std::path::Path, dep_name: &str, dep_section: &
         "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}` (only `path = ...` is allowed as exception)",
         path.display(),
     )
-}
-#[test]
-fn workspace_members_exist_on_disk() {
-    let workspace = workspace_tbl_from_cargo_toml();
-    let members = workspace_members_as_strs(&workspace, "7f3a1c4e");
-    let mut ers = collect_workspace_member_missing_cargo_toml_ers(&members);
-    assert_joined_ers_empty_sorted(&mut ers, "a4e3b8d1");
-}
-#[test]
-fn workspace_members_sorted_alphabetically() {
-    let workspace = workspace_tbl_from_cargo_toml();
-    let members_vec = workspace_members_as_strs(&workspace, "c1d4f7a2");
-    let mut sorted = members_vec.clone();
-    sorted.sort_unstable();
-    let ers = members_vec
-        .iter()
-        .zip(sorted.iter())
-        .enumerate()
-        .filter(|(_, (got, expected))| got != expected)
-        .map(|(k_4b1e6a8c, (got, expected))| {
-            format!("index {k_4b1e6a8c}: got `{got}`, expected `{expected}`")
-        })
-        .collect::<Vec<String>>();
-    assert_joined_ers_empty_with_ctx(&ers, "b7c2e5f8", "members not sorted:");
 }
 #[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
 fn collect_workspace_member_missing_cargo_toml_ers(members: &[&str]) -> Vec<String> {

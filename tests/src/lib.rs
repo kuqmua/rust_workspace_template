@@ -1,4 +1,2 @@
 #[cfg(test)]
-mod tests {
-    mod code_style;
-}
+mod code_style;
