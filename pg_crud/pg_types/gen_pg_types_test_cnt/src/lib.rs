@@ -1,4 +1,5 @@
 #[allow(unused_qualifications)]
+#[allow(unused_variables)]
 #[allow(clippy::absolute_paths)]
 #[allow(clippy::arbitrary_source_item_ordering)]
 mod gen_pg_types_mod {

@@ -27,6 +27,10 @@ mod tests {
             "useless_borrows_in_formatting",
         ];
         const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
+        const GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS: [&str; 2] = [
+            "../pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs",
+            "../pg_crud/pg_types/gen_pg_types_test_cnt/src/lib.rs",
+        ];
         const FOR_LOOP_SOURCE_EXCEPTIONS: [&str; 1] =
             ["../pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs"];
         const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
@@ -2018,6 +2022,9 @@ mod tests {
         #[allow(clippy::single_call_fn)] // shared rust-file reader keeps skip-on-read-error behavior centralized across source policy checks
         fn for_each_rs_file_content(mut on_file: impl FnMut(&std::path::Path, &str)) {
             rs_project_files()
+                .filter(|entry| {
+                    !is_exception(entry.path(), &GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS)
+                })
                 .filter_map(|entry| {
                     std::fs::read_to_string(entry.path())
                         .ok()

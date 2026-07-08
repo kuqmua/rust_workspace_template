@@ -4935,6 +4935,7 @@ pub fn gen_mod_with_pub_use_ts(
 ) -> macros_helpers::GeneratedRustTs {
     quote::quote! {
         #[allow(unused_qualifications)]
+        #[allow(unused_variables)]
         #[allow(clippy::absolute_paths)]
         #[allow(clippy::arbitrary_source_item_ordering)]
         mod #mod_name {

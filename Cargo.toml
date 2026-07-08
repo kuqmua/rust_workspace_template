@@ -70,7 +70,7 @@ serde_derive = { version = "=1.0.228", default-features = false }
 serde_json = { version = "=1.0.150", default-features = false, features = [
   "std",
 ] }
-toml = { version = "=0.9.8", default-features = false, features = [
+toml = { version = "=1.1.2", default-features = false, features = [
   "std",
   "serde",
   "parse",
@@ -85,19 +85,19 @@ regex = { version = "=1.12.4", default-features = false, features = [
   "perf",
   "unicode",
 ] }
-convert_case = { version = "=0.10.0", default-features = false }
+convert_case = { version = "=0.11.0", default-features = false }
 uuid = { version = "=1.23.4", default-features = false, features = [
   "std",
   "serde",
   "v4",
 ] }
-reqwest = { version = "=0.13.1", default-features = false, features = [
+reqwest = { version = "=0.13.4", default-features = false, features = [
   "json",
   "blocking",
   "native-tls",
   "http2",
 ] }
-tokio = { version = "=1.48.0", default-features = false, features = [
+tokio = { version = "=1.52.3", default-features = false, features = [
   "macros",
   "rt-multi-thread",
   "signal",
@@ -168,10 +168,10 @@ chrono = { version = "=0.4.45", default-features = false, features = [
   "serde",
 ] }
 thiserror = { version = "=2.0.18", default-features = false }
-strum = { version = "=0.27.2", default-features = false }
-strum_macros = { version = "=0.27.2", default-features = false }
+strum = { version = "=0.28.0", default-features = false }
+strum_macros = { version = "=0.28.0", default-features = false }
 dotenv = { version = "=0.15.0", default-features = false }
-time = { version = "=0.3.47", default-features = false, features = [
+time = { version = "=0.3.53", default-features = false, features = [
   "std",
   "serde",
 ] }
@@ -192,7 +192,7 @@ syn = { version = "=2.0.118", default-features = false, features = [
 proc-macro2 = { version = "=1.0.106", default-features = false, features = [
   "proc-macro",
 ] }
-utoipa = { version = "=4.1.0", default-features = false, features = [
+utoipa = { version = "=4.2.3", default-features = false, features = [
   "axum_extras",
 ] } #=5.4.0 contains path bug, update later
 schemars = { version = "=1.2.1", default-features = false, features = [

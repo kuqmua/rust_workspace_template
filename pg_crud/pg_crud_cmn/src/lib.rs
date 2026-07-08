@@ -198,7 +198,9 @@ pg_crud_cmn_macros::trait_al!(
     DebugClonePartialEqSerdeDefaultSomeOneAl = DebugClonePartialEqSerdeAl + DfltSomeOneEl
 );
 pg_crud_cmn_macros::trait_al!(SqlxEncodePgSqlxTypePgAl = for<'__> sqlx::Encode<'__, sqlx::Postgres> + sqlx::Type<sqlx::Postgres>);
-pg_crud_cmn_macros::trait_al!(UtoipaToSchemaAndSchemarsJsonSchemaAl = for<'__> utoipa::ToSchema<'__> + schemars::JsonSchema);
+pg_crud_cmn_macros::trait_al!(
+    UtoipaToSchemaAndSchemarsJsonSchemaAl = for<'__> utoipa::ToSchema<'__> + schemars::JsonSchema
+);
 pg_crud_cmn_macros::trait_al!(TtAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
 pg_crud_cmn_macros::trait_al!(CrAl = DebugClonePartialEqSerdeDefaultSomeOneAl);
 pg_crud_cmn_macros::trait_al!(

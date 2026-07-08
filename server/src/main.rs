@@ -29,6 +29,18 @@ impl std::fmt::Debug for ServerPgConnectEr {
         self.0.fmt(f)
     }
 }
+#[derive(Debug)]
+struct ServerPrepPgEr(server_tbl_example::TblExamplePrepPgEr);
+impl std::fmt::Display for ServerPrepPgEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl From<server_tbl_example::TblExamplePrepPgEr> for ServerPrepPgEr {
+    fn from(value: server_tbl_example::TblExamplePrepPgEr) -> Self {
+        Self(value)
+    }
+}
 struct ApiRoutes(axum::Router);
 #[derive(Clone, Copy)]
 struct CorsAllowOriginTextRef<'text_lt>(&'text_lt str);
@@ -58,7 +70,7 @@ enum RunServerEr {
     #[error("failed to connect to postgres: {0}")]
     PgConnect(ServerPgConnectEr),
     #[error("failed to prepare postgres schema: {0}")]
-    PrepPg(#[from] server_tbl_example::TblExamplePrepPgEr),
+    PrepPg(ServerPrepPgEr),
     #[error("server failed: {0}")]
     Serve(ServerIoEr),
 }
@@ -187,7 +199,9 @@ async fn run_server() -> Result<(), RunServerEr> {
     let config = server_config::Config::try_from_env()
         .map_err(|er| RunServerEr::Config(ServerConfigEr(er)))?;
     let pg_pool = mk_pg_pool(&config).await?;
-    server_tbl_example::TblExample::prep_pg(&pg_pool).await?;
+    server_tbl_example::TblExample::prep_pg(&pg_pool)
+        .await
+        .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
     let tcp_listener = tokio::net::TcpListener::bind(
         app_state::GetServiceSocketAddress::get_service_socket_address(&config),
     )
