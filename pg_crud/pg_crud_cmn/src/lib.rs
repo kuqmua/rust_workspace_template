@@ -1292,16 +1292,14 @@ pub enum NotEmptyUnqVecTryNewEr<T> {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(into_vec)]
 pub struct NotEmptyUnqVec<T>(Vec<T>);
 impl<T> NotEmptyUnqVec<T> {
     #[must_use]
     pub const fn as_slice(&self) -> &[T] {
         self.0.as_slice()
-    }
-    #[must_use]
-    pub fn into_vec(self) -> Vec<T> {
-        self.0
     }
     #[must_use]
     pub const fn to_vec(&self) -> &Vec<T> {

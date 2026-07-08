@@ -5,11 +5,15 @@ struct NewtypeAttrs {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
+    AsRef,
     AsRefStr,
+    AsSlice,
     Deref,
     Display,
     From,
     Getter,
+    IntoInner,
+    IntoVec,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ToErrStringMode {
@@ -62,10 +66,11 @@ fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStr
     let attrs = parse_newtype_attrs(&input.attrs)?;
     validate_newtype_attrs(&attrs, input)?;
     let ident = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     let inner_ty = tuple_struct_one_field_ty(input)?;
     let display_ts = attrs.contains(NewtypeOption::Display).then(|| {
         quote::quote! {
-            impl std::fmt::Display for #ident {
+            impl #impl_generics std::fmt::Display for #ident #ty_generics #where_clause {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     self.0.fmt(f)
                 }
@@ -74,16 +79,39 @@ fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStr
     });
     let as_ref_str_ts = attrs.contains(NewtypeOption::AsRefStr).then(|| {
         quote::quote! {
-            impl AsRef<str> for #ident {
+            impl #impl_generics AsRef<str> for #ident #ty_generics #where_clause {
                 fn as_ref(&self) -> &str {
                     AsRef::<str>::as_ref(&self.0)
                 }
             }
         }
     });
+    let as_ref_ts = attrs.contains(NewtypeOption::AsRef).then(|| {
+        quote::quote! {
+            impl #impl_generics #ident #ty_generics #where_clause {
+                #[must_use]
+                pub const fn as_ref(&self) -> &#inner_ty {
+                    &self.0
+                }
+            }
+        }
+    });
+    let as_slice_ts = attrs.contains(NewtypeOption::AsSlice).then(|| {
+        quote::quote! {
+            impl #impl_generics #ident #ty_generics #where_clause {
+                #[must_use]
+                pub fn as_slice(&self) -> &<#inner_ty as std::ops::Deref>::Target
+                where
+                    #inner_ty: std::ops::Deref,
+                {
+                    std::ops::Deref::deref(&self.0)
+                }
+            }
+        }
+    });
     let deref_ts = attrs.contains(NewtypeOption::Deref).then(|| {
         quote::quote! {
-            impl std::ops::Deref for #ident {
+            impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
                 type Target = <#inner_ty as std::ops::Deref>::Target;
                 fn deref(&self) -> &Self::Target {
                     &self.0
@@ -93,7 +121,7 @@ fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStr
     });
     let from_ts = attrs.contains(NewtypeOption::From).then(|| {
         quote::quote! {
-            impl From<#inner_ty> for #ident {
+            impl #impl_generics From<#inner_ty> for #ident #ty_generics #where_clause {
                 fn from(value: #inner_ty) -> Self {
                     Self(value)
                 }
@@ -107,14 +135,34 @@ fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStr
             pub trait #trait_ident {
                 fn #fn_ident(&self) -> &#inner_ty;
             }
-            impl #trait_ident for #ident {
+            impl #impl_generics #trait_ident for #ident #ty_generics #where_clause {
                 fn #fn_ident(&self) -> &#inner_ty {
                     &self.0
                 }
             }
-            impl #trait_ident for &#ident {
+            impl #impl_generics #trait_ident for &#ident #ty_generics #where_clause {
                 fn #fn_ident(&self) -> &#inner_ty {
                     &self.0
+                }
+            }
+        }
+    });
+    let into_inner_ts = attrs.contains(NewtypeOption::IntoInner).then(|| {
+        quote::quote! {
+            impl #impl_generics #ident #ty_generics #where_clause {
+                #[must_use]
+                pub fn into_inner(self) -> #inner_ty {
+                    self.0
+                }
+            }
+        }
+    });
+    let into_vec_ts = attrs.contains(NewtypeOption::IntoVec).then(|| {
+        quote::quote! {
+            impl #impl_generics #ident #ty_generics #where_clause {
+                #[must_use]
+                pub fn into_vec(self) -> #inner_ty {
+                    self.0
                 }
             }
         }
@@ -123,9 +171,13 @@ fn gen_newtype_ts(input: &syn::DeriveInput) -> syn::Result<proc_macro2::TokenStr
     Ok(quote::quote! {
         #display_ts
         #as_ref_str_ts
+        #as_ref_ts
+        #as_slice_ts
         #deref_ts
         #from_ts
         #getter_ts
+        #into_inner_ts
+        #into_vec_ts
         #to_err_string_ts
     })
 }
@@ -187,6 +239,14 @@ fn parse_newtype_attrs(attrs: &[syn::Attribute]) -> syn::Result<NewtypeAttrs> {
                     acc.insert(NewtypeOption::AsRefStr);
                     return Ok(());
                 }
+                if meta.path.is_ident("as_ref") {
+                    acc.insert(NewtypeOption::AsRef);
+                    return Ok(());
+                }
+                if meta.path.is_ident("as_slice") {
+                    acc.insert(NewtypeOption::AsSlice);
+                    return Ok(());
+                }
                 if meta.path.is_ident("deref") {
                     acc.insert(NewtypeOption::Deref);
                     return Ok(());
@@ -201,6 +261,14 @@ fn parse_newtype_attrs(attrs: &[syn::Attribute]) -> syn::Result<NewtypeAttrs> {
                 }
                 if meta.path.is_ident("getter") {
                     acc.insert(NewtypeOption::Getter);
+                    return Ok(());
+                }
+                if meta.path.is_ident("into_inner") {
+                    acc.insert(NewtypeOption::IntoInner);
+                    return Ok(());
+                }
+                if meta.path.is_ident("into_vec") {
+                    acc.insert(NewtypeOption::IntoVec);
                     return Ok(());
                 }
                 if meta.path.is_ident("to_err_string")

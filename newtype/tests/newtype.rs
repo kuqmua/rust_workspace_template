@@ -77,6 +77,12 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(to_err_string_debug)]
     struct DebugValue(Vec<u8>);
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(as_ref, into_inner)]
+    struct InnerValue(u16);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(as_slice, into_vec)]
+    struct VecValue<T>(Vec<T>);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
@@ -108,6 +114,18 @@ mod tests {
     fn debug_to_err_string_impl_is_generated() {
         let v = DebugValue(vec![1, 2]);
         assert_eq!(loc_lib::ToErrString::to_err_string(&v).as_ref(), "[1, 2]");
+    }
+    #[test]
+    fn inner_accessors_are_generated() {
+        let v = InnerValue(7);
+        assert_eq!(*v.as_ref(), 7);
+        assert_eq!(v.into_inner(), 7);
+    }
+    #[test]
+    fn vec_accessors_are_generated() {
+        let v = VecValue(vec![1i32, 2i32]);
+        assert_eq!(v.as_slice(), [1i32, 2i32]);
+        assert_eq!(v.into_vec(), vec![1i32, 2i32]);
     }
     #[test]
     fn enum_from_str_impl_is_generated() {
