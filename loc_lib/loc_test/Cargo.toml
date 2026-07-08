@@ -15,5 +15,6 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 loc_lib = { workspace = true }
 optml = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

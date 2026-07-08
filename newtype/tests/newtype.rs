@@ -8,7 +8,7 @@ mod tests {
         }
     }
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(display, as_ref_str, deref, from, getter, to_err_string_as_ref_str)]
+    #[newtype(display, as_ref_str, deref, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
     #[newtype(display, from, to_err_string)]
@@ -30,7 +30,7 @@ mod tests {
     }
     #[test]
     fn string_newtype_impls_are_generated() {
-        let v = StringValue::from(String::from("abc"));
+        let v = StringValue(String::from("abc"));
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");

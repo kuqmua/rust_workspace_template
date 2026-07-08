@@ -1,46 +1,17 @@
 const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
 struct ServerIoEr(std::io::Error);
-impl std::fmt::Display for ServerIoEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Debug for ServerIoEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
 struct ServerConfigEr(server_config::ConfigTryFromEnvEr);
-impl std::fmt::Display for ServerConfigEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
 struct ServerPgConnectEr(sqlx::Error);
-impl std::fmt::Display for ServerPgConnectEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Debug for ServerPgConnectEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Debug)]
-struct ServerPrepPgEr(server_tbl_example::TblExamplePrepPgEr);
-impl std::fmt::Display for ServerPrepPgEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl From<server_tbl_example::TblExamplePrepPgEr> for ServerPrepPgEr {
-    fn from(value: server_tbl_example::TblExamplePrepPgEr) -> Self {
-        Self(value)
-    }
-}
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+struct ServerPrepPgEr(#[from] server_tbl_example::TblExamplePrepPgEr);
 struct ApiRoutes(axum::Router);
 #[derive(Clone, Copy)]
 struct CorsAllowOriginTextRef<'text_lt>(&'text_lt str);

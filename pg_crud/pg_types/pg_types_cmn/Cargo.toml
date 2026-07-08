@@ -18,5 +18,6 @@ schemars = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 loc_lib = { workspace = true }
 optml = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

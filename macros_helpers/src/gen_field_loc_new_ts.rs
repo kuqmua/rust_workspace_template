@@ -24,7 +24,7 @@ pub fn gen_field_loc_new_ts(
         };
         quote::quote! {
             loc_lib::loc::Loc::new(
-                file!().to_owned(),
+                file!(),
                 line!(),
                 column!(),
                 Some(loc_lib::loc::Occr {

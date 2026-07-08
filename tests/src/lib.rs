@@ -402,6 +402,57 @@ mod tests {
                 syn::visit::visit_item_type(self, i);
             }
         }
+        struct StringWrapperNameVisitor {
+            names: std::collections::BTreeSet<String>,
+        }
+        impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+                if item_struct_is_single_string_wrapper(i) {
+                    let _: bool = self.names.insert(i.ident.to_string());
+                }
+                syn::visit::visit_item_struct(self, i);
+            }
+        }
+        struct StringWrapperFromVisitor<'names_lt> {
+            ers: Vec<String>,
+            string_wrapper_names: &'names_lt std::collections::BTreeSet<String>,
+        }
+        impl StringWrapperFromVisitor<'_> {
+            fn check_from_impl(&mut self, item: &syn::ItemImpl) {
+                if !item_impl_is_from_string(item) {
+                    return;
+                }
+                let Some(ident) = item_impl_self_ty_ident(item) else {
+                    return;
+                };
+                if self.string_wrapper_names.contains(&ident) {
+                    self.ers.push(format!(
+                        "string wrapper `{ident}` implements `From<String>`; implement `TryFrom<String>` with a length check instead"
+                    ));
+                }
+            }
+            fn check_newtype_attr(&mut self, item: &syn::ItemStruct) {
+                if !item_struct_is_single_string_wrapper(item) {
+                    return;
+                }
+                if item.attrs.iter().any(attr_has_newtype_from_option) {
+                    self.ers.push(format!(
+                        "string wrapper `{}` uses `#[newtype(from)]`; implement `TryFrom<String>` with a length check instead",
+                        item.ident
+                    ));
+                }
+            }
+        }
+        impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
+            fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+                self.check_from_impl(i);
+                syn::visit::visit_item_impl(self, i);
+            }
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+                self.check_newtype_attr(i);
+                syn::visit::visit_item_struct(self, i);
+            }
+        }
         struct DeclaredDomainTypeVisitor {
             names: std::collections::BTreeSet<String>,
         }
@@ -1497,6 +1548,29 @@ mod tests {
             );
         }
         #[test]
+        fn string_wrappers_do_not_use_from_string() {
+            assert_rs_ast_ers_empty_with_ctx(
+                "e2a6b9c4",
+                "string wrappers must validate length; use TryFrom<String> with a length check instead of From<String>:",
+                |path, ast, ers| {
+                    let string_wrapper_names = string_wrapper_names(ast);
+                    let visitor = visit_syn_file(
+                        ast,
+                        StringWrapperFromVisitor {
+                            ers: Vec::new(),
+                            string_wrapper_names: &string_wrapper_names,
+                        },
+                    );
+                    ers.extend(
+                        visitor
+                            .ers
+                            .into_iter()
+                            .map(|er| format!("{}: {er}", path.display())),
+                    );
+                },
+            );
+        }
+        #[test]
         fn domain_boundaries_use_repository_declared_types() {
             let repo_types = declared_domain_type_names();
             assert_rs_ast_ers_empty_with_ctx(
@@ -1708,6 +1782,100 @@ mod tests {
         fn path_has_segment(path: &syn::Path, segment: &str) -> bool {
             path.segments.iter().any(|el| el.ident == segment)
         }
+        #[allow(clippy::single_call_fn)] // names the From<String> trait-shape check for the string-wrapper policy visitor
+        fn item_impl_is_from_string(item: &syn::ItemImpl) -> bool {
+            item.trait_.as_ref().is_some_and(|(_, path, _)| {
+                path_ends_with(path, &["From"]) && from_trait_arg_is_string(path)
+            })
+        }
+        #[allow(clippy::single_call_fn)] // extracts impl target type name for string-wrapper diagnostics
+        fn item_impl_self_ty_ident(item: &syn::ItemImpl) -> Option<String> {
+            match item.self_ty.as_ref() {
+                syn::Type::Path(ty_path) => ty_path
+                    .path
+                    .segments
+                    .last()
+                    .map(|segment| segment.ident.to_string()),
+                syn::Type::Array(_)
+                | syn::Type::BareFn(_)
+                | syn::Type::Group(_)
+                | syn::Type::ImplTrait(_)
+                | syn::Type::Infer(_)
+                | syn::Type::Macro(_)
+                | syn::Type::Never(_)
+                | syn::Type::Paren(_)
+                | syn::Type::Ptr(_)
+                | syn::Type::Reference(_)
+                | syn::Type::Slice(_)
+                | syn::Type::TraitObject(_)
+                | syn::Type::Tuple(_)
+                | syn::Type::Verbatim(_)
+                | _ => None,
+            }
+        }
+        #[allow(clippy::single_call_fn)] // isolates From<String> generic-argument parsing from impl visitor flow
+        fn from_trait_arg_is_string(path: &syn::Path) -> bool {
+            path.segments.last().is_some_and(|segment| {
+                if segment.ident != "From" {
+                    return false;
+                }
+                match &segment.arguments {
+                    syn::PathArguments::AngleBracketed(args) => {
+                        args.args.iter().any(|arg| {
+                            matches!(arg, syn::GenericArgument::Type(ty) if type_path_ends_with_ident(ty, "String"))
+                        })
+                    }
+                    syn::PathArguments::Parenthesized(_) | syn::PathArguments::None => false,
+                }
+            })
+        }
+        fn item_struct_is_single_string_wrapper(item: &syn::ItemStruct) -> bool {
+            match &item.fields {
+                syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => fields
+                    .unnamed
+                    .first()
+                    .is_some_and(|field| type_path_ends_with_ident(&field.ty, "String")),
+                syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
+            }
+        }
+        fn type_path_ends_with_ident(ty: &syn::Type, ident: &str) -> bool {
+            match ty {
+                syn::Type::Path(ty_path) => ty_path
+                    .path
+                    .segments
+                    .last()
+                    .is_some_and(|segment| segment.ident == ident),
+                syn::Type::Array(_)
+                | syn::Type::BareFn(_)
+                | syn::Type::Group(_)
+                | syn::Type::ImplTrait(_)
+                | syn::Type::Infer(_)
+                | syn::Type::Macro(_)
+                | syn::Type::Never(_)
+                | syn::Type::Paren(_)
+                | syn::Type::Ptr(_)
+                | syn::Type::Reference(_)
+                | syn::Type::Slice(_)
+                | syn::Type::TraitObject(_)
+                | syn::Type::Tuple(_)
+                | syn::Type::Verbatim(_)
+                | _ => false,
+            }
+        }
+        #[allow(clippy::single_call_fn)] // keeps newtype(from) attr parsing reusable inside the string-wrapper policy
+        fn attr_has_newtype_from_option(attr: &syn::Attribute) -> bool {
+            if !attr.path().is_ident("newtype") {
+                return false;
+            }
+            let mut has_from = false;
+            drop(attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("from") {
+                    has_from = true;
+                }
+                Ok(())
+            }));
+            has_from
+        }
         fn path_ends_with(path: &syn::Path, segments: &[&str]) -> bool {
             path.segments.len() >= segments.len()
                 && path
@@ -1867,6 +2035,16 @@ mod tests {
                 names.extend(visitor.names);
             });
             names
+        }
+        #[allow(clippy::single_call_fn)] // collects tuple String wrapper names before checking From<String> impls
+        fn string_wrapper_names(ast: &syn::File) -> std::collections::BTreeSet<String> {
+            visit_syn_file(
+                ast,
+                StringWrapperNameVisitor {
+                    names: std::collections::BTreeSet::new(),
+                },
+            )
+            .names
         }
         #[allow(clippy::single_call_fn)] // keeps phased domain policy rollout controlled from one predicate
         fn domain_type_policy_should_check_path(path: &std::path::Path) -> bool {

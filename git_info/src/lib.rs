@@ -47,11 +47,6 @@ impl From<GitCommitIdRef<'_>> for GitCommitId {
         Self(value.0.to_owned())
     }
 }
-impl From<String> for GitCommitId {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
 pub struct GitCommitIdCow<'commit_lt>(pub std::borrow::Cow<'commit_lt, str>);
 impl AsRef<str> for GitCommitIdCow<'_> {

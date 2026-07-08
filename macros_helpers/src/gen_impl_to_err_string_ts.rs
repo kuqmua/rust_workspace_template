@@ -11,7 +11,7 @@ pub fn gen_impl_to_err_string_ts(
     quote::quote! {
         impl #impl_generics_ts #loc_lib_sc::#to_err_string_ucc for #ident_ts #ident_generics_ts {
             fn #to_err_string_sc(&#self_sc) -> #loc_lib_sc::ToErrStringValue {
-                #loc_lib_sc::ToErrStringValue::from(#ts)
+                #loc_lib_sc::ToErrStringValue(#ts)
             }
         }
     }

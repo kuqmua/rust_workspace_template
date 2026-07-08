@@ -361,7 +361,7 @@ impl std::fmt::Debug for PgQuery<'_> {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display, from)]
+#[newtype(display)]
 pub struct PgQueryBindEr(pub String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::Newtype)]
 #[newtype(display)]
@@ -390,7 +390,7 @@ pub struct AddOprtr(pub bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 pub struct IsPk(pub bool);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display, deref, from)]
+#[newtype(display, deref)]
 pub struct QpFragment(pub String);
 impl std::fmt::Write for QpFragment {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {

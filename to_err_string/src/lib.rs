@@ -1,5 +1,5 @@
 to_err_string_macros::impl_to_err_string_with!(i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, f32, f64, bool, char => |v| v.to_string());
-to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| debug_alt_to_string(v));
+to_err_string_macros::impl_to_err_string_with!(reqwest::header::HeaderMap, http_body::SizeHint => |v| format!("{v:#?}"));
 to_err_string_macros::impl_to_err_string_with!(
     http::header::ToStrError,
     axum::Error,
@@ -28,7 +28,7 @@ pub trait ToErrString {
     fn to_err_string(&self) -> ToErrStringValue;
 }
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(display, as_ref_str, deref, from)]
+#[newtype(display, as_ref_str, deref)]
 pub struct ToErrStringValue(pub String);
 impl<T> ToErrString for &T
 where
@@ -62,12 +62,6 @@ to_err_string_macros::impl_to_err_string_const!(
 );
 #[derive(Debug, Clone, Copy)]
 struct StaticStrToOwnedInput(pub &'static str);
-fn debug_alt_to_string<T>(v: &T) -> ToErrStringValue
-where
-    T: std::fmt::Debug,
-{
-    ToErrStringValue(format!("{v:#?}"))
-}
 fn debug_to_string<T>(v: &T) -> ToErrStringValue
 where
     T: std::fmt::Debug,

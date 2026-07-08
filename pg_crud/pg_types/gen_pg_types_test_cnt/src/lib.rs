@@ -28,7 +28,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnInt2Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I16AsNnInt2Orgn {
@@ -182,7 +182,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnInt2Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I16AsNnInt2Wh {
@@ -205,7 +205,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnInt2Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I16AsNnInt2Rd {
@@ -253,7 +253,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnInt2Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -580,7 +580,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI16AsNlInt2Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI16AsNlInt2Orgn {
@@ -736,7 +736,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI16AsNlInt2Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptI16AsNlInt2Wh {
@@ -759,7 +759,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI16AsNlInt2Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI16AsNlInt2Rd {
@@ -807,7 +807,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI16AsNlInt2Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -1117,7 +1117,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnInt4Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I32AsNnInt4Orgn {
@@ -1271,7 +1271,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnInt4Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I32AsNnInt4Wh {
@@ -1294,7 +1294,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnInt4Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I32AsNnInt4Rd {
@@ -1342,7 +1342,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnInt4Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -1669,7 +1669,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI32AsNlInt4Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI32AsNlInt4Orgn {
@@ -1825,7 +1825,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI32AsNlInt4Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptI32AsNlInt4Wh {
@@ -1848,7 +1848,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI32AsNlInt4Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI32AsNlInt4Rd {
@@ -1896,7 +1896,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI32AsNlInt4Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -2206,7 +2206,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnInt8Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I64AsNnInt8Orgn {
@@ -2360,7 +2360,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnInt8Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I64AsNnInt8Wh {
@@ -2383,7 +2383,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnInt8Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I64AsNnInt8Rd {
@@ -2431,7 +2431,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnInt8Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -2758,7 +2758,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI64AsNlInt8Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI64AsNlInt8Orgn {
@@ -2914,7 +2914,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI64AsNlInt8Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptI64AsNlInt8Wh {
@@ -2937,7 +2937,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI64AsNlInt8Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptI64AsNlInt8Rd {
@@ -2985,7 +2985,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptI64AsNlInt8Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -3295,7 +3295,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F32AsNnFloat4Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for F32AsNnFloat4Orgn {
@@ -3449,7 +3449,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F32AsNnFloat4Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for F32AsNnFloat4Wh {
@@ -3472,7 +3472,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F32AsNnFloat4Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for F32AsNnFloat4Rd {
@@ -3520,7 +3520,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F32AsNnFloat4Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -3847,7 +3847,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF32AsNlFloat4Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptF32AsNlFloat4Orgn {
@@ -4003,7 +4003,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF32AsNlFloat4Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptF32AsNlFloat4Wh {
@@ -4026,7 +4026,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF32AsNlFloat4Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptF32AsNlFloat4Rd {
@@ -4074,7 +4074,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF32AsNlFloat4Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -4388,7 +4388,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F64AsNnFloat8Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for F64AsNnFloat8Orgn {
@@ -4542,7 +4542,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F64AsNnFloat8Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for F64AsNnFloat8Wh {
@@ -4565,7 +4565,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F64AsNnFloat8Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for F64AsNnFloat8Rd {
@@ -4613,7 +4613,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for F64AsNnFloat8Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -4940,7 +4940,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF64AsNlFloat8Orgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptF64AsNlFloat8Orgn {
@@ -5096,7 +5096,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF64AsNlFloat8Wh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptF64AsNlFloat8Wh {
@@ -5119,7 +5119,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF64AsNlFloat8Rd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptF64AsNlFloat8Rd {
@@ -5167,7 +5167,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptF64AsNlFloat8Upd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -5481,7 +5481,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnSmallSerialInitByPgOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I16AsNnSmallSerialInitByPgOrgn {
@@ -5618,7 +5618,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnSmallSerialInitByPgWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I16AsNnSmallSerialInitByPgWh {
@@ -5643,7 +5643,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnSmallSerialInitByPgRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I16AsNnSmallSerialInitByPgRd {
@@ -5732,7 +5732,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I16AsNnSmallSerialInitByPgUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -6001,7 +6001,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnSerialInitByPgOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I32AsNnSerialInitByPgOrgn {
@@ -6138,7 +6138,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnSerialInitByPgWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I32AsNnSerialInitByPgWh {
@@ -6163,7 +6163,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnSerialInitByPgRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I32AsNnSerialInitByPgRd {
@@ -6252,7 +6252,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I32AsNnSerialInitByPgUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -6521,7 +6521,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnBigSerialInitByPgOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I64AsNnBigSerialInitByPgOrgn {
@@ -6660,7 +6660,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnBigSerialInitByPgWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for I64AsNnBigSerialInitByPgWh {
@@ -6685,7 +6685,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnBigSerialInitByPgRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for I64AsNnBigSerialInitByPgRd {
@@ -6774,7 +6774,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for I64AsNnBigSerialInitByPgUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -7067,7 +7067,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgMoneyAsNnMoneyOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgMoneyAsNnMoneyOrgn {
@@ -7215,7 +7215,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgMoneyAsNnMoneyWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxPgTypesPgMoneyAsNnMoneyWh {
@@ -7236,7 +7236,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgMoneyAsNnMoneyRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgMoneyAsNnMoneyRd {
@@ -7284,7 +7284,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgMoneyAsNnMoneyUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -7557,7 +7557,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgMoneyAsNlMoneyOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgMoneyAsNlMoneyOrgn {
@@ -7711,7 +7711,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgMoneyAsNlMoneyWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxPgTypesPgMoneyAsNlMoneyWh {
@@ -7732,7 +7732,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgMoneyAsNlMoneyRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgMoneyAsNlMoneyRd {
@@ -7782,7 +7782,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgMoneyAsNlMoneyUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -8068,7 +8068,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for BoolAsNnBoolOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for BoolAsNnBoolOrgn {
@@ -8213,7 +8213,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for BoolAsNnBoolWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for BoolAsNnBoolWh {
@@ -8231,7 +8231,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for BoolAsNnBoolRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for BoolAsNnBoolRd {
@@ -8279,7 +8279,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for BoolAsNnBoolUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -8542,7 +8542,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptBoolAsNlBoolOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptBoolAsNlBoolOrgn {
@@ -8689,7 +8689,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptBoolAsNlBoolWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptBoolAsNlBoolWh {
@@ -8707,7 +8707,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptBoolAsNlBoolRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptBoolAsNlBoolRd {
@@ -8755,7 +8755,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptBoolAsNlBoolUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -9091,7 +9091,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StringAsNnTextOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for StringAsNnTextOrgn {
@@ -9241,7 +9241,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StringAsNnTextWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for StringAsNnTextWh {
@@ -9264,7 +9264,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StringAsNnTextRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for StringAsNnTextRd {
@@ -9314,7 +9314,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StringAsNnTextUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -9586,7 +9586,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStringAsNlTextOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptStringAsNlTextOrgn {
@@ -9740,7 +9740,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStringAsNlTextWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptStringAsNlTextWh {
@@ -9763,7 +9763,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStringAsNlTextRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptStringAsNlTextRd {
@@ -9813,7 +9813,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStringAsNlTextUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -10115,7 +10115,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StdVecVecU8AsNnByteaOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for StdVecVecU8AsNnByteaOrgn {
@@ -10263,7 +10263,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StdVecVecU8AsNnByteaWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for StdVecVecU8AsNnByteaWh {
@@ -10286,7 +10286,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StdVecVecU8AsNnByteaRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for StdVecVecU8AsNnByteaRd {
@@ -10334,7 +10334,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for StdVecVecU8AsNnByteaUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -10611,7 +10611,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStdVecVecU8AsNlByteaOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptStdVecVecU8AsNlByteaOrgn {
@@ -10764,7 +10764,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStdVecVecU8AsNlByteaWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptStdVecVecU8AsNlByteaWh {
@@ -10787,7 +10787,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStdVecVecU8AsNlByteaRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptStdVecVecU8AsNlByteaRd {
@@ -10835,7 +10835,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptStdVecVecU8AsNlByteaUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -11250,7 +11250,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveTimeAsNnTimeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveTimeAsNnTimeOrgn {
@@ -11419,7 +11419,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveTimeAsNnTimeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesChronoNaiveTimeAsNnTimeWh {
@@ -11447,7 +11447,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveTimeAsNnTimeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveTimeAsNnTimeRd {
@@ -11501,7 +11501,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveTimeAsNnTimeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -11903,7 +11903,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveTimeAsNlTimeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveTimeAsNlTimeOrgn {
@@ -12074,7 +12074,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveTimeAsNlTimeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesChronoNaiveTimeAsNlTimeWh {
@@ -12102,7 +12102,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveTimeAsNlTimeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveTimeAsNlTimeRd {
@@ -12156,7 +12156,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveTimeAsNlTimeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -12567,7 +12567,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesTimeTimeAsNnTimeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesTimeTimeAsNnTimeOrgn {
@@ -12734,7 +12734,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesTimeTimeAsNnTimeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesTimeTimeAsNnTimeWh {
@@ -12762,7 +12762,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesTimeTimeAsNnTimeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesTimeTimeAsNnTimeRd {
@@ -12814,7 +12814,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesTimeTimeAsNnTimeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -13222,7 +13222,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesTimeTimeAsNlTimeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesTimeTimeAsNlTimeOrgn {
@@ -13394,7 +13394,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesTimeTimeAsNlTimeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesTimeTimeAsNlTimeWh {
@@ -13422,7 +13422,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesTimeTimeAsNlTimeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesTimeTimeAsNlTimeRd {
@@ -13475,7 +13475,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesTimeTimeAsNlTimeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -13819,7 +13819,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgIntervalAsNnIntervalOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgIntervalAsNnIntervalOrgn {
@@ -13969,7 +13969,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgIntervalAsNnIntervalWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxPgTypesPgIntervalAsNnIntervalWh {
@@ -13987,7 +13987,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgIntervalAsNnIntervalRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgIntervalAsNnIntervalRd {
@@ -14037,7 +14037,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgIntervalAsNnIntervalUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -14330,7 +14330,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgIntervalAsNlIntervalOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgIntervalAsNlIntervalOrgn {
@@ -14477,7 +14477,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgIntervalAsNlIntervalWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxPgTypesPgIntervalAsNlIntervalWh {
@@ -14495,7 +14495,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgIntervalAsNlIntervalRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgIntervalAsNlIntervalRd {
@@ -14545,7 +14545,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgIntervalAsNlIntervalUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -14924,7 +14924,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateAsNnDateOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveDateAsNnDateOrgn {
@@ -15096,7 +15096,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateAsNnDateWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesChronoNaiveDateAsNnDateWh {
@@ -15124,7 +15124,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateAsNnDateRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveDateAsNnDateRd {
@@ -15178,7 +15178,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateAsNnDateUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -15590,7 +15590,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateAsNlDateOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveDateAsNlDateOrgn {
@@ -15761,7 +15761,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateAsNlDateWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesChronoNaiveDateAsNlDateWh {
@@ -15789,7 +15789,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateAsNlDateRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveDateAsNlDateRd {
@@ -15843,7 +15843,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateAsNlDateUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -16245,7 +16245,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn {
@@ -16417,7 +16417,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateTimeAsNnTimestampWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesChronoNaiveDateTimeAsNnTimestampWh {
@@ -16447,7 +16447,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateTimeAsNnTimestampRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoNaiveDateTimeAsNnTimestampRd {
@@ -16499,7 +16499,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoNaiveDateTimeAsNnTimestampUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -16957,7 +16957,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampOrgn {
@@ -17136,7 +17136,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampWh {
@@ -17166,7 +17166,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampRd {
@@ -17224,7 +17224,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoNaiveDateTimeAsNlTimestampUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -17610,7 +17610,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn {
@@ -17807,7 +17807,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -17838,7 +17838,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRd {
@@ -17905,7 +17905,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -18203,7 +18203,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -18394,7 +18394,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -18425,7 +18425,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRd {
@@ -18486,7 +18486,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -18826,7 +18826,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidV4InitByPgOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidV4InitByPgOrgn {
@@ -18959,7 +18959,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidV4InitByPgWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidV4InitByPgWh {
@@ -18982,7 +18982,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidV4InitByPgRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidV4InitByPgRd {
@@ -19075,7 +19075,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidV4InitByPgUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -19385,7 +19385,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidInitByClientOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidInitByClientOrgn {
@@ -19532,7 +19532,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidInitByClientWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidInitByClientWh {
@@ -19553,7 +19553,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidInitByClientRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesUuidUuidAsNnUuidInitByClientRd {
@@ -19600,7 +19600,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesUuidUuidAsNnUuidInitByClientUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -19875,7 +19875,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesUuidUuidAsNlUuidInitByClientOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesUuidUuidAsNlUuidInitByClientOrgn {
@@ -20035,7 +20035,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesUuidUuidAsNlUuidInitByClientWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesUuidUuidAsNlUuidInitByClientWh {
@@ -20058,7 +20058,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesUuidUuidAsNlUuidInitByClientRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesUuidUuidAsNlUuidInitByClientRd {
@@ -20108,7 +20108,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesUuidUuidAsNlUuidInitByClientUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -20394,7 +20394,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesIpnetworkIpNetworkAsNnInetOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesIpnetworkIpNetworkAsNnInetOrgn {
@@ -20546,7 +20546,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesIpnetworkIpNetworkAsNnInetWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesIpnetworkIpNetworkAsNnInetWh {
@@ -20564,7 +20564,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesIpnetworkIpNetworkAsNnInetRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesIpnetworkIpNetworkAsNnInetRd {
@@ -20614,7 +20614,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesIpnetworkIpNetworkAsNnInetUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -21001,7 +21001,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesIpnetworkIpNetworkAsNlInetOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesIpnetworkIpNetworkAsNlInetOrgn {
@@ -21152,7 +21152,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesIpnetworkIpNetworkAsNlInetWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesIpnetworkIpNetworkAsNlInetWh {
@@ -21170,7 +21170,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesIpnetworkIpNetworkAsNlInetRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesIpnetworkIpNetworkAsNlInetRd {
@@ -21220,7 +21220,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesIpnetworkIpNetworkAsNlInetUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -21536,7 +21536,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesMacAddressMacAddressAsNnMacAddrOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesMacAddressMacAddressAsNnMacAddrOrgn {
@@ -21694,7 +21694,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesMacAddressMacAddressAsNnMacAddrWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxTypesMacAddressMacAddressAsNnMacAddrWh {
@@ -21718,7 +21718,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesMacAddressMacAddressAsNnMacAddrRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxTypesMacAddressMacAddressAsNnMacAddrRd {
@@ -21768,7 +21768,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxTypesMacAddressMacAddressAsNnMacAddrUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -22062,7 +22062,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesMacAddressMacAddressAsNlMacAddrOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesMacAddressMacAddressAsNlMacAddrOrgn {
@@ -22225,7 +22225,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesMacAddressMacAddressAsNlMacAddrWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxTypesMacAddressMacAddressAsNlMacAddrWh {
@@ -22249,7 +22249,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesMacAddressMacAddressAsNlMacAddrRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxTypesMacAddressMacAddressAsNlMacAddrRd {
@@ -22303,7 +22303,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxTypesMacAddressMacAddressAsNlMacAddrUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -22768,7 +22768,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI32AsNnInt4RangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeI32AsNnInt4RangeOrgn {
@@ -22998,7 +22998,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI32AsNnInt4RangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxPgTypesPgRangeI32AsNnInt4RangeWh {
@@ -23035,7 +23035,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI32AsNnInt4RangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeI32AsNnInt4RangeRd {
@@ -23089,7 +23089,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI32AsNnInt4RangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -23854,7 +23854,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI32AsNlInt4RangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeI32AsNlInt4RangeOrgn {
@@ -24076,7 +24076,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI32AsNlInt4RangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxPgTypesPgRangeI32AsNlInt4RangeWh {
@@ -24113,7 +24113,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI32AsNlInt4RangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeI32AsNlInt4RangeRd {
@@ -24165,7 +24165,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI32AsNlInt4RangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -24637,7 +24637,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI64AsNnInt8RangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeI64AsNnInt8RangeOrgn {
@@ -24867,7 +24867,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI64AsNnInt8RangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for SqlxPgTypesPgRangeI64AsNnInt8RangeWh {
@@ -24904,7 +24904,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI64AsNnInt8RangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeI64AsNnInt8RangeRd {
@@ -24958,7 +24958,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeI64AsNnInt8RangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -25723,7 +25723,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI64AsNlInt8RangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeI64AsNlInt8RangeOrgn {
@@ -25945,7 +25945,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI64AsNlInt8RangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl for OptSqlxPgTypesPgRangeI64AsNlInt8RangeWh {
@@ -25982,7 +25982,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI64AsNlInt8RangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeI64AsNlInt8RangeRd {
@@ -26034,7 +26034,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeI64AsNlInt8RangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -26465,7 +26465,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeOrgn {
@@ -26745,7 +26745,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -26787,7 +26787,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeRd {
@@ -26854,7 +26854,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNnDateRangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -27452,7 +27452,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeOrgn {
@@ -27730,7 +27730,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -27772,7 +27772,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeRd {
@@ -27839,7 +27839,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNlDateRangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -28271,7 +28271,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnTimestampRangeOrgn {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -28559,7 +28559,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnTimestampRangeWh {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -28603,7 +28603,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnTimestampRangeRd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -28672,7 +28672,7 @@ mod gen_pg_types_mod {
     }
     impl loc_lib::ToErrString for SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNnTimestampRangeUpd {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -29259,7 +29259,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlTimestampRangeOrgn
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -29549,7 +29549,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlTimestampRangeWh
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -29597,7 +29597,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlTimestampRangeRd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -29666,7 +29666,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNlTimestampRangeUpd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -30123,7 +30123,7 @@ mod gen_pg_types_mod {
         for SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRangeOrgn
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -30395,7 +30395,7 @@ mod gen_pg_types_mod {
         for SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRangeWh
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -30433,7 +30433,7 @@ mod gen_pg_types_mod {
         for SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRangeRd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -30492,7 +30492,7 @@ mod gen_pg_types_mod {
         for SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzRangeUpd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]
@@ -31044,7 +31044,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRangeOrgn
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.to_string())
+            loc_lib::ToErrStringValue(self.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -31268,7 +31268,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRangeWh
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(format!("{self:#?}"))
+            loc_lib::ToErrStringValue(format!("{self:#?}"))
         }
     }
     impl pg_crud_cmn::AllEnumVrtsArrDfltSomeOneEl
@@ -31306,7 +31306,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRangeRd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_string())
+            loc_lib::ToErrStringValue(self.0.to_string())
         }
     }
     impl pg_crud_cmn::DfltSomeOneEl
@@ -31367,7 +31367,7 @@ mod gen_pg_types_mod {
         for OptSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNlTimestampTzRangeUpd
     {
         fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-            loc_lib::ToErrStringValue::from(self.0.to_err_string().0)
+            loc_lib::ToErrStringValue(self.0.to_err_string().0)
         }
     }
     #[derive(Debug, Clone, Copy, PartialEq, serde :: Serialize, serde :: Deserialize)]

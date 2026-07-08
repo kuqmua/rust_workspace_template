@@ -96,7 +96,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleCmEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -125,7 +125,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCmEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -151,7 +151,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCmEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -192,7 +192,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                     let er = TblExampleCmEr::Qp {
                                         er: er_0,
                                         loc: loc_lib::loc::Loc::new(
-                                            file!().to_owned(),
+                                            file!(),
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
@@ -215,7 +215,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleCmEr::Qp {
                                     er: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -240,7 +240,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }),
                 pg_crud::PgTblSqlFragmentRef(&{
                     let mut acc_a35168d8 = String::new();
-                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
+                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCmEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_ids_qp(
                         pg_crud::SqlColRef(&"col_0"),
                     ) {
@@ -251,7 +251,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -280,7 +280,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -309,7 +309,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -347,7 +347,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCmEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -375,7 +375,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -400,7 +400,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -426,7 +426,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCmEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -467,7 +467,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     row: er_0,
                                                     rollback: er_1,
                                                     loc: loc_lib::loc::Loc::new(
-                                                        file!().to_owned(),
+                                                        file!(),
                                                         line!(),
                                                         column!(),
                                                         Some(loc_lib::loc::Occr {
@@ -492,7 +492,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                             let er = TblExampleCmEr::Pg {
                                                 pg: er_0,
                                                 loc: loc_lib::loc::Loc::new(
-                                                    file!().to_owned(),
+                                                    file!(),
                                                     line!(),
                                                     column!(),
                                                     Some(loc_lib::loc::Occr {
@@ -525,7 +525,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         row: er_0,
                                         rollback: er_1,
                                         loc: loc_lib::loc::Loc::new(
-                                            file!().to_owned(),
+                                            file!(),
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
@@ -546,7 +546,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleCmEr::Pg {
                                     pg: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -574,7 +574,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -622,7 +622,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryCmEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -650,7 +650,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryCmEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -674,7 +674,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -697,7 +697,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -743,7 +743,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryCmEr::TblExampleCmErWithSerde {
                 cm_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -784,7 +784,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleCoEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -813,7 +813,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCoEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -839,7 +839,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCoEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -868,7 +868,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCoEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -889,7 +889,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }),
                 pg_crud::PgTblSqlFragmentRef(&{
                     let mut acc_a35168d8 = String::new();
-                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCoEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
+                    match < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: sel_only_ids_qp (pg_crud::SqlColRef(&"pk_col")) { Ok (v_aa341baf) => { acc_a35168d8 . push_str (& v_aa341baf) ; } , Err (er_0) => { let er = TblExampleCoEr :: Qp { er : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(2319), col: loc_lib::loc::LocCol(80) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: BAD_REQUEST ; return res ; } }
                     match <pg_crud::I16AsNnInt2 as pg_crud::PgType>::sel_only_ids_qp(
                         pg_crud::SqlColRef(&"col_0"),
                     ) {
@@ -900,7 +900,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCoEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -929,7 +929,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCoEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -958,7 +958,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCoEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -996,7 +996,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCoEr::TryBind {
                             try_bind: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1023,7 +1023,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1048,7 +1048,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1074,7 +1074,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleCoEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1096,7 +1096,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleCoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleCoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleCoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleCoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleCoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -1104,7 +1104,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                     row: er_0,
                                     rollback: er_1,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -1125,7 +1125,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleCoEr::Pg {
                                 pg: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -1149,7 +1149,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleCoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1197,7 +1197,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryCoEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1225,7 +1225,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryCoEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1249,7 +1249,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1272,7 +1272,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1318,7 +1318,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryCoEr::TblExampleCoErWithSerde {
                 co_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -1359,7 +1359,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleRmEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -1388,7 +1388,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRmEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1414,7 +1414,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1442,7 +1442,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1474,7 +1474,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleRmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -1519,7 +1519,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1553,7 +1553,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         let er = TblExampleRmEr::Qp {
                                             er: er_0,
                                             loc: loc_lib::loc::Loc::new(
-                                                file!().to_owned(),
+                                                file!(),
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
@@ -1583,7 +1583,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1614,7 +1614,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::TryBind {
                             try_bind: er_0.0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1641,7 +1641,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRmEr::TryBind {
                             try_bind: er_0.0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1668,7 +1668,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1693,7 +1693,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1716,7 +1716,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 {
                     let mut rows = binded_query.fetch(executor_acquire.as_mut());
                     let mut acc_d16ac269 = Vec::new();
-                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => Some (match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }) , None => None , } , Err (er_0) => { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3265), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } { acc_d16ac269 . push (v_d9cc2c36) ; }
+                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => Some (match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }) , None => None , } , Err (er_0) => { let er = TblExampleRmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3265), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } { acc_d16ac269 . push (v_d9cc2c36) ; }
                     acc_d16ac269
                 }
             };
@@ -1748,7 +1748,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryRmEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1776,7 +1776,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryRmEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1800,7 +1800,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1823,7 +1823,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1869,7 +1869,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryRmEr::TblExampleRmErWithSerde {
                 rm_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -1910,7 +1910,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleRoEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -1939,7 +1939,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRoEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -1965,7 +1965,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRoEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -1993,7 +1993,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRoEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -2023,7 +2023,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRoEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -2053,7 +2053,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleRoEr::TryBind {
                             try_bind: er_0.0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -2080,7 +2080,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2105,7 +2105,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleRoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2125,7 +2125,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
             };
             let v = {
-                match binded_query . fetch_one (executor_acquire . as_mut ()) . await { Ok (v_b27d7d79) => { match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } } , Err (er_0) => { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3276), col: loc_lib::loc::LocCol(78) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } }
+                match binded_query . fetch_one (executor_acquire . as_mut ()) . await { Ok (v_b27d7d79) => { match TblExampleRd :: try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_tbl_example_sel (& v_b27d7d79 , & prms . payload . sel) { Ok (v_90535a1d) => v_90535a1d , Err (er_0) => { { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(1353), col: loc_lib::loc::LocCol(25) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } } , Err (er_0) => { let er = TblExampleRoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3276), col: loc_lib::loc::LocCol(78) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleRoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } }
             };
             let mut res = axum::response::IntoResponse::into_response(axum::Json(
                 TblExampleRoResVrts::Desirable(v),
@@ -2155,7 +2155,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryRoEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -2183,7 +2183,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryRoEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2207,7 +2207,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2230,7 +2230,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2276,7 +2276,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryRoEr::TblExampleRoErWithSerde {
                 ro_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -2317,7 +2317,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleUmEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -2346,7 +2346,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUmEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -2372,7 +2372,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUmEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -2423,7 +2423,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2448,7 +2448,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2500,7 +2500,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2525,7 +2525,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2577,7 +2577,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2602,7 +2602,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     let er = TblExampleUmEr::Qp {
                                                         er: er_0,
                                                         loc: loc_lib::loc::Loc::new(
-                                                            file!().to_owned(),
+                                                            file!(),
                                                             line!(),
                                                             column!(),
                                                             Some(loc_lib::loc::Occr {
@@ -2649,7 +2649,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         let er = TblExampleUmEr::Qp {
                                             er: er_0,
                                             loc: loc_lib::loc::Loc::new(
-                                                file!().to_owned(),
+                                                file!(),
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
@@ -2678,7 +2678,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -2711,7 +2711,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::Qp {
                                     er: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -2750,7 +2750,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUmEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -2782,7 +2782,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -2810,7 +2810,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUmEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -2842,7 +2842,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -2870,7 +2870,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUmEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -2902,7 +2902,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -2938,7 +2938,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUmEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -2974,7 +2974,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -3011,7 +3011,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -3048,7 +3048,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::TryBind {
                                     try_bind: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -3077,7 +3077,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3102,7 +3102,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3128,7 +3128,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUmEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3169,7 +3169,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                                     row: er_0,
                                                     rollback: er_1,
                                                     loc: loc_lib::loc::Loc::new(
-                                                        file!().to_owned(),
+                                                        file!(),
                                                         line!(),
                                                         column!(),
                                                         Some(loc_lib::loc::Occr {
@@ -3194,7 +3194,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                             let er = TblExampleUmEr::Pg {
                                                 pg: er_0,
                                                 loc: loc_lib::loc::Loc::new(
-                                                    file!().to_owned(),
+                                                    file!(),
                                                     line!(),
                                                     column!(),
                                                     Some(loc_lib::loc::Occr {
@@ -3227,7 +3227,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         row: er_0,
                                         rollback: er_1,
                                         loc: loc_lib::loc::Loc::new(
-                                            file!().to_owned(),
+                                            file!(),
                                             line!(),
                                             column!(),
                                             Some(loc_lib::loc::Occr {
@@ -3248,7 +3248,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                 let er = TblExampleUmEr::Pg {
                                     pg: er_0,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -3276,7 +3276,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3324,7 +3324,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryUmEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3352,7 +3352,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryUmEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3376,7 +3376,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3399,7 +3399,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3445,7 +3445,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryUmEr::TblExampleUmErWithSerde {
                 um_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -3486,7 +3486,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleUoEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -3515,7 +3515,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUoEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -3541,7 +3541,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUoEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3576,7 +3576,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         let er = TblExampleUoEr::Qp {
                                             er: er_0,
                                             loc: loc_lib::loc::Loc::new(
-                                                file!().to_owned(),
+                                                file!(),
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
@@ -3608,7 +3608,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         let er = TblExampleUoEr::Qp {
                                             er: er_0,
                                             loc: loc_lib::loc::Loc::new(
-                                                file!().to_owned(),
+                                                file!(),
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
@@ -3640,7 +3640,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                         let er = TblExampleUoEr::Qp {
                                             er: er_0,
                                             loc: loc_lib::loc::Loc::new(
-                                                file!().to_owned(),
+                                                file!(),
                                                 line!(),
                                                 column!(),
                                                 Some(loc_lib::loc::Occr {
@@ -3671,7 +3671,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUoEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3696,7 +3696,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUoEr::Qp {
                             er: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3740,7 +3740,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3775,7 +3775,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3810,7 +3810,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3844,7 +3844,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUoEr::TryBind {
                             try_bind: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -3878,7 +3878,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3913,7 +3913,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3948,7 +3948,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::TryBind {
                                 try_bind: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -3976,7 +3976,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4001,7 +4001,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4027,7 +4027,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleUoEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4049,7 +4049,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleUoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleUoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match < TblExampleRdIds as sqlx :: FromRow < '_ , sqlx :: postgres :: PgRow >> :: from_row (& v_b27d7d79) { Ok (v_33759463) => v_33759463 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleUoEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleUoEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleUoResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -4057,7 +4057,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                     row: er_0,
                                     rollback: er_1,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -4078,7 +4078,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleUoEr::Pg {
                                 pg: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -4102,7 +4102,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleUoEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4150,7 +4150,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryUoEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4178,7 +4178,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryUoEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4202,7 +4202,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4225,7 +4225,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4271,7 +4271,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryUoEr::TblExampleUoErWithSerde {
                 uo_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -4312,7 +4312,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleDmEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -4341,7 +4341,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDmEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4367,7 +4367,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDmEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4402,7 +4402,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleDmEr::Qp {
                                 er: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -4434,7 +4434,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDmEr::TryBind {
                             try_bind: er_0.0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4461,7 +4461,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4486,7 +4486,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4512,7 +4512,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDmEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4534,14 +4534,14 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     let mut rows = binded_query.fetch(executor.as_mut());
                     let mut acc_d16ac269 = Vec::new();
-                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => Some (v_69ecb6a9) , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } , None => None , } , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } { acc_d16ac269 . push (v_d9cc2c36) ; }
+                    while let Some (v_d9cc2c36) = match pg_crud :: TryStreamExt :: try_next (& mut rows) . await { Ok (v_19f3d6e1) => match v_19f3d6e1 { Some (v_b27d7d79) => match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => Some (v_69ecb6a9) , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3213), col: loc_lib::loc::LocCol(45) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } , None => None , } , Err (er_0) => { drop (rows) ; { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDmEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDmEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3219), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDmResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } } { acc_d16ac269 . push (v_d9cc2c36) ; }
                     acc_d16ac269
                 };
                 if let Err(er_0) = executor.commit().await {
                     let er = TblExampleDmEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4592,7 +4592,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryDmEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4620,7 +4620,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryDmEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4644,7 +4644,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4667,7 +4667,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4713,7 +4713,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryDmEr::TblExampleDmErWithSerde {
                 dm_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {
@@ -4757,7 +4757,7 @@ mod tbl_example_gen_pg_tbl_mod {
             {
                 let er = TblExampleDloEr::HeaderContentTypeAppJsonNotFound {
                     loc: loc_lib::loc::Loc::new(
-                        file!().to_owned(),
+                        file!(),
                         line!(),
                         column!(),
                         Some(loc_lib::loc::Occr {
@@ -4786,7 +4786,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDloEr::CheckBodySize {
                         check_body_size: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4812,7 +4812,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDloEr::SerdeJson {
                             serde_json: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4846,7 +4846,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDloEr::TryBind {
                             try_bind: er_0.0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4873,7 +4873,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDloEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4898,7 +4898,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDloEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -4924,7 +4924,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         let er = TblExampleDloEr::Pg {
                             pg: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -4946,7 +4946,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 let v = {
                     match binded_query.fetch_one(executor.as_mut()).await {
                         Ok(v_b27d7d79) => {
-                            match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => v_69ecb6a9 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDloEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDloEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () . to_owned () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
+                            match sqlx :: Row :: try_get :: < < pg_crud :: SqlxTypesUuidUuidAsNnUuidV4InitByPg as pg_crud :: PgType > :: Rd , & str > (& v_b27d7d79 , Self :: pk ()) { Ok (v_69ecb6a9) => v_69ecb6a9 , Err (er_0) => { { if let Err (er_1) = executor . rollback () . await { let er = TblExampleDloEr :: RowAndRollback { row : er_0 , rollback : er_1 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } let er = TblExampleDloEr :: Pg { pg : er_0 , loc : loc_lib :: loc :: Loc :: new (file ! () , line ! () , column ! () , Some (loc_lib :: loc :: Occr { file: loc_lib::loc::LocFile(String::from("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")), line: loc_lib::loc::LocLine(3230), col: loc_lib::loc::LocCol(37) })) } ; let mut res = axum :: response :: IntoResponse :: into_response (axum :: Json (TblExampleDloResVrts :: from_h (er))) ; * res . status_mut () = http :: StatusCode :: INTERNAL_SERVER_ERROR ; return res ; } } }
                         }
                         Err(er_0) => {
                             if let Err(er_1) = executor.rollback().await {
@@ -4954,7 +4954,7 @@ mod tbl_example_gen_pg_tbl_mod {
                                     row: er_0,
                                     rollback: er_1,
                                     loc: loc_lib::loc::Loc::new(
-                                        file!().to_owned(),
+                                        file!(),
                                         line!(),
                                         column!(),
                                         Some(loc_lib::loc::Occr {
@@ -4975,7 +4975,7 @@ mod tbl_example_gen_pg_tbl_mod {
                             let er = TblExampleDloEr::Pg {
                                 pg: er_0,
                                 loc: loc_lib::loc::Loc::new(
-                                    file!().to_owned(),
+                                    file!(),
                                     line!(),
                                     column!(),
                                     Some(loc_lib::loc::Occr {
@@ -4999,7 +4999,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     let er = TblExampleDloEr::Pg {
                         pg: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -5050,7 +5050,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         return Err(TblExampleTryDloEr::SerdeJsonToString {
                             serde_json_to_string: er_0,
                             loc: loc_lib::loc::Loc::new(
-                                file!().to_owned(),
+                                file!(),
                                 line!(),
                                 column!(),
                                 Some(loc_lib::loc::Occr {
@@ -5078,7 +5078,7 @@ mod tbl_example_gen_pg_tbl_mod {
                     return Err(TblExampleTryDloEr::Reqwest {
                         reqwest: er_0,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -5102,7 +5102,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         headers: er_1,
                         reqwest: er_2,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -5125,7 +5125,7 @@ mod tbl_example_gen_pg_tbl_mod {
                         res_text: er_2,
                         serde: er_3,
                         loc: loc_lib::loc::Loc::new(
-                            file!().to_owned(),
+                            file!(),
                             line!(),
                             column!(),
                             Some(loc_lib::loc::Occr {
@@ -5170,7 +5170,7 @@ mod tbl_example_gen_pg_tbl_mod {
             Err(TblExampleTryDloEr::TblExampleDloErWithSerde {
                 dlo_er_with_serde,
                 loc: loc_lib::loc::Loc::new(
-                    file!().to_owned(),
+                    file!(),
                     line!(),
                     column!(),
                     Some(loc_lib::loc::Occr {

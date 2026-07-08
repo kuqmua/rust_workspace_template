@@ -16,30 +16,13 @@ struct PgnStartsWithOneRaw {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from, to_err_string)]
 pub struct PgnStartsWithOneValue(pub i64);
-impl From<i64> for PgnStartsWithOneValue {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for PgnStartsWithOneValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl loc_lib::ToErrString for PgnStartsWithOneValue {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(from)]
 pub struct IsPrimaryKey(pub bool);
-impl From<bool> for IsPrimaryKey {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 #[derive(
     Debug,
     Clone,

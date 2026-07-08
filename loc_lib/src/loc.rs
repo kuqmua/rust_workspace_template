@@ -11,23 +11,10 @@ const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display)]
 pub struct LocFile(pub String);
-impl From<String> for LocFile {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-impl From<&str> for LocFile {
-    fn from(value: &str) -> Self {
-        Self(value.to_owned())
-    }
-}
-impl std::fmt::Display for LocFile {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -39,18 +26,10 @@ impl std::fmt::Display for LocFile {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from)]
 pub struct LocLine(pub u32);
-impl From<u32> for LocLine {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for LocLine {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -62,18 +41,10 @@ impl std::fmt::Display for LocLine {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from)]
 pub struct LocCol(pub u32);
-impl From<u32> for LocCol {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for LocCol {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -86,11 +57,6 @@ impl std::fmt::Display for LocCol {
     optml::Optml,
 )]
 pub struct LocCommit(pub String);
-impl From<String> for LocCommit {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -102,13 +68,10 @@ impl From<String> for LocCommit {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(from)]
 pub struct LocDuration(pub std::time::Duration);
-impl From<std::time::Duration> for LocDuration {
-    fn from(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, Copy)]
 struct LocFileRef<'file_lt>(pub &'file_lt str);
 struct FmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
@@ -240,12 +203,12 @@ impl Loc {
         occr: Option<Occr>,
     ) -> Self
     where
-        FileTy: Into<LocFile>,
+        FileTy: AsRef<str>,
         LineTy: Into<LocLine>,
         ColTy: Into<LocCol>,
     {
         Self {
-            file: file.into(),
+            file: LocFile(file.as_ref().to_owned()),
             line: line.into(),
             col: col.into(),
             commit: LocCommit(git_info::PROJECT_GIT_INFO.commit.0.to_owned()),

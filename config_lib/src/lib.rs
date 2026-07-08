@@ -5,22 +5,13 @@ const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(pub String);
-impl From<String> for StdEnvVarOk {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub struct StdEnvVarOkRef<'value_lt>(pub &'value_lt str);
 #[derive(Debug, Clone, Copy)]
 pub struct EnvVarNameRef<'name_lt>(pub &'name_lt str);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(display)]
 pub struct EnvVarName(pub String);
-impl std::fmt::Display for EnvVarName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChronoFixedOffsetEr(pub &'static str);
 pub struct I32ParsingEr(pub std::num::ParseIntError);

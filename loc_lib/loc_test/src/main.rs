@@ -33,42 +33,45 @@ pub enum ErOne {
         loc: loc_lib::loc::Loc,
     },
 }
-#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(to_err_string_as_ref_str)]
 pub struct LocTestText(pub String);
-impl From<String> for LocTestText {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-impl loc_lib::ToErrString for LocTestText {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.clone())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(from, to_err_string)]
 pub struct LocTestFlag(pub bool);
-impl From<bool> for LocTestFlag {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl loc_lib::ToErrString for LocTestFlag {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(from, to_err_string)]
 pub struct LocTestCount(pub u32);
-impl From<u32> for LocTestCount {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-impl loc_lib::ToErrString for LocTestCount {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum ErTwo {
     Another {

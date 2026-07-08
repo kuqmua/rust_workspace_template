@@ -2,41 +2,21 @@ const COMMIT_HEADER_NAME: axum::http::HeaderName = axum::http::HeaderName::from_
 const NO_COMMIT_HEADER_MSG: &str = "no_commit_header";
 const COMMIT_NOT_EQ_MSG: &str =
     "different project commit provided, services must work only with eq project commits";
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(to_err_string_as_ref_str)]
 pub struct CommitNotEqMsg(pub &'static str);
-impl loc_lib::ToErrString for CommitNotEqMsg {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_owned())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(to_err_string_as_ref_str)]
 pub struct CommitToUse(pub &'static str);
-impl loc_lib::ToErrString for CommitToUse {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_owned())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(to_err_string_as_ref_str)]
 pub struct NoCommitHeaderMsg(pub &'static str);
-impl loc_lib::ToErrString for NoCommitHeaderMsg {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_owned())
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Newtype)]
+#[newtype(to_err_string)]
 pub struct CommitToStrConversionEr(pub axum::http::header::ToStrError);
-impl loc_lib::ToErrString for CommitToStrConversionEr {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue(self.0.to_string())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(from)]
 pub struct EnableApiGitCommitCheck(pub bool);
-impl From<bool> for EnableApiGitCommitCheck {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
 pub enum CommitEr {
     CommitNotEq {

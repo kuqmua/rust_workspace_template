@@ -24,7 +24,7 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
         #(impl ToErrString for #types {
             fn to_err_string(&self) -> ToErrStringValue {
                 let #value_ident = self;
-                ToErrStringValue::from(#body)
+                ToErrStringValue(#body)
             }
         })*
     }
