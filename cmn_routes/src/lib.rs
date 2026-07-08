@@ -5,8 +5,9 @@ const SLASH_SWAGGER_UI: &str = "/swagger-ui";
 const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
-const HEALTH_CHECK_OK_STATUS: axum::http::StatusCode = axum::http::StatusCode::OK;
-const HEALTH_CHECK_ER_STATUS: axum::http::StatusCode = axum::http::StatusCode::SERVICE_UNAVAILABLE;
+const HEALTH_CHECK_OK_STATUS: HealthCheckStatus = HealthCheckStatus(axum::http::StatusCode::OK);
+const HEALTH_CHECK_ER_STATUS: HealthCheckStatus =
+    HealthCheckStatus(axum::http::StatusCode::SERVICE_UNAVAILABLE);
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct GitInfo {
     commit: git_info::GitCommitLinkCow,
@@ -64,7 +65,7 @@ struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
 struct NoRouteMsgCapacity(usize);
 #[derive(Debug, Clone, Copy, optml::Optml)]
 struct HealthCheckSucceeded(bool);
-#[derive(Debug, Clone, Copy, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 struct HealthCheckStatus(axum::http::StatusCode);
 #[derive(Debug, optml::Optml)]
 struct JsonRes<T> {
@@ -166,7 +167,7 @@ const fn mk_not_found_payload_with_msg(
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
 fn mk_commit_json_res<S, T>(
     commit_src: &S,
-    status: axum::http::StatusCode,
+    status: HealthCheckStatus,
     map: impl FnOnce(git_info::GitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
@@ -180,18 +181,18 @@ where
     )
 }
 #[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
-const fn mk_json_res<T>(status: axum::http::StatusCode, payload: T) -> JsonRes<T> {
+const fn mk_json_res<T>(status: HealthCheckStatus, payload: T) -> JsonRes<T> {
     JsonRes {
-        status: HealthCheckStatus(status),
+        status,
         payload: JsonPayload(axum::Json(payload)),
     }
 }
 #[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
 const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> HealthCheckStatus {
     if is_ok.0 {
-        HealthCheckStatus(HEALTH_CHECK_OK_STATUS)
+        HEALTH_CHECK_OK_STATUS
     } else {
-        HealthCheckStatus(HEALTH_CHECK_ER_STATUS)
+        HEALTH_CHECK_ER_STATUS
     }
 }
 #[must_use]
@@ -226,7 +227,7 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                     >| {
                         mk_commit_json_res(
                             app_state_76fb2013.as_ref(),
-                            axum::http::StatusCode::OK,
+                            HealthCheckStatus(axum::http::StatusCode::OK),
                             mk_git_info_payload,
                         )
                     },
@@ -239,7 +240,7 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                 >| {
                     mk_commit_json_res(
                         app_state_19103bd5.as_ref(),
-                        axum::http::StatusCode::NOT_FOUND,
+                        HealthCheckStatus(axum::http::StatusCode::NOT_FOUND),
                         |commit| mk_not_found_payload(HttpUriRef(&uri), commit),
                     )
                 },
@@ -410,14 +411,14 @@ mod tests {
     #[test]
     fn map_health_check_status_returns_ok_for_success() {
         assert_eq!(
-            super::map_health_check_status(super::HealthCheckSucceeded(true)).0,
+            super::map_health_check_status(super::HealthCheckSucceeded(true)),
             super::HEALTH_CHECK_OK_STATUS
         );
     }
     #[test]
     fn map_health_check_status_returns_unavailable_for_error() {
         assert_eq!(
-            super::map_health_check_status(super::HealthCheckSucceeded(false)).0,
+            super::map_health_check_status(super::HealthCheckSucceeded(false)),
             super::HEALTH_CHECK_ER_STATUS
         );
     }
@@ -432,7 +433,7 @@ mod tests {
     #[test]
     fn mk_json_res_wraps_payload_with_status() {
         let response = super::mk_json_res(
-            axum::http::StatusCode::CREATED,
+            super::HealthCheckStatus(axum::http::StatusCode::CREATED),
             super::mk_git_info_payload(b_cow(TEST_COMMIT)),
         );
         assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
@@ -451,7 +452,7 @@ mod tests {
     fn mk_commit_json_res_combines_status_and_commit_payload() {
         let response = super::mk_commit_json_res(
             test_state().as_ref(),
-            axum::http::StatusCode::OK,
+            super::HealthCheckStatus(axum::http::StatusCode::OK),
             super::mk_git_info_payload,
         );
         assert_eq!(response.status.0, axum::http::StatusCode::OK);

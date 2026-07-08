@@ -66,10 +66,10 @@ fn mk_api_routes(
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
 fn mk_app_state(
     config: server_config::Config,
-    pg_pool: sqlx::PgPool,
+    pg_pool: app_state::PgPool,
 ) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
     std::sync::Arc::new(server_app_state::ServerAppState {
-        pg_pool: app_state::PgPool::from(pg_pool),
+        pg_pool,
         config,
         project_git_info: &git_info::PROJECT_GIT_INFO,
     })
@@ -153,13 +153,14 @@ fn mk_runtime() -> Result<ServerRuntime, RunServerEr> {
         .map_err(|er| RunServerEr::BuildRuntime(ServerIoEr(er)))
 }
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(config: &server_config::Config) -> Result<sqlx::PgPool, RunServerEr> {
+async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::PgPool, RunServerEr> {
     sqlx::postgres::PgPoolOptions::new()
         .max_connections(*app_state::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
         .connect(secrecy::ExposeSecret::expose_secret(
             app_state::GetDatabaseUrl::get_database_url(config),
         ))
         .await
+        .map(app_state::PgPool::from)
         .map_err(|er| RunServerEr::PgConnect(ServerPgConnectEr(er)))
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
@@ -167,7 +168,7 @@ async fn run_server() -> Result<(), RunServerEr> {
     let config = server_config::Config::try_from_env()
         .map_err(|er| RunServerEr::Config(ServerConfigEr(er)))?;
     let pg_pool = mk_pg_pool(&config).await?;
-    server_tbl_example::TblExample::prep_pg(&pg_pool)
+    server_tbl_example::TblExample::prep_pg(pg_pool.as_ref())
         .await
         .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
     let tcp_listener = tokio::net::TcpListener::bind(

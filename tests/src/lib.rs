@@ -549,6 +549,7 @@ mod tests {
         struct DomainTypePolicyVisitor<'types> {
             ers: Vec<String>,
             generic_scopes: Vec<std::collections::BTreeSet<String>>,
+            repo_crates: &'types std::collections::BTreeSet<String>,
             repo_types: &'types std::collections::BTreeSet<String>,
         }
         impl DomainTypePolicyVisitor<'_> {
@@ -657,6 +658,14 @@ mod tests {
                     self.check_path_arguments(&segment.arguments, ctx);
                     return;
                 }
+                if self.path_starts_with_external_crate(&ty_path.path) {
+                    self.ers.push(format!(
+                "{ctx} uses `{}`; use a repository domain wrapper type and initialize it with From/TryFrom instead of exposing raw external or primitive types",
+                path_to_string(&ty_path.path)
+            ));
+                    self.check_path_arguments(&segment.arguments, ctx);
+                    return;
+                }
                 if self.path_starts_with_allowed_type_ident(&ty_path.path) {
                     ty_path.path.segments.iter().for_each(|path_segment| {
                         self.check_path_arguments(&path_segment.arguments, ctx);
@@ -686,6 +695,17 @@ mod tests {
                 path.segments.len() > 1
                     && path.segments.first().is_some_and(|segment| {
                         self.is_allowed_type_ident(&segment.ident.to_string())
+                    })
+            }
+            fn path_starts_with_external_crate(&self, path: &syn::Path) -> bool {
+                path.segments.len() > 1
+                    && path.segments.first().is_some_and(|segment| {
+                        let ident = segment.ident.to_string();
+                        ident != "crate"
+                            && ident != "self"
+                            && ident != "super"
+                            && !self.repo_crates.contains(&ident)
+                            && !self.is_allowed_type_ident(&ident)
                     })
             }
             fn pop_generics(&mut self) {
@@ -1669,6 +1689,7 @@ mod tests {
         }
         #[test]
         fn domain_boundaries_use_repository_declared_types() {
+            let repo_crates = workspace_crate_names();
             let repo_types = declared_domain_type_names();
             assert_rs_ast_ers_empty_with_ctx(
                 "a7f9c3e1",
@@ -1682,6 +1703,7 @@ mod tests {
                         DomainTypePolicyVisitor {
                             ers: Vec::new(),
                             generic_scopes: Vec::new(),
+                            repo_crates: &repo_crates,
                             repo_types: &repo_types,
                         },
                     );
@@ -1830,6 +1852,20 @@ mod tests {
                 .manifest_path("../Cargo.toml")
                 .exec()
                 .expect("c84e9d1f")
+        }
+        #[allow(clippy::single_call_fn)] // package names are used to distinguish workspace paths from external crate paths
+        fn workspace_crate_names() -> std::collections::BTreeSet<String> {
+            let metadata = workspace_metadata();
+            let workspace_members = metadata
+                .workspace_members
+                .iter()
+                .collect::<std::collections::HashSet<&cargo_metadata::PackageId>>();
+            metadata
+                .packages
+                .iter()
+                .filter(|package| workspace_members.contains(&package.id))
+                .map(|package| package.name.to_string())
+                .collect()
         }
         #[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so workspace package manifests match Cargo's view of the workspace
         fn for_each_cargo_toml_project_file(
