@@ -9,25 +9,25 @@ pub enum ShouldWriteTsIntoFile {
     True,
 }
 #[derive(Debug, Clone, Copy)]
-pub struct TsRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
-impl<'ts_lt> From<&'ts_lt proc_macro2::TokenStream> for TsRef<'ts_lt> {
+pub struct ProcMacro2TsRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
+impl<'ts_lt> From<&'ts_lt proc_macro2::TokenStream> for ProcMacro2TsRef<'ts_lt> {
     fn from(value: &'ts_lt proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl AsRef<proc_macro2::TokenStream> for TsRef<'_> {
+impl AsRef<proc_macro2::TokenStream> for ProcMacro2TsRef<'_> {
     fn as_ref(&self) -> &proc_macro2::TokenStream {
         self.0
     }
 }
 #[derive(Debug, Clone, Copy)]
-struct RustfmtPath<'path_lt>(&'path_lt std::path::Path);
+struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy)]
 struct ShouldWriteTsFlag(bool);
 #[derive(Debug, Clone, Copy)]
 struct ShouldRunRustfmt(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
-fn try_run_rustfmt(path: RustfmtPath<'_>) -> std::io::Result<()> {
+fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     let status = std::process::Command::new("rustfmt").arg(path.0).status()?;
     if status.success() {
         Ok(())
@@ -45,7 +45,7 @@ const fn should_write_ts_flag(v: ShouldWriteTsIntoFile) -> ShouldWriteTsFlag {
 #[allow(clippy::single_call_fn)] // centralizes token-to-file write mapping and outcome extraction
 fn try_write_ts_into_file<P>(
     file_name: P,
-    ts: TsRef<'_>,
+    ts: ProcMacro2TsRef<'_>,
 ) -> std::io::Result<crate::write_string_into_file::WritePathOutcome>
 where
     P: AsRef<std::path::Path>,
@@ -69,7 +69,7 @@ fn should_run_rustfmt(
 pub fn try_mb_write_ts_into_file<P>(
     should_write_ts_into_file: ShouldWriteTsIntoFile,
     file_name: P,
-    ts: TsRef<'_>,
+    ts: ProcMacro2TsRef<'_>,
     format_with_cargofmt: &FormatWithCargofmt,
 ) -> std::io::Result<()>
 where
@@ -80,14 +80,14 @@ where
     }
     let wr_outcome = try_write_ts_into_file(file_name, ts)?;
     if should_run_rustfmt(*format_with_cargofmt, &wr_outcome).0 {
-        try_run_rustfmt(RustfmtPath(wr_outcome.path().as_ref()))?;
+        try_run_rustfmt(StdRustfmtPath(wr_outcome.path().as_ref()))?;
     }
     Ok(())
 }
 pub fn mb_write_ts_into_file<P>(
     should_write_ts_into_file: ShouldWriteTsIntoFile,
     file_name: P,
-    ts: TsRef<'_>,
+    ts: ProcMacro2TsRef<'_>,
     format_with_cargofmt: &FormatWithCargofmt,
 ) where
     P: AsRef<std::path::Path>,
@@ -113,7 +113,7 @@ mod tests {
         super::mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::False,
             &base,
-            super::TsRef::from(&ts),
+            super::ProcMacro2TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         );
         let _er = std::fs::metadata(&path).expect_err("7be5f201");
@@ -128,11 +128,11 @@ mod tests {
         super::mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef::from(&ts),
+            super::ProcMacro2TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         );
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -153,12 +153,12 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef::from(&ts),
+            super::ProcMacro2TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
         .expect("6fee9f6f");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -174,12 +174,12 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef::from(&ts),
+            super::ProcMacro2TsRef::from(&ts),
             &super::FormatWithCargofmt::False,
         )
         .expect("f341cde7");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -195,12 +195,12 @@ mod tests {
         super::try_mb_write_ts_into_file(
             super::ShouldWriteTsIntoFile::True,
             &base,
-            super::TsRef::from(&ts),
+            super::ProcMacro2TsRef::from(&ts),
             &super::FormatWithCargofmt::True,
         )
         .expect("00a995a4");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
             crate::test_hlp::ExpectedFileContent::new("struct A;\n"),
         );
         crate::test_hlp::cleanup_test_file(path);

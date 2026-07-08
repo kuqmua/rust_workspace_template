@@ -18,7 +18,9 @@ fn parse_ts_or_compile_error(
     }
 }
 #[must_use]
-pub fn gen_pg_types(input_ts: macros_helpers::TsRef<'_>) -> macros_helpers::GeneratedRustTs {
+pub fn gen_pg_types(
+    input_ts: macros_helpers::ProcMacro2TsRef<'_>,
+) -> macros_helpers::GeneratedRustTs {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, strum_macros::Display, optml::Optml)]
     enum RustTypeName {
@@ -4593,7 +4595,7 @@ pub fn gen_pg_types(input_ts: macros_helpers::TsRef<'_>) -> macros_helpers::Gene
     macros_helpers::mb_write_ts_into_file(
         gen_pg_types_config.pg_tbl_cols_write_into_file,
         "pg_tbl_cols_using_pg_types",
-        macros_helpers::TsRef::from(&pg_tbl_cols_ts),
+        macros_helpers::ProcMacro2TsRef::from(&pg_tbl_cols_ts),
         &macros_helpers::FormatWithCargofmt::True,
     );
     let generated = {
@@ -4606,7 +4608,7 @@ pub fn gen_pg_types(input_ts: macros_helpers::TsRef<'_>) -> macros_helpers::Gene
     macros_helpers::mb_write_ts_into_file(
         gen_pg_types_config.whole_write_into_file,
         "gen_pg_types",
-        macros_helpers::TsRef::from(generated.as_ref()),
+        macros_helpers::ProcMacro2TsRef::from(generated.as_ref()),
         &macros_helpers::FormatWithCargofmt::True,
     );
     generated

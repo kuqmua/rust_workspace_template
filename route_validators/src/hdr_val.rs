@@ -1,18 +1,22 @@
 #[derive(Debug, Clone, Copy)]
-pub struct HeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
-impl<'headers_lt> From<&'headers_lt axum::http::HeaderMap> for HeadersRef<'headers_lt> {
+pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
+impl<'headers_lt> From<&'headers_lt axum::http::HeaderMap> for AxumHeadersRef<'headers_lt> {
     fn from(value: &'headers_lt axum::http::HeaderMap) -> Self {
         Self(value)
     }
 }
 #[cfg(test)]
-impl<'headers_lt> From<&'headers_lt crate::test_hlp::TestHeaders> for HeadersRef<'headers_lt> {
-    fn from(value: &'headers_lt crate::test_hlp::TestHeaders) -> Self {
+impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
+    for AxumHeadersRef<'headers_lt>
+{
+    fn from(value: &'headers_lt crate::test_hlp::AxumTestHeaders) -> Self {
         Self(value.as_ref())
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct HeaderValueRef<'header_value_lt>(pub &'header_value_lt axum::http::HeaderValue);
+pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
+    pub &'header_value_lt axum::http::HeaderValue,
+);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct HeaderStrRef<'header_str_lt>(pub &'header_str_lt str);
 impl AsRef<str> for HeaderStrRef<'_> {
@@ -28,19 +32,19 @@ impl std::ops::Deref for HeaderStrRef<'_> {
 }
 #[allow(clippy::single_call_fn)] // shared helper centralizes required-header extraction and no-header error mapping
 fn get_required_header_value<E>(
-    headers: HeadersRef<'_>,
+    headers: AxumHeadersRef<'_>,
     header_name: impl axum::http::header::AsHeaderName,
     no_header_er: impl FnOnce() -> E,
-) -> Result<HeaderValueRef<'_>, E> {
+) -> Result<AxumHeaderValueRef<'_>, E> {
     headers
         .0
         .get(header_name)
-        .map(HeaderValueRef)
+        .map(AxumHeaderValueRef)
         .ok_or_else(no_header_er)
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps HeaderValue->str conversion and error mapping centralized for header parsers
 fn header_value_to_str<E>(
-    header_value: HeaderValueRef<'_>,
+    header_value: AxumHeaderValueRef<'_>,
     to_str_er: impl FnOnce(axum::http::header::ToStrError) -> E,
 ) -> Result<HeaderStrRef<'_>, E> {
     header_value.0.to_str().map(HeaderStrRef).map_err(to_str_er)
@@ -48,10 +52,10 @@ fn header_value_to_str<E>(
 #[allow(clippy::single_call_fn)] // core helper centralizes required-header transform flow reused by parsing helpers
 #[cfg(test)]
 pub(crate) fn get_required_header_mapped<'headers, E, T>(
-    headers: HeadersRef<'headers>,
+    headers: AxumHeadersRef<'headers>,
     header_name: impl axum::http::header::AsHeaderName,
     no_header_er: impl FnOnce() -> E,
-    map: impl FnOnce(HeaderValueRef<'headers>) -> Result<T, E>,
+    map: impl FnOnce(AxumHeaderValueRef<'headers>) -> Result<T, E>,
 ) -> Result<T, E> {
     let header = get_required_header_value(headers, header_name, no_header_er)?;
     map(header)
@@ -59,15 +63,15 @@ pub(crate) fn get_required_header_mapped<'headers, E, T>(
 #[allow(clippy::single_call_fn)] // helper centralizes required-header parsing and is reusable across validators
 #[cfg(test)]
 pub(crate) fn get_required_header<E>(
-    headers: HeadersRef<'_>,
+    headers: AxumHeadersRef<'_>,
     header_name: impl axum::http::header::AsHeaderName,
     no_header_er: impl FnOnce() -> E,
-) -> Result<HeaderValueRef<'_>, E> {
+) -> Result<AxumHeaderValueRef<'_>, E> {
     get_required_header_value(headers, header_name, no_header_er)
 }
 #[allow(clippy::single_call_fn)] // helper centralizes required-header string parsing and is reusable across validators
 pub(crate) fn get_required_header_str<E>(
-    headers: HeadersRef<'_>,
+    headers: AxumHeadersRef<'_>,
     header_name: impl axum::http::header::AsHeaderName,
     no_header_er: impl FnOnce() -> E,
     to_str_er: impl FnOnce(axum::http::header::ToStrError) -> E,
@@ -76,7 +80,7 @@ pub(crate) fn get_required_header_str<E>(
 }
 #[allow(clippy::single_call_fn)] // helper centralizes required-header string parsing and is reused by route validators
 pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
-    headers: HeadersRef<'headers>,
+    headers: AxumHeadersRef<'headers>,
     header_name: impl axum::http::header::AsHeaderName,
     no_header_er: impl FnOnce() -> E,
     to_str_er: impl FnOnce(axum::http::header::ToStrError) -> E,
@@ -101,7 +105,7 @@ mod tests {
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<super::HeaderStrRef<'_>, TestEr> {
         super::get_required_header_str(
-            super::HeadersRef::from(headers),
+            super::AxumHeadersRef::from(headers),
             name,
             || TestEr::NoHeader,
             |_| TestEr::ToStr,
@@ -110,15 +114,17 @@ mod tests {
     fn get_raw_header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
-    ) -> Result<super::HeaderValueRef<'_>, TestEr> {
-        super::get_required_header(super::HeadersRef::from(headers), name, || TestEr::NoHeader)
+    ) -> Result<super::AxumHeaderValueRef<'_>, TestEr> {
+        super::get_required_header(super::AxumHeadersRef::from(headers), name, || {
+            TestEr::NoHeader
+        })
     }
     fn get_bool_header(
         headers: &axum::http::HeaderMap,
         name: impl axum::http::header::AsHeaderName,
     ) -> Result<bool, TestEr> {
         super::get_required_header_str_parsed(
-            super::HeadersRef::from(headers),
+            super::AxumHeadersRef::from(headers),
             name,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,
@@ -130,14 +136,14 @@ mod tests {
             },
         )
     }
-    fn mk_test_headers<ValueTy>(value: ValueTy) -> crate::test_hlp::TestHeaders
+    fn mk_test_headers<ValueTy>(value: ValueTy) -> crate::test_hlp::AxumTestHeaders
     where
-        ValueTy: Into<crate::test_hlp::TestHeaderValue>,
+        ValueTy: Into<crate::test_hlp::AxumTestHeaderValue>,
     {
         crate::test_hlp::mk_headers_with_entry(TEST_HEADER_NAME, value)
     }
     #[allow(clippy::single_call_fn)] // shared literal-header fixture keeps repetitive test setup concise
-    fn mk_test_headers_static(value: &'static str) -> crate::test_hlp::TestHeaders {
+    fn mk_test_headers_static(value: &'static str) -> crate::test_hlp::AxumTestHeaders {
         mk_test_headers(axum::http::HeaderValue::from_static(value))
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps expected TestEr error checks concise across header helpers
@@ -201,7 +207,7 @@ mod tests {
     fn get_required_header_mapped_applies_mapping_for_present_header() {
         let headers = mk_test_headers_static("abc");
         let actual = super::get_required_header_mapped(
-            super::HeadersRef::from(&headers),
+            super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |v| {
@@ -217,7 +223,7 @@ mod tests {
         let headers = axum::http::HeaderMap::new();
         let mut parse_called = false;
         let actual = super::get_required_header_str_parsed(
-            super::HeadersRef::from(&headers),
+            super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,
@@ -234,7 +240,7 @@ mod tests {
         let headers = mk_test_headers(crate::test_hlp::non_utf8_header_value());
         let mut parse_called = false;
         let actual = super::get_required_header_str_parsed(
-            super::HeadersRef::from(&headers),
+            super::AxumHeadersRef::from(&headers),
             TEST_HEADER_NAME,
             || TestEr::NoHeader,
             |_to_str_er| TestEr::ToStr,

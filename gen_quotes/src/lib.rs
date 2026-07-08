@@ -39,23 +39,23 @@ impl TryFrom<String> for QuotedLiteral {
     }
 }
 #[derive(Debug, Clone)]
-pub struct QuotedLiteralTs(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for QuotedLiteralTs {
+pub struct ProcMacro2QuotedLiteralTs(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2QuotedLiteralTs {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl From<QuotedLiteralTs> for proc_macro2::TokenStream {
-    fn from(value: QuotedLiteralTs) -> Self {
+impl From<ProcMacro2QuotedLiteralTs> for proc_macro2::TokenStream {
+    fn from(value: ProcMacro2QuotedLiteralTs) -> Self {
         value.0
     }
 }
-impl quote::ToTokens for QuotedLiteralTs {
+impl quote::ToTokens for ProcMacro2QuotedLiteralTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.clone());
     }
 }
-impl std::fmt::Display for QuotedLiteralTs {
+impl std::fmt::Display for ProcMacro2QuotedLiteralTs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -80,11 +80,11 @@ fn quote_literal_ts<Dsp>(
     quote_ch: QuoteChar,
     v: &Dsp,
     panic_id: QuotePanicId,
-) -> QuotedLiteralTs
+) -> ProcMacro2QuotedLiteralTs
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    QuotedLiteralTs::from(
+    ProcMacro2QuotedLiteralTs::from(
         quote_literal(prefix, quote_ch, v)
             .0
             .parse::<proc_macro2::TokenStream>()
@@ -104,7 +104,7 @@ where
     quote_literal(QuotePrefix(""), QuoteChar('\''), v)
 }
 #[must_use]
-pub fn single_quotes_ts<Dsp>(v: &Dsp) -> QuotedLiteralTs
+pub fn single_quotes_ts<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTs
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -123,7 +123,7 @@ where
     quote_literal(QuotePrefix(""), QuoteChar('\"'), v)
 }
 #[must_use]
-pub fn dq_ts<Dsp>(v: &Dsp) -> QuotedLiteralTs
+pub fn dq_ts<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTs
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -142,7 +142,7 @@ where
     quote_literal(QuotePrefix("b"), QuoteChar('\''), v)
 }
 #[must_use]
-pub fn binary_single_quotes_ts<Dsp>(v: &Dsp) -> QuotedLiteralTs
+pub fn binary_single_quotes_ts<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTs
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -161,7 +161,7 @@ where
     quote_literal(QuotePrefix("b"), QuoteChar('\"'), v)
 }
 #[must_use]
-pub fn binary_dq_ts<Dsp>(v: &Dsp) -> QuotedLiteralTs
+pub fn binary_dq_ts<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTs
 where
     Dsp: std::fmt::Display + ?Sized,
 {
@@ -177,7 +177,7 @@ mod tests {
     fn assert_quote_str(actual: &super::QuotedLiteral, expected: &str) {
         assert_eq!(actual.0, expected);
     }
-    fn assert_quote_ts(actual: &super::QuotedLiteralTs, expected: &str) {
+    fn assert_quote_ts(actual: &super::ProcMacro2QuotedLiteralTs, expected: &str) {
         assert_eq!(actual.to_string(), expected);
     }
     #[test]

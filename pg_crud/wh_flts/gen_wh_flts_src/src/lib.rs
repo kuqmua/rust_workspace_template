@@ -1,34 +1,34 @@
 #[derive(Debug, Clone, Copy)]
-pub struct GenWhFltsInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
-impl<'input_lt> From<&'input_lt proc_macro2::TokenStream> for GenWhFltsInput<'input_lt> {
+pub struct ProcMacro2GenWhFltsInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
+impl<'input_lt> From<&'input_lt proc_macro2::TokenStream> for ProcMacro2GenWhFltsInput<'input_lt> {
     fn from(value: &'input_lt proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl AsRef<proc_macro2::TokenStream> for GenWhFltsInput<'_> {
+impl AsRef<proc_macro2::TokenStream> for ProcMacro2GenWhFltsInput<'_> {
     fn as_ref(&self) -> &proc_macro2::TokenStream {
         self.0
     }
 }
 #[derive(Debug)]
-pub struct GenWhFltsTs(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for GenWhFltsTs {
+pub struct ProcMacro2GenWhFltsTs(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2GenWhFltsTs {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl From<GenWhFltsTs> for proc_macro2::TokenStream {
-    fn from(value: GenWhFltsTs) -> Self {
+impl From<ProcMacro2GenWhFltsTs> for proc_macro2::TokenStream {
+    fn from(value: ProcMacro2GenWhFltsTs) -> Self {
         value.0
     }
 }
-impl std::fmt::Display for GenWhFltsTs {
+impl std::fmt::Display for ProcMacro2GenWhFltsTs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 #[must_use]
-pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
+pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFltsTs {
     #[derive(Clone, optml::Optml)]
     enum Generic {
         False,
@@ -64,7 +64,7 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
             Ok(v) => v,
             Err(er) => {
                 let msg = format!("failed to parse GenWhFltsConfig: {er}");
-                return GenWhFltsTs::from(quote::quote! { compile_error!(#msg); });
+                return ProcMacro2GenWhFltsTs::from(quote::quote! { compile_error!(#msg); });
             }
         };
     let col_sc = naming::ColSc;
@@ -811,7 +811,7 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
         macros_helpers::mb_write_ts_into_file(
             gen_wh_flts_config.pg_types_write_into_file,
             "gen_wh_flts_pg_types",
-            macros_helpers::TsRef::from(&gend),
+            macros_helpers::ProcMacro2TsRef::from(&gend),
             &macros_helpers::FormatWithCargofmt::True,
         );
         gend
@@ -830,8 +830,8 @@ pub fn gen_wh_flts(input_ts: GenWhFltsInput<'_>) -> GenWhFltsTs {
     macros_helpers::mb_write_ts_into_file(
         gen_wh_flts_config.whole_write_into_file,
         "gen_wh_flts",
-        macros_helpers::TsRef::from(gend.as_ref()),
+        macros_helpers::ProcMacro2TsRef::from(gend.as_ref()),
         &macros_helpers::FormatWithCargofmt::True,
     );
-    GenWhFltsTs::from(proc_macro2::TokenStream::from(gend))
+    ProcMacro2GenWhFltsTs::from(proc_macro2::TokenStream::from(gend))
 }

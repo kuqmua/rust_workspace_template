@@ -1,16 +1,16 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct RsFilePath(pub std::path::PathBuf);
-impl AsRef<std::path::Path> for RsFilePath {
+pub(crate) struct StdRsFilePath(pub std::path::PathBuf);
+impl AsRef<std::path::Path> for StdRsFilePath {
     fn as_ref(&self) -> &std::path::Path {
         self.0.as_path()
     }
 }
 #[allow(clippy::single_call_fn)] // centralized .rs extension mapping keeps path behavior consistent across file-write helpers
-pub(crate) fn rs_file_path<P>(file_name: P) -> RsFilePath
+pub(crate) fn rs_file_path<P>(file_name: P) -> StdRsFilePath
 where
     P: AsRef<std::path::Path>,
 {
-    RsFilePath(file_name.as_ref().with_extension("rs"))
+    StdRsFilePath(file_name.as_ref().with_extension("rs"))
 }
 #[cfg(test)]
 mod tests {

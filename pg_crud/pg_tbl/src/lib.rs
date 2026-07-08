@@ -4,8 +4,8 @@ pub trait CombinationOfAppStateLogicTraits:
     app_state::GetEnableApiGitCommitCheck
     + app_state::GetMaximumSizeOfHttpBodyInBytes
     + app_state::GetSrcPlaceType
-    + app_state::GetTimezone
-    + app_state::GetPgPool
+    + app_state::GetChronoTimezone
+    + app_state::GetSqlxPgPool
     + Send
     + Sync
 {

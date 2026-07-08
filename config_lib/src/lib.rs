@@ -75,20 +75,20 @@ impl TryFrom<String> for EnvVarName {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChronoFixedOffsetEr(&'static str);
-pub struct I32ParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for I32ParsingEr {
+pub struct StdI32ParsingEr(std::num::ParseIntError);
+impl std::fmt::Debug for StdI32ParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-pub struct U32ParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for U32ParsingEr {
+pub struct StdU32ParsingEr(std::num::ParseIntError);
+impl std::fmt::Debug for StdU32ParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-pub struct UsizeParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for UsizeParsingEr {
+pub struct StdUsizeParsingEr(std::num::ParseIntError);
+impl std::fmt::Debug for StdUsizeParsingEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -96,7 +96,7 @@ impl std::fmt::Debug for UsizeParsingEr {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct TimezoneSeconds(i32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct EastFixedOffset(chrono::FixedOffset);
+struct ChronoEastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
@@ -146,7 +146,7 @@ pub enum TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr {
         maximum_size_of_http_body_in_bytes: MaximumSizeOfHttpBodyInBytesTryFromUsizeEr,
     },
     #[error("{:?}", .usize_parsing)]
-    UsizeParsing { usize_parsing: UsizeParsingEr },
+    UsizeParsing { usize_parsing: StdUsizeParsingEr },
 }
 impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
     type Error = TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesEr;
@@ -154,7 +154,7 @@ impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
         let parsed: usize =
             parse_from_str_with_er(StdEnvVarOkRef(v.0.as_str()), |usize_parsing| {
                 Self::Error::UsizeParsing {
-                    usize_parsing: UsizeParsingEr(usize_parsing),
+                    usize_parsing: StdUsizeParsingEr(usize_parsing),
                 }
             })?;
         Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {
@@ -195,14 +195,14 @@ pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsEr {
         pg_pool_max_connections: PgPoolMaxConnectionsTryFromU32Er,
     },
     #[error("{:?}", .u32_parsing)]
-    U32Parsing { u32_parsing: U32ParsingEr },
+    U32Parsing { u32_parsing: StdU32ParsingEr },
 }
 impl TryFromStdEnvVarOk for PgPoolMaxConnections {
     type Error = TryFromStdEnvVarOkPgPoolMaxConnectionsEr;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed: u32 = parse_from_str_with_er(StdEnvVarOkRef(v.0.as_str()), |u32_parsing| {
             Self::Error::U32Parsing {
-                u32_parsing: U32ParsingEr(u32_parsing),
+                u32_parsing: StdU32ParsingEr(u32_parsing),
             }
         })?;
         Self::try_from(parsed).map_err(|pg_pool_max_connections| {
@@ -235,14 +235,14 @@ config_lib_macros::impl_try_from_non_empty_string!(
     TryFromStdEnvVarOkStartingCheckLinkEr
 );
 #[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
-pub struct Timezone(chrono::FixedOffset);
-impl std::ops::Deref for Timezone {
+pub struct ChronoTimezone(chrono::FixedOffset);
+impl std::ops::Deref for ChronoTimezone {
     type Target = chrono::FixedOffset;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl TryFrom<chrono::FixedOffset> for Timezone {
+impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = ChronoFixedOffsetEr;
     fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {
         parse_east_fixed_offset(TimezoneSeconds(value.local_minus_utc())).map(|_| Self(value))
@@ -255,15 +255,15 @@ pub enum TryFromStdEnvVarOkTimezoneEr {
         chrono_fixed_offset: ChronoFixedOffsetEr,
     },
     #[error("{i32_parsing:?}")]
-    I32Parsing { i32_parsing: I32ParsingEr },
+    I32Parsing { i32_parsing: StdI32ParsingEr },
 }
-impl TryFromStdEnvVarOk for Timezone {
+impl TryFromStdEnvVarOk for ChronoTimezone {
     type Error = TryFromStdEnvVarOkTimezoneEr;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         let i32_v = TimezoneSeconds(parse_from_str_with_er(
             StdEnvVarOkRef(v.0.as_str()),
             |i32_parsing| Self::Error::I32Parsing {
-                i32_parsing: I32ParsingEr(i32_parsing),
+                i32_parsing: StdI32ParsingEr(i32_parsing),
             },
         )?);
         parse_east_fixed_offset(i32_v)
@@ -320,9 +320,11 @@ where
     v.0.parse::<T>().map_err(mk_er)
 }
 #[allow(clippy::single_call_fn)] // extracted timezone conversion keeps conversion + message mapping reusable and directly testable
-fn parse_east_fixed_offset(v: TimezoneSeconds) -> Result<EastFixedOffset, ChronoFixedOffsetEr> {
+fn parse_east_fixed_offset(
+    v: TimezoneSeconds,
+) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetEr> {
     chrono::FixedOffset::east_opt(v.0)
-        .map(EastFixedOffset)
+        .map(ChronoEastFixedOffset)
         .ok_or(ChronoFixedOffsetEr(TIMEZONE_NOT_EAST_MSG))
 }
 #[cfg(test)]
@@ -529,12 +531,16 @@ mod tests {
     }
     #[test]
     fn timezone_parsing_returns_timezone_for_valid_offset() {
-        config_lib_macros::assert_parse_ok_matches!(super::Timezone, "0", super::Timezone(_));
+        config_lib_macros::assert_parse_ok_matches!(
+            super::ChronoTimezone,
+            "0",
+            super::ChronoTimezone(_)
+        );
     }
     #[test]
     fn timezone_parsing_returns_i32_error_for_non_number() {
         config_lib_macros::assert_parse_err_matches!(
-            super::Timezone,
+            super::ChronoTimezone,
             "nan",
             super::TryFromStdEnvVarOkTimezoneEr::I32Parsing { .. }
         );
@@ -555,7 +561,7 @@ mod tests {
     #[test]
     fn timezone_parsing_returns_offset_error_when_out_of_range() {
         let out_of_range = i32::MAX.to_string();
-        let er = parse_env::<super::Timezone>(&out_of_range);
+        let er = parse_env::<super::ChronoTimezone>(&out_of_range);
         assert!(matches!(
             er,
             Err(super::TryFromStdEnvVarOkTimezoneEr::ChronoFixedOffset { .. })

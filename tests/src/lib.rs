@@ -552,6 +552,10 @@ mod tests {
             repo_crates: &'types std::collections::BTreeSet<String>,
             repo_types: &'types std::collections::BTreeSet<String>,
         }
+        struct ExternalLeafWrapperNameVisitor<'types> {
+            ers: Vec<String>,
+            repo_crates: &'types std::collections::BTreeSet<String>,
+        }
         impl DomainTypePolicyVisitor<'_> {
             fn check_fields(
                 &mut self,
@@ -804,6 +808,124 @@ mod tests {
                         );
                     });
                 self.pop_generics();
+            }
+        }
+        impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
+            fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+                if attrs_contain_test_only_cfg(&i.attrs) {
+                    return;
+                }
+                let syn::Fields::Unnamed(fields) = &i.fields else {
+                    syn::visit::visit_item_struct(self, i);
+                    return;
+                };
+                if fields.unnamed.len() != 1 {
+                    syn::visit::visit_item_struct(self, i);
+                    return;
+                }
+                let Some(field) = fields.unnamed.first() else {
+                    syn::visit::visit_item_struct(self, i);
+                    return;
+                };
+                self.check_external_leaf_wrapper_name(i, &field.ty);
+                syn::visit::visit_item_struct(self, i);
+            }
+        }
+        impl ExternalLeafWrapperNameVisitor<'_> {
+            fn check_external_leaf_wrapper_name(&mut self, item: &syn::ItemStruct, ty: &syn::Type) {
+                let Some(first_segment) = self.external_root_segment(ty) else {
+                    return;
+                };
+                let expected_prefix = ident_to_upper_camel_fragment(&first_segment.ident);
+                let ident = item.ident.to_string();
+                if ident.starts_with(&expected_prefix) {
+                    return;
+                }
+                self.ers.push(format!(
+                    "tuple wrapper `{}` wraps external crate `{}`; rename it so it starts with `{expected_prefix}`",
+                    item.ident,
+                    first_segment.ident
+                ));
+            }
+            fn external_root_segment<'ty_lt>(
+                &self,
+                ty: &'ty_lt syn::Type,
+            ) -> Option<&'ty_lt syn::PathSegment> {
+                match ty {
+                    syn::Type::Array(ty_array) => self.external_root_segment(&ty_array.elem),
+                    syn::Type::Group(ty_group) => self.external_root_segment(&ty_group.elem),
+                    syn::Type::Paren(ty_paren) => self.external_root_segment(&ty_paren.elem),
+                    syn::Type::Path(ty_path) => self.external_root_segment_from_path(ty_path),
+                    syn::Type::Reference(ty_reference) => {
+                        self.external_root_segment(&ty_reference.elem)
+                    }
+                    syn::Type::Slice(ty_slice) => self.external_root_segment(&ty_slice.elem),
+                    syn::Type::Tuple(ty_tuple) => ty_tuple
+                        .elems
+                        .iter()
+                        .find_map(|elem| self.external_root_segment(elem)),
+                    syn::Type::BareFn(_)
+                    | syn::Type::ImplTrait(_)
+                    | syn::Type::Infer(_)
+                    | syn::Type::Macro(_)
+                    | syn::Type::Never(_)
+                    | syn::Type::Ptr(_)
+                    | syn::Type::TraitObject(_)
+                    | syn::Type::Verbatim(_)
+                    | _ => None,
+                }
+            }
+            fn external_root_segment_from_arguments<'args_lt>(
+                &self,
+                arguments: &'args_lt syn::PathArguments,
+            ) -> Option<&'args_lt syn::PathSegment> {
+                match arguments {
+                    syn::PathArguments::AngleBracketed(args) => {
+                        args.args.iter().find_map(|arg| match arg {
+                            syn::GenericArgument::Type(ty) => self.external_root_segment(ty),
+                            syn::GenericArgument::AssocConst(_)
+                            | syn::GenericArgument::AssocType(_)
+                            | syn::GenericArgument::Constraint(_)
+                            | syn::GenericArgument::Const(_)
+                            | syn::GenericArgument::Lifetime(_)
+                            | _ => None,
+                        })
+                    }
+                    syn::PathArguments::Parenthesized(args) => args
+                        .inputs
+                        .iter()
+                        .find_map(|ty| self.external_root_segment(ty))
+                        .or_else(|| match &args.output {
+                            syn::ReturnType::Default => None,
+                            syn::ReturnType::Type(_, ty) => self.external_root_segment(ty),
+                        }),
+                    syn::PathArguments::None => None,
+                }
+            }
+            fn external_root_segment_from_path<'path_lt>(
+                &self,
+                ty_path: &'path_lt syn::TypePath,
+            ) -> Option<&'path_lt syn::PathSegment> {
+                if let Some(qself) = &ty_path.qself {
+                    return self.external_root_segment(&qself.ty);
+                }
+                let first_segment = ty_path.path.segments.first()?;
+                let first_ident = first_segment.ident.to_string();
+                if first_ident == "crate"
+                    || first_ident == "self"
+                    || first_ident == "super"
+                    || self.repo_crates.contains(&first_ident)
+                {
+                    return ty_path.path.segments.iter().find_map(|segment| {
+                        self.external_root_segment_from_arguments(&segment.arguments)
+                    });
+                }
+                if ty_path.path.segments.len() > 1 {
+                    return Some(first_segment);
+                }
+                ty_path.path.segments.iter().find_map(|segment| {
+                    self.external_root_segment_from_arguments(&segment.arguments)
+                })
             }
         }
         #[test]
@@ -1717,6 +1839,32 @@ mod tests {
             );
         }
         #[test]
+        fn external_leaf_tuple_wrappers_include_crate_name() {
+            let repo_crates = workspace_crate_names();
+            assert_rs_ast_ers_empty_with_ctx(
+                "b93d2a8c",
+                "tuple wrappers over external types must include the external crate name:",
+                |path, ast, ers| {
+                    if !domain_type_policy_should_check_path(path) {
+                        return;
+                    }
+                    let visitor = visit_syn_file(
+                        ast,
+                        ExternalLeafWrapperNameVisitor {
+                            ers: Vec::new(),
+                            repo_crates: &repo_crates,
+                        },
+                    );
+                    ers.extend(
+                        visitor
+                            .ers
+                            .into_iter()
+                            .map(|er| format!("{}: {er}", path.display())),
+                    );
+                },
+            );
+        }
+        #[test]
         fn no_unwrap_in_source_code() {
             assert_rs_ast_ers_empty_with_ctx("e8b3a6d2", "unwrap() found:", |path, ast, ers| {
                 let visitor = visit_syn_file(ast, UnwrapVisitor { found_count: 0 });
@@ -2278,6 +2426,26 @@ mod tests {
                 .map(|segment| segment.ident.to_string())
                 .collect::<Vec<String>>()
                 .join("::")
+        }
+        #[allow(clippy::single_call_fn)] // keeps external-wrapper naming suggestion generation readable at the call site
+        fn ident_to_upper_camel_fragment(ident: &syn::Ident) -> String {
+            let (out, _) = ident.to_string().chars().fold(
+                (String::new(), true),
+                |(mut out, mut next_upper), ch| {
+                    if ch == '_' {
+                        next_upper = true;
+                        return (out, next_upper);
+                    }
+                    if next_upper {
+                        ch.to_uppercase().for_each(|upper| out.push(upper));
+                        next_upper = false;
+                    } else {
+                        out.push(ch);
+                    }
+                    (out, next_upper)
+                },
+            );
+            out
         }
         #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
         fn is_runtime_policy_source_path(path: &std::path::Path) -> bool {

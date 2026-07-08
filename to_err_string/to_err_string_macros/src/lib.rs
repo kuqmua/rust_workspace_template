@@ -1,7 +1,7 @@
 #[proc_macro]
 pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let Some((types_raw, closure)) = workspace_macro_helpers::split_fat_arrow(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     ) else {
         return workspace_macro_helpers::compile_error_ts(
             "impl_to_err_string_with expects types => |value| body",
@@ -33,7 +33,7 @@ pub fn impl_to_err_string_with(input: proc_macro::TokenStream) -> proc_macro::To
 #[proc_macro]
 pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed_pairs_res = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     )
     .into_iter()
     .filter(|part| !part.is_empty())
@@ -64,7 +64,7 @@ pub fn impl_to_err_string_const(input: proc_macro::TokenStream) -> proc_macro::T
 #[proc_macro]
 pub fn impl_to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let types = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     )
     .into_iter()
     .filter(|part| !part.is_empty())

@@ -380,7 +380,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleCmEr::Pg {
@@ -1052,7 +1052,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleCoEr::Pg {
@@ -1720,7 +1720,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleRmEr::Pg {
@@ -2148,7 +2148,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleRoEr::Pg {
@@ -3169,7 +3169,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleUmEr::Pg {
@@ -4096,7 +4096,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleUoEr::Pg {
@@ -4601,7 +4601,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleDmEr::Pg {
@@ -5029,7 +5029,7 @@ mod tbl_example_gen_pg_tbl_mod {
                 }
                 query
             };
-            let mut pool_connection = match app_state.get_pg_pool().as_ref().acquire().await {
+            let mut pool_connection = match app_state.get_sqlx_pg_pool().as_ref().acquire().await {
                 Ok(v_4535ee48) => v_4535ee48,
                 Err(er_0) => {
                     let er = TblExampleDloEr::Pg {

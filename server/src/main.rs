@@ -2,28 +2,28 @@ const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerIoEr(std::io::Error);
+struct StdServerIoEr(std::io::Error);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct ServerConfigEr(server_config::ConfigTryFromEnvEr);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerPgConnectEr(sqlx::Error);
+struct SqlxServerPgConnectEr(sqlx::Error);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct ServerPrepPgEr(#[from] server_tbl_example::TblExamplePrepPgEr);
-struct ApiRoutes(axum::Router);
+struct AxumApiRoutes(axum::Router);
 #[derive(Clone, Copy)]
 struct CorsAllowOriginTextRef<'text_lt>(&'text_lt str);
 #[derive(Clone, Copy)]
 struct CorsAllowOriginSplitCh(char);
 #[derive(Clone, Copy)]
 struct CorsAllowOriginSplitCount(usize);
-struct CorsAllowOriginHeaderValue(axum::http::HeaderValue);
-struct CorsAllowOriginHeaderValues(Vec<axum::http::HeaderValue>);
-struct ServerRuntime(tokio::runtime::Runtime);
-struct ServerExitCode(std::process::ExitCode);
-impl std::process::Termination for ServerExitCode {
+struct AxumCorsAllowOriginHeaderValue(axum::http::HeaderValue);
+struct AxumCorsAllowOriginHeaderValues(Vec<axum::http::HeaderValue>);
+struct TokioServerRuntime(tokio::runtime::Runtime);
+struct StdServerExitCode(std::process::ExitCode);
+impl std::process::Termination for StdServerExitCode {
     fn report(self) -> std::process::ExitCode {
         self.0
     }
@@ -31,28 +31,28 @@ impl std::process::Termination for ServerExitCode {
 #[derive(Debug, thiserror::Error)]
 enum RunServerEr {
     #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(ServerIoEr),
+    BindServiceSocket(StdServerIoEr),
     #[error("failed to build tokio runtime: {0}")]
-    BuildRuntime(ServerIoEr),
+    BuildRuntime(StdServerIoEr),
     #[error("failed to read configuration from environment: {0}")]
     Config(ServerConfigEr),
     #[error("failed to build governor config")]
     GovernorConfig,
     #[error("failed to connect to postgres: {0}")]
-    PgConnect(ServerPgConnectEr),
+    PgConnect(SqlxServerPgConnectEr),
     #[error("failed to prepare postgres schema: {0}")]
     PrepPg(ServerPrepPgEr),
     #[error("server failed: {0}")]
-    Serve(ServerIoEr),
+    Serve(StdServerIoEr),
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
     app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
-) -> ApiRoutes {
-    ApiRoutes(
+) -> AxumApiRoutes {
+    AxumApiRoutes(
         axum::Router::new()
             .merge(axum::Router::from(cmn_routes::cmn_routes(
-                cmn_routes::CmnRoutesAppState::from(std::sync::Arc::<
+                cmn_routes::StdArcCmnRoutesAppState::from(std::sync::Arc::<
                     server_app_state::ServerAppState<'static>,
                 >::clone(app_state)),
             )))
@@ -66,7 +66,7 @@ fn mk_api_routes(
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
 fn mk_app_state(
     config: server_config::Config,
-    pg_pool: app_state::PgPool,
+    pg_pool: app_state::SqlxPgPool,
 ) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
     std::sync::Arc::new(server_app_state::ServerAppState {
         pg_pool,
@@ -106,17 +106,17 @@ fn split_count(
 #[allow(clippy::single_call_fn)] // extracted so per-value parse behavior can be reused and tested directly
 fn parse_cors_allow_origin_value(
     value: CorsAllowOriginTextRef<'_>,
-) -> Option<CorsAllowOriginHeaderValue> {
+) -> Option<AxumCorsAllowOriginHeaderValue> {
     value
         .0
         .trim()
         .parse::<axum::http::HeaderValue>()
         .ok()
-        .map(CorsAllowOriginHeaderValue)
+        .map(AxumCorsAllowOriginHeaderValue)
 }
 #[allow(clippy::single_call_fn)] // extracted for reuse in main setup and tests
-fn parse_cors_allow_origin(v: CorsAllowOriginTextRef<'_>) -> CorsAllowOriginHeaderValues {
-    CorsAllowOriginHeaderValues(parse_separated_values(
+fn parse_cors_allow_origin(v: CorsAllowOriginTextRef<'_>) -> AxumCorsAllowOriginHeaderValues {
+    AxumCorsAllowOriginHeaderValues(parse_separated_values(
         v,
         CorsAllowOriginSplitCh(CORS_ALLOW_ORIGIN_SPLIT_CH),
         |value| {
@@ -144,24 +144,24 @@ fn init_tracing() {
     tracing_subscriber::util::SubscriberInitExt::init(subscriber_with_fmt);
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
-fn mk_runtime() -> Result<ServerRuntime, RunServerEr> {
+fn mk_runtime() -> Result<TokioServerRuntime, RunServerEr> {
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(num_cpus::get())
         .enable_all()
         .build()
-        .map(ServerRuntime)
-        .map_err(|er| RunServerEr::BuildRuntime(ServerIoEr(er)))
+        .map(TokioServerRuntime)
+        .map_err(|er| RunServerEr::BuildRuntime(StdServerIoEr(er)))
 }
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::PgPool, RunServerEr> {
+async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::SqlxPgPool, RunServerEr> {
     sqlx::postgres::PgPoolOptions::new()
         .max_connections(*app_state::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
         .connect(secrecy::ExposeSecret::expose_secret(
             app_state::GetDatabaseUrl::get_database_url(config),
         ))
         .await
-        .map(app_state::PgPool::from)
-        .map_err(|er| RunServerEr::PgConnect(ServerPgConnectEr(er)))
+        .map(app_state::SqlxPgPool::from)
+        .map_err(|er| RunServerEr::PgConnect(SqlxServerPgConnectEr(er)))
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
 async fn run_server() -> Result<(), RunServerEr> {
@@ -175,7 +175,7 @@ async fn run_server() -> Result<(), RunServerEr> {
         app_state::GetServiceSocketAddress::get_service_socket_address(&config),
     )
     .await
-    .map_err(|er| RunServerEr::BindServiceSocket(ServerIoEr(er)))?;
+    .map_err(|er| RunServerEr::BindServiceSocket(StdServerIoEr(er)))?;
     let cors_origins = parse_cors_allow_origin(CorsAllowOriginTextRef(
         app_state::GetCorsAllowOrigin::get_cors_allow_origin(&config),
     ));
@@ -210,16 +210,16 @@ async fn run_server() -> Result<(), RunServerEr> {
         }
     })
     .await
-    .map_err(|er| RunServerEr::Serve(ServerIoEr(er)))?;
+    .map_err(|er| RunServerEr::Serve(StdServerIoEr(er)))?;
     Ok(())
 }
-fn main() -> ServerExitCode {
+fn main() -> StdServerExitCode {
     init_tracing();
     match mk_runtime().and_then(|runtime| runtime.0.block_on(run_server())) {
-        Ok(()) => ServerExitCode(std::process::ExitCode::SUCCESS),
+        Ok(()) => StdServerExitCode(std::process::ExitCode::SUCCESS),
         Err(er) => {
             eprintln!("{er}");
-            ServerExitCode(std::process::ExitCode::FAILURE)
+            StdServerExitCode(std::process::ExitCode::FAILURE)
         }
     }
 }

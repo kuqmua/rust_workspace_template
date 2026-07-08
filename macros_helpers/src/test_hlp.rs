@@ -17,23 +17,23 @@ impl<'stem_lt> TestPathStem<'stem_lt> {
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct AssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for AssertFilePathRef<'path_lt> {
+pub(crate) struct StdAssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::Path> for StdAssertFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::Path) -> Self {
         Self(value)
     }
 }
-impl<'path_lt> From<&'path_lt std::path::PathBuf> for AssertFilePathRef<'path_lt> {
+impl<'path_lt> From<&'path_lt std::path::PathBuf> for StdAssertFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::PathBuf) -> Self {
         Self(value.as_path())
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct AssertFilePath<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> AssertFilePath<'path_lt> {
+pub(crate) struct StdAssertFilePath<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> StdAssertFilePath<'path_lt> {
     pub(crate) fn new<T>(v: T) -> Self
     where
-        T: Into<AssertFilePathRef<'path_lt>>,
+        T: Into<StdAssertFilePathRef<'path_lt>>,
     {
         Self(v.into().0)
     }
@@ -60,9 +60,9 @@ impl<'content_lt> ExpectedFileContent<'content_lt> {
         Self(v.into().0)
     }
 }
-pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::RsFilePath {
+pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::StdRsFilePath {
     let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    crate::rs_file_path::RsFilePath(std::env::temp_dir().join(format!(
+    crate::rs_file_path::StdRsFilePath(std::env::temp_dir().join(format!(
         "{}_{}_{}",
         stem.0,
         std::process::id(),
@@ -76,7 +76,7 @@ pub(crate) fn cleanup_test_file(path: impl AsRef<std::path::Path>) {
         panic!("33ea4ea2: {er}");
     }
 }
-pub(crate) fn assert_file_content(path: AssertFilePath<'_>, exp: ExpectedFileContent<'_>) {
+pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFileContent<'_>) {
     let cnt = std::fs::read_to_string(path.0).expect("d5ec6712");
     assert_eq!(cnt, exp.0);
 }

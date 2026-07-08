@@ -948,13 +948,13 @@ pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::GeneratedRustTs {
         ParseErIdRef::from("7c3a91b2"),
     )
 }
-pub fn gen_struct_ident_dq_ts(v: &dyn std::fmt::Display) -> gen_quotes::QuotedLiteralTs {
+pub fn gen_struct_ident_dq_ts(v: &dyn std::fmt::Display) -> gen_quotes::ProcMacro2QuotedLiteralTs {
     gen_quotes::dq_ts(&format!("struct {v}"))
 }
 pub fn gen_struct_ident_with_nbr_els_dq_ts(
     ident: &dyn naming::DisplayPlusToTokens,
     len: StructElsLen,
-) -> gen_quotes::QuotedLiteralTs {
+) -> gen_quotes::ProcMacro2QuotedLiteralTs {
     gen_quotes::dq_ts(&format!("struct {ident} with {} els", len.get()))
 }
 pub fn gen_sqlx_types_json_type_dcl_ts(
@@ -972,9 +972,9 @@ pub fn gen_de_dq_ts(
     ident: &dyn naming::DisplayPlusToTokens,
     len: DeLen,
 ) -> (
-    gen_quotes::QuotedLiteralTs,
-    gen_quotes::QuotedLiteralTs,
-    gen_quotes::QuotedLiteralTs,
+    gen_quotes::ProcMacro2QuotedLiteralTs,
+    gen_quotes::ProcMacro2QuotedLiteralTs,
+    gen_quotes::ProcMacro2QuotedLiteralTs,
 ) {
     let struct_pg_type_ident_wh_tokens_dq_ts = gen_struct_ident_dq_ts(ident);
     let struct_pg_type_ident_wh_tokens_with_nbr_els_dq_ts =

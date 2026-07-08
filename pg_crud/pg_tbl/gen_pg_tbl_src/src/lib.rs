@@ -42,7 +42,7 @@ fn parse_ts_or_compile_error(
 #[must_use]
 #[allow(non_snake_case)]
 #[allow(unused_variables)]
-pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::GeneratedRustTs {
+pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers::GeneratedRustTs {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
     struct SynVrt {
@@ -3483,7 +3483,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             std::panic::Location::caller(),
                         );
                     let ts = gen_match_ok_err_short_ts(
-                        &quote::quote! {#AppStateSc.get_pg_pool().as_ref().acquire().await},
+                        &quote::quote! {#AppStateSc.get_sqlx_pg_pool().as_ref().acquire().await},
                         &quote::quote! {v_4535ee48},
                         &quote::quote! {{
                             #pg_syn_vrt_er_init_eprintln_res_creation_ts
@@ -5831,7 +5831,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                             database_url: <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "postgres://postgres:postgres@127.0.0.1:5432/postgres?connect_timeout=10".to_owned()
                             )).expect("f9c20f05").0,
-                            timezone: <config_lib::Timezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
+                            timezone: <config_lib::ChronoTimezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "10800".to_owned()
                             )).expect("d00d8998").0,
                             tracing_level: <config_lib::TracingLevel as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
@@ -5919,7 +5919,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_ts = tokio::spawn(async move {
                             let #AppStateSc = std::sync::Arc::new(server_app_state::ServerAppState {
-                                #PgPoolSc: app_state::PgPool::from(#PgPoolForTokioSpawnSyncMoveSc.clone()),
+                                #PgPoolSc: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSc.clone()),
                                 #ConfigSc,
                                 project_git_info: &git_info::PROJECT_GIT_INFO,
                             });
@@ -5975,7 +5975,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.tests_write_into_file,
         "gen_pg_tbl_Tests",
-        macros_helpers::TsRef::from(&generated_ident_tests_ts),
+        macros_helpers::ProcMacro2TsRef::from(&generated_ident_tests_ts),
         &macros_helpers::FormatWithCargofmt::True,
     );
     let ident_tests_ts = match gen_pg_tbl_config.tests_write_into_file {
@@ -5996,7 +5996,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.cmn_write_into_file,
         "gen_pg_tbl_cmn",
-        macros_helpers::TsRef::from(&cmn_ts),
+        macros_helpers::ProcMacro2TsRef::from(&cmn_ts),
         &macros_helpers::FormatWithCargofmt::True,
     );
     let gend = {
@@ -6032,7 +6032,7 @@ pub fn gen_pg_tbl(input: macros_helpers::TsRef<'_>) -> macros_helpers::Generated
     macros_helpers::mb_write_ts_into_file(
         gen_pg_tbl_config.whole_write_into_file,
         "gen_pg_tbl",
-        macros_helpers::TsRef::from(&gend),
+        macros_helpers::ProcMacro2TsRef::from(&gend),
         &macros_helpers::FormatWithCargofmt::True,
     );
     macros_helpers::GeneratedRustTs::from(gend)

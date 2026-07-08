@@ -1,18 +1,18 @@
 const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
 #[must_use]
 #[derive(Debug, Clone)]
-pub struct MacroTokens(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for MacroTokens {
+pub struct ProcMacro2MacroTokens(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2MacroTokens {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl From<MacroTokens> for proc_macro2::TokenStream {
-    fn from(value: MacroTokens) -> Self {
+impl From<ProcMacro2MacroTokens> for proc_macro2::TokenStream {
+    fn from(value: ProcMacro2MacroTokens) -> Self {
         value.0
     }
 }
-impl MacroTokens {
+impl ProcMacro2MacroTokens {
     pub fn from_into<T>(value: T) -> Self
     where
         T: Into<proc_macro2::TokenStream>,
@@ -24,24 +24,24 @@ impl MacroTokens {
         self.0
     }
 }
-impl IntoIterator for MacroTokens {
+impl IntoIterator for ProcMacro2MacroTokens {
     type IntoIter = proc_macro2::token_stream::IntoIter;
     type Item = proc_macro2::TokenTree;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
-impl quote::ToTokens for MacroTokens {
+impl quote::ToTokens for ProcMacro2MacroTokens {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.clone());
     }
 }
-impl std::fmt::Display for MacroTokens {
+impl std::fmt::Display for ProcMacro2MacroTokens {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl syn::parse::Parse for MacroTokens {
+impl syn::parse::Parse for ProcMacro2MacroTokens {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         input.step(|cursor| {
             let mut rest = *cursor;
@@ -56,26 +56,26 @@ impl syn::parse::Parse for MacroTokens {
 }
 #[must_use]
 #[derive(Debug, Clone)]
-pub struct TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
-impl std::ops::Deref for TopLevelCommaParts {
+pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
+impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
     type Target = Vec<proc_macro2::TokenStream>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl std::ops::DerefMut for TopLevelCommaParts {
+impl std::ops::DerefMut for ProcMacro2TopLevelCommaParts {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
-impl IntoIterator for TopLevelCommaParts {
+impl IntoIterator for ProcMacro2TopLevelCommaParts {
     type IntoIter = std::vec::IntoIter<proc_macro2::TokenStream>;
     type Item = proc_macro2::TokenStream;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }
-impl syn::parse::Parse for TopLevelCommaParts {
+impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut parts = Vec::new();
         let mut current = proc_macro2::TokenStream::new();
@@ -163,19 +163,19 @@ impl From<usize> for PartIndex {
         Self(value)
     }
 }
-pub fn compile_error_ts<S>(msg: S) -> MacroTokens
+pub fn compile_error_ts<S>(msg: S) -> ProcMacro2MacroTokens
 where
     S: AsRef<str>,
 {
     let compile_msg = msg.as_ref().to_owned();
     quote::quote! {compile_error!(#compile_msg);}.into()
 }
-pub fn split_top_level_commas<T>(input: T) -> TopLevelCommaParts
+pub fn split_top_level_commas<T>(input: T) -> ProcMacro2TopLevelCommaParts
 where
-    T: Into<MacroTokens>,
+    T: Into<ProcMacro2MacroTokens>,
 {
-    syn::parse2::<TopLevelCommaParts>(input.into().0)
-        .unwrap_or_else(|_| TopLevelCommaParts(Vec::new()))
+    syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().0)
+        .unwrap_or_else(|_| ProcMacro2TopLevelCommaParts(Vec::new()))
 }
 pub fn first_ident<I>(input: &mut I) -> Option<FirstIdent>
 where
@@ -204,23 +204,26 @@ where
     )
 }
 #[must_use]
-pub fn part_at<I>(parts: &TopLevelCommaParts, idx: I) -> Option<MacroTokens>
+pub fn part_at<I>(parts: &ProcMacro2TopLevelCommaParts, idx: I) -> Option<ProcMacro2MacroTokens>
 where
     I: Into<PartIndex>,
 {
-    parts.get(idx.into().0).cloned().map(MacroTokens::from)
+    parts
+        .get(idx.into().0)
+        .cloned()
+        .map(ProcMacro2MacroTokens::from)
 }
 #[must_use]
-pub fn first_ident_at<I>(parts: &TopLevelCommaParts, idx: I) -> Option<FirstIdent>
+pub fn first_ident_at<I>(parts: &ProcMacro2TopLevelCommaParts, idx: I) -> Option<FirstIdent>
 where
     I: Into<PartIndex>,
 {
     first_ident(&mut part_at(parts, idx)?.into_iter())
 }
 #[must_use]
-pub fn split_fat_arrow<T>(input: T) -> Option<(MacroTokens, MacroTokens)>
+pub fn split_fat_arrow<T>(input: T) -> Option<(ProcMacro2MacroTokens, ProcMacro2MacroTokens)>
 where
-    T: Into<MacroTokens>,
+    T: Into<ProcMacro2MacroTokens>,
 {
     let mut before = proc_macro2::TokenStream::new();
     let mut after = proc_macro2::TokenStream::new();
@@ -239,7 +242,10 @@ where
             };
             let _: syn::Token![=>] = syn::parse2(arrow).ok()?;
             after.extend(iter);
-            return Some((MacroTokens::from(before), MacroTokens::from(after)));
+            return Some((
+                ProcMacro2MacroTokens::from(before),
+                ProcMacro2MacroTokens::from(after),
+            ));
         }
         before.extend([token]);
     }
@@ -247,12 +253,12 @@ where
 }
 #[allow(clippy::single_call_fn)] // this keeps the closure parser isolated from proc-macro expansion bodies
 #[must_use]
-pub fn closure_ident_and_body<T>(input: T) -> Option<(FirstIdent, MacroTokens)>
+pub fn closure_ident_and_body<T>(input: T) -> Option<(FirstIdent, ProcMacro2MacroTokens)>
 where
-    T: Into<MacroTokens>,
+    T: Into<ProcMacro2MacroTokens>,
 {
     struct ClosureIdentAndBody {
-        body: MacroTokens,
+        body: ProcMacro2MacroTokens,
         ident: syn::Ident,
     }
     impl syn::parse::Parse for ClosureIdentAndBody {
@@ -260,7 +266,7 @@ where
             let _: syn::Token![|] = input.parse()?;
             let ident = input.parse::<syn::Ident>()?;
             let _: syn::Token![|] = input.parse()?;
-            let body = input.parse::<MacroTokens>()?;
+            let body = input.parse::<ProcMacro2MacroTokens>()?;
             Ok(Self { body, ident })
         }
     }

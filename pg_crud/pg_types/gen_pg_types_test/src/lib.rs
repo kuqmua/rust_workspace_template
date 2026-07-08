@@ -18,13 +18,15 @@ wh_flts = {path = "../../wh_flts"}
 optml = {path = "../../../optml"}
 [features]
 test-utils = []"#,
-            &gen_pg_types_src::gen_pg_types(macros_helpers::TsRef::from(&quote::quote! {
-                {
-                    "pg_tbl_cols_write_into_file": "False",
-                    "whole_write_into_file": "False",
-                    "vrt": "All"
-                }
-            }))
+            &gen_pg_types_src::gen_pg_types(macros_helpers::ProcMacro2TsRef::from(
+                &quote::quote! {
+                    {
+                        "pg_tbl_cols_write_into_file": "False",
+                        "whole_write_into_file": "False",
+                        "vrt": "All"
+                    }
+                },
+            ))
             .to_string(),
         );
     }

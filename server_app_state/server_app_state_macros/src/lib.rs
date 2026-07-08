@@ -1,7 +1,7 @@
 #[proc_macro]
 pub fn impl_cfg_getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_ts(

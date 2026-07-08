@@ -1,10 +1,10 @@
-struct TryFromParseInput(proc_macro2::TokenStream);
-struct TryFromParseFixedErTy(Option<proc_macro2::TokenStream>);
-struct TryFromParseTs(proc_macro::TokenStream);
+struct ProcMacro2TryFromParseInput(proc_macro2::TokenStream);
+struct ProcMacro2TryFromParseFixedErTy(Option<proc_macro2::TokenStream>);
+struct ProcMacroTryFromParseTs(proc_macro::TokenStream);
 #[proc_macro]
 pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(
@@ -49,7 +49,7 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
 #[proc_macro]
 pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(
@@ -95,24 +95,28 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
 }
 #[proc_macro]
 pub fn impl_try_from_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    impl_try_from_parse_with_er_ty(TryFromParseInput(input.into()), TryFromParseFixedErTy(None)).0
+    impl_try_from_parse_with_er_ty(
+        ProcMacro2TryFromParseInput(input.into()),
+        ProcMacro2TryFromParseFixedErTy(None),
+    )
+    .0
 }
 #[proc_macro]
 pub fn impl_try_from_parse_string_er(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     impl_try_from_parse_with_er_ty(
-        TryFromParseInput(input.into()),
-        TryFromParseFixedErTy(Some(quote::quote! {String})),
+        ProcMacro2TryFromParseInput(input.into()),
+        ProcMacro2TryFromParseFixedErTy(Some(quote::quote! {String})),
     )
     .0
 }
 fn impl_try_from_parse_with_er_ty(
-    input: TryFromParseInput,
-    fixed_er_ty: TryFromParseFixedErTy,
-) -> TryFromParseTs {
+    input: ProcMacro2TryFromParseInput,
+    fixed_er_ty: ProcMacro2TryFromParseFixedErTy,
+) -> ProcMacroTryFromParseTs {
     let parts = workspace_macro_helpers::split_top_level_commas(input.0);
     let min_len = if fixed_er_ty.0.is_some() { 5 } else { 6 };
     if parts.len() < min_len {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts(
                 "impl_try_from_parse expects name, error name, inner type and error variant",
             )
@@ -121,28 +125,28 @@ fn impl_try_from_parse_with_er_ty(
         );
     }
     let Some(name_text) = workspace_macro_helpers::first_ident_at(&parts, 0) else {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects name")
                 .into_inner()
                 .into(),
         );
     };
     let Some(er_name_text) = workspace_macro_helpers::first_ident_at(&parts, 1) else {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error name")
                 .into_inner()
                 .into(),
         );
     };
     let Some(er_vrt_text) = workspace_macro_helpers::first_ident_at(&parts, 3) else {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error variant")
                 .into_inner()
                 .into(),
         );
     };
     let Some(er_field_text) = workspace_macro_helpers::first_ident_at(&parts, 4) else {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects error field")
                 .into_inner()
                 .into(),
@@ -153,7 +157,7 @@ fn impl_try_from_parse_with_er_ty(
     let er_vrt = quote::format_ident!("{er_vrt_text}");
     let er_field = quote::format_ident!("{er_field_text}");
     let Some(inner) = workspace_macro_helpers::part_at(&parts, 2) else {
-        return TryFromParseTs(
+        return ProcMacroTryFromParseTs(
             workspace_macro_helpers::compile_error_ts("impl_try_from_parse expects inner type")
                 .into_inner()
                 .into(),
@@ -174,7 +178,7 @@ fn impl_try_from_parse_with_er_ty(
             )
         },
     );
-    TryFromParseTs(quote::quote! {
+    ProcMacroTryFromParseTs(quote::quote! {
         #[derive(Debug, #(#derives,)* gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
         pub struct #name(pub #inner);
         #[derive(Debug, thiserror::Error, optml::Optml)]
@@ -194,7 +198,7 @@ fn impl_try_from_parse_with_er_ty(
 #[proc_macro]
 pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_ts(
@@ -228,7 +232,7 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
 #[proc_macro]
 pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_ts(
@@ -262,7 +266,7 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
 #[proc_macro]
 pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
-        workspace_macro_helpers::MacroTokens::from_into(input),
+        workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_ts(

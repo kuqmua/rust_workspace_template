@@ -1,23 +1,23 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct WrittenFilePath(std::path::PathBuf);
-impl From<std::path::PathBuf> for WrittenFilePath {
+pub struct StdWrittenFilePath(std::path::PathBuf);
+impl From<std::path::PathBuf> for StdWrittenFilePath {
     fn from(value: std::path::PathBuf) -> Self {
         Self(value)
     }
 }
-impl AsRef<std::path::Path> for WrittenFilePath {
+impl AsRef<std::path::Path> for StdWrittenFilePath {
     fn as_ref(&self) -> &std::path::Path {
         self.0.as_path()
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct WrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for WrittenFilePathRef<'path_lt> {
+pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
+impl<'path_lt> From<&'path_lt std::path::Path> for StdWrittenFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::Path) -> Self {
         Self(value)
     }
 }
-impl AsRef<std::path::Path> for WrittenFilePathRef<'_> {
+impl AsRef<std::path::Path> for StdWrittenFilePathRef<'_> {
     fn as_ref(&self) -> &std::path::Path {
         self.0
     }
@@ -54,13 +54,13 @@ impl std::ops::Not for ShouldWriteString {
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
-    Changed(WrittenFilePath),
-    Unchanged(WrittenFilePath),
+    Changed(StdWrittenFilePath),
+    Unchanged(StdWrittenFilePath),
 }
 impl WritePathOutcome {
     #[allow(clippy::single_call_fn)] // named conversion keeps enum->path mapping centralized for callers and tests
     #[must_use]
-    pub fn into_path(self) -> WrittenFilePath {
+    pub fn into_path(self) -> StdWrittenFilePath {
         match self {
             Self::Changed(path) | Self::Unchanged(path) => path,
         }
@@ -70,15 +70,17 @@ impl WritePathOutcome {
         ShouldWriteString::from(matches!(self, Self::Changed(_)))
     }
     #[must_use]
-    pub fn path(&self) -> WrittenFilePathRef<'_> {
+    pub fn path(&self) -> StdWrittenFilePathRef<'_> {
         match self {
-            Self::Changed(path) | Self::Unchanged(path) => WrittenFilePathRef::from(path.as_ref()),
+            Self::Changed(path) | Self::Unchanged(path) => {
+                StdWrittenFilePathRef::from(path.as_ref())
+            }
         }
     }
 }
 #[allow(clippy::single_call_fn)] // write-decision logic is split out to keep file write path minimal and focused
 fn should_write_string_into_file(
-    path: WrittenFilePathRef<'_>,
+    path: StdWrittenFilePathRef<'_>,
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
     let path_ref = path.as_ref();
@@ -112,7 +114,7 @@ fn should_write_with_same_len_diff(
     }
     std::fs::write(path, old)?;
     should_write_string_into_file(
-        WrittenFilePathRef::from(path),
+        StdWrittenFilePathRef::from(path),
         StringFileContentRef::from(new),
     )
 }
@@ -130,12 +132,15 @@ fn should_write_with_diff_len(
     }
     std::fs::write(path, old)?;
     should_write_string_into_file(
-        WrittenFilePathRef::from(path),
+        StdWrittenFilePathRef::from(path),
         StringFileContentRef::from(new),
     )
 }
 #[allow(clippy::single_call_fn)] // central mapping keeps changed/unchanged outcome construction consistent
-fn mk_write_path_outcome(path: WrittenFilePath, is_changed: ShouldWriteString) -> WritePathOutcome {
+fn mk_write_path_outcome(
+    path: StdWrittenFilePath,
+    is_changed: ShouldWriteString,
+) -> WritePathOutcome {
     if bool::from(is_changed) {
         WritePathOutcome::Changed(path)
     } else {
@@ -144,7 +149,7 @@ fn mk_write_path_outcome(path: WrittenFilePath, is_changed: ShouldWriteString) -
 }
 #[allow(clippy::single_call_fn)] // extracted side-effect helper keeps write/no-write branching reusable and test-focused
 fn write_string_if_needed(
-    path: WrittenFilePathRef<'_>,
+    path: StdWrittenFilePathRef<'_>,
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<ShouldWriteString> {
     let should_write = should_write_string_into_file(path, string_cnt)?;
@@ -159,8 +164,8 @@ pub(crate) fn try_write_string_into_path_with_outcome(
     string_cnt: StringFileContentRef<'_>,
 ) -> std::io::Result<WritePathOutcome> {
     let path_ref = path.as_ref();
-    let should_write = write_string_if_needed(WrittenFilePathRef::from(path_ref), string_cnt)?;
-    let path_buf = WrittenFilePath::from(path_ref.to_path_buf());
+    let should_write = write_string_if_needed(StdWrittenFilePathRef::from(path_ref), string_cnt)?;
+    let path_buf = StdWrittenFilePath::from(path_ref.to_path_buf());
     Ok(mk_write_path_outcome(path_buf, should_write))
 }
 #[allow(clippy::single_call_fn)] // shared write helper keeps change-outcome API reusable for extension-based write callers
@@ -181,13 +186,13 @@ where
 pub(crate) fn try_write_string_into_path(
     path: impl AsRef<std::path::Path>,
     string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WrittenFilePath> {
+) -> std::io::Result<StdWrittenFilePath> {
     try_write_string_into_path_with_outcome(path, string_cnt).map(WritePathOutcome::into_path)
 }
 pub fn try_write_string_into_file<P>(
     file_name: P,
     string_cnt: StringFileContentRef<'_>,
-) -> std::io::Result<WrittenFilePath>
+) -> std::io::Result<StdWrittenFilePath>
 where
     P: AsRef<std::path::Path>,
 {
@@ -207,11 +212,11 @@ mod tests {
     fn cnt(v: &str) -> super::StringFileContentRef<'_> {
         super::StringFileContentRef::from(v)
     }
-    fn path_ref(v: &std::path::Path) -> super::WrittenFilePathRef<'_> {
-        super::WrittenFilePathRef::from(v)
+    fn path_ref(v: &std::path::Path) -> super::StdWrittenFilePathRef<'_> {
+        super::StdWrittenFilePathRef::from(v)
     }
-    fn written_path(v: std::path::PathBuf) -> super::WrittenFilePath {
-        super::WrittenFilePath::from(v)
+    fn written_path(v: std::path::PathBuf) -> super::StdWrittenFilePath {
+        super::StdWrittenFilePath::from(v)
     }
     fn txt_path(name: &str) -> std::path::PathBuf {
         crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(name))
@@ -223,7 +228,7 @@ mod tests {
     }
     fn assert_content_and_cleanup(path: &std::path::Path, expected: &str) {
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(path),
+            crate::test_hlp::StdAssertFilePath::new(path),
             crate::test_hlp::ExpectedFileContent::new(expected),
         );
         cleanup(path);
@@ -360,7 +365,7 @@ mod tests {
         let outcome =
             super::try_write_string_into_path_with_outcome(&path, cnt("abc")).expect("947faed1");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::AssertFilePath::new(&path),
+            crate::test_hlp::StdAssertFilePath::new(&path),
             crate::test_hlp::ExpectedFileContent::new("abc"),
         );
         assert_outcome_and_cleanup(path.as_path(), &outcome, true);

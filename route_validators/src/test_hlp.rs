@@ -26,41 +26,43 @@ impl std::fmt::Display for TestPanicText {
         f.write_str(self.0)
     }
 }
-pub(crate) struct TestHeaders(pub axum::http::HeaderMap);
-impl std::ops::Deref for TestHeaders {
+pub(crate) struct AxumTestHeaders(pub axum::http::HeaderMap);
+impl std::ops::Deref for AxumTestHeaders {
     type Target = axum::http::HeaderMap;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl AsRef<axum::http::HeaderMap> for TestHeaders {
+impl AsRef<axum::http::HeaderMap> for AxumTestHeaders {
     fn as_ref(&self) -> &axum::http::HeaderMap {
         &self.0
     }
 }
-impl std::ops::DerefMut for TestHeaders {
+impl std::ops::DerefMut for AxumTestHeaders {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
-pub(crate) struct TestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
-impl<'headers_lt> From<&'headers_lt mut TestHeaders> for TestHeadersMutRef<'headers_lt> {
-    fn from(value: &'headers_lt mut TestHeaders) -> Self {
+pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
+impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
+    fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
         Self(&mut value.0)
     }
 }
-impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap> for TestHeadersMutRef<'headers_lt> {
+impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap>
+    for AxumTestHeadersMutRef<'headers_lt>
+{
     fn from(value: &'headers_lt mut axum::http::HeaderMap) -> Self {
         Self(value)
     }
 }
-pub(crate) struct TestHeaderValue(pub axum::http::HeaderValue);
-impl From<axum::http::HeaderValue> for TestHeaderValue {
+pub(crate) struct AxumTestHeaderValue(pub axum::http::HeaderValue);
+impl From<axum::http::HeaderValue> for AxumTestHeaderValue {
     fn from(value: axum::http::HeaderValue) -> Self {
         Self(value)
     }
 }
-impl std::ops::Deref for TestHeaderValue {
+impl std::ops::Deref for AxumTestHeaderValue {
     type Target = axum::http::HeaderValue;
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -77,11 +79,11 @@ impl std::ops::Not for TestPollLimitReached {
 }
 #[allow(clippy::single_call_fn)] // shared insertion guard keeps header setup helpers consistent
 fn insert_header_no_prev<'headers_lt, ValueTy>(
-    headers: impl Into<TestHeadersMutRef<'headers_lt>>,
+    headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
     name: impl axum::http::header::IntoHeaderName,
     value: ValueTy,
 ) where
-    ValueTy: Into<TestHeaderValue>,
+    ValueTy: Into<AxumTestHeaderValue>,
 {
     let headers = headers.into();
     let prev = headers.0.insert(name, value.into().0);
@@ -315,17 +317,17 @@ where
 pub(crate) fn mk_headers_with_entry<ValueTy>(
     name: impl axum::http::header::IntoHeaderName,
     value: ValueTy,
-) -> TestHeaders
+) -> AxumTestHeaders
 where
-    ValueTy: Into<TestHeaderValue>,
+    ValueTy: Into<AxumTestHeaderValue>,
 {
     let mut headers = axum::http::HeaderMap::new();
     insert_header_no_prev(&mut headers, name, value);
-    TestHeaders(headers)
+    AxumTestHeaders(headers)
 }
 #[track_caller]
 pub(crate) fn replace_header_name<'headers_lt>(
-    headers: impl Into<TestHeadersMutRef<'headers_lt>>,
+    headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,
     from_name: impl axum::http::header::AsHeaderName,
     to_name: impl axum::http::header::IntoHeaderName,
     exp_id: impl Into<TestExpId>,
@@ -337,8 +339,8 @@ pub(crate) fn replace_header_name<'headers_lt>(
         .unwrap_or_else(|| panic_replace_header_missing_src(exp_id));
     insert_header_no_prev(headers.0, to_name, value);
 }
-pub(crate) fn non_utf8_header_value() -> TestHeaderValue {
-    TestHeaderValue(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
+pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {
+    AxumTestHeaderValue(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
 }
 #[track_caller]
 pub(crate) fn assert_panics(

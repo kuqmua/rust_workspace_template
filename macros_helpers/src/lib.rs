@@ -31,7 +31,7 @@ pub use derive_ts_builder::{
     DUtoipaToSchema, MakePub,
 };
 pub use gen_field_loc_new_ts::{FieldLocCol, FieldLocFile, FieldLocLine, gen_field_loc_new_ts};
-pub use gen_if_write_is_err_ts::{IfWriteIsErrTs, gen_if_write_is_err_ts};
+pub use gen_if_write_is_err_ts::{ProcMacro2IfWriteIsErrTs, gen_if_write_is_err_ts};
 pub use gen_impl_dflt_ts::gen_impl_dflt_ts;
 pub use gen_impl_display_ts::gen_impl_display_ts;
 pub use gen_impl_from_ts::gen_impl_from_ts;
@@ -51,20 +51,22 @@ pub use gen_simple_syn_punct::{
 };
 pub use generated_rust_ts::GeneratedRustTs;
 pub use get_macro_attr::{
-    MacroAttrEr, MacroAttrMetaListTsRef, MacroAttrRef, find_macro_attr, get_macro_attr,
-    get_macro_attr_meta_list_ts, try_get_macro_attr, try_get_macro_attr_meta_list_ts,
+    MacroAttrEr, ProcMacro2MacroAttrMetaListTsRef, SynMacroAttrRef, find_macro_attr,
+    get_macro_attr, get_macro_attr_meta_list_ts, try_get_macro_attr,
+    try_get_macro_attr_meta_list_ts,
 };
 pub use loc::{LocFieldAttr, SynVariantRef, gen_serde_version_of_named_syn_vrt};
-pub use loc_syn_field::{LocSynField, loc_syn_field};
+pub use loc_syn_field::{SynLocField, loc_syn_field};
 pub use pgn_start_end_init_ts::pgn_start_end_init_ts;
-pub use status_code::{GetOnlyOneStatusCodeEr, StatusCode, StatusCodeVariantRef, get_only_one};
+pub use status_code::{GetOnlyOneStatusCodeEr, StatusCode, SynStatusCodeVariantRef, get_only_one};
 pub use syn_field::{SynField, SynFieldIdent, SynFieldType, SynFieldVis};
-pub use wrap_derive::{DeriveTokensRef, wrap_derive};
+pub use wrap_derive::{ProcMacro2DeriveTokensRef, wrap_derive};
 pub use write_string_into_file::{
-    ShouldWriteString, StringFileContentRef, WritePathOutcome, WrittenFilePath, WrittenFilePathRef,
-    try_write_string_into_file, try_write_string_into_file_with_outcome, write_string_into_file,
+    ShouldWriteString, StdWrittenFilePath, StdWrittenFilePathRef, StringFileContentRef,
+    WritePathOutcome, try_write_string_into_file, try_write_string_into_file_with_outcome,
+    write_string_into_file,
 };
 pub use write_ts_into_file::{
-    FormatWithCargofmt, ShouldWriteTsIntoFile, TsRef, mb_write_ts_into_file,
+    FormatWithCargofmt, ProcMacro2TsRef, ShouldWriteTsIntoFile, mb_write_ts_into_file,
     try_mb_write_ts_into_file,
 };

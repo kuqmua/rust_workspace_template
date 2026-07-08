@@ -1,13 +1,13 @@
 #[derive(Debug)]
-pub struct LocSynField(syn::Field);
-impl From<LocSynField> for syn::Field {
-    fn from(value: LocSynField) -> Self {
+pub struct SynLocField(syn::Field);
+impl From<SynLocField> for syn::Field {
+    fn from(value: SynLocField) -> Self {
         value.0
     }
 }
 #[must_use]
-pub fn loc_syn_field() -> LocSynField {
-    LocSynField(syn::Field {
+pub fn loc_syn_field() -> SynLocField {
+    SynLocField(syn::Field {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         mutability: syn::FieldMutability::None,

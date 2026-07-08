@@ -1,7 +1,7 @@
 #[derive(Debug, optml::Optml)]
 pub struct ServerAppState<'lt> {
     pub config: server_config::Config,
-    pub pg_pool: app_state::PgPool,
+    pub pg_pool: app_state::SqlxPgPool,
     pub project_git_info: &'lt git_info::ProjectGitInfo<'lt>,
 }
 impl ServerAppState<'_> {
@@ -23,8 +23,8 @@ server_app_state_macros::impl_cfg_getter!(
     config_lib::types::SrcPlaceType
 );
 server_app_state_macros::impl_cfg_getter!(
-    app_state::GetTimezone,
-    get_timezone,
+    app_state::GetChronoTimezone,
+    get_chrono_timezone,
     chrono::FixedOffset
 );
 server_app_state_macros::impl_cfg_getter!(
@@ -32,9 +32,9 @@ server_app_state_macros::impl_cfg_getter!(
     get_maximum_size_of_http_body_in_bytes,
     usize
 );
-impl app_state::GetPgPool for ServerAppState<'_> {
-    fn get_pg_pool(&self) -> app_state::PgPoolRef<'_> {
-        app_state::PgPoolRef::from(self.pg_pool.as_ref())
+impl app_state::GetSqlxPgPool for ServerAppState<'_> {
+    fn get_sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
+        app_state::SqlxPgPoolRef::from(self.pg_pool.as_ref())
     }
 }
 impl AsRef<str> for ServerAppState<'_> {
@@ -67,7 +67,7 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
                     .expect("f20c4a91"),
-                timezone: config_lib::Timezone::try_from(
+                timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("a95d3c17"),
                 )
                 .expect("e8714250"),
@@ -75,7 +75,7 @@ mod tests {
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
             },
-            pg_pool: app_state::PgPool::from(
+            pg_pool: app_state::SqlxPgPool::from(
                 sqlx::PgPool::connect_lazy("postgres://usr:pwd@localhost:5432/db")
                     .expect("4bd3f0a1"),
             ),
@@ -91,7 +91,7 @@ mod tests {
             &config_lib::types::SrcPlaceType::Github
         );
         assert_eq!(
-            app_state::GetTimezone::get_timezone(&st).local_minus_utc(),
+            app_state::GetChronoTimezone::get_chrono_timezone(&st).local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(
@@ -104,7 +104,7 @@ mod tests {
     async fn get_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
         let st = mk_st(&git_info);
-        let lhs = std::ptr::from_ref(app_state::GetPgPool::get_pg_pool(&st).as_ref());
+        let lhs = std::ptr::from_ref(app_state::GetSqlxPgPool::get_sqlx_pg_pool(&st).as_ref());
         let rhs = std::ptr::from_ref(st.pg_pool.as_ref());
         assert_eq!(lhs, rhs);
     }

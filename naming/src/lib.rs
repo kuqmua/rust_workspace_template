@@ -462,9 +462,9 @@ impl AsRef<str> for SwaggerUrlPathSelfQuotesStrValue {
     }
 }
 #[derive(Debug, Clone)]
-pub struct SwaggerUrlPathSelfQuotesTs(gen_quotes::QuotedLiteralTs);
-impl From<gen_quotes::QuotedLiteralTs> for SwaggerUrlPathSelfQuotesTs {
-    fn from(value: gen_quotes::QuotedLiteralTs) -> Self {
+pub struct SwaggerUrlPathSelfQuotesTs(gen_quotes::ProcMacro2QuotedLiteralTs);
+impl From<gen_quotes::ProcMacro2QuotedLiteralTs> for SwaggerUrlPathSelfQuotesTs {
+    fn from(value: gen_quotes::ProcMacro2QuotedLiteralTs) -> Self {
         Self(value)
     }
 }
@@ -513,12 +513,12 @@ where
             .as_ref()
             .parse::<proc_macro2::TokenStream>()
         {
-            Ok(parsed_ts) => {
-                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::QuotedLiteralTs::from(parsed_ts))
-            }
+            Ok(parsed_ts) => SwaggerUrlPathSelfQuotesTs::from(
+                gen_quotes::ProcMacro2QuotedLiteralTs::from(parsed_ts),
+            ),
             Err(er) => {
                 let msg = er.to_string();
-                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::QuotedLiteralTs::from(
+                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::ProcMacro2QuotedLiteralTs::from(
                     quote::quote! {compile_error!(#msg);},
                 ))
             }

@@ -143,14 +143,14 @@ impl TryFrom<String> for LocCommit {
     newtype::Newtype,
 )]
 #[newtype(from)]
-pub struct LocDuration(std::time::Duration);
+pub struct StdLocDuration(std::time::Duration);
 #[derive(Debug, Clone, Copy)]
 struct LocFileRef<'file_lt>(pub &'file_lt str);
-struct FmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
+struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
 #[derive(Debug, Clone, Copy)]
-struct LocDisplayTimezone(pub chrono::FixedOffset);
+struct ChronoLocDisplayTimezone(pub chrono::FixedOffset);
 #[derive(Debug, Clone, Copy)]
-struct LocDateTime(pub chrono::DateTime<chrono::FixedOffset>);
+struct ChronoLocDateTime(pub chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -184,7 +184,7 @@ pub struct Loc {
     #[allow(clippy::arbitrary_source_item_ordering)]
     file: LocFile,
     commit: LocCommit,
-    duration: LocDuration,
+    duration: StdLocDuration,
     occr: Option<Occr>,
     line: LocLine,
     col: LocCol,
@@ -192,12 +192,12 @@ pub struct Loc {
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_pass_by_value)]
 impl Loc {
     #[allow(clippy::single_call_fn)] // shared offset accessor is reused by formatter and tests
-    fn loc_display_timezone() -> Option<LocDisplayTimezone> {
-        chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS).map(LocDisplayTimezone)
+    fn loc_display_timezone() -> Option<ChronoLocDisplayTimezone> {
+        chrono::FixedOffset::east_opt(LOC_DISPLAY_UTC_OFFSET_SECS).map(ChronoLocDisplayTimezone)
     }
     fn fmt_github_loc(
         &self,
-        f: FmtRefMut<'_, '_>,
+        f: StdFmtRefMut<'_, '_>,
         file: LocFileRef<'_>,
         line: LocLine,
     ) -> std::fmt::Result {
@@ -211,7 +211,7 @@ impl Loc {
         )
     }
     fn fmt_src_loc(
-        f: FmtRefMut<'_, '_>,
+        f: StdFmtRefMut<'_, '_>,
         file: LocFileRef<'_>,
         line: LocLine,
         col: LocCol,
@@ -219,24 +219,24 @@ impl Loc {
         write!(f.0, "{}:{line}:{col}", file.0)
     }
     #[allow(clippy::single_call_fn)] // centralizes datetime + timezone composition so formatting can stay branch-light and tests can target conversion separately
-    fn datetime_with_tz(&self) -> Option<LocDateTime> {
+    fn datetime_with_tz(&self) -> Option<ChronoLocDateTime> {
         let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
         let offset = Self::loc_display_timezone()?;
-        Some(LocDateTime(
+        Some(ChronoLocDateTime(
             chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
         ))
     }
-    fn fmt_datetime(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
+    fn fmt_datetime(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
             None => f.0.write_str(INCORRECT_DATETIME_MSG),
         }
     }
-    fn fmt_github_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
-        self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(self.file.as_ref()), self.line)?;
+    fn fmt_github_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
+        self.fmt_github_loc(StdFmtRefMut(f.0), LocFileRef(self.file.as_ref()), self.line)?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(" (")?;
-            self.fmt_github_loc(FmtRefMut(f.0), LocFileRef(v.file.as_ref()), v.line)?;
+            self.fmt_github_loc(StdFmtRefMut(f.0), LocFileRef(v.file.as_ref()), v.line)?;
             f.0.write_str(")")
         } else {
             Ok(())
@@ -245,23 +245,28 @@ impl Loc {
     fn fmt_place(
         &self,
         src_place_type: app_state::SrcPlaceType,
-        f: FmtRefMut<'_, '_>,
+        f: StdFmtRefMut<'_, '_>,
     ) -> std::fmt::Result {
         match src_place_type {
             app_state::SrcPlaceType::Src => self.fmt_src_place(f),
             app_state::SrcPlaceType::Github => self.fmt_github_place(f),
         }
     }
-    fn fmt_src_place(&self, f: FmtRefMut<'_, '_>) -> std::fmt::Result {
+    fn fmt_src_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
         Self::fmt_src_loc(
-            FmtRefMut(f.0),
+            StdFmtRefMut(f.0),
             LocFileRef(self.file.as_ref()),
             self.line,
             self.col,
         )?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(" (")?;
-            Self::fmt_src_loc(FmtRefMut(f.0), LocFileRef(v.file.as_ref()), v.line, v.col)?;
+            Self::fmt_src_loc(
+                StdFmtRefMut(f.0),
+                LocFileRef(v.file.as_ref()),
+                v.line,
+                v.col,
+            )?;
             f.0.write_str(")")
         } else {
             Ok(())
@@ -285,7 +290,7 @@ impl Loc {
             col: col.into(),
             commit: LocCommit::try_from(git_info::PROJECT_GIT_INFO.commit.as_ref().to_owned())
                 .unwrap_or_else(LocCommit::from),
-            duration: LocDuration(
+            duration: StdLocDuration(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default(),
@@ -328,9 +333,9 @@ impl std::ops::Deref for StdTimeDurationNanos {
 }
 impl std::fmt::Display for Loc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), FmtRefMut(f))?;
+        self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), StdFmtRefMut(f))?;
         f.write_str(" ")?;
-        self.fmt_datetime(FmtRefMut(f))
+        self.fmt_datetime(StdFmtRefMut(f))
     }
 }
 #[cfg(test)]
@@ -341,7 +346,7 @@ mod tests {
     }
     impl std::fmt::Display for DatetimeFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.loc.fmt_datetime(super::FmtRefMut(f))
+            self.loc.fmt_datetime(super::StdFmtRefMut(f))
         }
     }
     struct PlaceFmt<'loc_lt> {
@@ -350,7 +355,8 @@ mod tests {
     }
     impl std::fmt::Display for PlaceFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.loc.fmt_place(self.src_place_type, super::FmtRefMut(f))
+            self.loc
+                .fmt_place(self.src_place_type, super::StdFmtRefMut(f))
         }
     }
     fn test_loc(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Loc {
@@ -359,7 +365,7 @@ mod tests {
                 .unwrap_or_else(super::LocFile::from),
             commit: super::LocCommit::try_from(String::from("abc123"))
                 .unwrap_or_else(super::LocCommit::from),
-            duration: super::LocDuration(duration),
+            duration: super::StdLocDuration(duration),
             occr,
             line: super::LocLine(10),
             col: super::LocCol(20),

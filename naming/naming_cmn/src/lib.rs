@@ -1,54 +1,66 @@
 const CASE_STRING_MAX_LEN: usize = 1_048_576;
 naming_cmn_macros::case_trait_pair!(AsRefStrToUccStr, AsRefStrToUccTs, AsRef<str>, |self_ref| {
-    str_case(self_ref.as_ref(), CaseKind(convert_case::Case::UpperCamel)).0
+    str_case(
+        self_ref.as_ref(),
+        ConvertCaseKind(convert_case::Case::UpperCamel),
+    )
+    .0
 });
 naming_cmn_macros::case_trait_pair!(AsRefStrToScStr, AsRefStrToScTs, AsRef<str>, |self_ref| {
-    str_case(self_ref.as_ref(), CaseKind(convert_case::Case::Snake)).0
+    str_case(
+        self_ref.as_ref(),
+        ConvertCaseKind(convert_case::Case::Snake),
+    )
+    .0
 });
 naming_cmn_macros::case_trait_pair!(
     AsRefStrToUpperScStr,
     AsRefStrToUpperScTs,
     AsRef<str>,
-    |self_ref| str_case(self_ref.as_ref(), CaseKind(convert_case::Case::UpperSnake)).0
+    |self_ref| str_case(
+        self_ref.as_ref(),
+        ConvertCaseKind(convert_case::Case::UpperSnake)
+    )
+    .0
 );
 naming_cmn_macros::case_trait_pair!(
     DisplayToUccStr,
     DisplayToUccTs,
     std::fmt::Display,
-    |self_ref| { display_case_str(self_ref, CaseKind(convert_case::Case::UpperCamel)).0 }
+    |self_ref| { display_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperCamel)).0 }
 );
 naming_cmn_macros::case_trait_pair!(
     DisplayToScStr,
     DisplayToScTs,
     std::fmt::Display,
-    |self_ref| { display_case_str(self_ref, CaseKind(convert_case::Case::Snake)).0 }
+    |self_ref| { display_case_str(self_ref, ConvertCaseKind(convert_case::Case::Snake)).0 }
 );
 naming_cmn_macros::case_trait_pair!(
     DisplayToUpperScStr,
     DisplayToUpperScTs,
     std::fmt::Display,
-    |self_ref| display_case_str(self_ref, CaseKind(convert_case::Case::UpperSnake)).0
+    |self_ref| display_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
 naming_cmn_macros::case_trait_pair!(
     ToTokensToUccStr,
     ToTokensToUccTs,
     quote::ToTokens,
-    |self_ref| { tokenized_case_str(self_ref, CaseKind(convert_case::Case::UpperCamel)).0 }
+    |self_ref| { tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperCamel)).0 }
 );
 naming_cmn_macros::case_trait_pair!(
     ToTokensToScStr,
     ToTokensToScTs,
     quote::ToTokens,
-    |self_ref| { tokenized_case_str(self_ref, CaseKind(convert_case::Case::Snake)).0 }
+    |self_ref| { tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::Snake)).0 }
 );
 naming_cmn_macros::case_trait_pair!(
     ToTokensToUpperScStr,
     ToTokensToUpperScTs,
     quote::ToTokens,
-    |self_ref| tokenized_case_str(self_ref, CaseKind(convert_case::Case::UpperSnake)).0
+    |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
 #[derive(Debug, Clone, Copy)]
-struct CaseKind(convert_case::Case<'static>);
+struct ConvertCaseKind(convert_case::Case<'static>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct CaseString(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -92,12 +104,12 @@ impl std::fmt::Display for CaseString {
     }
 }
 #[derive(Debug, Clone)]
-struct CaseTs(proc_macro2::TokenStream);
-fn to_ts_or_panic<T>(v: &T) -> CaseTs
+struct ProcMacro2CaseTs(proc_macro2::TokenStream);
+fn to_ts_or_panic<T>(v: &T) -> ProcMacro2CaseTs
 where
     T: std::fmt::Display + ?Sized,
 {
-    CaseTs(match v.to_string().parse::<proc_macro2::TokenStream>() {
+    ProcMacro2CaseTs(match v.to_string().parse::<proc_macro2::TokenStream>() {
         Ok(parsed_ts) => parsed_ts,
         Err(er) => {
             let msg = er.to_string();
@@ -105,27 +117,27 @@ where
         }
     })
 }
-fn case_from_string<S>(v: S, case: CaseKind) -> CaseString
+fn case_from_string<S>(v: S, case: ConvertCaseKind) -> CaseString
 where
     S: AsRef<str>,
 {
     str_case(v, case)
 }
-fn display_case_str<T>(v: &T, case: CaseKind) -> CaseString
+fn display_case_str<T>(v: &T, case: ConvertCaseKind) -> CaseString
 where
     T: std::fmt::Display,
 {
     let stringified = v.to_string();
     case_from_string(stringified, case)
 }
-fn tokenized_case_str<T>(v: &T, case: CaseKind) -> CaseString
+fn tokenized_case_str<T>(v: &T, case: ConvertCaseKind) -> CaseString
 where
     T: quote::ToTokens,
 {
     let tokenized = quote::quote! {#v}.to_string();
     case_from_string(tokenized, case)
 }
-fn str_case<S>(v: S, case: CaseKind) -> CaseString
+fn str_case<S>(v: S, case: ConvertCaseKind) -> CaseString
 where
     S: AsRef<str>,
 {

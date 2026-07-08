@@ -1,29 +1,29 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct MacroAttrRef<'lt>(&'lt syn::Attribute);
-impl<'lt> From<&'lt syn::Attribute> for MacroAttrRef<'lt> {
+pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
+impl<'lt> From<&'lt syn::Attribute> for SynMacroAttrRef<'lt> {
     fn from(value: &'lt syn::Attribute) -> Self {
         Self(value)
     }
 }
-impl quote::ToTokens for MacroAttrRef<'_> {
+impl quote::ToTokens for SynMacroAttrRef<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
-impl<'lt> From<&'lt proc_macro2::TokenStream> for MacroAttrMetaListTsRef<'lt> {
+pub struct ProcMacro2MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
+impl<'lt> From<&'lt proc_macro2::TokenStream> for ProcMacro2MacroAttrMetaListTsRef<'lt> {
     fn from(value: &'lt proc_macro2::TokenStream) -> Self {
         Self(value)
     }
 }
-impl std::ops::Deref for MacroAttrMetaListTsRef<'_> {
+impl std::ops::Deref for ProcMacro2MacroAttrMetaListTsRef<'_> {
     type Target = proc_macro2::TokenStream;
     fn deref(&self) -> &Self::Target {
         self.0
     }
 }
-impl quote::ToTokens for MacroAttrMetaListTsRef<'_> {
+impl quote::ToTokens for ProcMacro2MacroAttrMetaListTsRef<'_> {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         tokens.extend(self.0.clone());
     }
@@ -38,7 +38,7 @@ pub enum MacroAttrEr {
     NoAttr,
 }
 #[allow(clippy::single_call_fn)] // helper keeps segment comparison logic isolated and reusable for future attr queries
-fn attr_path_matches<S>(attr: MacroAttrRef<'_>, attr_path: S) -> AttrPathMatches
+fn attr_path_matches<S>(attr: SynMacroAttrRef<'_>, attr_path: S) -> AttrPathMatches
 where
     S: AsRef<str>,
 {
@@ -65,20 +65,20 @@ where
     }
 }
 #[must_use]
-pub fn find_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> Option<MacroAttrRef<'lt>>
+pub fn find_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> Option<SynMacroAttrRef<'lt>>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
     attrs
         .into_iter()
-        .map(MacroAttrRef)
+        .map(SynMacroAttrRef)
         .find(|attr| attr_path_matches(*attr, attr_path).0)
 }
 pub fn try_get_macro_attr<'lt, A, S>(
     attrs: A,
     attr_path: S,
-) -> Result<MacroAttrRef<'lt>, MacroAttrEr>
+) -> Result<SynMacroAttrRef<'lt>, MacroAttrEr>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
@@ -88,20 +88,20 @@ where
 pub fn try_get_macro_attr_meta_list_ts<'lt, A, S>(
     attrs: A,
     attr_path: S,
-) -> Result<MacroAttrMetaListTsRef<'lt>, MacroAttrEr>
+) -> Result<ProcMacro2MacroAttrMetaListTsRef<'lt>, MacroAttrEr>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
     let attr = try_get_macro_attr(attrs, attr_path)?;
     if let syn::Meta::List(v) = &attr.0.meta {
-        Ok(MacroAttrMetaListTsRef::from(&v.tokens))
+        Ok(ProcMacro2MacroAttrMetaListTsRef::from(&v.tokens))
     } else {
         Err(MacroAttrEr::AttrNotList)
     }
 }
 #[must_use]
-pub fn get_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> MacroAttrRef<'lt>
+pub fn get_macro_attr<'lt, A, S>(attrs: A, attr_path: S) -> SynMacroAttrRef<'lt>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
@@ -111,7 +111,10 @@ where
     })
 }
 #[must_use]
-pub fn get_macro_attr_meta_list_ts<'lt, A, S>(attrs: A, attr_path: S) -> MacroAttrMetaListTsRef<'lt>
+pub fn get_macro_attr_meta_list_ts<'lt, A, S>(
+    attrs: A,
+    attr_path: S,
+) -> ProcMacro2MacroAttrMetaListTsRef<'lt>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,

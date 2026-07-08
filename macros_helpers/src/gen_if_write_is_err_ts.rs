@@ -1,11 +1,11 @@
 #[derive(Debug, Clone)]
-pub struct IfWriteIsErrTs(proc_macro2::TokenStream);
-impl quote::ToTokens for IfWriteIsErrTs {
+pub struct ProcMacro2IfWriteIsErrTs(proc_macro2::TokenStream);
+impl quote::ToTokens for ProcMacro2IfWriteIsErrTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
     }
 }
-impl From<proc_macro2::TokenStream> for IfWriteIsErrTs {
+impl From<proc_macro2::TokenStream> for ProcMacro2IfWriteIsErrTs {
     fn from(value: proc_macro2::TokenStream) -> Self {
         Self(value)
     }
@@ -13,7 +13,7 @@ impl From<proc_macro2::TokenStream> for IfWriteIsErrTs {
 pub fn gen_if_write_is_err_ts(
     prms_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> IfWriteIsErrTs {
+) -> ProcMacro2IfWriteIsErrTs {
     quote::quote! {
         if {
             use std::fmt::Write as _;

@@ -5,16 +5,17 @@ const SLASH_SWAGGER_UI: &str = "/swagger-ui";
 const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
-const HEALTH_CHECK_OK_STATUS: HealthCheckStatus = HealthCheckStatus(axum::http::StatusCode::OK);
-const HEALTH_CHECK_ER_STATUS: HealthCheckStatus =
-    HealthCheckStatus(axum::http::StatusCode::SERVICE_UNAVAILABLE);
+const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
+    AxumHealthCheckStatus(axum::http::StatusCode::OK);
+const HEALTH_CHECK_ER_STATUS: AxumHealthCheckStatus =
+    AxumHealthCheckStatus(axum::http::StatusCode::SERVICE_UNAVAILABLE);
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct GitInfo {
-    commit: git_info::GitCommitLinkCow,
+    commit: git_info::StdGitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optml::Optml)]
 struct NotFoundH {
-    commit: git_info::GitCommitLinkCow,
+    commit: git_info::StdGitCommitLinkCow,
     msg: NotFoundMsg,
     open_api_specification: OpenApiSpecificationPath,
 }
@@ -58,7 +59,7 @@ impl std::fmt::Display for NotFoundMsg {
 #[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]
 struct OpenApiSpecificationPath(&'static str);
 #[derive(Debug, Clone, Copy, optml::Optml)]
-struct HttpUriRef<'uri_lt>(&'uri_lt axum::http::Uri);
+struct AxumHttpUriRef<'uri_lt>(&'uri_lt axum::http::Uri);
 #[derive(Debug, Clone, Copy, optml::Optml)]
 struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
@@ -66,15 +67,15 @@ struct NoRouteMsgCapacity(usize);
 #[derive(Debug, Clone, Copy, optml::Optml)]
 struct HealthCheckSucceeded(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-struct HealthCheckStatus(axum::http::StatusCode);
+struct AxumHealthCheckStatus(axum::http::StatusCode);
 #[derive(Debug, optml::Optml)]
 struct JsonRes<T> {
-    payload: JsonPayload<T>,
-    status: HealthCheckStatus,
+    payload: AxumJsonPayload<T>,
+    status: AxumHealthCheckStatus,
 }
 #[derive(Debug, optml::Optml)]
-struct JsonPayload<T>(axum::Json<T>);
-impl<T> axum::response::IntoResponse for JsonPayload<T>
+struct AxumJsonPayload<T>(axum::Json<T>);
+impl<T> axum::response::IntoResponse for AxumJsonPayload<T>
 where
     axum::Json<T>: axum::response::IntoResponse,
 {
@@ -84,27 +85,27 @@ where
 }
 impl<T> axum::response::IntoResponse for JsonRes<T>
 where
-    JsonPayload<T>: axum::response::IntoResponse,
+    AxumJsonPayload<T>: axum::response::IntoResponse,
 {
     fn into_response(self) -> axum::response::Response {
         (self.status.0, self.payload).into_response()
     }
 }
 #[derive(Debug, Clone, optml::Optml)]
-pub struct CmnRoutes(axum::Router);
-impl From<CmnRoutes> for axum::Router {
-    fn from(value: CmnRoutes) -> Self {
+pub struct AxumCmnRoutes(axum::Router);
+impl From<AxumCmnRoutes> for axum::Router {
+    fn from(value: AxumCmnRoutes) -> Self {
         value.0
     }
 }
 #[derive(Clone, optml::Optml)]
-pub struct CmnRoutesAppState(std::sync::Arc<dyn CmnRoutesPrms>);
-impl std::fmt::Debug for CmnRoutesAppState {
+pub struct StdArcCmnRoutesAppState(std::sync::Arc<dyn CmnRoutesPrms>);
+impl std::fmt::Debug for StdArcCmnRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("CmnRoutesAppState").finish()
+        f.debug_tuple("StdArcCmnRoutesAppState").finish()
     }
 }
-impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for CmnRoutesAppState
+impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for StdArcCmnRoutesAppState
 where
     AppStateTy: CmnRoutesPrms + 'static,
 {
@@ -112,13 +113,16 @@ where
         Self(value)
     }
 }
-pub trait CmnRoutesPrms: git_info::GetGitCommitLink + app_state::GetPgPool + Send + Sync {}
+pub trait CmnRoutesPrms:
+    git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync
+{
+}
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
-const fn mk_git_info_payload(commit: git_info::GitCommitLinkCow) -> GitInfo {
+const fn mk_git_info_payload(commit: git_info::StdGitCommitLinkCow) -> GitInfo {
     GitInfo { commit }
 }
 #[allow(clippy::single_call_fn)] // single source for no-route text reused by payload builder and tests
-fn mk_no_route_msg(uri: HttpUriRef<'_>) -> NotFoundMsg {
+fn mk_no_route_msg(uri: AxumHttpUriRef<'_>) -> NotFoundMsg {
     mk_no_route_msg_for_suffix(get_uri_suffix(uri))
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and payload builder when suffix is precomputed
@@ -134,7 +138,7 @@ const fn no_route_msg_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMsgCapaci
     NoRouteMsgCapacity(NO_ROUTE_MSG_PREFIX.len().saturating_add(uri_suffix.0.len()))
 }
 #[allow(clippy::single_call_fn)] // keeps route text construction consistent for path-only and path+query URIs
-fn get_uri_suffix(uri: HttpUriRef<'_>) -> UriSuffixRef<'_> {
+fn get_uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
     UriSuffixRef(
         uri.0
             .path_and_query()
@@ -142,21 +146,24 @@ fn get_uri_suffix(uri: HttpUriRef<'_>) -> UriSuffixRef<'_> {
     )
 }
 #[allow(clippy::single_call_fn)] // keeps fallback payload assembly in one place
-fn mk_not_found_payload(uri: HttpUriRef<'_>, commit: git_info::GitCommitLinkCow) -> NotFoundH {
+fn mk_not_found_payload(
+    uri: AxumHttpUriRef<'_>,
+    commit: git_info::StdGitCommitLinkCow,
+) -> NotFoundH {
     mk_not_found_payload_with_msg(mk_no_route_msg(uri), commit)
 }
 #[allow(clippy::single_call_fn)] // shared suffix-based assembly is reusable by handlers that already have a path suffix
 #[cfg(test)]
 fn mk_not_found_payload_for_suffix(
     uri_suffix: UriSuffixRef<'_>,
-    commit: git_info::GitCommitLinkCow,
+    commit: git_info::StdGitCommitLinkCow,
 ) -> NotFoundH {
     mk_not_found_payload_with_msg(mk_no_route_msg_for_suffix(uri_suffix), commit)
 }
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 const fn mk_not_found_payload_with_msg(
     msg: NotFoundMsg,
-    commit: git_info::GitCommitLinkCow,
+    commit: git_info::StdGitCommitLinkCow,
 ) -> NotFoundH {
     NotFoundH {
         commit,
@@ -167,8 +174,8 @@ const fn mk_not_found_payload_with_msg(
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
 fn mk_commit_json_res<S, T>(
     commit_src: &S,
-    status: HealthCheckStatus,
-    map: impl FnOnce(git_info::GitCommitLinkCow) -> T,
+    status: AxumHealthCheckStatus,
+    map: impl FnOnce(git_info::StdGitCommitLinkCow) -> T,
 ) -> JsonRes<T>
 where
     S: ?Sized + git_info::GetGitCommitLink,
@@ -181,14 +188,14 @@ where
     )
 }
 #[allow(clippy::single_call_fn)] // keeps status+json tuple construction consistent across handlers
-const fn mk_json_res<T>(status: HealthCheckStatus, payload: T) -> JsonRes<T> {
+const fn mk_json_res<T>(status: AxumHealthCheckStatus, payload: T) -> JsonRes<T> {
     JsonRes {
         status,
-        payload: JsonPayload(axum::Json(payload)),
+        payload: AxumJsonPayload(axum::Json(payload)),
     }
 }
 #[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
-const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> HealthCheckStatus {
+const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus {
     if is_ok.0 {
         HEALTH_CHECK_OK_STATUS
     } else {
@@ -196,9 +203,9 @@ const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> HealthCheckStat
     }
 }
 #[must_use]
-pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
+pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes {
     let app_state = app_state_b9fc2d94.0;
-    CmnRoutes(
+    AxumCmnRoutes(
         axum::Router::new()
             .route(
                 SLASH_HEALTH_CHECK,
@@ -209,8 +216,10 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                         map_health_check_status(HealthCheckSucceeded(
                             sqlx::query(HEALTH_CHECK_SQL)
                                 .execute(
-                                    app_state::GetPgPool::get_pg_pool(app_state_hc.as_ref())
-                                        .as_ref(),
+                                    app_state::GetSqlxPgPool::get_sqlx_pg_pool(
+                                        app_state_hc.as_ref(),
+                                    )
+                                    .as_ref(),
                                 )
                                 .await
                                 .is_ok(),
@@ -227,7 +236,7 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                     >| {
                         mk_commit_json_res(
                             app_state_76fb2013.as_ref(),
-                            HealthCheckStatus(axum::http::StatusCode::OK),
+                            AxumHealthCheckStatus(axum::http::StatusCode::OK),
                             mk_git_info_payload,
                         )
                     },
@@ -240,8 +249,8 @@ pub fn cmn_routes(app_state_b9fc2d94: CmnRoutesAppState) -> CmnRoutes {
                 >| {
                     mk_commit_json_res(
                         app_state_19103bd5.as_ref(),
-                        HealthCheckStatus(axum::http::StatusCode::NOT_FOUND),
-                        |commit| mk_not_found_payload(HttpUriRef(&uri), commit),
+                        AxumHealthCheckStatus(axum::http::StatusCode::NOT_FOUND),
+                        |commit| mk_not_found_payload(AxumHttpUriRef(&uri), commit),
                     )
                 },
             )
@@ -263,8 +272,8 @@ mod tests {
             Some(git_info::GitCommitIdRef::from(self.commit))
         }
     }
-    impl app_state::GetPgPool for TestState {
-        fn get_pg_pool(&self) -> app_state::PgPoolRef<'_> {
+    impl app_state::GetSqlxPgPool for TestState {
+        fn get_sqlx_pg_pool(&self) -> app_state::SqlxPgPoolRef<'_> {
             panic!("38f80f5f")
         }
     }
@@ -278,14 +287,14 @@ mod tests {
         git_info::git_commit_link(TEST_COMMIT).as_ref().to_owned()
     }
     #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
-    fn test_commit_link_cow() -> git_info::GitCommitLinkCow {
-        git_info::GitCommitLinkCow::from(std::borrow::Cow::Owned(test_commit_link()))
+    fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
+        git_info::StdGitCommitLinkCow::from(std::borrow::Cow::Owned(test_commit_link()))
     }
-    fn b_cow(v: &'static str) -> git_info::GitCommitLinkCow {
-        git_info::GitCommitLinkCow::from(std::borrow::Cow::Borrowed(v))
+    fn b_cow(v: &'static str) -> git_info::StdGitCommitLinkCow {
+        git_info::StdGitCommitLinkCow::from(std::borrow::Cow::Borrowed(v))
     }
-    const fn uri_ref(uri: &axum::http::Uri) -> super::HttpUriRef<'_> {
-        super::HttpUriRef(uri)
+    const fn uri_ref(uri: &axum::http::Uri) -> super::AxumHttpUriRef<'_> {
+        super::AxumHttpUriRef(uri)
     }
     const fn suffix_ref(v: &str) -> super::UriSuffixRef<'_> {
         super::UriSuffixRef(v)
@@ -433,7 +442,7 @@ mod tests {
     #[test]
     fn mk_json_res_wraps_payload_with_status() {
         let response = super::mk_json_res(
-            super::HealthCheckStatus(axum::http::StatusCode::CREATED),
+            super::AxumHealthCheckStatus(axum::http::StatusCode::CREATED),
             super::mk_git_info_payload(b_cow(TEST_COMMIT)),
         );
         assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
@@ -452,7 +461,7 @@ mod tests {
     fn mk_commit_json_res_combines_status_and_commit_payload() {
         let response = super::mk_commit_json_res(
             test_state().as_ref(),
-            super::HealthCheckStatus(axum::http::StatusCode::OK),
+            super::AxumHealthCheckStatus(axum::http::StatusCode::OK),
             super::mk_git_info_payload,
         );
         assert_eq!(response.status.0, axum::http::StatusCode::OK);

@@ -1,6 +1,6 @@
 #[derive(Debug, newtype::Newtype)]
 #[newtype(from)]
-pub struct Body(axum::body::Body);
+pub struct AxumBody(axum::body::Body);
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
 )]
@@ -8,24 +8,24 @@ pub struct Body(axum::body::Body);
 pub struct BodySizeLimitBytes(usize);
 #[derive(Debug, newtype::Newtype)]
 #[newtype(to_err_string)]
-pub struct BodySizeAxumEr(axum::Error);
+pub struct AxumBodySizeEr(axum::Error);
 #[derive(Debug)]
-pub struct BodySizeHint(http_body::SizeHint);
-impl loc_lib::ToErrString for BodySizeHint {
+pub struct HttpBodySizeHint(http_body::SizeHint);
+impl loc_lib::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> loc_lib::ToErrStringValue {
         loc_lib::ToErrStringValue::try_from(format!("{:#?}", self.0))
             .unwrap_or_else(loc_lib::ToErrStringValue::from)
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BodyBytes(bytes::Bytes);
-impl std::ops::Deref for BodyBytes {
+pub struct BytesBodyBytes(bytes::Bytes);
+impl std::ops::Deref for BytesBodyBytes {
     type Target = [u8];
     fn deref(&self) -> &Self::Target {
         self.0.as_ref()
     }
 }
-impl AsRef<[u8]> for BodyBytes {
+impl AsRef<[u8]> for BytesBodyBytes {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()
     }
@@ -34,11 +34,11 @@ impl AsRef<[u8]> for BodyBytes {
 pub enum BodySizeEr {
     ReachedMaximumSizeOfBody {
         #[eo_to_err_string]
-        er: BodySizeAxumEr,
+        er: AxumBodySizeEr,
         #[eo_to_err_string_serde]
         maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
         #[eo_to_err_string]
-        size_hint: BodySizeHint,
+        size_hint: HttpBodySizeHint,
         loc: loc_lib::loc::Loc,
     },
 }
@@ -49,9 +49,9 @@ impl crate::GetAxumHttpStatusCode for BodySizeEr {
 impl BodySizeEr {
     #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
     fn reached_maximum_size_of_body(
-        er: BodySizeAxumEr,
+        er: AxumBodySizeEr,
         maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
-        size_hint: BodySizeHint,
+        size_hint: HttpBodySizeHint,
     ) -> Self {
         Self::ReachedMaximumSizeOfBody {
             er,
@@ -64,9 +64,9 @@ impl BodySizeEr {
 pub async fn check_body_size<BodyTy, LimitTy>(
     body: BodyTy,
     limit: LimitTy,
-) -> Result<BodyBytes, BodySizeEr>
+) -> Result<BytesBodyBytes, BodySizeEr>
 where
-    BodyTy: Into<Body>,
+    BodyTy: Into<AxumBody>,
     LimitTy: Into<BodySizeLimitBytes>,
 {
     let body_value = body.into();
@@ -74,12 +74,12 @@ where
     let size_hint = axum::body::HttpBody::size_hint(&body_value.0);
     axum::body::to_bytes(body_value.0, limit_value.0)
         .await
-        .map(BodyBytes)
+        .map(BytesBodyBytes)
         .map_err(|er: axum::Error| {
             BodySizeEr::reached_maximum_size_of_body(
-                BodySizeAxumEr(er),
+                AxumBodySizeEr(er),
                 limit_value,
-                BodySizeHint(size_hint),
+                HttpBodySizeHint(size_hint),
             )
         })
 }

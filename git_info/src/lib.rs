@@ -79,13 +79,13 @@ impl TryFrom<String> for GitCommitId {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
-pub struct GitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
-impl<'commit_lt> From<std::borrow::Cow<'commit_lt, str>> for GitCommitIdCow<'commit_lt> {
+pub struct StdGitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
+impl<'commit_lt> From<std::borrow::Cow<'commit_lt, str>> for StdGitCommitIdCow<'commit_lt> {
     fn from(value: std::borrow::Cow<'commit_lt, str>) -> Self {
         Self(value)
     }
 }
-impl AsRef<str> for GitCommitIdCow<'_> {
+impl AsRef<str> for StdGitCommitIdCow<'_> {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
     }
@@ -99,8 +99,8 @@ impl AsRef<str> for GitCommitLink {
         self.0.as_str()
     }
 }
-impl From<GitCommitLinkCow> for GitCommitLink {
-    fn from(value: GitCommitLinkCow) -> Self {
+impl From<StdGitCommitLinkCow> for GitCommitLink {
+    fn from(value: StdGitCommitLinkCow) -> Self {
         Self::try_from(value.0.into_owned()).unwrap_or_else(Self::from)
     }
 }
@@ -132,18 +132,18 @@ impl PartialEq<String> for GitCommitLink {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde_derive::Serialize, optml::Optml)]
-pub struct GitCommitLinkCow(std::borrow::Cow<'static, str>);
-impl From<std::borrow::Cow<'static, str>> for GitCommitLinkCow {
+pub struct StdGitCommitLinkCow(std::borrow::Cow<'static, str>);
+impl From<std::borrow::Cow<'static, str>> for StdGitCommitLinkCow {
     fn from(value: std::borrow::Cow<'static, str>) -> Self {
         Self(value)
     }
 }
-impl AsRef<str> for GitCommitLinkCow {
+impl AsRef<str> for StdGitCommitLinkCow {
     fn as_ref(&self) -> &str {
         self.0.as_ref()
     }
 }
-impl std::fmt::Display for GitCommitLinkCow {
+impl std::fmt::Display for StdGitCommitLinkCow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -218,15 +218,15 @@ pub trait GetGitCommitLink {
     fn get_git_commit_link(&self) -> GitCommitLink {
         self.get_git_commit_link_cow().into()
     }
-    fn get_git_commit_link_cow(&self) -> GitCommitLinkCow;
+    fn get_git_commit_link_cow(&self) -> StdGitCommitLinkCow;
 }
 pub trait GetGitCommitId {
     fn get_git_commit_id(&self) -> GitCommitId;
-    fn get_git_commit_id_cow(&self) -> GitCommitIdCow<'_> {
+    fn get_git_commit_id_cow(&self) -> StdGitCommitIdCow<'_> {
         with_git_commit_id_ref_or(
             self,
-            |commit_id| GitCommitIdCow(std::borrow::Cow::Borrowed(commit_id.0)),
-            |src| GitCommitIdCow(std::borrow::Cow::Owned(src.get_git_commit_id().0)),
+            |commit_id| StdGitCommitIdCow(std::borrow::Cow::Borrowed(commit_id.0)),
+            |src| StdGitCommitIdCow(std::borrow::Cow::Owned(src.get_git_commit_id().0)),
         )
     }
     fn get_git_commit_id_or_else<'commit_id_lt>(
@@ -263,7 +263,7 @@ impl<T: ?Sized + AsRef<str>> GetGitCommitId for T {
     }
 }
 impl<T: ?Sized + GetGitCommitId> GetGitCommitLink for T {
-    fn get_git_commit_link_cow(&self) -> GitCommitLinkCow {
+    fn get_git_commit_link_cow(&self) -> StdGitCommitLinkCow {
         self.with_git_commit_id(|commit_id| git_commit_link_cow(commit_id))
     }
 }
@@ -313,19 +313,19 @@ where
     git_commit_link_cow(commit_id).into()
 }
 #[must_use]
-pub fn git_commit_link_cow<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> GitCommitLinkCow
+pub fn git_commit_link_cow<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> StdGitCommitLinkCow
 where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
     if is_project_commit(commit_id_ref).0 {
-        return GitCommitLinkCow(std::borrow::Cow::Borrowed(project_git_commit_link_ref().0));
+        return StdGitCommitLinkCow(std::borrow::Cow::Borrowed(project_git_commit_link_ref().0));
     }
     let cap = git_commit_link_capacity(commit_id_ref);
     let mut output = String::with_capacity(cap.0);
     let mut output_ref = GitCommitLinkOutputRefMut(&mut output);
     write_git_commit_link(&mut output_ref, commit_id_ref);
-    GitCommitLinkCow(std::borrow::Cow::Owned(output))
+    StdGitCommitLinkCow(std::borrow::Cow::Owned(output))
 }
 #[allow(clippy::single_call_fn)] // shared writer keeps link assembly consistent across builders and tests
 fn write_git_commit_link<'commit_lt, CommitIdTy>(

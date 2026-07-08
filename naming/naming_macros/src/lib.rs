@@ -1,10 +1,10 @@
 const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
-struct GeneratedNamingTs(proc_macro2::TokenStream);
+struct ProcMacro2GeneratedNamingTs(proc_macro2::TokenStream);
 #[derive(Clone, Copy)]
-struct EnumIdentRef<'ident_lt>(&'ident_lt syn::Ident);
+struct SynEnumIdentRef<'ident_lt>(&'ident_lt syn::Ident);
 #[derive(Clone, Copy)]
-struct VrtMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
-impl quote::ToTokens for GeneratedNamingTs {
+struct ProcMacro2VrtMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
+impl quote::ToTokens for ProcMacro2GeneratedNamingTs {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
     }
@@ -12,8 +12,8 @@ impl quote::ToTokens for GeneratedNamingTs {
 fn gen_impl_to_tokens_ts(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,
-) -> GeneratedNamingTs {
-    GeneratedNamingTs(quote::quote! {
+) -> ProcMacro2GeneratedNamingTs {
+    ProcMacro2GeneratedNamingTs(quote::quote! {
         impl quote::ToTokens for #ts0 {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #ts1
@@ -263,13 +263,13 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
 }
 fn gen_impl_trait_for_ident_ts(
     name_ts: &dyn quote::ToTokens,
-    ident: EnumIdentRef<'_>,
-    vrts_matching_ts: VrtMatchingTokensRef<'_>,
-) -> GeneratedNamingTs {
+    ident: SynEnumIdentRef<'_>,
+    vrts_matching_ts: ProcMacro2VrtMatchingTokensRef<'_>,
+) -> ProcMacro2GeneratedNamingTs {
     let string_ts = token_patterns::StringTs;
     let ident_ref = ident.0;
     let vrt_tokens = vrts_matching_ts.0;
-    GeneratedNamingTs(quote::quote! {
+    ProcMacro2GeneratedNamingTs(quote::quote! {
         impl naming::#name_ts for #ident_ref {
             fn case(&self) -> #string_ts {//todo mb write duplicate Trait with &str instead of String
                 match self {#(#vrt_tokens),*}
@@ -290,8 +290,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {AsRefStrToUccStr},
-        EnumIdentRef(ident),
-        VrtMatchingTokensRef(
+        SynEnumIdentRef(ident),
+        ProcMacro2VrtMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()
@@ -325,8 +325,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_sc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {AsRefStrToScStr},
-        EnumIdentRef(ident),
-        VrtMatchingTokensRef(
+        SynEnumIdentRef(ident),
+        ProcMacro2VrtMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()
@@ -360,8 +360,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
         &quote::quote! {ToUpperScStr},
-        EnumIdentRef(ident),
-        VrtMatchingTokensRef(
+        SynEnumIdentRef(ident),
+        ProcMacro2VrtMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()

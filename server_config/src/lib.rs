@@ -7,7 +7,7 @@ pub struct Config {
     pub maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
     pub service_socket_address: config_lib::ServiceSocketAddress,
     pub pg_pool_max_connections: config_lib::PgPoolMaxConnections,
-    pub timezone: config_lib::Timezone,
+    pub timezone: config_lib::ChronoTimezone,
     pub src_place_type: config_lib::SrcPlaceType,
     pub tracing_level: config_lib::TracingLevel,
     pub enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck,
@@ -37,8 +37,8 @@ impl app_state::GetPgPoolMaxConnections for Config {
         &self.pg_pool_max_connections
     }
 }
-impl app_state::GetTimezone for Config {
-    fn get_timezone(&self) -> &chrono::FixedOffset {
+impl app_state::GetChronoTimezone for Config {
+    fn get_chrono_timezone(&self) -> &chrono::FixedOffset {
         &self.timezone
     }
 }
@@ -82,9 +82,9 @@ impl app_state::GetPgPoolMaxConnections for &Config {
         Config::get_pg_pool_max_connections(self)
     }
 }
-impl app_state::GetTimezone for &Config {
-    fn get_timezone(&self) -> &chrono::FixedOffset {
-        Config::get_timezone(self)
+impl app_state::GetChronoTimezone for &Config {
+    fn get_chrono_timezone(&self) -> &chrono::FixedOffset {
+        Config::get_chrono_timezone(self)
     }
 }
 impl app_state::GetSrcPlaceType for &Config {
@@ -119,7 +119,7 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
                     .expect("39a84c10"),
-                timezone: config_lib::Timezone::try_from(
+                timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
                 )
                 .expect("50e91ec9"),
@@ -152,7 +152,7 @@ mod tests {
             &8
         );
         assert_eq!(
-            config_lib::GetTimezone::get_timezone(&cfg).local_minus_utc(),
+            config_lib::GetChronoTimezone::get_chrono_timezone(&cfg).local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(

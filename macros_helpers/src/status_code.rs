@@ -431,13 +431,15 @@ pub enum GetOnlyOneStatusCodeEr {
     NotFound,
 }
 #[derive(Debug, Clone, Copy)]
-pub struct StatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
-impl<'variant_lt> From<&'variant_lt syn::Variant> for StatusCodeVariantRef<'variant_lt> {
+pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
+impl<'variant_lt> From<&'variant_lt syn::Variant> for SynStatusCodeVariantRef<'variant_lt> {
     fn from(value: &'variant_lt syn::Variant) -> Self {
         Self(value)
     }
 }
-pub fn get_only_one(vrt: StatusCodeVariantRef<'_>) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
+pub fn get_only_one(
+    vrt: SynStatusCodeVariantRef<'_>,
+) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
     let variant = vrt.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
         if attr.path().segments.len() != 1 {

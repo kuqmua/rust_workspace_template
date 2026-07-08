@@ -87,8 +87,9 @@ optml = {path = "../../../optml"}
                     }
                 };
                 let gen_pg_tbl_input_ts = gen_tbl_example_ts(AddGenPgTblPk::True);
-                let ts =
-                    gen_pg_tbl_src::gen_pg_tbl(macros_helpers::TsRef::from(&gen_pg_tbl_input_ts));
+                let ts = gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ProcMacro2TsRef::from(
+                    &gen_pg_tbl_input_ts,
+                ));
                 let tbl_struct_ts = gen_tbl_example_ts(AddGenPgTblPk::False);
                 quote::quote! {
                     #ts
