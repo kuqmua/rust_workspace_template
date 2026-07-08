@@ -30,11 +30,8 @@ const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     "useless_borrows_in_formatting",
 ];
 const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
-const GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS: [&str; 2] = [
-    "../pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs",
-    "../pg_crud/pg_types/gen_pg_types_test_cnt/src/lib.rs",
-];
-const FOR_LOOP_SOURCE_EXCEPTIONS: [&str; 1] = ["../pg_crud/pg_tbl/gen_pg_tbl_test_cnt/src/lib.rs"];
+const GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS: [&str; 0] = [];
+const FOR_LOOP_SOURCE_EXCEPTIONS: [&str; 0] = [];
 const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../app_state/src/lib.rs",
     "../config_lib/src/lib.rs",

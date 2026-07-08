@@ -5,19 +5,19 @@ mod tests {
         macro_clippy_check_cmn::clippy_check(
             "gen_pg_types_test_cnt",
             "../pg_crud/pg_types/",
-            r#"[dependencies]
+            "[dependencies]
 chrono = { workspace = true }
 uuid = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-loc_lib = {path = "../../../loc_lib"}
-pg_crud_cmn = {path = "../../pg_crud_cmn"}
-pg_types_cmn = {path = "../pg_types_cmn"}
-wh_flts = {path = "../../wh_flts"}
-optml = {path = "../../../optml"}
+loc_lib = { workspace = true }
+pg_crud_cmn = { workspace = true }
+pg_types_cmn = { workspace = true }
+wh_flts = { workspace = true }
+optml = { workspace = true }
 [features]
-test-utils = []"#,
+test-utils = []",
             &gen_pg_types_src::gen_pg_types(macros_helpers::ProcMacro2TsRef::from(
                 &quote::quote! {
                     {

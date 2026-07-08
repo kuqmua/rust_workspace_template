@@ -19,33 +19,14 @@ const CARGO_CHECK_STEPS: [(&[&str], &str, &str); 2] = [
     ),
 ];
 #[cfg(feature = "test-utils")]
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum FileSnapshot {
-    Missing,
-    Present(String),
+struct RemoveDirOnDrop {
+    path: std::path::PathBuf,
 }
 #[cfg(feature = "test-utils")]
-struct RestoreToPrevious<'restore> {
-    cargo_toml_snapshot: FileSnapshot,
-    lib_rs_snapshot: FileSnapshot,
-    path_cargo_toml: &'restore std::path::Path,
-    path_lib_rs: &'restore std::path::Path,
-}
-#[cfg(feature = "test-utils")]
-impl Drop for RestoreToPrevious<'_> {
+impl Drop for RemoveDirOnDrop {
     fn drop(&mut self) {
-        restore_snapshot(
-            self.path_lib_rs,
-            &self.lib_rs_snapshot,
-            "79231418",
-            "e28698f2",
-        );
-        restore_snapshot(
-            self.path_cargo_toml,
-            &self.cargo_toml_snapshot,
-            "ec801a87",
-            "5fd52cd7",
-        );
+        remove_dir_all_if_exists(&self.path, "e28698f2");
+        remove_empty_parent_dir_if_exists(&self.path, "a83f7c18");
     }
 }
 #[cfg(feature = "test-utils")]
@@ -53,31 +34,78 @@ fn write_or_panic(path: &std::path::Path, cnt: &str, write_er_id: &str) {
     std::fs::write(path, cnt).unwrap_or_else(|er| panic!("{write_er_id}: {er}"));
 }
 #[cfg(feature = "test-utils")]
-#[allow(clippy::single_call_fn)] // shared with tests; keep error-id based read behavior in one place
-fn capture_snapshot(path: &std::path::Path, read_er_id: &str) -> FileSnapshot {
-    match std::fs::read_to_string(path) {
-        Ok(cnt) => FileSnapshot::Present(cnt),
-        Err(er) if er.kind() == std::io::ErrorKind::NotFound => FileSnapshot::Missing,
-        Err(er) => panic!("{read_er_id}: {er}"),
+#[allow(clippy::single_call_fn)] // small filesystem wrapper keeps panic IDs consistent for generated temp crate creation
+fn create_dir_all_or_panic(path: &std::path::Path, er_id: &str) {
+    std::fs::create_dir_all(path).unwrap_or_else(|er| panic!("{er_id}: {er}"));
+}
+#[cfg(feature = "test-utils")]
+fn remove_dir_all_if_exists(path: &std::path::Path, er_id: &str) {
+    if let Err(er) = std::fs::remove_dir_all(path)
+        && er.kind() != std::io::ErrorKind::NotFound
+    {
+        panic!("{er_id}: {er}");
     }
 }
 #[cfg(feature = "test-utils")]
-fn restore_snapshot(
-    path: &std::path::Path,
-    snapshot: &FileSnapshot,
-    write_er_id: &str,
-    rm_er_id: &str,
-) {
-    match snapshot {
-        FileSnapshot::Present(cnt) => write_or_panic(path, cnt, write_er_id),
-        FileSnapshot::Missing => {
-            if let Err(er) = std::fs::remove_file(path)
-                && er.kind() != std::io::ErrorKind::NotFound
-            {
-                panic!("{rm_er_id}: {er}");
+#[allow(clippy::single_call_fn)] // cleanup guard removes the generated crate and then prunes the empty macro-check parent directory
+fn remove_empty_parent_dir_if_exists(path: &std::path::Path, er_id: &str) {
+    if let Some(parent) = path.parent()
+        && let Err(er) = std::fs::remove_dir(parent)
+        && er.kind() != std::io::ErrorKind::NotFound
+        && er.kind() != std::io::ErrorKind::DirectoryNotEmpty
+    {
+        panic!("{er_id}: {er}");
+    }
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // manifest reads need stable panic IDs because failures are environment/setup errors
+fn read_to_string_or_panic(path: &std::path::Path, er_id: &str) -> String {
+    std::fs::read_to_string(path).unwrap_or_else(|er| panic!("{er_id}: {er}"))
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // root workspace manifest path is derived from the package that owns this helper crate
+fn workspace_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf)
+}
+#[cfg(feature = "test-utils")]
+fn braces_balance(v: &str) -> i32 {
+    v.chars().fold(0i32, |acc, ch| match ch {
+        '{' | '[' => acc.checked_add(1i32).unwrap_or_else(|| panic!("0a8df093")),
+        '}' | ']' => acc.checked_sub(1i32).unwrap_or_else(|| panic!("4e404fc9")),
+        _ => acc,
+    })
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // dependency lookup is isolated from line rewriting so missing workspace deps report one stable panic ID
+fn workspace_dep_entry(workspace_cargo_toml: &str, dep_name: &str) -> String {
+    let prefix = format!("{dep_name} = ");
+    let mut in_workspace_deps = false;
+    let mut lines = workspace_cargo_toml.lines();
+    while let Some(line) = lines.next() {
+        if line == "[workspace.dependencies]" {
+            in_workspace_deps = true;
+            continue;
+        }
+        if in_workspace_deps && line.starts_with('[') {
+            break;
+        }
+        if in_workspace_deps && line.starts_with(&prefix) {
+            let mut out = String::from(line);
+            let mut balance = braces_balance(line);
+            while balance > 0i32 {
+                let next_line = lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
+                out.push('\n');
+                out.push_str(next_line);
+                balance = balance
+                    .checked_add(braces_balance(next_line))
+                    .unwrap_or_else(|| panic!("f1e71cd6"));
             }
+            return out;
         }
     }
+    panic!("1bb3996c");
 }
 #[cfg(feature = "test-utils")]
 #[allow(clippy::single_call_fn)] // split out intentionally to keep low-level cargo spawn/status check reusable from orchestration helper
@@ -104,19 +132,72 @@ fn run_cargo_check_steps(target_crate_dir: &std::path::Path, steps: &[(&[&str], 
         });
 }
 #[cfg(feature = "test-utils")]
-#[allow(clippy::single_call_fn)] // shared helper centralizes snapshot capture + restore guard construction for generated files
-fn mk_restore_to_previous<'restore>(
-    path_cargo_toml: &'restore std::path::Path,
-    path_lib_rs: &'restore std::path::Path,
-) -> RestoreToPrevious<'restore> {
-    let cargo_toml_snapshot = capture_snapshot(path_cargo_toml, "bf40d675");
-    let lib_rs_snapshot = capture_snapshot(path_lib_rs, "adf9f42b");
-    RestoreToPrevious {
-        cargo_toml_snapshot,
-        lib_rs_snapshot,
-        path_cargo_toml,
-        path_lib_rs,
+#[allow(clippy::single_call_fn)] // extracts feature overrides from dependency lines before they are merged into workspace entries
+fn dep_features_from_workspace_line(line: &str) -> Option<String> {
+    let (_, tail) = line.split_once("features = ")?;
+    let features = tail
+        .chars()
+        .scan(false, |done, ch| {
+            if *done {
+                None
+            } else {
+                if ch == ']' {
+                    *done = true;
+                }
+                Some(ch)
+            }
+        })
+        .collect::<String>();
+    Some(features)
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // generated temp manifests need caller feature overrides while preserving workspace dependency versions
+fn merge_dep_features(mut dep_entry: String, features: Option<String>) -> String {
+    if dep_entry.contains("features = ") {
+        return dep_entry;
     }
+    if let Some(feature_list) = features
+        && let Some(idx) = dep_entry.rfind('}')
+    {
+        dep_entry.insert_str(idx, &format!(", features = {feature_list}"));
+    }
+    dep_entry
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // path dependencies copied from workspace.dependencies must become absolute for target/macro-check crates
+fn rewrite_dep_entry_paths(dep_entry: &str, root: &std::path::Path) -> String {
+    let root_path = root.display().to_string();
+    dep_entry.replace("path = \"./", &format!("path = \"{root_path}/"))
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // resolves one workspace dependency line while preserving non-dependency manifest lines untouched
+fn resolve_workspace_dep_line(
+    line: &str,
+    root: &std::path::Path,
+    workspace_cargo_toml: &str,
+) -> String {
+    let Some((dep_name, _)) = line.split_once(" = ") else {
+        return line.to_owned();
+    };
+    let workspace_entry = workspace_dep_entry(workspace_cargo_toml, dep_name);
+    let merged_entry = merge_dep_features(workspace_entry, dep_features_from_workspace_line(line));
+    rewrite_dep_entry_paths(&merged_entry, root)
+}
+#[cfg(feature = "test-utils")]
+#[allow(clippy::single_call_fn)] // converts workspace-inherited dependency snippets into standalone temp crate manifest snippets
+fn resolve_extra_cnt(root: &std::path::Path, extra_cnt: &str) -> String {
+    let workspace_cargo_toml = read_to_string_or_panic(&root.join("Cargo.toml"), "bf40d675");
+    extra_cnt
+        .lines()
+        .map(|line| {
+            if line.contains("workspace = true") {
+                resolve_workspace_dep_line(line, root, &workspace_cargo_toml)
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 #[cfg(feature = "test-utils")]
 #[allow(clippy::single_call_fn)] // shared helper keeps generated-file write flow consistent for clippy-check setup
@@ -130,8 +211,14 @@ fn write_generated_files(
     write_or_panic(path_lib_rs, content_to_gen, "55124f90");
 }
 #[cfg(feature = "test-utils")]
-pub fn clippy_check(crate_name: &str, cmd_path: &str, extra_cnt: &str, content_to_gen: &str) {
-    let crate_path = std::path::PathBuf::from("..").join(crate_name);
+pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_to_gen: &str) {
+    let root = workspace_root();
+    let crate_path = root.join("target/macro-check").join(crate_name);
+    remove_dir_all_if_exists(&crate_path, "e28698f2");
+    create_dir_all_or_panic(&crate_path.join("src"), "2b24ef1a");
+    let _remove_dir_on_drop = RemoveDirOnDrop {
+        path: crate_path.clone(),
+    };
     let cargo_toml_cnt = format!(
         r#"[package]
 name = "{crate_name}"
@@ -144,22 +231,18 @@ readme = "readme"
 license = "license"
 keywords = ["keyword"]
 categories = ["category"]
-[lints]
-workspace = true"#
+[workspace]"#
     );
     let path_lib_rs = crate_path.join("src/lib.rs");
     let path_cargo_toml = crate_path.join("Cargo.toml");
-    let cargo_toml_full = format!("{cargo_toml_cnt}\n{extra_cnt}");
-    let _restore_to_previous = mk_restore_to_previous(&path_cargo_toml, &path_lib_rs);
+    let cargo_toml_full = format!("{cargo_toml_cnt}\n{}", resolve_extra_cnt(&root, extra_cnt));
     write_generated_files(
         &path_cargo_toml,
         &cargo_toml_full,
         &path_lib_rs,
         content_to_gen,
     );
-    let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let target_crate_dir = manifest_dir.join(std::path::PathBuf::from(cmd_path).join(crate_name));
-    run_cargo_check_steps(&target_crate_dir, &CARGO_CHECK_STEPS);
+    run_cargo_check_steps(&crate_path, &CARGO_CHECK_STEPS);
 }
 #[cfg(test)]
 #[cfg(feature = "test-utils")]
@@ -183,42 +266,38 @@ mod tests {
     }
     impl Drop for TmpDir {
         fn drop(&mut self) {
-            std::fs::remove_dir_all(&self.0).unwrap_or_else(|er| panic!("15ab6a8d: {er}"));
+            if let Err(er) = std::fs::remove_dir_all(&self.0)
+                && er.kind() != std::io::ErrorKind::NotFound
+            {
+                panic!("15ab6a8d: {er}");
+            }
         }
     }
     #[test]
-    fn capture_snapshot_returns_missing_for_absent_file() {
+    fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = TmpDir::new();
-        let path = dir.path().join("missing.txt");
-        let snapshot = super::capture_snapshot(&path, "9b0e24f1");
-        assert_eq!(snapshot, super::FileSnapshot::Missing);
-    }
-    #[test]
-    fn restore_snapshot_restores_existing_file_content() {
-        let dir = TmpDir::new();
-        let path = dir.path().join("a.txt");
-        std::fs::write(&path, "old").expect("420e5e9a");
-        let snapshot = super::capture_snapshot(&path, "6de5509e");
-        std::fs::write(&path, "new").expect("29aa4cf7");
-        super::restore_snapshot(&path, &snapshot, "de731978", "6af34450");
-        let restored = std::fs::read_to_string(&path).expect("1ec15e06");
-        assert_eq!(restored, "old");
-    }
-    #[test]
-    fn restore_snapshot_removes_generated_file_for_missing_snapshot() {
-        let dir = TmpDir::new();
-        let path = dir.path().join("g.txt");
-        let snapshot = super::capture_snapshot(&path, "f39c05aa");
-        std::fs::write(&path, "generated").expect("1ebbee98");
-        super::restore_snapshot(&path, &snapshot, "9fa0dd47", "8e31012d");
+        let path = dir.path().join("crate_dir");
+        std::fs::create_dir_all(&path).expect("9b0e24f1");
+        let guard = super::RemoveDirOnDrop { path: path.clone() };
+        drop(guard);
         assert!(!path.exists());
     }
     #[test]
-    fn restore_snapshot_keeps_absent_file_absent_for_missing_snapshot() {
+    fn resolve_extra_cnt_rewrites_workspace_dependencies() {
+        let root = super::workspace_root();
+        let resolved = super::resolve_extra_cnt(
+            &root,
+            "[dependencies]\nquote = { workspace = true }\npg_crud = { workspace = true, features = [\"test-utils\"] }",
+        );
+        assert!(resolved.contains("quote = { version = "), "420e5e9a");
+        assert!(resolved.contains("pg_crud = { path = \""), "29aa4cf7");
+        assert!(resolved.contains("features = [\"test-utils\"]"), "1ec15e06");
+    }
+    #[test]
+    fn remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = TmpDir::new();
-        let path = dir.path().join("never_created.txt");
-        let snapshot = super::FileSnapshot::Missing;
-        super::restore_snapshot(&path, &snapshot, "fd2ab7e0", "7df145a8");
+        let path = dir.path().join("missing_dir");
+        super::remove_dir_all_if_exists(&path, "f39c05aa");
         assert!(!path.exists());
     }
 }

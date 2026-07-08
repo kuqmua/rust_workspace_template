@@ -5,15 +5,15 @@ mod tests {
         macro_clippy_check_cmn::clippy_check(
             "gen_wh_flts_test_cnt",
             "../pg_crud/wh_flts/",
-            r#"[dependencies]
+            "[dependencies]
 sqlx = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
-loc_lib = {path = "../../../loc_lib"}
-pg_crud_cmn = {path = "../../pg_crud_cmn"}
-wh_flts = {path = "../../wh_flts"}
+loc_lib = { workspace = true }
+pg_crud_cmn = { workspace = true }
+wh_flts = { workspace = true }
 [features]
-test-utils = []"#,
+test-utils = []",
             &format!(
                 "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse wh_flts::*;\n{}",
                 gen_wh_flts_src::gen_wh_flts(gen_wh_flts_src::ProcMacro2GenWhFltsInput::from(
