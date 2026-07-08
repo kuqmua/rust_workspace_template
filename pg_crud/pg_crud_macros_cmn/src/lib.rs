@@ -309,18 +309,6 @@ impl ParseTsStrings {
     }
 }
 #[derive(Debug, Clone, Copy)]
-pub struct ParseTsTextRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ParseTsTextRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for ParseTsTextRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-#[derive(Debug, Clone, Copy)]
 pub struct ParseErIdRef<'lt>(&'lt str);
 impl<'lt> From<&'lt str> for ParseErIdRef<'lt> {
     fn from(value: &'lt str) -> Self {
@@ -475,10 +463,11 @@ impl Import {
 }
 impl quote::ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        parse_ts_or_compile_error(
-            ParseTsTextRef::from(self.sc_str().as_ref()),
-            ParseErIdRef::from("d8636ee5"),
-        )
+        match &self {
+            Self::Crate => quote::quote! { crate },
+            Self::PgCrud => quote::quote! { pg_crud },
+            Self::PgCrudCmn => quote::quote! { pg_crud_cmn },
+        }
         .to_tokens(tokens);
     }
 }
@@ -709,10 +698,8 @@ pub fn pg_crud_cmn_qp_er_ts() -> macros_helpers::GeneratedRustTs {
 }
 #[must_use]
 pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::GeneratedRustTs {
-    parse_ts_or_compile_error(
-        ParseTsTextRef::from(format!("dim{}_pgn", dim_nbr.get()).as_str()),
-        ParseErIdRef::from("7c3a91b2"),
-    )
+    let ident = quote::format_ident!("dim{}_pgn", dim_nbr.get());
+    quote::quote! {#ident}.into()
 }
 pub fn gen_struct_ident_dq_ts(v: &dyn std::fmt::Display) -> gen_quotes::ProcMacro2QuotedLiteralTs {
     gen_quotes::dq_ts(&format!("struct {v}"))
@@ -1224,10 +1211,7 @@ pub fn gen_impl_de_for_struct_ts(
 ) -> macros_helpers::GeneratedRustTs {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
-    let raw_ident_ts = parse_ts_or_compile_error(
-        ParseTsTextRef::from(format!("{ident}Raw").as_str()),
-        ParseErIdRef::from("a1b2c3d4"),
-    );
+    let raw_ident_ts = quote::format_ident!("{}Raw", ident.to_string());
     let raw_fields_ts = vec_ident_type.0.iter().map(|(fi, ty)| {
         let type_ts = gen_type_ts(fi, ty);
         quote::quote! { #fi: #type_ts, }

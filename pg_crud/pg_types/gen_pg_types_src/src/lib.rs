@@ -1,22 +1,3 @@
-#[derive(Debug, Clone, Copy)]
-struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
-#[derive(Debug, Clone, Copy)]
-struct ParseTsText<'ts_lt>(&'ts_lt str);
-#[derive(Debug, Clone, Copy)]
-struct ParseErId<'er_id_lt>(&'er_id_lt str);
-fn compile_error_ts(msg: CompileErrorMsg<'_>) -> macros_helpers::GeneratedRustTs {
-    let msg_value = msg.0;
-    macros_helpers::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
-}
-fn parse_ts_or_compile_error(
-    v: ParseTsText<'_>,
-    er_id: ParseErId<'_>,
-) -> macros_helpers::GeneratedRustTs {
-    match v.0.parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => macros_helpers::GeneratedRustTs::from(parsed_ts),
-        Err(er) => compile_error_ts(CompileErrorMsg(&format!("{}: {er}", er_id.0))),
-    }
-}
 #[must_use]
 pub fn gen_pg_types(
     input_ts: macros_helpers::ProcMacro2TsRef<'_>,
@@ -180,9 +161,6 @@ pub fn gen_pg_types(
         SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
         SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
     }
-    fn wrap_into_sqlx_pg_types_pg_range_str(v: &dyn std::fmt::Display) -> String {
-        format!("sqlx::postgres::types::PgRange<{v}>")
-    }
     enum CanBeNl {
         False,
         True,
@@ -219,8 +197,7 @@ pub fn gen_pg_types(
     }
     impl quote::ToTokens for PgType {
         fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-            parse_ts_or_compile_error(ParseTsText(&self.to_string()), ParseErId("cfefbb95"))
-                .to_tokens(tokens);
+            quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
         }
     }
     impl From<&Range> for PgType {
@@ -291,8 +268,7 @@ pub fn gen_pg_types(
     }
     impl quote::ToTokens for Range {
         fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-            parse_ts_or_compile_error(ParseTsText(&self.to_string()), ParseErId("798ccb5a"))
-                .to_tokens(tokens);
+            quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
@@ -621,9 +597,10 @@ pub fn gen_pg_types(
                 }
             });
             if duplicate_found {
-                return compile_error_ts(CompileErrorMsg(
-                    "536036f9: duplicate pg type config entry",
-                ));
+                let msg_value = "536036f9: duplicate pg type config entry";
+                return macros_helpers::GeneratedRustTs::from(
+                    quote::quote! {compile_error!(#msg_value);},
+                );
             }
         }
         acc
@@ -749,7 +726,8 @@ pub fn gen_pg_types(
                 is_nl_prm,
                 pg_type_pattern_prm
             );
-            parse_ts_or_compile_error(ParseTsText(&ident_str), ParseErId("ff3eb7a6"))
+            let ident = quote::format_ident!("{}", ident_str);
+            quote::quote! {#ident}
         };
         let ident = &gen_ident_ts(pg_type, is_nl, pg_type_pattern);
         let gen_ident_stdrt_nn_ts = |v: &PgType| gen_ident_ts(v, &pg_crud_macros_cmn::IsNl::False, &PgTypePattern::Stdrt);
@@ -783,53 +761,31 @@ pub fn gen_pg_types(
         let sqlx_types_chrono_naive_time_as_nn_time_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoNaiveTimeAsTime);
         let sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
         let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_nn_timestamptz_orgn_try_new_er_ucc = gen_ident_stdrt_nn_orgn_try_new_er_ts(&PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz);
-        let inn_type_stdrt_nn_str = {
-            let i16_str = "i16".to_owned();
-            let i32_str = "i32".to_owned();
-            let i64_str = "i64".to_owned();
-            let f32_str = "f32".to_owned();
-            let f64_str = "f64".to_owned();
-            let sqlx_pg_types_pg_money_str = "sqlx::postgres::types::PgMoney".to_owned();
-            let bool_str = "bool".to_owned();
-            let string_str = "String".to_owned();
-            let vec_u8_str = "Vec<u8>".to_owned();
-            let sqlx_types_chrono_naive_date_str = "sqlx::types::chrono::NaiveDate".to_owned();
-            let sqlx_types_chrono_naive_time_str = "sqlx::types::chrono::NaiveTime".to_owned();
-            let sqlx_types_time_time_str = "sqlx::types::time::Time".to_owned();
-            let sqlx_pg_types_pg_interval_str = "sqlx::postgres::types::PgInterval".to_owned();
-            let sqlx_types_chrono_naive_date_time_str = "sqlx::types::chrono::NaiveDateTime".to_owned();
-            let sqlx_types_chrono_date_time_sqlx_types_chrono_utc_str = "sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>".to_owned();
-            let uuid_uuid_str = "uuid::Uuid".to_owned();
-            let sqlx_types_ipnetwork_ip_network_str = "sqlx::types::ipnetwork::IpNetwork".to_owned();
-            let sqlx_types_mac_address_mac_address_str = "sqlx::types::mac_address::MacAddress".to_owned();
-            match &pg_type {
-                PgType::F32AsFloat4 => f32_str,
-                PgType::F64AsFloat8 => f64_str,
-                PgType::I16AsInt2 | PgType::I16AsSmallSerialInitByPg => i16_str,
-                PgType::I32AsInt4 | PgType::I32AsSerialInitByPg => i32_str,
-                PgType::I64AsInt8 | PgType::I64AsBigSerialInitByPg => i64_str,
-                PgType::SqlxPgTypesPgMoneyAsMoney => sqlx_pg_types_pg_money_str,
-                PgType::BoolAsBool => bool_str,
-                PgType::StringAsText => string_str,
-                PgType::StdVecVecU8AsBytea => vec_u8_str,
-                PgType::SqlxTypesChronoNaiveTimeAsTime => sqlx_types_chrono_naive_time_str,
-                PgType::SqlxTypesTimeTimeAsTime => sqlx_types_time_time_str,
-                PgType::SqlxPgTypesPgIntervalAsInterval => sqlx_pg_types_pg_interval_str,
-                PgType::SqlxTypesChronoNaiveDateAsDate => sqlx_types_chrono_naive_date_str,
-                PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => sqlx_types_chrono_naive_date_time_str,
-                PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => sqlx_types_chrono_date_time_sqlx_types_chrono_utc_str,
-                PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => uuid_uuid_str,
-                PgType::SqlxTypesIpnetworkIpNetworkAsInet => sqlx_types_ipnetwork_ip_network_str,
-                PgType::SqlxTypesMacAddressMacAddressAsMacAddr => sqlx_types_mac_address_mac_address_str,
-                PgType::SqlxPgTypesPgRangeI32AsInt4Range => wrap_into_sqlx_pg_types_pg_range_str(&i32_str),
-                PgType::SqlxPgTypesPgRangeI64AsInt8Range => wrap_into_sqlx_pg_types_pg_range_str(&i64_str),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_naive_date_str),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_naive_date_time_str),
-                PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => wrap_into_sqlx_pg_types_pg_range_str(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_str),
-            }
+        let inn_type_stdrt_nn_ts = match &pg_type {
+            PgType::F32AsFloat4 => quote::quote! {f32},
+            PgType::F64AsFloat8 => quote::quote! {f64},
+            PgType::I16AsInt2 | PgType::I16AsSmallSerialInitByPg => quote::quote! {i16},
+            PgType::I32AsInt4 | PgType::I32AsSerialInitByPg => quote::quote! {i32},
+            PgType::I64AsInt8 | PgType::I64AsBigSerialInitByPg => quote::quote! {i64},
+            PgType::SqlxPgTypesPgMoneyAsMoney => quote::quote! {sqlx::postgres::types::PgMoney},
+            PgType::BoolAsBool => quote::quote! {bool},
+            PgType::StringAsText => quote::quote! {String},
+            PgType::StdVecVecU8AsBytea => quote::quote! {Vec<u8>},
+            PgType::SqlxTypesChronoNaiveTimeAsTime => quote::quote! {sqlx::types::chrono::NaiveTime},
+            PgType::SqlxTypesTimeTimeAsTime => quote::quote! {sqlx::types::time::Time},
+            PgType::SqlxPgTypesPgIntervalAsInterval => quote::quote! {sqlx::postgres::types::PgInterval},
+            PgType::SqlxTypesChronoNaiveDateAsDate => quote::quote! {sqlx::types::chrono::NaiveDate},
+            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => quote::quote! {sqlx::types::chrono::NaiveDateTime},
+            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => quote::quote! {sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>},
+            PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => quote::quote! {uuid::Uuid},
+            PgType::SqlxTypesIpnetworkIpNetworkAsInet => quote::quote! {sqlx::types::ipnetwork::IpNetwork},
+            PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {sqlx::types::mac_address::MacAddress},
+            PgType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {sqlx::postgres::types::PgRange<i32>},
+            PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {sqlx::postgres::types::PgRange<i64>},
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDate>},
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDateTime>},
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
         };
-        let inn_type_stdrt_nn_ts =
-            parse_ts_or_compile_error(ParseTsText(&inn_type_stdrt_nn_str), ParseErId("2555843f"));
         let ft_h_opt_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(&ident_stdrt_nn_orgn_ucc);
         let ft_h: &dyn quote::ToTokens = match &pg_type_pattern {
             PgTypePattern::Stdrt => match &is_nl {
@@ -4569,8 +4525,7 @@ pub fn gen_pg_types(
         };
         (
             {
-                let fi_str = format!("col_{i}");
-                let fi = parse_ts_or_compile_error(ParseTsText(&fi_str), ParseErId("2e15af68"));
+                let fi = quote::format_ident!("col_{i}");
                 quote::quote! {
                     pub #fi: pg_crud::pg_type:: #ident,
                 }

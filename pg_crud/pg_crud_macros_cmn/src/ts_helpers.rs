@@ -5,7 +5,13 @@ pub fn parse_strs_to_ts2_vec(
 ) -> crate::GeneratedRustTsVec {
     v.into_vec()
         .into_iter()
-        .map(|el| parse_ts_or_compile_error(crate::ParseTsTextRef::from(el.as_str()), uuid))
+        .map(|el| match el.as_str().parse::<proc_macro2::TokenStream>() {
+            Ok(parsed_ts) => parsed_ts.into(),
+            Err(er) => {
+                let msg = format!("{}: {er}", uuid.as_ref());
+                quote::quote! {compile_error!(#msg);}.into()
+            }
+        })
         .collect::<crate::GeneratedRustTsVec>()
 }
 #[must_use]
@@ -128,16 +134,4 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
         Ok(#QuerySc)
     }
     .into()
-}
-pub(crate) fn parse_ts_or_compile_error(
-    v: crate::ParseTsTextRef<'_>,
-    er_id: crate::ParseErIdRef<'_>,
-) -> macros_helpers::GeneratedRustTs {
-    match v.as_ref().parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => parsed_ts.into(),
-        Err(er) => {
-            let msg = format!("{}: {er}", er_id.as_ref());
-            quote::quote! {compile_error!(#msg);}.into()
-        }
-    }
 }

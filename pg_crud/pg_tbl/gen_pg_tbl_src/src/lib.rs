@@ -1,21 +1,8 @@
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
-#[derive(Debug, Clone, Copy)]
-struct ParseTsText<'ts_lt>(&'ts_lt str);
-#[derive(Debug, Clone, Copy)]
-struct ParseErId<'er_id_lt>(&'er_id_lt str);
 fn compile_error_ts(msg: CompileErrorMsg<'_>) -> macros_helpers::GeneratedRustTs {
     let msg_value = msg.0;
     macros_helpers::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
-}
-fn parse_ts_or_compile_error(
-    v: ParseTsText<'_>,
-    er_id: ParseErId<'_>,
-) -> macros_helpers::GeneratedRustTs {
-    match v.0.parse::<proc_macro2::TokenStream>() {
-        Ok(parsed_ts) => macros_helpers::GeneratedRustTs::from(parsed_ts),
-        Err(er) => compile_error_ts(CompileErrorMsg(&format!("{}: {er}", er_id.0))),
-    }
 }
 //todo decide wh to do er log (mb add in some places)
 //todo gen route what will return cols of the tbl and their rust and postgersql types
@@ -909,8 +896,8 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         }
     };
     let gen_ident_op_suffix_ts = |op: &Op, suffix: &str| {
-        let ident_op_suffix = format!("{ident}{op}{suffix}");
-        parse_ts_or_compile_error(ParseTsText(&ident_op_suffix), ParseErId("79ab147e"))
+        let ident_op_suffix = quote::format_ident!("{ident}{op}{suffix}");
+        quote::quote! {#ident_op_suffix}
     };
     let gen_ident_op_er_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Er");
     let gen_ident_op_res_vrts_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ResVrts");
@@ -1902,8 +1889,8 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         }
     };
     let gen_ident_try_op_er_ucc = |op: &Op| {
-        let ident_try_op_er = format!("{ident}Try{op}Er");
-        parse_ts_or_compile_error(ParseTsText(&ident_try_op_er), ParseErId("6a5468b2"))
+        let ident_try_op_er = quote::format_ident!("{ident}Try{op}Er");
+        quote::quote! {#ident_try_op_er}
     };
     let ident_try_rm_er_ucc = gen_ident_try_op_er_ucc(&Op::Rm);
     let gen_ident_op_er_with_serde_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ErWithSerde");
@@ -1913,8 +1900,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
     let ident_um_payload_ucc = naming::prm::SelfUmPayloadUcc::from_tokens(&ident);
     let ident_upd_try_new_er_ucc = naming::prm::SelfUpdTryNewErUcc::from_tokens(&ident);
     let ident_upd_for_query_ucc = naming::prm::SelfUpdForQueryUcc::from_tokens(&ident);
-    let path_v = format!("{PgCrudSc}::{VUcc}");
-    let path_v_ts = parse_ts_or_compile_error(ParseTsText(&path_v), ParseErId("dbdbb7f2"));
+    let path_v_ts = quote::quote! {#PgCrudSc::#VUcc};
     let ident_upd_ts = {
         let gen_opt_v_ft_as_pg_type_upd_ts = |syn_type: &syn::Type| {
             let syn_type_as_pg_type_upd_ts = gen_as_pg_type_upd_ts(&syn_type);
@@ -2571,7 +2557,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         Op::Co => quote::quote! {#ident_cr_ucc},
         Op::Uo => quote::quote! {#ident_upd_ucc},
         Op::Cm | Op::Rm | Op::Ro | Op::Um | Op::Dm | Op::Dlo => {
-            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string()).into()
+            gen_ident_op_suffix_ts(op, &PayloadUcc.to_string())
         }
     };
     let gen_ident_op_prms_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Prms");
@@ -4284,19 +4270,16 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             |fi: &syn::Ident, el_ts: &dyn quote::ToTokens| gen_ident_cr_ts(fi, &el_ts);
         let gen_ident_cr_cnt_el_ts = |fi: &syn::Ident| gen_ident_cr_ts(fi, &ElSc);
         let gen_tbl_test_name_fi_ts = |test_name: &str, fi: &syn::Ident| {
-            let tbl_test_name_fi = format!("tbl_{test_name}_{fi}");
-            parse_ts_or_compile_error(ParseTsText(&tbl_test_name_fi), ParseErId("eb30c1e4"))
+            let tbl_test_name_fi = quote::format_ident!("tbl_{test_name}_{fi}");
+            quote::quote! {#tbl_test_name_fi}
         };
         let mut tbl_fis_init_vec_ts = Vec::new();
         let mut tbl_test_name_fis_vec_ts = Vec::new();
         let mut fill_tbl_fis_vec_ts = |test_names: Vec<&str>| {
             test_names.into_iter().fold((), |(), el0| {
                 let gen_init_variable_name_ts = |fi: &syn::Ident| {
-                    let init_variable_name = format!("tbl_{el0}_{fi}");
-                    parse_ts_or_compile_error(
-                        ParseTsText(&init_variable_name),
-                        ParseErId("2003ad9f"),
-                    )
+                    let init_variable_name = quote::format_ident!("tbl_{el0}_{fi}");
+                    quote::quote! {#init_variable_name}
                 };
                 tbl_fis_init_vec_ts.push(gen_fields_named_without_pk_without_comma_ts(
                     &|el: &macros_helpers::SynField| {
