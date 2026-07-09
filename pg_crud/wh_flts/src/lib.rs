@@ -394,19 +394,23 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
 {
     fn qb(
         self,
-        mut query: pg_crud_cmn::PgQuery<'lt>,
-    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
+        mut query: pg_crud_cmn::SqlxPostgresQuery<'lt>,
+    ) -> Result<pg_crud_cmn::SqlxPostgresQuery<'lt>, pg_crud_cmn::SqlxPostgresQueryBindEr> {
         if let Err(er) = query.as_mut().try_bind(self.start) {
-            return Err(match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
-                Ok(v) => v,
-                Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
-            });
+            return Err(
+                match pg_crud_cmn::SqlxPostgresQueryBindEr::try_from(er.to_string()) {
+                    Ok(v) => v,
+                    Err(bind_er) => pg_crud_cmn::SqlxPostgresQueryBindEr::from(bind_er),
+                },
+            );
         }
         if let Err(er) = query.as_mut().try_bind(self.end) {
-            return Err(match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
-                Ok(v) => v,
-                Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
-            });
+            return Err(
+                match pg_crud_cmn::SqlxPostgresQueryBindEr::try_from(er.to_string()) {
+                    Ok(v) => v,
+                    Err(bind_er) => pg_crud_cmn::SqlxPostgresQueryBindEr::from(bind_er),
+                },
+            );
         }
         Ok(query)
     }
@@ -652,15 +656,15 @@ impl<
     }
     pub fn qb(
         self,
-        query: pg_crud_cmn::PgQuery<'lt>,
-    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
+        query: pg_crud_cmn::SqlxPostgresQuery<'lt>,
+    ) -> Result<pg_crud_cmn::SqlxPostgresQuery<'lt>, pg_crud_cmn::SqlxPostgresQueryBindEr> {
         self.0.into_iter().try_fold(query, |mut acc_query, el| {
-            acc_query.as_mut().try_bind(el).map_err(
-                |er| match pg_crud_cmn::PgQueryBindEr::try_from(er.to_string()) {
+            acc_query.as_mut().try_bind(el).map_err(|er| {
+                match pg_crud_cmn::SqlxPostgresQueryBindEr::try_from(er.to_string()) {
                     Ok(v) => v,
-                    Err(bind_er) => pg_crud_cmn::PgQueryBindEr::from(bind_er),
-                },
-            )?;
+                    Err(bind_er) => pg_crud_cmn::SqlxPostgresQueryBindEr::from(bind_er),
+                }
+            })?;
             Ok(acc_query)
         })
     }

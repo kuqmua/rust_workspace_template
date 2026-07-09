@@ -796,13 +796,13 @@ pub fn gen_pg_types(
         let gen_typical_pg_query_qb_ts = |ts: &dyn quote::ToTokens| match &is_nl {
             pg_crud_macros_cmn::IsNl::False => quote::quote! {
                 if let Err(er) = #query_sc.as_mut().try_bind(#ts) {
-                    return Err(#import::PgQueryBindEr::try_from(er.to_string()).unwrap_or_else(#import::PgQueryBindEr::from));
+                    return Err(#import::SqlxPostgresQueryBindEr::try_from(er.to_string()).unwrap_or_else(#import::SqlxPostgresQueryBindEr::from));
                 }
                 Ok(#query_sc)
             },
             pg_crud_macros_cmn::IsNl::True => quote::quote! {
                 if let Err(er) = #query_sc.as_mut().try_bind(#ts.0.0) {
-                    return Err(#import::PgQueryBindEr::try_from(er.to_string()).unwrap_or_else(#import::PgQueryBindEr::from));
+                    return Err(#import::SqlxPostgresQueryBindEr::try_from(er.to_string()).unwrap_or_else(#import::SqlxPostgresQueryBindEr::from));
                 }
                 Ok(#query_sc)
             },

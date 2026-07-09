@@ -1271,7 +1271,7 @@ pub fn gen_pg_tbl(
                     },
                 );
                 quote::quote! {
-                    fn #CrQbSc(self, mut #QuerySc: #import_ts PgQuery<'_>) -> Result<#import_ts PgQuery<'_>, #import_ts PgQueryBindEr> {
+                    fn #CrQbSc(self, mut #QuerySc: #import_ts SqlxPostgresQuery<'_>) -> Result<#import_ts SqlxPostgresQuery<'_>, #import_ts SqlxPostgresQueryBindEr> {
                         #pk_ts
                         #binded_query_modifications_ts
                         Ok(#QuerySc)
@@ -1582,7 +1582,7 @@ pub fn gen_pg_tbl(
     );
     let gen_query_pg_type_wh_flt_qb_prms_payload_wh_query_ts = |op: &Op| {
         gen_match_qb_or_err_ts(
-            &quote::quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+            &quote::quote! {#import_ts PgTypeWhFlt::qb(#PrmsSc.#PayloadSc.#WhManySc, #import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
             &quote::quote! {v_03a58371},
             &gen_op_er_init_eprintln_res_ts(op, &try_bind_syn_vrt, std::panic::Location::caller()),
         )
@@ -3389,7 +3389,7 @@ pub fn gen_pg_tbl(
                     match &op {
                         Op::Cm => {
                             let ts = gen_match_qb_or_err_short_ts(
-                                &quote::quote! {el_7f862135.#CrQbSc(#import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                &quote::quote! {el_7f862135.#CrQbSc(#import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                                 &quote::quote! {v_011a3eb4},
                             );
                             quote::quote! {
@@ -3399,7 +3399,7 @@ pub fn gen_pg_tbl(
                             }
                         }
                         Op::Co => gen_match_qb_or_err_short_ts(
-                            &quote::quote! {#PrmsSc.#PayloadSc.#CrQbSc(#import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                            &quote::quote! {#PrmsSc.#PayloadSc.#CrQbSc(#import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             &quote::quote! {v_06f852cd},
                         ),
                         Op::Rm => {
@@ -3407,8 +3407,8 @@ pub fn gen_pg_tbl(
                             let ts = gen_match_qb_or_err_short_ts(
                                 &quote::quote! {#pg_crud_pg_type_wh_flt_qb_ts(
                                     #PrmsSc.#PayloadSc.pgn,
-                                    #import_ts PgQuery::from(#QuerySc),
-                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                    #import_ts SqlxPostgresQuery::from(#QuerySc),
+                                ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                                 &quote::quote! {v_9f7e487b},
                             );
                             quote::quote! {
@@ -3419,8 +3419,8 @@ pub fn gen_pg_tbl(
                         Op::Ro => gen_match_qb_or_err_short_ts(
                             &quote::quote! {#pg_crud_pg_type_wh_flt_qb_ts(
                                 #PrmsSc.#PayloadSc.#pk_fi,
-                                #import_ts PgQuery::from(#QuerySc)
-                            ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                #import_ts SqlxPostgresQuery::from(#QuerySc)
+                            ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             &quote::quote! {v_80ee6983},
                         ),
                         Op::Um => {
@@ -3436,8 +3436,8 @@ pub fn gen_pg_tbl(
                                                         gen_as_pg_type_path_ts(&el.type0);
                                                     quote::quote! {#as_pg_crud_pg_type_pg_type_ts #UpdQbSc(
                                                         v_2edaa480.#VSc.clone(),
-                                                        #import_ts PgQuery::from(#QuerySc),
-                                                    ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)}
+                                                        #import_ts SqlxPostgresQuery::from(#QuerySc),
+                                                    ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)}
                                                 },
                                                 &quote::quote! {v_600e67dc},
                                             );
@@ -3455,8 +3455,8 @@ pub fn gen_pg_tbl(
                                 &gen_match_qb_or_err_short_ts(
                                     &quote::quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                         el_a72f3eac.#pk_fi,
-                                        #import_ts PgQuery::from(#QuerySc),
-                                    ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                        #import_ts SqlxPostgresQuery::from(#QuerySc),
+                                    ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                                     &quote::quote! {v_c40a4522},
                                 ),
                             );
@@ -3471,8 +3471,8 @@ pub fn gen_pg_tbl(
                                                     gen_as_pg_type_path_ts(&el.type0);
                                                 quote::quote! {#as_pg_crud_pg_type_pg_type_ts sel_only_updd_ids_qb(
                                                     &v_47030ac2.#VSc,
-                                                    #import_ts PgQuery::from(#QuerySc)
-                                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)}
+                                                    #import_ts SqlxPostgresQuery::from(#QuerySc)
+                                                ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)}
                                             },
                                             &quote::quote! {v_c5b79b95},
                                         ),
@@ -3507,18 +3507,18 @@ pub fn gen_pg_tbl(
                                 };
                             let binded_query_modifications_ts = gen_binded_query_ts(
                                 quote::quote! {v_ed87c152},
-                                quote::quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                quote::quote! {#UpdQbSc(v_ed87c152.#VSc.clone(), #import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             );
                             let binded_query_pk_modification_ts = gen_match_qb_or_err_short_ts(
                                 &quote::quote! {#pk_ft_as_pg_type_ts #UpdQbSc(
                                     #UpdForQuerySc.#pk_fi,
-                                    #import_ts PgQuery::from(#QuerySc),
-                                ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                    #import_ts SqlxPostgresQuery::from(#QuerySc),
+                                ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                                 &quote::quote! {v_d64bac39},
                             );
                             let binded_query_sel_only_updd_ids_qb_ts = gen_binded_query_ts(
                                 quote::quote! {v_b2902425},
-                                quote::quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts PgQuery::from(#QuerySc)).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                quote::quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             );
                             quote::quote! {
                                 #binded_query_modifications_ts
@@ -3534,8 +3534,8 @@ pub fn gen_pg_tbl(
                         Op::Dlo => gen_match_qb_or_err_short_ts(
                             &quote::quote! {#import_ts PgTypeWhFlt::qb(
                                 #PrmsSc.#PayloadSc.#pk_fi,
-                                #import_ts PgQuery::from(#QuerySc)
-                            ).map(#import_ts PgQuery::into_inner).map_err(#import_ts PgQueryBindEr::into_inner)},
+                                #import_ts SqlxPostgresQuery::from(#QuerySc)
+                            ).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             &quote::quote! {v_3099ea0f},
                         ),
                     }

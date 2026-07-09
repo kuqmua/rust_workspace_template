@@ -127,8 +127,8 @@ impl TryFrom<PgnStartsWithOneRaw> for PgnStartsWithOne {
 impl<'lt> pg_crud_cmn::PgTypeWhFlt<'lt> for PgnStartsWithOne {
     fn qb(
         self,
-        query: pg_crud_cmn::PgQuery<'lt>,
-    ) -> Result<pg_crud_cmn::PgQuery<'lt>, pg_crud_cmn::PgQueryBindEr> {
+        query: pg_crud_cmn::SqlxPostgresQuery<'lt>,
+    ) -> Result<pg_crud_cmn::SqlxPostgresQuery<'lt>, pg_crud_cmn::SqlxPostgresQueryBindEr> {
         self.0.qb(query)
     }
     fn qp(

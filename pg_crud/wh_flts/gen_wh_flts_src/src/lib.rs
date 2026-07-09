@@ -229,18 +229,18 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         };
     let if_let_err_query_try_bind_self_v_to_string_ts = quote::quote! {
         if let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc.to_string()) {
-            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+            return Err(match #import::SqlxPostgresQueryBindEr::try_from(#er_sc.to_string()) {
                 Ok(v) => v,
-                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                Err(bind_er) => #import::SqlxPostgresQueryBindEr::from(bind_er),
             });
         }
         Ok(#query_sc)
     };
     let if_let_err_query_try_bind_self_v_ts = quote::quote! {
         if let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc) {
-            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+            return Err(match #import::SqlxPostgresQueryBindEr::try_from(#er_sc.to_string()) {
                 Ok(v) => v,
-                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                Err(bind_er) => #import::SqlxPostgresQueryBindEr::from(bind_er),
             });
         }
     };
@@ -489,9 +489,9 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             #mb_dims_qb_ts
                             for el in #self_sc.#v_sc.into_vec() {
                                 if let Err(#er_sc) = #query_sc.as_mut().try_bind(el) {
-                                    return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                                    return Err(match #import::SqlxPostgresQueryBindEr::try_from(#er_sc.to_string()) {
                                         Ok(v) => v,
-                                        Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                                        Err(bind_er) => #import::SqlxPostgresQueryBindEr::from(bind_er),
                                     });
                                 }
                             }
@@ -606,9 +606,9 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         quote::quote! {
                             #mb_dims_qb_ts
                             if let Err(#er_sc) = #query_sc.as_mut().try_bind(self.encoded_string_representation) {
-                                return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                                return Err(match #import::SqlxPostgresQueryBindEr::try_from(#er_sc.to_string()) {
                                     Ok(v) => v,
-                                    Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                                    Err(bind_er) => #import::SqlxPostgresQueryBindEr::from(bind_er),
                                 });
                             }
                             Ok(#query_sc)
@@ -685,9 +685,9 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         if matches!(&<T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc), #import::EqOprtr::Eq)
                             && let Err(#er_sc) = #query_sc.as_mut().try_bind(#self_sc.#v_sc)
                         {
-                            return Err(match #import::PgQueryBindEr::try_from(#er_sc.to_string()) {
+                            return Err(match #import::SqlxPostgresQueryBindEr::try_from(#er_sc.to_string()) {
                                 Ok(v) => v,
-                                Err(bind_er) => #import::PgQueryBindEr::from(bind_er),
+                                Err(bind_er) => #import::SqlxPostgresQueryBindEr::from(bind_er),
                             });
                         }
                         Ok(#query_sc)

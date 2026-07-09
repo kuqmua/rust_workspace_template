@@ -37,12 +37,6 @@ const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException]
             "public macro-helper API name describes generated Rust tokens and is already used across generator crates",
         ),
     },
-    ExternalLeafWrapperNameException {
-        ident: types::StaticStr("PgQuery"),
-        reason: types::StaticStr(
-            "public pg_crud query-builder wrapper name is part of generated CRUD trait signatures",
-        ),
-    },
 ];
 struct ExternalLeafWrapperNameException {
     ident: types::StaticStr,

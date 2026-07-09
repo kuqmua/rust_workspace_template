@@ -922,9 +922,9 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
             ) -> Result<#import::QpFragment, #import::#QpErUcc> {
                 #qp_ts
             }
-            fn #QbSc(self, #is_qb_mut query: #import::PgQuery<'lt>) -> Result<
-                #import::PgQuery<'lt>,
-                #import::PgQueryBindEr
+            fn #QbSc(self, #is_qb_mut query: #import::SqlxPostgresQuery<'lt>) -> Result<
+                #import::SqlxPostgresQuery<'lt>,
+                #import::SqlxPostgresQueryBindEr
             > {
                 #qb_ts
             }
@@ -1101,8 +1101,8 @@ pub fn gen_impl_pg_type_ts(
             }
             fn #CrQbSc(
                 #cr_qb_v_undrscr: Self::#CrUcc,
-                #is_cr_qb_mut #QuerySc: #import::PgQuery<'_>
-            ) -> Result<#import::PgQuery<'_>, #import::PgQueryBindEr> {
+                #is_cr_qb_mut #QuerySc: #import::SqlxPostgresQuery<'_>
+            ) -> Result<#import::SqlxPostgresQuery<'_>, #import::SqlxPostgresQueryBindEr> {
                 #cr_qb_ts
             }
             type #SelUcc = #ident_sel_ucc;
@@ -1141,8 +1141,8 @@ pub fn gen_impl_pg_type_ts(
             }
             fn #UpdQbSc(
                 #VSc: Self::#UpdForQueryUcc,
-                #is_upd_qb_mut #QuerySc: #import::PgQuery<'_>
-            ) -> Result<#import::PgQuery<'_>, #import::PgQueryBindEr> {
+                #is_upd_qb_mut #QuerySc: #import::SqlxPostgresQuery<'_>
+            ) -> Result<#import::SqlxPostgresQuery<'_>, #import::SqlxPostgresQueryBindEr> {
                 #upd_qb_ts
             }
             fn #SelOnlyUpddIdsQpSc(
@@ -1154,8 +1154,8 @@ pub fn gen_impl_pg_type_ts(
             }
             fn #SelOnlyUpddIdsQbSc<'lt>(
                 #VSc: &'lt Self::#UpdForQueryUcc,
-                #is_sel_only_updd_ids_qb_mut #QuerySc: #import::PgQuery<'lt>
-            ) -> Result<#import::PgQuery<'lt>, #import::PgQueryBindEr> {
+                #is_sel_only_updd_ids_qb_mut #QuerySc: #import::SqlxPostgresQuery<'lt>
+            ) -> Result<#import::SqlxPostgresQuery<'lt>, #import::SqlxPostgresQueryBindEr> {
                 #sel_only_updd_ids_qb_ts
             }
         }

@@ -255,7 +255,10 @@ pub trait PgType {
     fn cr_tbl_col_qp(col: SqlColRef<'_>, is_pk: IsPk) -> QpFragment;
     type Cr: CrAl;
     fn cr_qp(v: &Self::Cr, incr: &mut dyn QpIncrMut) -> Result<QpFragment, QpEr>;
-    fn cr_qb(v: Self::Cr, query: PgQuery<'_>) -> Result<PgQuery<'_>, PgQueryBindEr>;
+    fn cr_qb(
+        v: Self::Cr,
+        query: SqlxPostgresQuery<'_>,
+    ) -> Result<SqlxPostgresQuery<'_>, SqlxPostgresQueryBindEr>;
     type Sel: SelAl;
     fn sel_qp(v: &Self::Sel, col: SqlColRef<'_>) -> Result<QpFragment, QpEr>;
     type Wh: WhAl;
@@ -274,7 +277,10 @@ pub trait PgType {
         upd_path: SqlColRef<'_>,
         incr: &mut dyn QpIncrMut,
     ) -> Result<QpFragment, QpEr>;
-    fn upd_qb(v: Self::UpdForQuery, query: PgQuery<'_>) -> Result<PgQuery<'_>, PgQueryBindEr>;
+    fn upd_qb(
+        v: Self::UpdForQuery,
+        query: SqlxPostgresQuery<'_>,
+    ) -> Result<SqlxPostgresQuery<'_>, SqlxPostgresQueryBindEr>;
     fn sel_only_updd_ids_qp(
         v: &Self::UpdForQuery,
         col: SqlColRef<'_>,
@@ -282,8 +288,8 @@ pub trait PgType {
     ) -> Result<QpFragment, QpEr>;
     fn sel_only_updd_ids_qb<'lt>(
         v: &'lt Self::UpdForQuery,
-        query: PgQuery<'lt>,
-    ) -> Result<PgQuery<'lt>, PgQueryBindEr>;
+        query: SqlxPostgresQuery<'lt>,
+    ) -> Result<SqlxPostgresQuery<'lt>, SqlxPostgresQueryBindEr>;
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
 pub trait PgTypePk {
@@ -387,11 +393,11 @@ pub struct PgTypeLenGreaterThanTest<T: PgType> {
     pub vrt: PgTypeGreaterThanVrt,
     pub len_greater_than: UnsignedPartOfI32,
 }
-pub struct PgQuery<'query_lt>(
+pub struct SqlxPostgresQuery<'query_lt>(
     sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
 );
 impl<'query_lt> From<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>>
-    for PgQuery<'query_lt>
+    for SqlxPostgresQuery<'query_lt>
 {
     fn from(
         value: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
@@ -399,7 +405,7 @@ impl<'query_lt> From<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgre
         Self(value)
     }
 }
-impl<'query_lt> PgQuery<'query_lt> {
+impl<'query_lt> SqlxPostgresQuery<'query_lt> {
     pub fn into_inner(
         self,
     ) -> sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments> {
@@ -407,7 +413,7 @@ impl<'query_lt> PgQuery<'query_lt> {
     }
 }
 impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>>
-    for PgQuery<'query_lt>
+    for SqlxPostgresQuery<'query_lt>
 {
     fn as_mut(
         &mut self,
@@ -415,14 +421,14 @@ impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgr
         &mut self.0
     }
 }
-impl std::fmt::Debug for PgQuery<'_> {
+impl std::fmt::Debug for SqlxPostgresQuery<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("PgQuery").finish()
+        f.debug_tuple("SqlxPostgresQuery").finish()
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
 #[newtype(display)]
-pub struct PgQueryBindEr(String);
+pub struct SqlxPostgresQueryBindEr(String);
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, thiserror::Error,
 )]
@@ -436,18 +442,18 @@ impl to_err_string::ToErrString for PgCrudStringWrapperTryFromStringEr {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-impl From<PgCrudStringWrapperTryFromStringEr> for PgQueryBindEr {
+impl From<PgCrudStringWrapperTryFromStringEr> for SqlxPostgresQueryBindEr {
     fn from(value: PgCrudStringWrapperTryFromStringEr) -> Self {
         Self(value.to_string())
     }
 }
-impl PgQueryBindEr {
+impl SqlxPostgresQueryBindEr {
     #[must_use]
     pub fn into_inner(self) -> String {
         self.0
     }
 }
-impl TryFrom<String> for PgQueryBindEr {
+impl TryFrom<String> for SqlxPostgresQueryBindEr {
     type Error = PgCrudStringWrapperTryFromStringEr;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > PG_CRUD_STRING_WRAPPER_MAX_LEN {
@@ -574,7 +580,10 @@ impl std::fmt::Display for SqlColRef<'_> {
     }
 }
 pub trait PgTypeWhFlt<'query_lt> {
-    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr>;
+    fn qb(
+        self,
+        query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr>;
     fn qp(
         &self,
         incr: &mut dyn QpIncrMut,
@@ -634,7 +643,10 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+    fn qb(
+        self,
+        query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr> {
         match self.into_option() {
             Some(v) => v.qb(query),
             None => Ok(query), //todo mb wrong
@@ -911,7 +923,10 @@ const _: () = {
     }
 };
 impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T> {
-    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+    fn qb(
+        self,
+        query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr> {
         self.v
             .0
             .into_iter()
@@ -1088,12 +1103,17 @@ impl PgnBase {
     }
 }
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
-    fn qb(self, mut query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+    fn qb(
+        self,
+        mut query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr> {
         if let Err(er) = query.as_mut().try_bind(self.limit.get()) {
-            return Err(PgQueryBindEr::try_from(er.to_string()).unwrap_or_else(PgQueryBindEr::from));
+            return Err(SqlxPostgresQueryBindEr::try_from(er.to_string())
+                .unwrap_or_else(SqlxPostgresQueryBindEr::from));
         }
         if let Err(er) = query.as_mut().try_bind(self.offset.get()) {
-            return Err(PgQueryBindEr::try_from(er.to_string()).unwrap_or_else(PgQueryBindEr::from));
+            return Err(SqlxPostgresQueryBindEr::try_from(er.to_string())
+                .unwrap_or_else(SqlxPostgresQueryBindEr::from));
         }
         Ok(query)
     }
@@ -1217,7 +1237,10 @@ impl TryFrom<PgnStartsWithZeroRaw> for PgnStartsWithZero {
     }
 }
 impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnStartsWithZero {
-    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+    fn qb(
+        self,
+        query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr> {
         self.0.qb(query)
     }
     fn qp(
@@ -1487,7 +1510,10 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn qb(self, query: PgQuery<'query_lt>) -> Result<PgQuery<'query_lt>, PgQueryBindEr> {
+    fn qb(
+        self,
+        query: SqlxPostgresQuery<'query_lt>,
+    ) -> Result<SqlxPostgresQuery<'query_lt>, SqlxPostgresQueryBindEr> {
         self.0
             .into_iter()
             .try_fold(query, |acc_query, el| el.qb(acc_query))
