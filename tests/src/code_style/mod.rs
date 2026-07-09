@@ -32,7 +32,6 @@ const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
 ];
 const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
 const GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS: [&str; 0] = [];
-const FOR_LOOP_SOURCE_EXCEPTIONS: [&str; 0] = [];
 const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../app_state/src/lib.rs",
     "../config_lib/src/lib.rs",

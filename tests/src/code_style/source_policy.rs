@@ -105,14 +105,6 @@ fn no_for_loops_in_source_code() {
             "for loops found; use iterator methods such as `map`, `filter`, `fold`, `try_fold`, `for_each`, or `try_for_each` instead:",
         ),
         |path, ast, ers| {
-            if super::is_exception(
-                super::types::StdPathRef::from(path),
-                super::types::StaticStrSliceRef::from(super::FOR_LOOP_SOURCE_EXCEPTIONS.as_slice()),
-            )
-            .get()
-            {
-                return;
-            }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::ForLoopVisitor {
