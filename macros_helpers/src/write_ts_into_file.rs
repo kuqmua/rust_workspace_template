@@ -46,20 +46,20 @@ const fn should_write_ts_flag(v: ShouldWriteTsIntoFile) -> ShouldWriteTsFlag {
 fn try_write_ts_into_file<P>(
     file_name: P,
     ts: ProcMacro2TsRef<'_>,
-) -> std::io::Result<crate::write_string_into_file::WritePathOutcome>
+) -> std::io::Result<crate::string_writer::WritePathOutcome>
 where
     P: AsRef<std::path::Path>,
 {
     let string_cnt = ts.as_ref().to_string();
-    crate::write_string_into_file::try_write_string_into_file_with_outcome(
+    crate::string_writer::try_write_string_into_file_with_outcome(
         file_name,
-        crate::write_string_into_file::StringFileContentRef::from(string_cnt.as_str()),
+        crate::string_writer::StringFileContentRef::from(string_cnt.as_str()),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps rustfmt-trigger policy in one reusable decision helper
 fn should_run_rustfmt(
     format_with_cargofmt: FormatWithCargofmt,
-    wr_outcome: &crate::write_string_into_file::WritePathOutcome,
+    wr_outcome: &crate::string_writer::WritePathOutcome,
 ) -> ShouldRunRustfmt {
     ShouldRunRustfmt(
         bool::from(wr_outcome.is_changed())
