@@ -5,7 +5,7 @@ mod runtime_policy;
 mod snapshot;
 mod source_policy;
 mod types;
-const ROOT_CARGO_TOML_EXCEPTIONS: [&str; 1] = ["../Cargo.toml"];
+const WORKSPACE_MANIFEST_PATH: &str = "../Cargo.toml";
 const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     "disallowed_fields",
     "unnecessary_trailing_comma",
@@ -1615,18 +1615,6 @@ fn split_lints_missing_from_cargo(
         types::SourceTextList::from(lints_missing_by_exception),
     )
 }
-#[allow(clippy::single_call_fn)] // shared path matcher keeps cargo policy exception checks consistent
-fn is_exception(
-    path: types::StdPathRef<'_>,
-    exceptions: types::StaticStrSliceRef<'_>,
-) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        exceptions
-            .get()
-            .iter()
-            .any(|exception| path.as_ref().ends_with(exception)),
-    )
-}
 #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
 fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::SourceTextList {
     let workspace = workspace_tbl_from_cargo_toml();
@@ -1652,11 +1640,10 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
 }
 #[allow(clippy::single_call_fn)] // reusable collector stays split from assertion helper for callsites that need raw error vectors
 fn collect_cargo_toml_ers(
-    exceptions: types::StaticStrSliceRef<'_>,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) -> types::SourceTextList {
     let mut ers = Vec::new();
-    for_each_cargo_toml_project_file(exceptions, |path| {
+    for_each_crate_manifest_file(|path| {
         let Some(parsed) = read_toml_table(types::StdPathRef::from(path)) else {
             return;
         };
@@ -1666,27 +1653,22 @@ fn collect_cargo_toml_ers(
 }
 #[allow(clippy::single_call_fn)] // centralizes repeated cargo-toml assertion shape used by multiple tests
 fn assert_cargo_toml_ers_empty(
-    exceptions: types::StaticStrSliceRef<'_>,
     exp_id: types::StaticStr,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) {
-    let ers = collect_cargo_toml_ers(exceptions, |path, parsed, ers| {
+    let ers = collect_cargo_toml_ers(|path, parsed, ers| {
         mk_ers(path, parsed, ers);
     });
     assert_joined_ers_empty(types::SourceTextListRef::from(ers.as_slice()), exp_id);
 }
-#[allow(clippy::single_call_fn)] // shared workspace-root cargo policy assertion keeps root exceptions and joined-diagnostic behavior consistent across package-metadata checks
-fn assert_root_workspace_cargo_policy(
+#[allow(clippy::single_call_fn)] // shared crate-manifest cargo policy assertion keeps joined-diagnostic behavior consistent across package-metadata checks
+fn assert_crate_manifest_cargo_policy(
     exp_id: types::StaticStr,
     mut mk_ers: impl FnMut(&std::path::Path, &toml::Table, &mut Vec<String>),
 ) {
-    assert_cargo_toml_ers_empty(
-        types::StaticStrSliceRef::from(ROOT_CARGO_TOML_EXCEPTIONS.as_slice()),
-        exp_id,
-        |path, parsed, ers| {
-            mk_ers(path, parsed, ers);
-        },
-    );
+    assert_cargo_toml_ers_empty(exp_id, |path, parsed, ers| {
+        mk_ers(path, parsed, ers);
+    });
 }
 #[allow(clippy::single_call_fn)] // shared joined-error assertion keeps multi-line diagnostics consistent across workspace policy tests
 fn assert_joined_ers_empty(ers: types::SourceTextListRef<'_>, exp_id: types::StaticStr) {
@@ -1776,7 +1758,7 @@ fn assert_rs_ast_ers_empty_with_ctx(
 fn read_toml_table(path: types::StdPathRef<'_>) -> Option<types::TomlTable> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.read_toml_table(path))
 }
-#[allow(clippy::single_call_fn)] // shared lookup avoids rereading workspace manifests in text-based Cargo.toml style checks
+#[allow(clippy::single_call_fn)] // shared lookup avoids rereading crate manifests in text-based Cargo.toml style checks
 fn cargo_toml_content(path: types::StdPathRef<'_>) -> Option<types::SourceText> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
@@ -1860,16 +1842,10 @@ fn is_ignored_dir_entry_name(name: types::StdOsStrRef<'_>) -> types::AnalyzerBoo
 fn workspace_crate_names() -> types::StdSourceTextSet {
     snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
 }
-#[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so workspace package manifests match Cargo's view of the workspace
-fn for_each_cargo_toml_project_file(
-    exceptions: types::StaticStrSliceRef<'_>,
-    on_file: impl FnMut(&std::path::Path),
-) {
+#[allow(clippy::single_call_fn)] // shared traversal uses cargo metadata so crate manifests match Cargo's view of workspace packages
+fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)) {
     snapshot::with_codebase_snapshot(|snapshot| {
-        snapshot
-            .package_manifest_paths()
-            .filter(|path| !is_exception(types::StdPathRef::from(*path), exceptions).get())
-            .for_each(on_file);
+        snapshot.crate_manifest_paths().for_each(on_file);
     });
 }
 #[allow(clippy::single_call_fn)] // shared extension gate keeps english-only file selection centralized and reusable
@@ -2834,7 +2810,7 @@ fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
     });
 }
 fn workspace_tbl_from_cargo_toml() -> types::TomlTable {
-    let mut tbl = std::fs::read_to_string("../Cargo.toml")
+    let mut tbl = std::fs::read_to_string(WORKSPACE_MANIFEST_PATH)
         .expect("39a0d238")
         .parse::<toml::Table>()
         .expect("beb11586");

@@ -85,7 +85,7 @@ impl CodebaseSnapshot {
             .iter()
             .find(|cargo_toml| cargo_toml.path.as_ref() == path.as_ref())
     }
-    pub(super) fn package_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
+    pub(super) fn crate_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
         let workspace_members =
             workspace_member_ids(super::types::CargoMetadataRef::from(self.metadata.as_ref()));
         self.metadata
@@ -134,7 +134,7 @@ pub(super) fn is_ignored_dir_entry_name(
 fn workspace_metadata_uncached() -> super::types::CargoMetadata {
     super::types::CargoMetadata::from(
         cargo_metadata::MetadataCommand::new()
-            .manifest_path("../Cargo.toml")
+            .manifest_path(super::WORKSPACE_MANIFEST_PATH)
             .exec()
             .expect("c84e9d1f"),
     )

@@ -1,6 +1,6 @@
 #[test]
 fn all_crates_have_publish_false() {
-    super::assert_root_workspace_cargo_policy(
+    super::assert_crate_manifest_cargo_policy(
         super::types::StaticStr("f2a8c5d3"),
         |path, parsed, ers| {
             let publish = parsed
@@ -14,7 +14,7 @@ fn all_crates_have_publish_false() {
 }
 #[test]
 fn all_crates_have_workspace_lints() {
-    super::assert_root_workspace_cargo_policy(
+    super::assert_crate_manifest_cargo_policy(
         super::types::StaticStr("d5f1a4e7"),
         |path, parsed, ers| match parsed
             .get("lints")
@@ -36,7 +36,7 @@ fn all_crates_have_workspace_lints() {
 }
 #[test]
 fn all_crates_use_edition_2024() {
-    super::assert_root_workspace_cargo_policy(
+    super::assert_crate_manifest_cargo_policy(
         super::types::StaticStr("a3d7f1c8"),
         |path, parsed, ers| {
             let edition = parsed
@@ -87,34 +87,22 @@ fn env_and_envexample_have_same_keys() {
 }
 #[test]
 fn workspace_crates_must_use_workspace_dependencies() {
-    super::assert_cargo_toml_ers_empty(
-        super::types::StaticStrSliceRef::from(
-            [
-                "../Cargo.toml", //workspace
-            ]
-            .as_slice(),
-        ),
-        super::types::StaticStr("5f8a6d17"),
-        |path, parsed, ers| {
-            super::collect_non_workspace_dep_ers(
-                super::types::StdPathRef::from(path),
-                super::types::TomlTableRef::from(parsed),
-                super::types::DiagnosticMsgsMutRef::from(ers),
-            );
-        },
-    );
+    super::assert_cargo_toml_ers_empty(super::types::StaticStr("5f8a6d17"), |path, parsed, ers| {
+        super::collect_non_workspace_dep_ers(
+            super::types::StdPathRef::from(path),
+            super::types::TomlTableRef::from(parsed),
+            super::types::DiagnosticMsgsMutRef::from(ers),
+        );
+    });
 }
 #[test]
 fn workspace_dependencies_use_inline_table_style() {
     let rgx =
         regex::Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$").expect("ac15d6b9");
     let mut ers = Vec::new();
-    super::for_each_cargo_toml_project_file(
-        super::types::StaticStrSliceRef::from([].as_slice()),
-        |path| {
-            let v =
-                super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
-            ers.extend(rgx.find_iter(v.as_ref()).map(|mtch| {
+    super::for_each_crate_manifest_file(|path| {
+        let v = super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
+        ers.extend(rgx.find_iter(v.as_ref()).map(|mtch| {
             let line_nbr = v
                 .as_ref()
                 .bytes()
@@ -127,8 +115,7 @@ fn workspace_dependencies_use_inline_table_style() {
                     path.display()
                 )
             }));
-        },
-    );
+    });
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
         super::types::StaticStr("d7a3c5b1"),
