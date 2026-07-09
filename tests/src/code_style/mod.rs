@@ -45,7 +45,6 @@ const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../pg_crud/pg_types/src/lib.rs",
     "../route_validators/src/lib.rs",
 ];
-const PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS: &[&str] = &[];
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
     ExternalLeafWrapperNameException {
         ident: types::StaticStr("GeneratedRustTs"),
@@ -526,13 +525,9 @@ impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
             && item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get()
             && item_struct_single_field_is_public(types::SynItemStructRef::from(i)).get()
         {
-            let ident = i.ident.to_string();
-            if PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS.contains(&ident.as_str()) {
-                return;
-            }
             self.ers.push(format!(
-                        "public tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
-                        i.ident
+                "public tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
+                i.ident
                     ));
         }
         syn::visit::visit_item_struct(self, i);
