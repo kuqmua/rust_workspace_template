@@ -25,7 +25,7 @@ pub fn gen_field_loc_new_ts(
     file: FieldLocFile,
     line: FieldLocLine,
     col: FieldLocCol,
-) -> crate::GeneratedRustTs {
+) -> crate::generated_rust_ts::GeneratedRustTs {
     let loc_sc = naming::LocSc;
     let loc_new_ts = {
         let file_ts = gen_quotes::dq_ts(&file.0);
@@ -50,5 +50,5 @@ pub fn gen_field_loc_new_ts(
             )
         }
     };
-    crate::GeneratedRustTs::from(quote::quote! {#loc_sc: #loc_new_ts})
+    crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#loc_sc: #loc_new_ts})
 }

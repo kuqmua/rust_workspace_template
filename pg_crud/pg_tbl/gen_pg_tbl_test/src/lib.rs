@@ -37,7 +37,7 @@ optml = { workspace = true }
                     quote::quote! {
                         #allow_clippy_arbitrary_src_item_ordering
                         #[derive(Debug, Clone, Copy, optml::Optml)]
-                        #[pg_crud::gen_pg_tbl_config{{
+                        #[gen_pg_tbl::gen_pg_tbl_config{{
                             "cm_write_into_file": "False",
                             "co_write_into_file": "False",
                             "rm_write_into_file": "False",
@@ -50,46 +50,46 @@ optml = { workspace = true }
                             "cmn_write_into_file": "False",
                             "whole_write_into_file": "False"
                         }}]
-                        #[pg_crud::cm_er_vrts{enum CmErVrts{}}]
-                        #[pg_crud::co_er_vrts{enum CoErVrts{}}]
-                        #[pg_crud::rm_er_vrts{enum RmErVrts{}}]
-                        #[pg_crud::ro_er_vrts{enum RoErVrts{}}]
-                        #[pg_crud::um_er_vrts{enum UmErVrts{}}]
-                        #[pg_crud::uo_er_vrts{enum UoErVrts{}}]
-                        #[pg_crud::dm_er_vrts{enum DmErVrts{}}]
-                        #[pg_crud::dlo_er_vrts{enum DloErVrts{}}]
-                        #[pg_crud::cmn_er_vrts{
+                        #[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
+                        #[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
+                        #[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
+                        #[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
+                        #[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
+                        #[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
+                        #[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
+                        #[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
+                        #[gen_pg_tbl::cmn_er_vrts{
                             enum CmnErVrts {
                                 CheckCommit {
                                     #[eo_loc]
-                                    check_commit: pg_crud::check_commit::CommitEr,
+                                    check_commit: route_validators::check_commit::CommitEr,
                                     loc: loc_lib::loc::Loc,
                                 },
                             }
                         }]
-                        #[pg_crud::cm_logic{}]
-                        #[pg_crud::co_logic{}]
-                        #[pg_crud::rm_logic{}]
-                        #[pg_crud::ro_logic{}]
-                        #[pg_crud::um_logic{}]
-                        #[pg_crud::uo_logic{}]
-                        #[pg_crud::dm_logic{}]
-                        #[pg_crud::dlo_logic{}]
-                        #[pg_crud::cmn_logic{}]
+                        #[gen_pg_tbl::cm_logic{}]
+                        #[gen_pg_tbl::co_logic{}]
+                        #[gen_pg_tbl::rm_logic{}]
+                        #[gen_pg_tbl::ro_logic{}]
+                        #[gen_pg_tbl::um_logic{}]
+                        #[gen_pg_tbl::uo_logic{}]
+                        #[gen_pg_tbl::dm_logic{}]
+                        #[gen_pg_tbl::dlo_logic{}]
+                        #[gen_pg_tbl::cmn_logic{}]
                         pub struct TblExample {
                             #mb_gen_pg_tbl_pk_ts
                             pub pk_col:
-                                pg_crud::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
-                            pub col_0: pg_crud::I16AsNnInt2,
-                            pub col_1: pg_crud::OptI16AsNlInt2,
-                            pub col_2: pg_crud::I32AsNnInt4,
+                                pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
+                            pub col_0: pg_types_numeric::I16AsNnInt2,
+                            pub col_1: pg_types_numeric::OptI16AsNlInt2,
+                            pub col_2: pg_types_numeric::I32AsNnInt4,
                         }
                     }
                 };
                 let gen_pg_tbl_input_ts = gen_tbl_example_ts(AddGenPgTblPk::True);
-                let ts = gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ProcMacro2TsRef::from(
-                    &gen_pg_tbl_input_ts,
-                ));
+                let ts = gen_pg_tbl_src::gen_pg_tbl(
+                    macros_helpers::ts_writer::ProcMacro2TsRef::from(&gen_pg_tbl_input_ts),
+                );
                 let tbl_struct_ts = gen_tbl_example_ts(AddGenPgTblPk::False);
                 quote::quote! {
                     #ts

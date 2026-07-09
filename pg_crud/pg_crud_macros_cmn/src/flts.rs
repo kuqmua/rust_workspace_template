@@ -2,20 +2,20 @@
 #[derive(Debug, Clone, strum_macros::Display, strum_macros::EnumIter, optml::Optml)]
 pub enum PgTypeFlt {
     Eq {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     GreaterThan {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     Btwn {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     In {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     Rgx,
     Before {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     CrntDate,
     GreaterThanCrntDate,
@@ -25,40 +25,40 @@ pub enum PgTypeFlt {
     GreaterThanCrntTime,
     EqToEncodedStringRepresentation,
     FindRangesWithinGivenRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     FindRangesThatFullyContainTheGivenRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     StrictlyToLeftOfRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     StrictlyToRightOfRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     IncludedLowerBound {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     ExcludedUpperBound {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     GreaterThanIncludedLowerBound {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     GreaterThanExcludedUpperBound {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     OverlapWithRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     AdjacentWithRange {
-        ident: macros_helpers::GeneratedRustTs,
+        ident: macros_helpers::generated_rust_ts::GeneratedRustTs,
     },
     RangeLen,
     //BitVecPositionEq,//currently deactivated
 }
 impl PgFlt for PgTypeFlt {
-    fn mb_generic(&self) -> Option<macros_helpers::GeneratedRustTs> {
+    fn mb_generic(&self) -> Option<macros_helpers::generated_rust_ts::GeneratedRustTs> {
         match &self {
             Self::Eq { ident }
             | Self::GreaterThan { ident }
@@ -86,9 +86,9 @@ impl PgFlt for PgTypeFlt {
             | Self::RangeLen => None,
         }
     }
-    fn prefix_wh_self_ucc(&self) -> macros_helpers::GeneratedRustTs {
+    fn prefix_wh_self_ucc(&self) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
         let v = naming::prm::PgTypeWhSelfUcc::from_display(&self.ucc());
-        macros_helpers::GeneratedRustTs::from(quote::quote! {#v})
+        macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#v})
     }
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens {
         match &self {
@@ -122,7 +122,7 @@ impl PgFlt for PgTypeFlt {
     }
 }
 pub trait PgFlt {
-    fn mb_generic(&self) -> Option<macros_helpers::GeneratedRustTs>;
-    fn prefix_wh_self_ucc(&self) -> macros_helpers::GeneratedRustTs;
+    fn mb_generic(&self) -> Option<macros_helpers::generated_rust_ts::GeneratedRustTs>;
+    fn prefix_wh_self_ucc(&self) -> macros_helpers::generated_rust_ts::GeneratedRustTs;
     fn ucc(&self) -> &'static dyn naming::DisplayPlusToTokens;
 }

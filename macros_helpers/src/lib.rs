@@ -1,72 +1,31 @@
-mod attr_ident_str;
-mod derive_ts_builder;
-mod gen_field_loc_new_ts;
-mod gen_if_write_is_err_ts;
-mod gen_impl_dflt_ts;
-mod gen_impl_display_ts;
-mod gen_impl_from_ts;
-mod gen_impl_to_err_string_ts;
-mod gen_impl_try_from_ts;
-mod gen_new_or_try_new;
-mod gen_pub_type_al_ts;
-mod gen_simple_syn_punct;
-mod generated_rust_ts;
-mod get_macro_attr;
-mod loc;
-mod loc_syn_field;
-mod panic_if_err;
-mod pgn_start_end_init_ts;
-mod rs_file_path;
-mod status_code;
-mod syn_field;
+pub mod attr_ident_str;
+#[path = "get_macro_attr.rs"]
+pub mod attr_reader;
+pub mod derive_ts_builder;
+#[path = "syn_field.rs"]
+pub mod field_data;
+pub mod gen_field_loc_new_ts;
+pub mod gen_if_write_is_err_ts;
+pub mod gen_impl_dflt_ts;
+pub mod gen_impl_display_ts;
+pub mod gen_impl_from_ts;
+pub mod gen_impl_to_err_string_ts;
+pub mod gen_impl_try_from_ts;
+pub mod gen_new_or_try_new;
+pub mod gen_pub_type_al_ts;
+pub mod gen_simple_syn_punct;
+pub mod generated_rust_ts;
+#[path = "loc.rs"]
+pub mod loc_data;
+pub mod loc_syn_field;
+pub mod panic_if_err;
+pub mod pgn_start_end_init_ts;
+pub mod rs_file_path;
+pub mod status_code;
+#[path = "write_string_into_file.rs"]
+pub mod string_writer;
 #[cfg(test)]
 mod test_hlp;
-mod wrap_derive;
-mod write_string_into_file;
-mod write_ts_into_file;
-pub use attr_ident_str::{AttrIdentName, AttrIdentStr};
-pub use derive_ts_builder::{
-    DClone, DCopy, DDebug, DDefault, DEq, DLocLibLocation, DOrd, DPartialEq, DPartialOrd,
-    DSchemarsJsonSchema, DSerdeDeserialize, DSerdeSerialize, DThiserrorError, DTsBuilder,
-    DUtoipaToSchema, MakePub,
-};
-pub use gen_field_loc_new_ts::{FieldLocCol, FieldLocFile, FieldLocLine, gen_field_loc_new_ts};
-pub use gen_if_write_is_err_ts::{ProcMacro2IfWriteIsErrTs, gen_if_write_is_err_ts};
-pub use gen_impl_dflt_ts::gen_impl_dflt_ts;
-pub use gen_impl_display_ts::gen_impl_display_ts;
-pub use gen_impl_from_ts::gen_impl_from_ts;
-pub use gen_impl_to_err_string_ts::gen_impl_to_err_string_ts;
-pub use gen_impl_try_from_ts::gen_impl_try_from_ts;
-pub use gen_new_or_try_new::{
-    gen_const_new_ts, gen_const_try_new_ts, gen_impl_const_new_for_ident_ts,
-    gen_impl_const_try_new_for_ident_ts, gen_impl_new_for_ident_ts,
-    gen_impl_pub_const_new_for_ident_ts, gen_impl_pub_const_try_new_for_ident_ts,
-    gen_impl_pub_new_for_ident_ts, gen_impl_pub_try_new_for_ident_ts,
-    gen_impl_try_new_for_ident_ts, gen_new_ts, gen_pub_const_new_ts, gen_pub_const_try_new_ts,
-    gen_pub_new_ts, gen_pub_try_new_ts, gen_try_new_ts,
-};
-pub use gen_pub_type_al_ts::gen_pub_type_al_ts;
-pub use gen_simple_syn_punct::{
-    SynPathSegment, SynPathSegments, gen_simple_syn_punct, string_syn_punct,
-};
-pub use generated_rust_ts::GeneratedRustTs;
-pub use get_macro_attr::{
-    MacroAttrEr, ProcMacro2MacroAttrMetaListTsRef, SynMacroAttrRef, find_macro_attr,
-    get_macro_attr, get_macro_attr_meta_list_ts, try_get_macro_attr,
-    try_get_macro_attr_meta_list_ts,
-};
-pub use loc::{LocFieldAttr, SynVariantRef, gen_serde_version_of_named_syn_vrt};
-pub use loc_syn_field::{SynLocField, loc_syn_field};
-pub use pgn_start_end_init_ts::pgn_start_end_init_ts;
-pub use status_code::{GetOnlyOneStatusCodeEr, StatusCode, SynStatusCodeVariantRef, get_only_one};
-pub use syn_field::{SynField, SynFieldIdent, SynFieldType, SynFieldVis};
-pub use wrap_derive::{ProcMacro2DeriveTokensRef, wrap_derive};
-pub use write_string_into_file::{
-    ShouldWriteString, StdWrittenFilePath, StdWrittenFilePathRef, StringFileContentRef,
-    WritePathOutcome, try_write_string_into_file, try_write_string_into_file_with_outcome,
-    write_string_into_file,
-};
-pub use write_ts_into_file::{
-    FormatWithCargofmt, ProcMacro2TsRef, ShouldWriteTsIntoFile, mb_write_ts_into_file,
-    try_mb_write_ts_into_file,
-};
+#[path = "write_ts_into_file.rs"]
+pub mod ts_writer;
+pub mod wrap_derive;

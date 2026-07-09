@@ -12,7 +12,7 @@ pub fn gen_getter_traits_for_struct_fields(
     let generated_traits_impls_ts = datastruct.fields.into_iter().map(|field| {
         let (fi, ucc_fi) = {
             let fi = field.ident.as_ref().expect("e5c23c45");
-            (fi, naming::ToTokensToUccStr::case(&fi))
+            (fi, naming_cmn::ToTokensToUccStr::case(&fi))
         };
         let ft = field.ty;
         let path_trait_ident = format!("app_state::Get{ucc_fi}")

@@ -3,7 +3,7 @@ pub fn gen_impl_display_ts(
     ident_ts: &dyn quote::ToTokens,
     ident_generics_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> crate::GeneratedRustTs {
+) -> crate::generated_rust_ts::GeneratedRustTs {
     let self_sc = naming::SelfSc;
     quote::quote! {
         impl #impl_generics_ts std::fmt::Display for #ident_ts #ident_generics_ts {

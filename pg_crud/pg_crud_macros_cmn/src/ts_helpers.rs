@@ -9,7 +9,7 @@ pub fn parse_strs_to_ts2_vec(
 pub fn gen_mod_with_pub_use_ts(
     mod_name: &dyn quote::ToTokens,
     content_ts: &crate::GeneratedRustTsVec,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         #[allow(unused_qualifications)]
         #[allow(unused_variables)]
@@ -23,8 +23,8 @@ pub fn gen_mod_with_pub_use_ts(
     .into()
 }
 #[must_use]
-pub fn cmn_d_ts_builder() -> macros_helpers::DTsBuilder {
-    macros_helpers::DTsBuilder::new()
+pub fn cmn_d_ts_builder() -> macros_helpers::derive_ts_builder::DTsBuilder {
+    macros_helpers::derive_ts_builder::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_clone()
@@ -33,29 +33,29 @@ pub fn cmn_d_ts_builder() -> macros_helpers::DTsBuilder {
         .d_serde_deserialize()
 }
 #[must_use]
-pub fn serde_er_enum_d_ts_builder() -> macros_helpers::DTsBuilder {
-    macros_helpers::DTsBuilder::new()
+pub fn serde_er_enum_d_ts_builder() -> macros_helpers::derive_ts_builder::DTsBuilder {
+    macros_helpers::derive_ts_builder::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_serde_serialize()
         .d_serde_deserialize()
         .d_thiserror_error()
-        .d_loc_lib_location()
+        .d_location_location()
 }
 #[must_use]
-pub fn er_enum_d_ts_builder() -> macros_helpers::DTsBuilder {
-    macros_helpers::DTsBuilder::new()
+pub fn er_enum_d_ts_builder() -> macros_helpers::derive_ts_builder::DTsBuilder {
+    macros_helpers::derive_ts_builder::DTsBuilder::new()
         .make_pub()
         .d_debug()
         .d_thiserror_error()
-        .d_loc_lib_location()
+        .d_location_location()
 }
 #[must_use]
 pub fn gen_match_ok_assign_or_return_err_ts(
     expr_ts: &dyn quote::ToTokens,
     assign_target_ts: &dyn quote::ToTokens,
     ok_v_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (ErSc,) = (&names.ErSc,);
@@ -75,7 +75,7 @@ pub fn gen_match_ok_assign_or_return_err_ts(
 pub fn gen_match_ok_or_return_err_ts(
     expr_ts: &dyn quote::ToTokens,
     ok_v_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (ErSc,) = (&names.ErSc,);
@@ -95,7 +95,7 @@ pub fn gen_match_not_empty_unq_vec_try_new_some_or_none_ts(
     expr_ts: &dyn quote::ToTokens,
     ok_v_ts: &dyn quote::ToTokens,
     panic_uuid: crate::PanicUuidRef<'_>,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let panic_uuid_ts = gen_quotes::dq_ts(panic_uuid.as_ref());
     quote::quote! {
         match #expr_ts {
@@ -113,7 +113,7 @@ pub fn gen_if_let_some_match_ok_assign_query_or_return_err_ts(
     expr_ts: &dyn quote::ToTokens,
     some_v_ts: &dyn quote::ToTokens,
     ok_v_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]
     let (QuerySc, VSc) = (&names.QuerySc, &names.VSc);

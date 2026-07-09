@@ -55,8 +55,8 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde::Deserialize, optml::Optml)]
     struct GenWhFltsConfig {
-        pg_types_write_into_file: macros_helpers::ShouldWriteTsIntoFile,
-        whole_write_into_file: macros_helpers::ShouldWriteTsIntoFile,
+        pg_types_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
+        whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
     }
     panic_loc::panic_loc();
     let gen_wh_flts_config =
@@ -93,16 +93,16 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         } else {
             &pub_sc
         };
-        macros_helpers::DTsBuilder::new()
+        macros_helpers::derive_ts_builder::DTsBuilder::new()
             .make_pub()
             .d_debug()
             .d_clone()
             .d_partial_eq()
             .d_serde_serialize()
             .d_serde_deserialize_if(if flt_init_with_try_new_result_is_ok {
-                macros_helpers::DSerdeDeserialize::False
+                macros_helpers::derive_ts_builder::DSerdeDeserialize::False
             } else {
-                macros_helpers::DSerdeDeserialize::True
+                macros_helpers::derive_ts_builder::DSerdeDeserialize::True
             })
             .d_schemars_json_schema()
             .build_struct(
@@ -199,7 +199,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         }
     };
     let gen_match_incr_checked_add_one_init_ts = |ts: &dyn quote::ToTokens| {
-        let match_ts = pg_crud_macros_cmn::gen_match_ok_or_return_err_ts(
+        let match_ts = pg_crud_macros_cmn::ts_helpers::gen_match_ok_or_return_err_ts(
             &quote::quote! {#import::incr_checked_add_one_returning_incr(#incr_sc)},
             &quote::quote! {v_25d59e01},
         );
@@ -261,7 +261,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
     };
     let pub_v_btwn_t_ts = quote::quote! {pub #v_sc: Btwn<T>};
     let gen_match_qb_ts = |field_ts: &dyn quote::ToTokens| {
-        pg_crud_macros_cmn::gen_match_ok_assign_or_return_err_ts(
+        pg_crud_macros_cmn::ts_helpers::gen_match_ok_assign_or_return_err_ts(
             &quote::quote! {#field_ts.qb(#query_sc)},
             &query_sc,
             &quote::quote! {v_f6d31bdd},
@@ -279,7 +279,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         |ident_ts: &dyn quote::ToTokens,
          field_ts: &dyn quote::ToTokens,
          fn_ts: &dyn quote::ToTokens| {
-            let match_ts = pg_crud_macros_cmn::gen_match_ok_or_return_err_ts(
+            let match_ts = pg_crud_macros_cmn::ts_helpers::gen_match_ok_or_return_err_ts(
                 &quote::quote! {self.#field_ts.#fn_ts(#incr_sc, #col_sc, add_oprtr)},
                 &quote::quote! {v_0a22ee9a},
             );
@@ -336,7 +336,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         ),
     };
     let pg_type_ts = {
-        let gen_flts_ts = |flt: &pg_crud_macros_cmn::PgTypeFlt| {
+        let gen_flts_ts = |flt: &pg_crud_macros_cmn::flts::PgTypeFlt| {
             let ident = naming::prm::PgTypeWhSelfUcc::from_display(&flt);
             let (
                 generic,
@@ -453,10 +453,11 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                                 "{{}}({{}}{} in ({{}}))",
                                 pg_type_kind.format_argument()
                             ));
-                            let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts(
-                                &quote::quote! {acc, "${v_daedba9c},"},
-                                &quote::quote! {return Err(#import::QpEr::WriteIntoBuffer { loc: loc_lib::loc!() });},
-                            );
+                            let if_write_is_err_ts =
+                                macros_helpers::gen_if_write_is_err_ts::gen_if_write_is_err_ts(
+                                    &quote::quote! {acc, "${v_daedba9c},"},
+                                    &quote::quote! {return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });},
+                                );
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 let #v_sc = {
@@ -693,7 +694,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                     }
                 };
                 match &flt {
-                    pg_crud_macros_cmn::PgTypeFlt::Eq { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::Eq { .. } => {
                         let (
                             mb_dims_dcl_ts,
                             mb_dims_dflt_init_ts,
@@ -716,67 +717,67 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             gen_eq_oprtr_qb_ts(&mb_dims_qb_ts),
                         )
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThan { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThan { .. } => {
                         gen_greater_than_ts(&pg_type_ptrn_stdrt)
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::Btwn { .. } => gen_btwn_ts(&pg_type_ptrn_stdrt),
-                    pg_crud_macros_cmn::PgTypeFlt::In { .. } => gen_in_ts(&pg_type_ptrn_stdrt),
-                    pg_crud_macros_cmn::PgTypeFlt::Rgx => gen_rgx_ts(&pg_type_ptrn_stdrt),
-                    pg_crud_macros_cmn::PgTypeFlt::Before { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::Btwn { .. } => gen_btwn_ts(&pg_type_ptrn_stdrt),
+                    pg_crud_macros_cmn::flts::PgTypeFlt::In { .. } => gen_in_ts(&pg_type_ptrn_stdrt),
+                    pg_crud_macros_cmn::flts::PgTypeFlt::Rgx => gen_rgx_ts(&pg_type_ptrn_stdrt),
+                    pg_crud_macros_cmn::flts::PgTypeFlt::Before { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"<")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::CrntDate => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::CrntDate => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"= current_date")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntDate => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntDate => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"> current_date")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::CrntTimestamp => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::CrntTimestamp => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"= current_timestamp")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntTimestamp => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTimestamp => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"> current_timestamp")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::CrntTime => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::CrntTime => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"= current_time")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntTime => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTime => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"> current_time")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::EqToEncodedStringRepresentation => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::EqToEncodedStringRepresentation => {
                         gen_eq_to_encoded_string_representation_ts(&pg_type_ptrn_stdrt)
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::FindRangesWithinGivenRange { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesWithinGivenRange { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"<@")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::FindRangesThatFullyContainTheGivenRange {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesThatFullyContainTheGivenRange {
                         ..
                     } => gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"@>"),
-                    pg_crud_macros_cmn::PgTypeFlt::StrictlyToLeftOfRange { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToLeftOfRange { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&<")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::StrictlyToRightOfRange { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToRightOfRange { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&>")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::IncludedLowerBound { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::IncludedLowerBound { .. } => {
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "lower", "=")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::ExcludedUpperBound { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::ExcludedUpperBound { .. } => {
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "upper", "=")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThanIncludedLowerBound { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanIncludedLowerBound { .. } => {
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "lower", ">")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::GreaterThanExcludedUpperBound { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanExcludedUpperBound { .. } => {
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "upper", ">")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::OverlapWithRange { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::OverlapWithRange { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&&")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::AdjacentWithRange { .. } => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::AdjacentWithRange { .. } => {
                         gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"-|-")
                     }
-                    pg_crud_macros_cmn::PgTypeFlt::RangeLen => {
+                    pg_crud_macros_cmn::flts::PgTypeFlt::RangeLen => {
                         gen_range_len_ts(&pg_type_ptrn_stdrt)
                     }
                 }
@@ -803,15 +804,15 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             };
             gend
         };
-        let flt_arr_ts = <pg_crud_macros_cmn::PgTypeFlt as strum::IntoEnumIterator>::iter()
+        let flt_arr_ts = <pg_crud_macros_cmn::flts::PgTypeFlt as strum::IntoEnumIterator>::iter()
             .map(|el| gen_flts_ts(&el))
             .collect::<Vec<_>>();
         let gend = quote::quote! {#(#flt_arr_ts)*};
-        macros_helpers::mb_write_ts_into_file(
+        macros_helpers::ts_writer::mb_write_ts_into_file(
             gen_wh_flts_config.pg_types_write_into_file,
             "gen_wh_flts_pg_types",
-            macros_helpers::ProcMacro2TsRef::from(&gend),
-            &macros_helpers::FormatWithCargofmt::True,
+            macros_helpers::ts_writer::ProcMacro2TsRef::from(&gend),
+            &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
         gend
     };
@@ -819,18 +820,18 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
-    let gend = pg_crud_macros_cmn::gen_mod_with_pub_use_ts(
+    let gend = pg_crud_macros_cmn::ts_helpers::gen_mod_with_pub_use_ts(
         &quote::format_ident!("gen_wh_flts_mod"),
         &pg_crud_macros_cmn::GeneratedRustTsVec::from(vec![
-            macros_helpers::GeneratedRustTs::from(imports_ts),
-            macros_helpers::GeneratedRustTs::from(pg_type_ts),
+            macros_helpers::generated_rust_ts::GeneratedRustTs::from(imports_ts),
+            macros_helpers::generated_rust_ts::GeneratedRustTs::from(pg_type_ts),
         ]),
     );
-    macros_helpers::mb_write_ts_into_file(
+    macros_helpers::ts_writer::mb_write_ts_into_file(
         gen_wh_flts_config.whole_write_into_file,
         "gen_wh_flts",
-        macros_helpers::ProcMacro2TsRef::from(gend.as_ref()),
-        &macros_helpers::FormatWithCargofmt::True,
+        macros_helpers::ts_writer::ProcMacro2TsRef::from(gend.as_ref()),
+        &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     ProcMacro2GenWhFltsTs::from(proc_macro2::TokenStream::from(gend))
 }

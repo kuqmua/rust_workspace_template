@@ -71,14 +71,14 @@ impl crate::attr_ident_str::AttrIdentStr for LocFieldAttr {
 }
 impl LocFieldAttr {
     #[must_use]
-    pub fn to_attr_view_ts(&self) -> crate::GeneratedRustTs {
+    pub fn to_attr_view_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
         match format!(
             "#[{}]",
             crate::attr_ident_str::AttrIdentStr::attr_ident_str(self).as_ref()
         )
         .parse::<proc_macro2::TokenStream>()
         {
-            Ok(v) => crate::GeneratedRustTs::from(v),
+            Ok(v) => crate::generated_rust_ts::GeneratedRustTs::from(v),
             Err(er) => compile_error_ts(CompileErrorMsg(&er.to_string())),
         }
     }
@@ -92,12 +92,14 @@ impl<'variant_lt> From<&'variant_lt syn::Variant> for SynVariantRef<'variant_lt>
         Self(value)
     }
 }
-fn compile_error_ts(msg: CompileErrorMsg<'_>) -> crate::GeneratedRustTs {
+fn compile_error_ts(msg: CompileErrorMsg<'_>) -> crate::generated_rust_ts::GeneratedRustTs {
     let msg_value = msg.0;
-    crate::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
+    crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})
 }
 #[must_use]
-pub fn gen_serde_version_of_named_syn_vrt(v: SynVariantRef<'_>) -> crate::GeneratedRustTs {
+pub fn gen_serde_version_of_named_syn_vrt(
+    v: SynVariantRef<'_>,
+) -> crate::generated_rust_ts::GeneratedRustTs {
     let variant = v.0;
     let hash_map_ucc = naming::HashMapUcc;
     let loc_sc = naming::LocSc;
@@ -251,9 +253,9 @@ pub fn gen_serde_version_of_named_syn_vrt(v: SynVariantRef<'_>) -> crate::Genera
             };
             quote::quote! {#el_c25b655e_ident: #el_type_with_serde_ts}
         };
-        crate::GeneratedRustTs::from(quote::quote! {#ts,})
+        crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ts,})
     });
-    crate::GeneratedRustTs::from(quote::quote! {
+    crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {
         #el_ident {
             #(#fields_with_serde_ts)*
         }

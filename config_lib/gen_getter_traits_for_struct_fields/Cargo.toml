@@ -19,5 +19,6 @@ quote = { workspace = true }
 syn = { workspace = true }
 panic_loc = { workspace = true }
 naming = { workspace = true }
+naming_cmn = { workspace = true }
 [lints]
 workspace = true

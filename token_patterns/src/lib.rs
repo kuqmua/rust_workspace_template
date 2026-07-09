@@ -12,13 +12,13 @@ token_patterns_macros::tp!(SerdeSerialize, serde::Serialize);
 token_patterns_macros::tp!(SerdeDeserialize, serde::Deserialize);
 token_patterns_macros::tp!(UtoipaToSchema, utoipa::ToSchema);
 token_patterns_macros::tp!(SchemarsJsonSchema, schemars::JsonSchema);
-token_patterns_macros::tp!(LocLibLoc, loc_lib::Location);
+token_patterns_macros::tp!(LocLibLoc, location::Location);
 token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
 token_patterns_macros::tp!(Char, char);
 token_patterns_macros::tp!(RefStr, &str);
 token_patterns_macros::tp!(StringTs, String);
 token_patterns_macros::tp!(DeriveDebug, #[derive(Debug, Optml)]);
-token_patterns_macros::tp!(DeriveDebugThiserrorLoc, #[derive(Debug, thiserror::Error, loc_lib::Location, Optml)]);
+token_patterns_macros::tp!(DeriveDebugThiserrorLoc, #[derive(Debug, thiserror::Error, location::Location, Optml)]);
 token_patterns_macros::tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, Optml)]);
 token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, Optml)]);
 token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, Optml)]);
@@ -64,12 +64,6 @@ token_patterns_macros::tp_parts!(
     dflt_some_one_el_ucc(),
     path_dflt_some_one_el_call()
 );
-token_patterns_macros::tp_parts!(PgCrudDfltSomeOneEl, pg_crud(), dflt_some_one_el_ucc());
-token_patterns_macros::tp_parts!(
-    PgCrudDfltSomeOneElCall,
-    PgCrudDfltSomeOneEl,
-    path_dflt_some_one_el_call()
-);
 token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneEl,
     pg_crud_cmn(),
@@ -88,16 +82,6 @@ token_patterns_macros::tp_parts!(
 token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneElCall,
     CrateAllEnumVrtsArrDfltSomeOneEl,
-    path_all_vrts_dflt_some_one_el_call()
-);
-token_patterns_macros::tp_parts!(
-    PgCrudAllEnumVrtsArrDfltSomeOneEl,
-    pg_crud(),
-    all_vrts_dflt_some_one_el_ucc()
-);
-token_patterns_macros::tp_parts!(
-    PgCrudAllEnumVrtsArrDfltSomeOneElCall,
-    PgCrudAllEnumVrtsArrDfltSomeOneEl,
     path_all_vrts_dflt_some_one_el_call()
 );
 token_patterns_macros::tp_parts!(
@@ -122,16 +106,6 @@ token_patterns_macros::tp_parts!(
     path_dflt_some_one_el_max_page_size_call()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudDfltSomeOneElMaxPageSize,
-    pg_crud(),
-    dflt_some_one_el_max_page_size_ucc()
-);
-token_patterns_macros::tp_parts!(
-    PgCrudDfltSomeOneElMaxPageSizeCall,
-    PgCrudDfltSomeOneElMaxPageSize,
-    path_dflt_some_one_el_max_page_size_call()
-);
-token_patterns_macros::tp_parts!(
     PgCrudCmnDfltSomeOneElMaxPageSize,
     pg_crud_cmn(),
     dflt_some_one_el_max_page_size_ucc()
@@ -149,16 +123,6 @@ token_patterns_macros::tp_parts!(
 token_patterns_macros::tp_parts!(
     CrateAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
     CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    path_all_vrts_dflt_some_one_el_max_page_size_call()
-);
-token_patterns_macros::tp_parts!(
-    PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    pg_crud(),
-    all_vrts_dflt_some_one_el_max_page_size_ucc()
-);
-token_patterns_macros::tp_parts!(
-    PgCrudAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
-    PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
     path_all_vrts_dflt_some_one_el_max_page_size_call()
 );
 token_patterns_macros::tp_parts!(
@@ -180,7 +144,6 @@ token_patterns_macros::ts_path_fn!(
 );
 token_patterns_macros::ts_path_fn!(dflt_some_one_el_max_page_size_ucc, DfltSomeOneElMaxPageSize);
 token_patterns_macros::ts_path_fn!(crate_path_ts, crate::);
-token_patterns_macros::ts_path_fn!(pg_crud, pg_crud::);
 token_patterns_macros::ts_path_fn!(pg_crud_cmn, pg_crud_cmn::);
 token_patterns_macros::ts_path_fn!(dflt_some_one_el_ucc, DfltSomeOneEl);
 token_patterns_macros::ts_path_fn!(all_vrts_dflt_some_one_el_ucc, AllEnumVrtsArrDfltSomeOneEl);
@@ -234,7 +197,6 @@ mod tests {
     }
     #[test]
     fn ts_path_fn_outputs_expected_tokens() {
-        assert_tokens_eq(super::pg_crud(), quote::quote! {pg_crud::});
         assert_tokens_eq(super::pg_crud_cmn(), quote::quote! {pg_crud_cmn::});
     }
     #[test]

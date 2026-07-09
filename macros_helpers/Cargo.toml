@@ -20,6 +20,8 @@ thiserror = { workspace = true }
 token_patterns = { workspace = true }
 gen_quotes = { workspace = true }
 naming = { workspace = true }
+naming_cmn = { workspace = true }
+naming_macros = { workspace = true }
 gen_derive_ts_builder = { workspace = true }
 optml = { workspace = true }
 [lints]

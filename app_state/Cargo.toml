@@ -13,6 +13,5 @@ edition = "2024"
 
 [dependencies]
 sqlx = { workspace = true }
-config_lib = { workspace = true }
 [lints]
 workspace = true

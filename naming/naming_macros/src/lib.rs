@@ -270,7 +270,7 @@ fn gen_impl_trait_for_ident_ts(
     let ident_ref = ident.0;
     let vrt_tokens = vrts_matching_ts.0;
     ProcMacro2GeneratedNamingTs(quote::quote! {
-        impl naming::#name_ts for #ident_ref {
+        impl naming_cmn::#name_ts for #ident_ref {
             fn case(&self) -> #string_ts {//todo mb write duplicate Trait with &str instead of String
                 match self {#(#vrt_tokens),*}
             }
@@ -359,7 +359,7 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(
     };
     let string_ts = token_patterns::StringTs;
     let generated = gen_impl_trait_for_ident_ts(
-        &quote::quote! {ToUpperScStr},
+        &quote::quote! {AsRefStrToUpperScStr},
         SynEnumIdentRef(ident),
         ProcMacro2VrtMatchingTokensRef(
             &data_enum

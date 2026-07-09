@@ -20,12 +20,16 @@ schemars = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 naming = { workspace = true }
+naming_cmn = { workspace = true }
 optml = { workspace = true }
 pg_crud_cmn_macros = { workspace = true }
 newtype = { workspace = true }
+to_err_string = { workspace = true }
 [features]
 test-utils = []
 

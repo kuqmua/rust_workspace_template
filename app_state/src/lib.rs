@@ -1,9 +1,3 @@
-pub use config_lib::{
-    GetChronoTimezone, GetCorsAllowOrigin, GetDatabaseUrl, GetEnableApiGitCommitCheck,
-    GetMaximumSizeOfHttpBodyInBytes, GetMongoUrl, GetPgPoolMaxConnections, GetRedisUrl,
-    GetServiceSocketAddress, GetSrcPlaceType, GetStartingCheckLink, GetTracingLevel,
-    types::SrcPlaceType, types::TracingLevel,
-};
 #[derive(Debug, Clone, Copy)]
 pub struct SqlxPgPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
 impl<'pool_lt> From<&'pool_lt sqlx::PgPool> for SqlxPgPoolRef<'pool_lt> {

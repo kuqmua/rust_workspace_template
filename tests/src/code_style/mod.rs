@@ -30,18 +30,6 @@ const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     "manual_option_zip",
     "useless_borrows_in_formatting",
 ];
-const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
-    "../app_state/src/lib.rs",
-    "../config_lib/src/lib.rs",
-    "../git_info/src/lib.rs",
-    "../loc_lib/src/lib.rs",
-    "../macros_helpers/src/lib.rs",
-    "../naming/src/lib.rs",
-    "../pg_crud/src/lib.rs",
-    "../pg_crud/pg_tbl/src/lib.rs",
-    "../pg_crud/pg_types/src/lib.rs",
-    "../route_validators/src/lib.rs",
-];
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
     ExternalLeafWrapperNameException {
         ident: types::StaticStr("GeneratedRustTs"),
@@ -1627,6 +1615,7 @@ fn split_lints_missing_from_cargo(
         types::SourceTextList::from(lints_missing_by_exception),
     )
 }
+#[allow(clippy::single_call_fn)] // shared path matcher keeps cargo policy exception checks consistent
 fn is_exception(
     path: types::StdPathRef<'_>,
     exceptions: types::StaticStrSliceRef<'_>,
@@ -2330,13 +2319,6 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
 #[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module
 fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(path.as_ref().starts_with("../tests/src/code_style"))
-}
-#[allow(clippy::single_call_fn)] // keeps public re-export allowlist separate from use-import visitor diagnostics
-fn is_public_reexport_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    is_exception(
-        path,
-        types::StaticStrSliceRef::from(PUBLIC_REEXPORT_SOURCE_INCLUSIONS),
-    )
 }
 #[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
 fn is_structural_generic_container(ident: types::SourceTextRef<'_>) -> types::AnalyzerBool {

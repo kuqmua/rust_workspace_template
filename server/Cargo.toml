@@ -28,6 +28,7 @@ secrecy = { workspace = true }
 tracing-subscriber = { workspace = true }
 git_info = { workspace = true }
 app_state = { workspace = true }
+config_lib = { workspace = true }
 cmn_routes = { workspace = true }
 server_app_state = { workspace = true }
 server_config = { workspace = true }

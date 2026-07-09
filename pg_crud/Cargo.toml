@@ -11,22 +11,8 @@ categories = ["category"]
 edition = "2024"
 
 
-[dependencies]
-strum_macros = { workspace = true }
-futures = { workspace = true }
-uuid = { workspace = true }
-pg_crud_cmn = { workspace = true, features = ["test-utils"] }
-pg_tbl = { workspace = true }
-pg_types = { workspace = true }
-wh_flts = { workspace = true }
-route_validators = { workspace = true }
 [lints]
 workspace = true
 
 [features]
-test-utils = [
-    "pg_crud_cmn/test-utils",
-    "pg_tbl/test-utils",
-    "pg_types/test-utils",
-    "wh_flts/test-utils"
-]
+test-utils = []

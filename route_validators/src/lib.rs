@@ -1,7 +1,6 @@
 pub mod check_body_size;
 pub mod check_commit;
-mod hdr_val;
-pub use hdr_val::AxumHeadersRef;
+pub mod hdr_val;
 #[cfg(test)]
 pub(crate) mod test_hlp;
 //todo request per second middleware

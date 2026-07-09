@@ -540,27 +540,27 @@ fn gen_to_err_string_ts(
     attrs.to_err_string_mode.map(|mode| match mode {
         ToErrStringMode::AsRefStr => {
             ProcMacro2GeneratedTs(quote::quote! {
-                impl loc_lib::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(loc_lib::ToErrStringValue::from)
+                impl to_err_string::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+                        to_err_string::ToErrStringValue::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::ToErrStringValue::from)
                     }
                 }
             })
         }
         ToErrStringMode::Debug => {
             ProcMacro2GeneratedTs(quote::quote! {
-                impl loc_lib::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue::try_from(format!("{:?}", self.0)).unwrap_or_else(loc_lib::ToErrStringValue::from)
+                impl to_err_string::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+                        to_err_string::ToErrStringValue::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::ToErrStringValue::from)
                     }
                 }
             })
         }
         ToErrStringMode::Display => {
             ProcMacro2GeneratedTs(quote::quote! {
-                impl loc_lib::ToErrString for #ident_ref {
-                    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-                        loc_lib::ToErrStringValue::try_from(self.0.to_string()).unwrap_or_else(loc_lib::ToErrStringValue::from)
+                impl to_err_string::ToErrString for #ident_ref {
+                    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+                        to_err_string::ToErrStringValue::try_from(self.0.to_string()).unwrap_or_else(to_err_string::ToErrStringValue::from)
                     }
                 }
             })

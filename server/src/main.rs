@@ -155,9 +155,9 @@ fn mk_runtime() -> Result<TokioServerRuntime, RunServerEr> {
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
 async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::SqlxPgPool, RunServerEr> {
     sqlx::postgres::PgPoolOptions::new()
-        .max_connections(*app_state::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
+        .max_connections(*config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
         .connect(secrecy::ExposeSecret::expose_secret(
-            app_state::GetDatabaseUrl::get_database_url(config),
+            config_lib::GetDatabaseUrl::get_database_url(config),
         ))
         .await
         .map(app_state::SqlxPgPool::from)
@@ -172,12 +172,12 @@ async fn run_server() -> Result<(), RunServerEr> {
         .await
         .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
     let tcp_listener = tokio::net::TcpListener::bind(
-        app_state::GetServiceSocketAddress::get_service_socket_address(&config),
+        config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
     )
     .await
     .map_err(|er| RunServerEr::BindServiceSocket(StdServerIoEr(er)))?;
     let cors_origins = parse_cors_allow_origin(CorsAllowOriginTextRef(
-        app_state::GetCorsAllowOrigin::get_cors_allow_origin(&config),
+        config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config),
     ));
     let app_state = mk_app_state(config, pg_pool);
     let api_routes = mk_api_routes(&app_state);

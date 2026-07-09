@@ -11,10 +11,10 @@ pub struct BodySizeLimitBytes(usize);
 pub struct AxumBodySizeEr(axum::Error);
 #[derive(Debug)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
-impl loc_lib::ToErrString for HttpBodySizeHint {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(format!("{:#?}", self.0))
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for HttpBodySizeHint {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(format!("{:#?}", self.0))
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,7 +30,7 @@ impl AsRef<[u8]> for BytesBodyBytes {
         self.0.as_ref()
     }
 }
-#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
+#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum BodySizeEr {
     ReachedMaximumSizeOfBody {
         #[eo_to_err_string]
@@ -57,7 +57,7 @@ impl BodySizeEr {
             er,
             maximum_size_of_body_limit_in_bytes,
             size_hint,
-            loc: loc_lib::loc!(),
+            loc: loc_macros::loc!(),
         }
     }
 }

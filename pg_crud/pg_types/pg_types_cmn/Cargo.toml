@@ -17,7 +17,10 @@ thiserror = { workspace = true }
 schemars = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }
+to_err_string = { workspace = true }
 [lints]
 workspace = true

@@ -18,6 +18,7 @@ proc-macro2 = { workspace = true }
 quote = { workspace = true }
 serde_json = { workspace = true }
 naming = { workspace = true }
+naming_cmn = { workspace = true }
 optml = { workspace = true }
 [lints]
 workspace = true

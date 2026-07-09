@@ -221,31 +221,17 @@ fn no_non_public_use_imports_in_rust_sources() {
                     path.display()
                 ));
             }
-            let local_mod_names = ast
-                .items
-                .iter()
-                .filter_map(|item| {
-                    if let syn::Item::Mod(item_mod) = item {
-                        Some(item_mod.ident.to_string())
-                    } else {
-                        None
-                    }
-                })
-                .collect::<std::collections::HashSet<_>>();
-            if !super::is_public_reexport_source_path(super::types::StdPathRef::from(path)).get() {
-                ers.extend(
-                        visitor
-                            .public_use_roots
-                            .iter()
-                            .filter(|public_use_root| !local_mod_names.contains(*public_use_root))
-                            .map(|public_use_root| {
-                                format!(
-                                "{}: found public use import rooted at `{public_use_root}` outside facade re-export allowlist; use the explicit path at the usage site or add only intentional facade files to super::PUBLIC_REEXPORT_SOURCE_INCLUSIONS",
-                                path.display()
-                                )
-                            }),
-                    );
-            }
+            ers.extend(
+                visitor
+                    .public_use_roots
+                    .iter()
+                    .map(|public_use_root| {
+                        format!(
+                            "{}: found public use import rooted at `{public_use_root}`; use the explicit path at the usage site",
+                            path.display()
+                        )
+                    }),
+            );
             if visitor.found_use_rename.get() {
                 ers.push(format!(
                         "{}: found use rename with `as`; use the original item name or rename the item at its definition",

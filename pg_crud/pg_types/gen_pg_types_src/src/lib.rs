@@ -1,7 +1,7 @@
 #[must_use]
 pub fn gen_pg_types(
-    input_ts: macros_helpers::ProcMacro2TsRef<'_>,
-) -> macros_helpers::GeneratedRustTs {
+    input_ts: macros_helpers::ts_writer::ProcMacro2TsRef<'_>,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, strum_macros::Display, optml::Optml)]
     enum RustTypeName {
@@ -333,8 +333,8 @@ pub fn gen_pg_types(
     #[derive(Debug, serde::Deserialize, optml::Optml)]
     struct GenPgTypesConfig {
         vrt: GenPgTypesConfigVrt,
-        pg_tbl_cols_write_into_file: macros_helpers::ShouldWriteTsIntoFile,
-        whole_write_into_file: macros_helpers::ShouldWriteTsIntoFile,
+        pg_tbl_cols_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
+        whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
@@ -463,7 +463,7 @@ pub fn gen_pg_types(
             Ok(v) => v,
             Err(er) => {
                 let msg = format!("failed to parse GenPgTypesConfig: {er}");
-                return macros_helpers::GeneratedRustTs::from(
+                return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
                     quote::quote! { compile_error!(#msg); },
                 );
             }
@@ -598,7 +598,7 @@ pub fn gen_pg_types(
             });
             if duplicate_found {
                 let msg_value = "536036f9: duplicate pg type config entry";
-                return macros_helpers::GeneratedRustTs::from(
+                return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
                     quote::quote! {compile_error!(#msg_value);},
                 );
             }
@@ -847,7 +847,7 @@ pub fn gen_pg_types(
             pg_crud_macros_cmn::IsStdrtNn::False
         };
         let d_partial_ord = match &is_stdrt_nn {
-            pg_crud_macros_cmn::IsStdrtNn::False => macros_helpers::DPartialOrd::False,
+            pg_crud_macros_cmn::IsStdrtNn::False => macros_helpers::derive_ts_builder::DPartialOrd::False,
             pg_crud_macros_cmn::IsStdrtNn::True => match &pg_type {
                 PgType::I16AsInt2
                 | PgType::I32AsInt4
@@ -865,7 +865,7 @@ pub fn gen_pg_types(
                 | PgType::SqlxTypesChronoNaiveDateAsDate
                 | PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
                 | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                | PgType::SqlxTypesUuidUuidAsUuidV4InitByPg => macros_helpers::DPartialOrd::True,
+                | PgType::SqlxTypesUuidUuidAsUuidV4InitByPg => macros_helpers::derive_ts_builder::DPartialOrd::True,
                 PgType::SqlxPgTypesPgMoneyAsMoney
                 | PgType::SqlxPgTypesPgIntervalAsInterval
                 | PgType::SqlxTypesUuidUuidAsUuidInitByClient
@@ -875,7 +875,7 @@ pub fn gen_pg_types(
                 | PgType::SqlxPgTypesPgRangeI64AsInt8Range
                 | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
                 | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::DPartialOrd::False,
+                | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::derive_ts_builder::DPartialOrd::False,
             },
         };
         let is_nn_stdrt_can_be_pk = if matches!((&is_nl, &pg_type_pattern, &can_be_pk), (pg_crud_macros_cmn::IsNl::False, PgTypePattern::Stdrt, CanBePk::True)) {
@@ -1000,7 +1000,7 @@ pub fn gen_pg_types(
                         })
                     };
                     let gen_impl_ser_wrapping_self_zero_ts = |ts: &dyn quote::ToTokens|{
-                        pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(
+                        pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(
                             &gen_ser_cnt(&ts)
                         )))
                     };
@@ -1028,7 +1028,7 @@ pub fn gen_pg_types(
                         | PgType::SqlxTypesIpnetworkIpNetworkAsInet => pg_crud_macros_cmn::DeriveOrImpl::Derive,
                         PgType::SqlxPgTypesPgMoneyAsMoney => gen_impl_ser_wrapping_self_zero_ts(&quote::quote! {.0}),
                         PgType::SqlxTypesMacAddressMacAddressAsMacAddr => gen_impl_ser_wrapping_self_zero_ts(&quote::quote! {.bytes()}),
-                        PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
+                        PgType::SqlxTypesChronoNaiveTimeAsTime => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
                             let gen_field_inn_type_stdrt_nn_ts_as_chrono_timelike_ts = |ts: &dyn quote::ToTokens| {
                                 quote::quote! {&(<#inn_type_stdrt_nn_ts as chrono::Timelike>::#ts)}
                             };
@@ -1043,7 +1043,7 @@ pub fn gen_pg_types(
                             );
                             gen_four_field_time_ser_ts(&hour_ser_field_ts, &min_ser_field_ts, &sec_ser_field_ts, &micro_ser_field_ts)
                         }))),
-                        PgType::SqlxTypesTimeTimeAsTime => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
+                        PgType::SqlxTypesTimeTimeAsTime => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
                             let gen_ser_field_self_zero_ts = |v: &dyn naming::DisplayPlusToTokens| gen_ser_field_ts(&v, &quote::quote! {&self.0.#v()});
                             let hour_ser_field_ts = gen_ser_field_self_zero_ts(&hour_sc);
                             let minute_ser_field_ts = gen_ser_field_self_zero_ts(&minute_sc);
@@ -1051,7 +1051,7 @@ pub fn gen_pg_types(
                             let microsecond_ser_field_ts = gen_ser_field_self_zero_ts(&microsecond_sc);
                             gen_four_field_time_ser_ts(&hour_ser_field_ts, &minute_ser_field_ts, &second_ser_field_ts, &microsecond_ser_field_ts)
                         }))),
-                        PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
+                        PgType::SqlxPgTypesPgIntervalAsInterval => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
                             let gen_ser_field_h_ts = |v: &dyn naming::DisplayPlusToTokens| gen_ser_field_ts(&v, &quote::quote! {&#self_dot_zero_ts.#v});
                             let months_ser_field_ts = gen_ser_field_h_ts(&months_sc);
                             let days_ser_field_ts = gen_ser_field_h_ts(&days_sc);
@@ -1064,7 +1064,7 @@ pub fn gen_pg_types(
                                 #serde_ser_ser_struct_end_ts
                             }
                         }))),
-                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
+                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
                             enum DateOrTime {
                                 Date,
                                 Time,
@@ -1098,7 +1098,7 @@ pub fn gen_pg_types(
                                 #serde_ser_ser_struct_end_ts
                             }
                         }))),
-                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
+                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&{
                             enum DateNaiveOrTime {
                                 Date,
                                 Time,
@@ -1125,11 +1125,11 @@ pub fn gen_pg_types(
                                 #serde_ser_ser_struct_end_ts
                             }
                         }))),
-                        PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(impl_ser_for_uuid_uuid_ts)),
-                        PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(impl_ser_for_nn_orgn_start_end_ts)),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_nn_date_orgn_ucc))),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_ucc))),
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_nn_timestamptz_orgn_ucc))),
+                        PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(impl_ser_for_uuid_uuid_ts)),
+                        PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(impl_ser_for_nn_orgn_start_end_ts)),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_naive_date_as_nn_date_orgn_ucc))),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_ucc))),
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => pg_crud_macros_cmn::DeriveOrImpl::Impl(macros_helpers::generated_rust_ts::GeneratedRustTs::from(gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens(&sqlx_types_chrono_date_time_sqlx_types_chrono_utc_as_nn_timestamptz_orgn_ucc))),
                     }
                 },
                 pg_crud_macros_cmn::DeriveOrImpl::Derive
@@ -1161,7 +1161,7 @@ pub fn gen_pg_types(
         };
         let gen_pub_const_new_or_pub_try_new_ts = |ts: &dyn quote::ToTokens| {
             let pub_fn_new_or_try_new_ts = if pg_type_init_try_new_try_from_pg_type.is_ok() {
-                &macros_helpers::gen_pub_try_new_ts(
+                &macros_helpers::gen_new_or_try_new::gen_pub_try_new_ts(
                     &proc_macro2::TokenStream::new(),
                     &v_ident_inn_type_ts,
                     &ident_stdrt_nn_orgn_try_new_er_ucc,
@@ -1178,13 +1178,13 @@ pub fn gen_pg_types(
                     if matches!(&pg_type_pattern, PgTypePattern::Stdrt)
                         && matches!(&is_nl, pg_crud_macros_cmn::IsNl::False)
                     {
-                        macros_helpers::gen_pub_const_new_ts(
+                        macros_helpers::gen_new_or_try_new::gen_pub_const_new_ts(
                             &must_use,
                             &v_ident_inn_type_ts,
                             &self_ident_orgn_new_v_ts
                         )
                     } else {
-                        macros_helpers::gen_pub_new_ts(
+                        macros_helpers::gen_new_or_try_new::gen_pub_new_ts(
                             &must_use,
                             &v_ident_inn_type_ts,
                             &self_ident_orgn_new_v_ts
@@ -1223,9 +1223,9 @@ pub fn gen_pg_types(
             PgType::SqlxPgTypesPgRangeI64AsInt8Range |
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::DCopy::True,
+            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::derive_ts_builder::DCopy::True,
             PgType::StringAsText |
-            PgType::StdVecVecU8AsBytea => macros_helpers::DCopy::False,
+            PgType::StdVecVecU8AsBytea => macros_helpers::derive_ts_builder::DCopy::False,
         };
         let sqlx_types_chrono_naive_time_min_fn_ts = quote::quote! {sqlx_types_chrono_naive_time_min};
         let sqlx_types_chrono_naive_time_ten_fn_ts = quote::quote! {sqlx_types_chrono_naive_time_ten};
@@ -1240,7 +1240,7 @@ pub fn gen_pg_types(
         let sqlx_types_chrono_naive_date_max_fn_ts = quote::quote! {sqlx_types_chrono_naive_date_max};
         let sqlx_types_chrono_naive_date_max_pred_opt_expect_fn_ts = quote::quote! {sqlx_types_chrono_naive_date_max_pred_opt_expect};
         let ident_ts = {
-            let ident_ts = macros_helpers::DTsBuilder::new()
+            let ident_ts = macros_helpers::derive_ts_builder::DTsBuilder::new()
                 .make_pub()
                 .d_debug()
                 .d_clone()
@@ -1682,28 +1682,28 @@ pub fn gen_pg_types(
         let ident_upd_ucc = naming::prm::SelfUpdUcc::from_tokens(&ident);
         let sqlx_encode_self_dot_zero_ts = quote::quote! {#self_sc.0};
         let ident_orgn_ts = {
-            let ident_orgn_ts = macros_helpers::DTsBuilder::new()
+            let ident_orgn_ts = macros_helpers::derive_ts_builder::DTsBuilder::new()
                 .make_pub()
                 .d_debug()
                 .d_clone()
                 .d_copy_if(derive_copy)
                 .d_partial_eq()
                 .d_eq_if(match &is_nn_stdrt_can_be_pk {
-                    IsNnStdrtCanBePk::False => macros_helpers::DEq::False,
-                    IsNnStdrtCanBePk::True => macros_helpers::DEq::True,
+                    IsNnStdrtCanBePk::False => macros_helpers::derive_ts_builder::DEq::False,
+                    IsNnStdrtCanBePk::True => macros_helpers::derive_ts_builder::DEq::True,
                 })
                 .d_partial_ord_if(d_partial_ord)
                 .d_ord_if(match &is_nn_stdrt_can_be_pk {
-                    IsNnStdrtCanBePk::False => macros_helpers::DOrd::False,
-                    IsNnStdrtCanBePk::True => macros_helpers::DOrd::True,
+                    IsNnStdrtCanBePk::False => macros_helpers::derive_ts_builder::DOrd::False,
+                    IsNnStdrtCanBePk::True => macros_helpers::derive_ts_builder::DOrd::True,
                 })
                 .d_serde_serialize_if(match &ser_derive_or_impl {
-                    pg_crud_macros_cmn::DeriveOrImpl::Derive => macros_helpers::DSerdeSerialize::True,
-                    pg_crud_macros_cmn::DeriveOrImpl::Impl(_) => macros_helpers::DSerdeSerialize::False,
+                    pg_crud_macros_cmn::DeriveOrImpl::Derive => macros_helpers::derive_ts_builder::DSerdeSerialize::True,
+                    pg_crud_macros_cmn::DeriveOrImpl::Impl(_) => macros_helpers::derive_ts_builder::DSerdeSerialize::False,
                 })
                 .d_serde_deserialize_if(match &de_derive_or_impl {
-                    pg_crud_macros_cmn::DeriveOrImpl::Derive => macros_helpers::DSerdeDeserialize::True,
-                    pg_crud_macros_cmn::DeriveOrImpl::Impl(_) => macros_helpers::DSerdeDeserialize::False,
+                    pg_crud_macros_cmn::DeriveOrImpl::Derive => macros_helpers::derive_ts_builder::DSerdeDeserialize::True,
+                    pg_crud_macros_cmn::DeriveOrImpl::Impl(_) => macros_helpers::derive_ts_builder::DSerdeDeserialize::False,
                 })
                 .build_struct(
                     &if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True) {
@@ -1828,7 +1828,7 @@ pub fn gen_pg_types(
             let mb_pub_enum_ident_stdrt_nn_orgn_try_new_er_ts = if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True)
                 && let Ok(pg_type_init_try_new) = &pg_type_init_try_new_try_from_pg_type
             {
-                let serde_er_enum_ts = pg_crud_macros_cmn::serde_er_enum_d_ts_builder()
+                let serde_er_enum_ts = pg_crud_macros_cmn::ts_helpers::serde_er_enum_d_ts_builder()
                     .build_enum(
                         &proc_macro2::TokenStream::new(),
                         &ident_stdrt_nn_orgn_try_new_er_ucc,
@@ -1904,7 +1904,7 @@ pub fn gen_pg_types(
             let mb_pub_enum_ident_stdrt_nn_orgn_try_new_for_de_er_ts = if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True) {
                 //todo this is bad design. refactor later
                 let gen_er_ts = |pg_type_impl_try_new_for_deserialize: &PgTypeImplTryNewForDe|{
-                    let serde_er_enum_ts = pg_crud_macros_cmn::serde_er_enum_d_ts_builder()
+                    let serde_er_enum_ts = pg_crud_macros_cmn::ts_helpers::serde_er_enum_d_ts_builder()
                     .build_enum(
                         &proc_macro2::TokenStream::new(),
                         &ident_stdrt_nn_orgn_try_new_for_de_er_ucc,
@@ -2042,12 +2042,12 @@ pub fn gen_pg_types(
                     };
                     match &pg_type_pattern {
                         PgTypePattern::Stdrt => match &is_nl {
-                            pg_crud_macros_cmn::IsNl::False => macros_helpers::gen_const_new_ts(
+                            pg_crud_macros_cmn::IsNl::False => macros_helpers::gen_new_or_try_new::gen_const_new_ts(
                                 &must_use,
                                 &v_ident_inn_type_ts,
                                 &ts
                             ),
-                            pg_crud_macros_cmn::IsNl::True => macros_helpers::gen_new_ts(
+                            pg_crud_macros_cmn::IsNl::True => macros_helpers::gen_new_or_try_new::gen_new_ts(
                                 &must_use,
                                 &v_ident_inn_type_ts,
                                 &ts
@@ -2084,13 +2084,13 @@ pub fn gen_pg_types(
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#included_start_greater_than_included_end_ucc {
                                                             #start_sc,
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     if #end_sc == max {
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#included_end_cannot_be_max_ucc {
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Included(#start_sc), std::ops::Bound::Included(#end_sc))
@@ -2100,7 +2100,7 @@ pub fn gen_pg_types(
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#included_start_greater_than_excluded_end_ucc {
                                                             #start_sc,
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Included(#start_sc), std::ops::Bound::Excluded(#end_sc))
@@ -2111,13 +2111,13 @@ pub fn gen_pg_types(
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#excluded_start_greater_than_included_end_ucc {
                                                             #start_sc,
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     if #end_sc == max {
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#included_end_cannot_be_max_ucc {
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Excluded(#start_sc), std::ops::Bound::Included(#end_sc))
@@ -2127,7 +2127,7 @@ pub fn gen_pg_types(
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#excluded_start_greater_than_excluded_end_ucc {
                                                             #start_sc,
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Excluded(#start_sc), std::ops::Bound::Excluded(#end_sc))
@@ -2137,7 +2137,7 @@ pub fn gen_pg_types(
                                                     if #end_sc == max {
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#included_end_cannot_be_max_ucc {
                                                             #end_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                     (std::ops::Bound::Unbounded, std::ops::Bound::Included(#end_sc))
@@ -2155,7 +2155,7 @@ pub fn gen_pg_types(
                                                 Err(er) => {
                                                     return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#variant_ts {
                                                         #er_sc,
-                                                        loc: loc_lib::loc!(),
+                                                        loc: loc_macros::loc!(),
                                                     });
                                                 }
                                             },
@@ -2164,7 +2164,7 @@ pub fn gen_pg_types(
                                                 Err(er) => {
                                                     return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#variant_ts {
                                                         #er_sc,
-                                                        loc: loc_lib::loc!(),
+                                                        loc: loc_macros::loc!(),
                                                     });
                                                 }
                                             },
@@ -2184,7 +2184,7 @@ pub fn gen_pg_types(
                                             if #v_sc.find('\0').is_some() {
                                                 Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#contains_null_byte_ucc {
                                                     #v_sc,
-                                                    loc: loc_lib::loc!(),
+                                                    loc: loc_macros::loc!(),
                                                 })
                                             } else {
                                                 Ok(Self(#v_sc))
@@ -2194,7 +2194,7 @@ pub fn gen_pg_types(
                                             if <#inn_type_stdrt_nn_ts as chrono::Timelike>::nanosecond(&#v_sc).checked_rem(1000).expect("7c8b4e12") != 0 {
                                                 return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#nanosecond_precision_is_not_supported_ucc {
                                                     #v_sc: #v_sc.to_string(),
-                                                    loc: loc_lib::loc!(),
+                                                    loc: loc_macros::loc!(),
                                                 });
                                             }
                                             Ok(Self(#v_sc))
@@ -2203,7 +2203,7 @@ pub fn gen_pg_types(
                                             if #v_sc.nanosecond().checked_rem(1000).expect("ce47524f") != 0 {
                                                 return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#nanosecond_precision_is_not_supported_ucc {
                                                     #v_sc: #v_sc.to_string(),
-                                                    loc: loc_lib::loc!(),
+                                                    loc: loc_macros::loc!(),
                                                 });
                                             }
                                             Ok(Self(#v_sc))
@@ -2217,7 +2217,7 @@ pub fn gen_pg_types(
                                                 Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#earlier_date_not_supported_ucc {
                                                     value: #v_sc.to_string(),
                                                     #earliest_supported_date_sc: #earliest_supported_date_sc.to_string(),
-                                                    loc: loc_lib::loc!(),
+                                                    loc: loc_macros::loc!(),
                                                 })
                                             }
                                         },
@@ -2229,7 +2229,7 @@ pub fn gen_pg_types(
                                                 Err(er) => {
                                                     return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#date_ucc {
                                                         #er_sc,
-                                                        loc: loc_lib::loc!(),
+                                                        loc: loc_macros::loc!(),
                                                     });
                                                 }
                                             };
@@ -2240,7 +2240,7 @@ pub fn gen_pg_types(
                                                 Err(er) => {
                                                     return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#time_ucc {
                                                         #er_sc,
-                                                        loc: loc_lib::loc!(),
+                                                        loc: loc_macros::loc!(),
                                                     });
                                                 }
                                             };
@@ -2257,7 +2257,7 @@ pub fn gen_pg_types(
                                                     Err(er) => {
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#date_naive_ucc {
                                                             #er_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                 };
@@ -2266,7 +2266,7 @@ pub fn gen_pg_types(
                                                     Err(er) => {
                                                         return Err(#ident_stdrt_nn_orgn_try_new_er_ucc::#time_ucc {
                                                             #er_sc,
-                                                            loc: loc_lib::loc!(),
+                                                            loc: loc_macros::loc!(),
                                                         });
                                                     }
                                                 };
@@ -2353,7 +2353,7 @@ pub fn gen_pg_types(
                     }
                 }
             };
-            let impl_from_ident_orgn_for_ident_inn_type_ts = macros_helpers::gen_impl_from_ts(
+            let impl_from_ident_orgn_for_ident_inn_type_ts = macros_helpers::gen_impl_from_ts::gen_impl_from_ts(
                 &ident_orgn_ucc,
                 &ident_inn_type_ts,
                 &{
@@ -2402,7 +2402,7 @@ pub fn gen_pg_types(
                         | PgType::SqlxPgTypesPgRangeI64AsInt8Range
                         | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
                         | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                        | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
+                        | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
                         PgType::StringAsText => pg_crud_macros_cmn::gen_impl_crate_is_string_empty_for_ident_ts(
                             &ident_orgn_ucc,
                             &quote::quote! {self.0.clone().is_empty()},
@@ -2414,12 +2414,12 @@ pub fn gen_pg_types(
                             &quote::quote! {self.0.to_string().is_empty()},
                         ),
                     },
-                    pg_crud_macros_cmn::IsNl::True => macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
+                    pg_crud_macros_cmn::IsNl::True => macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
                 }
             } else {
-                macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new())
+                macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new())
             };
-            let empty_generated_ts = macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new());
+            let empty_generated_ts = macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new());
             let mb_impl_ser_for_ident_stdrt_nn_orgn_ts = match &ser_derive_or_impl {
                 pg_crud_macros_cmn::DeriveOrImpl::Derive => &empty_generated_ts,
                 pg_crud_macros_cmn::DeriveOrImpl::Impl(v) => v,
@@ -2458,7 +2458,7 @@ pub fn gen_pg_types(
                 let gen_impl_from_orgn_ts = |
                     from_type_ts: &dyn quote::ToTokens,
                     ts: &dyn quote::ToTokens,
-                |macros_helpers::gen_impl_from_ts(
+                |macros_helpers::gen_impl_from_ts::gen_impl_from_ts(
                     from_type_ts,
                     &ident_orgn_ucc,
                     ts,
@@ -2557,7 +2557,7 @@ pub fn gen_pg_types(
                     from_type_ts: &dyn quote::ToTokens,
                     er_type_ts: &dyn quote::ToTokens,
                     ts: &dyn quote::ToTokens
-                |macros_helpers::gen_impl_try_from_ts(
+                |macros_helpers::gen_impl_try_from_ts::gen_impl_try_from_ts(
                     from_type_ts,
                     &ident_orgn_ucc,
                     er_type_ts,
@@ -2665,7 +2665,7 @@ pub fn gen_pg_types(
                                     if <#inn_type_stdrt_nn_ts as chrono::Timelike>::nanosecond(&v_b143b9e1).checked_rem(1000).expect("c0514180") != 0 {
                                         return Err(#ident_stdrt_nn_orgn_try_new_for_de_er_ucc::#nanosecond_precision_is_not_supported_ucc {
                                             #v_sc: v_b143b9e1.to_string(),
-                                            loc: loc_lib::loc!(),
+                                            loc: loc_macros::loc!(),
                                         });
                                     }
                                     Ok(Self(v_b143b9e1))
@@ -2675,7 +2675,7 @@ pub fn gen_pg_types(
                                     #min_sc: v.1,
                                     #sec_sc: v.2,
                                     #micro_sc: v.3,
-                                    loc: loc_lib::loc!(),
+                                    loc: loc_macros::loc!(),
                                 })
                             }
                         }
@@ -2693,7 +2693,7 @@ pub fn gen_pg_types(
                                     if v_9932d535.nanosecond().checked_rem(1000).expect("0def33ce") != 0 {
                                         return Err(#ident_stdrt_nn_orgn_try_new_for_de_er_ucc::#nanosecond_precision_is_not_supported_ucc {
                                             #v_sc: v_9932d535.to_string(),
-                                            loc: loc_lib::loc!(),
+                                            loc: loc_macros::loc!(),
                                         });
                                     }
                                     Ok(Self(v_9932d535))
@@ -2704,7 +2704,7 @@ pub fn gen_pg_types(
                                     #second_sc: v.2,
                                     #microsecond_sc: v.3,
                                     #er_sc: er.to_string(),
-                                    loc: loc_lib::loc!(),
+                                    loc: loc_macros::loc!(),
                                 })
                             }
                         }
@@ -2733,7 +2733,7 @@ pub fn gen_pg_types(
                                 Ok(v0) => Ok(Self(v0)),
                                 Err(er) => Err(#ident_stdrt_nn_orgn_try_new_for_de_er_ucc::#not_uuid_ucc {
                                     #v_sc: er.to_string(),
-                                    loc: loc_lib::loc!(),
+                                    loc: loc_macros::loc!(),
                                 })
                             }
                         }
@@ -2749,7 +2749,7 @@ pub fn gen_pg_types(
             else {
                 proc_macro2::TokenStream::new()
             };
-            let impl_display_for_ident_orgn_ts = macros_helpers::gen_impl_display_ts(&proc_macro2::TokenStream::new(), &ident_orgn_ucc, &proc_macro2::TokenStream::new(), &quote::quote! {write!(f, "{self:?}")});
+            let impl_display_for_ident_orgn_ts = macros_helpers::gen_impl_display_ts::gen_impl_display_ts(&proc_macro2::TokenStream::new(), &ident_orgn_ucc, &proc_macro2::TokenStream::new(), &quote::quote! {write!(f, "{self:?}")});
             let impl_loc_lib_to_err_string_for_ident_orgn_ts = pg_crud_macros_cmn::gen_impl_to_err_string_no_generics_ts(&ident_orgn_ucc, &quote::quote! {self.to_string()});
             let some_dflt_some_one_el_call_ts = quote::quote! {Some(#pg_crud_cmn_dflt_some_one_el_call)};
             let impl_dflt_some_one_el_for_ident_orgn_ts = pg_crud_macros_cmn::gen_impl_pg_crud_cmn_dflt_some_one_el_ts(&ident_orgn_ucc, &{
@@ -2865,7 +2865,7 @@ pub fn gen_pg_types(
             });
             let mb_impl_from_ident_rd_for_ident_orgn_ts = match &is_nn_stdrt_can_be_pk {
                 IsNnStdrtCanBePk::False => proc_macro2::TokenStream::new(),
-                IsNnStdrtCanBePk::True => macros_helpers::gen_impl_from_ts(&ident_stdrt_nn_rd_ucc, &ident_orgn_ucc, &{
+                IsNnStdrtCanBePk::True => macros_helpers::gen_impl_from_ts::gen_impl_from_ts(&ident_stdrt_nn_rd_ucc, &ident_orgn_ucc, &{
                     let ident_stdrt_nn_as_crate_pg_type_ts = gen_as_pg_type_ts(&ident_stdrt_nn_ucc);
                     quote::quote! {Self::#new_sc(#ident_stdrt_nn_as_crate_pg_type_ts::into_inn(#v_sc))}
                 }).into(),
@@ -2890,7 +2890,7 @@ pub fn gen_pg_types(
             }
         };
         let gen_pub_struct_tokens_ts = |ident_ts_prm: &dyn quote::ToTokens, ts: &dyn quote::ToTokens, derive_dflt| {
-            macros_helpers::DTsBuilder::new()
+            macros_helpers::derive_ts_builder::DTsBuilder::new()
                 .make_pub()
                 .d_debug()
                 .d_default_if(derive_dflt)
@@ -2911,7 +2911,7 @@ pub fn gen_pg_types(
         let ok_self_v_ts = quote::quote! {Ok(Self(v))};
         let ident_tt_ucc = naming::prm::SelfTtUcc::from_tokens(&ident);
         let ident_tt_ts = {
-            let ident_tt_ts = macros_helpers::DTsBuilder::new()
+            let ident_tt_ts = macros_helpers::derive_ts_builder::DTsBuilder::new()
                 .make_pub()
                 .d_debug()
                 .d_clone()
@@ -2950,7 +2950,7 @@ pub fn gen_pg_types(
                     match &pg_type_pattern {
                         PgTypePattern::Stdrt => match &is_nl {
                             pg_crud_macros_cmn::IsNl::False => eq_ts,
-                            pg_crud_macros_cmn::IsNl::True => macros_helpers::GeneratedRustTs::from(nl_eq_oprtr_ts),
+                            pg_crud_macros_cmn::IsNl::True => macros_helpers::generated_rust_ts::GeneratedRustTs::from(nl_eq_oprtr_ts),
                         },
                     }
                 },
@@ -2965,7 +2965,7 @@ pub fn gen_pg_types(
             }
         };
         let ident_stdrt_nn_tt_ucc = naming::prm::SelfTtUcc::from_tokens(&ident_stdrt_nn_ucc);
-        let cmn_d_ts_builder = pg_crud_macros_cmn::cmn_d_ts_builder()
+        let cmn_d_ts_builder = pg_crud_macros_cmn::ts_helpers::cmn_d_ts_builder()
             .d_copy_if(derive_copy);
         let ident_cr_ucc = naming::prm::SelfCrUcc::from_tokens(&ident);
         let ident_cr_ts = {
@@ -2976,7 +2976,7 @@ pub fn gen_pg_types(
                         &proc_macro2::TokenStream::new(),
                         &ident_orgn_struct_ts
                     ),
-                CanBePk::True => gen_pub_struct_tokens_ts(&ident_cr_ucc, &quote::quote! {(());}, macros_helpers::DDefault::False),
+                CanBePk::True => gen_pub_struct_tokens_ts(&ident_cr_ucc, &quote::quote! {(());}, macros_helpers::derive_ts_builder::DDefault::False),
             };
             let mb_impl_ident_cr_ts = match &can_be_pk {
                 CanBePk::False => gen_pub_const_new_or_pub_try_new_ts(&ident_cr_ucc),
@@ -2991,7 +2991,7 @@ pub fn gen_pg_types(
             });
             let mb_impl_sqlx_type_and_encode_for_ident_cr_ts = match &can_be_pk {
                 CanBePk::False => pg_crud_macros_cmn::gen_impl_sqlx_type_and_encode_for_ident_ts(&ident_cr_ucc, &ident_orgn_ucc, &sqlx_encode_self_dot_zero_ts),
-                CanBePk::True => macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
+                CanBePk::True => macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
             };
             quote::quote! {
                 #ident_cr_ts
@@ -3005,7 +3005,7 @@ pub fn gen_pg_types(
             let pub_struct_ident_sel_ts = gen_pub_struct_tokens_ts(
                 &ident_sel_ucc,
                 &quote::quote! {;},
-                macros_helpers::DDefault::True,
+                macros_helpers::derive_ts_builder::DDefault::True,
             );
             let (impl_dflt_some_one_el_for_ident_sel_ts, impl_dflt_some_one_el_max_page_size_for_ident_sel_ts) = {
                 (
@@ -3024,35 +3024,35 @@ pub fn gen_pg_types(
         let ident_wh_ts = pg_crud_macros_cmn::gen_pg_type_wh_ts(
             &allow_clippy_arbitrary_src_item_ordering,
             &{
-                let cmn_pg_type_flts = vec![pg_crud_macros_cmn::PgTypeFlt::Eq {
-                    ident: macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_tt_ucc}),
+                let cmn_pg_type_flts = vec![pg_crud_macros_cmn::flts::PgTypeFlt::Eq {
+                    ident: macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_tt_ucc}),
                 }];
-                let gen_flts_with = |base: Vec<pg_crud_macros_cmn::PgTypeFlt>, extra: &[pg_crud_macros_cmn::PgTypeFlt]| {
+                let gen_flts_with = |base: Vec<pg_crud_macros_cmn::flts::PgTypeFlt>, extra: &[pg_crud_macros_cmn::flts::PgTypeFlt]| {
                     let mut vec = base;
                     vec.extend_from_slice(extra);
                     vec
                 };
                 match &pg_type_pattern {
                     PgTypePattern::Stdrt => {
-                        let greater_than = pg_crud_macros_cmn::PgTypeFlt::GreaterThan {
-                            ident: macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
+                        let greater_than = pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThan {
+                            ident: macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
                         };
-                        let btwn = pg_crud_macros_cmn::PgTypeFlt::Btwn {
-                            ident: macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
+                        let btwn = pg_crud_macros_cmn::flts::PgTypeFlt::Btwn {
+                            ident: macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
                         };
-                        let in_h = pg_crud_macros_cmn::PgTypeFlt::In {
-                            ident: macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_tt_ucc}),
+                        let in_h = pg_crud_macros_cmn::flts::PgTypeFlt::In {
+                            ident: macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_tt_ucc}),
                         };
-                        let rgx = pg_crud_macros_cmn::PgTypeFlt::Rgx;
-                        let eq_to_encoded_string_representation = pg_crud_macros_cmn::PgTypeFlt::EqToEncodedStringRepresentation;
-                        let crnt_date_flt = pg_crud_macros_cmn::PgTypeFlt::CrntDate;
-                        let greater_than_crnt_date = pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntDate;
-                        let crnt_time_flt = pg_crud_macros_cmn::PgTypeFlt::CrntTime;
-                        let greater_than_crnt_time = pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntTime;
-                        let crnt_timestamp_flt = pg_crud_macros_cmn::PgTypeFlt::CrntTimestamp;
-                        let greater_than_crnt_timestamp = pg_crud_macros_cmn::PgTypeFlt::GreaterThanCrntTimestamp;
-                        let before = pg_crud_macros_cmn::PgTypeFlt::Before {
-                            ident: macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
+                        let rgx = pg_crud_macros_cmn::flts::PgTypeFlt::Rgx;
+                        let eq_to_encoded_string_representation = pg_crud_macros_cmn::flts::PgTypeFlt::EqToEncodedStringRepresentation;
+                        let crnt_date_flt = pg_crud_macros_cmn::flts::PgTypeFlt::CrntDate;
+                        let greater_than_crnt_date = pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntDate;
+                        let crnt_time_flt = pg_crud_macros_cmn::flts::PgTypeFlt::CrntTime;
+                        let greater_than_crnt_time = pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTime;
+                        let crnt_timestamp_flt = pg_crud_macros_cmn::flts::PgTypeFlt::CrntTimestamp;
+                        let greater_than_crnt_timestamp = pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTimestamp;
+                        let before = pg_crud_macros_cmn::flts::PgTypeFlt::Before {
+                            ident: macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc}),
                         };
                         let cmn_stdrt_pg_type_flts = { cmn_pg_type_flts };
                         let cmn_stdrt_pg_type_nbr_flts = gen_flts_with(
@@ -3060,19 +3060,19 @@ pub fn gen_pg_types(
                             &[greater_than.clone(), btwn.clone(), in_h.clone()],
                         );
                         let ranges_cmn_flt_vec = {
-                            let range_ident_ts = macros_helpers::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc});
+                            let range_ident_ts = macros_helpers::generated_rust_ts::GeneratedRustTs::from(quote::quote! {#ident_stdrt_nn_tt_ucc});
                             gen_flts_with(cmn_stdrt_pg_type_flts.clone(), &[
-                                pg_crud_macros_cmn::PgTypeFlt::FindRangesWithinGivenRange { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::FindRangesThatFullyContainTheGivenRange { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::StrictlyToLeftOfRange { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::StrictlyToRightOfRange { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::IncludedLowerBound { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::ExcludedUpperBound { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::GreaterThanIncludedLowerBound { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::GreaterThanExcludedUpperBound { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::OverlapWithRange { ident: range_ident_ts.clone() },
-                                pg_crud_macros_cmn::PgTypeFlt::AdjacentWithRange { ident: range_ident_ts },
-                                pg_crud_macros_cmn::PgTypeFlt::RangeLen,
+                                pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesWithinGivenRange { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesThatFullyContainTheGivenRange { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToLeftOfRange { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToRightOfRange { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::IncludedLowerBound { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::ExcludedUpperBound { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanIncludedLowerBound { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanExcludedUpperBound { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::OverlapWithRange { ident: range_ident_ts.clone() },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::AdjacentWithRange { ident: range_ident_ts },
+                                pg_crud_macros_cmn::flts::PgTypeFlt::RangeLen,
                             ])
                         };
                         match &pg_type {
@@ -3104,7 +3104,7 @@ pub fn gen_pg_types(
             }
             .iter()
             .map(|el0| {
-                let el1: &dyn pg_crud_macros_cmn::PgFlt = el0;
+                let el1: &dyn pg_crud_macros_cmn::flts::PgFlt = el0;
                 el1
             })
             .collect(),
@@ -3121,17 +3121,17 @@ pub fn gen_pg_types(
                     derive_ord
                 ) = match &is_nn_stdrt_can_be_pk {
                     IsNnStdrtCanBePk::False => (
-                        macros_helpers::DEq::False,
-                        macros_helpers::DPartialOrd::False,
-                        macros_helpers::DOrd::False
+                        macros_helpers::derive_ts_builder::DEq::False,
+                        macros_helpers::derive_ts_builder::DPartialOrd::False,
+                        macros_helpers::derive_ts_builder::DOrd::False
                     ),
                     IsNnStdrtCanBePk::True => (
-                        macros_helpers::DEq::True,
-                        macros_helpers::DPartialOrd::True,
-                        macros_helpers::DOrd::True
+                        macros_helpers::derive_ts_builder::DEq::True,
+                        macros_helpers::derive_ts_builder::DPartialOrd::True,
+                        macros_helpers::derive_ts_builder::DOrd::True
                     ),
                 };
-                macros_helpers::DTsBuilder::new()
+                macros_helpers::derive_ts_builder::DTsBuilder::new()
                     .make_pub()
                     .d_debug()
                     .d_clone()
@@ -3178,7 +3178,7 @@ pub fn gen_pg_types(
                     &import,
                 )
             } else {
-                macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new())
+                macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new())
             };
             quote::quote! {
                 #ident_rd_ts
@@ -3243,7 +3243,7 @@ pub fn gen_pg_types(
                     &ident_orgn_struct_ts
                 );
             let impl_sqlx_type_and_encode_for_ident_upd_for_query_ts = pg_crud_macros_cmn::gen_impl_sqlx_type_and_encode_for_ident_ts(&ident_upd_for_query_ucc, &ident_orgn_ucc, &sqlx_encode_self_dot_zero_ts);
-            let impl_from_ident_upd_for_ident_upd_for_query_ts = macros_helpers::gen_impl_from_ts(&ident_upd_ucc, &ident_upd_for_query_ucc, &quote::quote! {Self(#v_sc.0)});
+            let impl_from_ident_upd_for_ident_upd_for_query_ts = macros_helpers::gen_impl_from_ts::gen_impl_from_ts(&ident_upd_ucc, &ident_upd_for_query_ucc, &quote::quote! {Self(#v_sc.0)});
             quote::quote! {
                 #ident_upd_for_query_ts
                 #impl_sqlx_type_and_encode_for_ident_upd_for_query_ts
@@ -3257,7 +3257,7 @@ pub fn gen_pg_types(
             let ok_string_from_dflt_ts = gen_ok_string_from_tokens_ts(&quote::quote! {"dflt"});
             let ok_string_from_uuid_generate_v4_ts = gen_ok_string_from_tokens_ts(&quote::quote! {"uuid_generate_v4()"});
             let typical_qp_ts = {
-                let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts(
+                let if_write_is_err_ts = macros_helpers::gen_if_write_is_err_ts::gen_if_write_is_err_ts(
                     &quote::quote! {acc_c7df00f5, "${v_ba581e0f}"},
                     &pg_crud_macros_cmn::gen_return_err_qp_er_write_into_buffer_ts(import)
                 );
@@ -4442,20 +4442,20 @@ pub fn gen_pg_types(
                     }
                 }
             };
-            let opt_vec_cr_generated_ts = opt_vec_cr_ts.as_ref().map(|v| macros_helpers::GeneratedRustTs::from(v.clone()));
+            let opt_vec_cr_generated_ts = opt_vec_cr_ts.as_ref().map(|v| macros_helpers::generated_rust_ts::GeneratedRustTs::from(v.clone()));
             let rd_ids_and_cr_into_opt_vec_wh_eq_to_field_generated_ts =
                 rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts
                     .as_ref()
-                    .map(|v| macros_helpers::GeneratedRustTs::from(v.clone()));
+                    .map(|v| macros_helpers::generated_rust_ts::GeneratedRustTs::from(v.clone()));
             let pg_type_opt_vec_wh_greater_than_test_generated_ts =
                 pg_type_opt_vec_wh_greater_than_test_ts
                     .as_ref()
-                    .map(|v| macros_helpers::GeneratedRustTs::from(v.clone()));
+                    .map(|v| macros_helpers::generated_rust_ts::GeneratedRustTs::from(v.clone()));
             let rd_ids_and_tt_into_pg_type_opt_wh_greater_than_generated_ts =
                 rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts
                     .as_ref()
-                    .map(|v| macros_helpers::GeneratedRustTs::from(v.clone()));
-            pg_crud_macros_cmn::gen_impl_pg_type_test_cases_for_ident_ts(
+                    .map(|v| macros_helpers::generated_rust_ts::GeneratedRustTs::from(v.clone()));
+            pg_crud_macros_cmn::pg_type_test_cases::gen_impl_pg_type_test_cases_for_ident_ts(
                 &quote::quote! {#[cfg(feature = "test-utils")]},
                 &import,
                 &ident_inn_type_ts,
@@ -4504,7 +4504,7 @@ pub fn gen_pg_types(
             proc_macro2::TokenStream::new()
         };
         let mb_impl_pg_type_not_pk_for_ident_ts = if matches!(&is_nn_stdrt_can_be_pk, IsNnStdrtCanBePk::True) {
-            macros_helpers::GeneratedRustTs::from(proc_macro2::TokenStream::new())
+            macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new())
         } else {
             pg_crud_macros_cmn::gen_impl_pg_type_not_pk_for_ident_ts(&import, &ident)
         };
@@ -4529,7 +4529,7 @@ pub fn gen_pg_types(
             {
                 let fi = quote::format_ident!("col_{i}");
                 quote::quote! {
-                    pub #fi: pg_crud::pg_type:: #ident,
+                    pub #fi: crate::#ident,
                 }
                 .to_string()
             },
@@ -4537,7 +4537,7 @@ pub fn gen_pg_types(
         )
     })
     .collect::<(Vec<String>, Vec<String>)>();
-    let parse_strs_to_ts2_vec = pg_crud_macros_cmn::parse_strs_to_ts2_vec;
+    let parse_strs_to_ts2_vec = pg_crud_macros_cmn::ts_helpers::parse_strs_to_ts2_vec;
     let pg_tbl_cols_ts = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_cmn::ParseTsStrings::from(cols_ts),
@@ -4549,24 +4549,24 @@ pub fn gen_pg_types(
             }
         }
     };
-    macros_helpers::mb_write_ts_into_file(
+    macros_helpers::ts_writer::mb_write_ts_into_file(
         gen_pg_types_config.pg_tbl_cols_write_into_file,
         "pg_tbl_cols_using_pg_types",
-        macros_helpers::ProcMacro2TsRef::from(&pg_tbl_cols_ts),
-        &macros_helpers::FormatWithCargofmt::True,
+        macros_helpers::ts_writer::ProcMacro2TsRef::from(&pg_tbl_cols_ts),
+        &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     let generated = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_cmn::ParseTsStrings::from(pg_type_arr),
             pg_crud_macros_cmn::ParseErIdRef::from("e0c9257d"),
         );
-        pg_crud_macros_cmn::gen_mod_with_pub_use_ts(&gen_pg_types_mod_sc, &ts)
+        pg_crud_macros_cmn::ts_helpers::gen_mod_with_pub_use_ts(&gen_pg_types_mod_sc, &ts)
     };
-    macros_helpers::mb_write_ts_into_file(
+    macros_helpers::ts_writer::mb_write_ts_into_file(
         gen_pg_types_config.whole_write_into_file,
         "gen_pg_types",
-        macros_helpers::ProcMacro2TsRef::from(generated.as_ref()),
-        &macros_helpers::FormatWithCargofmt::True,
+        macros_helpers::ts_writer::ProcMacro2TsRef::from(generated.as_ref()),
+        &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     generated
 }

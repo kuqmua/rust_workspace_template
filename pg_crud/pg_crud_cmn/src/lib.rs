@@ -430,10 +430,10 @@ pub enum PgCrudStringWrapperTryFromStringEr {
     #[error("string wrapper length {len} exceeds maximum {max}")]
     TooLong { len: usize, max: usize },
 }
-impl loc_lib::ToErrString for PgCrudStringWrapperTryFromStringEr {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for PgCrudStringWrapperTryFromStringEr {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 impl From<PgCrudStringWrapperTryFromStringEr> for PgQueryBindEr {
@@ -652,7 +652,7 @@ where
         )
     }
 }
-impl<T> loc_lib::ToErrString for NlJsonObjPgTypeWhFlt<T>
+impl<T> to_err_string::ToErrString for NlJsonObjPgTypeWhFlt<T>
 where
     T: std::fmt::Debug
         + PartialEq
@@ -660,9 +660,9 @@ where
         + for<'t_lt> PgTypeWhFlt<'t_lt>
         + AllEnumVrtsArrDfltSomeOneEl,
 {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(format!("{self:#?}"))
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(format!("{self:#?}"))
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 impl<T> AllEnumVrtsArrDfltSomeOneEl for NlJsonObjPgTypeWhFlt<T>
@@ -685,7 +685,7 @@ where
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    loc_lib::Location,
+    location::Location,
     optml::Optml,
 )]
 pub enum QpEr {
@@ -704,7 +704,7 @@ pub enum QpEr {
 impl From<PgCrudStringWrapperTryFromStringEr> for QpEr {
     fn from(er: PgCrudStringWrapperTryFromStringEr) -> Self {
         Self::StringWrapperTryFromString {
-            loc: loc_lib::loc!(),
+            loc: loc_macros::loc!(),
             er,
         }
     }
@@ -929,7 +929,7 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
             let v = PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h)?;
             if std::fmt::Write::write_fmt(&mut acc, format_args!("{v} ")).is_err() {
                 return Err(QpEr::WriteIntoBuffer {
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 });
             }
             add_oprtr_inn_h = AddOprtr::from(true);
@@ -1036,11 +1036,13 @@ impl std::fmt::Display for OrderUccStr {
 impl Order {
     #[must_use]
     pub fn to_sc_str(&self) -> OrderScStr {
-        OrderScStr::try_from(naming::DisplayToScStr::case(self)).unwrap_or_else(OrderScStr::from)
+        OrderScStr::try_from(naming_cmn::DisplayToScStr::case(self))
+            .unwrap_or_else(OrderScStr::from)
     }
     #[must_use]
     pub fn to_ucc_str(&self) -> OrderUccStr {
-        OrderUccStr::try_from(naming::DisplayToUccStr::case(self)).unwrap_or_else(OrderUccStr::from)
+        OrderUccStr::try_from(naming_cmn::DisplayToUccStr::case(self))
+            .unwrap_or_else(OrderUccStr::from)
     }
 }
 #[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
@@ -1145,7 +1147,7 @@ struct PgnStartsWithZeroRaw {
 #[serde(try_from = "PgnStartsWithZeroRaw")]
 pub struct PgnStartsWithZero(PgnBase);
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, loc_lib::Location, optml::Optml,
+    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
 )]
 pub enum PgnStartsWithZeroTryNewEr {
     LimitIsLessThanOrEqToZero {
@@ -1189,12 +1191,12 @@ impl PgnStartsWithZero {
             if limit_value.get() <= 0 {
                 Err(PgnStartsWithZeroTryNewEr::LimitIsLessThanOrEqToZero {
                     limit: limit_value,
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 })
             } else {
                 Err(PgnStartsWithZeroTryNewEr::OffsetIsLessThanZero {
                     offset: offset_value,
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 })
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
@@ -1203,7 +1205,7 @@ impl PgnStartsWithZero {
             Err(PgnStartsWithZeroTryNewEr::OffsetPlusLimitIsIntOverflow {
                 limit: limit_value,
                 offset: offset_value,
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         }
     }
@@ -1271,7 +1273,7 @@ pub trait IsStringEmpty {
     fn is_string_empty(&self) -> IsStringEmptyRes;
 }
 #[derive(
-    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, loc_lib::Location, optml::Optml,
+    Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
 )]
 pub enum NotEmptyUnqVecTryNewEr<T> {
     IsEmpty {
@@ -1310,13 +1312,13 @@ impl<T: PartialEq> NotEmptyUnqVec<T> {
     pub fn try_new(mut values: Vec<T>) -> Result<Self, NotEmptyUnqVecTryNewEr<T>> {
         if values.is_empty() {
             return Err(NotEmptyUnqVecTryNewEr::IsEmpty {
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             });
         }
         if let Some(duplicate) = take_fst_dup(&mut values) {
             return Err(NotEmptyUnqVecTryNewEr::NotUnq {
                 v: duplicate,
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             });
         }
         Ok(Self(values))
@@ -1597,7 +1599,7 @@ pub struct UnsignedPartOfI32(i32);
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    loc_lib::Location,
+    location::Location,
     schemars::JsonSchema,
     optml::Optml,
 )]
@@ -1637,10 +1639,10 @@ impl std::fmt::Display for UnsignedPartOfI32Raw {
         write!(f, "{}", self.0)
     }
 }
-impl loc_lib::ToErrString for UnsignedPartOfI32Raw {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for UnsignedPartOfI32Raw {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 impl TryFrom<i32> for UnsignedPartOfI32 {
@@ -1651,15 +1653,15 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
         } else {
             Err(Self::Error::LessThanZero {
                 v: UnsignedPartOfI32Raw::from(v),
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         }
     }
 }
-impl loc_lib::ToErrString for UnsignedPartOfI32 {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(self.0.to_string())
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for UnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(self.0.to_string())
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 impl sqlx::Type<sqlx::Postgres> for UnsignedPartOfI32 {
@@ -1712,7 +1714,7 @@ pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    loc_lib::Location,
+    location::Location,
     schemars::JsonSchema,
     optml::Optml,
 )]
@@ -1732,20 +1734,20 @@ impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
         let v0 = UnsignedPartOfI32::try_from(v).map_err(|er| {
             Self::Error::UnsignedPartOfI32TryFromI32Er {
                 v: er,
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             }
         })?;
         if v0.0 == 0 {
             Err(Self::Error::IsZero {
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         } else {
             Ok(Self(v0))
         }
     }
 }
-impl loc_lib::ToErrString for NotZeroUnsignedPartOfI32 {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
+impl to_err_string::ToErrString for NotZeroUnsignedPartOfI32 {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
         self.0.to_err_string()
     }
 }
@@ -1825,7 +1827,7 @@ where
     incr.checked_add_one().map_or_else(
         || {
             Err(QpEr::CheckedAdd {
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         },
         Ok,

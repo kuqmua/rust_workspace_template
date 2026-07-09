@@ -7,8 +7,8 @@
     Clone,
     Copy,
     Hash,
-    naming::AsRefStrEnumWithUnitFieldsToUccStr,
-    naming::AsRefStrEnumWithUnitFieldsToScStr,
+    naming_macros::AsRefStrEnumWithUnitFieldsToUccStr,
+    naming_macros::AsRefStrEnumWithUnitFieldsToScStr,
     optml::Optml,
 )]
 pub enum StatusCode {
@@ -75,7 +75,7 @@ pub enum StatusCode {
 }
 impl StatusCode {
     #[must_use]
-    pub fn to_http_status_code_ts(&self) -> crate::GeneratedRustTs {
+    pub fn to_http_status_code_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
         let ts = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
@@ -140,21 +140,23 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        crate::GeneratedRustTs::from(quote::quote! {http::StatusCode::#ts})
+        crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {http::StatusCode::#ts})
     }
     #[must_use]
-    pub fn to_proc_macro_attr_view_ts(&self) -> crate::GeneratedRustTs {
+    pub fn to_proc_macro_attr_view_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
-            Ok(v) => crate::GeneratedRustTs::from(v),
+            Ok(v) => crate::generated_rust_ts::GeneratedRustTs::from(v),
             Err(er) => {
                 let msg = er.to_string();
-                crate::GeneratedRustTs::from(quote::quote! {compile_error!(#msg);})
+                crate::generated_rust_ts::GeneratedRustTs::from(
+                    quote::quote! {compile_error!(#msg);},
+                )
             }
         }
     }
     #[must_use]
-    pub fn to_status_code_description_ts(&self) -> crate::GeneratedRustTs {
-        crate::GeneratedRustTs::from(match *self {
+    pub fn to_status_code_description_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
+        crate::generated_rust_ts::GeneratedRustTs::from(match *self {
             Self::Continue100 => quote::quote! {"continue"},
             Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
             Self::Processing102 => quote::quote! {"processing"},
@@ -230,8 +232,8 @@ impl StatusCode {
         })
     }
     #[must_use]
-    pub fn to_status_code_ts(&self) -> crate::GeneratedRustTs {
-        crate::GeneratedRustTs::from(match *self {
+    pub fn to_status_code_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
+        crate::generated_rust_ts::GeneratedRustTs::from(match *self {
             Self::Continue100 => quote::quote! {100},
             Self::SwitchingProtocols101 => quote::quote! {101},
             Self::Processing102 => quote::quote! {102},

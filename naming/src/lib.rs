@@ -1,14 +1,4 @@
 pub mod prm;
-pub use naming_cmn::{
-    AsRefStrToScStr, AsRefStrToScTs, AsRefStrToUccStr, AsRefStrToUccTs, AsRefStrToUpperScStr,
-    AsRefStrToUpperScTs, DisplayToScStr, DisplayToScTs, DisplayToUccStr, DisplayToUccTs,
-    DisplayToUpperScStr, DisplayToUpperScTs, ToTokensToScStr, ToTokensToScTs, ToTokensToUccStr,
-    ToTokensToUccTs, ToTokensToUpperScStr, ToTokensToUpperScTs,
-};
-pub use naming_macros::{
-    AsRefStrEnumWithUnitFieldsToScStr, AsRefStrEnumWithUnitFieldsToUccStr,
-    AsRefStrEnumWithUnitFieldsToUpperScStr,
-};
 pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
 naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["pk"],
@@ -481,7 +471,7 @@ pub trait SwaggerUrlPathSelfQuotesStr {
 }
 impl<T> SwaggerUrlPathSelfQuotesStr for T
 where
-    T: AsRefStrToScStr,
+    T: naming_cmn::AsRefStrToScStr,
 {
     fn swagger_url_path_self_quotes_str(
         &self,

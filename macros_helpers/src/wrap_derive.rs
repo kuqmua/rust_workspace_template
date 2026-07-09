@@ -10,7 +10,7 @@ impl<'tokens_lt> From<&'tokens_lt [&'tokens_lt proc_macro2::TokenStream]>
     }
 }
 #[must_use]
-pub fn wrap_derive(v: ProcMacro2DeriveTokensRef<'_>) -> crate::GeneratedRustTs {
+pub fn wrap_derive(v: ProcMacro2DeriveTokensRef<'_>) -> crate::generated_rust_ts::GeneratedRustTs {
     let tokens = v.0;
     quote::quote! {#[derive(#(#tokens),*)]}.into()
 }

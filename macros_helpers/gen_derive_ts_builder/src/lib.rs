@@ -40,7 +40,8 @@ fn to_sc(input: ToScInput<'_>) -> ScString {
         .filter(|part| !part.is_empty())
         .collect::<Vec<&str>>()
         .join(" ");
-    ScString::try_from(naming::AsRefStrToScStr::case(&normalized)).unwrap_or_else(ScString::from)
+    ScString::try_from(naming_cmn::AsRefStrToScStr::case(&normalized))
+        .unwrap_or_else(ScString::from)
 }
 #[proc_macro]
 pub fn gen_derive_ts_builder(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {

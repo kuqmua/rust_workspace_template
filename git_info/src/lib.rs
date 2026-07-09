@@ -1,6 +1,5 @@
-pub use naming::GITHUB_URL;
 const TREE_SEGMENT: &str = "/tree/";
-const BASE_GIT_COMMIT_LINK_LEN: usize = GITHUB_URL.len() + TREE_SEGMENT.len();
+const BASE_GIT_COMMIT_LINK_LEN: usize = naming::GITHUB_URL.len() + TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
 const PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
     args = ["--always", "--abbrev=40"],
@@ -335,7 +334,7 @@ fn write_git_commit_link<'commit_lt, CommitIdTy>(
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    output.0.push_str(GITHUB_URL);
+    output.0.push_str(naming::GITHUB_URL);
     output.0.push_str(TREE_SEGMENT);
     output.0.push_str(commit_id_ref.0);
 }
@@ -623,7 +622,7 @@ mod tests {
     #[test]
     fn base_git_commit_link_len_matches_expected_prefix_len() {
         let commit_id = "abc123";
-        let expected = format!("{}/tree/{commit_id}", super::GITHUB_URL).len();
+        let expected = format!("{}/tree/{commit_id}", naming::GITHUB_URL).len();
         assert_eq!(super::git_commit_link_capacity(commit_id), expected);
     }
     #[test]
@@ -656,7 +655,7 @@ mod tests {
     fn git_commit_link_capacity_handles_empty_commit() {
         assert_eq!(
             super::git_commit_link_capacity(""),
-            super::GITHUB_URL.len() + super::TREE_SEGMENT.len()
+            naming::GITHUB_URL.len() + super::TREE_SEGMENT.len()
         );
     }
 }

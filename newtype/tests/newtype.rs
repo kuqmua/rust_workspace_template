@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    mod loc_lib {
+    mod to_err_string {
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub(crate) struct ToErrStringValue(String);
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -102,18 +102,24 @@ mod tests {
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
         assert_eq!(GetStringValue::get_string_value(&v), "abc");
-        assert_eq!(loc_lib::ToErrString::to_err_string(&v).as_ref(), "abc");
+        assert_eq!(
+            to_err_string::ToErrString::to_err_string(&v).as_ref(),
+            "abc"
+        );
     }
     #[test]
     fn display_to_err_string_impl_is_generated() {
         let v = UsizeValue::from(42usize);
         assert_eq!(v.to_string(), "42");
-        assert_eq!(loc_lib::ToErrString::to_err_string(&v).as_ref(), "42");
+        assert_eq!(to_err_string::ToErrString::to_err_string(&v).as_ref(), "42");
     }
     #[test]
     fn debug_to_err_string_impl_is_generated() {
         let v = DebugValue(vec![1, 2]);
-        assert_eq!(loc_lib::ToErrString::to_err_string(&v).as_ref(), "[1, 2]");
+        assert_eq!(
+            to_err_string::ToErrString::to_err_string(&v).as_ref(),
+            "[1, 2]"
+        );
     }
     #[test]
     fn inner_accessors_are_generated() {

@@ -7,10 +7,10 @@
 // eo_loc_field
 // https://github.com/kuqmua/rust_workspace_template/blob/ebb9f680ea508fb5df5ee5d2791e96ca34610bc2/loc_test/src/main.rs#L85 2024-05-06 09:17:23
 const LOC_TEST_TEXT_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
+#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum ErOne {
-    //use loc_lib::ToErrString for hashmap ks instead of Display
-    //todo even for String in serialize deserialize version of er must be using loc_lib::ToErrString impl instead of std::fmt::Display
+    //use to_err_string::ToErrString for hashmap ks instead of Display
+    //todo even for String in serialize deserialize version of er must be using to_err_string::ToErrString impl instead of std::fmt::Display
     //todo test on using only loc as pnly field in named vrt
     Vrt {
         #[eo_to_err_string]
@@ -103,7 +103,7 @@ pub struct LocTestFlag(bool);
 )]
 #[newtype(from, to_err_string)]
 pub struct LocTestCount(u32);
-#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
+#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum ErTwo {
     Another {
         #[eo_to_err_string_serde]
@@ -116,7 +116,7 @@ pub enum ErTwo {
         loc: loc_lib::loc::Loc,
     },
 }
-#[derive(Debug, thiserror::Error, loc_lib::Location, optml::Optml)]
+#[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum ErUnnamedOne {
     Something(ErTwo),
 }
@@ -126,10 +126,10 @@ pub struct DisplayStruct {
     pub something: LocTestFlag,
 }
 //todo or mb two different traits - display foreign type and convert into serializable and deserializable type
-impl loc_lib::ToErrString for DisplayStruct {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(format!("{self:?}"))
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for DisplayStruct {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 //todo rename fields
@@ -140,10 +140,10 @@ pub struct SerdeStruct {
     pub three: LocTestCount,
     pub two: LocTestFlag,
 }
-impl loc_lib::ToErrString for SerdeStruct {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(format!("{self:?}"))
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for SerdeStruct {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(format!("{self:?}"))
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 fn main() {
@@ -159,7 +159,7 @@ fn main() {
         },
         eo_loc_field: ErTwo::Vrt {
             eo_display_with_serde_field: LocTestText(String::from("v")),
-            loc: loc_lib::loc!(),
+            loc: loc_macros::loc!(),
         },
         eo_vec_display_field: vec![
             DisplayStruct {
@@ -186,11 +186,11 @@ fn main() {
         eo_vec_loc_field: vec![
             ErUnnamedOne::Something(ErTwo::Vrt {
                 eo_display_with_serde_field: LocTestText(String::from("v")),
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             }),
             ErUnnamedOne::Something(ErTwo::Vrt {
                 eo_display_with_serde_field: LocTestText(String::from("123")),
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             }),
         ],
         hashmap_string_string: std::collections::HashMap::from([
@@ -232,18 +232,18 @@ fn main() {
                 LocTestText(String::from("ksdfgadsfgsdfgdfgey")),
                 ErUnnamedOne::Something(ErTwo::Vrt {
                     eo_display_with_serde_field: LocTestText(String::from("vasdfgdgdfglue")),
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 }),
             ),
             (
                 LocTestText(String::from("kesdfgsdgfdfgy")),
                 ErUnnamedOne::Something(ErTwo::Vrt {
                     eo_display_with_serde_field: LocTestText(String::from("valsdfgdsafgdsgue")),
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 }),
             ),
         ]),
-        loc: loc_lib::loc!(),
+        loc: loc_macros::loc!(),
     };
     println!("{er:?}");
 }

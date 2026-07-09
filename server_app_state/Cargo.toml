@@ -17,7 +17,7 @@ cmn_routes = { workspace = true }
 git_info = { workspace = true }
 app_state = { workspace = true }
 server_config = { workspace = true }
-pg_crud = { workspace = true, features = ["test-utils"] }
+pg_tbl = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]

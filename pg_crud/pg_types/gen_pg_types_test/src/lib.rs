@@ -18,7 +18,7 @@ wh_flts = { workspace = true }
 optml = { workspace = true }
 [features]
 test-utils = []",
-            &gen_pg_types_src::gen_pg_types(macros_helpers::ProcMacro2TsRef::from(
+            &gen_pg_types_src::gen_pg_types(macros_helpers::ts_writer::ProcMacro2TsRef::from(
                 &quote::quote! {
                     {
                         "pg_tbl_cols_write_into_file": "False",

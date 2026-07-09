@@ -19,8 +19,11 @@ regex = { workspace = true }
 thiserror = { workspace = true }
 gen_wh_flts = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
+to_err_string = { workspace = true }
 [lints]
 workspace = true
 

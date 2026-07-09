@@ -1,10 +1,9 @@
-pub use gen_pg_tbl::*;
 const PG_TBL_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait CombinationOfAppStateLogicTraits:
-    app_state::GetEnableApiGitCommitCheck
-    + app_state::GetMaximumSizeOfHttpBodyInBytes
-    + app_state::GetSrcPlaceType
-    + app_state::GetChronoTimezone
+    config_lib::GetEnableApiGitCommitCheck
+    + config_lib::GetMaximumSizeOfHttpBodyInBytes
+    + config_lib::GetSrcPlaceType
+    + config_lib::GetChronoTimezone
     + app_state::GetSqlxPgPool
     + Send
     + Sync

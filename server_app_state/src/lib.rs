@@ -11,24 +11,24 @@ impl ServerAppState<'_> {
     }
 }
 impl cmn_routes::CmnRoutesPrms for ServerAppState<'_> {}
-impl pg_crud::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
+impl pg_tbl::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
 server_app_state_macros::impl_cfg_getter!(
-    app_state::GetEnableApiGitCommitCheck,
+    config_lib::GetEnableApiGitCommitCheck,
     get_enable_api_git_commit_check,
     bool
 );
 server_app_state_macros::impl_cfg_getter!(
-    app_state::GetSrcPlaceType,
+    config_lib::GetSrcPlaceType,
     get_src_place_type,
     config_lib::types::SrcPlaceType
 );
 server_app_state_macros::impl_cfg_getter!(
-    app_state::GetChronoTimezone,
+    config_lib::GetChronoTimezone,
     get_chrono_timezone,
     chrono::FixedOffset
 );
 server_app_state_macros::impl_cfg_getter!(
-    app_state::GetMaximumSizeOfHttpBodyInBytes,
+    config_lib::GetMaximumSizeOfHttpBodyInBytes,
     get_maximum_size_of_http_body_in_bytes,
     usize
 );
@@ -87,18 +87,20 @@ mod tests {
         let git_info = mk_git_info();
         let st = mk_st(&git_info);
         assert_eq!(
-            app_state::GetSrcPlaceType::get_src_place_type(&st),
+            config_lib::GetSrcPlaceType::get_src_place_type(&st),
             &config_lib::types::SrcPlaceType::Github
         );
         assert_eq!(
-            app_state::GetChronoTimezone::get_chrono_timezone(&st).local_minus_utc(),
+            config_lib::GetChronoTimezone::get_chrono_timezone(&st).local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(
-            app_state::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(&st),
+            config_lib::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
+                &st
+            ),
             &16_384
         );
-        assert!(app_state::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(&st));
+        assert!(config_lib::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(&st));
     }
     #[tokio::test]
     async fn get_pg_pool_returns_same_pool_ref() {

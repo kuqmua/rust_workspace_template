@@ -24,7 +24,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let er_ts = {
         let vrts_ts = fields_named.iter().map(|el| {
             let el_ident = field_ident(el, "2ecb63c1");
-            let el_ident_ucc_ts = naming::ToTokensToUccTs::case_or_panic(&el_ident);
+            let el_ident_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el_ident);
             let el_ty = &el.ty;
             quote::quote! {
                 #el_ident_ucc_ts {
@@ -49,12 +49,12 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let display_er_ts = {
         let vrts_ts = fields_named.iter().map(|el| {
             let el_ident = field_ident(el, "8b79a379");
-            let el_ident_ucc_ts = naming::ToTokensToUccTs::case_or_panic(&el_ident);
+            let el_ident_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el_ident);
             quote::quote! {
                 Self::#el_ident_ucc_ts { #el_ident } => write!(f, "{}", #el_ident)
             }
         });
-        macros_helpers::gen_impl_display_ts(
+        macros_helpers::gen_impl_display_ts::gen_impl_display_ts(
             &proc_macro2::TokenStream::new(),
             &ident_try_from_env_er_ucc,
             &proc_macro2::TokenStream::new(),
@@ -77,8 +77,8 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             let el_ident = field_ident(el, "ebf4e1b2");
             let el_ty = &el.ty;
             let el_ident_quotes_upper_sc_string =
-                syn::LitStr::new(&naming::ToTokensToUpperScStr::case(&el_ident), ident.span());
-            let el_ident_ucc_ts = naming::ToTokensToUccTs::case_or_panic(&el_ident);
+                syn::LitStr::new(&naming_cmn::ToTokensToUpperScStr::case(&el_ident), ident.span());
+            let el_ident_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el_ident);
             quote::quote! {
                 let #el_ident = config_lib::parse_required_env_var(
                     config_lib::EnvVarNameRef::from(#el_ident_quotes_upper_sc_string),

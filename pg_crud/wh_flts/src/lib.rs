@@ -166,7 +166,7 @@ where
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    loc_lib::Location,
+    location::Location,
     optml::Optml,
 )]
 pub enum BtwnTryNewEr<T> {
@@ -188,7 +188,7 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
             Err(BtwnTryNewEr::StartMoreOrEqToEnd {
                 start,
                 end,
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         }
     }
@@ -573,7 +573,7 @@ pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    loc_lib::Location,
+    location::Location,
     schemars::JsonSchema,
     optml::Optml,
 )]
@@ -614,10 +614,10 @@ impl std::fmt::Display for BoundedVecLen {
         write!(f, "{}", self.0)
     }
 }
-impl loc_lib::ToErrString for BoundedVecLen {
-    fn to_err_string(&self) -> loc_lib::ToErrStringValue {
-        loc_lib::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(loc_lib::ToErrStringValue::from)
+impl to_err_string::ToErrString for BoundedVecLen {
+    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
+        to_err_string::ToErrStringValue::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
 enum Vrt {
@@ -685,7 +685,7 @@ impl<
             let write_res = std::fmt::Write::write_fmt(&mut acc, format_args!("[${v}]"));
             if write_res.is_err() {
                 return Err(pg_crud_cmn::QpEr::WriteIntoBuffer {
-                    loc: loc_lib::loc!(),
+                    loc: loc_macros::loc!(),
                 });
             }
             Ok(acc)
@@ -707,7 +707,7 @@ impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
             Err(BoundedVecTryNewEr::LenIsNotCorrect {
                 wrong_len: BoundedVecLen::from(len),
                 expected: BoundedVecLen::from(LENGTH),
-                loc: loc_lib::loc!(),
+                loc: loc_macros::loc!(),
             })
         }
     }

@@ -244,12 +244,12 @@ impl Loc {
     }
     fn fmt_place(
         &self,
-        src_place_type: app_state::SrcPlaceType,
+        src_place_type: config_lib::types::SrcPlaceType,
         f: StdFmtRefMut<'_, '_>,
     ) -> std::fmt::Result {
         match src_place_type {
-            app_state::SrcPlaceType::Src => self.fmt_src_place(f),
-            app_state::SrcPlaceType::Github => self.fmt_github_place(f),
+            config_lib::types::SrcPlaceType::Src => self.fmt_src_place(f),
+            config_lib::types::SrcPlaceType::Github => self.fmt_github_place(f),
         }
     }
     fn fmt_src_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
@@ -333,7 +333,10 @@ impl std::ops::Deref for StdTimeDurationNanos {
 }
 impl std::fmt::Display for Loc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.fmt_place(app_state::SrcPlaceType::from_env_or_dflt(), StdFmtRefMut(f))?;
+        self.fmt_place(
+            config_lib::types::SrcPlaceType::from_env_or_dflt(),
+            StdFmtRefMut(f),
+        )?;
         f.write_str(" ")?;
         self.fmt_datetime(StdFmtRefMut(f))
     }
@@ -351,7 +354,7 @@ mod tests {
     }
     struct PlaceFmt<'loc_lt> {
         loc: &'loc_lt super::Loc,
-        src_place_type: app_state::SrcPlaceType,
+        src_place_type: config_lib::types::SrcPlaceType,
     }
     impl std::fmt::Display for PlaceFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -379,7 +382,7 @@ mod tests {
             col: super::LocCol(40),
         }
     }
-    fn fmt_place(loc: &super::Loc, src_place_type: app_state::SrcPlaceType) -> String {
+    fn fmt_place(loc: &super::Loc, src_place_type: config_lib::types::SrcPlaceType) -> String {
         format!(
             "{:}",
             PlaceFmt {
@@ -392,7 +395,7 @@ mod tests {
     fn fmt_place_src_without_occr() {
         let loc = test_loc(std::time::Duration::from_secs(0), None);
         assert_eq!(
-            fmt_place(&loc, app_state::SrcPlaceType::Src),
+            fmt_place(&loc, config_lib::types::SrcPlaceType::Src),
             "src/lib.rs:10:20"
         );
     }
@@ -400,7 +403,7 @@ mod tests {
     fn fmt_place_src_with_occr() {
         let loc = test_loc(std::time::Duration::from_secs(0), Some(test_occr()));
         assert_eq!(
-            fmt_place(&loc, app_state::SrcPlaceType::Src),
+            fmt_place(&loc, config_lib::types::SrcPlaceType::Src),
             "src/lib.rs:10:20 (src/er.rs:30:40)"
         );
     }
@@ -408,7 +411,7 @@ mod tests {
     fn fmt_place_github_without_occr() {
         let loc = test_loc(std::time::Duration::from_secs(0), None);
         assert_eq!(
-            fmt_place(&loc, app_state::SrcPlaceType::Github),
+            fmt_place(&loc, config_lib::types::SrcPlaceType::Github),
             format!("{}/blob/abc123/src/lib.rs#L10", naming::GITHUB_URL)
         );
     }
@@ -416,7 +419,7 @@ mod tests {
     fn fmt_place_github_with_occr() {
         let loc = test_loc(std::time::Duration::from_secs(0), Some(test_occr()));
         assert_eq!(
-            fmt_place(&loc, app_state::SrcPlaceType::Github),
+            fmt_place(&loc, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/er.rs#L30)",
                 naming::GITHUB_URL,

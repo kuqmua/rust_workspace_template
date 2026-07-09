@@ -1,9 +1,6 @@
-mod flts;
-mod pg_type_test_cases;
-mod ts_helpers;
-pub use flts::*;
-pub use pg_type_test_cases::*;
-pub use ts_helpers::*;
+pub mod flts;
+pub mod pg_type_test_cases;
+pub mod ts_helpers;
 const IS_NL_PREFIX_STR_MAX_LEN: usize = 1_048_576;
 #[allow(dead_code, non_snake_case)]
 struct NamesCtx {
@@ -144,12 +141,12 @@ impl NamesCtx {
 #[derive(Debug, Clone, optml::Optml)]
 pub enum DeriveOrImpl {
     Derive,
-    Impl(macros_helpers::GeneratedRustTs),
+    Impl(macros_helpers::generated_rust_ts::GeneratedRustTs),
 }
 #[derive(Debug, Clone, Default)]
-pub struct GeneratedRustTsVec(Vec<macros_helpers::GeneratedRustTs>);
-impl From<Vec<macros_helpers::GeneratedRustTs>> for GeneratedRustTsVec {
-    fn from(value: Vec<macros_helpers::GeneratedRustTs>) -> Self {
+pub struct GeneratedRustTsVec(Vec<macros_helpers::generated_rust_ts::GeneratedRustTs>);
+impl From<Vec<macros_helpers::generated_rust_ts::GeneratedRustTs>> for GeneratedRustTsVec {
+    fn from(value: Vec<macros_helpers::generated_rust_ts::GeneratedRustTs>) -> Self {
         Self(value)
     }
 }
@@ -158,10 +155,10 @@ impl quote::ToTokens for GeneratedRustTsVec {
         tokens.extend(self.0.iter().map(quote::ToTokens::to_token_stream));
     }
 }
-impl FromIterator<macros_helpers::GeneratedRustTs> for GeneratedRustTsVec {
+impl FromIterator<macros_helpers::generated_rust_ts::GeneratedRustTs> for GeneratedRustTsVec {
     fn from_iter<T>(iter: T) -> Self
     where
-        T: IntoIterator<Item = macros_helpers::GeneratedRustTs>,
+        T: IntoIterator<Item = macros_helpers::generated_rust_ts::GeneratedRustTs>,
     {
         Self(iter.into_iter().collect())
     }
@@ -376,8 +373,8 @@ impl IsNl {
     #[must_use]
     pub fn mb_opt_wrap(
         &self,
-        ts: macros_helpers::GeneratedRustTs,
-    ) -> macros_helpers::GeneratedRustTs {
+        ts: macros_helpers::generated_rust_ts::GeneratedRustTs,
+    ) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
         match &self {
             Self::False => ts,
             Self::True => quote::quote! {Option<#ts>}.into(),
@@ -386,8 +383,8 @@ impl IsNl {
     #[must_use]
     pub fn mb_some_wrap(
         &self,
-        ts: macros_helpers::GeneratedRustTs,
-    ) -> macros_helpers::GeneratedRustTs {
+        ts: macros_helpers::generated_rust_ts::GeneratedRustTs,
+    ) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
         match &self {
             Self::False => ts,
             Self::True => quote::quote! {Some(#ts)}.into(),
@@ -421,35 +418,30 @@ impl IsNl {
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum Import {
     Crate,
-    PgCrud,
     PgCrudCmn,
 }
 impl Import {
     fn all_vrts_dflt_some_one_el(&self) -> &dyn quote::ToTokens {
         match &self {
             Self::Crate => &token_patterns::CrateAllEnumVrtsArrDfltSomeOneEl,
-            Self::PgCrud => &token_patterns::PgCrudAllEnumVrtsArrDfltSomeOneEl,
             Self::PgCrudCmn => &token_patterns::PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
         }
     }
     fn all_vrts_dflt_some_one_el_max_page_size(&self) -> &dyn quote::ToTokens {
         match &self {
             Self::Crate => &token_patterns::CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-            Self::PgCrud => &token_patterns::PgCrudAllEnumVrtsArrDfltSomeOneElMaxPageSize,
             Self::PgCrudCmn => &token_patterns::PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
         }
     }
     fn dflt_some_one_el(&self) -> &dyn quote::ToTokens {
         match &self {
             Self::Crate => &token_patterns::CrateDfltSomeOneEl,
-            Self::PgCrud => &token_patterns::PgCrudDfltSomeOneEl,
             Self::PgCrudCmn => &token_patterns::PgCrudCmnDfltSomeOneEl,
         }
     }
     fn dflt_some_one_el_max_page_size(&self) -> &dyn quote::ToTokens {
         match &self {
             Self::Crate => &token_patterns::CrateDfltSomeOneElMaxPageSize,
-            Self::PgCrud => &token_patterns::PgCrudDfltSomeOneElMaxPageSize,
             Self::PgCrudCmn => &token_patterns::PgCrudCmnDfltSomeOneElMaxPageSize,
         }
     }
@@ -457,7 +449,6 @@ impl Import {
     pub fn sc_str(&self) -> ImportScStr {
         match &self {
             Self::Crate => ImportScStr::from("crate"),
-            Self::PgCrud => ImportScStr::from("pg_crud"),
             Self::PgCrudCmn => ImportScStr::from("pg_crud_cmn"),
         }
     }
@@ -465,7 +456,6 @@ impl Import {
     pub fn to_path(&self) -> ImportPathStr {
         match &self {
             Self::Crate => ImportPathStr::from("crate"),
-            Self::PgCrud => ImportPathStr::from("pg_crud"),
             Self::PgCrudCmn => ImportPathStr::from("pg_crud_cmn"),
         }
     }
@@ -474,7 +464,6 @@ impl quote::ToTokens for Import {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         match &self {
             Self::Crate => quote::quote! { crate },
-            Self::PgCrud => quote::quote! { pg_crud },
             Self::PgCrudCmn => quote::quote! { pg_crud_cmn },
         }
         .to_tokens(tokens);
@@ -526,7 +515,10 @@ pub enum EqOprtrH {
 }
 impl EqOprtrH {
     #[must_use]
-    pub fn to_tokens_path(&self, import: &Import) -> macros_helpers::GeneratedRustTs {
+    pub fn to_tokens_path(
+        &self,
+        import: &Import,
+    ) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
         let names = NamesCtx::new();
         #[allow(non_snake_case)]
         let (EqOprtrUcc,) = (&names.EqOprtrUcc,);
@@ -574,12 +566,12 @@ pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpTargetUndrscr, false => quo
 pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpValueUndrscr, false => naming::VSc, true => quote::quote! {_});
 pub fn gen_pg_type_wh_ts(
     attrs_ts: &dyn quote::ToTokens,
-    vrts: &Vec<&dyn PgFlt>,
+    vrts: &Vec<&dyn flts::PgFlt>,
     prefix: &dyn quote::ToTokens,
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_qb_mut: &IsQbMut,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AddOprtrSc, ColSc, IncrSc, PgCrudCmnDfltSomeOneElCall, QuerySc, VSc) = (
@@ -595,7 +587,8 @@ pub fn gen_pg_type_wh_ts(
         let vrts_ts = vrts.iter().map(|el| {
             let el_ucc = el.ucc();
             let prefix_wh_self_ucc = el.prefix_wh_self_ucc();
-            let opt_type_ts: Option<macros_helpers::GeneratedRustTs> = el.mb_generic();
+            let opt_type_ts: Option<macros_helpers::generated_rust_ts::GeneratedRustTs> =
+                el.mb_generic();
             let type_ts =
                 opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
             quote::quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
@@ -673,8 +666,8 @@ pub fn gen_pg_type_wh_ts(
 pub fn gen_impl_to_err_string_no_generics_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
-    macros_helpers::gen_impl_to_err_string_ts(
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+    macros_helpers::gen_impl_to_err_string_ts::gen_impl_to_err_string_ts(
         &proc_macro2::TokenStream::new(),
         ident,
         &proc_macro2::TokenStream::new(),
@@ -683,8 +676,8 @@ pub fn gen_impl_to_err_string_no_generics_ts(
 }
 pub fn gen_impl_display_and_to_err_string_debug_ts(
     ident: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
-    let impl_display_ts = macros_helpers::gen_impl_display_ts(
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+    let impl_display_ts = macros_helpers::gen_impl_display_ts::gen_impl_display_ts(
         &proc_macro2::TokenStream::new(),
         ident,
         &proc_macro2::TokenStream::new(),
@@ -699,14 +692,14 @@ pub fn gen_impl_display_and_to_err_string_debug_ts(
     .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_ts() -> macros_helpers::GeneratedRustTs {
+pub fn pg_crud_cmn_qp_er_ts() -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (QpErUcc,) = (&names.QpErUcc,);
     quote::quote! {pg_crud_cmn::#QpErUcc}.into()
 }
 #[must_use]
-pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::GeneratedRustTs {
+pub fn gen_dim_nbr_pgn_ts(dim_nbr: DimNbr) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let ident = quote::format_ident!("dim{}_pgn", dim_nbr.get());
     quote::quote! {#ident}.into()
 }
@@ -721,13 +714,17 @@ pub fn gen_struct_ident_with_nbr_els_dq_ts(
 }
 pub fn gen_sqlx_types_json_type_dcl_ts(
     type_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {sqlx::types::Json<#type_ts>}.into()
 }
-pub fn gen_opt_type_dcl_ts(type_ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+pub fn gen_opt_type_dcl_ts(
+    type_ts: &dyn quote::ToTokens,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {Option<#type_ts>}.into()
 }
-pub fn gen_vec_tokens_dcl_ts(type_ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+pub fn gen_vec_tokens_dcl_ts(
+    type_ts: &dyn quote::ToTokens,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {Vec<#type_ts>}.into()
 }
 pub fn gen_de_dq_ts(
@@ -754,7 +751,7 @@ pub fn gen_impl_dflt_some_one_el_ts(
     ident: &dyn quote::ToTokens,
     ident_generic_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (DfltSomeOneElSc,) = (&names.DfltSomeOneElSc,);
@@ -772,7 +769,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_ts(
     import: &Import,
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AllVrtsDfltSomeOneElSc,) = (&names.AllVrtsDfltSomeOneElSc,);
@@ -792,7 +789,7 @@ pub fn gen_impl_dflt_some_one_el_max_page_size_ts(
     ident: &dyn quote::ToTokens,
     ident_generic_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (DfltSomeOneElMaxPageSizeSc,) = (&names.DfltSomeOneElMaxPageSizeSc,);
@@ -810,7 +807,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
     import: &Import,
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AllVrtsDfltSomeOneElMaxPageSizeSc,) = (&names.AllVrtsDfltSomeOneElMaxPageSizeSc,);
@@ -828,7 +825,7 @@ pub fn gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -841,10 +838,10 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
     ident: &dyn quote::ToTokens,
     lt_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     gen_impl_dflt_some_one_el_ts(
         &proc_macro2::TokenStream::new(),
-        &Import::PgCrud,
+        &Import::PgCrudCmn,
         ident,
         lt_ts,
         ts,
@@ -853,19 +850,19 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_ts(
 pub fn gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
-    gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrud, ident, ts)
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+    gen_impl_all_vrts_dflt_some_one_el_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn gen_impl_pg_crud_cmn_dflt_some_one_el_max_page_size_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
         &Import::PgCrudCmn,
@@ -878,10 +875,10 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
     ident: &dyn quote::ToTokens,
     lt_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     gen_impl_dflt_some_one_el_max_page_size_ts(
         &proc_macro2::TokenStream::new(),
-        &Import::PgCrud,
+        &Import::PgCrudCmn,
         ident,
         lt_ts,
         ts,
@@ -890,8 +887,8 @@ pub fn gen_impl_pg_crud_dflt_some_one_el_max_page_size_ts(
 pub fn gen_impl_pg_crud_all_vrts_dflt_some_one_el_max_page_size_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
-    gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(&Import::PgCrud, ident, ts)
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+    gen_impl_all_vrts_dflt_some_one_el_max_page_size_ts(&Import::PgCrudCmn, ident, ts)
 }
 pub fn impl_pg_type_wh_flt_for_ident_ts(
     impl_generic_ts: &dyn quote::ToTokens,
@@ -904,7 +901,7 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
     is_qb_mut: &IsQbMut,
     qb_ts: &dyn quote::ToTokens,
     import: &Import,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AllowClippyArbitrarySrcItemOrdering, PgTypeWhFltUcc, QbSc, QpErUcc, QpSc) = (
@@ -938,7 +935,7 @@ pub fn impl_pg_type_wh_flt_for_ident_ts(
 pub fn gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         impl sqlx::Encode<'_, sqlx::Postgres> for #ident_ts {
             fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
@@ -951,7 +948,7 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
     ident_ts: &dyn quote::ToTokens,
     type_ts: &dyn quote::ToTokens,
     ok_v_match_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (ValueSc,) = (&names.ValueSc,);
@@ -969,7 +966,7 @@ pub fn gen_impl_sqlx_decode_sqlx_pg_for_ident_ts(
 pub fn gen_impl_sqlx_type_for_ident_ts(
     ident_ts: &dyn quote::ToTokens,
     type_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         impl sqlx::Type<sqlx::Postgres> for #ident_ts {
             fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
@@ -986,7 +983,7 @@ pub fn gen_impl_sqlx_type_and_encode_for_ident_ts(
     ident_ts: &dyn quote::ToTokens,
     type_ts: &dyn quote::ToTokens,
     encode_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let impl_type_ts = gen_impl_sqlx_type_for_ident_ts(ident_ts, type_ts);
     let impl_encode_ts = gen_impl_sqlx_encode_sqlx_pg_for_ident_ts(ident_ts, encode_ts);
     quote::quote! {
@@ -1030,7 +1027,7 @@ pub fn gen_impl_pg_type_ts(
     sel_only_updd_ids_qp_ts: &dyn quote::ToTokens,
     is_sel_only_updd_ids_qb_mut: &IsSelOnlyUpddIdsQbMut,
     sel_only_updd_ids_qb_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (
@@ -1167,7 +1164,7 @@ pub fn gen_impl_pg_type_ts(
 pub fn gen_impl_pg_type_not_pk_for_ident_ts(
     import: &Import,
     ident: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let ident_cr_ucc = naming::prm::SelfCrUcc::from_tokens(&ident);
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
@@ -1184,13 +1181,14 @@ pub fn gen_impl_pg_type_not_pk_for_ident_ts(
     .into()
 }
 #[must_use]
-pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> macros_helpers::GeneratedRustTs {
-    quote::quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_lib::loc!() }}.into()
+pub fn pg_crud_cmn_qp_er_checked_add_init_ts() -> macros_helpers::generated_rust_ts::GeneratedRustTs
+{
+    quote::quote! {pg_crud_cmn::QpEr::CheckedAdd { loc: loc_macros::loc!() }}.into()
 }
 pub fn gen_impl_crate_is_string_empty_for_ident_ts(
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         impl pg_crud_cmn::IsStringEmpty for #ident {
             fn is_string_empty(&self) -> pg_crud_cmn::IsStringEmptyRes {
@@ -1203,7 +1201,7 @@ pub fn gen_impl_crate_is_string_empty_for_ident_ts(
 pub fn gen_match_try_new_in_de_ts(
     ident: &dyn quote::ToTokens,
     init_ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         match #ident::try_new(#init_ts) {
             Ok(v) => Ok(v),
@@ -1216,8 +1214,11 @@ pub fn gen_impl_de_for_struct_ts(
     ident: &dyn naming::DisplayPlusToTokens,
     vec_ident_type: SynIdentTypeRefs<'_>,
     _len: DeLen,
-    gen_type_ts: &dyn Fn(&syn::Ident, &syn::Type) -> macros_helpers::GeneratedRustTs,
-) -> macros_helpers::GeneratedRustTs {
+    gen_type_ts: &dyn Fn(
+        &syn::Ident,
+        &syn::Type,
+    ) -> macros_helpers::generated_rust_ts::GeneratedRustTs,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let raw_ident_ts = quote::format_ident!("{}Raw", ident.to_string());
@@ -1255,23 +1256,31 @@ pub fn gen_impl_de_for_struct_ts(
         };
     }.into()
 }
-pub fn wrap_into_scopes_ts(ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+pub fn wrap_into_scopes_ts(
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {(#ts)}.into()
 }
 pub fn mb_wrap_into_braces_ts(
     ts: &dyn quote::ToTokens,
     wrap: WrapIntoBraces,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     if bool::from(wrap) {
         wrap_into_scopes_ts(&ts)
     } else {
         quote::quote! {#ts}.into()
     }
 }
-pub fn gen_v_dcl_ts(import: &Import, ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+pub fn gen_v_dcl_ts(
+    import: &Import,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {#import::V<#ts>}.into()
 }
-pub fn gen_v_init_ts(import: &Import, ts: &dyn quote::ToTokens) -> macros_helpers::GeneratedRustTs {
+pub fn gen_v_init_ts(
+    import: &Import,
+    ts: &dyn quote::ToTokens,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (VSc,) = (&names.VSc,);
@@ -1281,7 +1290,7 @@ pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     import: &Import,
     ident: &dyn quote::ToTokens,
     ts: &dyn quote::ToTokens,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (EqOprtrUcc, PgTypeEqOprtrUcc) = (&names.EqOprtrUcc, &names.PgTypeEqOprtrUcc);
@@ -1295,10 +1304,12 @@ pub fn impl_pg_type_eq_oprtr_for_ident_ts(
     .into()
 }
 #[must_use]
-pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> macros_helpers::GeneratedRustTs {
+pub fn gen_qp_er_write_into_buffer_ts(
+    import: Import,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     quote::quote! {
         #import::QpEr::WriteIntoBuffer {
-            loc: loc_lib::loc!()
+            loc: loc_macros::loc!()
         }
     }
     .into()
@@ -1306,7 +1317,7 @@ pub fn gen_qp_er_write_into_buffer_ts(import: Import) -> macros_helpers::Generat
 #[must_use]
 pub fn gen_return_err_qp_er_write_into_buffer_ts(
     import: Import,
-) -> macros_helpers::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let ts = gen_qp_er_write_into_buffer_ts(import);
     quote::quote! {return Err(#ts);}.into()
 }

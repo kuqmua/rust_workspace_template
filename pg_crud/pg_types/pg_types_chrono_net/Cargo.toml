@@ -18,8 +18,11 @@ thiserror = { workspace = true }
 gen_pg_types = { workspace = true }
 pg_crud_cmn = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 wh_flts = { workspace = true }
 optml = { workspace = true }
+to_err_string = { workspace = true }
 [lints]
 workspace = true
 
