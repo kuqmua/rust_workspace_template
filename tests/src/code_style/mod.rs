@@ -30,7 +30,6 @@ const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     "manual_option_zip",
     "useless_borrows_in_formatting",
 ];
-const INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS: [&str; 0] = [];
 const GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS: [&str; 0] = [];
 const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../app_state/src/lib.rs",

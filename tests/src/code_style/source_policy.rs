@@ -194,28 +194,18 @@ fn no_include_asset_macros_outside_allowlist() {
             "include_str!() or include_bytes!() found outside explicit generated/test fixture allowlist:",
         ),
         |path, ast, ers| {
-            if super::is_exception(
-                super::types::StdPathRef::from(path),
-                super::types::StaticStrSliceRef::from(
-                    super::INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS.as_slice(),
-                ),
-            )
-            .get()
-            {
-                return;
-            }
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::IncludeAssetMacroVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
-            ers.extend(visitor.ers.into_iter().map(|er| {
-                    format!(
-                        "{}: {er}; add only generated/test fixture files to super::INCLUDE_ASSET_MACRO_SOURCE_EXCEPTIONS",
-                        path.display()
-                    )
-                }));
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|er| format!("{}: {er}", path.display())),
+            );
         },
     );
 }
