@@ -304,8 +304,17 @@ impl From<Vec<String>> for ParseTsStrings {
 }
 impl ParseTsStrings {
     #[must_use]
-    pub fn into_vec(self) -> Vec<String> {
+    pub fn into_generated_vec(self, uuid: ParseErIdRef<'_>) -> GeneratedRustTsVec {
         self.0
+            .into_iter()
+            .map(|el| match el.as_str().parse::<proc_macro2::TokenStream>() {
+                Ok(parsed_ts) => parsed_ts.into(),
+                Err(er) => {
+                    let msg = format!("{}: {er}", uuid.as_ref());
+                    quote::quote! {compile_error!(#msg);}.into()
+                }
+            })
+            .collect::<GeneratedRustTsVec>()
     }
 }
 #[derive(Debug, Clone, Copy)]

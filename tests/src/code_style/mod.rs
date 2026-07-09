@@ -46,20 +46,6 @@ const PUBLIC_REEXPORT_SOURCE_INCLUSIONS: &[&str] = &[
     "../route_validators/src/lib.rs",
 ];
 const PUBLIC_TUPLE_WRAPPER_FIELD_TEMP_EXCEPTIONS: &[&str] = &[];
-const DOMAIN_TYPE_POLICY_SOURCE_EXCEPTIONS: &[DomainTypePolicySourceException] = &[
-    DomainTypePolicySourceException {
-        path: types::StaticStr("../newtype/src/lib.rs"),
-        reason: types::StaticStr(
-            "proc-macro implementation necessarily exposes syn/proc_macro2 token parsing helpers internally",
-        ),
-    },
-    DomainTypePolicySourceException {
-        path: types::StaticStr("../pg_crud/pg_crud_macros_cmn/src/lib.rs"),
-        reason: types::StaticStr(
-            "macro code-generation context stores concrete naming/token marker types from shared macro helper crates",
-        ),
-    },
-];
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
     ExternalLeafWrapperNameException {
         ident: types::StaticStr("GeneratedRustTs"),
@@ -74,10 +60,6 @@ const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException]
         ),
     },
 ];
-struct DomainTypePolicySourceException {
-    path: types::StaticStr,
-    reason: types::StaticStr,
-}
 struct ExternalLeafWrapperNameException {
     ident: types::StaticStr,
     reason: types::StaticStr,
@@ -800,6 +782,18 @@ impl DomainTypePolicyVisitor<'_> {
             return;
         }
         if self
+            .path_starts_with_repo_crate(types::SynPathRef::from(&ty_path_ref.path))
+            .get()
+        {
+            ty_path_ref.path.segments.iter().for_each(|path_segment| {
+                self.check_path_arguments(
+                    types::SynPathArgumentsRef::from(&path_segment.arguments),
+                    ctx,
+                );
+            });
+            return;
+        }
+        if self
             .path_starts_with_external_crate(types::SynPathRef::from(&ty_path_ref.path))
             .get()
         {
@@ -861,6 +855,16 @@ impl DomainTypePolicyVisitor<'_> {
                         && !self
                             .is_allowed_type_ident(types::SourceTextRef::from(ident.as_str()))
                             .get()
+                }),
+        )
+    }
+    fn path_starts_with_repo_crate(&self, path: types::SynPathRef<'_>) -> types::AnalyzerBool {
+        let path_ref = path.as_ref();
+        types::AnalyzerBool::from(
+            path_ref.segments.len() > 1
+                && path_ref.segments.first().is_some_and(|segment| {
+                    let ident = segment.ident.to_string();
+                    self.repo_crates.as_ref().contains(&ident)
                 }),
         )
     }
@@ -2324,30 +2328,11 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    if is_domain_type_policy_source_exception(path).get() {
-        return types::AnalyzerBool::default();
-    }
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return types::AnalyzerBool::default();
     };
     types::AnalyzerBool::from(
         read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref())).is_some(),
-    )
-}
-#[allow(clippy::single_call_fn)] // validates every domain policy exception has an explicit reason before matching paths
-fn is_domain_type_policy_source_exception(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        DOMAIN_TYPE_POLICY_SOURCE_EXCEPTIONS
-            .iter()
-            .any(|exception| {
-                assert!(!exception.reason.get().is_empty(), "dd9a2f7c");
-                let exception_paths = [exception.path.get()];
-                is_exception(
-                    path,
-                    types::StaticStrSliceRef::from(exception_paths.as_slice()),
-                )
-                .get()
-            }),
     )
 }
 #[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module

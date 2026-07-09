@@ -3,16 +3,7 @@ pub fn parse_strs_to_ts2_vec(
     v: crate::ParseTsStrings,
     uuid: crate::ParseErIdRef<'_>,
 ) -> crate::GeneratedRustTsVec {
-    v.into_vec()
-        .into_iter()
-        .map(|el| match el.as_str().parse::<proc_macro2::TokenStream>() {
-            Ok(parsed_ts) => parsed_ts.into(),
-            Err(er) => {
-                let msg = format!("{}: {er}", uuid.as_ref());
-                quote::quote! {compile_error!(#msg);}.into()
-            }
-        })
-        .collect::<crate::GeneratedRustTsVec>()
+    v.into_generated_vec(uuid)
 }
 #[must_use]
 pub fn gen_mod_with_pub_use_ts(
