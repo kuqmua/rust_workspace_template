@@ -1,3 +1,4 @@
+const SOURCE_TEXT_MAX_LEN: usize = 16 * 1024 * 1024;
 #[derive(Debug, Clone, Copy, Default)]
 pub(super) struct AnalyzerCount(usize);
 impl From<usize> for AnalyzerCount {
@@ -227,11 +228,32 @@ impl std::ops::DerefMut for DiagnosticMsgsMutRef<'_> {
 }
 #[derive(Debug, Clone)]
 pub(super) struct SourceText(Box<str>);
-impl From<String> for SourceText {
-    fn from(value: String) -> Self {
-        Self(value.into_boxed_str())
+#[derive(Debug, Clone, Copy)]
+pub(super) struct SourceTextTryFromStringEr {
+    len: AnalyzerCount,
+}
+impl TryFrom<String> for SourceText {
+    type Error = SourceTextTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > SOURCE_TEXT_MAX_LEN {
+            return Err(SourceTextTryFromStringEr {
+                len: AnalyzerCount::from(value.len()),
+            });
+        }
+        Ok(Self(value.into_boxed_str()))
     }
 }
+impl std::fmt::Display for SourceTextTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "source text length {} exceeds max {}",
+            self.len.get(),
+            SOURCE_TEXT_MAX_LEN
+        )
+    }
+}
+impl std::error::Error for SourceTextTryFromStringEr {}
 impl AsRef<str> for SourceText {
     fn as_ref(&self) -> &str {
         &self.0

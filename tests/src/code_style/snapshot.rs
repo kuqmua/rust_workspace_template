@@ -48,7 +48,7 @@ impl CodebaseSnapshot {
                 let content = std::fs::read_to_string(&path).ok()?;
                 let parsed = content.parse::<toml::Table>().ok()?;
                 Some(CargoTomlSourceFile {
-                    content: super::types::SourceText::from(content),
+                    content: super::types::SourceText::try_from(content).expect("84f6a0d2"),
                     parsed: super::types::TomlTable::from(parsed),
                     path: super::types::StdPathBuf::from(path),
                 })
@@ -70,7 +70,7 @@ impl CodebaseSnapshot {
                 let ast = syn::parse_file(&content).expect("5e7a83eb");
                 Some(RsSourceFile {
                     ast: super::types::SynFile::from(ast),
-                    content: super::types::SourceText::from(content),
+                    content: super::types::SourceText::try_from(content).expect("b0c39e18"),
                     path: super::types::StdPathBuf::from(path),
                 })
             })

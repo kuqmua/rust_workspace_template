@@ -471,15 +471,11 @@ impl StringWrapperFromVisitor<'_> {
         if !item_impl_is_from_string(item).get() {
             return;
         }
-        let Some(ident) = item_impl_self_ty_ident(item) else {
-            return;
-        };
-        if self.string_wrapper_names.contains(ident.as_ref()) {
-            self.ers.push(format!(
-                        "string wrapper `{}` implements `From<String>`; implement `TryFrom<String>` with a length check instead",
-                        ident.as_ref()
-                    ));
-        }
+        let ident = item_impl_self_ty_ident(item)
+            .map_or_else(|| String::from("<non-path target>"), String::from);
+        self.ers.push(format!(
+            "`{ident}` implements `From<String>`; implement `TryFrom<String>` instead"
+        ));
     }
     fn check_newtype_attr(&mut self, item: types::SynItemStructRef<'_>) {
         let item_ref = item.as_ref();
@@ -633,6 +629,12 @@ struct DomainTypePolicyVisitor<'types> {
     generic_scopes: Vec<types::StdSourceTextSet>,
     repo_crates: types::StdStdSourceTextSetRef<'types>,
     repo_types: types::StdStdSourceTextSetRef<'types>,
+}
+struct AnalyzerStateRawContainerFieldVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct HelperRawTextReturnVisitor {
+    ers: types::DiagnosticMsgs,
 }
 struct ExternalLeafWrapperNameVisitor<'types> {
     ers: types::DiagnosticMsgs,
@@ -985,6 +987,92 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         self.pop_generics();
     }
 }
+impl AnalyzerStateRawContainerFieldVisitor {
+    fn check_fields(&mut self, item: types::SynItemStructRef<'_>) {
+        let item_ref = item.as_ref();
+        item_ref.fields.iter().for_each(|field| {
+            if let Some((raw_ty, wrapper_ty)) =
+                analyzer_state_raw_container_ty(types::SynTypeRef::from(&field.ty))
+            {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map_or_else(|| String::from("<tuple>"), ToString::to_string);
+                self.ers.push(format!(
+                    "struct `{}` field `{}` uses `{}`; use `{}`",
+                    item_ref.ident,
+                    field_name,
+                    raw_ty.get(),
+                    wrapper_ty.get()
+                ));
+            }
+        });
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for AnalyzerStateRawContainerFieldVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get() {
+            return;
+        }
+        self.check_fields(types::SynItemStructRef::from(i));
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+impl HelperRawTextReturnVisitor {
+    fn check_sig(&mut self, sig: types::SynSignatureRef<'_>, ctx: types::SourceTextRef<'_>) {
+        let syn::ReturnType::Type(_, ty) = &sig.as_ref().output else {
+            return;
+        };
+        if let Some((raw_ty, wrapper_ty)) = raw_text_return_ty(types::SynTypeRef::from(&**ty)) {
+            self.ers.push(format!(
+                "{} return type uses `{}`; use `{}`",
+                ctx.as_ref(),
+                raw_ty.get(),
+                wrapper_ty.get()
+            ));
+        }
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if item_fn_is_proc_macro(types::SynItemFnRef::from(i)).get() {
+            return;
+        }
+        self.check_sig(
+            types::SynSignatureRef::from(&i.sig),
+            types::SourceTextRef::from(format!("function `{}`", i.sig.ident).as_str()),
+        );
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        if i.trait_.is_some() {
+            return;
+        }
+        i.items
+            .iter()
+            .filter_map(|item| match item {
+                syn::ImplItem::Fn(item_fn)
+                    if !method_is_explicit_wrapper_accessor(types::SynIdentRef::from(
+                        &item_fn.sig.ident,
+                    ))
+                    .get() =>
+                {
+                    Some(item_fn)
+                }
+                syn::ImplItem::Const(_)
+                | syn::ImplItem::Macro(_)
+                | syn::ImplItem::Type(_)
+                | syn::ImplItem::Verbatim(_)
+                | _ => None,
+            })
+            .for_each(|item_fn| {
+                self.check_sig(
+                    types::SynSignatureRef::from(&item_fn.sig),
+                    types::SourceTextRef::from(format!("method `{}`", item_fn.sig.ident).as_str()),
+                );
+            });
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if attrs_contain_test_only_cfg(types::SynAttributeListRef::from(i.attrs.as_slice())).get() {
@@ -1267,7 +1355,7 @@ fn assert_cmd_output_ok(
 }
 #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
-    types::SourceText::from(v.as_ref().replace('-', "_"))
+    types::SourceText::try_from(v.as_ref().replace('-', "_")).expect("f3d821a6")
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
@@ -1819,11 +1907,9 @@ fn item_impl_contains_len_call(item: types::SynItemImplRef<'_>) -> types::Analyz
 #[allow(clippy::single_call_fn)] // extracts impl target type name for string-wrapper diagnostics
 fn item_impl_self_ty_ident(item: types::SynItemImplRef<'_>) -> Option<types::SourceText> {
     match item.as_ref().self_ty.as_ref() {
-        syn::Type::Path(ty_path) => ty_path
-            .path
-            .segments
-            .last()
-            .map(|segment| types::SourceText::from(segment.ident.to_string())),
+        syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
+            types::SourceText::try_from(segment.ident.to_string()).expect("6a9f03d2")
+        }),
         syn::Type::Array(_)
         | syn::Type::BareFn(_)
         | syn::Type::Group(_)
@@ -2220,6 +2306,10 @@ fn is_domain_type_policy_source_exception(path: types::StdPathRef<'_>) -> types:
             }),
     )
 }
+#[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module
+fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(path.as_ref().starts_with("../tests/src/code_style"))
+}
 #[allow(clippy::single_call_fn)] // keeps public re-export allowlist separate from use-import visitor diagnostics
 fn is_public_reexport_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     is_exception(
@@ -2245,6 +2335,282 @@ fn is_structural_generic_container(ident: types::SourceTextRef<'_>) -> types::An
             | "HashSet"
             | "BTreeSet"
     ))
+}
+fn analyzer_state_raw_container_ty(
+    ty: types::SynTypeRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    match ty.get() {
+        syn::Type::Group(ty_group) => {
+            analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_group.elem))
+        }
+        syn::Type::Paren(ty_paren) => {
+            analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_paren.elem))
+        }
+        syn::Type::Path(ty_path) => {
+            analyzer_state_raw_container_ty_path(types::SynTypePathRef::from(ty_path))
+        }
+        syn::Type::Reference(ty_reference) => {
+            analyzer_state_raw_container_ty(types::SynTypeRef::from(&*ty_reference.elem))
+        }
+        syn::Type::Array(_)
+        | syn::Type::BareFn(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::Slice(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Tuple(_)
+        | syn::Type::Verbatim(_)
+        | _ => None,
+    }
+}
+fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, types::StaticStr)> {
+    match ty.get() {
+        syn::Type::Group(ty_group) => raw_text_return_ty(types::SynTypeRef::from(&*ty_group.elem)),
+        syn::Type::Paren(ty_paren) => raw_text_return_ty(types::SynTypeRef::from(&*ty_paren.elem)),
+        syn::Type::Path(ty_path) => raw_text_return_ty_path(types::SynTypePathRef::from(ty_path)),
+        syn::Type::Reference(_) if type_is_str_ref(ty).get() => Some((
+            types::StaticStr("&str"),
+            types::StaticStr("types::SourceTextRef"),
+        )),
+        syn::Type::Reference(ty_reference) => {
+            raw_text_return_ty(types::SynTypeRef::from(&*ty_reference.elem))
+        }
+        syn::Type::Array(_)
+        | syn::Type::BareFn(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::Slice(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Tuple(_)
+        | syn::Type::Verbatim(_)
+        | _ => None,
+    }
+}
+#[allow(clippy::single_call_fn)] // separates return path matching from nested raw text return traversal
+fn raw_text_return_ty_path(
+    ty_path: types::SynTypePathRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    let ty_path_ref = ty_path.get();
+    let segment = ty_path_ref.path.segments.last()?;
+    let ident = segment.ident.to_string();
+    match ident.as_str() {
+        "String" => Some((
+            types::StaticStr("String"),
+            types::StaticStr("types::SourceText"),
+        )),
+        "Vec"
+            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
+                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+        {
+            Some((
+                types::StaticStr("Vec<String>"),
+                types::StaticStr("types::SourceTextList"),
+            ))
+        }
+        "Option"
+            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
+                .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
+        {
+            Some((
+                types::StaticStr("Option<&str>"),
+                types::StaticStr("Option<types::SourceTextRef>"),
+            ))
+        }
+        "Option" | "Result" | "Box" | "Cow" | "Arc" | "Rc" | "Pin" | "PhantomData" | "HashMap"
+        | "BTreeMap" | "HashSet" | "BTreeSet" => {
+            raw_text_return_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments))
+        }
+        _ => None,
+    }
+}
+#[allow(clippy::single_call_fn)] // keeps nested helper-return traversal independent from field-state diagnostics
+fn raw_text_return_path_arguments(
+    arguments: types::SynPathArgumentsRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    match arguments.get() {
+        syn::PathArguments::AngleBracketed(args) => args.args.iter().find_map(|arg| match arg {
+            syn::GenericArgument::Type(ty) => raw_text_return_ty(types::SynTypeRef::from(ty)),
+            syn::GenericArgument::AssocConst(_)
+            | syn::GenericArgument::AssocType(_)
+            | syn::GenericArgument::Constraint(_)
+            | syn::GenericArgument::Const(_)
+            | syn::GenericArgument::Lifetime(_)
+            | _ => None,
+        }),
+        syn::PathArguments::Parenthesized(args) => args
+            .inputs
+            .iter()
+            .find_map(|ty| raw_text_return_ty(types::SynTypeRef::from(ty)))
+            .or_else(|| match &args.output {
+                syn::ReturnType::Default => None,
+                syn::ReturnType::Type(_, ty) => raw_text_return_ty(types::SynTypeRef::from(&**ty)),
+            }),
+        syn::PathArguments::None => None,
+    }
+}
+#[allow(clippy::single_call_fn)] // separates path-shape matching from recursive wrapper/state field traversal
+fn analyzer_state_raw_container_ty_path(
+    ty_path: types::SynTypePathRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    let ty_path_ref = ty_path.get();
+    let segment = ty_path_ref.path.segments.last()?;
+    let ident = segment.ident.to_string();
+    match ident.as_str() {
+        "Vec"
+            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
+                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+        {
+            Some((
+                types::StaticStr("Vec<String>"),
+                types::StaticStr("types::SourceTextList"),
+            ))
+        }
+        "BTreeSet"
+            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
+                .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
+        {
+            Some((
+                types::StaticStr("BTreeSet<String>"),
+                types::StaticStr("types::StdSourceTextSet"),
+            ))
+        }
+        "HashSet"
+            if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
+                .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
+        {
+            Some((
+                types::StaticStr("HashSet<&str>"),
+                types::StaticStr("types::StdSourceTextHashSet or types::StdSourceTextRefSet"),
+            ))
+        }
+        "Option" | "Result" | "Box" | "Cow" | "Arc" | "Rc" | "Pin" | "PhantomData" | "HashMap"
+        | "BTreeMap" => analyzer_state_raw_container_path_arguments(
+            types::SynPathArgumentsRef::from(&segment.arguments),
+        ),
+        _ => None,
+    }
+}
+#[allow(clippy::single_call_fn)] // keeps nested container traversal readable where state fields are diagnosed
+fn analyzer_state_raw_container_path_arguments(
+    arguments: types::SynPathArgumentsRef<'_>,
+) -> Option<(types::StaticStr, types::StaticStr)> {
+    match arguments.get() {
+        syn::PathArguments::AngleBracketed(args) => args.args.iter().find_map(|arg| match arg {
+            syn::GenericArgument::Type(ty) => {
+                analyzer_state_raw_container_ty(types::SynTypeRef::from(ty))
+            }
+            syn::GenericArgument::AssocConst(_)
+            | syn::GenericArgument::AssocType(_)
+            | syn::GenericArgument::Constraint(_)
+            | syn::GenericArgument::Const(_)
+            | syn::GenericArgument::Lifetime(_)
+            | _ => None,
+        }),
+        syn::PathArguments::Parenthesized(args) => args
+            .inputs
+            .iter()
+            .find_map(|ty| analyzer_state_raw_container_ty(types::SynTypeRef::from(ty)))
+            .or_else(|| match &args.output {
+                syn::ReturnType::Default => None,
+                syn::ReturnType::Type(_, ty) => {
+                    analyzer_state_raw_container_ty(types::SynTypeRef::from(&**ty))
+                }
+            }),
+        syn::PathArguments::None => None,
+    }
+}
+fn single_angle_type_arg(
+    arguments: types::SynPathArgumentsRef<'_>,
+) -> Option<types::SynTypeRef<'_>> {
+    let syn::PathArguments::AngleBracketed(args) = arguments.get() else {
+        return None;
+    };
+    let mut type_args = args.args.iter().filter_map(|arg| match arg {
+        syn::GenericArgument::Type(ty) => Some(types::SynTypeRef::from(ty)),
+        syn::GenericArgument::AssocConst(_)
+        | syn::GenericArgument::AssocType(_)
+        | syn::GenericArgument::Constraint(_)
+        | syn::GenericArgument::Const(_)
+        | syn::GenericArgument::Lifetime(_)
+        | _ => None,
+    });
+    let first = type_args.next()?;
+    if type_args.next().is_some() {
+        return None;
+    }
+    Some(first)
+}
+fn type_is_string(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(match ty.get() {
+        syn::Type::Path(ty_path) => ty_path
+            .path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == "String"),
+        syn::Type::Array(_)
+        | syn::Type::BareFn(_)
+        | syn::Type::Group(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Paren(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::Reference(_)
+        | syn::Type::Slice(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Tuple(_)
+        | syn::Type::Verbatim(_)
+        | _ => false,
+    })
+}
+#[allow(clippy::single_call_fn)] // names the HashSet<&str> state-field shape independently from container matching
+fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(match ty.get() {
+        syn::Type::Reference(ty_reference) => match &*ty_reference.elem {
+            syn::Type::Path(ty_path) => ty_path
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "str"),
+            syn::Type::Array(_)
+            | syn::Type::BareFn(_)
+            | syn::Type::Group(_)
+            | syn::Type::ImplTrait(_)
+            | syn::Type::Infer(_)
+            | syn::Type::Macro(_)
+            | syn::Type::Never(_)
+            | syn::Type::Paren(_)
+            | syn::Type::Ptr(_)
+            | syn::Type::Reference(_)
+            | syn::Type::Slice(_)
+            | syn::Type::TraitObject(_)
+            | syn::Type::Tuple(_)
+            | syn::Type::Verbatim(_)
+            | _ => false,
+        },
+        syn::Type::Array(_)
+        | syn::Type::BareFn(_)
+        | syn::Type::Group(_)
+        | syn::Type::ImplTrait(_)
+        | syn::Type::Infer(_)
+        | syn::Type::Macro(_)
+        | syn::Type::Never(_)
+        | syn::Type::Paren(_)
+        | syn::Type::Path(_)
+        | syn::Type::Ptr(_)
+        | syn::Type::Slice(_)
+        | syn::Type::TraitObject(_)
+        | syn::Type::Tuple(_)
+        | syn::Type::Verbatim(_)
+        | _ => false,
+    })
 }
 #[allow(clippy::single_call_fn)] // proc-macro entrypoints must keep the compiler-required TokenStream ABI
 fn item_fn_is_proc_macro(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
@@ -2272,7 +2638,7 @@ fn item_fn_is_unit_test(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
 }
 #[allow(clippy::single_call_fn)] // keeps external-service error messages stable and readable
 fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
-    types::SourceText::from(
+    types::SourceText::try_from(
         path.as_ref()
             .segments
             .iter()
@@ -2280,6 +2646,7 @@ fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
             .collect::<Vec<String>>()
             .join("::"),
     )
+    .expect("50c1e4a8")
 }
 #[allow(clippy::single_call_fn)] // keeps external-wrapper naming suggestion generation readable at the call site
 fn ident_to_upper_camel_fragment(ident: types::SynIdentRef<'_>) -> types::SourceText {
@@ -2299,7 +2666,7 @@ fn ident_to_upper_camel_fragment(ident: types::SynIdentRef<'_>) -> types::Source
             (out, next_upper)
         },
     );
-    types::SourceText::from(out)
+    types::SourceText::try_from(out).expect("9ea072c4")
 }
 #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
 fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
@@ -2551,12 +2918,13 @@ fn workspace_dep_entry_er(
     dep_name: types::SourceTextRef<'_>,
     dep_section: types::SourceTextRef<'_>,
 ) -> types::SourceText {
-    types::SourceText::from(format!(
+    types::SourceText::try_from(format!(
         "{}: dependency `{dep_name}` in [{dep_section}] must use `dep = {{ workspace = true }}` (only `path = ...` is allowed as exception)",
         path.as_ref().display(),
         dep_name = dep_name.as_ref(),
         dep_section = dep_section.as_ref(),
     ))
+    .expect("c836ad25")
 }
 #[allow(clippy::single_call_fn)] // dedicated collector keeps workspace-members existence diagnostics reusable and deterministic with caller-managed sorting
 fn collect_workspace_member_missing_cargo_toml_ers(
