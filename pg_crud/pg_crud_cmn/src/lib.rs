@@ -1927,7 +1927,6 @@ pub const fn bool_test_cases_vec() -> [bool; 2] {
 #[cfg(feature = "test-utils")]
 #[must_use]
 pub fn string_test_cases_vec() -> [String; 12] {
-    #[allow(clippy::non_ascii_literal)]
     [
         String::new(),
         "a".to_owned(),
@@ -1935,12 +1934,12 @@ pub fn string_test_cases_vec() -> [String; 12] {
         "   ".to_owned(),
         "\n\r\t".to_owned(),
         "1234567890".to_owned(),
-        "😀".to_owned(),
-        "こんにちは".to_owned(),
-        "🌍🚀✨ Rust 💖🦀".to_owned(),
+        "\u{1F600}".to_owned(),
+        "\u{3053}\u{3093}\u{306B}\u{3061}\u{306F}".to_owned(),
+        "\u{1F30D}\u{1F680}\u{2728} Rust \u{1F496}\u{1F980}".to_owned(),
         "a".repeat(1024),
         "line1\nline2\nline3".to_owned(),
-        "💖".to_owned(),
+        "\u{1F496}".to_owned(),
     ]
 }
 #[must_use]

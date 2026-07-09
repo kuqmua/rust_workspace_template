@@ -55,15 +55,6 @@ impl CodebaseSnapshot {
             })
             .collect();
         let rs_files = rs_project_files_uncached()
-            .filter(|entry| {
-                !super::is_exception(
-                    super::types::StdPathRef::from(entry.path()),
-                    super::types::StaticStrSliceRef::from(
-                        super::GENERATED_TEST_FIXTURE_SOURCE_EXCEPTIONS.as_slice(),
-                    ),
-                )
-                .get()
-            })
             .filter_map(|entry| {
                 let path = entry.into_path();
                 let content = std::fs::read_to_string(&path).ok()?;

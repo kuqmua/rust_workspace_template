@@ -1,10 +1,5 @@
 #[test]
 fn all_files_are_english_only() {
-    let exceptions = [
-        "../pg_crud/pg_crud_cmn/src/lib.rs", //contain utf-8 String test
-        "../CODE_IMPROVEMENT_PLAN.md",
-        "../DEVELOPMENT_PLAN.md",
-    ];
     let paths = super::snapshot::project_dir()
         .into_iter()
         .filter_entry(|el_6870bc3d| {
@@ -24,11 +19,6 @@ fn all_files_are_english_only() {
                     path.as_path(),
                 ))
                 .get()
-                    || super::is_exception(
-                        super::types::StdPathRef::from(path.as_path()),
-                        super::types::StaticStrSliceRef::from(exceptions.as_slice()),
-                    )
-                    .get()
                 {
                     return Vec::new();
                 }
