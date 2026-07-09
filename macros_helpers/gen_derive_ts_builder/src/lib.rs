@@ -36,7 +36,7 @@ impl TryFrom<String> for ScString {
 fn to_sc(input: ToScInput<'_>) -> ScString {
     let normalized = input
         .0
-        .split(|ch: char| !ch.is_alphanumeric())
+        .split(|ch| !char::is_alphanumeric(ch))
         .filter(|part| !part.is_empty())
         .collect::<Vec<&str>>()
         .join(" ");

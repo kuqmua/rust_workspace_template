@@ -178,6 +178,18 @@ impl AsRef<std::process::Output> for StdProcessOutputRef<'_> {
         self.0
     }
 }
+#[derive(Debug, Clone, Copy)]
+pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
+impl<'block_lt> From<&'block_lt syn::Block> for SynBlockRef<'block_lt> {
+    fn from(value: &'block_lt syn::Block) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Block> for SynBlockRef<'_> {
+    fn as_ref(&self) -> &syn::Block {
+        self.0
+    }
+}
 impl AsRef<cargo_metadata::Metadata> for CargoMetadata {
     fn as_ref(&self) -> &cargo_metadata::Metadata {
         &self.0

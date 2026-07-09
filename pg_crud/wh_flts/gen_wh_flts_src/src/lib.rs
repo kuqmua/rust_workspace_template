@@ -84,7 +84,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
     let v_dflt_some_one_el_ts = quote::quote! {
         #v_sc: #pg_crud_cmn_dflt_some_one_el_call
     };
-    let gen_struct_ts = |flt_init_with_try_new_result_is_ok: bool,
+    let gen_struct_ts = |flt_init_with_try_new_result_is_ok,
                          generic: &Generic,
                          ident: &dyn quote::ToTokens,
                          struct_extra_fields_ts: &dyn quote::ToTokens| {
@@ -614,15 +614,14 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         },
                     )
                 };
-                let gen_range_bound_cmp_flt_ts =
-                    |pg_type_ptrn: &PgTypePtrn, bound_fn: &str, oprtr: &str| {
-                        gen_cmp_flt_ts(pg_type_ptrn, &|pg_type_kind: &PgTypeKind| {
-                            format!(
-                                "{{}}({bound_fn}({{}}{}) {oprtr} ${{}})",
-                                pg_type_kind.format_argument()
-                            )
-                        })
-                    };
+                let gen_range_bound_cmp_flt_ts = |pg_type_ptrn: &PgTypePtrn, bound_fn, oprtr| {
+                    gen_cmp_flt_ts(pg_type_ptrn, &|pg_type_kind: &PgTypeKind| {
+                        format!(
+                            "{{}}({bound_fn}({{}}{}) {oprtr} ${{}})",
+                            pg_type_kind.format_argument()
+                        )
+                    })
+                };
                 let gen_range_len_ts = |pg_type_ptrn: &PgTypePtrn| {
                     let (
                         mb_dims_dcl_ts,

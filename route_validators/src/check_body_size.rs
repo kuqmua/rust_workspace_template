@@ -75,7 +75,7 @@ where
     axum::body::to_bytes(body_value.0, limit_value.0)
         .await
         .map(BytesBodyBytes)
-        .map_err(|er: axum::Error| {
+        .map_err(|er| {
             BodySizeEr::reached_maximum_size_of_body(
                 AxumBodySizeEr(er),
                 limit_value,

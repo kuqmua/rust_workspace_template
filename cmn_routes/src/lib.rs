@@ -209,51 +209,40 @@ pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes 
         axum::Router::new()
             .route(
                 SLASH_HEALTH_CHECK,
-                axum::routing::get(
-                    async |axum::extract::State(app_state_hc): axum::extract::State<
-                        std::sync::Arc<dyn CmnRoutesPrms>,
-                    >| {
-                        map_health_check_status(HealthCheckSucceeded(
-                            sqlx::query(HEALTH_CHECK_SQL)
-                                .execute(
-                                    app_state::GetSqlxPgPool::get_sqlx_pg_pool(
-                                        app_state_hc.as_ref(),
-                                    )
+                axum::routing::get(async |axum::extract::State(app_state_hc_raw)| {
+                    let app_state_hc: std::sync::Arc<dyn CmnRoutesPrms> = app_state_hc_raw;
+                    map_health_check_status(HealthCheckSucceeded(
+                        sqlx::query(HEALTH_CHECK_SQL)
+                            .execute(
+                                app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state_hc.as_ref())
                                     .as_ref(),
-                                )
-                                .await
-                                .is_ok(),
-                        ))
-                        .0
-                    },
-                ),
+                            )
+                            .await
+                            .is_ok(),
+                    ))
+                    .0
+                }),
             )
             .route(
                 SLASH_GIT_INFO,
-                axum::routing::get(
-                    async |axum::extract::State(app_state_76fb2013): axum::extract::State<
-                        std::sync::Arc<dyn CmnRoutesPrms>,
-                    >| {
-                        mk_commit_json_res(
-                            app_state_76fb2013.as_ref(),
-                            AxumHealthCheckStatus(axum::http::StatusCode::OK),
-                            mk_git_info_payload,
-                        )
-                    },
-                ),
-            )
-            .fallback(
-                async |uri: axum::http::Uri,
-                       axum::extract::State(app_state_19103bd5): axum::extract::State<
-                    std::sync::Arc<dyn CmnRoutesPrms>,
-                >| {
+                axum::routing::get(async |axum::extract::State(app_state_76fb2013_raw)| {
+                    let app_state_76fb2013: std::sync::Arc<dyn CmnRoutesPrms> =
+                        app_state_76fb2013_raw;
                     mk_commit_json_res(
-                        app_state_19103bd5.as_ref(),
-                        AxumHealthCheckStatus(axum::http::StatusCode::NOT_FOUND),
-                        |commit| mk_not_found_payload(AxumHttpUriRef(&uri), commit),
+                        app_state_76fb2013.as_ref(),
+                        AxumHealthCheckStatus(axum::http::StatusCode::OK),
+                        mk_git_info_payload,
                     )
-                },
+                }),
             )
+            .fallback(async |uri, axum::extract::State(app_state_19103bd5_raw)| {
+                let app_state_19103bd5: std::sync::Arc<dyn CmnRoutesPrms> = app_state_19103bd5_raw;
+                mk_commit_json_res(
+                    app_state_19103bd5.as_ref(),
+                    AxumHealthCheckStatus(axum::http::StatusCode::NOT_FOUND),
+                    |commit| mk_not_found_payload(AxumHttpUriRef(&uri), commit),
+                )
+            })
             .with_state(app_state),
     )
 }

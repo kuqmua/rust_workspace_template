@@ -1551,10 +1551,10 @@ pub fn gen_pg_types(
                     }
                 };
                 let mb_rd_inn_inits_ts = {
-                    let gen_fn_ts = |
-                        name_ts: &proc_macro2::TokenStream,
-                        ts_prm: &proc_macro2::TokenStream
-                    |quote::quote! {
+                    let gen_fn_ts: &dyn Fn(
+                        &dyn quote::ToTokens,
+                        &dyn quote::ToTokens,
+                    ) -> proc_macro2::TokenStream = &|name_ts, ts_prm| quote::quote! {
                         const fn #name_ts() -> #ident_inn_type_ts {
                             #ts_prm
                         }
@@ -1600,13 +1600,15 @@ pub fn gen_pg_types(
                         }),
                         PgType::SqlxTypesChronoNaiveDateAsDate => Some({
                             let ser_de_arr_ts = {
-                                let gen_fn_ident_inn_type_ts = |
-                                    name_ts: &proc_macro2::TokenStream,
-                                    ts_prm: &proc_macro2::TokenStream
-                                |gen_fn_ts(
-                                    name_ts,
-                                    &quote::quote! {#ident_inn_type_ts::#ts_prm}
-                                );
+                                let gen_fn_ident_inn_type_ts: &dyn Fn(
+                                    &dyn quote::ToTokens,
+                                    &dyn quote::ToTokens,
+                                ) -> proc_macro2::TokenStream = &|name_ts, ts_prm| {
+                                    gen_fn_ts(
+                                        name_ts,
+                                        &quote::quote! {#ident_inn_type_ts::#ts_prm},
+                                    )
+                                };
                                 [
                                     gen_fn_ident_inn_type_ts(
                                         &sqlx_types_chrono_naive_date_max_fn_ts,
@@ -2887,7 +2889,7 @@ pub fn gen_pg_types(
                 #mb_impl_from_ident_rd_for_ident_orgn_ts
             }
         };
-        let gen_pub_struct_tokens_ts = |ident_ts_prm: &dyn quote::ToTokens, ts: &dyn quote::ToTokens, derive_dflt: macros_helpers::DDefault| {
+        let gen_pub_struct_tokens_ts = |ident_ts_prm: &dyn quote::ToTokens, ts: &dyn quote::ToTokens, derive_dflt| {
             macros_helpers::DTsBuilder::new()
                 .make_pub()
                 .d_debug()

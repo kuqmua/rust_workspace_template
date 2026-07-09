@@ -625,6 +625,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     }
 }
 struct DomainTypePolicyVisitor<'types> {
+    closure_body_scan_depth: types::AnalyzerCount,
     ers: types::DiagnosticMsgs,
     generic_scopes: Vec<types::StdSourceTextSet>,
     repo_crates: types::StdStdSourceTextSetRef<'types>,
@@ -817,6 +818,9 @@ impl DomainTypePolicyVisitor<'_> {
             ));
         self.check_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments), ctx);
     }
+    fn closure_body_scan_is_active(&self) -> types::AnalyzerBool {
+        types::AnalyzerBool::from(self.closure_body_scan_depth.get() > 0)
+    }
     fn is_allowed_type_ident(&self, ident: types::SourceTextRef<'_>) -> types::AnalyzerBool {
         let ident_ref = ident.as_ref();
         types::AnalyzerBool::from(
@@ -879,10 +883,29 @@ impl DomainTypePolicyVisitor<'_> {
         self.generic_scopes
             .push(types::StdSourceTextSet::from(names));
     }
+    fn scan_block_for_closure_inputs(&mut self, block: types::SynBlockRef<'_>) {
+        self.closure_body_scan_depth.saturating_inc();
+        syn::visit::visit_block(self, block.as_ref());
+        self.closure_body_scan_depth.saturating_dec();
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
+    fn visit_expr_closure(&mut self, i: &'ast syn::ExprClosure) {
+        i.inputs.iter().for_each(|input| {
+            if let syn::Pat::Type(pat_ty) = input {
+                self.check_ty(
+                    types::SynTypeRef::from(&*pat_ty.ty),
+                    types::SourceTextRef::from("closure parameter"),
+                );
+            }
+        });
+        syn::visit::visit_expr_closure(self, i);
+    }
     fn visit_item(&mut self, i: &'ast syn::Item) {
         if has_test_only_cfg_attr(types::SynItemRef::from(i)).get() {
+            return;
+        }
+        if self.closure_body_scan_is_active().get() {
             return;
         }
         syn::visit::visit_item(self, i);
@@ -909,6 +932,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             types::SynSignatureRef::from(&i.sig),
             types::SourceTextRef::from(format!("function `{}`", i.sig.ident).as_str()),
         );
+        self.scan_block_for_closure_inputs(types::SynBlockRef::from(&*i.block));
     }
     fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
         if i.trait_.is_some() {
@@ -945,6 +969,26 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                     types::SynSignatureRef::from(&item_fn.sig),
                     types::SourceTextRef::from(format!("method `{}`", item_fn.sig.ident).as_str()),
                 );
+            });
+        i.items
+            .iter()
+            .filter_map(|item| match item {
+                syn::ImplItem::Fn(item_fn)
+                    if !attrs_contain_test_only_cfg(types::SynAttributeListRef::from(
+                        item_fn.attrs.as_slice(),
+                    ))
+                    .get() =>
+                {
+                    Some(item_fn)
+                }
+                syn::ImplItem::Const(_)
+                | syn::ImplItem::Macro(_)
+                | syn::ImplItem::Type(_)
+                | syn::ImplItem::Verbatim(_)
+                | _ => None,
+            })
+            .for_each(|item_fn| {
+                self.scan_block_for_closure_inputs(types::SynBlockRef::from(&item_fn.block));
             });
         self.pop_generics();
     }

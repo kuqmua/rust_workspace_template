@@ -119,6 +119,7 @@ fn domain_boundaries_use_repository_declared_types() {
                 super::types::SynFileRef::from(ast),
                 super::DomainTypePolicyVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
+                    closure_body_scan_depth: super::types::AnalyzerCount::default(),
                     generic_scopes: Vec::new(),
                     repo_crates: super::types::StdStdSourceTextSetRef::from(repo_crates.as_ref()),
                     repo_types: super::types::StdStdSourceTextSetRef::from(repo_types.as_ref()),
@@ -131,6 +132,45 @@ fn domain_boundaries_use_repository_declared_types() {
                     .map(|er| format!("{}: {er}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn domain_type_policy_checks_explicit_closure_parameter_types() {
+    let ast = syn::parse_file(
+        "
+struct SourceText(Box<str>);
+fn demo() {
+    let _path_cb = |path: std::path::PathBuf| path;
+    let _syn_cb = |value: syn::Type| value;
+    let _inferred_cb = |value| value;
+    let _wrapped_cb = |value: SourceText| value;
+}
+",
+    )
+    .expect("c81a6f20");
+    let repo_crates = std::collections::BTreeSet::new();
+    let repo_types = std::collections::BTreeSet::from([String::from("SourceText")]);
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DomainTypePolicyVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            closure_body_scan_depth: super::types::AnalyzerCount::default(),
+            generic_scopes: Vec::new(),
+            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+        },
+    );
+    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    assert_eq!(ers.len(), 2, "0f6d3a91 {ers:#?}");
+    assert!(
+        ers.iter()
+            .any(|er| er.contains("closure parameter uses `std::path::PathBuf`")),
+        "d4b2f8a0 {ers:#?}"
+    );
+    assert!(
+        ers.iter()
+            .any(|er| er.contains("closure parameter uses `syn::Type`")),
+        "60b8ae2d {ers:#?}"
     );
 }
 #[test]

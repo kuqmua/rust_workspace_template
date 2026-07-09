@@ -642,33 +642,30 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
     let pub_sel_pg_crud_not_empty_unq_vec_ident_sel_ts = {
         quote::quote! {pub #sel_pg_crud_not_empty_unq_vec_ident_sel_ts}
     };
-    let gen_fields_named_with_comma_ts = |fn0: &dyn Fn(
-        &macros_helpers::SynField,
-    ) -> proc_macro2::TokenStream|
-     -> proc_macro2::TokenStream {
+    let gen_fields_named_with_comma_ts: &dyn Fn(
+        &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream,
+    ) -> proc_macro2::TokenStream = &|fn0| -> proc_macro2::TokenStream {
         let fields_ts = fields.iter().map(fn0);
         quote::quote! {#(#fields_ts),*}
     };
-    let gen_fields_named_without_comma_ts = |fn0: &dyn Fn(
-        &macros_helpers::SynField,
-    ) -> proc_macro2::TokenStream|
-     -> proc_macro2::TokenStream {
+    let gen_fields_named_without_comma_ts: &dyn Fn(
+        &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream,
+    ) -> proc_macro2::TokenStream = &|fn0| -> proc_macro2::TokenStream {
         let fields_ts = fields.iter().map(fn0);
         quote::quote! {#(#fields_ts)*}
     };
-    let gen_fields_named_without_pk_with_comma_ts = |fn0: &dyn Fn(
-        &macros_helpers::SynField,
-    )
-        -> proc_macro2::TokenStream|
-     -> proc_macro2::TokenStream {
+    let gen_fields_named_without_pk_with_comma_ts: &dyn Fn(
+        &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream,
+    ) -> proc_macro2::TokenStream = &|fn0| -> proc_macro2::TokenStream {
         let fields_ts = fields_without_pk.iter().map(fn0);
         quote::quote! {#(#fields_ts),*}
     };
-    let gen_fields_named_without_pk_without_comma_ts =
-        |fn0: &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream| -> proc_macro2::TokenStream {
-            let fields_ts = fields_without_pk.iter().map(fn0);
-            quote::quote! {#(#fields_ts)*}
-        };
+    let gen_fields_named_without_pk_without_comma_ts: &dyn Fn(
+        &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream,
+    ) -> proc_macro2::TokenStream = &|fn0| -> proc_macro2::TokenStream {
+        let fields_ts = fields_without_pk.iter().map(fn0);
+        quote::quote! {#(#fields_ts)*}
+    };
     let gen_match_ok_err_ts = |ts0: &dyn quote::ToTokens,
                                ts1: &dyn quote::ToTokens,
                                ts2: &dyn quote::ToTokens,
@@ -686,12 +683,12 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             gen_match_ok_err_ts(&expr, &ok, &ok, &Er0, &quote::quote! {{ #err_ts }})
         };
     let none_ts = quote::quote! {None};
-    let fields_named_with_comma_none_ts = gen_fields_named_with_comma_ts(
-        &|_: &macros_helpers::SynField| -> proc_macro2::TokenStream { none_ts.clone() },
-    );
-    let fields_named_without_pk_with_comma_none_ts = gen_fields_named_without_pk_with_comma_ts(
-        &|_: &macros_helpers::SynField| -> proc_macro2::TokenStream { none_ts.clone() },
-    );
+    let fields_named_with_comma_none_ts =
+        gen_fields_named_with_comma_ts(&|_| -> proc_macro2::TokenStream { none_ts.clone() });
+    let fields_named_without_pk_with_comma_none_ts =
+        gen_fields_named_without_pk_with_comma_ts(&|_| -> proc_macro2::TokenStream {
+            none_ts.clone()
+        });
     let gen_acc_string_pop_ts = |acc_ts: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
         let opt_char_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(&Char);
         quote::quote! {
@@ -777,7 +774,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             ));
             let serde_json_to_string_schemars_schema_for_generic_unwrap_ts = {
                 let gen_ft_as_pg_crud_cr_tbl_col_qp_cr_tbl_qp_ts =
-                    |ft: &syn::Type, fi: &syn::Ident, is_pk: bool| {
+                    |ft, fi, is_pk| {
                         let is_pk_ts: &dyn quote::ToTokens = if is_pk { &TrueSc } else { &FalseSc };
                         let fi_dq_ts = gen_quotes::dq_ts(&fi);
                         let ft_pg_type_ts = gen_as_pg_type_path_ts(&ft);
@@ -895,15 +892,16 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             #return_ts
         }
     };
-    let gen_ident_op_suffix_ts = |op: &Op, suffix: &str| {
+    let gen_ident_op_suffix_ts: &dyn Fn(&Op, &str) -> proc_macro2::TokenStream = &|op, suffix| {
         let ident_op_suffix = quote::format_ident!("{ident}{op}{suffix}");
         quote::quote! {#ident_op_suffix}
     };
     let gen_ident_op_er_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Er");
     let gen_ident_op_res_vrts_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "ResVrts");
-    let gen_init_ts = |syn_vrt: &SynVrt,
-                       loc: &'static std::panic::Location<'_>|
-     -> proc_macro2::TokenStream {
+    let gen_init_ts: &dyn Fn(
+        &SynVrt,
+        &'static std::panic::Location<'_>,
+    ) -> proc_macro2::TokenStream = &|syn_vrt, loc| -> proc_macro2::TokenStream {
         let vrt_ident = &syn_vrt.vrt.ident;
         let fields_ts = if let syn::Fields::Named(v) = &syn_vrt.vrt.fields {
             v.named.iter().enumerate().map(|(i, el)| {
@@ -936,10 +934,11 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             }
         }
     };
-    let gen_op_er_init_eprintln_res_ts = |op: &Op,
-                                          syn_vrt: &SynVrt,
-                                          loc: &'static std::panic::Location<'_>|
-     -> proc_macro2::TokenStream {
+    let gen_op_er_init_eprintln_res_ts: &dyn Fn(
+        &Op,
+        &SynVrt,
+        &'static std::panic::Location<'_>,
+    ) -> proc_macro2::TokenStream = &|op, syn_vrt, loc| -> proc_macro2::TokenStream {
         let ident_op_er_ucc = gen_ident_op_er_ucc(op);
         let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
         let syn_vrt_init_ts = gen_init_ts(syn_vrt, loc);
@@ -968,7 +967,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         &dyn std::fmt::Display,
         macros_helpers::SynPathSegments,
     )>,
-                       is_loc_first: bool|
+                       is_loc_first|
      -> SynVrt {
         SynVrt {
             vrt: syn::Variant {
@@ -1162,8 +1161,10 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 }
             };
             let fn_cr_qp_ts = {
-                let gen_match_as_pg_crud_pg_type_pg_type_cr_qp_ts =
-                    |ft: &syn::Type, ts: &dyn quote::ToTokens| {
+                let gen_match_as_pg_crud_pg_type_pg_type_cr_qp_ts: &dyn Fn(
+                    &dyn quote::ToTokens,
+                    &dyn quote::ToTokens,
+                ) -> proc_macro2::TokenStream = &|ft, ts| {
                         gen_match_ok_err_ts(
                             &{
                                 let as_pg_crud_pg_type_pg_type_ts = gen_as_pg_type_path_ts(&ft);
@@ -1214,8 +1215,10 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 }
             };
             let fn_cr_qb_ts = {
-                let gen_query_as_pg_crud_pg_type_pg_type_cr_qb_ts =
-                    |ft: &syn::Type, ts: &dyn quote::ToTokens| {
+                let gen_query_as_pg_crud_pg_type_pg_type_cr_qb_ts: &dyn Fn(
+                    &dyn quote::ToTokens,
+                    &dyn quote::ToTokens,
+                ) -> proc_macro2::TokenStream = &|ft, ts| {
                         gen_match_qb_or_err_ts(
                             &{
                                 let as_pg_crud_pg_type_pg_type_ts = gen_as_pg_type_path_ts(&ft);
@@ -1351,7 +1354,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             &ident_wh_ucc,
             pg_crud_macros_cmn::SynIdentTypeRefs::from(fields_ident_type.as_slice()),
             pg_crud_macros_cmn::DeLen::from(fields_len),
-            &|_: &syn::Ident, syn_type: &syn::Type| {
+            &|_, syn_type| {
                 let syn_type_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&syn_type);
                 pg_crud_macros_cmn::gen_opt_type_dcl_ts(
                     &quote::quote! {#import_ts PgTypeWh<#syn_type_as_pg_type_wh_ts>},
@@ -1902,7 +1905,9 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
     let ident_upd_for_query_ucc = naming::prm::SelfUpdForQueryUcc::from_tokens(&ident);
     let path_v_ts = quote::quote! {#PgCrudSc::#VUcc};
     let ident_upd_ts = {
-        let gen_opt_v_ft_as_pg_type_upd_ts = |syn_type: &syn::Type| {
+        let gen_opt_v_ft_as_pg_type_upd_ts: &dyn Fn(
+            &dyn quote::ToTokens,
+        ) -> macros_helpers::GeneratedRustTs = &|syn_type| {
             let syn_type_as_pg_type_upd_ts = gen_as_pg_type_upd_ts(&syn_type);
             pg_crud_macros_cmn::gen_opt_type_dcl_ts(
                 &quote::quote! {#path_v_ts<#syn_type_as_pg_type_upd_ts>},
@@ -1983,7 +1988,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             &ident_upd_ucc,
             pg_crud_macros_cmn::SynIdentTypeRefs::from(fields_ident_type.as_slice()),
             pg_crud_macros_cmn::DeLen::from(fields_len),
-            &|syn_ident: &syn::Ident, syn_type: &syn::Type| {
+            &|syn_ident, syn_type| {
                 if syn_ident == pk_fi.as_ref() {
                     quote::quote! {#pk_ft_upd_ts}.into()
                 } else {
@@ -2341,8 +2346,8 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             reqwest_syn_vrt.get_syn_vrt().clone(),
         ]
     };
-    let gen_er_vrts =
-        |di_prm: &syn::DeriveInput, gen_pg_tbl_attr: GenPgTblAttr| -> Vec<syn::Variant> {
+    let gen_er_vrts: &dyn Fn(&syn::DeriveInput, GenPgTblAttr) -> Vec<syn::Variant> =
+        &|di_prm, gen_pg_tbl_attr| -> Vec<syn::Variant> {
             let gen_pg_tbl_attr_str = gen_pg_tbl_attr.to_string();
             let cmn_er_vrts_attr_ts = macros_helpers::get_macro_attr_meta_list_ts(
                 &di_prm.attrs,
@@ -2372,7 +2377,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         acc.extend(cmn_er_vrts.iter());
         acc
     };
-    let gen_pub_h_ts = |is_pub: bool| {
+    let gen_pub_h_ts = |is_pub| {
         if is_pub {
             quote::quote! {pub}
         } else {
@@ -2384,27 +2389,25 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         let pub_h_ts = gen_pub_h_ts(is_pub);
         quote::quote! {#pub_h_ts #pk_fi: #ts}
     };
-    let gen_match_pg_transaction_rollback_await_ts =
-        |op: &Op, loc: &'static std::panic::Location<'_>| {
-            let op_er_init_pg_rollback_ts = gen_op_er_init_eprintln_res_ts(op, &pg_syn_vrt, loc);
-            let row_and_rollback_syn_vrt_er_init_eprintln_res_creation_ts =
-                gen_op_er_init_eprintln_res_ts(op, &row_and_rollback_syn_vrt, loc);
-            quote::quote! {{
-                if let Err(#Er1) = #ExecutorSc.#RollbackSc().await {
-                    #row_and_rollback_syn_vrt_er_init_eprintln_res_creation_ts
-                }
-                #op_er_init_pg_rollback_ts
-            }}
-        };
-    let gen_drop_rows_match_pg_transaction_rollback_await_h_ts =
-        |op: &Op, loc: &'static std::panic::Location<'_>| {
-            let match_pg_transaction_rollback_await_ts =
-                gen_match_pg_transaction_rollback_await_ts(op, loc);
-            quote::quote! {
-                drop(#RowsSc);
-                #match_pg_transaction_rollback_await_ts
+    let gen_match_pg_transaction_rollback_await_ts = |op: &Op, loc| {
+        let op_er_init_pg_rollback_ts = gen_op_er_init_eprintln_res_ts(op, &pg_syn_vrt, loc);
+        let row_and_rollback_syn_vrt_er_init_eprintln_res_creation_ts =
+            gen_op_er_init_eprintln_res_ts(op, &row_and_rollback_syn_vrt, loc);
+        quote::quote! {{
+            if let Err(#Er1) = #ExecutorSc.#RollbackSc().await {
+                #row_and_rollback_syn_vrt_er_init_eprintln_res_creation_ts
             }
-        };
+            #op_er_init_pg_rollback_ts
+        }}
+    };
+    let gen_drop_rows_match_pg_transaction_rollback_await_h_ts = |op: &Op, loc| {
+        let match_pg_transaction_rollback_await_ts =
+            gen_match_pg_transaction_rollback_await_ts(op, loc);
+        quote::quote! {
+            drop(#RowsSc);
+            #match_pg_transaction_rollback_await_ts
+        }
+    };
     let wrap_into_v_ts = |ts: &dyn quote::ToTokens| {
         quote::quote! {
             let #VSc = {
@@ -2502,57 +2505,64 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             #VSc
         }
     };
-    let gen_loc_vrt_ts = |er_vrt: &syn::Variant| -> proc_macro2::TokenStream {
-        let vrt_ident = &er_vrt.ident;
-        let syn::Fields::Named(fields_named) = &er_vrt.fields else {
-            return compile_error_ts(CompileErrorMsg("2acd4725: expected named variant fields"))
+    let gen_loc_vrt_ts: &dyn Fn(&syn::Variant) -> proc_macro2::TokenStream =
+        &|er_vrt| -> proc_macro2::TokenStream {
+            let vrt_ident = &er_vrt.ident;
+            let syn::Fields::Named(fields_named) = &er_vrt.fields else {
+                return compile_error_ts(CompileErrorMsg(
+                    "2acd4725: expected named variant fields",
+                ))
                 .into();
-        };
-        let fields_mapped_into_ts = fields_named.named.iter().map(|field| {
-            let Some(fi) = field.ident.as_ref() else {
-                return compile_error_ts(CompileErrorMsg("a21dc807: expected named field ident"))
-                    .into();
             };
-            let loc_attr = if *fi == *LocSc.to_string() {
-                proc_macro2::TokenStream::new()
-            } else {
-                let mut loc_attrs = field.attrs.iter().filter_map(|el| {
-                    if el.path().segments.len() != 1 {
-                        return None;
-                    }
-                    let segment = el.path().segments.first()?;
-                    <macros_helpers::LocFieldAttr as std::str::FromStr>::from_str(
-                        &segment.ident.to_string(),
-                    )
-                    .ok()
-                });
-                let loc_attr = loc_attrs.next();
-                if loc_attrs.next().is_some() {
-                    return compile_error_ts(CompileErrorMsg("9a469d36: duplicate loc field attr"))
-                        .into();
-                }
-                match loc_attr {
-                    Some(v) => v.to_attr_view_ts().into(),
-                    None => {
+            let fields_mapped_into_ts = fields_named.named.iter().map(|field| {
+                let Some(fi) = field.ident.as_ref() else {
+                    return compile_error_ts(CompileErrorMsg(
+                        "a21dc807: expected named field ident",
+                    ))
+                    .into();
+                };
+                let loc_attr = if *fi == *LocSc.to_string() {
+                    proc_macro2::TokenStream::new()
+                } else {
+                    let mut loc_attrs = field.attrs.iter().filter_map(|el| {
+                        if el.path().segments.len() != 1 {
+                            return None;
+                        }
+                        let segment = el.path().segments.first()?;
+                        <macros_helpers::LocFieldAttr as std::str::FromStr>::from_str(
+                            &segment.ident.to_string(),
+                        )
+                        .ok()
+                    });
+                    let loc_attr = loc_attrs.next();
+                    if loc_attrs.next().is_some() {
                         return compile_error_ts(CompileErrorMsg(
-                            "d1003b2e: loc field attr not found",
+                            "9a469d36: duplicate loc field attr",
                         ))
                         .into();
                     }
+                    match loc_attr {
+                        Some(v) => v.to_attr_view_ts().into(),
+                        None => {
+                            return compile_error_ts(CompileErrorMsg(
+                                "d1003b2e: loc field attr not found",
+                            ))
+                            .into();
+                        }
+                    }
+                };
+                let ft = &field.ty;
+                quote::quote! {
+                    #loc_attr
+                    #fi: #ft
                 }
-            };
-            let ft = &field.ty;
+            });
             quote::quote! {
-                #loc_attr
-                #fi: #ft
+                #vrt_ident {
+                    #(#fields_mapped_into_ts),*
+                }
             }
-        });
-        quote::quote! {
-            #vrt_ident {
-                #(#fields_mapped_into_ts),*
-            }
-        }
-    };
+        };
     let gen_ident_op_payload_ucc = |op: &Op| match &op {
         Op::Co => quote::quote! {#ident_cr_ucc},
         Op::Uo => quote::quote! {#ident_upd_ucc},
@@ -2561,14 +2571,16 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
         }
     };
     let gen_ident_op_prms_ucc = |op: &Op| gen_ident_op_suffix_ts(op, "Prms");
-    let gen_type_vrts_from_req_res_syn_vrts =
-        |syn_vrts: &Vec<&syn::Variant>, op: &Op| -> Vec<syn::Variant> {
-            syn_vrts
-                .iter()
-                .map(|el| (*el).clone())
-                .chain(gen_er_vrts(&di, op.gen_pg_tbl_attr_er_vrts()))
-                .collect::<Vec<syn::Variant>>()
-        };
+    let gen_type_vrts_from_req_res_syn_vrts: &dyn Fn(
+        &Vec<&syn::Variant>,
+        &Op,
+    ) -> Vec<syn::Variant> = &|syn_vrts, op| -> Vec<syn::Variant> {
+        syn_vrts
+            .iter()
+            .map(|el| (*el).clone())
+            .chain(gen_er_vrts(&di, op.gen_pg_tbl_attr_er_vrts()))
+            .collect::<Vec<syn::Variant>>()
+    };
     let std_sync_arc_combination_of_app_state_logic_traits_ts =
         quote::quote! {std::sync::Arc<dyn #import_ts CombinationOfAppStateLogicTraits>};
     let gen_op_result_type_ts = |op: &Op| -> &dyn quote::ToTokens {
@@ -2874,7 +2886,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 };
                 let extra_validators_ts = {
                     let (cmn_logic_ts, op_logic_ts) = {
-                        let gen_ts = |v: &String| macros_helpers::get_macro_attr_meta_list_ts(&di.attrs, v);
+                        let gen_ts = |v| macros_helpers::get_macro_attr_meta_list_ts(&di.attrs, v);
                         (
                             gen_ts(&GenPgTblAttr::CmnLogic.gen_path_to_attr()),
                             gen_ts(&op.gen_pg_tbl_attr_logic().gen_path_to_attr()),
@@ -3406,8 +3418,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                         }
                         Op::Uo => {
                             let gen_binded_query_ts =
-                                |var_name: proc_macro2::TokenStream,
-                                 method_name: proc_macro2::TokenStream| {
+                                |var_name, method_name| {
                                     gen_fields_named_without_pk_without_comma_ts(&|el: &macros_helpers::SynField| {
                                         gen_if_let_some_ts(
                                             &var_name,
@@ -3998,7 +4009,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                                 .clone()
                             }))
                             .collect::<Vec<syn::Variant>>()
-                            .into_iter().map(|arg0: syn::Variant| gen_loc_vrt_ts(&arg0));
+                            .into_iter().map(|arg0| gen_loc_vrt_ts(&arg0));
                         quote::quote! {{#(#vrts_ts),*}}
                     });
                 quote::quote! {
@@ -4253,7 +4264,10 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 };
             }
         };
-        let gen_ident_cr_ts = |fi: &syn::Ident, ts: &dyn quote::ToTokens| {
+        let gen_ident_cr_ts: &dyn Fn(
+            &syn::Ident,
+            &dyn quote::ToTokens,
+        ) -> proc_macro2::TokenStream = &|fi, ts| {
             gen_fields_named_without_pk_with_comma_ts(&|el: &macros_helpers::SynField| {
                 let fi0 = &el.ident;
                 let ft0 = &el.type0;
@@ -4266,21 +4280,26 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 quote::quote! {#fi0: #ts0}
             })
         };
-        let gen_ident_cr_cnt_el_id_ts =
-            |fi: &syn::Ident, el_ts: &dyn quote::ToTokens| gen_ident_cr_ts(fi, &el_ts);
-        let gen_ident_cr_cnt_el_ts = |fi: &syn::Ident| gen_ident_cr_ts(fi, &ElSc);
-        let gen_tbl_test_name_fi_ts = |test_name: &str, fi: &syn::Ident| {
-            let tbl_test_name_fi = quote::format_ident!("tbl_{test_name}_{fi}");
-            quote::quote! {#tbl_test_name_fi}
-        };
+        let gen_ident_cr_cnt_el_id_ts: &dyn Fn(
+            &syn::Ident,
+            &dyn quote::ToTokens,
+        ) -> proc_macro2::TokenStream = &|fi, el_ts| gen_ident_cr_ts(fi, &el_ts);
+        let gen_ident_cr_cnt_el_ts: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream =
+            &|fi| gen_ident_cr_ts(fi, &ElSc);
+        let gen_tbl_test_name_fi_ts: &dyn Fn(&str, &syn::Ident) -> proc_macro2::TokenStream =
+            &|test_name, fi| {
+                let tbl_test_name_fi = quote::format_ident!("tbl_{test_name}_{fi}");
+                quote::quote! {#tbl_test_name_fi}
+            };
         let mut tbl_fis_init_vec_ts = Vec::new();
         let mut tbl_test_name_fis_vec_ts = Vec::new();
-        let mut fill_tbl_fis_vec_ts = |test_names: Vec<&str>| {
+        let fill_tbl_fis_vec_ts: &mut dyn FnMut(Vec<&str>) = &mut |test_names| {
             test_names.into_iter().fold((), |(), el0| {
-                let gen_init_variable_name_ts = |fi: &syn::Ident| {
-                    let init_variable_name = quote::format_ident!("tbl_{el0}_{fi}");
-                    quote::quote! {#init_variable_name}
-                };
+                let gen_init_variable_name_ts: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream =
+                    &|fi| {
+                        let init_variable_name = quote::format_ident!("tbl_{el0}_{fi}");
+                        quote::quote! {#init_variable_name}
+                    };
                 tbl_fis_init_vec_ts.push(gen_fields_named_without_pk_without_comma_ts(
                     &|el: &macros_helpers::SynField| {
                         let fi = &el.ident;
@@ -4448,16 +4467,18 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 }
             }
         };
-        let gen_ft_opt_vec_cr_ts = |ft: &syn::Type| {
+        let gen_ft_opt_vec_cr_ts: &dyn Fn(&syn::Type) -> proc_macro2::TokenStream = &|ft| {
             let ts = gen_as_pg_type_test_cases_path_ts(ft);
             quote::quote! {#ts #OptVecCrSc()}
         };
-        let gen_ft_opt_vec_cr_or_vec_ts = |ft: &syn::Type| {
+        let gen_ft_opt_vec_cr_or_vec_ts: &dyn Fn(&syn::Type) -> proc_macro2::TokenStream = &|ft| {
             let ts = gen_ft_opt_vec_cr_ts(ft);
             quote::quote! {#ts.unwrap_or(Vec::new())}
         };
-        let gen_ident_ft_opt_vec_cr_or_vec_ts =
-            |_: &syn::Ident, ft: &syn::Type| gen_ft_opt_vec_cr_or_vec_ts(ft);
+        let gen_ident_ft_opt_vec_cr_or_vec_ts: &dyn Fn(
+            &syn::Ident,
+            &syn::Type,
+        ) -> proc_macro2::TokenStream = &|_, ft| gen_ft_opt_vec_cr_or_vec_ts(ft);
         let gen_for_in_1_2_ts = |el_ts: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
             quote::quote! {
                 for #el_ts in [1,2] {
@@ -4839,16 +4860,12 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     &quote::quote! {"ee8d232d"},
                 )
             };
-            let gen_rd_test_ts = |test_name: &str,
-                                  gen_method_call_ts: &dyn Fn(
-                &syn::Ident,
-                &syn::Type,
-            )
-                -> proc_macro2::TokenStream,
-                                  gen_cr_ts: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream,
-                                  gen_ts: &dyn Fn(
-                &macros_helpers::SynField,
-            ) -> proc_macro2::TokenStream| {
+            let gen_rd_test_ts: &dyn Fn(
+                &str,
+                &dyn Fn(&syn::Ident, &syn::Type) -> proc_macro2::TokenStream,
+                &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream,
+                &dyn Fn(&macros_helpers::SynField) -> proc_macro2::TokenStream,
+            ) -> proc_macro2::TokenStream = &|test_name, gen_method_call_ts, gen_cr_ts, gen_ts| {
                 gen_fields_named_without_pk_without_comma_ts(&|el: &macros_helpers::SynField| {
                     let fi = &el.ident;
                     let ft = &el.type0;
@@ -4930,7 +4947,10 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     )
                 )
             };
-            let gen_fi_wh_ts = |fi: &syn::Ident, ts: &dyn quote::ToTokens| {
+            let gen_fi_wh_ts: &dyn Fn(
+                &syn::Ident,
+                &dyn quote::ToTokens,
+            ) -> proc_macro2::TokenStream = &|fi, ts| {
                 gen_fields_named_with_comma_ts(&|el0: &macros_helpers::SynField| {
                     let fi0 = &el0.ident;
                     if pk_fi == fi0 {
@@ -4942,49 +4962,55 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     }
                 })
             };
-            let gen_for_each_assert_eq_ts =
-                |v_ts: &dyn quote::ToTokens, el_ts: &dyn quote::ToTokens, fi: &syn::Ident| {
-                    let vec_el_ts = quote::quote! {vec![#el_ts]};
-                    let assert_eq_ts =
-                        gen_rd_ids_and_cr_into_wh_assert_eq_ts(&gen_fi_wh_ts(fi, &vec_el_ts));
-                    quote::quote! {
-                        for #el_ts in #v_ts.into_vec() {
-                            #assert_eq_ts
-                        }
+            let gen_for_each_assert_eq_ts: &dyn Fn(
+                &dyn quote::ToTokens,
+                &dyn quote::ToTokens,
+                &syn::Ident,
+            ) -> proc_macro2::TokenStream = &|v_ts, el_ts, fi| {
+                let vec_el_ts = quote::quote! {vec![#el_ts]};
+                let assert_eq_ts =
+                    gen_rd_ids_and_cr_into_wh_assert_eq_ts(&gen_fi_wh_ts(fi, &vec_el_ts));
+                quote::quote! {
+                    for #el_ts in #v_ts.into_vec() {
+                        #assert_eq_ts
                     }
-                };
+                }
+            };
             let (rd_ids_and_cr_into_wh_eq_ts, rd_ids_and_cr_into_vec_wh_eq_using_fields_ts) = {
-                let gen_ts = |test_name: &str, eq_or_eq_using_fields: &pg_crud_macros_cmn::EqOrEqUsingFields| {
-                    gen_rd_test_ts(
-                        test_name,
-                        &gen_ident_ft_opt_vec_cr_or_vec_ts,
-                        &gen_ident_cr_cnt_el_ts,
-                        &|el: &macros_helpers::SynField| {
-                            let fi = &el.ident;
-                            gen_rd_ids_and_cr_into_wh_assert_eq_ts(&gen_fields_named_with_comma_ts(
-                                &|el0: &macros_helpers::SynField| {
-                                    let fi0 = &el0.ident;
-                                    let ft0 = &el0.type0;
-                                    if fi0 == pk_fi {
-                                        some_pk_wh_init_ts.clone()
-                                    } else if fi0 == fi {
-                                        let method_ts = {
-                                            let method_ts: &dyn quote::ToTokens =
+                let gen_ts =
+                    |test_name, eq_or_eq_using_fields: &pg_crud_macros_cmn::EqOrEqUsingFields| {
+                        gen_rd_test_ts(
+                            test_name,
+                            &gen_ident_ft_opt_vec_cr_or_vec_ts,
+                            &gen_ident_cr_cnt_el_ts,
+                            &|el: &macros_helpers::SynField| {
+                                let fi = &el.ident;
+                                gen_rd_ids_and_cr_into_wh_assert_eq_ts(
+                                    &gen_fields_named_with_comma_ts(
+                                        &|el0: &macros_helpers::SynField| {
+                                            let fi0 = &el0.ident;
+                                            let ft0 = &el0.type0;
+                                            if fi0 == pk_fi {
+                                                some_pk_wh_init_ts.clone()
+                                            } else if fi0 == fi {
+                                                let method_ts = {
+                                                    let method_ts: &dyn quote::ToTokens =
                                                 match &eq_or_eq_using_fields {
                                                     pg_crud_macros_cmn::EqOrEqUsingFields::Eq => &RdIdsAndCrIntoWhEqSc,
                                                     pg_crud_macros_cmn::EqOrEqUsingFields::EqUsingFields => {
                                                         &RdIdsAndCrIntoVecWhEqUsingFieldsSc
                                                     }
                                                 };
-                                            let ts0 = gen_as_pg_type_test_cases_path_ts(&ft0);
-                                            quote::quote! {
-                                                #ts0 #method_ts(
-                                                    rd_ids_from_co.#fi0.clone().expect("11c3740b"),
-                                                    ident_cr.#fi0.clone()
-                                                )
-                                            }
-                                        };
-                                        match &eq_or_eq_using_fields {
+                                                    let ts0 =
+                                                        gen_as_pg_type_test_cases_path_ts(&ft0);
+                                                    quote::quote! {
+                                                        #ts0 #method_ts(
+                                                            rd_ids_from_co.#fi0.clone().expect("11c3740b"),
+                                                            ident_cr.#fi0.clone()
+                                                        )
+                                                    }
+                                                };
+                                                match &eq_or_eq_using_fields {
                                             pg_crud_macros_cmn::EqOrEqUsingFields::Eq => {
                                                 gen_some_pg_type_wh_try_new_and_ts(&quote::quote! {
                                                     vec![#method_ts]
@@ -4999,14 +5025,15 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                                                 }
                                             }
                                         }
-                                    } else {
-                                        none_ts.clone()
-                                    }
-                                },
-                            ))
-                        },
-                    )
-                };
+                                            } else {
+                                                none_ts.clone()
+                                            }
+                                        },
+                                    ),
+                                )
+                            },
+                        )
+                    };
                 (
                     gen_ts(
                         tbl_rd_ids_and_cr_into_wh_eq_name,
@@ -5043,13 +5070,13 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
             );
             let rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts = gen_rd_test_ts(
                 tbl_rd_ids_and_tt_into_pg_type_opt_wh_greater_than_name,
-                &|_: &syn::Ident, ft: &syn::Type| {
+                &|_, ft| {
                     quote::quote! {
                         <#ft as #import_ts PgTypeTestCases>::#PgTypeOptVecWhGreaterThanTestSc()
                         .map_or_else(Vec::new, Into::into)
                     }
                 },
-                &|fi: &syn::Ident| gen_ident_cr_ts(fi, &quote::quote! {#ElSc.#CrSc}),
+                &|fi| gen_ident_cr_ts(fi, &quote::quote! {#ElSc.#CrSc}),
                 &|el: &macros_helpers::SynField| {
                     let fi = &el.ident;
                     gen_if_let_some_ts(
@@ -5130,7 +5157,10 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     });
                 }
             };
-        let gen_rd_ids_upper_fields_init_without_pk_ts = |fi: &syn::Ident| {
+        let gen_rd_ids_upper_fields_init_without_pk_ts: &dyn Fn(
+            &syn::Ident,
+        )
+            -> proc_macro2::TokenStream = &|fi| {
             gen_fields_named_without_pk_with_comma_ts(&|syn_field: &macros_helpers::SynField| {
                 let fi0 = &syn_field.ident;
                 let ts = if fi == fi0.as_ref() {
@@ -5142,47 +5172,49 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                 quote::quote! {#fi0: #ts}
             })
         };
-        let gen_upd_prms_init_without_pk_ts = |fi: &syn::Ident| {
-            gen_fields_named_without_pk_with_comma_ts(&|syn_field: &macros_helpers::SynField| {
-                let fi0 = &syn_field.ident;
-                if fi == fi0.as_ref() {
-                    let ts = gen_v_init_ts0(&quote::quote! {#UpdSc.clone()});
-                    quote::quote! {Some(#ts)}
-                } else {
-                    none_ts.clone()
-                }
-            })
-        };
-        let gen_rd_fields_after_upd_ts =
-            |fi: &syn::Ident,
-             else_fn: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream,
-             expect_uuid_0: &str,
-             expect_uuid_1: &str| {
+        let gen_upd_prms_init_without_pk_ts: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream =
+            &|fi| {
                 gen_fields_named_without_pk_with_comma_ts(
                     &|syn_field: &macros_helpers::SynField| {
                         let fi0 = &syn_field.ident;
-                        let ts = if fi == fi0.as_ref() {
-                            let ts0 = gen_v_init_ts0(&{
-                                let ts1 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
-                                let expect_0 = gen_quotes::dq_ts(&expect_uuid_0);
-                                let expect_1 = gen_quotes::dq_ts(&expect_uuid_1);
-                                quote::quote! {
-                                    #ts1 previous_rd_and_opt_upd_into_rd(
-                                        #ts1 rd_ids_to_opt_v_rd_dflt_some_one_el(
-                                            &rd_ids_el_937c5af3.#fi0.clone().expect(#expect_0)
-                                        ).expect(#expect_1).#VSc,
-                                        Some(#UpdSc.clone())
-                                    )
-                                }
-                            });
-                            quote::quote! {Some(#ts0)}
+                        if fi == fi0.as_ref() {
+                            let ts = gen_v_init_ts0(&quote::quote! {#UpdSc.clone()});
+                            quote::quote! {Some(#ts)}
                         } else {
-                            else_fn(fi0)
-                        };
-                        quote::quote! {#fi0: #ts}
+                            none_ts.clone()
+                        }
                     },
                 )
             };
+        let gen_rd_fields_after_upd_ts: &dyn Fn(
+            &syn::Ident,
+            &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream,
+            &str,
+            &str,
+        ) -> proc_macro2::TokenStream = &|fi, else_fn, expect_uuid_0, expect_uuid_1| {
+            gen_fields_named_without_pk_with_comma_ts(&|syn_field: &macros_helpers::SynField| {
+                let fi0 = &syn_field.ident;
+                let ts = if fi == fi0.as_ref() {
+                    let ts0 = gen_v_init_ts0(&{
+                        let ts1 = gen_as_pg_type_test_cases_path_ts(&syn_field.type0);
+                        let expect_0 = gen_quotes::dq_ts(&expect_uuid_0);
+                        let expect_1 = gen_quotes::dq_ts(&expect_uuid_1);
+                        quote::quote! {
+                            #ts1 previous_rd_and_opt_upd_into_rd(
+                                #ts1 rd_ids_to_opt_v_rd_dflt_some_one_el(
+                                    &rd_ids_el_937c5af3.#fi0.clone().expect(#expect_0)
+                                ).expect(#expect_1).#VSc,
+                                Some(#UpdSc.clone())
+                            )
+                        }
+                    });
+                    quote::quote! {Some(#ts0)}
+                } else {
+                    else_fn(fi0)
+                };
+                quote::quote! {#fi0: #ts}
+            })
+        };
         let um_tests_ts = {
             //todo add Test for trying to upd empty vec
             let um_only_one_col_tests_ts = gen_fields_named_without_pk_without_comma_ts(
@@ -5219,7 +5251,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     let ident_upd_prms_init_without_pk_ts = gen_upd_prms_init_without_pk_ts(fi);
                     let ident_rd_fields_init_without_pk_after_uo_ts = gen_rd_fields_after_upd_ts(
                         fi,
-                        &|fi0: &syn::Ident| quote::quote! {el_a6bc6b2f.#fi0},
+                        &|fi0| quote::quote! {el_a6bc6b2f.#fi0},
                         "96213542",
                         "bf0d6f55",
                     );
@@ -5330,7 +5362,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                     let ident_upd_prms_init_without_pk_ts = gen_upd_prms_init_without_pk_ts(fi);
                     let ident_rd_fields_init_without_pk_after_uo_ts = gen_rd_fields_after_upd_ts(
                         fi,
-                        &|fi0: &syn::Ident| quote::quote! {previous_rd.#fi0},
+                        &|fi0| quote::quote! {previous_rd.#fi0},
                         "4f19d0d2",
                         "c7685b19",
                     );
@@ -5845,7 +5877,7 @@ pub fn gen_pg_tbl(input: macros_helpers::ProcMacro2TsRef<'_>) -> macros_helpers:
                         #ConfigSc.service_socket_address = actual_service_socket_address;
                         let #UrlSc = format!("http://{actual_service_socket_address}");
                         let tbl = #ident_dq_ts;
-                        let add_tbl_postfix = |postfix: &str|{
+                        let add_tbl_postfix = |postfix|{
                             let v = format!("{tbl}_{postfix}");
                             #assert_tbl_name_len_ts
                             v

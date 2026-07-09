@@ -31,23 +31,21 @@ const MACRO_GENERATION_COMMANDS: [(&str, &[&str]); 3] = [
 ];
 fn main() {
     let mode = std::env::args().nth(1);
-    let run_command = |program: &str, args: &[&str]| -> Result<(), ()> {
-        match std::process::Command::new(program).args(args).status() {
-            Ok(status) if status.success() => Ok(()),
-            Ok(status) => {
-                eprintln!("command failed: {program} {args:?}: {status}");
-                Err(())
-            }
-            Err(error) => {
-                eprintln!("failed to spawn command: {program} {args:?}: {error}");
-                Err(())
-            }
-        }
-    };
-    let run_commands = |commands: &[(&str, &[&str])]| {
-        commands
-            .iter()
-            .try_fold((), |(), (program, args)| run_command(program, args))
+    let run_commands: fn(&[(&str, &[&str])]) -> Result<(), ()> = |commands| {
+        commands.iter().try_fold(
+            (),
+            |(), (program, args)| match std::process::Command::new(program).args(*args).status() {
+                Ok(status) if status.success() => Ok(()),
+                Ok(status) => {
+                    eprintln!("command failed: {program} {args:?}: {status}");
+                    Err(())
+                }
+                Err(error) => {
+                    eprintln!("failed to spawn command: {program} {args:?}: {error}");
+                    Err(())
+                }
+            },
+        )
     };
     let result = match mode.as_deref() {
         None | Some("static") => run_commands(&STATIC_COMMANDS),
