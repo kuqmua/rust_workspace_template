@@ -1,13 +1,9 @@
 const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
 const SRC_PLACE_TYPE_FIX_MSG: &str =
     "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(display)]
 struct TracingLevelName(&'static str);
-impl std::fmt::Display for TracingLevelName {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
 #[derive(Debug, Clone, Copy)]
@@ -16,7 +12,8 @@ struct EnvVarNameRef<'name_lt>(&'name_lt str);
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
 #[derive(Debug, Clone, Copy)]
 struct ParseCtxRef(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(as_ref_str, display)]
 struct EnvParseEr(String);
 impl From<super::ConfigLibStringWrapperTryFromStringEr> for EnvParseEr {
     fn from(value: super::ConfigLibStringWrapperTryFromStringEr) -> Self {
@@ -33,16 +30,6 @@ impl TryFrom<String> for EnvParseEr {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for EnvParseEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl AsRef<str> for EnvParseEr {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]

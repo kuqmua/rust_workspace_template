@@ -1,14 +1,11 @@
 const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
+#[derive(newtype::Newtype)]
+#[newtype(to_tokens)]
 struct ProcMacro2GeneratedNamingTs(proc_macro2::TokenStream);
 #[derive(Clone, Copy)]
 struct SynEnumIdentRef<'ident_lt>(&'ident_lt syn::Ident);
 #[derive(Clone, Copy)]
 struct ProcMacro2VrtMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
-impl quote::ToTokens for ProcMacro2GeneratedNamingTs {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
 fn gen_impl_to_tokens_ts(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,

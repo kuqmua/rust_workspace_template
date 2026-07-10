@@ -165,19 +165,11 @@ impl FromIterator<macros_helpers::generated_rust_ts::GeneratedRustTs> for Genera
         Self(iter.into_iter().collect())
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(display, from_inner)]
 pub struct NnOrNlStr(&'static str);
-impl From<&'static str> for NnOrNlStr {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for NnOrNlStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(display)]
 pub struct IsNlPrefixStr(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IsNlPrefixStrTryFromStringEr {
@@ -207,11 +199,6 @@ impl TryFrom<String> for IsNlPrefixStr {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for IsNlPrefixStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone, Copy, newtype::Newtype)]

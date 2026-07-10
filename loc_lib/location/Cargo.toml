@@ -23,5 +23,6 @@ panic_loc = { workspace = true }
 token_patterns = { workspace = true }
 naming = { workspace = true }
 optml = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

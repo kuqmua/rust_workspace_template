@@ -1,9 +1,6 @@
+#[derive(newtype::Newtype)]
+#[newtype(from_inner)]
 struct SynItemEnumMutRef<'item_lt>(&'item_lt mut syn::ItemEnum);
-impl<'item_lt> From<&'item_lt mut syn::ItemEnum> for SynItemEnumMutRef<'item_lt> {
-    fn from(value: &'item_lt mut syn::ItemEnum) -> Self {
-        Self(value)
-    }
-}
 #[proc_macro_attribute]
 pub fn errors_with_loc(
     attr_ts: proc_macro::TokenStream,

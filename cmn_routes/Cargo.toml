@@ -17,5 +17,6 @@ sqlx = { workspace = true }
 app_state = { workspace = true }
 git_info = { workspace = true }
 optml = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

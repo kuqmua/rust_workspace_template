@@ -35,7 +35,7 @@ impl pg_crud_cmn::DfltSomeOneEl for EncodeFormat {
     }
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[newtype(as_ref_owned, display, from_inner)]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRgx(regex::Regex);
 impl TryFrom<String> for RegexRgx {
@@ -80,11 +80,6 @@ const _: () = {
         }
     }
 };
-impl std::fmt::Display for RegexRgx {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 impl pg_crud_cmn::DfltSomeOneEl for RegexRgx {
     fn dflt_some_one_el() -> Self {
         match regex::Regex::new("[a-z]+") {
@@ -112,13 +107,8 @@ pub enum RgxCase {
     Sensitive,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[newtype(as_ref_inner, display, from_inner)]
 pub struct RgxCasePostgreqlSyntax(&'static str);
-impl std::fmt::Display for RgxCasePostgreqlSyntax {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
 impl pg_crud_cmn::DfltSomeOneEl for RgxCase {
     fn dflt_some_one_el() -> Self {
         Self::Sensitive
@@ -598,22 +588,14 @@ pub enum BoundedVecTryNewEr {
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from_inner)]
 pub struct BoundedVecLen(usize);
-impl From<usize> for BoundedVecLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 impl BoundedVecLen {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0
-    }
-}
-impl std::fmt::Display for BoundedVecLen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 impl to_err_string::ToErrString for BoundedVecLen {

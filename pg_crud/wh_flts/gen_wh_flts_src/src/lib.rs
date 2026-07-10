@@ -2,16 +2,11 @@
 #[newtype(as_ref_inner, from_inner)]
 pub struct ProcMacro2GenWhFltsInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
 #[derive(Debug, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[newtype(as_ref_owned, display, from_inner)]
 pub struct ProcMacro2GenWhFltsTs(proc_macro2::TokenStream);
 impl From<ProcMacro2GenWhFltsTs> for proc_macro2::TokenStream {
     fn from(value: ProcMacro2GenWhFltsTs) -> Self {
         value.0
-    }
-}
-impl std::fmt::Display for ProcMacro2GenWhFltsTs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[must_use]

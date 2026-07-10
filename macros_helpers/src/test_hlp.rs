@@ -1,11 +1,7 @@
 static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub(crate) struct TestPathStemRef<'stem_lt>(&'stem_lt str);
-impl<'stem_lt> From<&'stem_lt str> for TestPathStemRef<'stem_lt> {
-    fn from(value: &'stem_lt str) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TestPathStem<'stem_lt>(&'stem_lt str);
 impl<'stem_lt> TestPathStem<'stem_lt> {
@@ -16,13 +12,9 @@ impl<'stem_lt> TestPathStem<'stem_lt> {
         Self(v.into().0)
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub(crate) struct StdAssertFilePathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for StdAssertFilePathRef<'path_lt> {
-    fn from(value: &'path_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
 impl<'path_lt> From<&'path_lt std::path::PathBuf> for StdAssertFilePathRef<'path_lt> {
     fn from(value: &'path_lt std::path::PathBuf) -> Self {
         Self(value.as_path())
@@ -38,13 +30,9 @@ impl<'path_lt> StdAssertFilePath<'path_lt> {
         Self(v.into().0)
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub(crate) struct ExpectedFileContentRef<'content_lt>(&'content_lt str);
-impl<'content_lt> From<&'content_lt str> for ExpectedFileContentRef<'content_lt> {
-    fn from(value: &'content_lt str) -> Self {
-        Self(value)
-    }
-}
 impl<'content_lt> From<&'content_lt String> for ExpectedFileContentRef<'content_lt> {
     fn from(value: &'content_lt String) -> Self {
         Self(value.as_str())

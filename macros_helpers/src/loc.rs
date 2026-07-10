@@ -85,13 +85,9 @@ impl LocFieldAttr {
 }
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMsg<'msg_lt>(&'msg_lt str);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
-impl<'variant_lt> From<&'variant_lt syn::Variant> for SynVariantRef<'variant_lt> {
-    fn from(value: &'variant_lt syn::Variant) -> Self {
-        Self(value)
-    }
-}
 fn compile_error_ts(msg: CompileErrorMsg<'_>) -> crate::generated_rust_ts::GeneratedRustTs {
     let msg_value = msg.0;
     crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {compile_error!(#msg_value);})

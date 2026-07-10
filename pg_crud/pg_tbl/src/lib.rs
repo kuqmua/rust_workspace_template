@@ -24,7 +24,8 @@ enum UpdateSelectorFmt {
     Eq,
     InList,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, display)]
 pub struct PgTblNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTblNameRef<'lt>
 where
@@ -34,17 +35,8 @@ where
         Self(value.as_ref())
     }
 }
-impl AsRef<str> for PgTblNameRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl std::fmt::Display for PgTblNameRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, display)]
 pub struct PgTblSqlFragmentRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTblSqlFragmentRef<'lt>
 where
@@ -54,17 +46,8 @@ where
         Self(value.as_ref())
     }
 }
-impl AsRef<str> for PgTblSqlFragmentRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl std::fmt::Display for PgTblSqlFragmentRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(display)]
 pub struct PgTblQueryString(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgTblStringWrapperTryFromStringEr {
@@ -99,18 +82,14 @@ impl TryFrom<String> for PgTblQueryString {
         Ok(Self(value))
     }
 }
-impl std::fmt::Display for PgTblQueryString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
 impl std::ops::Deref for PgTblQueryString {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(display)]
 pub struct PgTblQpFragment(String);
 impl From<PgTblStringWrapperTryFromStringEr> for PgTblQpFragment {
     fn from(value: PgTblStringWrapperTryFromStringEr) -> Self {
@@ -127,11 +106,6 @@ impl TryFrom<String> for PgTblQpFragment {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for PgTblQpFragment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
     }
 }
 impl std::ops::Deref for PgTblQpFragment {

@@ -15,5 +15,6 @@ proc-macro2 = { workspace = true }
 quote = { workspace = true }
 convert_case = { workspace = true }
 naming_cmn_macros = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true

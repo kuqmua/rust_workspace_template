@@ -61,7 +61,8 @@ naming_cmn_macros::case_trait_pair!(
 );
 #[derive(Debug, Clone, Copy)]
 struct ConvertCaseKind(convert_case::Case<'static>);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(as_ref_str, display)]
 struct CaseString(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum CaseStringTryFromStringEr {
@@ -91,16 +92,6 @@ impl TryFrom<String> for CaseString {
             });
         }
         Ok(Self(value))
-    }
-}
-impl AsRef<str> for CaseString {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl std::fmt::Display for CaseString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[derive(Debug, Clone)]

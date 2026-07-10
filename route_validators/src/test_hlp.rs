@@ -4,28 +4,12 @@ const BLOCK_ON_POLL_LIMIT_ER_ID: &str = "cf6e91ab";
 const EXPECT_OK_ER_ID: &str = "db9d2f63";
 const EXPECT_ER_ER_ID: &str = "2f755472";
 const REPLACE_HEADER_MISSING_SRC_ER_ID: &str = "c3a0f7be";
+#[derive(newtype::Newtype)]
+#[newtype(display, from_inner)]
 pub(crate) struct TestExpId(pub &'static str);
-impl From<&'static str> for TestExpId {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for TestExpId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
+#[derive(newtype::Newtype)]
+#[newtype(display, from_inner)]
 struct TestPanicText(pub &'static str);
-impl From<&'static str> for TestPanicText {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for TestPanicText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
 pub(crate) struct AxumTestHeaders(pub axum::http::HeaderMap);
 impl std::ops::Deref for AxumTestHeaders {
     type Target = axum::http::HeaderMap;

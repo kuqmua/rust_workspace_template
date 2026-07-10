@@ -430,30 +430,12 @@ impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(as_ref_inner, from_inner)]
 pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(as_ref_str, from_inner)]
 pub struct SwaggerUrlPathSelfQuotesStrValue(gen_quotes::QuotedLiteral);
-impl From<gen_quotes::QuotedLiteral> for SwaggerUrlPathSelfQuotesStrValue {
-    fn from(value: gen_quotes::QuotedLiteral) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for SwaggerUrlPathSelfQuotesStrValue {
-    fn as_ref(&self) -> &str {
-        self.0.as_ref()
-    }
-}
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(from_inner, to_tokens)]
 pub struct SwaggerUrlPathSelfQuotesTs(gen_quotes::ProcMacro2QuotedLiteralTs);
-impl From<gen_quotes::ProcMacro2QuotedLiteralTs> for SwaggerUrlPathSelfQuotesTs {
-    fn from(value: gen_quotes::ProcMacro2QuotedLiteralTs) -> Self {
-        Self(value)
-    }
-}
-impl quote::ToTokens for SwaggerUrlPathSelfQuotesTs {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
 pub trait SwaggerUrlPathSelfQuotesStr {
     fn swagger_url_path_self_quotes_str(
         &self,

@@ -65,6 +65,9 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(as_ref_owned, from_inner)]
     struct OwnedValue(Vec<u8>);
+    #[derive(newtype::Newtype)]
+    #[newtype(debug_transparent)]
+    struct TransparentDebugValue(u16);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
@@ -137,6 +140,10 @@ mod tests {
     fn owned_inner_impls_are_generated() {
         let v = OwnedValue::from(vec![3, 5, 8]);
         assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
+    }
+    #[test]
+    fn transparent_debug_forwards_inner_format() {
+        assert_eq!(format!("{:?}", TransparentDebugValue(17)), "17");
     }
     #[test]
     fn enum_from_str_impl_is_generated() {

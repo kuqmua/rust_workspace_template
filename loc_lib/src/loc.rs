@@ -41,13 +41,8 @@ impl std::fmt::Display for LocCommitTryFromStringEr {
     optml::Optml,
     newtype::Newtype,
 )]
-#[newtype(display)]
+#[newtype(as_ref_str, display)]
 pub struct LocFile(String);
-impl AsRef<str> for LocFile {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl From<LocFileTryFromStringEr> for LocFile {
     fn from(value: LocFileTryFromStringEr) -> Self {
         Self(value.to_string())
@@ -105,13 +100,10 @@ pub struct LocCol(u32);
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(as_ref_str)]
 pub struct LocCommit(String);
-impl AsRef<str> for LocCommit {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl From<LocCommitTryFromStringEr> for LocCommit {
     fn from(value: LocCommitTryFromStringEr) -> Self {
         Self(value.to_string())

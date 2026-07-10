@@ -14,6 +14,7 @@ gen_pg_tbl_src = { workspace = true }
 gen_pg_types_src = { workspace = true }
 gen_wh_flts_src = { workspace = true }
 macros_helpers = { workspace = true }
+newtype = { workspace = true }
 pg_crud_cmn = { workspace = true }
 quote = { workspace = true }
 serde_json = { workspace = true }

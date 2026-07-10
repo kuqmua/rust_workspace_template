@@ -523,7 +523,7 @@ impl From<IsPk> for bool {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display, deref)]
+#[newtype(as_ref_str, display, deref)]
 pub struct QpFragment(String);
 impl QpFragment {
     const fn empty() -> Self {
@@ -549,11 +549,6 @@ impl TryFrom<String> for QpFragment {
             });
         }
         Ok(Self(value))
-    }
-}
-impl AsRef<str> for QpFragment {
-    fn as_ref(&self) -> &str {
-        &self.0
     }
 }
 impl std::fmt::Write for QpFragment {
@@ -1021,7 +1016,8 @@ impl DfltSomeOneEl for Order {
         Self::default()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(display)]
 pub struct OrderScStr(String);
 impl From<PgCrudStringWrapperTryFromStringEr> for OrderScStr {
     fn from(value: PgCrudStringWrapperTryFromStringEr) -> Self {
@@ -1040,12 +1036,8 @@ impl TryFrom<String> for OrderScStr {
         Ok(Self(value))
     }
 }
-impl std::fmt::Display for OrderScStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
-}
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(display)]
 pub struct OrderUccStr(String);
 impl From<PgCrudStringWrapperTryFromStringEr> for OrderUccStr {
     fn from(value: PgCrudStringWrapperTryFromStringEr) -> Self {
@@ -1062,11 +1054,6 @@ impl TryFrom<String> for OrderUccStr {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for OrderUccStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
     }
 }
 impl Order {
@@ -1650,13 +1637,8 @@ impl EqOprtr {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[newtype(as_ref_inner, display, from_inner)]
 pub struct EqOprtrQueryStr(&'static str);
-impl std::fmt::Display for EqOprtrQueryStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
 pub trait PgTypeEqOprtr {
     fn oprtr(&self) -> EqOprtr;
 }
@@ -1705,22 +1687,14 @@ pub enum UnsignedPartOfI32TryFromI32Er {
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(display, from_inner)]
 pub struct UnsignedPartOfI32Raw(i32);
-impl From<i32> for UnsignedPartOfI32Raw {
-    fn from(value: i32) -> Self {
-        Self(value)
-    }
-}
 impl UnsignedPartOfI32Raw {
     #[must_use]
     pub const fn get(self) -> i32 {
         self.0
-    }
-}
-impl std::fmt::Display for UnsignedPartOfI32Raw {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 impl to_err_string::ToErrString for UnsignedPartOfI32Raw {

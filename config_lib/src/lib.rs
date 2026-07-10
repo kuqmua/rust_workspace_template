@@ -37,20 +37,12 @@ impl TryFrom<String> for StdEnvVarOk {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct StdEnvVarOkRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for StdEnvVarOkRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct EnvVarNameRef<'name_lt>(&'name_lt str);
-impl<'name_lt> From<&'name_lt str> for EnvVarNameRef<'name_lt> {
-    fn from(value: &'name_lt str) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
 #[newtype(display)]
 pub struct EnvVarName(String);
@@ -73,24 +65,15 @@ impl TryFrom<String> for EnvVarName {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChronoFixedOffsetEr(&'static str);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
 pub struct StdI32ParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for StdI32ParsingEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
 pub struct StdU32ParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for StdU32ParsingEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
 pub struct StdUsizeParsingEr(std::num::ParseIntError);
-impl std::fmt::Debug for StdUsizeParsingEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct TimezoneSeconds(i32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

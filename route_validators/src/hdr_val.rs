@@ -1,10 +1,6 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
-impl<'headers_lt> From<&'headers_lt axum::http::HeaderMap> for AxumHeadersRef<'headers_lt> {
-    fn from(value: &'headers_lt axum::http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
 #[cfg(test)]
 impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
     for AxumHeadersRef<'headers_lt>
@@ -17,13 +13,9 @@ impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
 pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
     pub &'header_value_lt axum::http::HeaderValue,
 );
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(as_ref_inner)]
 pub(crate) struct HeaderStrRef<'header_str_lt>(pub &'header_str_lt str);
-impl AsRef<str> for HeaderStrRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 impl std::ops::Deref for HeaderStrRef<'_> {
     type Target = str;
     fn deref(&self) -> &Self::Target {

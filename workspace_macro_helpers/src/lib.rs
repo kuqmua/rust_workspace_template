@@ -134,7 +134,8 @@ impl syn::parse::Parse for TopLevelCommaPart {
     }
 }
 #[must_use]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(display)]
 pub struct FirstIdent(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FirstIdentTryFromStringEr {
@@ -164,11 +165,6 @@ impl TryFrom<String> for FirstIdent {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for FirstIdent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[must_use]

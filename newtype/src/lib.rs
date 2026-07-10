@@ -14,6 +14,7 @@ enum NewtypeOption {
     AsRefOwned,
     AsRefStr,
     AsSlice,
+    DebugTransparent,
     Deref,
     Display,
     From,
@@ -242,8 +243,28 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
     let inner_ty_ref = inner_ty.as_ref();
     let ident = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
+    let debug_transparent_ts = attrs
+        .contains(NewtypeOption::DebugTransparent)
+        .get()
+        .then(|| {
+        let mut debug_generics = input_ref.generics.clone();
+        debug_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote! { #inner_ty_ref: std::fmt::Debug });
+        let (debug_impl_generics, debug_ty_generics, debug_where_clause) =
+            debug_generics.split_for_impl();
+        quote::quote! {
+            impl #debug_impl_generics std::fmt::Debug for #ident #debug_ty_generics #debug_where_clause {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    std::fmt::Debug::fmt(&self.0, f)
+                }
+            }
+        }
+    });
     let display_ts = attrs.contains(NewtypeOption::Display).get().then(|| {
         quote::quote! {
+            #[allow(single_use_lifetimes)]
             impl #impl_generics std::fmt::Display for #ident #ty_generics #where_clause {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     self.0.fmt(f)
@@ -253,6 +274,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
     });
     let as_ref_str_ts = attrs.contains(NewtypeOption::AsRefStr).get().then(|| {
         quote::quote! {
+            #[allow(single_use_lifetimes)]
             impl #impl_generics AsRef<str> for #ident #ty_generics #where_clause {
                 fn as_ref(&self) -> &str {
                     AsRef::<str>::as_ref(&self.0)
@@ -372,6 +394,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
     });
     let to_tokens_ts = attrs.contains(NewtypeOption::ToTokens).get().then(|| {
         quote::quote! {
+            #[allow(single_use_lifetimes)]
             impl #impl_generics quote::ToTokens for #ident #ty_generics #where_clause {
                 fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                     quote::ToTokens::to_tokens(&self.0, tokens);
@@ -381,6 +404,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
     });
     let to_err_string_ts = gen_to_err_string_ts(&attrs, SynIdentRef::from(ident));
     Ok(ProcMacro2GeneratedTs(quote::quote! {
+        #debug_transparent_ts
         #display_ts
         #as_ref_str_ts
         #as_ref_ts
@@ -568,6 +592,10 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                 }
                 if meta.path.is_ident("deref") {
                     acc.insert(NewtypeOption::Deref);
+                    return Ok(());
+                }
+                if meta.path.is_ident("debug_transparent") {
+                    acc.insert(NewtypeOption::DebugTransparent);
                     return Ok(());
                 }
                 if meta.path.is_ident("display") {

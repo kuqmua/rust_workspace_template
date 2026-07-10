@@ -1,18 +1,12 @@
 struct ReplaceLts;
 #[derive(Clone, Copy)]
 struct SynOptmlField<'field_lt>(&'field_lt syn::Field);
+#[derive(newtype::Newtype)]
+#[newtype(to_tokens)]
 struct SynFieldTyWithStaticLts(syn::Type);
+#[derive(newtype::Newtype)]
+#[newtype(to_tokens)]
 struct ProcMacro2AlignOfTs(proc_macro2::TokenStream);
-impl quote::ToTokens for SynFieldTyWithStaticLts {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-impl quote::ToTokens for ProcMacro2AlignOfTs {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
         i.ident = syn::Ident::new("static", i.ident.span());

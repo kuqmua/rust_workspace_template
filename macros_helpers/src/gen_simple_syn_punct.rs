@@ -1,30 +1,17 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct SynPathSegment(syn::PathSegment);
-impl From<syn::PathSegment> for SynPathSegment {
-    fn from(value: syn::PathSegment) -> Self {
-        Self(value)
-    }
-}
 impl From<SynPathSegment> for syn::PathSegment {
     fn from(value: SynPathSegment) -> Self {
         value.0
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(from_inner, to_tokens)]
 pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
-impl From<syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>> for SynPathSegments {
-    fn from(value: syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>) -> Self {
-        Self(value)
-    }
-}
 impl From<SynPathSegments> for syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
     fn from(value: SynPathSegments) -> Self {
         value.0
-    }
-}
-impl quote::ToTokens for SynPathSegments {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
     }
 }
 #[allow(clippy::single_call_fn)] // named constructor keeps syn::PathSegment assembly separate from punctuation loop

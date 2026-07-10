@@ -19,7 +19,8 @@ struct NotFoundH {
     msg: NotFoundMsg,
     open_api_specification: OpenApiSpecificationPath,
 }
-#[derive(Debug, serde::Serialize, optml::Optml)]
+#[derive(Debug, serde::Serialize, optml::Optml, newtype::Newtype)]
+#[newtype(display)]
 struct NotFoundMsg(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum NotFoundMsgTryFromStringEr {
@@ -49,11 +50,6 @@ impl TryFrom<String> for NotFoundMsg {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::fmt::Display for NotFoundMsg {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
     }
 }
 #[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]

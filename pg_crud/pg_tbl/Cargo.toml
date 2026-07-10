@@ -13,6 +13,7 @@ edition = "2024"
 [dependencies]
 app_state = { workspace = true }
 config_lib = { workspace = true }
+newtype = { workspace = true }
 [lints]
 workspace = true
 

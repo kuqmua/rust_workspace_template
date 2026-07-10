@@ -1,31 +1,13 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(from_inner, to_tokens)]
 pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
-impl<'lt> From<&'lt syn::Attribute> for SynMacroAttrRef<'lt> {
-    fn from(value: &'lt syn::Attribute) -> Self {
-        Self(value)
-    }
-}
-impl quote::ToTokens for SynMacroAttrRef<'_> {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner, to_tokens)]
 pub struct ProcMacro2MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
-impl<'lt> From<&'lt proc_macro2::TokenStream> for ProcMacro2MacroAttrMetaListTsRef<'lt> {
-    fn from(value: &'lt proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
 impl std::ops::Deref for ProcMacro2MacroAttrMetaListTsRef<'_> {
     type Target = proc_macro2::TokenStream;
     fn deref(&self) -> &Self::Target {
         self.0
-    }
-}
-impl quote::ToTokens for ProcMacro2MacroAttrMetaListTsRef<'_> {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.clone());
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

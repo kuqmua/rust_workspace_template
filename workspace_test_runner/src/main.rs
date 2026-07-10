@@ -86,7 +86,8 @@ impl CargoArgs {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 struct StderrTextRef<'lt>(&'lt str);
 impl<'lt> StderrTextRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -200,11 +201,6 @@ impl ToolPath {
 struct AllocationTool {
     name: ToolName,
     path: ToolPath,
-}
-impl<'lt> From<&'lt str> for StderrTextRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
 }
 fn print_without_measurement_footer(stderr: StderrTextRef<'_>) {
     stderr
