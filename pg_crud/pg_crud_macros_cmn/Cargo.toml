@@ -18,6 +18,7 @@ serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 naming = { workspace = true }
+newtype = { workspace = true }
 token_patterns = { workspace = true }
 gen_quotes = { workspace = true }
 macros_helpers = { workspace = true }

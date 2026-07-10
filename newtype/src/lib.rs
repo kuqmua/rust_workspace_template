@@ -18,6 +18,7 @@ enum NewtypeOption {
     Getter,
     IntoInner,
     IntoVec,
+    ToTokens,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ToErrStringMode {
@@ -339,6 +340,15 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
+    let to_tokens_ts = attrs.contains(NewtypeOption::ToTokens).get().then(|| {
+        quote::quote! {
+            impl #impl_generics quote::ToTokens for #ident #ty_generics #where_clause {
+                fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                    quote::ToTokens::to_tokens(&self.0, tokens);
+                }
+            }
+        }
+    });
     let to_err_string_ts = gen_to_err_string_ts(&attrs, SynIdentRef::from(ident));
     Ok(ProcMacro2GeneratedTs(quote::quote! {
         #display_ts
@@ -350,6 +360,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
         #getter_ts
         #into_inner_ts
         #into_vec_ts
+        #to_tokens_ts
         #to_err_string_ts
     }))
 }
@@ -523,7 +534,7 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                     acc.insert(NewtypeOption::Display);
                     return Ok(());
                 }
-                if meta.path.is_ident("from") {
+                if meta.path.is_ident("from") || meta.path.is_ident("from_inner") {
                     acc.insert(NewtypeOption::From);
                     return Ok(());
                 }
@@ -537,6 +548,10 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                 }
                 if meta.path.is_ident("into_vec") {
                     acc.insert(NewtypeOption::IntoVec);
+                    return Ok(());
+                }
+                if meta.path.is_ident("to_tokens") {
+                    acc.insert(NewtypeOption::ToTokens);
                     return Ok(());
                 }
                 if meta.path.is_ident("to_err_string")
@@ -583,7 +598,7 @@ fn validate_newtype_inner_ty_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            "#[newtype(from)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead",
+            "#[newtype(from_inner)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead",
         ));
     }
     Ok(())
@@ -693,7 +708,7 @@ mod tests {
     fn newtype_from_string_returns_compile_error() {
         let input = syn::parse_quote! {
             #[derive(Newtype)]
-            #[newtype(from)]
+            #[newtype(from_inner)]
             struct Name(String);
         };
         let result = super::gen_newtype_ts(super::SynDeriveInputRef::from(&input));
@@ -701,7 +716,7 @@ mod tests {
         if let Err(er) = result {
             assert_eq!(
                 er.to_string(),
-                "#[newtype(from)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead"
+                "#[newtype(from_inner)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead"
             );
         }
     }

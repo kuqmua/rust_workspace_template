@@ -214,35 +214,12 @@ impl std::fmt::Display for IsNlPrefixStr {
         self.0.fmt(f)
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_str, display, from_inner)]
 pub struct ImportScStr(&'static str);
-impl From<&'static str> for ImportScStr {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for ImportScStr {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl std::fmt::Display for ImportScStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(display, from_inner)]
 pub struct ImportPathStr(&'static str);
-impl From<&'static str> for ImportPathStr {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for ImportPathStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub struct DimNbr(usize);
 impl From<usize> for DimNbr {

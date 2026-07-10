@@ -43,7 +43,7 @@ mod tests {
     #[newtype(deref, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(display, from, to_err_string)]
+    #[newtype(display, from_inner, to_err_string)]
     struct UsizeValue(usize);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(to_err_string_debug)]
@@ -54,6 +54,9 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(as_slice, into_vec)]
     struct VecValue<T>(Vec<T>);
+    #[derive(Debug, Clone, newtype::Newtype)]
+    #[newtype(display, from_inner, into_inner, to_tokens)]
+    struct ProcMacro2TokenValue(proc_macro2::TokenStream);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
@@ -107,6 +110,14 @@ mod tests {
         let v = VecValue(vec![1i32, 2i32]);
         assert_eq!(v.as_slice(), [1i32, 2i32]);
         assert_eq!(v.into_vec(), vec![1i32, 2i32]);
+    }
+    #[test]
+    fn token_impls_are_generated() {
+        let inner = quote::quote! { sample::path };
+        let v = ProcMacro2TokenValue::from(inner.clone());
+        assert_eq!(v.to_string(), "sample :: path");
+        assert_eq!(quote::quote! { #v }.to_string(), inner.to_string());
+        assert_eq!(v.into_inner().to_string(), inner.to_string());
     }
     #[test]
     fn enum_from_str_impl_is_generated() {

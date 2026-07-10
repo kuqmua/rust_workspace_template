@@ -8,26 +8,12 @@ struct QuotePanicId(&'static str);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
 #[bounded_string(max = QUOTED_LITERAL_MAX_LEN)]
 pub struct QuotedLiteral(String);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(display, from_inner, into_inner, to_tokens)]
 pub struct ProcMacro2QuotedLiteralTs(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2QuotedLiteralTs {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
 impl From<ProcMacro2QuotedLiteralTs> for proc_macro2::TokenStream {
     fn from(value: ProcMacro2QuotedLiteralTs) -> Self {
-        value.0
-    }
-}
-impl quote::ToTokens for ProcMacro2QuotedLiteralTs {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.clone());
-    }
-}
-impl std::fmt::Display for ProcMacro2QuotedLiteralTs {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        value.into_inner()
     }
 }
 fn quote_literal<Dsp>(prefix: QuotePrefix, quote_ch: QuoteChar, v: &Dsp) -> QuotedLiteral
