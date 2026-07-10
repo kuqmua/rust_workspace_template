@@ -160,6 +160,7 @@ where
     start: T,
     end: T,
 }
+#[location::errors_with_loc]
 #[derive(
     Debug,
     Clone,
@@ -175,7 +176,6 @@ pub enum BtwnTryNewEr<T> {
         start: T,
         #[eo_to_err_string_serde]
         end: T,
-        loc: loc_lib::loc::Loc,
     },
 }
 impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + PartialOrd>
@@ -585,6 +585,7 @@ impl<T> From<PgTypeNotEmptyUnqVec<T>> for Vec<T> {
 )]
 #[serde(try_from = "Vec<T>")]
 pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
+#[location::errors_with_loc]
 #[derive(
     Debug,
     Clone,
@@ -603,7 +604,6 @@ pub enum BoundedVecTryNewEr {
         wrong_len: BoundedVecLen,
         #[eo_to_err_string_serde]
         expected: BoundedVecLen,
-        loc: loc_lib::loc::Loc,
     },
 }
 #[derive(

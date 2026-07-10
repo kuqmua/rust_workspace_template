@@ -1,3 +1,57 @@
+struct SynItemEnumMutRef<'item_lt>(&'item_lt mut syn::ItemEnum);
+impl<'item_lt> From<&'item_lt mut syn::ItemEnum> for SynItemEnumMutRef<'item_lt> {
+    fn from(value: &'item_lt mut syn::ItemEnum) -> Self {
+        Self(value)
+    }
+}
+#[proc_macro_attribute]
+pub fn errors_with_loc(
+    attr_ts: proc_macro::TokenStream,
+    input_ts: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    if !attr_ts.is_empty() {
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "errors_with_loc does not accept arguments",
+        )
+        .into_compile_error()
+        .into();
+    }
+    let mut item = match syn::parse::<syn::ItemEnum>(input_ts) {
+        Ok(v) => v,
+        Err(er) => return er.into_compile_error().into(),
+    };
+    match add_loc_fields(SynItemEnumMutRef::from(&mut item)) {
+        Ok(()) => quote::quote! {#item}.into(),
+        Err(er) => er.into_compile_error().into(),
+    }
+}
+#[allow(clippy::single_call_fn)] // isolated transformation is unit-tested independently from proc-macro parsing
+fn add_loc_fields(item: SynItemEnumMutRef<'_>) -> syn::Result<()> {
+    let SynItemEnumMutRef(item_ref) = item;
+    item_ref.variants.iter_mut().try_for_each(|variant| {
+        let syn::Fields::Named(fields) = &mut variant.fields else {
+            return Err(syn::Error::new_spanned(
+                variant,
+                "errors_with_loc supports only variants with named fields",
+            ));
+        };
+        if fields
+            .named
+            .iter()
+            .any(|field| field.ident.as_ref().is_some_and(|ident| ident == "loc"))
+        {
+            return Err(syn::Error::new_spanned(
+                variant,
+                "errors_with_loc variant already has a loc field",
+            ));
+        }
+        fields
+            .named
+            .push(syn::parse_quote! { loc: loc_lib::loc::Loc });
+        Ok(())
+    })
+}
 #[proc_macro_derive(
     Location,
     attributes(
@@ -476,4 +530,51 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     //     );
     // }
     generated.into()
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn adds_loc_to_every_named_variant() {
+        let mut item: syn::ItemEnum = syn::parse_quote! {
+            enum SampleEr {
+                First { value: String },
+                Second {},
+            }
+        };
+        super::add_loc_fields(super::SynItemEnumMutRef::from(&mut item)).expect("74c1509e");
+        assert_eq!(
+            quote::quote! {#item}.to_string(),
+            quote::quote! {
+                enum SampleEr {
+                    First { value: String, loc: loc_lib::loc::Loc },
+                    Second { loc: loc_lib::loc::Loc },
+                }
+            }
+            .to_string()
+        );
+    }
+    #[test]
+    fn rejects_existing_loc_field() {
+        let mut item: syn::ItemEnum = syn::parse_quote! {
+            enum SampleEr { First { loc: loc_lib::loc::Loc } }
+        };
+        let er =
+            super::add_loc_fields(super::SynItemEnumMutRef::from(&mut item)).expect_err("371082fa");
+        assert_eq!(
+            er.to_string(),
+            "errors_with_loc variant already has a loc field"
+        );
+    }
+    #[test]
+    fn rejects_unnamed_variant() {
+        let mut item: syn::ItemEnum = syn::parse_quote! {
+            enum SampleEr { First(String) }
+        };
+        let er =
+            super::add_loc_fields(super::SynItemEnumMutRef::from(&mut item)).expect_err("982f4d17");
+        assert_eq!(
+            er.to_string(),
+            "errors_with_loc supports only variants with named fields"
+        );
+    }
 }

@@ -54,6 +54,7 @@ impl From<pg_crud_cmn::IsPk> for IsPrimaryKey {
 )]
 #[serde(try_from = "PgnStartsWithOneRaw")]
 pub struct PgnStartsWithOne(pg_crud_cmn::PgnBase);
+#[location::errors_with_loc]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
 )]
@@ -61,19 +62,16 @@ pub enum PgnStartsWithOneTryNewEr {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
         limit: PgnStartsWithOneValue,
-        loc: loc_lib::loc::Loc,
     },
     OffsetIsLessThanOne {
         #[eo_to_err_string_serde]
         offset: PgnStartsWithOneValue,
-        loc: loc_lib::loc::Loc,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
         limit: PgnStartsWithOneValue,
         #[eo_to_err_string_serde]
         offset: PgnStartsWithOneValue,
-        loc: loc_lib::loc::Loc,
     },
 }
 impl PgnStartsWithOne {

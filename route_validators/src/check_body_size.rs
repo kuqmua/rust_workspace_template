@@ -30,6 +30,7 @@ impl AsRef<[u8]> for BytesBodyBytes {
         self.0.as_ref()
     }
 }
+#[location::errors_with_loc]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum BodySizeEr {
     ReachedMaximumSizeOfBody {
@@ -39,7 +40,6 @@ pub enum BodySizeEr {
         maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
         #[eo_to_err_string]
         size_hint: HttpBodySizeHint,
-        loc: loc_lib::loc::Loc,
     },
 }
 impl crate::GetAxumHttpStatusCode for BodySizeEr {

@@ -1195,6 +1195,7 @@ struct PgnStartsWithZeroRaw {
 )]
 #[serde(try_from = "PgnStartsWithZeroRaw")]
 pub struct PgnStartsWithZero(PgnBase);
+#[location::errors_with_loc]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
 )]
@@ -1202,19 +1203,16 @@ pub enum PgnStartsWithZeroTryNewEr {
     LimitIsLessThanOrEqToZero {
         #[eo_to_err_string_serde]
         limit: PgnLimit,
-        loc: loc_lib::loc::Loc,
     },
     OffsetIsLessThanZero {
         #[eo_to_err_string_serde]
         offset: PgnOffset,
-        loc: loc_lib::loc::Loc,
     },
     OffsetPlusLimitIsIntOverflow {
         #[eo_to_err_string_serde]
         limit: PgnLimit,
         #[eo_to_err_string_serde]
         offset: PgnOffset,
-        loc: loc_lib::loc::Loc,
     },
 }
 impl PgnStartsWithZero {
@@ -1324,17 +1322,15 @@ impl From<IsStringEmptyRes> for bool {
 pub trait IsStringEmpty {
     fn is_string_empty(&self) -> IsStringEmptyRes;
 }
+#[location::errors_with_loc]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
 )]
 pub enum NotEmptyUnqVecTryNewEr<T> {
-    IsEmpty {
-        loc: loc_lib::loc::Loc,
-    },
+    IsEmpty {},
     NotUnq {
         #[eo_to_err_string_serde]
         v: T,
-        loc: loc_lib::loc::Loc,
     },
 }
 #[derive(
