@@ -27,6 +27,7 @@ impl AsRef<[u8]> for BytesBodyBytes {
 }
 #[location::errors_with_loc]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
+#[location_to_schema]
 pub enum BodySizeEr {
     ReachedMaximumSizeOfBody {
         #[eo_to_err_string]

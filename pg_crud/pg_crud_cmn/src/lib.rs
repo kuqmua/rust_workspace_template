@@ -10,7 +10,6 @@ const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
     PartialOrd,
     serde::Serialize,
     serde::Deserialize,
-    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
     newtype::Newtype,
@@ -103,6 +102,7 @@ pub trait DfltSomeOneElMaxPageSize: Sized {
     serde::Deserialize,
     Eq,
     PartialEq,
+    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
 )]
@@ -688,6 +688,7 @@ where
     location::Location,
     optml::Optml,
 )]
+#[location_to_schema]
 pub enum QpEr {
     CheckedAdd {
         loc: loc_lib::loc::Loc,
@@ -1050,7 +1051,7 @@ impl Order {
             .unwrap_or_else(OrderUccStr::from)
     }
 }
-#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, optml::Optml)]
 pub struct OrderBy<ColGeneric> {
     pub col: ColGeneric,
     pub order: Option<Order>,

@@ -60,7 +60,21 @@ fn mk_api_routes(
                 server_app_state::ServerAppState<'static>,
             >::clone(
                 app_state
-            ))),
+            )))
+            .route(
+                "/api-docs/openapi.json",
+                axum::routing::get(async || {
+                    axum::Json(server_tbl_example::TblExampleOpenApi::open_api())
+                }),
+            )
+            .route(
+                "/swagger-ui",
+                axum::routing::get(async || {
+                    axum::response::Html(
+                        r#"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Swagger UI</title><link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></head><body><div id="swagger-ui"></div><script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script><script>window.onload=()=>SwaggerUIBundle({url:'/api-docs/openapi.json',dom_id:'#swagger-ui'});</script></body></html>"#,
+                    )
+                }),
+            ),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place

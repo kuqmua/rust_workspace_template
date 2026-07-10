@@ -1010,7 +1010,8 @@ pub fn gen_pg_tbl(
     let WhManySc = naming::WhManySc;
     let WhUcc = naming::WhUcc;
     let ident = &di.ident;
-    let ident_sc_dq_ts = gen_quotes::dq_ts(&naming_cmn::ToTokensToScStr::case(&ident));
+    let ident_sc_string = naming_cmn::ToTokensToScStr::case(&ident);
+    let ident_sc_dq_ts = gen_quotes::dq_ts(&ident_sc_string);
     let self_tbl_name_call_ts = quote::quote! {Self::#TblNameSc()};
     let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
     let fields_model = match build_gen_pg_tbl_fields_model_stage(
@@ -1180,6 +1181,8 @@ pub fn gen_pg_tbl(
     let mut impl_ident_vec_ts = Vec::with_capacity(op_count.saturating_add(2));
     let mut op_routes_ts = Vec::with_capacity(op_count);
     let mut content_ts = Vec::with_capacity(op_count);
+    let mut open_api_path_fn_idents = Vec::with_capacity(op_count);
+    let mut open_api_schema_types_ts = Vec::with_capacity(op_count.saturating_mul(2));
     let er_enum_d_ts_builder = pg_crud_macros_cmn::ts_helpers::er_enum_d_ts_builder();
     let serde_ser_utoipa_d_ts_builder = macros_helpers::derive_ts_builder::DTsBuilder::new()
         .make_pub()
@@ -2065,6 +2068,7 @@ pub fn gen_pg_tbl(
             .d_copy()
             .d_eq()
             .d_std_hash_hash()
+            .d_utoipa_to_schema()
             .build_enum(
                 &proc_macro2::TokenStream::new(),
                 &ident_sel_ucc,
@@ -2130,6 +2134,7 @@ pub fn gen_pg_tbl(
                 .d_partial_eq()
                 .d_serde_serialize()
                 .d_serde_deserialize()
+                .d_utoipa_to_schema()
                 .build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_rd_ucc,
@@ -2264,6 +2269,7 @@ pub fn gen_pg_tbl(
     let ident_rd_ids_ts = {
         let ident_rd_ids_ts = {
             let ident_rd_ids_struct_ts = pg_crud_macros_cmn::ts_helpers::cmn_d_ts_builder()
+                .d_utoipa_to_schema()
                 .build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_rd_ids_ucc,
@@ -3271,6 +3277,24 @@ pub fn gen_pg_tbl(
             Op::Cm | Op::Um => &vec_ident_rd_ids_ts,
         }
     };
+    open_api_schema_types_ts.extend([
+        quote::quote! {#ident_cr_ucc},
+        quote::quote! {#ident_wh_ucc},
+        quote::quote! {#opt_ident_wh_ucc},
+        quote::quote! {#ident_sel_ucc},
+        quote::quote! {#ident_rd_ucc},
+        quote::quote! {#ident_rd_ids_ucc},
+        quote::quote! {#ident_upd_ucc},
+        quote::quote! {#ident_upd_for_query_ucc},
+        quote::quote! {#pk_ft_as_pg_type_rd_ucc},
+        quote::quote! {#pk_ft_upd_ts},
+        quote::quote! {loc_lib::loc::Loc},
+        quote::quote! {pg_crud_cmn::NotEmptyUnqVec<#ident_sel_ucc>},
+        quote::quote! {pg_crud_cmn::OrderBy<#ident_sel_ucc>},
+        quote::quote! {pg_crud_cmn::PgnStartsWithZero},
+        quote::quote! {pg_crud_cmn::QpErWithSerde},
+        quote::quote! {route_validators::check_body_size::BodySizeErWithSerde},
+    ]);
     [
         Op::Cm,
         Op::Co,
@@ -3285,6 +3309,47 @@ pub fn gen_pg_tbl(
     .fold((), |(), op| {
         let op_h_sc_ts = op.self_h_sc_ts();
         let op_sc_ts = op.self_sc_ts();
+        let op_sc_string = op.self_sc_str();
+        let open_api_path_fn_ident = quote::format_ident!(
+            "{}_{}_open_api",
+            ident_sc_string,
+            op_sc_string
+        );
+        let open_api_path = format!("/{ident_sc_string}/{op_sc_string}");
+        let open_api_path_dq_ts = gen_quotes::dq_ts(&open_api_path);
+        let open_api_tag_dq_ts = gen_quotes::dq_ts(&ident_sc_string);
+        let open_api_method_ts = match op.http_method() {
+            OpHttpMethod::Post => quote::quote! {post},
+            OpHttpMethod::Patch => quote::quote! {patch},
+            OpHttpMethod::Delete => quote::quote! {delete},
+        };
+        let open_api_status_ts = if op.desirable_status_code()
+            == macros_helpers::status_code::StatusCode::Crd201
+        {
+            quote::quote! {201}
+        } else {
+            quote::quote! {200}
+        };
+        let open_api_payload_type_ts = gen_ident_op_payload_ucc(op);
+        let open_api_response_type_ts = gen_ident_op_res_vrts_ucc(op);
+        open_api_path_fn_idents.push(open_api_path_fn_ident.clone());
+        open_api_schema_types_ts.push(open_api_payload_type_ts.clone());
+        open_api_schema_types_ts.push(open_api_response_type_ts.clone());
+        let open_api_path_fn_ts = quote::quote! {
+            #[allow(dead_code)]
+            #[utoipa::path(
+                #open_api_method_ts,
+                path = #open_api_path_dq_ts,
+                operation_id = #op_sc_string,
+                tag = #open_api_tag_dq_ts,
+                request_body = #open_api_payload_type_ts,
+                responses(
+                    (status = #open_api_status_ts, description = "Successful response", body = #open_api_response_type_ts),
+                    (status = "default", description = "Error response", body = #open_api_response_type_ts)
+                )
+            )]
+            fn #open_api_path_fn_ident() {}
+        };
         let gen_for_el_in_upd_for_query_vec_ts = |ts: &dyn quote::ToTokens| {
             quote::quote! {
                 for el_a72f3eac in &#UpdForQueryVecSc {
@@ -4600,6 +4665,7 @@ pub fn gen_pg_tbl(
                         .d_debug()
                         .d_serde_serialize()
                         .d_serde_deserialize()
+                        .d_utoipa_to_schema()
                         .build_enum(&proc_macro2::TokenStream::new(), &ident_op_res_vrts_ucc, &proc_macro2::TokenStream::new(), &{
                             let vrts_ts = type_vrts_from_req_res_syn_vrts
                                 .iter()
@@ -4717,9 +4783,58 @@ pub fn gen_pg_tbl(
                 #prms_ts
                 #op_ts
                 #try_op_ts
+                #open_api_path_fn_ts
             }
         });
     });
+    let ident_open_api_ucc = quote::format_ident!("{}OpenApi", ident);
+    let ident_open_api_ts = quote::quote! {
+        #[allow(clippy::needless_for_each)] // generated utoipa 4 registration uses iterator callbacks internally
+        #[derive(utoipa::OpenApi)]
+        #[openapi(
+            paths(#(#open_api_path_fn_idents),*),
+            components(schemas(#(#open_api_schema_types_ts),*)),
+            tags((name = #ident_sc_string, description = "Generated CRUD API"))
+        )]
+        pub struct #ident_open_api_ucc;
+        #[allow(clippy::needless_for_each)] // recursive schema-reference normalization is clearer as iterator traversal
+        impl #ident_open_api_ucc {
+            #[must_use]
+            pub fn open_api() -> utoipa::openapi::OpenApi {
+                fn collect_refs(value: &serde_json::Value, refs: &mut std::collections::BTreeSet<String>) {
+                    match value {
+                        serde_json::Value::Array(values) => values.iter().for_each(|value| collect_refs(value, refs)),
+                        serde_json::Value::Object(values) => values.iter().for_each(|(key, value)| {
+                            if key == "$ref"
+                                && let Some(name) = value.as_str().and_then(|value| value.strip_prefix("#/components/schemas/"))
+                            {
+                                refs.insert(name.to_owned());
+                            }
+                            collect_refs(value, refs);
+                        }),
+                        serde_json::Value::Null | serde_json::Value::Bool(_) | serde_json::Value::Number(_) | serde_json::Value::String(_) => {}
+                    }
+                }
+                let mut open_api = <Self as utoipa::OpenApi>::openapi();
+                let mut refs = std::collections::BTreeSet::new();
+                if let Ok(value) = serde_json::to_value(&open_api) {
+                    collect_refs(&value, &mut refs);
+                }
+                if let Some(components) = open_api.components.as_mut() {
+                    refs.into_iter().for_each(|name| {
+                        if !components.schemas.contains_key(&name) {
+                            let suffix = name.rsplit('.').next().unwrap_or(name.as_str());
+                            let schema = components.schemas.get(suffix).cloned().unwrap_or_else(|| {
+                                utoipa::openapi::ObjectBuilder::new().build().into()
+                            });
+                            components.schemas.insert(name, schema);
+                        }
+                    });
+                }
+                open_api
+            }
+        }
+    };
     impl_ident_vec_ts.push(quote::quote! {
         pub fn #RoutesSc(#AppStateSc: #std_sync_arc_combination_of_app_state_logic_traits_ts) -> axum::Router {
             Self::#RoutesHSc(#AppStateSc, #self_tbl_name_call_ts)
@@ -6754,6 +6869,7 @@ pub fn gen_pg_tbl(
                     }
                 }
                 #(#content_ts)*
+                #ident_open_api_ts
                 #cmn_ts
                 #ident_tests_ts
         };

@@ -61,6 +61,7 @@ fn add_loc_fields(item: SynItemEnumMutRef<'_>) -> syn::Result<()> {
         eo_hashmap_k_string_v_to_err_string,
         eo_hashmap_k_string_v_to_err_string_serde,
         eo_hashmap_k_string_v_loc,
+        location_to_schema,
     )
 )]
 pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -71,6 +72,11 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
     panic_loc::panic_loc();
     let di: syn::DeriveInput = syn::parse(input).expect("d94f091a");
+    let utoipa_to_schema_ts = di
+        .attrs
+        .iter()
+        .any(|attr| attr.path().is_ident("location_to_schema"))
+        .then(|| quote::quote! {utoipa::ToSchema,});
     let ident = &di.ident;
     let string_ts = token_patterns::StringTs;
     let loc_sc = naming::LocSc;
@@ -130,7 +136,7 @@ pub fn loc(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let gen_enum_ident_with_serde_ts = |ts: &dyn quote::ToTokens| {
         quote::quote! {
-            #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, optml::Optml)]
+            #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, #utoipa_to_schema_ts optml::Optml)]
             pub enum #ident_with_serde_ucc #mb_generic_prms_ts {
                 #ts
             }

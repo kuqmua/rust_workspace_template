@@ -24,5 +24,6 @@ location = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }
 to_err_string = { workspace = true }
+utoipa = { workspace = true }
 [lints]
 workspace = true

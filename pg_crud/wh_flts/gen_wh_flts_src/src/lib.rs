@@ -82,6 +82,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                 macros_helpers::derive_ts_builder::DSerdeDeserialize::True
             })
             .d_schemars_json_schema()
+            .d_utoipa_to_schema()
             .build_struct(
                 &proc_macro2::TokenStream::new(),
                 &ident,

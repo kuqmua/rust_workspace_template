@@ -1,4 +1,5 @@
 #[must_use]
+#[allow(clippy::unreachable, clippy::wildcard_enum_match_arm)] // schema branches are guarded by the PostgreSQL type category selected immediately before each match
 pub fn gen_pg_types(
     input_ts: macros_helpers::ts_writer::ProcMacro2TsRef<'_>,
 ) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
@@ -794,6 +795,219 @@ pub fn gen_pg_types(
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDate>},
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::NaiveDateTime>},
             PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {sqlx::postgres::types::PgRange<sqlx::types::chrono::DateTime::<sqlx::types::chrono::Utc>>},
+        };
+        let open_api_nullable_ts = match &is_nl {
+            pg_crud_macros_cmn::IsNl::False => quote::quote! {false},
+            pg_crud_macros_cmn::IsNl::True => quote::quote! {true},
+        };
+        let open_api_object_builder_ts = |schema_type: &dyn quote::ToTokens,
+                                          extra: &dyn quote::ToTokens| {
+            quote::quote! {
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(utoipa::openapi::SchemaType::#schema_type)
+                    .nullable(#open_api_nullable_ts)
+                    #extra
+                    .build()
+            }
+        };
+        let open_api_schema_ts = match &pg_type {
+            PgType::I16AsInt2 | PgType::I16AsSmallSerialInitByPg => open_api_object_builder_ts(
+                &quote::quote! {Integer},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
+                    .minimum(Some(-32768.0))
+                    .maximum(Some(32767.0))
+                    .example(Some(serde_json::json!(42)))
+                },
+            ),
+            PgType::I32AsInt4 | PgType::I32AsSerialInitByPg => open_api_object_builder_ts(
+                &quote::quote! {Integer},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
+                    .minimum(Some(-2147483648.0))
+                    .maximum(Some(2147483647.0))
+                    .example(Some(serde_json::json!(42)))
+                },
+            ),
+            PgType::I64AsInt8 | PgType::I64AsBigSerialInitByPg | PgType::SqlxPgTypesPgMoneyAsMoney => open_api_object_builder_ts(
+                &quote::quote! {Integer},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))
+                    .example(Some(serde_json::json!(42)))
+                },
+            ),
+            PgType::F32AsFloat4 => open_api_object_builder_ts(
+                &quote::quote! {Number},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Float)))
+                    .example(Some(serde_json::json!(42.0)))
+                },
+            ),
+            PgType::F64AsFloat8 => open_api_object_builder_ts(
+                &quote::quote! {Number},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Double)))
+                    .example(Some(serde_json::json!(42.0)))
+                },
+            ),
+            PgType::BoolAsBool => open_api_object_builder_ts(
+                &quote::quote! {Boolean},
+                &quote::quote! {.example(Some(serde_json::json!(true)))},
+            ),
+            PgType::StringAsText => open_api_object_builder_ts(
+                &quote::quote! {String},
+                &quote::quote! {.example(Some(serde_json::json!("example")))},
+            ),
+            PgType::SqlxTypesChronoNaiveDateAsDate => open_api_object_builder_ts(
+                &quote::quote! {String},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))
+                    .example(Some(serde_json::json!("2024-01-01")))
+                },
+            ),
+            PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => open_api_object_builder_ts(
+                &quote::quote! {String},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::Custom("uuid".to_owned())))
+                    .example(Some(serde_json::json!("00000000-0000-4000-8000-000000000000")))
+                },
+            ),
+            PgType::SqlxTypesIpnetworkIpNetworkAsInet => open_api_object_builder_ts(
+                &quote::quote! {String},
+                &quote::quote! {
+                    .format(Some(utoipa::openapi::SchemaFormat::Custom("ip-network".to_owned())))
+                    .example(Some(serde_json::json!("192.0.2.1/32")))
+                },
+            ),
+            PgType::StdVecVecU8AsBytea | PgType::SqlxTypesMacAddressMacAddressAsMacAddr => {
+                let limits_ts = match &pg_type {
+                    PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {
+                        .min_items(Some(6))
+                        .max_items(Some(6))
+                    },
+                    _ => proc_macro2::TokenStream::new(),
+                };
+                quote::quote! {
+                    utoipa::openapi::ArrayBuilder::new()
+                        .items(utoipa::openapi::ObjectBuilder::new()
+                            .schema_type(utoipa::openapi::SchemaType::Integer)
+                            .minimum(Some(0.0))
+                            .maximum(Some(255.0)))
+                        .nullable(#open_api_nullable_ts)
+                        #limits_ts
+                        .build()
+                }
+            }
+            PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => {
+                let (minute_name, second_name, microsecond_name) = match &pg_type {
+                    PgType::SqlxTypesChronoNaiveTimeAsTime => ("min", "sec", "micro"),
+                    PgType::SqlxTypesTimeTimeAsTime => ("minute", "second", "microsecond"),
+                    _ => unreachable!(),
+                };
+                quote::quote! {
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::SchemaType::Object)
+                        .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                        .property(#minute_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                        .property(#second_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                        .property(#microsecond_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                        .required("hour")
+                        .required(#minute_name)
+                        .required(#second_name)
+                        .required(#microsecond_name)
+                        .nullable(#open_api_nullable_ts)
+                        .build()
+                }
+            }
+            PgType::SqlxPgTypesPgIntervalAsInterval => quote::quote! {
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(utoipa::openapi::SchemaType::Object)
+                    .property("months", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
+                    .property("days", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
+                    .property("microseconds", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64))))
+                    .required("months")
+                    .required("days")
+                    .required("microseconds")
+                    .nullable(#open_api_nullable_ts)
+                    .build()
+            },
+            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
+            | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => {
+                let date_name = match &pg_type {
+                    PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => "date",
+                    PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => "date_naive",
+                    _ => unreachable!(),
+                };
+                quote::quote! {
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::SchemaType::Object)
+                        .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
+                        .property("time", utoipa::openapi::ObjectBuilder::new()
+                            .schema_type(utoipa::openapi::SchemaType::Object)
+                            .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                            .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                            .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                            .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                            .required("hour").required("min").required("sec").required("micro"))
+                        .required(#date_name)
+                        .required("time")
+                        .nullable(#open_api_nullable_ts)
+                        .build()
+                }
+            }
+            PgType::SqlxPgTypesPgRangeI32AsInt4Range
+            | PgType::SqlxPgTypesPgRangeI64AsInt8Range
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
+                let range_value_schema_ts = match &pg_type {
+                    PgType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
+                    PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
+                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
+                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                    | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
+                        let date_name = match &pg_type {
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => "date",
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => "date_naive",
+                            _ => unreachable!(),
+                        };
+                        quote::quote! {
+                            utoipa::openapi::ObjectBuilder::new()
+                                .schema_type(utoipa::openapi::SchemaType::Object)
+                                .property(#date_name, utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date))))
+                                .property("time", utoipa::openapi::ObjectBuilder::new()
+                                    .schema_type(utoipa::openapi::SchemaType::Object)
+                                    .property("hour", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(23.0)))
+                                    .property("min", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                                    .property("sec", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(59.0)))
+                                    .property("micro", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).minimum(Some(0.0)).maximum(Some(999999.0)))
+                                    .required("hour").required("min").required("sec").required("micro"))
+                                .required(#date_name)
+                                .required("time")
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+                let range_bound_schema_ts = quote::quote! {
+                    utoipa::openapi::schema::Schema::from(
+                        utoipa::openapi::OneOfBuilder::new()
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Object).property("Included", #range_value_schema_ts).required("Included"))
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Object).property("Excluded", #range_value_schema_ts).required("Excluded"))
+                            .item(utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).enum_values(Some(["Unbounded"])))
+                            .build()
+                    )
+                };
+                quote::quote! {
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::SchemaType::Object)
+                        .property("start", #range_bound_schema_ts)
+                        .property("end", #range_bound_schema_ts)
+                        .required("start")
+                        .required("end")
+                        .nullable(#open_api_nullable_ts)
+                        .build()
+                }
+            }
         };
         let ft_h_opt_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(&ident_stdrt_nn_orgn_ucc);
         let ft_h: &dyn quote::ToTokens = match &pg_type_pattern {
@@ -1743,10 +1957,11 @@ pub fn gen_pg_types(
                     pg_crud_macros_cmn::DeriveOrImpl::Impl(_) => macros_helpers::derive_ts_builder::DSerdeDeserialize::False,
                 })
                 .build_struct(
-                    &if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True) {
-                        let gen_serde_from_ts = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(from = #ts)]};
-                        let gen_serde_try_from_ts = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(try_from = #ts)]};
-                        match &pg_type {
+                    &{
+                        if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True) {
+                            let gen_serde_from_ts = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(from = #ts)]};
+                            let gen_serde_try_from_ts = |ts: &dyn quote::ToTokens|quote::quote! {#[serde(try_from = #ts)]};
+                            match &pg_type {
                             PgType::I16AsInt2 |
                             PgType::I32AsInt4 |
                             PgType::I64AsInt8 |
@@ -1778,10 +1993,11 @@ pub fn gen_pg_types(
                             },
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {#[serde(from = "(std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>,std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>)")]},//todo reuse name
                             PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {#[serde(from = "(std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>,std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>)")]},//todo reuse name
+                            }
                         }
-                    }
-                    else {
-                        proc_macro2::TokenStream::new()
+                        else {
+                            proc_macro2::TokenStream::new()
+                        }
                     },
                     &ident_orgn_ucc,
                     &proc_macro2::TokenStream::new(),
@@ -2909,6 +3125,14 @@ pub fn gen_pg_types(
             };
             quote::quote! {
                 #ident_orgn_ts
+                impl<'schema_lt> utoipa::ToSchema<'schema_lt> for #ident_orgn_ucc {
+                    fn schema() -> (
+                        &'schema_lt str,
+                        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+                    ) {
+                        (stringify!(#ident_orgn_ucc), (#open_api_schema_ts).into())
+                    }
+                }
                 #mb_pub_enum_ident_stdrt_nn_orgn_try_new_er_ts
                 #mb_pub_enum_ident_stdrt_nn_orgn_try_new_for_de_er_ts
                 #impl_ident_orgn_ts
@@ -2938,6 +3162,7 @@ pub fn gen_pg_types(
                 .d_std_hash_hash()
                 .d_serde_serialize()
                 .d_serde_deserialize()
+                .d_utoipa_to_schema()
                 .build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_ts_prm,
@@ -2959,6 +3184,7 @@ pub fn gen_pg_types(
                 .d_partial_ord_if(d_partial_ord)
                 .d_serde_serialize()
                 .d_serde_deserialize()
+                .d_utoipa_to_schema()
                 .build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_tt_ucc,
@@ -3147,7 +3373,7 @@ pub fn gen_pg_types(
                 &allow_clippy_arbitrary_src_item_ordering,
                 pg_type_flts.as_slice(),
                 &ident,
-                &pg_crud_macros_cmn::ShouldDeriveUtoipaToSchema::False,
+                &pg_crud_macros_cmn::ShouldDeriveUtoipaToSchema::True,
                 &pg_crud_macros_cmn::ShouldDSchemarsJsonSchema::False,
                 &pg_crud_macros_cmn::IsQbMut::False,
             )
@@ -3181,6 +3407,7 @@ pub fn gen_pg_types(
                     .d_ord_if(derive_ord)
                     .d_serde_serialize()
                     .d_serde_deserialize()
+                    .d_utoipa_to_schema()
                     .build_struct(
                         &proc_macro2::TokenStream::new(),
                         &ident_rd_ucc,
@@ -3268,6 +3495,7 @@ pub fn gen_pg_types(
         };
         let ident_upd_ts = {
             let ident_upd_ts = cmn_d_ts_builder
+                .d_utoipa_to_schema()
                 .d_eq_if(match &is_nn_stdrt_can_be_pk {
                     IsNnStdrtCanBePk::False => macros_helpers::derive_ts_builder::DEq::False,
                     IsNnStdrtCanBePk::True => macros_helpers::derive_ts_builder::DEq::True,
@@ -3299,7 +3527,7 @@ pub fn gen_pg_types(
         };
         let ident_upd_for_query_ucc = naming::prm::SelfUpdForQueryUcc::from_tokens(&ident);
         let ident_upd_for_query_ts = {
-            let ident_upd_for_query_ts = cmn_d_ts_builder.build_struct(
+            let ident_upd_for_query_ts = cmn_d_ts_builder.d_utoipa_to_schema().build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_upd_for_query_ucc,
                     &proc_macro2::TokenStream::new(),

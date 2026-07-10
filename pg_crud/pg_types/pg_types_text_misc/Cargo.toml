@@ -14,6 +14,7 @@ edition = "2024"
 sqlx = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = { workspace = true }
 gen_pg_types = { workspace = true }
 pg_types_cmn = { workspace = true }
@@ -24,6 +25,7 @@ location = { workspace = true }
 wh_flts = { workspace = true }
 optml = { workspace = true }
 to_err_string = { workspace = true }
+utoipa = { workspace = true }
 [lints]
 workspace = true
 
