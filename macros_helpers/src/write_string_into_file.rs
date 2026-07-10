@@ -109,17 +109,6 @@ fn should_write_with_diff_len(
         StringFileContentRef::from(new),
     )
 }
-#[allow(clippy::single_call_fn)] // central mapping keeps changed/unchanged outcome construction consistent
-fn mk_write_path_outcome(
-    path: StdWrittenFilePath,
-    is_changed: ShouldWriteString,
-) -> WritePathOutcome {
-    if bool::from(is_changed) {
-        WritePathOutcome::Changed(path)
-    } else {
-        WritePathOutcome::Unchanged(path)
-    }
-}
 #[allow(clippy::single_call_fn)] // extracted side-effect helper keeps write/no-write branching reusable and test-focused
 fn write_string_if_needed(
     path: StdWrittenFilePathRef<'_>,
@@ -139,7 +128,11 @@ pub(crate) fn try_write_string_into_path_with_outcome(
     let path_ref = path.as_ref();
     let should_write = write_string_if_needed(StdWrittenFilePathRef::from(path_ref), string_cnt)?;
     let path_buf = StdWrittenFilePath::from(path_ref.to_path_buf());
-    Ok(mk_write_path_outcome(path_buf, should_write))
+    Ok(if bool::from(should_write) {
+        WritePathOutcome::Changed(path_buf)
+    } else {
+        WritePathOutcome::Unchanged(path_buf)
+    })
 }
 #[allow(clippy::single_call_fn)] // shared write helper keeps change-outcome API reusable for extension-based write callers
 pub fn try_write_string_into_file_with_outcome<P>(

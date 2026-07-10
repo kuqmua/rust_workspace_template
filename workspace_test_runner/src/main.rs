@@ -804,16 +804,13 @@ fn main() {
                 "parse_gen_pg_tbl_input_stage",
                 "build_gen_pg_tbl_input_model_stage",
                 "validate_gen_pg_tbl_fields_model_stage",
-                "emit_gen_pg_tbl_type_declarations_stage",
-                "emit_gen_pg_tbl_query_builders_stage",
-                "emit_gen_pg_tbl_route_handlers_stage",
                 "emit_gen_pg_tbl_tests_stage",
                 "emit_gen_pg_tbl_final_stage",
             ]
             .into_iter()
             .all(|pattern| gen_pg_tbl_src_text.contains(pattern));
             println!(
-                "measurement=gen_pg_tbl_pipeline_shape parse=true build_model=true validate=true emit_type_declarations=true emit_query_builders=true emit_route_handlers=true emit_tests=true emit_final=true source_detected={gen_pg_tbl_pipeline_stage_source_found}"
+                "measurement=gen_pg_tbl_pipeline_shape parse=true build_model=true validate=true emit_tests=true emit_final=true source_detected={gen_pg_tbl_pipeline_stage_source_found}"
             );
             let gen_pg_tbl_pipeline_stage_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
                 (

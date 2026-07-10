@@ -15,8 +15,6 @@ pub struct ProcMacro2TsRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy)]
 struct ShouldWriteTsFlag(bool);
-#[derive(Debug, Clone, Copy)]
-struct ShouldRunRustfmt(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     let status = std::process::Command::new("rustfmt").arg(path.0).status()?;
@@ -47,16 +45,6 @@ where
         crate::string_writer::StringFileContentRef::from(string_cnt.as_str()),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps rustfmt-trigger policy in one reusable decision helper
-fn should_run_rustfmt(
-    format_with_cargofmt: FormatWithCargofmt,
-    wr_outcome: &crate::string_writer::WritePathOutcome,
-) -> ShouldRunRustfmt {
-    ShouldRunRustfmt(
-        bool::from(wr_outcome.is_changed())
-            && matches!(format_with_cargofmt, FormatWithCargofmt::True),
-    )
-}
 pub fn try_mb_write_ts_into_file<P>(
     should_write_ts_into_file: ShouldWriteTsIntoFile,
     file_name: P,
@@ -70,7 +58,9 @@ where
         return Ok(());
     }
     let wr_outcome = try_write_ts_into_file(file_name, ts)?;
-    if should_run_rustfmt(*format_with_cargofmt, &wr_outcome).0 {
+    if bool::from(wr_outcome.is_changed())
+        && matches!(format_with_cargofmt, FormatWithCargofmt::True)
+    {
         try_run_rustfmt(StdRustfmtPath(wr_outcome.path().as_ref()))?;
     }
     Ok(())

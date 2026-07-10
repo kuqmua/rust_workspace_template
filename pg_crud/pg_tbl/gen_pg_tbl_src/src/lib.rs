@@ -347,24 +347,6 @@ pub fn gen_pg_tbl(
             &self.0
         }
     }
-    struct ProcMacro2GenPgTblTypeDeclarationsTs(proc_macro2::TokenStream);
-    impl ProcMacro2GenPgTblTypeDeclarationsTs {
-        fn into_inner(self) -> proc_macro2::TokenStream {
-            self.0
-        }
-    }
-    struct ProcMacro2GenPgTblRouteHandlersTs(proc_macro2::TokenStream);
-    impl ProcMacro2GenPgTblRouteHandlersTs {
-        fn into_inner(self) -> proc_macro2::TokenStream {
-            self.0
-        }
-    }
-    struct ProcMacro2GenPgTblQueryBuildersTs(proc_macro2::TokenStream);
-    impl ProcMacro2GenPgTblQueryBuildersTs {
-        fn into_inner(self) -> proc_macro2::TokenStream {
-            self.0
-        }
-    }
     struct ProcMacro2GenPgTblWholeTs(proc_macro2::TokenStream);
     impl ProcMacro2GenPgTblWholeTs {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
@@ -790,24 +772,6 @@ pub fn gen_pg_tbl(
             )));
         }
         Ok(model)
-    }
-    #[allow(clippy::single_call_fn)]
-    const fn emit_gen_pg_tbl_route_handlers_stage(
-        route_handlers_ts: ProcMacro2GenPgTblRouteHandlersTs,
-    ) -> ProcMacro2GenPgTblRouteHandlersTs {
-        route_handlers_ts
-    }
-    #[allow(clippy::single_call_fn)]
-    const fn emit_gen_pg_tbl_query_builders_stage(
-        query_builders_ts: ProcMacro2GenPgTblQueryBuildersTs,
-    ) -> ProcMacro2GenPgTblQueryBuildersTs {
-        query_builders_ts
-    }
-    #[allow(clippy::single_call_fn)]
-    const fn emit_gen_pg_tbl_type_declarations_stage(
-        type_declarations_ts: ProcMacro2GenPgTblTypeDeclarationsTs,
-    ) -> ProcMacro2GenPgTblTypeDeclarationsTs {
-        type_declarations_ts
     }
     #[allow(clippy::single_call_fn)]
     fn emit_gen_pg_tbl_tests_stage(
@@ -3675,7 +3639,7 @@ pub fn gen_pg_tbl(
                         },
                     }
                 };
-                let query_string_ts = emit_gen_pg_tbl_query_builders_stage(ProcMacro2GenPgTblQueryBuildersTs({
+                let query_string_ts = {
                     let gen_match_ok_err_qp_ts =
                         |ts0: &dyn quote::ToTokens, ts1: &dyn quote::ToTokens, ts2: &dyn quote::ToTokens, ts3: &dyn quote::ToTokens| {
                             gen_match_ok_err_ts(&ts0, &ts1, &ts2, &ts3, &quote::quote! {{#op_er_init_qp_ts}})
@@ -4043,8 +4007,7 @@ pub fn gen_pg_tbl(
                             pg_tbl::PgTblSqlFragmentRef::from(Self::#PkSc()),
                         )},
                     }
-                }))
-                .into_inner();
+                };
                 let binded_query_ts = {
                     let op_er_init_try_bind_ts = gen_op_er_init_eprintln_res_ts(
                         op,
@@ -6763,24 +6726,20 @@ pub fn gen_pg_tbl(
         ProcMacro2GenPgTblTestsTs(generated_ident_tests_ts),
     )
     .into_inner();
-    let cmn_ts = emit_gen_pg_tbl_type_declarations_stage(ProcMacro2GenPgTblTypeDeclarationsTs(
-        quote::quote! {
-            #ident_prep_pg_er_ts
-            #ident_cr_ts
-            #ident_wh_ts
-            #opt_ident_wh_ts
-            #sel_ts
-            #ident_rd_ts
-            #ident_rd_ids_ts
-            #ident_upd_ts
-            #ident_upd_for_query_ts
-        },
-    ))
-    .into_inner();
+    let cmn_ts = quote::quote! {
+        #ident_prep_pg_er_ts
+        #ident_cr_ts
+        #ident_wh_ts
+        #opt_ident_wh_ts
+        #sel_ts
+        #ident_rd_ts
+        #ident_rd_ids_ts
+        #ident_upd_ts
+        #ident_upd_for_query_ts
+    };
     let gend = {
         let ident_gen_pg_tbl_mod_sc = naming::prm::SelfGenPgTblModSc::from_tokens(&ident);
-        let impl_and_content_ts = emit_gen_pg_tbl_route_handlers_stage(
-            ProcMacro2GenPgTblRouteHandlersTs(quote::quote! {
+        let impl_and_content_ts = quote::quote! {
                 #AllowClippyArbitrarySrcItemOrdering
                 impl #ident {
                     #(#impl_ident_vec_ts)*
@@ -6797,9 +6756,7 @@ pub fn gen_pg_tbl(
                 #(#content_ts)*
                 #cmn_ts
                 #ident_tests_ts
-            }),
-        )
-        .into_inner();
+        };
         quote::quote! {
             #[allow(unused_qualifications)]
             #[allow(clippy::absolute_paths)]

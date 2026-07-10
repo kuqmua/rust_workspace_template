@@ -115,14 +115,6 @@ fn mk_not_found_payload(
 ) -> NotFoundH {
     mk_not_found_payload_with_msg(mk_no_route_msg(uri), commit)
 }
-#[allow(clippy::single_call_fn)] // shared suffix-based assembly is reusable by handlers that already have a path suffix
-#[cfg(test)]
-fn mk_not_found_payload_for_suffix(
-    uri_suffix: UriSuffixRef<'_>,
-    commit: git_info::StdGitCommitLinkCow,
-) -> NotFoundH {
-    mk_not_found_payload_with_msg(mk_no_route_msg_for_suffix(uri_suffix), commit)
-}
 #[allow(clippy::single_call_fn)] // shared payload constructor keeps not-found response shape centralized
 const fn mk_not_found_payload_with_msg(
     msg: NotFoundMsg,
@@ -354,8 +346,10 @@ mod tests {
     #[test]
     fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
         let commit_link = test_commit_link();
-        let payload =
-            super::mk_not_found_payload_for_suffix(suffix_ref("/missing"), test_commit_link_cow());
+        let payload = super::mk_not_found_payload_with_msg(
+            super::mk_no_route_msg_for_suffix(suffix_ref("/missing")),
+            test_commit_link_cow(),
+        );
         assert_not_found_payload_with_commit(&payload, &commit_link, "/missing");
     }
     #[test]

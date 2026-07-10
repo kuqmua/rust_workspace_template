@@ -4,16 +4,6 @@ pub struct SynPathSegment(syn::PathSegment);
 #[derive(Debug, Clone, newtype::Newtype)]
 #[newtype(from_inner, into_inner_from, to_tokens)]
 pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
-#[allow(clippy::single_call_fn)] // named constructor keeps syn::PathSegment assembly separate from punctuation loop
-fn mk_path_segment<S>(v: S) -> SynPathSegment
-where
-    S: AsRef<str>,
-{
-    SynPathSegment::from(syn::PathSegment {
-        ident: proc_macro2::Ident::new(v.as_ref(), proc_macro2::Span::call_site()),
-        arguments: syn::PathArguments::None,
-    })
-}
 #[must_use]
 pub fn gen_simple_syn_punct<I, S>(v: I) -> SynPathSegments
 where
@@ -23,7 +13,10 @@ where
     let mut acc = syn::punctuated::Punctuated::<syn::PathSegment, syn::token::PathSep>::new();
     let mut iter = v.into_iter().peekable();
     while let Some(el) = iter.next() {
-        acc.push_value(mk_path_segment(el).into());
+        acc.push_value(syn::PathSegment {
+            ident: proc_macro2::Ident::new(el.as_ref(), proc_macro2::Span::call_site()),
+            arguments: syn::PathArguments::None,
+        });
         if iter.peek().is_some() {
             acc.push_punct(syn::token::PathSep {
                 spans: [

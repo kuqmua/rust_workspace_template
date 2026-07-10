@@ -1,28 +1,11 @@
 struct ReplaceLts;
-#[derive(Clone, Copy)]
-struct SynOptmlField<'field_lt>(&'field_lt syn::Field);
 #[derive(newtype::Newtype)]
 #[newtype(to_tokens)]
 struct SynFieldTyWithStaticLts(syn::Type);
-#[derive(newtype::Newtype)]
-#[newtype(to_tokens)]
-struct ProcMacro2AlignOfTs(proc_macro2::TokenStream);
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
         i.ident = syn::Ident::new("static", i.ident.span());
     }
-}
-#[allow(clippy::single_call_fn)] // isolated helper keeps lifetime rewrite reusable when alignment logic grows
-fn field_ty_with_static_lts(field: SynOptmlField<'_>) -> SynFieldTyWithStaticLts {
-    let mut ft = field.0.ty.clone();
-    let mut visitor = ReplaceLts;
-    syn::visit_mut::VisitMut::visit_type_mut(&mut visitor, &mut ft);
-    SynFieldTyWithStaticLts(ft)
-}
-#[allow(clippy::single_call_fn)] // isolated helper keeps align token generation reusable and explicit
-fn gen_align_of_ts(field: SynOptmlField<'_>) -> ProcMacro2AlignOfTs {
-    let ft = field_ty_with_static_lts(field);
-    ProcMacro2AlignOfTs(quote::quote! {align_of::<#ft>()})
 }
 #[proc_macro_derive(Optml)]
 pub fn optml(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -46,9 +29,13 @@ pub fn optml(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
         if fields_len <= 1 {
             return None;
         }
-        let align_of_ts = fields
-            .iter()
-            .map(|field| gen_align_of_ts(SynOptmlField(field)));
+        let align_of_ts = fields.iter().map(|field| {
+            let mut field_ty = field.ty.clone();
+            let mut visitor = ReplaceLts;
+            syn::visit_mut::VisitMut::visit_type_mut(&mut visitor, &mut field_ty);
+            let field_ty_with_static_lts = SynFieldTyWithStaticLts(field_ty);
+            quote::quote! {align_of::<#field_ty_with_static_lts>()}
+        });
         let variant_info = variant.map_or_else(String::new, |variant_ident| {
             format!("variant '{variant_ident}' ")
         });
