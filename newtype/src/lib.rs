@@ -4,6 +4,10 @@ struct NewtypeAttrs {
     options: std::collections::BTreeSet<NewtypeOption>,
     to_err_string_mode: Option<ToErrStringMode>,
 }
+struct BoundedStringAttrs {
+    description: SynLitStr,
+    max: SynExpr,
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
     AsRef,
@@ -131,6 +135,33 @@ impl AsRef<syn::Ident> for SynIdentRef<'_> {
         self.0
     }
 }
+struct SynExpr(syn::Expr);
+impl From<syn::Expr> for SynExpr {
+    fn from(value: syn::Expr) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Expr> for SynExpr {
+    fn as_ref(&self) -> &syn::Expr {
+        &self.0
+    }
+}
+impl quote::ToTokens for SynExpr {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.0.to_tokens(tokens);
+    }
+}
+struct SynLitStr(syn::LitStr);
+impl From<syn::LitStr> for SynLitStr {
+    fn from(value: syn::LitStr) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::LitStr> for SynLitStr {
+    fn as_ref(&self) -> &syn::LitStr {
+        &self.0
+    }
+}
 #[derive(Clone, Copy)]
 struct SynParseNestedMetaRef<'syn_lt>(&'syn_lt syn::meta::ParseNestedMeta<'syn_lt>);
 impl<'syn_lt> From<&'syn_lt syn::meta::ParseNestedMeta<'syn_lt>>
@@ -195,6 +226,17 @@ pub fn enum_from_str(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStre
         Err(er) => return er.into_compile_error().into(),
     };
     match gen_enum_from_str_ts(SynDeriveInputRef::from(&input)) {
+        Ok(v) => v.into(),
+        Err(er) => er.into_compile_error().into(),
+    }
+}
+#[proc_macro_derive(BoundedString, attributes(bounded_string))]
+pub fn bounded_string(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_ts) {
+        Ok(v) => v,
+        Err(er) => return er.into_compile_error().into(),
+    };
+    match gen_bounded_string_ts(SynDeriveInputRef::from(&input)) {
         Ok(v) => v.into(),
         Err(er) => er.into_compile_error().into(),
     }
@@ -323,6 +365,70 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
         #to_err_string_ts
     }))
 }
+#[allow(clippy::single_call_fn)] // checked String wrapper generation is separate from forwarding newtype impls
+fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2GeneratedTs> {
+    let input_ref = input.as_ref();
+    let attrs = parse_bounded_string_attrs(SynAttrsRef::from(input_ref.attrs.as_slice()))?;
+    let inner_ty = tuple_struct_one_field_ty(input)?;
+    if !type_path_ends_with_string_ident(inner_ty).get() {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            "BoundedString supports only String tuple structs",
+        ));
+    }
+    if !input_ref.generics.params.is_empty() {
+        return Err(syn::Error::new_spanned(
+            &input_ref.generics,
+            "BoundedString does not support generics",
+        ));
+    }
+    let ident = &input_ref.ident;
+    let er_ident = quote::format_ident!("{ident}TryFromStringEr");
+    let max = attrs.max;
+    let description = attrs.description.as_ref().value();
+    Ok(ProcMacro2GeneratedTs(quote::quote! {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum #er_ident {
+            TooLong { len: usize, max: usize },
+        }
+        impl std::fmt::Display for #er_ident {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    Self::TooLong { len, max } => {
+                        write!(f, "{} length {len} exceeds maximum {max}", #description)
+                    }
+                }
+            }
+        }
+        impl From<#er_ident> for #ident {
+            fn from(value: #er_ident) -> Self {
+                Self(value.to_string())
+            }
+        }
+        impl TryFrom<String> for #ident {
+            type Error = #er_ident;
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+                if value.len() > #max {
+                    return Err(Self::Error::TooLong {
+                        len: value.len(),
+                        max: #max,
+                    });
+                }
+                Ok(Self(value))
+            }
+        }
+        impl AsRef<str> for #ident {
+            fn as_ref(&self) -> &str {
+                self.0.as_str()
+            }
+        }
+        impl std::fmt::Display for #ident {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(self.0.as_str())
+            }
+        }
+    }))
+}
 #[allow(clippy::single_call_fn)] // keeps enum parsing derive independent from newtype tuple-struct generation
 fn gen_enum_from_str_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2GeneratedTs> {
     let input_ref = input.as_ref();
@@ -374,6 +480,43 @@ fn gen_enum_from_str_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2G
             }
         }
     }))
+}
+#[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
+fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStringAttrs> {
+    let (max, description) = attrs
+        .as_ref()
+        .iter()
+        .filter(|attr| attr.path().is_ident("bounded_string"))
+        .try_fold((None, None), |(mut max, mut description), attr| {
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("max") {
+                    max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                    return Ok(());
+                }
+                if meta.path.is_ident("description") {
+                    description = Some(SynLitStr::from(meta.value()?.parse::<syn::LitStr>()?));
+                    return Ok(());
+                }
+                Err(meta.error("unknown bounded_string option"))
+            })?;
+            Ok::<(Option<SynExpr>, Option<SynLitStr>), syn::Error>((max, description))
+        })?;
+    let parsed_max = max.ok_or_else(|| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "BoundedString requires #[bounded_string(max = ...)]",
+        )
+    })?;
+    let parsed_description = description.ok_or_else(|| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "BoundedString requires #[bounded_string(description = \"...\")]",
+        )
+    })?;
+    Ok(BoundedStringAttrs {
+        description: parsed_description,
+        max: parsed_max,
+    })
 }
 #[allow(clippy::single_call_fn)] // attr parsing is intentionally isolated from code generation
 fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {

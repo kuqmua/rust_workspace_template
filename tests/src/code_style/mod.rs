@@ -427,6 +427,24 @@ struct StringWrapperFromVisitor<'names_lt> {
     try_from_string_names: types::StdSourceTextSet,
 }
 impl StringWrapperFromVisitor<'_> {
+    fn check_bounded_string_attr(&mut self, item: types::SynItemStructRef<'_>) {
+        let item_ref = item.as_ref();
+        if !item_struct_is_single_string_wrapper(item).get() {
+            return;
+        }
+        let has_derive = item_ref
+            .attrs
+            .iter()
+            .any(|attr| attr_has_bounded_string_derive(types::SynAttributeRef::from(attr)).get());
+        let has_len_bound = item_ref.attrs.iter().any(|attr| {
+            attr_has_bounded_string_len_bound(types::SynAttributeRef::from(attr)).get()
+        });
+        if has_derive && has_len_bound {
+            let ident = item_ref.ident.to_string();
+            let _: bool = self.try_from_string_names.insert(ident.clone());
+            let _: bool = self.try_from_string_len_checked_names.insert(ident);
+        }
+    }
     fn check_from_impl(&mut self, item: types::SynItemImplRef<'_>) {
         if !item_impl_is_from_string(item).get() {
             return;
@@ -480,6 +498,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
         syn::visit::visit_item_impl(self, i);
     }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        self.check_bounded_string_attr(types::SynItemStructRef::from(i));
         self.check_newtype_attr(types::SynItemStructRef::from(i));
         syn::visit::visit_item_struct(self, i);
     }
@@ -2027,6 +2046,42 @@ fn attr_has_newtype_from_option(attr: types::SynAttributeRef<'_>) -> types::Anal
         Ok(())
     }));
     types::AnalyzerBool::from(has_from)
+}
+#[allow(clippy::single_call_fn)] // keeps BoundedString derive parsing reusable inside the string-wrapper policy
+fn attr_has_bounded_string_derive(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
+    let attr_ref = attr.as_ref();
+    if !attr_ref.path().is_ident("derive") {
+        return types::AnalyzerBool::default();
+    }
+    types::AnalyzerBool::from(
+        attr_ref
+            .meta
+            .require_list()
+            .is_ok_and(|list| list.tokens.to_string().contains("BoundedString")),
+    )
+}
+#[allow(clippy::single_call_fn)] // bounded string wrappers satisfy length policy only when max and description are explicit
+fn attr_has_bounded_string_len_bound(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
+    let attr_ref = attr.as_ref();
+    if !attr_ref.path().is_ident("bounded_string") {
+        return types::AnalyzerBool::default();
+    }
+    let mut has_description = false;
+    let mut has_max = false;
+    drop(attr_ref.parse_nested_meta(|meta| {
+        if meta.path.is_ident("description") {
+            drop(meta.value()?.parse::<syn::LitStr>()?);
+            has_description = true;
+            return Ok(());
+        }
+        if meta.path.is_ident("max") {
+            drop(meta.value()?.parse::<syn::Expr>()?);
+            has_max = true;
+            return Ok(());
+        }
+        Err(meta.error("unknown bounded_string option"))
+    }));
+    types::AnalyzerBool::from(has_description && has_max)
 }
 fn path_ends_with(
     path: types::SynPathRef<'_>,

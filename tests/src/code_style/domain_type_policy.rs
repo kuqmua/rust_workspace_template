@@ -78,6 +78,39 @@ impl From<String> for SourceText {
     );
 }
 #[test]
+fn bounded_string_derive_satisfies_string_wrapper_policy() {
+    let ast = syn::parse_file(
+        "
+const SOURCE_TEXT_MAX_LEN: usize = 1024;
+#[derive(newtype::BoundedString)]
+#[bounded_string(max = SOURCE_TEXT_MAX_LEN, description = \"source text\")]
+struct SourceText(String);
+",
+    )
+    .expect("90df57a8");
+    let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::StringWrapperFromVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            string_wrapper_names: &string_wrapper_names,
+            try_from_string_names: super::types::StdSourceTextSet::default(),
+            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    assert!(
+        visitor.try_from_string_names.contains("SourceText"),
+        "e4b9120c"
+    );
+    assert!(
+        visitor
+            .try_from_string_len_checked_names
+            .contains("SourceText"),
+        "69f280b3"
+    );
+    assert!(visitor.ers.is_empty(), "fbd8c479 {:#?}", visitor.ers);
+}
+#[test]
 fn public_tuple_wrappers_do_not_expose_inner_field() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr("b7c84e2a"),

@@ -5,39 +5,9 @@ struct QuotePrefix(&'static str);
 struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
 struct QuotePanicId(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(display, as_ref_str, deref)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = QUOTED_LITERAL_MAX_LEN, description = "quoted literal")]
 pub struct QuotedLiteral(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum QuotedLiteralTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for QuotedLiteralTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "quoted literal length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<QuotedLiteralTryFromStringEr> for QuotedLiteral {
-    fn from(value: QuotedLiteralTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for QuotedLiteral {
-    type Error = QuotedLiteralTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > QUOTED_LITERAL_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: QUOTED_LITERAL_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(Debug, Clone)]
 pub struct ProcMacro2QuotedLiteralTs(proc_macro2::TokenStream);
 impl From<proc_macro2::TokenStream> for ProcMacro2QuotedLiteralTs {

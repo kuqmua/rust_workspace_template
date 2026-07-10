@@ -38,39 +38,10 @@ mod tests {
         }
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(display, as_ref_str, deref, getter, to_err_string_as_ref_str)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+    #[bounded_string(max = STRING_VALUE_MAX_LEN, description = "string value")]
+    #[newtype(deref, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    enum StringValueTryFromStringEr {
-        TooLong { len: usize, max: usize },
-    }
-    impl std::fmt::Display for StringValueTryFromStringEr {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            match self {
-                Self::TooLong { len, max } => {
-                    write!(f, "string value length {len} exceeds maximum {max}")
-                }
-            }
-        }
-    }
-    impl From<StringValueTryFromStringEr> for StringValue {
-        fn from(value: StringValueTryFromStringEr) -> Self {
-            Self(value.to_string())
-        }
-    }
-    impl TryFrom<String> for StringValue {
-        type Error = StringValueTryFromStringEr;
-        fn try_from(value: String) -> Result<Self, Self::Error> {
-            if value.len() > STRING_VALUE_MAX_LEN {
-                return Err(Self::Error::TooLong {
-                    len: value.len(),
-                    max: STRING_VALUE_MAX_LEN,
-                });
-            }
-            Ok(Self(value))
-        }
-    }
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
     #[newtype(display, from, to_err_string)]
     struct UsizeValue(usize);
@@ -105,6 +76,10 @@ mod tests {
         assert_eq!(
             to_err_string::ToErrString::to_err_string(&v).as_ref(),
             "abc"
+        );
+        assert_eq!(
+            StringValue::try_from("abc".to_owned()).map(|value| value.to_string()),
+            Ok(String::from("abc"))
         );
     }
     #[test]
