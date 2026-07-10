@@ -304,7 +304,7 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     import: &crate::Import,
     type_ts: &dyn quote::ToTokens,
     ident: &dyn quote::ToTokens,
-    opt_vec_cr_ts: Option<&macros_helpers::generated_rust_ts::GeneratedRustTs>,
+    opt_vec_cr_ts: Option<&dyn quote::ToTokens>,
     rd_ids_to_2_dims_vec_rd_inn_ts: &dyn quote::ToTokens,
     rd_inn_into_rd_with_new_or_try_new_unwraped_ts: &dyn quote::ToTokens,
     rd_inn_into_upd_with_new_or_try_new_unwraped_ts: &dyn quote::ToTokens,
@@ -316,15 +316,9 @@ pub fn gen_impl_pg_type_test_cases_for_ident_ts(
     rd_ids_and_cr_into_tt_ts: &dyn quote::ToTokens,
     rd_ids_and_cr_into_wh_eq_ts: &dyn quote::ToTokens,
     rd_ids_and_cr_into_vec_wh_eq_using_fields_ts: &dyn quote::ToTokens,
-    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<
-        &macros_helpers::generated_rust_ts::GeneratedRustTs,
-    >,
-    pg_type_opt_vec_wh_greater_than_test_ts: Option<
-        &macros_helpers::generated_rust_ts::GeneratedRustTs,
-    >,
-    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<
-        &macros_helpers::generated_rust_ts::GeneratedRustTs,
-    >,
+    rd_ids_and_cr_into_opt_vec_wh_eq_to_field_ts: Option<&dyn quote::ToTokens>,
+    pg_type_opt_vec_wh_greater_than_test_ts: Option<&dyn quote::ToTokens>,
+    rd_ids_and_tt_into_pg_type_opt_wh_greater_than_ts: Option<&dyn quote::ToTokens>,
 ) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
     let names = crate::NamesCtx::new();
     #[allow(non_snake_case)]

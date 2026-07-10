@@ -249,7 +249,16 @@ pub fn gen_col_queals_v_comma_uo_qp(
     col: PgTblSqlFragmentRef<'_>,
     value: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment::try_from(format!("{col} = {value},")).unwrap_or_else(PgTblQpFragment::from)
+    let mut qp = String::with_capacity(
+        col.as_ref()
+            .len()
+            .saturating_add(value.as_ref().len())
+            .saturating_add(5),
+    );
+    if std::fmt::Write::write_fmt(&mut qp, format_args!("{col} = {value},")).is_err() {
+        return PgTblQpFragment::try_from(String::default()).unwrap_or_else(PgTblQpFragment::from);
+    }
+    PgTblQpFragment::try_from(qp).unwrap_or_else(PgTblQpFragment::from)
 }
 #[must_use]
 pub fn gen_when_col_id_then_v_um_qp(
@@ -257,16 +266,37 @@ pub fn gen_when_col_id_then_v_um_qp(
     id: PgTblSqlFragmentRef<'_>,
     value: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment::try_from(format!("when {col} = {id} then {value} "))
-        .unwrap_or_else(PgTblQpFragment::from)
+    let mut qp = String::with_capacity(
+        col.as_ref()
+            .len()
+            .saturating_add(id.as_ref().len())
+            .saturating_add(value.as_ref().len())
+            .saturating_add(15),
+    );
+    if std::fmt::Write::write_fmt(&mut qp, format_args!("when {col} = {id} then {value} ")).is_err()
+    {
+        return PgTblQpFragment::try_from(String::default()).unwrap_or_else(PgTblQpFragment::from);
+    }
+    PgTblQpFragment::try_from(qp).unwrap_or_else(PgTblQpFragment::from)
 }
 #[must_use]
 pub fn gen_col_eqs_case_acc_else_col_end_comma_um_qp(
     col: PgTblSqlFragmentRef<'_>,
     acc: PgTblSqlFragmentRef<'_>,
 ) -> PgTblQpFragment {
-    PgTblQpFragment::try_from(format!("{col} = case {acc}else {col} end,"))
-        .unwrap_or_else(PgTblQpFragment::from)
+    let mut qp = String::with_capacity(
+        col.as_ref()
+            .len()
+            .saturating_mul(2)
+            .saturating_add(acc.as_ref().len())
+            .saturating_add(19),
+    );
+    if std::fmt::Write::write_fmt(&mut qp, format_args!("{col} = case {acc}else {col} end,"))
+        .is_err()
+    {
+        return PgTblQpFragment::try_from(String::default()).unwrap_or_else(PgTblQpFragment::from);
+    }
+    PgTblQpFragment::try_from(qp).unwrap_or_else(PgTblQpFragment::from)
 }
 //todo extra param for cols_to_return instead of pk_field_name in "returning {pk_field_name}""
 #[must_use]

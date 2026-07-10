@@ -7,6 +7,7 @@ mod tests {
             "../pg_crud/pg_tbl/",
             r#"[dependencies]
 axum = { workspace = true }
+futures = { workspace = true }
 http = { workspace = true }
 sqlx = { workspace = true }
 reqwest = { workspace = true }
@@ -16,8 +17,17 @@ thiserror = { workspace = true }
 utoipa = { workspace = true }
 git_info = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 pg_crud = { workspace = true, features = ["test-utils"] }
+pg_crud_cmn = { workspace = true }
+pg_tbl = { workspace = true }
+pg_types_numeric = { workspace = true }
+pg_types_text_misc = { workspace = true }
+gen_pg_tbl = { workspace = true }
 optml = { workspace = true }
+route_validators = { workspace = true }
+to_err_string = { workspace = true }
 "#,
             &{
                 #[derive(optml::Optml)]

@@ -12,10 +12,14 @@ sqlx = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 pg_crud_cmn = { workspace = true }
 pg_types_cmn = { workspace = true }
 wh_flts = { workspace = true }
 optml = { workspace = true }
+schemars = { workspace = true }
+to_err_string = { workspace = true }
 [features]
 test-utils = []",
             &gen_pg_types_src::gen_pg_types(macros_helpers::ts_writer::ProcMacro2TsRef::from(

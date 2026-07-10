@@ -33,6 +33,18 @@ impl AnalyzerBool {
     }
 }
 #[derive(Debug, Clone, Copy)]
+pub(super) struct CargoTomlFileIdx(usize);
+impl From<usize> for CargoTomlFileIdx {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl CargoTomlFileIdx {
+    pub(super) const fn get(self) -> usize {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy)]
 pub(super) struct AnalyzerChar(char);
 impl From<char> for AnalyzerChar {
     fn from(value: char) -> Self {
@@ -362,7 +374,7 @@ impl AsRef<std::collections::BTreeSet<String>> for StdStdSourceTextSetRef<'_> {
         self.0
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct StdPathBuf(std::path::PathBuf);
 impl From<std::path::PathBuf> for StdPathBuf {
     fn from(value: std::path::PathBuf) -> Self {
@@ -371,6 +383,11 @@ impl From<std::path::PathBuf> for StdPathBuf {
 }
 impl AsRef<std::path::Path> for StdPathBuf {
     fn as_ref(&self) -> &std::path::Path {
+        &self.0
+    }
+}
+impl std::borrow::Borrow<std::path::Path> for StdPathBuf {
+    fn borrow(&self) -> &std::path::Path {
         &self.0
     }
 }

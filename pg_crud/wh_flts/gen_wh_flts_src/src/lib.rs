@@ -22,6 +22,11 @@ impl From<ProcMacro2GenWhFltsTs> for proc_macro2::TokenStream {
         value.0
     }
 }
+impl AsRef<proc_macro2::TokenStream> for ProcMacro2GenWhFltsTs {
+    fn as_ref(&self) -> &proc_macro2::TokenStream {
+        &self.0
+    }
+}
 impl std::fmt::Display for ProcMacro2GenWhFltsTs {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -109,7 +114,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                 &proc_macro2::TokenStream::new(),
                 &ident,
                 &match &generic {
-                    Generic::False => proc_macro2_ts_new.clone(),
+                    Generic::False => proc_macro2::TokenStream::new(),
                     Generic::True { mb_extra_traits_ts } => mb_extra_traits_ts
                         .as_ref()
                         .map_or_else(|| quote::quote! {<#t_ts>}, |v| quote::quote! {<#t_ts: #v>}),
@@ -162,7 +167,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             Generic::True { mb_extra_traits_ts } => {
                                 let send_and_lt_ts = quote::quote! {Send + 'lt};
                                 let ts = mb_extra_traits_ts.as_ref().map_or_else(
-                                    || send_and_lt_ts.clone(),
+                                    || quote::quote! {Send + 'lt},
                                     |v| quote::quote! {#v + #send_and_lt_ts},
                                 );
                                 &quote::quote! {, T: #ts}
@@ -217,14 +222,25 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             quote::quote! {
                 #mb_dims_ies_init_ts
                 #v_match_incr_checked_add_one_init_ts
-                Ok(#import::QpFragment::try_from(format!(
-                    #format_ts,
-                    #self_oprtr_to_qp_ts
-                    #col_sc,
-                    #mb_extra_prms_ts
-                    #self_sc.rgx_case.postgreql_syntax(),
-                    #v_sc
-                ))?)
+                let mut qp_28bc96ee = String::with_capacity(32);
+                if std::fmt::Write::write_fmt(
+                    &mut qp_28bc96ee,
+                    format_args!(
+                        #format_ts,
+                        #self_oprtr_to_qp_ts
+                        #col_sc,
+                        #mb_extra_prms_ts
+                        #self_sc.rgx_case.postgreql_syntax(),
+                        #v_sc
+                    ),
+                )
+                .is_err()
+                {
+                    return Err(#import::QpEr::WriteIntoBuffer {
+                        loc: loc_macros::loc!(),
+                    });
+                }
+                Ok(#import::QpFragment::try_from(qp_28bc96ee)?)
             }
         };
     let if_let_err_query_try_bind_self_v_to_string_ts = quote::quote! {
@@ -248,8 +264,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #if_let_err_query_try_bind_self_v_ts
         Ok(#query_sc)
     };
-    let generic_false = Generic::False;
-    let generic_true_debug_partial_eq_partial_ord_clone_type_encode = Generic::True {
+    let gen_generic_true_debug_partial_eq_partial_ord_clone_type_encode = || Generic::True {
         mb_extra_traits_ts: Some(quote::quote! {
             std::fmt::Debug
             + PartialEq
@@ -316,13 +331,24 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             quote::quote! {
                 #mb_dims_ies_init_ts
                 #v_match_incr_checked_add_one_init_ts
-                Ok(#import::QpFragment::try_from(format!(
-                    #format_ts,
-                    #self_oprtr_to_qp_ts
-                    #col_sc,
-                    #mb_extra_prms_ts
-                    #v_sc
-                ))?)
+                let mut qp_1c95685d = String::with_capacity(32);
+                if std::fmt::Write::write_fmt(
+                    &mut qp_1c95685d,
+                    format_args!(
+                        #format_ts,
+                        #self_oprtr_to_qp_ts
+                        #col_sc,
+                        #mb_extra_prms_ts
+                        #v_sc
+                    ),
+                )
+                .is_err()
+                {
+                    return Err(#import::QpEr::WriteIntoBuffer {
+                        loc: loc_macros::loc!(),
+                    });
+                }
+                Ok(#import::QpFragment::try_from(qp_1c95685d)?)
             }
         };
     let gen_pg_type_dims_helpers = |pg_type_ptrn: &PgTypePtrn| match pg_type_ptrn {
@@ -347,9 +373,9 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                 is_qb_mut,
                 qb_ts,
             ) = {
-                let sqlx_type_pg_encode_ts = quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres>};
-                let generic_true_type_encode = Generic::True {
-                    mb_extra_traits_ts: Some(sqlx_type_pg_encode_ts.clone()),
+                let gen_sqlx_type_pg_encode_ts = || quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres>};
+                let gen_generic_true_type_encode = || Generic::True {
+                    mb_extra_traits_ts: Some(gen_sqlx_type_pg_encode_ts()),
                 };
                 let gen_pg_type_dims_helpers_pg_type =
                     |pg_type_ptrn: &PgTypePtrn| gen_pg_type_dims_helpers(pg_type_ptrn);
@@ -365,7 +391,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             mb_dims_qb_ts,
                         ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                         (
-                            generic_true_type_encode.clone(),
+                            gen_generic_true_type_encode(),
                             gen_mb_dims_dcl_pub_v_t_ts(&mb_dims_dcl_ts),
                             gen_mb_dims_dflt_init_v_dflt_ts(&mb_dims_dflt_init_ts),
                             pg_crud_macros_cmn::IncrPrmUndrscr::False,
@@ -396,7 +422,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         mb_dims_qb_ts,
                     ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                     (
-                        generic_true_debug_partial_eq_partial_ord_clone_type_encode.clone(),
+                        gen_generic_true_debug_partial_eq_partial_ord_clone_type_encode(),
                         quote::quote! {
                             #mb_dims_dcl_ts
                             #pub_v_btwn_t_ts
@@ -411,13 +437,22 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 #v_match_self_v_qp_init_ts
-                                Ok(#import::QpFragment::try_from(format!(
-                                    #format_ts,
-                                    #self_oprtr_to_qp_ts
-                                    #col_sc,
-                                    #mb_extra_prms_ts
-                                    #v_sc
-                                ))?)
+                                let mut qp_8d4535a3 = String::with_capacity(32);
+                                if std::fmt::Write::write_fmt(
+                                    &mut qp_8d4535a3,
+                                    format_args!(
+                                        #format_ts,
+                                        #self_oprtr_to_qp_ts
+                                        #col_sc,
+                                        #mb_extra_prms_ts
+                                        #v_sc
+                                    ),
+                                )
+                                .is_err()
+                                {
+                                    return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                                }
+                                Ok(#import::QpFragment::try_from(qp_8d4535a3)?)
                             }
                         },
                         is_qb_mut_true,
@@ -438,9 +473,10 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                     ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                     (
                         Generic::True {
-                            mb_extra_traits_ts: Some(
-                                quote::quote! {std::fmt::Debug + PartialEq + Clone + #sqlx_type_pg_encode_ts},
-                            ),
+                            mb_extra_traits_ts: Some({
+                                let sqlx_type_pg_encode_ts = gen_sqlx_type_pg_encode_ts();
+                                quote::quote! {std::fmt::Debug + PartialEq + Clone + #sqlx_type_pg_encode_ts}
+                            }),
                         },
                         quote::quote! {
                             #mb_dims_dcl_ts
@@ -461,8 +497,9 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 let #v_sc = {
-                                    let mut acc = String::default();
-                                    for _ in #self_sc.#v_sc.to_vec() {
+                                    let values = #self_sc.#v_sc.to_vec();
+                                    let mut acc = String::with_capacity(values.len().saturating_mul(8));
+                                    for _ in values {
                                         match #import::incr_checked_add_one_returning_incr(#incr_sc) {
                                             Ok(v_daedba9c) => {
                                                 #if_write_is_err_ts
@@ -475,13 +512,22 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                                     let _: Option<char> = acc.pop();
                                     acc
                                 };
-                                Ok(#import::QpFragment::try_from(format!(
-                                    #format_ts,
-                                    #self_oprtr_to_qp_ts
-                                    #col_sc,
-                                    #mb_extra_prms_ts
-                                    #v_sc
-                                ))?)
+                                let mut qp_bce8c9ae = String::with_capacity(32usize.saturating_add(#v_sc.len()));
+                                if std::fmt::Write::write_fmt(
+                                    &mut qp_bce8c9ae,
+                                    format_args!(
+                                        #format_ts,
+                                        #self_oprtr_to_qp_ts
+                                        #col_sc,
+                                        #mb_extra_prms_ts
+                                        #v_sc
+                                    ),
+                                )
+                                .is_err()
+                                {
+                                    return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                                }
+                                Ok(#import::QpFragment::try_from(qp_bce8c9ae)?)
                             }
                         },
                         is_qb_mut_true,
@@ -509,7 +555,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         mb_dims_qb_ts,
                     ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                     (
-                        generic_false.clone(),
+                        Generic::False,
                         add_rgx_case_and_v_dcl_ts(&mb_dims_dcl_ts),
                         add_rgx_case_and_v_dflt_init_ts(&mb_dims_dflt_init_ts),
                         pg_crud_macros_cmn::IncrPrmUndrscr::False,
@@ -536,7 +582,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             mb_dims_qb_ts,
                         ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                         (
-                            generic_false.clone(),
+                            Generic::False,
                             mb_dims_dcl_ts,
                             mb_dims_dflt_init_ts,
                             pg_crud_macros_cmn::IncrPrmUndrscr::True,
@@ -547,12 +593,21 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                                 ));
                                 quote::quote! {
                                     #mb_dims_ies_init_ts
-                                    Ok(#import::QpFragment::try_from(format!(
-                                        #format_ts,
-                                        #self_oprtr_to_qp_ts
-                                        #col_sc,
-                                        #mb_extra_prms_ts
-                                    ))?)
+                                    let mut qp_1a7fed15 = String::with_capacity(32);
+                                    if std::fmt::Write::write_fmt(
+                                        &mut qp_1a7fed15,
+                                        format_args!(
+                                            #format_ts,
+                                            #self_oprtr_to_qp_ts
+                                            #col_sc,
+                                            #mb_extra_prms_ts
+                                        ),
+                                    )
+                                    .is_err()
+                                    {
+                                        return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                                    }
+                                    Ok(#import::QpFragment::try_from(qp_1a7fed15)?)
                                 }
                             },
                             is_qb_mut_false,
@@ -572,7 +627,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         mb_dims_qb_ts,
                     ) = gen_pg_type_dims_helpers_pg_type(pg_type_ptrn);
                     (
-                        generic_false.clone(),
+                        Generic::False,
                         quote::quote! {
                             #mb_dims_dcl_ts
                             pub encode_format: EncodeFormat,
@@ -592,14 +647,23 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             quote::quote! {
                                 #mb_dims_ies_init_ts
                                 #v_match_incr_checked_add_one_init_ts
-                                Ok(#import::QpFragment::try_from(format!(
-                                    #format_ts,
-                                    #self_oprtr_to_qp_ts
-                                    #col_sc,
-                                    #mb_extra_prms_ts
-                                    &#self_sc.encode_format,
-                                    #v_sc
-                                ))?)
+                                let mut qp_7a76888d = String::with_capacity(32);
+                                if std::fmt::Write::write_fmt(
+                                    &mut qp_7a76888d,
+                                    format_args!(
+                                        #format_ts,
+                                        #self_oprtr_to_qp_ts
+                                        #col_sc,
+                                        #mb_extra_prms_ts
+                                        &#self_sc.encode_format,
+                                        #v_sc
+                                    ),
+                                )
+                                .is_err()
+                                {
+                                    return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                                }
+                                Ok(#import::QpFragment::try_from(qp_7a76888d)?)
                             }
                         },
                         is_qb_mut_true,
@@ -665,18 +729,37 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             #mb_dims_ies_init_ts
                             let oprtr = <T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc);
                             let oprtr_query_str = oprtr.to_query_str();
-                            Ok(#import::QpFragment::try_from(format!(
-                                #format_ts,
-                                #self_oprtr_to_qp_ts
-                                #col_sc,
-                                match oprtr {
-                                    #import::EqOprtr::Eq => {
-                                        #v_match_incr_checked_add_one_init_ts
-                                        format!("{oprtr_query_str} ${v}")
-                                    },
-                                    #import::EqOprtr::IsNull => oprtr_query_str.to_string(),
-                                }
-                            ))?)
+                            let qp_oprtr_6e4b019d = match oprtr {
+                                #import::EqOprtr::Eq => {
+                                    #v_match_incr_checked_add_one_init_ts
+                                    let mut acc_6e4b019d = String::with_capacity(16);
+                                    if std::fmt::Write::write_fmt(
+                                        &mut acc_6e4b019d,
+                                        format_args!("{oprtr_query_str} ${v}"),
+                                    )
+                                    .is_err()
+                                    {
+                                        return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                                    }
+                                    acc_6e4b019d
+                                },
+                                #import::EqOprtr::IsNull => oprtr_query_str.to_string(),
+                            };
+                            let mut qp_6e4b019d = String::with_capacity(32usize.saturating_add(qp_oprtr_6e4b019d.len()));
+                            if std::fmt::Write::write_fmt(
+                                &mut qp_6e4b019d,
+                                format_args!(
+                                    #format_ts,
+                                    #self_oprtr_to_qp_ts
+                                    #col_sc,
+                                    qp_oprtr_6e4b019d
+                                ),
+                            )
+                            .is_err()
+                            {
+                                return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
+                            }
+                            Ok(#import::QpFragment::try_from(qp_6e4b019d)?)
                         }
                     };
                 let gen_eq_oprtr_qb_ts = |ts: &dyn quote::ToTokens| {
@@ -705,9 +788,10 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         ) = gen_pg_type_dims_helpers_pg_type(&pg_type_ptrn_stdrt);
                         (
                             Generic::True {
-                                mb_extra_traits_ts: Some(
-                                    quote::quote! {#sqlx_type_pg_encode_ts + #import::PgTypeEqOprtr},
-                                ),
+                                mb_extra_traits_ts: Some({
+                                    let sqlx_type_pg_encode_ts = gen_sqlx_type_pg_encode_ts();
+                                    quote::quote! {#sqlx_type_pg_encode_ts + #import::PgTypeEqOprtr}
+                                }),
                             },
                             gen_mb_dims_dcl_pub_v_t_ts(&mb_dims_dcl_ts),
                             gen_mb_dims_dflt_init_v_dflt_ts(&mb_dims_dflt_init_ts),
@@ -805,8 +889,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             gend
         };
         let flt_arr_ts = <pg_crud_macros_cmn::flts::PgTypeFlt as strum::IntoEnumIterator>::iter()
-            .map(|el| gen_flts_ts(&el))
-            .collect::<Vec<_>>();
+            .map(|el| gen_flts_ts(&el));
         let gend = quote::quote! {#(#flt_arr_ts)*};
         macros_helpers::ts_writer::mb_write_ts_into_file(
             gen_wh_flts_config.pg_types_write_into_file,
@@ -820,18 +903,23 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
-    let gend = pg_crud_macros_cmn::ts_helpers::gen_mod_with_pub_use_ts(
-        &quote::format_ident!("gen_wh_flts_mod"),
-        &pg_crud_macros_cmn::GeneratedRustTsVec::from(vec![
-            macros_helpers::generated_rust_ts::GeneratedRustTs::from(imports_ts),
-            macros_helpers::generated_rust_ts::GeneratedRustTs::from(pg_type_ts),
-        ]),
-    );
+    let gen_wh_flts_mod = quote::format_ident!("gen_wh_flts_mod");
+    let gend = quote::quote! {
+        #[allow(unused_qualifications)]
+        #[allow(unused_variables)]
+        #[allow(clippy::absolute_paths)]
+        #[allow(clippy::arbitrary_source_item_ordering)]
+        mod #gen_wh_flts_mod {
+            #imports_ts
+            #pg_type_ts
+        }
+        pub use #gen_wh_flts_mod::*;
+    };
     macros_helpers::ts_writer::mb_write_ts_into_file(
         gen_wh_flts_config.whole_write_into_file,
         "gen_wh_flts",
-        macros_helpers::ts_writer::ProcMacro2TsRef::from(gend.as_ref()),
+        macros_helpers::ts_writer::ProcMacro2TsRef::from(&gend),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
-    ProcMacro2GenWhFltsTs::from(proc_macro2::TokenStream::from(gend))
+    ProcMacro2GenWhFltsTs::from(gend)
 }

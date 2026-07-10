@@ -138,16 +138,16 @@ impl Oprtr {
                 }
             };
             if write_res.is_err() {
-                return QpFragment::try_from(String::default()).unwrap_or_else(QpFragment::from);
+                return QpFragment::empty();
             }
         }
         if matches!(*self, Self::AndNot | Self::OrNot)
             && std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::NotSc, SPACE))
                 .is_err()
         {
-            return QpFragment::try_from(String::default()).unwrap_or_else(QpFragment::from);
+            return QpFragment::empty();
         }
-        QpFragment::try_from(qp).unwrap_or_else(QpFragment::from)
+        QpFragment(qp)
     }
 }
 #[cfg(test)]
@@ -526,6 +526,9 @@ impl From<IsPk> for bool {
 #[newtype(display, deref)]
 pub struct QpFragment(String);
 impl QpFragment {
+    const fn empty() -> Self {
+        Self(String::new())
+    }
     #[must_use]
     pub fn into_inner(self) -> String {
         self.0
@@ -659,7 +662,15 @@ where
         add_oprtr: AddOprtr,
     ) -> Result<QpFragment, QpEr> {
         self.as_ref().map_or_else(
-            || Ok(QpFragment::try_from(format!("{col} = 'null'")).unwrap_or_else(QpFragment::from)),
+            || {
+                let mut qp = String::with_capacity(16);
+                if std::fmt::Write::write_fmt(&mut qp, format_args!("{col} = 'null'")).is_err() {
+                    return Err(QpEr::WriteIntoBuffer {
+                        loc: loc_macros::loc!(),
+                    });
+                }
+                Ok(QpFragment::try_from(qp).unwrap_or_else(QpFragment::from))
+            },
             |v| v.qp(incr, col, add_oprtr),
         )
     }
@@ -938,23 +949,33 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
         col: SqlColRef<'_>,
         add_oprtr: AddOprtr,
     ) -> Result<QpFragment, QpEr> {
-        let mut acc = String::default();
+        let mut acc = String::with_capacity(self.v.0.len().saturating_mul(32));
         let mut add_oprtr_inn_h = AddOprtr::from(false);
+        let mut is_first = true;
         self.v.0.iter().try_for_each(|el| {
             let v = PgTypeWhFlt::qp(el, incr, col, add_oprtr_inn_h)?;
-            if std::fmt::Write::write_fmt(&mut acc, format_args!("{v} ")).is_err() {
-                return Err(QpEr::WriteIntoBuffer {
-                    loc: loc_macros::loc!(),
-                });
+            if is_first {
+                is_first = false;
+            } else {
+                acc.push(' ');
             }
+            acc.push_str(v.as_ref());
             add_oprtr_inn_h = AddOprtr::from(true);
-            Ok(())
+            Ok::<(), QpEr>(())
         })?;
-        let _: Option<char> = acc.pop();
-        Ok(
-            QpFragment::try_from(format!("{}({acc})", self.oprtr.to_qp(add_oprtr)))
-                .unwrap_or_else(QpFragment::from),
-        )
+        let oprtr_qp = self.oprtr.to_qp(add_oprtr);
+        let mut qp = String::with_capacity(
+            oprtr_qp
+                .as_ref()
+                .len()
+                .saturating_add(acc.len())
+                .saturating_add(2),
+        );
+        qp.push_str(oprtr_qp.as_ref());
+        qp.push('(');
+        qp.push_str(&acc);
+        qp.push(')');
+        Ok(QpFragment::try_from(qp).unwrap_or_else(QpFragment::from))
     }
 }
 impl<T: std::fmt::Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltSomeOneEl
@@ -1135,10 +1156,18 @@ impl<'query_lt> PgTypeWhFlt<'query_lt> for PgnBase {
                 return Err(er);
             }
         };
-        Ok(
-            QpFragment::try_from(format!("limit ${limit_incr} offset ${offset_incr}"))
-                .unwrap_or_else(QpFragment::from),
+        let mut qp = String::with_capacity(32);
+        if std::fmt::Write::write_fmt(
+            &mut qp,
+            format_args!("limit ${limit_incr} offset ${offset_incr}"),
         )
+        .is_err()
+        {
+            return Err(QpEr::WriteIntoBuffer {
+                loc: loc_macros::loc!(),
+            });
+        }
+        Ok(QpFragment(qp))
     }
 }
 impl Default for PgnBase {
@@ -1347,6 +1376,22 @@ impl<T: PartialEq> NotEmptyUnqVec<T> {
         Ok(Self(values))
     }
 }
+impl<T: Eq + std::hash::Hash> NotEmptyUnqVec<T> {
+    pub fn try_new_by_hash(mut values: Vec<T>) -> Result<Self, NotEmptyUnqVecTryNewEr<T>> {
+        if values.is_empty() {
+            return Err(NotEmptyUnqVecTryNewEr::IsEmpty {
+                loc: loc_macros::loc!(),
+            });
+        }
+        if let Some(duplicate) = take_fst_dup_by_hash(&mut values) {
+            return Err(NotEmptyUnqVecTryNewEr::NotUnq {
+                v: duplicate,
+                loc: loc_macros::loc!(),
+            });
+        }
+        Ok(Self(values))
+    }
+}
 #[allow(unused_qualifications)]
 #[allow(clippy::absolute_paths)]
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -1482,6 +1527,19 @@ mod tests_not_empty_unq_vec {
         );
     }
     #[test]
+    fn first_duplicate_idx_by_hash_returns_first_repeated_value_index() {
+        let values = vec![7u8, 8u8, 8u8, 7u8];
+        assert_eq!(
+            super::first_duplicate_idx_by_hash(&values),
+            Some(super::DuplicateIdx::from(2))
+        );
+    }
+    #[test]
+    fn first_duplicate_idx_by_hash_returns_none_for_empty_and_single_input() {
+        assert!(super::first_duplicate_idx_by_hash::<u8>(&[]).is_none());
+        assert!(super::first_duplicate_idx_by_hash(&[1u8]).is_none());
+    }
+    #[test]
     fn take_fst_dup_returns_none_for_unq_input() {
         let mut values = vec![1u8, 2u8, 3u8];
         let actual = super::take_fst_dup(&mut values);
@@ -1494,6 +1552,21 @@ mod tests_not_empty_unq_vec {
         let actual = super::take_fst_dup(&mut values);
         assert_eq!(actual, Some(8u8));
         assert_eq!(values.len(), 3usize);
+    }
+    #[test]
+    fn take_fst_dup_by_hash_returns_first_duplicate_value() {
+        let mut values = vec![7u8, 8u8, 8u8, 7u8];
+        let actual = super::take_fst_dup_by_hash(&mut values);
+        assert_eq!(actual, Some(8u8));
+        assert_eq!(values.len(), 3usize);
+    }
+    #[test]
+    fn not_empty_unq_vec_try_new_by_hash_returns_not_unq() {
+        let er = super::NotEmptyUnqVec::try_new_by_hash(vec![1u8, 2u8, 1u8]).expect_err("59c80912");
+        assert!(matches!(
+            er,
+            super::NotEmptyUnqVecTryNewEr::NotUnq { v: 1u8, .. }
+        ));
     }
     #[test]
     fn as_slice_matches_to_vec_view() {
@@ -1524,23 +1597,21 @@ where
         col: SqlColRef<'_>,
         add_oprtr: AddOprtr,
     ) -> Result<QpFragment, QpEr> {
-        self.0
-            .iter()
-            .enumerate()
-            .try_fold(String::default(), |mut acc, (i, el)| {
-                let v = el.qp(
-                    incr,
-                    col,
-                    if i == 0 {
-                        add_oprtr
-                    } else {
-                        AddOprtr::from(true)
-                    },
-                )?;
-                acc.push_str(&v.0);
-                Ok(acc)
-            })
-            .map(QpFragment)
+        let mut acc = String::with_capacity(self.0.len().saturating_mul(32));
+        self.0.iter().enumerate().try_for_each(|(i, el)| {
+            let v = el.qp(
+                incr,
+                col,
+                if i == 0 {
+                    add_oprtr
+                } else {
+                    AddOprtr::from(true)
+                },
+            )?;
+            acc.push_str(&v.0);
+            Ok::<(), QpEr>(())
+        })?;
+        Ok(QpFragment(acc))
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
@@ -1979,6 +2050,9 @@ pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
 where
     T: PartialEq,
 {
+    if values.len() < 2 {
+        return None;
+    }
     values
         .iter()
         .enumerate()
@@ -1991,5 +2065,28 @@ where
     T: PartialEq,
 {
     let duplicate_idx = first_duplicate_idx(values.as_slice())?;
+    Some(values.swap_remove(duplicate_idx.get()))
+}
+#[must_use]
+pub fn first_duplicate_idx_by_hash<T>(values: &[T]) -> Option<DuplicateIdx>
+where
+    T: Eq + std::hash::Hash,
+{
+    if values.len() < 2 {
+        return None;
+    }
+    let mut seen = std::collections::HashSet::with_capacity(values.len());
+    values
+        .iter()
+        .enumerate()
+        .find(|(_, current)| !seen.insert(*current))
+        .map(|(idx, _)| DuplicateIdx::from(idx))
+}
+#[must_use]
+pub fn take_fst_dup_by_hash<T>(values: &mut Vec<T>) -> Option<T>
+where
+    T: Eq + std::hash::Hash,
+{
+    let duplicate_idx = first_duplicate_idx_by_hash(values.as_slice())?;
     Some(values.swap_remove(duplicate_idx.get()))
 }

@@ -10,8 +10,11 @@ sqlx = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
 loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
 pg_crud_cmn = { workspace = true }
 wh_flts = { workspace = true }
+to_err_string = { workspace = true }
 [features]
 test-utils = []",
             &format!(

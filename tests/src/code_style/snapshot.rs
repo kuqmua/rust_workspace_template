@@ -9,8 +9,9 @@ struct CargoTomlSourceFile {
     path: super::types::StdPathBuf,
 }
 pub(super) struct CodebaseSnapshot {
+    cargo_toml_by_path:
+        std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
-    metadata: super::types::CargoMetadata,
     rs_files: Vec<RsSourceFile>,
     workspace_crate_names: super::types::StdSourceTextSet,
 }
@@ -38,7 +39,7 @@ impl CodebaseSnapshot {
             .filter(|package| workspace_members.as_ref().contains(&package.id))
             .map(|package| package.name.to_string())
             .collect();
-        let cargo_toml_files = metadata
+        let cargo_toml_files: Vec<CargoTomlSourceFile> = metadata
             .as_ref()
             .packages
             .iter()
@@ -54,6 +55,20 @@ impl CodebaseSnapshot {
                 })
             })
             .collect();
+        let cargo_toml_by_path =
+            cargo_toml_files
+                .iter()
+                .enumerate()
+                .map(|(idx, cargo_toml)| {
+                    (
+                        cargo_toml.path.clone(),
+                        super::types::CargoTomlFileIdx::from(idx),
+                    )
+                })
+                .collect::<std::collections::BTreeMap<
+                    super::types::StdPathBuf,
+                    super::types::CargoTomlFileIdx,
+                >>();
         let rs_files = rs_project_files_uncached()
             .filter_map(|entry| {
                 let path = entry.into_path();
@@ -67,8 +82,8 @@ impl CodebaseSnapshot {
             })
             .collect();
         Self {
+            cargo_toml_by_path,
             cargo_toml_files,
-            metadata,
             rs_files,
             workspace_crate_names: super::types::StdSourceTextSet::from(workspace_crate_names),
         }
@@ -81,19 +96,14 @@ impl CodebaseSnapshot {
             .map(|cargo_toml| cargo_toml.content.clone())
     }
     fn cargo_toml_file(&self, path: super::types::StdPathRef<'_>) -> Option<&CargoTomlSourceFile> {
-        self.cargo_toml_files
-            .iter()
-            .find(|cargo_toml| cargo_toml.path.as_ref() == path.as_ref())
+        self.cargo_toml_by_path
+            .get(path.as_ref())
+            .and_then(|idx| self.cargo_toml_files.get(idx.get()))
     }
     pub(super) fn crate_manifest_paths(&self) -> impl Iterator<Item = &std::path::Path> {
-        let workspace_members =
-            workspace_member_ids(super::types::CargoMetadataRef::from(self.metadata.as_ref()));
-        self.metadata
-            .as_ref()
-            .packages
+        self.cargo_toml_files
             .iter()
-            .filter(move |package| workspace_members.as_ref().contains(&package.id))
-            .map(|package| package.manifest_path.as_std_path())
+            .map(|cargo_toml| cargo_toml.path.as_ref())
     }
     pub(super) fn read_toml_table(
         &self,
@@ -139,6 +149,7 @@ fn workspace_metadata_uncached() -> super::types::CargoMetadata {
             .expect("c84e9d1f"),
     )
 }
+#[allow(clippy::single_call_fn)] // keeps workspace membership extraction named while snapshot construction reuses it twice
 fn workspace_member_ids(
     metadata: super::types::CargoMetadataRef<'_>,
 ) -> super::types::StdCargoPackageIdRefSet<'_> {

@@ -432,9 +432,18 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
                 return Err(er);
             }
         };
-        Ok(pg_crud_cmn::QpFragment::try_from(format!(
-            "between ${start_incr} and ${end_incr}"
-        ))?)
+        let mut qp = String::with_capacity(32);
+        if std::fmt::Write::write_fmt(
+            &mut qp,
+            format_args!("between ${start_incr} and ${end_incr}"),
+        )
+        .is_err()
+        {
+            return Err(pg_crud_cmn::QpEr::WriteIntoBuffer {
+                loc: loc_macros::loc!(),
+            });
+        }
+        Ok(pg_crud_cmn::QpFragment::try_from(qp)?)
     }
 }
 #[derive(
@@ -463,6 +472,13 @@ impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUnqVec<T> {
     type Error = pg_crud_cmn::NotEmptyUnqVecTryNewEr<T>;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
         pg_crud_cmn::NotEmptyUnqVec::try_new(v)
+            .map(pg_crud_cmn::NotEmptyUnqVec::into_vec)
+            .map(Self)
+    }
+}
+impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUnqVec<T> {
+    pub fn try_from_by_hash(v: Vec<T>) -> Result<Self, pg_crud_cmn::NotEmptyUnqVecTryNewEr<T>> {
+        pg_crud_cmn::NotEmptyUnqVec::try_new_by_hash(v)
             .map(pg_crud_cmn::NotEmptyUnqVec::into_vec)
             .map(Self)
     }
@@ -679,7 +695,8 @@ impl<
             Vrt::MinusOne => self.0.len().saturating_sub(1),
             Vrt::Normal => self.0.len(),
         };
-        let acc = (0..len).try_fold(String::new(), |mut acc, _| {
+        let mut acc = String::with_capacity(len.saturating_mul(8));
+        (0..len).try_for_each(|_| {
             let v = match pg_crud_cmn::incr_checked_add_one_returning_incr(incr) {
                 Ok(v) => v,
                 Err(er) => {
@@ -692,7 +709,7 @@ impl<
                     loc: loc_macros::loc!(),
                 });
             }
-            Ok(acc)
+            Ok::<(), pg_crud_cmn::QpEr>(())
         })?;
         Ok(pg_crud_cmn::QpFragment::try_from(acc)?)
     }
@@ -748,6 +765,14 @@ mod tests {
     #[test]
     fn pg_type_not_empty_unq_vec_try_from_not_unq() {
         let rslt = super::PgTypeNotEmptyUnqVec::<i32>::try_from(vec![1i32, 2i32, 1i32]);
+        assert!(matches!(
+            rslt,
+            Err(pg_crud_cmn::NotEmptyUnqVecTryNewEr::NotUnq { v: 1i32, .. })
+        ));
+    }
+    #[test]
+    fn pg_type_not_empty_unq_vec_try_from_by_hash_not_unq() {
+        let rslt = super::PgTypeNotEmptyUnqVec::<i32>::try_from_by_hash(vec![1i32, 2i32, 1i32]);
         assert!(matches!(
             rslt,
             Err(pg_crud_cmn::NotEmptyUnqVecTryNewEr::NotUnq { v: 1i32, .. })

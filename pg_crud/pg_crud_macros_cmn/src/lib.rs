@@ -152,7 +152,9 @@ impl From<Vec<macros_helpers::generated_rust_ts::GeneratedRustTs>> for Generated
 }
 impl quote::ToTokens for GeneratedRustTsVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        tokens.extend(self.0.iter().map(quote::ToTokens::to_token_stream));
+        self.0
+            .iter()
+            .for_each(|el| quote::ToTokens::to_tokens(el, tokens));
     }
 }
 impl FromIterator<macros_helpers::generated_rust_ts::GeneratedRustTs> for GeneratedRustTsVec {
@@ -342,6 +344,13 @@ impl AsRef<str> for PanicUuidRef<'_> {
 pub struct SynIdentTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
 impl<'lt> From<&'lt [(&'lt syn::Ident, &'lt syn::Type)]> for SynIdentTypeRefs<'lt> {
     fn from(value: &'lt [(&'lt syn::Ident, &'lt syn::Type)]) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct SynFieldRefs<'lt>(&'lt [macros_helpers::field_data::SynField]);
+impl<'lt> From<&'lt [macros_helpers::field_data::SynField]> for SynFieldRefs<'lt> {
+    fn from(value: &'lt [macros_helpers::field_data::SynField]) -> Self {
         Self(value)
     }
 }
@@ -564,14 +573,17 @@ pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpAccumulatorUndrscr, false =
 pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpPathUndrscr, false => quote::quote! {upd_path}, true => quote::quote! {_});
 pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpTargetUndrscr, false => quote::quote! {upd_target}, true => quote::quote! {_});
 pg_crud_macros_cmn_macros::bool_enum_to_tokens!(UpdQpValueUndrscr, false => naming::VSc, true => quote::quote! {_});
-pub fn gen_pg_type_wh_ts(
+pub fn gen_pg_type_wh_ts<T>(
     attrs_ts: &dyn quote::ToTokens,
-    vrts: &Vec<&dyn flts::PgFlt>,
+    vrts: &[T],
     prefix: &dyn quote::ToTokens,
     should_derive_utoipa_to_schema: &ShouldDeriveUtoipaToSchema,
     should_derive_schemars_json_schema: &ShouldDSchemarsJsonSchema,
     is_qb_mut: &IsQbMut,
-) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs
+where
+    T: flts::PgFlt,
+{
     let names = NamesCtx::new();
     #[allow(non_snake_case)]
     let (AddOprtrSc, ColSc, IncrSc, PgCrudCmnDfltSomeOneElCall, QuerySc, VSc) = (
@@ -1227,6 +1239,55 @@ pub fn gen_impl_de_for_struct_ts(
         quote::quote! { #fi: #type_ts, }
     });
     let try_from_fields_ts = vec_ident_type.0.iter().map(|(fi, _)| {
+        quote::quote! { raw.#fi }
+    });
+    quote::quote! {
+        #[derive(serde::Deserialize)]
+        #[allow(clippy::arbitrary_source_item_ordering)]
+        struct #raw_ident_ts {
+            #(#raw_fields_ts)*
+        }
+        #[allow(unused_qualifications)]
+        #[allow(clippy::absolute_paths)]
+        #allow_clippy_arbitrary_src_item_ordering
+        const _: () = {
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate serde as _serde;
+            #[automatically_derived]
+            impl<'de> _serde::Deserialize<'de> for #ident {
+                fn deserialize<__D>(
+                    __deserializer: __D,
+                ) -> Result<Self, __D::Error>
+                where
+                    __D: _serde::Deserializer<'de>,
+                {
+                    let raw = <#raw_ident_ts as _serde::Deserialize>::deserialize(__deserializer)?;
+                    Self::try_new(#(#try_from_fields_ts),*).map_err(|er| _serde::de::Error::custom(format!("{er:?}")))
+                }
+            }
+        };
+    }.into()
+}
+pub fn gen_impl_de_for_struct_by_fields_ts(
+    ident: &dyn naming::DisplayPlusToTokens,
+    fields: SynFieldRefs<'_>,
+    _len: DeLen,
+    gen_type_ts: &dyn Fn(
+        &syn::Ident,
+        &syn::Type,
+    ) -> macros_helpers::generated_rust_ts::GeneratedRustTs,
+) -> macros_helpers::generated_rust_ts::GeneratedRustTs {
+    let allow_clippy_arbitrary_src_item_ordering =
+        token_patterns::AllowClippyArbitrarySrcItemOrdering;
+    let raw_ident_ts = quote::format_ident!("{}Raw", ident.to_string());
+    let raw_fields_ts = fields.0.iter().map(|field| {
+        let fi = field.ident.as_ref();
+        let ty = field.type0.as_ref();
+        let type_ts = gen_type_ts(fi, ty);
+        quote::quote! { #fi: #type_ts, }
+    });
+    let try_from_fields_ts = fields.0.iter().map(|field| {
+        let fi = field.ident.as_ref();
         quote::quote! { raw.#fi }
     });
     quote::quote! {

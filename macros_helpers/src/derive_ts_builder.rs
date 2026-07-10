@@ -5,6 +5,7 @@ gen_derive_ts_builder::gen_derive_ts_builder!([
     "Copy",
     "PartialEq",
     "Eq",
+    "std::hash::Hash",
     "PartialOrd",
     "Ord",
     "serde::Serialize",
