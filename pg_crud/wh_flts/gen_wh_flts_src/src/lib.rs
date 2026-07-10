@@ -1,30 +1,12 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct ProcMacro2GenWhFltsInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
-impl<'input_lt> From<&'input_lt proc_macro2::TokenStream> for ProcMacro2GenWhFltsInput<'input_lt> {
-    fn from(value: &'input_lt proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<proc_macro2::TokenStream> for ProcMacro2GenWhFltsInput<'_> {
-    fn as_ref(&self) -> &proc_macro2::TokenStream {
-        self.0
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::Newtype)]
+#[newtype(as_ref_owned, from_inner)]
 pub struct ProcMacro2GenWhFltsTs(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GenWhFltsTs {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
 impl From<ProcMacro2GenWhFltsTs> for proc_macro2::TokenStream {
     fn from(value: ProcMacro2GenWhFltsTs) -> Self {
         value.0
-    }
-}
-impl AsRef<proc_macro2::TokenStream> for ProcMacro2GenWhFltsTs {
-    fn as_ref(&self) -> &proc_macro2::TokenStream {
-        &self.0
     }
 }
 impl std::fmt::Display for ProcMacro2GenWhFltsTs {

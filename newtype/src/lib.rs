@@ -10,6 +10,8 @@ struct BoundedStringAttrs {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
     AsRef,
+    AsRefInner,
+    AsRefOwned,
     AsRefStr,
     AsSlice,
     Deref,
@@ -268,6 +270,34 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
+    let as_ref_inner_ts = if attrs.contains(NewtypeOption::AsRefInner).get() {
+        let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
+            return Err(syn::Error::new_spanned(
+                inner_ty_ref,
+                "#[newtype(as_ref_inner)] requires a shared reference inner type",
+            ));
+        };
+        let target_ty = &inner_ref_ty.elem;
+        Some(quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics AsRef<#target_ty> for #ident #ty_generics #where_clause {
+                fn as_ref(&self) -> &#target_ty {
+                    self.0
+                }
+            }
+        })
+    } else {
+        None
+    };
+    let as_ref_owned_ts = attrs.contains(NewtypeOption::AsRefOwned).get().then(|| {
+        quote::quote! {
+            impl #impl_generics AsRef<#inner_ty_ref> for #ident #ty_generics #where_clause {
+                fn as_ref(&self) -> &#inner_ty_ref {
+                    &self.0
+                }
+            }
+        }
+    });
     let as_slice_ts = attrs.contains(NewtypeOption::AsSlice).get().then(|| {
         quote::quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
@@ -354,6 +384,8 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
         #display_ts
         #as_ref_str_ts
         #as_ref_ts
+        #as_ref_inner_ts
+        #as_ref_owned_ts
         #as_slice_ts
         #deref_ts
         #from_ts
@@ -522,6 +554,14 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                     acc.insert(NewtypeOption::AsRef);
                     return Ok(());
                 }
+                if meta.path.is_ident("as_ref_inner") {
+                    acc.insert(NewtypeOption::AsRefInner);
+                    return Ok(());
+                }
+                if meta.path.is_ident("as_ref_owned") {
+                    acc.insert(NewtypeOption::AsRefOwned);
+                    return Ok(());
+                }
                 if meta.path.is_ident("as_slice") {
                     acc.insert(NewtypeOption::AsSlice);
                     return Ok(());
@@ -594,6 +634,28 @@ fn validate_newtype_inner_ty_attrs(
     attrs: &NewtypeAttrs,
     inner_ty: SynTypeRef<'_>,
 ) -> syn::Result<()> {
+    if attrs.contains(NewtypeOption::AsRefInner).get()
+        && !matches!(
+            inner_ty.as_ref(),
+            syn::Type::Reference(syn::TypeReference {
+                mutability: None,
+                ..
+            })
+        )
+    {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            "#[newtype(as_ref_inner)] requires a shared reference inner type",
+        ));
+    }
+    if attrs.contains(NewtypeOption::AsRefOwned).get()
+        && matches!(inner_ty.as_ref(), syn::Type::Reference(_))
+    {
+        return Err(syn::Error::new_spanned(
+            inner_ty.as_ref(),
+            "#[newtype(as_ref_owned)] does not support reference inner types; use as_ref_inner",
+        ));
+    }
     if attrs.contains(NewtypeOption::From).get() && type_path_ends_with_string_ident(inner_ty).get()
     {
         return Err(syn::Error::new_spanned(
@@ -704,6 +766,38 @@ fn gen_to_err_string_ts(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn newtype_as_ref_owned_reference_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(Newtype)]
+            #[newtype(as_ref_owned)]
+            struct Value<'value_lt>(&'value_lt u16);
+        };
+        let result = super::gen_newtype_ts(super::SynDeriveInputRef::from(&input));
+        assert!(result.is_err(), "d73a920b");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "#[newtype(as_ref_owned)] does not support reference inner types; use as_ref_inner"
+            );
+        }
+    }
+    #[test]
+    fn newtype_as_ref_inner_non_reference_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(Newtype)]
+            #[newtype(as_ref_inner)]
+            struct Value(u16);
+        };
+        let result = super::gen_newtype_ts(super::SynDeriveInputRef::from(&input));
+        assert!(result.is_err(), "33c7e891");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "#[newtype(as_ref_inner)] requires a shared reference inner type"
+            );
+        }
+    }
     #[test]
     fn newtype_from_string_returns_compile_error() {
         let input = syn::parse_quote! {

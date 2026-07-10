@@ -293,30 +293,12 @@ impl ParseTsStrings {
             .collect::<GeneratedRustTsVec>()
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct ParseErIdRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ParseErIdRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for ParseErIdRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct PanicUuidRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for PanicUuidRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for PanicUuidRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub struct SynIdentTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
 impl<'lt> From<&'lt [(&'lt syn::Ident, &'lt syn::Type)]> for SynIdentTypeRefs<'lt> {

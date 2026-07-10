@@ -1649,18 +1649,9 @@ impl EqOprtr {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct EqOprtrQueryStr(&'static str);
-impl From<&'static str> for EqOprtrQueryStr {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for EqOprtrQueryStr {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 impl std::fmt::Display for EqOprtrQueryStr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)

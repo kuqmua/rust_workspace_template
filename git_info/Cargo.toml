@@ -16,6 +16,7 @@ serde = { workspace = true }
 serde_derive = { workspace = true }
 git-version = { workspace = true }
 naming = { workspace = true }
+newtype = { workspace = true }
 optml = { workspace = true }
 [lints]
 workspace = true

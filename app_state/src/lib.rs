@@ -1,27 +1,9 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct SqlxPgPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
-impl<'pool_lt> From<&'pool_lt sqlx::PgPool> for SqlxPgPoolRef<'pool_lt> {
-    fn from(value: &'pool_lt sqlx::PgPool) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<sqlx::PgPool> for SqlxPgPoolRef<'_> {
-    fn as_ref(&self) -> &sqlx::PgPool {
-        self.0
-    }
-}
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(as_ref_owned, from_inner)]
 pub struct SqlxPgPool(sqlx::PgPool);
-impl From<sqlx::PgPool> for SqlxPgPool {
-    fn from(value: sqlx::PgPool) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<sqlx::PgPool> for SqlxPgPool {
-    fn as_ref(&self) -> &sqlx::PgPool {
-        &self.0
-    }
-}
 pub trait GetSqlxPgPool {
     fn get_sqlx_pg_pool(&self) -> SqlxPgPoolRef<'_>;
 }

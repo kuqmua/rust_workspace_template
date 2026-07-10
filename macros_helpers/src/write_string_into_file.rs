@@ -10,30 +10,12 @@ impl AsRef<std::path::Path> for StdWrittenFilePath {
         self.0.as_path()
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for StdWrittenFilePathRef<'path_lt> {
-    fn from(value: &'path_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<std::path::Path> for StdWrittenFilePathRef<'_> {
-    fn as_ref(&self) -> &std::path::Path {
-        self.0
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-impl<'cnt_lt> From<&'cnt_lt str> for StringFileContentRef<'cnt_lt> {
-    fn from(value: &'cnt_lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for StringFileContentRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ShouldWriteString(bool);
 impl From<bool> for ShouldWriteString {

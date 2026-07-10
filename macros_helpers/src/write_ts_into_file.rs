@@ -8,18 +8,9 @@ pub enum ShouldWriteTsIntoFile {
     False,
     True,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct ProcMacro2TsRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
-impl<'ts_lt> From<&'ts_lt proc_macro2::TokenStream> for ProcMacro2TsRef<'ts_lt> {
-    fn from(value: &'ts_lt proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<proc_macro2::TokenStream> for ProcMacro2TsRef<'_> {
-    fn as_ref(&self) -> &proc_macro2::TokenStream {
-        self.0
-    }
-}
 #[derive(Debug, Clone, Copy)]
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy)]

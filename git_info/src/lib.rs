@@ -12,19 +12,19 @@ pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
 };
 const PROJECT_GIT_COMMIT_ID: GitCommitIdRef<'_> = PROJECT_GIT_INFO.commit;
 #[derive(
-    Debug, Clone, Copy, Hash, PartialEq, Eq, Default, serde_derive::Serialize, optml::Optml,
+    Debug,
+    Clone,
+    Copy,
+    Hash,
+    PartialEq,
+    Eq,
+    Default,
+    serde_derive::Serialize,
+    optml::Optml,
+    newtype::Newtype,
 )]
+#[newtype(as_ref_inner, from_inner)]
 pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
-impl AsRef<str> for GitCommitIdRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl<'commit_lt> From<&'commit_lt str> for GitCommitIdRef<'commit_lt> {
-    fn from(value: &'commit_lt str) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for GitCommitIdRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)

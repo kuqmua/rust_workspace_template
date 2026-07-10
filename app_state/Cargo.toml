@@ -12,6 +12,7 @@ edition = "2024"
 
 
 [dependencies]
+newtype = { workspace = true }
 sqlx = { workspace = true }
 [lints]
 workspace = true

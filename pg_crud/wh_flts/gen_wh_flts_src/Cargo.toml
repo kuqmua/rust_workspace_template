@@ -21,6 +21,7 @@ pg_crud_macros_cmn = { workspace = true }
 gen_quotes = { workspace = true }
 panic_loc = { workspace = true }
 naming = { workspace = true }
+newtype = { workspace = true }
 token_patterns = { workspace = true }
 macros_helpers = { workspace = true }
 optml = { workspace = true }

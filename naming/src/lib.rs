@@ -427,18 +427,9 @@ impl quote::ToTokens for HashMapSc {
 }
 pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
 impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
-impl<'prefix_lt> From<&'prefix_lt str> for SwaggerUrlPathPrefix<'prefix_lt> {
-    fn from(value: &'prefix_lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for SwaggerUrlPathPrefix<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 #[derive(Debug, Clone)]
 pub struct SwaggerUrlPathSelfQuotesStrValue(gen_quotes::QuotedLiteral);
 impl From<gen_quotes::QuotedLiteral> for SwaggerUrlPathSelfQuotesStrValue {

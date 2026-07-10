@@ -57,6 +57,14 @@ mod tests {
     #[derive(Debug, Clone, newtype::Newtype)]
     #[newtype(display, from_inner, into_inner, to_tokens)]
     struct ProcMacro2TokenValue(proc_macro2::TokenStream);
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct ReferentValue<'value_lt>(&'value_lt str, &'value_lt str);
+    #[derive(Debug, Clone, Copy, newtype::Newtype)]
+    #[newtype(as_ref_inner, from_inner)]
+    struct ReferentValueRef<'value_lt>(&'value_lt ReferentValue<'value_lt>);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(as_ref_owned, from_inner)]
+    struct OwnedValue(Vec<u8>);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
@@ -118,6 +126,17 @@ mod tests {
         assert_eq!(v.to_string(), "sample :: path");
         assert_eq!(quote::quote! { #v }.to_string(), inner.to_string());
         assert_eq!(v.into_inner().to_string(), inner.to_string());
+    }
+    #[test]
+    fn reference_inner_impls_are_generated() {
+        let inner = ReferentValue("left", "right");
+        let v = ReferentValueRef::from(&inner);
+        assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
+    }
+    #[test]
+    fn owned_inner_impls_are_generated() {
+        let v = OwnedValue::from(vec![3, 5, 8]);
+        assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
     }
     #[test]
     fn enum_from_str_impl_is_generated() {

@@ -17,6 +17,7 @@ syn = { workspace = true }
 gen_quotes = { workspace = true }
 naming_macros = { workspace = true }
 naming_cmn = { workspace = true }
+newtype = { workspace = true }
 optml = { workspace = true }
 [lints]
 workspace = true

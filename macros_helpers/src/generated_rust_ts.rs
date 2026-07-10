@@ -1,18 +1,9 @@
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, newtype::Newtype)]
+#[newtype(as_ref_owned, from_inner)]
 pub struct GeneratedRustTs(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for GeneratedRustTs {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
 impl From<GeneratedRustTs> for proc_macro2::TokenStream {
     fn from(value: GeneratedRustTs) -> Self {
         value.0
-    }
-}
-impl AsRef<proc_macro2::TokenStream> for GeneratedRustTs {
-    fn as_ref(&self) -> &proc_macro2::TokenStream {
-        &self.0
     }
 }
 impl quote::ToTokens for GeneratedRustTs {

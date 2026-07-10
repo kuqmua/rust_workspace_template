@@ -23,6 +23,7 @@ loc_macros = { workspace = true }
 location = { workspace = true }
 pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
+newtype = { workspace = true }
 to_err_string = { workspace = true }
 [lints]
 workspace = true

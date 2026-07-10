@@ -34,19 +34,10 @@ impl pg_crud_cmn::DfltSomeOneEl for EncodeFormat {
         Self::default()
     }
 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml, newtype::Newtype)]
+#[newtype(as_ref_owned, from_inner)]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRgx(regex::Regex);
-impl From<regex::Regex> for RegexRgx {
-    fn from(value: regex::Regex) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<regex::Regex> for RegexRgx {
-    fn as_ref(&self) -> &regex::Regex {
-        &self.0
-    }
-}
 impl TryFrom<String> for RegexRgx {
     type Error = regex::Error;
     fn try_from(v: String) -> Result<Self, Self::Error> {
@@ -120,18 +111,9 @@ pub enum RgxCase {
     Insensitive,
     Sensitive,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct RgxCasePostgreqlSyntax(&'static str);
-impl From<&'static str> for RgxCasePostgreqlSyntax {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for RgxCasePostgreqlSyntax {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 impl std::fmt::Display for RgxCasePostgreqlSyntax {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.0)
