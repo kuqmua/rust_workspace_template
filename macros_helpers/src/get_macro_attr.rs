@@ -2,14 +2,8 @@
 #[newtype(from_inner, to_tokens)]
 pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner, to_tokens)]
+#[newtype(deref_target, from_inner, to_tokens)]
 pub struct ProcMacro2MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
-impl std::ops::Deref for ProcMacro2MacroAttrMetaListTsRef<'_> {
-    type Target = proc_macro2::TokenStream;
-    fn deref(&self) -> &Self::Target {
-        self.0
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AttrPathMatches(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]

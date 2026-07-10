@@ -97,14 +97,16 @@ config_lib_macros::impl_try_from_parse!(
     Clone,
     Copy
 );
-#[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
 pub struct MaximumSizeOfHttpBodyInBytes(usize);
-impl std::ops::Deref for MaximumSizeOfHttpBodyInBytes {
-    type Target = usize;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeEr {
     #[error("maximum size of http body in bytes must be greater than zero")]
@@ -146,14 +148,16 @@ impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
     }
 }
 config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlEr);
-#[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
 pub struct PgPoolMaxConnections(u32);
-impl std::ops::Deref for PgPoolMaxConnections {
-    type Target = u32;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum PgPoolMaxConnectionsTryFromU32Er {
     #[error("pg pool max connections must be greater than zero")]
@@ -215,14 +219,16 @@ config_lib_macros::impl_try_from_non_empty_string!(
     StartingCheckLink,
     TryFromStdEnvVarOkStartingCheckLinkEr
 );
-#[derive(Debug, Clone, Copy, gen_getter_traits_for_struct_fields::GenGetterTrait, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    optml::Optml,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
 pub struct ChronoTimezone(chrono::FixedOffset);
-impl std::ops::Deref for ChronoTimezone {
-    type Target = chrono::FixedOffset;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = ChronoFixedOffsetEr;
     fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {

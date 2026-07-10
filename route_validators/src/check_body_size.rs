@@ -17,14 +17,9 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(deref_target)]
 pub struct BytesBodyBytes(bytes::Bytes);
-impl std::ops::Deref for BytesBodyBytes {
-    type Target = [u8];
-    fn deref(&self) -> &Self::Target {
-        self.0.as_ref()
-    }
-}
 impl AsRef<[u8]> for BytesBodyBytes {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()

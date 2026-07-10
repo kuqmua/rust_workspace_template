@@ -38,9 +38,10 @@ mod tests {
         }
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
+    const DESCRIBED_VALUE_MAX_LEN: usize = 2;
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
     #[bounded_string(max = STRING_VALUE_MAX_LEN)]
-    #[newtype(deref, getter, to_err_string_as_ref_str)]
+    #[newtype(as_ref_str, deref_target, display, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
     #[newtype(display, from_inner, to_err_string)]
@@ -54,6 +55,15 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(as_slice, into_vec)]
     struct VecValue<T>(Vec<T>);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(deref_inner, deref_mut_inner, from_inner, into_inner_from)]
+    struct InnerVecValue<T>(Vec<T>);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(deref_target, deref_mut_target)]
+    struct TargetVecValue(Vec<u8>);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
+    struct DescribedValue(String);
     #[derive(Debug, Clone, newtype::Newtype)]
     #[newtype(display, from_inner, into_inner, to_tokens)]
     struct ProcMacro2TokenValue(proc_macro2::TokenStream);
@@ -121,6 +131,24 @@ mod tests {
         let v = VecValue(vec![1i32, 2i32]);
         assert_eq!(v.as_slice(), [1i32, 2i32]);
         assert_eq!(v.into_vec(), vec![1i32, 2i32]);
+    }
+    #[test]
+    fn inner_deref_and_from_are_generated() {
+        let mut v = InnerVecValue::from(vec![1u8]);
+        v.push(2);
+        assert_eq!(&*v, &vec![1, 2]);
+        assert_eq!(Vec::<u8>::from(v), vec![1, 2]);
+    }
+    #[test]
+    fn target_deref_impls_are_generated() {
+        let mut v = TargetVecValue(Vec::from(*b"lower"));
+        v.make_ascii_uppercase();
+        assert_eq!(&*v, b"LOWER");
+    }
+    #[test]
+    fn bounded_string_description_is_configurable() {
+        let er = DescribedValue::try_from(String::from("abc")).expect_err("3dfca278");
+        assert_eq!(er.to_string(), "described value length 3 exceeds maximum 2");
     }
     #[test]
     fn token_impls_are_generated() {

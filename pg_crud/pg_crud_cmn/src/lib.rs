@@ -498,32 +498,14 @@ impl QpIncrMut for u64 {
         })
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct AddOprtr(bool);
-impl From<bool> for AddOprtr {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<AddOprtr> for bool {
-    fn from(value: AddOprtr) -> Self {
-        value.0
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct IsPk(bool);
-impl From<bool> for IsPk {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<IsPk> for bool {
-    fn from(value: IsPk) -> Self {
-        value.0
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str, display, deref)]
+#[newtype(as_ref_str, deref_target, display)]
 pub struct QpFragment(String);
 impl QpFragment {
     const fn empty() -> Self {
@@ -1294,18 +1276,9 @@ pub struct V<T> {
     pub v: T,
 }
 //todo ExactSizeIterator now is not a solution. er[E0658]: use of unstable library feature `exact_size_is_empty`. mb rewrite it later
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct IsStringEmptyRes(bool);
-impl From<bool> for IsStringEmptyRes {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<IsStringEmptyRes> for bool {
-    fn from(value: IsStringEmptyRes) -> Self {
-        value.0
-    }
-}
 pub trait IsStringEmpty {
     fn is_string_empty(&self) -> IsStringEmptyRes;
 }

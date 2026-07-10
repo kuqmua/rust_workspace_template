@@ -101,32 +101,9 @@ impl<'lt> AnsiTextRef<'lt> {
         self.0
     }
 }
+#[derive(newtype::BoundedString)]
+#[bounded_string(max = CLEAN_ANSI_TEXT_MAX_LEN)]
 struct CleanAnsiText(String);
-enum CleanAnsiTextTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for CleanAnsiTextTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "clean ansi text length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl TryFrom<String> for CleanAnsiText {
-    type Error = CleanAnsiTextTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() <= CLEAN_ANSI_TEXT_MAX_LEN {
-            Ok(Self(value))
-        } else {
-            Err(Self::Error::TooLong {
-                len: value.len(),
-                max: CLEAN_ANSI_TEXT_MAX_LEN,
-            })
-        }
-    }
-}
 #[derive(Clone, Copy)]
 struct MemusageKey(&'static str);
 impl MemusageKey {

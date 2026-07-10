@@ -61,39 +61,10 @@ naming_cmn_macros::case_trait_pair!(
 );
 #[derive(Debug, Clone, Copy)]
 struct ConvertCaseKind(convert_case::Case<'static>);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[bounded_string(max = CASE_STRING_MAX_LEN)]
 #[newtype(as_ref_str, display)]
 struct CaseString(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum CaseStringTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for CaseStringTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "case string length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<CaseStringTryFromStringEr> for CaseString {
-    fn from(value: CaseStringTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for CaseString {
-    type Error = CaseStringTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > CASE_STRING_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: CASE_STRING_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(Debug, Clone)]
 struct ProcMacro2CaseTs(proc_macro2::TokenStream);
 fn to_ts_or_panic<T>(v: &T) -> ProcMacro2CaseTs

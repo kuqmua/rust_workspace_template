@@ -19,39 +19,10 @@ struct NotFoundH {
     msg: NotFoundMsg,
     open_api_specification: OpenApiSpecificationPath,
 }
-#[derive(Debug, serde::Serialize, optml::Optml, newtype::Newtype)]
+#[derive(Debug, serde::Serialize, optml::Optml, newtype::BoundedString, newtype::Newtype)]
+#[bounded_string(max = NOT_FOUND_MSG_MAX_LEN, description = "not found message")]
 #[newtype(display)]
 struct NotFoundMsg(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum NotFoundMsgTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for NotFoundMsgTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "not found message length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<NotFoundMsgTryFromStringEr> for NotFoundMsg {
-    fn from(value: NotFoundMsgTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for NotFoundMsg {
-    type Error = NotFoundMsgTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > NOT_FOUND_MSG_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: NOT_FOUND_MSG_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]
 struct OpenApiSpecificationPath(&'static str);
 #[derive(Debug, Clone, Copy, optml::Optml)]
@@ -87,13 +58,9 @@ where
         (self.status.0, self.payload).into_response()
     }
 }
-#[derive(Debug, Clone, optml::Optml)]
+#[derive(Debug, Clone, optml::Optml, newtype::Newtype)]
+#[newtype(into_inner_from)]
 pub struct AxumCmnRoutes(axum::Router);
-impl From<AxumCmnRoutes> for axum::Router {
-    fn from(value: AxumCmnRoutes) -> Self {
-        value.0
-    }
-}
 #[derive(Clone, optml::Optml)]
 pub struct StdArcCmnRoutesAppState(std::sync::Arc<dyn CmnRoutesPrms>);
 impl std::fmt::Debug for StdArcCmnRoutesAppState {

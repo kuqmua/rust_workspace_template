@@ -9,40 +9,12 @@ struct PanicFile<'file_lt>(&'file_lt str);
 struct PanicLine(u32);
 #[derive(Clone, Copy)]
 struct PanicCol(u32);
+#[derive(newtype::BoundedString)]
+#[bounded_string(
+    max = PANIC_WITH_LOCATION_MSG_MAX_LEN,
+    description = "panic location message"
+)]
 struct PanicWithLocationMsg(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum PanicWithLocationMsgTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for PanicWithLocationMsgTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(
-                    f,
-                    "panic location message length {len} exceeds maximum {max}"
-                )
-            }
-        }
-    }
-}
-impl From<PanicWithLocationMsgTryFromStringEr> for PanicWithLocationMsg {
-    fn from(value: PanicWithLocationMsgTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for PanicWithLocationMsg {
-    type Error = PanicWithLocationMsgTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > PANIC_WITH_LOCATION_MSG_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: PANIC_WITH_LOCATION_MSG_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[allow(clippy::single_call_fn)] // keeps panic message construction reusable and testable in one place
 fn panic_with_location_msg(
     file: PanicFile<'_>,

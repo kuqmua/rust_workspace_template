@@ -43,40 +43,12 @@ pub enum ErOne {
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
+    newtype::BoundedString,
     newtype::Newtype,
 )]
+#[bounded_string(max = LOC_TEST_TEXT_MAX_LEN)]
 #[newtype(to_err_string_as_ref_str)]
 pub struct LocTestText(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocTestTextTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for LocTestTextTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "loc test text length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<LocTestTextTryFromStringEr> for LocTestText {
-    fn from(value: LocTestTextTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for LocTestText {
-    type Error = LocTestTextTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > LOC_TEST_TEXT_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: LOC_TEST_TEXT_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(
     Debug,
     Clone,

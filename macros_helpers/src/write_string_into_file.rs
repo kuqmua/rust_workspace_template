@@ -16,18 +16,9 @@ pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(as_ref_inner, from_inner)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct ShouldWriteString(bool);
-impl From<bool> for ShouldWriteString {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<ShouldWriteString> for bool {
-    fn from(value: ShouldWriteString) -> Self {
-        value.0
-    }
-}
 impl std::ops::Not for ShouldWriteString {
     type Output = bool;
     fn not(self) -> Self::Output {

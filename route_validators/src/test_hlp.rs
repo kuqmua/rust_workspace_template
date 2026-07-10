@@ -10,23 +10,9 @@ pub(crate) struct TestExpId(pub &'static str);
 #[derive(newtype::Newtype)]
 #[newtype(display, from_inner)]
 struct TestPanicText(pub &'static str);
+#[derive(newtype::Newtype)]
+#[newtype(as_ref_owned, deref_inner, deref_mut_inner)]
 pub(crate) struct AxumTestHeaders(pub axum::http::HeaderMap);
-impl std::ops::Deref for AxumTestHeaders {
-    type Target = axum::http::HeaderMap;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl AsRef<axum::http::HeaderMap> for AxumTestHeaders {
-    fn as_ref(&self) -> &axum::http::HeaderMap {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for AxumTestHeaders {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
 impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
     fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
@@ -40,18 +26,9 @@ impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap>
         Self(value)
     }
 }
+#[derive(newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
 pub(crate) struct AxumTestHeaderValue(pub axum::http::HeaderValue);
-impl From<axum::http::HeaderValue> for AxumTestHeaderValue {
-    fn from(value: axum::http::HeaderValue) -> Self {
-        Self(value)
-    }
-}
-impl std::ops::Deref for AxumTestHeaderValue {
-    type Target = axum::http::HeaderValue;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 #[derive(Clone, Copy)]
 struct TestPollCount(pub usize);
 struct TestPollLimitReached(pub bool);

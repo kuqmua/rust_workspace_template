@@ -1,25 +1,13 @@
 #[must_use]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct FieldLocFile(&'static str);
-impl From<&'static str> for FieldLocFile {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct FieldLocLine(u32);
-impl From<u32> for FieldLocLine {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct FieldLocCol(u32);
-impl From<u32> for FieldLocCol {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
 #[must_use]
 pub fn gen_field_loc_new_ts(
     file: FieldLocFile,

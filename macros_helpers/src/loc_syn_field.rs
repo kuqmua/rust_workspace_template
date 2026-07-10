@@ -1,10 +1,6 @@
-#[derive(Debug)]
+#[derive(Debug, newtype::Newtype)]
+#[newtype(into_inner_from)]
 pub struct SynLocField(syn::Field);
-impl From<SynLocField> for syn::Field {
-    fn from(value: SynLocField) -> Self {
-        value.0
-    }
-}
 #[must_use]
 pub fn loc_syn_field() -> SynLocField {
     SynLocField(syn::Field {

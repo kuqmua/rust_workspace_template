@@ -1,14 +1,8 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct ProcMacro2DeriveTokensRef<'tokens_lt>(
     &'tokens_lt [&'tokens_lt proc_macro2::TokenStream],
 );
-impl<'tokens_lt> From<&'tokens_lt [&'tokens_lt proc_macro2::TokenStream]>
-    for ProcMacro2DeriveTokensRef<'tokens_lt>
-{
-    fn from(value: &'tokens_lt [&'tokens_lt proc_macro2::TokenStream]) -> Self {
-        Self(value)
-    }
-}
 #[must_use]
 pub fn wrap_derive(v: ProcMacro2DeriveTokensRef<'_>) -> crate::generated_rust_ts::GeneratedRustTs {
     let tokens = v.0;

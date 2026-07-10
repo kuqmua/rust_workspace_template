@@ -47,7 +47,7 @@ where
     }
 }
 #[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(display)]
+#[newtype(deref_target, display)]
 pub struct PgTblQueryString(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgTblStringWrapperTryFromStringEr {
@@ -82,14 +82,8 @@ impl TryFrom<String> for PgTblQueryString {
         Ok(Self(value))
     }
 }
-impl std::ops::Deref for PgTblQueryString {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 #[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(display)]
+#[newtype(deref_target, display)]
 pub struct PgTblQpFragment(String);
 impl From<PgTblStringWrapperTryFromStringEr> for PgTblQpFragment {
     fn from(value: PgTblStringWrapperTryFromStringEr) -> Self {
@@ -106,12 +100,6 @@ impl TryFrom<String> for PgTblQpFragment {
             });
         }
         Ok(Self(value))
-    }
-}
-impl std::ops::Deref for PgTblQpFragment {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 fn gen_insert_query_string(

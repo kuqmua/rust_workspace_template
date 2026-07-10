@@ -65,19 +65,9 @@ impl syn::parse::Parse for ProcMacro2MacroTokens {
     }
 }
 #[must_use]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::Newtype)]
+#[newtype(deref_inner, deref_mut_inner)]
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
-impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
-    type Target = Vec<proc_macro2::TokenStream>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for ProcMacro2TopLevelCommaParts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 impl IntoIterator for ProcMacro2TopLevelCommaParts {
     type IntoIter = std::vec::IntoIter<proc_macro2::TokenStream>;
     type Item = proc_macro2::TokenStream;
@@ -134,39 +124,10 @@ impl syn::parse::Parse for TopLevelCommaPart {
     }
 }
 #[must_use]
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[bounded_string(max = FIRST_IDENT_MAX_LEN)]
 #[newtype(display)]
 pub struct FirstIdent(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FirstIdentTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for FirstIdentTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "first ident length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<FirstIdentTryFromStringEr> for FirstIdent {
-    fn from(value: FirstIdentTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for FirstIdent {
-    type Error = FirstIdentTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > FIRST_IDENT_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: FIRST_IDENT_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstCommaStripped(bool);

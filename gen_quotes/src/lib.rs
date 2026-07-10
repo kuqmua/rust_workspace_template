@@ -5,17 +5,13 @@ struct QuotePrefix(&'static str);
 struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
 struct QuotePanicId(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
 #[bounded_string(max = QUOTED_LITERAL_MAX_LEN)]
+#[newtype(as_ref_str, display)]
 pub struct QuotedLiteral(String);
 #[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(display, from_inner, into_inner, to_tokens)]
+#[newtype(display, from_inner, into_inner, into_inner_from, to_tokens)]
 pub struct ProcMacro2QuotedLiteralTs(proc_macro2::TokenStream);
-impl From<ProcMacro2QuotedLiteralTs> for proc_macro2::TokenStream {
-    fn from(value: ProcMacro2QuotedLiteralTs) -> Self {
-        value.into_inner()
-    }
-}
 fn quote_literal<Dsp>(prefix: QuotePrefix, quote_ch: QuoteChar, v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,

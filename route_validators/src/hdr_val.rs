@@ -14,14 +14,8 @@ pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
     pub &'header_value_lt axum::http::HeaderValue,
 );
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_inner)]
+#[newtype(as_ref_inner, deref_target)]
 pub(crate) struct HeaderStrRef<'header_str_lt>(pub &'header_str_lt str);
-impl std::ops::Deref for HeaderStrRef<'_> {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.0
-    }
-}
 #[allow(clippy::single_call_fn)] // shared helper centralizes required-header extraction and no-header error mapping
 fn get_required_header_value<E>(
     headers: AxumHeadersRef<'_>,

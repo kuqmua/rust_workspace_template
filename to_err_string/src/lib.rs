@@ -28,46 +28,17 @@ to_err_string_macros::impl_to_err_string_with!(
 pub trait ToErrString {
     fn to_err_string(&self) -> ToErrStringValue;
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ToErrStringValueTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for ToErrStringValueTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(
-                    f,
-                    "to error string value length {len} exceeds maximum {max}"
-                )
-            }
-        }
-    }
-}
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(display, as_ref_str, deref)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[bounded_string(
+    max = TO_ERR_STRING_VALUE_MAX_LEN,
+    description = "to error string value"
+)]
+#[newtype(as_ref_str, deref_target, display)]
 pub struct ToErrStringValue(String);
 impl ToErrStringValue {
     #[must_use]
     pub fn into_inner(self) -> String {
         self.0
-    }
-}
-impl From<ToErrStringValueTryFromStringEr> for ToErrStringValue {
-    fn from(value: ToErrStringValueTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for ToErrStringValue {
-    type Error = ToErrStringValueTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > TO_ERR_STRING_VALUE_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: TO_ERR_STRING_VALUE_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
     }
 }
 impl<T> ToErrString for &T

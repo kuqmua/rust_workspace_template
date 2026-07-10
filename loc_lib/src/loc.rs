@@ -3,32 +3,6 @@ const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
 const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
 const LOC_FILE_MAX_LEN: usize = 1_048_576;
 const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocFileTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocCommitTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for LocFileTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "loc file length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl std::fmt::Display for LocCommitTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "loc commit length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -39,27 +13,12 @@ impl std::fmt::Display for LocCommitTryFromStringEr {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::BoundedString,
     newtype::Newtype,
 )]
+#[bounded_string(max = LOC_FILE_MAX_LEN)]
 #[newtype(as_ref_str, display)]
 pub struct LocFile(String);
-impl From<LocFileTryFromStringEr> for LocFile {
-    fn from(value: LocFileTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for LocFile {
-    type Error = LocFileTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > LOC_FILE_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: LOC_FILE_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -100,27 +59,12 @@ pub struct LocCol(u32);
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::BoundedString,
     newtype::Newtype,
 )]
+#[bounded_string(max = LOC_COMMIT_MAX_LEN)]
 #[newtype(as_ref_str)]
 pub struct LocCommit(String);
-impl From<LocCommitTryFromStringEr> for LocCommit {
-    fn from(value: LocCommitTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for LocCommit {
-    type Error = LocCommitTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > LOC_COMMIT_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: LOC_COMMIT_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(
     Debug,
     PartialEq,
@@ -297,32 +241,12 @@ pub struct StdTimeDuration {
     pub secs: StdTimeDurationSecs,
     pub nanos: StdTimeDurationNanos,
 }
-#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
 pub struct StdTimeDurationSecs(u64);
-impl From<u64> for StdTimeDurationSecs {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-impl std::ops::Deref for StdTimeDurationSecs {
-    type Target = u64;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml)]
+#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
 pub struct StdTimeDurationNanos(u32);
-impl From<u32> for StdTimeDurationNanos {
-    fn from(value: u32) -> Self {
-        Self(value)
-    }
-}
-impl std::ops::Deref for StdTimeDurationNanos {
-    type Target = u32;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 impl std::fmt::Display for Loc {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(

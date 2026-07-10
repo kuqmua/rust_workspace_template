@@ -5,6 +5,7 @@ struct NewtypeAttrs {
     to_err_string_mode: Option<ToErrStringMode>,
 }
 struct BoundedStringAttrs {
+    description: Option<SynExpr>,
     max: SynExpr,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -15,11 +16,15 @@ enum NewtypeOption {
     AsRefStr,
     AsSlice,
     DebugTransparent,
-    Deref,
+    DerefInner,
+    DerefMutInner,
+    DerefMutTarget,
+    DerefTarget,
     Display,
     From,
     Getter,
     IntoInner,
+    IntoInnerFrom,
     IntoVec,
     ToTokens,
 }
@@ -333,8 +338,20 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
-    let deref_ts = attrs.contains(NewtypeOption::Deref).get().then(|| {
+    let deref_inner_ts = attrs.contains(NewtypeOption::DerefInner).get().then(|| {
         quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
+                type Target = #inner_ty_ref;
+                fn deref(&self) -> &Self::Target {
+                    &self.0
+                }
+            }
+        }
+    });
+    let deref_target_ts = attrs.contains(NewtypeOption::DerefTarget).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
             impl #impl_generics std::ops::Deref for #ident #ty_generics #where_clause {
                 type Target = <#inner_ty_ref as std::ops::Deref>::Target;
                 fn deref(&self) -> &Self::Target {
@@ -343,6 +360,29 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
+    let deref_mut_inner_ts = attrs.contains(NewtypeOption::DerefMutInner).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics std::ops::DerefMut for #ident #ty_generics #where_clause {
+                fn deref_mut(&mut self) -> &mut Self::Target {
+                    &mut self.0
+                }
+            }
+        }
+    });
+    let deref_mut_target_ts = attrs
+        .contains(NewtypeOption::DerefMutTarget)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::ops::DerefMut for #ident #ty_generics #where_clause {
+                    fn deref_mut(&mut self) -> &mut Self::Target {
+                        &mut self.0
+                    }
+                }
+            }
+        });
     let from_ts = attrs.contains(NewtypeOption::From).get().then(|| {
         quote::quote! {
             impl #impl_generics From<#inner_ty_ref> for #ident #ty_generics #where_clause {
@@ -382,6 +422,15 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
+    let into_inner_from_ts = attrs.contains(NewtypeOption::IntoInnerFrom).get().then(|| {
+        quote::quote! {
+            impl #impl_generics From<#ident #ty_generics> for #inner_ty_ref #where_clause {
+                fn from(value: #ident #ty_generics) -> Self {
+                    value.0
+                }
+            }
+        }
+    });
     let into_vec_ts = attrs.contains(NewtypeOption::IntoVec).get().then(|| {
         quote::quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
@@ -411,10 +460,14 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
         #as_ref_inner_ts
         #as_ref_owned_ts
         #as_slice_ts
-        #deref_ts
+        #deref_inner_ts
+        #deref_target_ts
+        #deref_mut_inner_ts
+        #deref_mut_target_ts
         #from_ts
         #getter_ts
         #into_inner_ts
+        #into_inner_from_ts
         #into_vec_ts
         #to_tokens_ts
         #to_err_string_ts
@@ -438,21 +491,28 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
         ));
     }
     let ident = &input_ref.ident;
+    let vis = &input_ref.vis;
     let er_ident = quote::format_ident!("{ident}TryFromStringEr");
-    let max = attrs.max;
-    let description = ident_to_snake(SynIdentRef::from(ident))
-        .as_ref()
-        .replace('_', " ");
+    let BoundedStringAttrs { description, max } = attrs;
+    let description_ts = description.map_or_else(
+        || {
+            let value = ident_to_snake(SynIdentRef::from(ident))
+                .as_ref()
+                .replace('_', " ");
+            quote::quote! {#value}
+        },
+        |value| quote::quote! {#value},
+    );
     Ok(ProcMacro2GeneratedTs(quote::quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        pub enum #er_ident {
+        #vis enum #er_ident {
             TooLong { len: usize, max: usize },
         }
         impl std::fmt::Display for #er_ident {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
                     Self::TooLong { len, max } => {
-                        write!(f, "{} length {len} exceeds maximum {max}", #description)
+                        write!(f, "{} length {len} exceeds maximum {max}", #description_ts)
                     }
                 }
             }
@@ -472,16 +532,6 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
                     });
                 }
                 Ok(Self(value))
-            }
-        }
-        impl AsRef<str> for #ident {
-            fn as_ref(&self) -> &str {
-                self.0.as_str()
-            }
-        }
-        impl std::fmt::Display for #ident {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                f.write_str(self.0.as_str())
             }
         }
     }))
@@ -540,19 +590,23 @@ fn gen_enum_from_str_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2G
 }
 #[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
 fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStringAttrs> {
-    let max = attrs
+    let (description, max) = attrs
         .as_ref()
         .iter()
         .filter(|attr| attr.path().is_ident("bounded_string"))
-        .try_fold(None, |mut max, attr| {
+        .try_fold((None, None), |(mut description, mut max), attr| {
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("max") {
                     max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                     return Ok(());
                 }
+                if meta.path.is_ident("description") {
+                    description = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                    return Ok(());
+                }
                 Err(meta.error("unknown bounded_string option"))
             })?;
-            Ok::<Option<SynExpr>, syn::Error>(max)
+            Ok::<(Option<SynExpr>, Option<SynExpr>), syn::Error>((description, max))
         })?;
     let parsed_max = max.ok_or_else(|| {
         syn::Error::new(
@@ -560,7 +614,10 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
             "BoundedString requires #[bounded_string(max = ...)]",
         )
     })?;
-    Ok(BoundedStringAttrs { max: parsed_max })
+    Ok(BoundedStringAttrs {
+        description,
+        max: parsed_max,
+    })
 }
 #[allow(clippy::single_call_fn)] // attr parsing is intentionally isolated from code generation
 fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
@@ -590,8 +647,20 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                     acc.insert(NewtypeOption::AsSlice);
                     return Ok(());
                 }
-                if meta.path.is_ident("deref") {
-                    acc.insert(NewtypeOption::Deref);
+                if meta.path.is_ident("deref") || meta.path.is_ident("deref_target") {
+                    acc.insert(NewtypeOption::DerefTarget);
+                    return Ok(());
+                }
+                if meta.path.is_ident("deref_inner") {
+                    acc.insert(NewtypeOption::DerefInner);
+                    return Ok(());
+                }
+                if meta.path.is_ident("deref_mut_inner") {
+                    acc.insert(NewtypeOption::DerefMutInner);
+                    return Ok(());
+                }
+                if meta.path.is_ident("deref_mut_target") {
+                    acc.insert(NewtypeOption::DerefMutTarget);
                     return Ok(());
                 }
                 if meta.path.is_ident("debug_transparent") {
@@ -612,6 +681,10 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                 }
                 if meta.path.is_ident("into_inner") {
                     acc.insert(NewtypeOption::IntoInner);
+                    return Ok(());
+                }
+                if meta.path.is_ident("into_inner_from") {
+                    acc.insert(NewtypeOption::IntoInnerFrom);
                     return Ok(());
                 }
                 if meta.path.is_ident("into_vec") {
@@ -653,6 +726,30 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
         return Err(syn::Error::new_spanned(
             input.as_ref(),
             "Newtype requires at least one #[newtype(...)] option",
+        ));
+    }
+    if attrs.contains(NewtypeOption::DerefInner).get()
+        && attrs.contains(NewtypeOption::DerefTarget).get()
+    {
+        return Err(syn::Error::new_spanned(
+            input.as_ref(),
+            "deref_inner and deref_target cannot be combined",
+        ));
+    }
+    if attrs.contains(NewtypeOption::DerefMutInner).get()
+        && !attrs.contains(NewtypeOption::DerefInner).get()
+    {
+        return Err(syn::Error::new_spanned(
+            input.as_ref(),
+            "deref_mut_inner requires deref_inner",
+        ));
+    }
+    if attrs.contains(NewtypeOption::DerefMutTarget).get()
+        && !attrs.contains(NewtypeOption::DerefTarget).get()
+    {
+        return Err(syn::Error::new_spanned(
+            input.as_ref(),
+            "deref_mut_target requires deref_target",
         ));
     }
     Ok(())

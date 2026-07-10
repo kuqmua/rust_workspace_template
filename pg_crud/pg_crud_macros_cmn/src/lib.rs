@@ -168,39 +168,10 @@ impl FromIterator<macros_helpers::generated_rust_ts::GeneratedRustTs> for Genera
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(display, from_inner)]
 pub struct NnOrNlStr(&'static str);
-#[derive(Debug, Clone, newtype::Newtype)]
+#[derive(Debug, Clone, newtype::BoundedString, newtype::Newtype)]
+#[bounded_string(max = IS_NL_PREFIX_STR_MAX_LEN, description = "is nl prefix string")]
 #[newtype(display)]
 pub struct IsNlPrefixStr(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IsNlPrefixStrTryFromStringEr {
-    TooLong { len: usize, max: usize },
-}
-impl std::fmt::Display for IsNlPrefixStrTryFromStringEr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong { len, max } => {
-                write!(f, "is nl prefix string length {len} exceeds maximum {max}")
-            }
-        }
-    }
-}
-impl From<IsNlPrefixStrTryFromStringEr> for IsNlPrefixStr {
-    fn from(value: IsNlPrefixStrTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for IsNlPrefixStr {
-    type Error = IsNlPrefixStrTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > IS_NL_PREFIX_STR_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: IS_NL_PREFIX_STR_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(as_ref_str, display, from_inner)]
 pub struct ImportScStr(&'static str);
@@ -246,18 +217,9 @@ impl DeLen {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct WrapIntoBraces(bool);
-impl From<bool> for WrapIntoBraces {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
-impl From<WrapIntoBraces> for bool {
-    fn from(value: WrapIntoBraces) -> Self {
-        value.0
-    }
-}
 #[derive(Debug, Clone)]
 pub struct ParseTsStrings(Vec<String>);
 impl From<Vec<String>> for ParseTsStrings {

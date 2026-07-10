@@ -27,13 +27,8 @@ impl PgnStartsWithOneValue {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(from)]
+#[newtype(from_inner, into_inner_from)]
 pub struct IsPrimaryKey(bool);
-impl From<IsPrimaryKey> for bool {
-    fn from(value: IsPrimaryKey) -> Self {
-        value.0
-    }
-}
 impl From<pg_crud_cmn::IsPk> for IsPrimaryKey {
     fn from(value: pg_crud_cmn::IsPk) -> Self {
         Self::from(bool::from(value))

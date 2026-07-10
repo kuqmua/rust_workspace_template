@@ -1,19 +1,9 @@
 #[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner)]
+#[newtype(from_inner, into_inner_from)]
 pub struct SynPathSegment(syn::PathSegment);
-impl From<SynPathSegment> for syn::PathSegment {
-    fn from(value: SynPathSegment) -> Self {
-        value.0
-    }
-}
 #[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner, to_tokens)]
+#[newtype(from_inner, into_inner_from, to_tokens)]
 pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
-impl From<SynPathSegments> for syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep> {
-    fn from(value: SynPathSegments) -> Self {
-        value.0
-    }
-}
 #[allow(clippy::single_call_fn)] // named constructor keeps syn::PathSegment assembly separate from punctuation loop
 fn mk_path_segment<S>(v: S) -> SynPathSegment
 where

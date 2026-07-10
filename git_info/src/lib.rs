@@ -112,7 +112,7 @@ impl PartialEq<String> for GitCommitLink {
 #[newtype(as_ref_str, display, from_inner)]
 pub struct StdGitCommitLinkCow(std::borrow::Cow<'static, str>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, display)]
+#[newtype(as_ref_inner, display, into_inner_from)]
 pub struct ProjectGitCommitLinkRef(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 pub struct IsProjectCommit(bool);
@@ -122,19 +122,9 @@ impl std::ops::Not for IsProjectCommit {
         !self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
 pub struct GitCommitLinkCapacity(usize);
-impl From<usize> for GitCommitLinkCapacity {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl std::ops::Deref for GitCommitLinkCapacity {
-    type Target = usize;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 impl PartialEq<usize> for GitCommitLinkCapacity {
     fn eq(&self, other: &usize) -> bool {
         self.0 == *other
@@ -142,23 +132,9 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
 }
 #[derive(Debug, optml::Optml)]
 struct GitCommitLinkOutputRefMut<'output_lt>(pub &'output_lt mut String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
+#[newtype(as_ref_owned, into_inner_from)]
 pub struct ValidateProjectCommitEr(ProjectGitCommitLinkRef);
-impl AsRef<ProjectGitCommitLinkRef> for ValidateProjectCommitEr {
-    fn as_ref(&self) -> &ProjectGitCommitLinkRef {
-        &self.0
-    }
-}
-impl From<ValidateProjectCommitEr> for ProjectGitCommitLinkRef {
-    fn from(value: ValidateProjectCommitEr) -> Self {
-        value.0
-    }
-}
-impl From<ProjectGitCommitLinkRef> for &'static str {
-    fn from(value: ProjectGitCommitLinkRef) -> Self {
-        value.0
-    }
-}
 #[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
 pub struct ProjectGitInfo<'commit_lt> {
     pub commit: GitCommitIdRef<'commit_lt>,
