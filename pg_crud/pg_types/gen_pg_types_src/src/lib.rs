@@ -165,39 +165,94 @@ pub fn gen_pg_types(
         SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
         SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
     }
-    enum CanBeNl {
-        False,
-        True,
+    #[derive(Clone, Copy)]
+    enum WireKind {
+        Bool,
+        Bytes,
+        Date,
+        Float32,
+        Float64,
+        Inet,
+        Int16,
+        Int32,
+        Int64,
+        Interval,
+        Mac,
+        RangeDate,
+        RangeInt32,
+        RangeInt64,
+        RangeTimestamp,
+        RangeTimestampTz,
+        String,
+        TimeChrono,
+        TimeTime,
+        Timestamp,
+        TimestampTz,
+        Uuid,
+    }
+    #[derive(Clone, Copy)]
+    enum FltKind {
+        Bool,
+        Bytes,
+        Date,
+        IntervalOrInet,
+        Mac,
+        Money,
+        Number,
+        Range,
+        String,
+        Time,
+        Timestamp,
+        TimestampTz,
+        Uuid,
+    }
+    #[derive(Clone, Copy)]
+    struct PgTypeDsc {
+        can_be_nl: CanBeNl,
+        flt_kind: FltKind,
+        pg_name: &'static str,
+        wire_kind: WireKind,
     }
     impl PgType {
         const fn can_be_nl(self) -> CanBeNl {
+            self.dsc().can_be_nl
+        }
+        const fn dsc(self) -> PgTypeDsc {
             match self {
-                Self::I16AsInt2
-                | Self::I32AsInt4
-                | Self::I64AsInt8
-                | Self::F32AsFloat4
-                | Self::F64AsFloat8
-                | Self::SqlxPgTypesPgMoneyAsMoney
-                | Self::BoolAsBool
-                | Self::StringAsText
-                | Self::StdVecVecU8AsBytea
-                | Self::SqlxTypesChronoNaiveTimeAsTime
-                | Self::SqlxTypesTimeTimeAsTime
-                | Self::SqlxPgTypesPgIntervalAsInterval
-                | Self::SqlxTypesChronoNaiveDateAsDate
-                | Self::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                | Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                | Self::SqlxTypesUuidUuidAsUuidInitByClient
-                | Self::SqlxTypesIpnetworkIpNetworkAsInet
-                | Self::SqlxTypesMacAddressMacAddressAsMacAddr
-                | Self::SqlxPgTypesPgRangeI32AsInt4Range
-                | Self::SqlxPgTypesPgRangeI64AsInt8Range
-                | Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-                | Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                | Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => CanBeNl::True,
-                Self::I16AsSmallSerialInitByPg | Self::I32AsSerialInitByPg | Self::I64AsBigSerialInitByPg | Self::SqlxTypesUuidUuidAsUuidV4InitByPg => CanBeNl::False,
+                Self::I16AsInt2 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int2", wire_kind: WireKind::Int16 },
+                Self::I32AsInt4 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int4", wire_kind: WireKind::Int32 },
+                Self::I64AsInt8 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int8", wire_kind: WireKind::Int64 },
+                Self::F32AsFloat4 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float4", wire_kind: WireKind::Float32 },
+                Self::F64AsFloat8 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float8", wire_kind: WireKind::Float64 },
+                Self::I16AsSmallSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "smallserial", wire_kind: WireKind::Int16 },
+                Self::I32AsSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "serial", wire_kind: WireKind::Int32 },
+                Self::I64AsBigSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "bigserial", wire_kind: WireKind::Int64 },
+                Self::SqlxPgTypesPgMoneyAsMoney => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Money, pg_name: "money", wire_kind: WireKind::Int64 },
+                Self::BoolAsBool => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Bool, pg_name: "bool", wire_kind: WireKind::Bool },
+                Self::StringAsText => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::String, pg_name: "text", wire_kind: WireKind::String },
+                Self::StdVecVecU8AsBytea => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Bytes, pg_name: "bytea", wire_kind: WireKind::Bytes },
+                Self::SqlxTypesChronoNaiveTimeAsTime => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeChrono },
+                Self::SqlxTypesTimeTimeAsTime => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeTime },
+                Self::SqlxPgTypesPgIntervalAsInterval => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "interval", wire_kind: WireKind::Interval },
+                Self::SqlxTypesChronoNaiveDateAsDate => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Date, pg_name: "date", wire_kind: WireKind::Date },
+                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Timestamp, pg_name: "timestamp", wire_kind: WireKind::Timestamp },
+                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::TimestampTz, pg_name: "timestamptz", wire_kind: WireKind::TimestampTz },
+                Self::SqlxTypesUuidUuidAsUuidV4InitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
+                Self::SqlxTypesUuidUuidAsUuidInitByClient => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
+                Self::SqlxTypesIpnetworkIpNetworkAsInet => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "inet", wire_kind: WireKind::Inet },
+                Self::SqlxTypesMacAddressMacAddressAsMacAddr => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Mac, pg_name: "macaddr", wire_kind: WireKind::Mac },
+                Self::SqlxPgTypesPgRangeI32AsInt4Range => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int4range", wire_kind: WireKind::RangeInt32 },
+                Self::SqlxPgTypesPgRangeI64AsInt8Range => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int8range", wire_kind: WireKind::RangeInt64 },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "daterange", wire_kind: WireKind::RangeDate },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tsrange", wire_kind: WireKind::RangeTimestamp },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tstzrange", wire_kind: WireKind::RangeTimestampTz },
             }
         }
+    }
+    #[derive(Clone, Copy)]
+    enum CanBeNl {
+        False,
+        True,
     }
     impl quote::ToTokens for PgType {
         fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -674,6 +729,10 @@ pub fn gen_pg_types(
             End,
             Start,
         }
+        enum ShouldImplFrom {
+            False,
+            True,
+        }
         enum IntRangeType {
             SqlxPgTypesPgRangeI32AsInt4Range,
             SqlxPgTypesPgRangeI64AsInt8Range,
@@ -760,6 +819,28 @@ pub fn gen_pg_types(
         );
         let ident_stdrt_nn_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(pg_type);
         let ident_orgn_ucc = naming::prm::SelfOrgnUcc::from_tokens(&ident);
+        let ident_orgn_wire_ucc = quote::format_ident!("{}Wire", ident_orgn_ucc.to_string());
+        let gen_impl_wrapper_traits_ts = |ident_ts: &dyn quote::ToTokens,
+                                          target_ts: &dyn quote::ToTokens,
+                                          should_impl_from: ShouldImplFrom| {
+            let impl_from_ts = match should_impl_from {
+                ShouldImplFrom::False => proc_macro2::TokenStream::new(),
+                ShouldImplFrom::True => quote::quote! {
+                    impl From<#target_ts> for #ident_ts {
+                        fn from(value: #target_ts) -> Self { Self(value) }
+                    }
+                },
+            };
+            quote::quote! {
+                #impl_from_ts
+                impl AsRef<#target_ts> for #ident_ts {
+                    fn as_ref(&self) -> &#target_ts { &self.0 }
+                }
+                impl std::borrow::Borrow<#target_ts> for #ident_ts {
+                    fn borrow(&self) -> &#target_ts { &self.0 }
+                }
+            }
+        };
         let sqlx_types_chrono_naive_date_as_nn_date_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveDateAsDate);
         let sqlx_types_chrono_naive_time_as_nn_time_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveTimeAsTime);
         let sqlx_types_chrono_naive_date_time_as_nn_timestamp_orgn_ucc = gen_ident_stdrt_nn_orgn_ts(&PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp);
@@ -800,18 +881,21 @@ pub fn gen_pg_types(
             pg_crud_macros_cmn::IsNl::False => quote::quote! {false},
             pg_crud_macros_cmn::IsNl::True => quote::quote! {true},
         };
+        let pg_type_dsc = pg_type.dsc();
+        let pg_name = pg_type_dsc.pg_name;
         let open_api_object_builder_ts = |schema_type: &dyn quote::ToTokens,
                                           extra: &dyn quote::ToTokens| {
             quote::quote! {
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::SchemaType::#schema_type)
+                    .description(Some(concat!("PostgreSQL ", #pg_name)))
                     .nullable(#open_api_nullable_ts)
                     #extra
                     .build()
             }
         };
-        let open_api_schema_ts = match &pg_type {
-            PgType::I16AsInt2 | PgType::I16AsSmallSerialInitByPg => open_api_object_builder_ts(
+        let open_api_schema_ts = match pg_type_dsc.wire_kind {
+            WireKind::Int16 => open_api_object_builder_ts(
                 &quote::quote! {Integer},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
@@ -820,7 +904,7 @@ pub fn gen_pg_types(
                     .example(Some(serde_json::json!(42)))
                 },
             ),
-            PgType::I32AsInt4 | PgType::I32AsSerialInitByPg => open_api_object_builder_ts(
+            WireKind::Int32 => open_api_object_builder_ts(
                 &quote::quote! {Integer},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))
@@ -829,63 +913,68 @@ pub fn gen_pg_types(
                     .example(Some(serde_json::json!(42)))
                 },
             ),
-            PgType::I64AsInt8 | PgType::I64AsBigSerialInitByPg | PgType::SqlxPgTypesPgMoneyAsMoney => open_api_object_builder_ts(
+            WireKind::Int64 => open_api_object_builder_ts(
                 &quote::quote! {Integer},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))
                     .example(Some(serde_json::json!(42)))
                 },
             ),
-            PgType::F32AsFloat4 => open_api_object_builder_ts(
+            WireKind::Float32 => open_api_object_builder_ts(
                 &quote::quote! {Number},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Float)))
                     .example(Some(serde_json::json!(42.0)))
                 },
             ),
-            PgType::F64AsFloat8 => open_api_object_builder_ts(
+            WireKind::Float64 => open_api_object_builder_ts(
                 &quote::quote! {Number},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Double)))
                     .example(Some(serde_json::json!(42.0)))
                 },
             ),
-            PgType::BoolAsBool => open_api_object_builder_ts(
+            WireKind::Bool => open_api_object_builder_ts(
                 &quote::quote! {Boolean},
                 &quote::quote! {.example(Some(serde_json::json!(true)))},
             ),
-            PgType::StringAsText => open_api_object_builder_ts(
+            WireKind::String => open_api_object_builder_ts(
                 &quote::quote! {String},
                 &quote::quote! {.example(Some(serde_json::json!("example")))},
             ),
-            PgType::SqlxTypesChronoNaiveDateAsDate => open_api_object_builder_ts(
+            WireKind::Date => open_api_object_builder_ts(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))
                     .example(Some(serde_json::json!("2024-01-01")))
                 },
             ),
-            PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => open_api_object_builder_ts(
+            WireKind::Uuid => open_api_object_builder_ts(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::Custom("uuid".to_owned())))
                     .example(Some(serde_json::json!("00000000-0000-4000-8000-000000000000")))
                 },
             ),
-            PgType::SqlxTypesIpnetworkIpNetworkAsInet => open_api_object_builder_ts(
+            WireKind::Inet => open_api_object_builder_ts(
                 &quote::quote! {String},
                 &quote::quote! {
                     .format(Some(utoipa::openapi::SchemaFormat::Custom("ip-network".to_owned())))
                     .example(Some(serde_json::json!("192.0.2.1/32")))
                 },
             ),
-            PgType::StdVecVecU8AsBytea | PgType::SqlxTypesMacAddressMacAddressAsMacAddr => {
-                let limits_ts = match &pg_type {
-                    PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {
+            WireKind::Bytes | WireKind::Mac => {
+                let limits_ts = match pg_type_dsc.wire_kind {
+                    WireKind::Mac => quote::quote! {
                         .min_items(Some(6))
                         .max_items(Some(6))
                     },
                     _ => proc_macro2::TokenStream::new(),
+                };
+                let example_ts = if matches!(pg_type_dsc.wire_kind, WireKind::Mac) {
+                    quote::quote! {[0, 17, 34, 51, 68, 85]}
+                } else {
+                    quote::quote! {[1, 2, 3]}
                 };
                 quote::quote! {
                     utoipa::openapi::ArrayBuilder::new()
@@ -895,13 +984,14 @@ pub fn gen_pg_types(
                             .maximum(Some(255.0)))
                         .nullable(#open_api_nullable_ts)
                         #limits_ts
+                        .example(Some(serde_json::json!(#example_ts)))
                         .build()
                 }
             }
-            PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => {
-                let (minute_name, second_name, microsecond_name) = match &pg_type {
-                    PgType::SqlxTypesChronoNaiveTimeAsTime => ("min", "sec", "micro"),
-                    PgType::SqlxTypesTimeTimeAsTime => ("minute", "second", "microsecond"),
+            WireKind::TimeChrono | WireKind::TimeTime => {
+                let (minute_name, second_name, microsecond_name) = match pg_type_dsc.wire_kind {
+                    WireKind::TimeChrono => ("min", "sec", "micro"),
+                    WireKind::TimeTime => ("minute", "second", "microsecond"),
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -916,10 +1006,16 @@ pub fn gen_pg_types(
                         .required(#second_name)
                         .required(#microsecond_name)
                         .nullable(#open_api_nullable_ts)
+                        .example(Some(serde_json::json!({
+                            "hour": 12,
+                            #minute_name: 34,
+                            #second_name: 56,
+                            #microsecond_name: 789000
+                        })))
                         .build()
                 }
             }
-            PgType::SqlxPgTypesPgIntervalAsInterval => quote::quote! {
+            WireKind::Interval => quote::quote! {
                 utoipa::openapi::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::SchemaType::Object)
                     .property("months", utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32))))
@@ -929,13 +1025,13 @@ pub fn gen_pg_types(
                     .required("days")
                     .required("microseconds")
                     .nullable(#open_api_nullable_ts)
+                    .example(Some(serde_json::json!({"months": 1, "days": 2, "microseconds": 3000000})))
                     .build()
             },
-            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-            | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => {
-                let date_name = match &pg_type {
-                    PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => "date",
-                    PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => "date_naive",
+            WireKind::Timestamp | WireKind::TimestampTz => {
+                let date_name = match pg_type_dsc.wire_kind {
+                    WireKind::Timestamp => "date",
+                    WireKind::TimestampTz => "date_naive",
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -952,23 +1048,22 @@ pub fn gen_pg_types(
                         .required(#date_name)
                         .required("time")
                         .nullable(#open_api_nullable_ts)
+                        .example(Some(serde_json::json!({
+                            #date_name: "2024-01-01",
+                            "time": {"hour": 12, "min": 34, "sec": 56, "micro": 789000}
+                        })))
                         .build()
                 }
             }
-            PgType::SqlxPgTypesPgRangeI32AsInt4Range
-            | PgType::SqlxPgTypesPgRangeI64AsInt8Range
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
-                let range_value_schema_ts = match &pg_type {
-                    PgType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
-                    PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-                    | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
-                        let date_name = match &pg_type {
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => "date",
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => "date_naive",
+            WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeDate | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
+                let range_value_schema_ts = match pg_type_dsc.wire_kind {
+                    WireKind::RangeInt32 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int32)))},
+                    WireKind::RangeInt64 => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::Integer).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Int64)))},
+                    WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
+                    WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
+                        let date_name = match pg_type_dsc.wire_kind {
+                            WireKind::RangeTimestamp => "date",
+                            WireKind::RangeTimestampTz => "date_naive",
                             _ => unreachable!(),
                         };
                         quote::quote! {
@@ -1005,6 +1100,7 @@ pub fn gen_pg_types(
                         .required("start")
                         .required("end")
                         .nullable(#open_api_nullable_ts)
+                        .example(Some(serde_json::json!({"start": "Unbounded", "end": "Unbounded"})))
                         .build()
                 }
             }
@@ -1925,6 +2021,73 @@ pub fn gen_pg_types(
         let ident_upd_ucc = naming::prm::SelfUpdUcc::from_tokens(&ident);
         let sqlx_encode_self_dot_zero_ts = quote::quote! {#self_sc.0};
         let ident_orgn_ts = {
+            let ident_orgn_wire_ts = if matches!(&is_stdrt_nn, pg_crud_macros_cmn::IsStdrtNn::True) {
+                match pg_type_dsc.wire_kind {
+                    WireKind::TimeChrono => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc {
+                            hour: u32,
+                            min: u32,
+                            sec: u32,
+                            micro: u32,
+                        }
+                    },
+                    WireKind::TimeTime => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc {
+                            hour: u8,
+                            minute: u8,
+                            second: u8,
+                            microsecond: u32,
+                        }
+                    },
+                    WireKind::Interval => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc {
+                            months: i32,
+                            days: i32,
+                            microseconds: i64,
+                        }
+                    },
+                    WireKind::Timestamp => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc {
+                            date: #sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts,
+                            time: SqlxTypesChronoNaiveTimeAsNnTimeOrgn,
+                        }
+                    },
+                    WireKind::TimestampTz => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc {
+                            date_naive: #sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts,
+                            time: SqlxTypesChronoNaiveTimeAsNnTimeOrgn,
+                        }
+                    },
+                    WireKind::RangeInt32 => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc { start: std::ops::Bound<i32>, end: std::ops::Bound<i32> }
+                    },
+                    WireKind::RangeInt64 => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc { start: std::ops::Bound<i64>, end: std::ops::Bound<i64> }
+                    },
+                    WireKind::RangeDate => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc { start: std::ops::Bound<#sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts>, end: std::ops::Bound<#sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts> }
+                    },
+                    WireKind::RangeTimestamp => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc { start: std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>, end: std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn> }
+                    },
+                    WireKind::RangeTimestampTz => quote::quote! {
+                        #[derive(serde::Deserialize)]
+                        struct #ident_orgn_wire_ucc { start: std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>, end: std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn> }
+                    },
+                    _ => proc_macro2::TokenStream::new(),
+                }
+            } else {
+                proc_macro2::TokenStream::new()
+            };
             let ident_orgn_ts = macros_helpers::derive_ts_builder::DTsBuilder::new()
                 .make_pub()
                 .d_debug()
@@ -1974,25 +2137,21 @@ pub fn gen_pg_types(
                             PgType::StdVecVecU8AsBytea |
                             PgType::SqlxTypesIpnetworkIpNetworkAsInet => proc_macro2::TokenStream::new(),
                             PgType::SqlxPgTypesPgMoneyAsMoney => gen_serde_from_ts(&quote::quote! {"i64"}),
-                            PgType::SqlxTypesChronoNaiveTimeAsTime => gen_serde_try_from_ts(&quote::quote! {"(u32,u32,u32,u32)"}),
-                            PgType::SqlxTypesTimeTimeAsTime => gen_serde_try_from_ts(&quote::quote! {"(u8,u8,u8,u32)"}),
-                            PgType::SqlxPgTypesPgIntervalAsInterval => gen_serde_from_ts(&quote::quote! {"(i32,i32,i64)"}),
-                            PgType::SqlxTypesChronoNaiveDateAsDate => gen_serde_try_from_ts(&quote::quote! {"sqlx::types::chrono::NaiveDate"}),
+                            PgType::SqlxTypesChronoNaiveTimeAsTime |
+                            PgType::SqlxTypesTimeTimeAsTime |
+                            PgType::SqlxPgTypesPgRangeI32AsInt4Range |
+                            PgType::SqlxPgTypesPgRangeI64AsInt8Range => gen_serde_try_from_ts(&gen_quotes::dq_ts(&ident_orgn_wire_ucc)),
+                            PgType::SqlxPgTypesPgIntervalAsInterval |
                             PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp |
-                            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => gen_serde_from_ts(&gen_quotes::dq_ts(&format!("({sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts},SqlxTypesChronoNaiveTimeAsNnTimeOrgn)"))),
+                            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz |
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
+                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => gen_serde_from_ts(&gen_quotes::dq_ts(&ident_orgn_wire_ucc)),
+                            PgType::SqlxTypesChronoNaiveDateAsDate => gen_serde_try_from_ts(&quote::quote! {"sqlx::types::chrono::NaiveDate"}),
                             PgType::StringAsText |
                             PgType::SqlxTypesUuidUuidAsUuidV4InitByPg |
                             PgType::SqlxTypesUuidUuidAsUuidInitByClient => quote::quote! {#[serde(try_from = "String")]},
                             PgType::SqlxTypesMacAddressMacAddressAsMacAddr => quote::quote! {#[serde(from = "[u8; 6]")]},
-                            PgType::SqlxPgTypesPgRangeI32AsInt4Range => quote::quote! {#[serde(try_from = "(std::ops::Bound<i32>,std::ops::Bound<i32>)")]},
-                            PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {#[serde(try_from = "(std::ops::Bound<i64>,std::ops::Bound<i64>)")]},
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => {
-                                let bound = format!("std::ops::Bound<{sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts}>");
-                                let ts = gen_quotes::dq_ts(&format!("({bound},{bound})"));
-                                quote::quote! {#[serde(from = #ts)]}
-                            },
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => quote::quote! {#[serde(from = "(std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>,std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>)")]},//todo reuse name
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {#[serde(from = "(std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>,std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>)")]},//todo reuse name
                             }
                         }
                         else {
@@ -2690,8 +2849,8 @@ pub fn gen_pg_types(
                                 StartOrEnd::Start => quote::quote! {start},
                             };
                             let ts0 = match start_or_end {
-                                StartOrEnd::End => quote::quote! {v.1},
-                                StartOrEnd::Start => quote::quote! {v.0},
+                                StartOrEnd::End => quote::quote! {v.end},
+                                StartOrEnd::Start => quote::quote! {v.start},
                             };
                             quote::quote! {
                                 #name_ts: match #ts0 {
@@ -2741,26 +2900,26 @@ pub fn gen_pg_types(
                         &quote::quote! {Self::new(#inn_type_stdrt_nn_ts(v))}
                     ),
                     PgType::SqlxPgTypesPgIntervalAsInterval => gen_impl_from_orgn_ts(
-                        &quote::quote! {(i32,i32,i64)},
+                        &ident_orgn_wire_ucc,
                         &quote::quote! {
                             Self(sqlx::postgres::types::PgInterval {
-                                #months_sc: v.0,
-                                #days_sc: v.1,
-                                #microseconds_sc: v.2,
+                                #months_sc: v.months,
+                                #days_sc: v.days,
+                                #microseconds_sc: v.microseconds,
                             })
                         }
                     ),
                     //todo reuse naming
                     PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => gen_impl_from_orgn_ts(
-                        &quote::quote! {(#sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts,SqlxTypesChronoNaiveTimeAsNnTimeOrgn)},
-                        &quote::quote! {Self(#inn_type_stdrt_nn_ts::#new_sc(v.0.0, v.1.0))}
+                        &ident_orgn_wire_ucc,
+                        &quote::quote! {Self(#inn_type_stdrt_nn_ts::#new_sc(v.date.0, v.time.0))}
                     ),
                     PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => gen_impl_from_orgn_ts(
-                        &quote::quote! {(#sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts,SqlxTypesChronoNaiveTimeAsNnTimeOrgn)},
+                        &ident_orgn_wire_ucc,
                         &{
                             let ts = gen_sqlx_types_chrono_date_time_sqlx_types_chrono_utc_from_naive_utc_and_offset_ts(&gen_sqlx_types_chrono_naive_date_time_new_ts(&quote::quote! {
-                                v.0.0,
-                                v.1.0
+                                v.date_naive.0,
+                                v.time.0
                             }));
                             quote::quote! {Self(#ts)}
                         }
@@ -2769,25 +2928,10 @@ pub fn gen_pg_types(
                         &quote::quote! {[u8; 6]},
                         &quote::quote! {Self(#inn_type_stdrt_nn_ts::new(v))}
                     ),
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => gen_impl_from_orgn_ts(
-                        &{
-                            let bound_ts = quote::quote! {std::ops::Bound<#sqlx_types_chrono_naive_date_as_date_stdrt_nn_orig_ts>};
-                            quote::quote! {(#bound_ts,#bound_ts)}
-                        },
-                        &self_sqlx_pg_types_pg_range_ts
-                    ),
-                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => gen_impl_from_orgn_ts(
-                        &{
-                            let bound_ts = quote::quote! {std::ops::Bound<SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn>};
-                            quote::quote! {(#bound_ts,#bound_ts)}
-                        },
-                        &self_sqlx_pg_types_pg_range_ts
-                    ),
+                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
+                    PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
                     PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => gen_impl_from_orgn_ts(
-                        &{
-                            let bound_ts = quote::quote! {std::ops::Bound<SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTzOrgn>};
-                            quote::quote! {(#bound_ts,#bound_ts)}
-                        },
+                        &ident_orgn_wire_ucc,
                         &self_sqlx_pg_types_pg_range_ts
                     ),
                 }
@@ -2825,17 +2969,11 @@ pub fn gen_pg_types(
                     ts
                 );
                 let gen_impl_try_from_int_range_ts = |
-                    int_range_type: IntRangeType,
+                    _int_range_type: IntRangeType,
                 |gen_impl_try_from_de_er_ts(
-                    &{
-                        let ts0 = match int_range_type {
-                            IntRangeType::SqlxPgTypesPgRangeI32AsInt4Range => &quote::quote! {i32},
-                            IntRangeType::SqlxPgTypesPgRangeI64AsInt8Range => &quote::quote! {i64},
-                        };
-                        quote::quote! {(std::ops::Bound<#ts0>,std::ops::Bound<#ts0>)}
-                    },
+                    &ident_orgn_wire_ucc,
                     &gen_self_match_try_new_ts(
-                        &quote::quote! {sqlx::postgres::types::PgRange { #start_sc: v.0, #end_sc: v.1 }},
+                        &quote::quote! {sqlx::postgres::types::PgRange { #start_sc: v.start, #end_sc: v.end }},
                         &{
                             let gen_match_ts = |name_ts: &dyn quote::ToTokens, ts: &dyn quote::ToTokens|quote::quote! {
                                 #ident_stdrt_nn_orgn_try_new_er_ucc::#name_ts {
@@ -2906,13 +3044,13 @@ pub fn gen_pg_types(
                         &quote::quote! {Self::try_new(v)}//todo use try_from instead of try_new ?
                     ),
                     PgType::SqlxTypesChronoNaiveTimeAsTime => gen_impl_try_from_de_er_ts(
-                        &quote::quote! {(u32,u32,u32,u32)},
+                        &ident_orgn_wire_ucc,
                         &quote::quote! {
                             match #inn_type_stdrt_nn_ts::from_hms_micro_opt(
-                                v.0,
-                                v.1,
-                                v.2,
-                                v.3,
+                                v.hour,
+                                v.min,
+                                v.sec,
+                                v.micro,
                             ) {
                                 Some(v_b143b9e1) => {
                                     if <#inn_type_stdrt_nn_ts as chrono::Timelike>::nanosecond(&v_b143b9e1).checked_rem(1000).expect("c0514180") != 0 {
@@ -2924,23 +3062,23 @@ pub fn gen_pg_types(
                                     Ok(Self(v_b143b9e1))
                                 },
                                 None => Err(#ident_stdrt_nn_orgn_try_new_for_de_er_ucc::#invalid_hour_or_minute_or_second_or_microsecond_ucc {
-                                    #hour_sc: v.0,
-                                    #min_sc: v.1,
-                                    #sec_sc: v.2,
-                                    #micro_sc: v.3,
+                                    #hour_sc: v.hour,
+                                    #min_sc: v.min,
+                                    #sec_sc: v.sec,
+                                    #micro_sc: v.micro,
                                     loc: loc_macros::loc!(),
                                 })
                             }
                         }
                     ),
                     PgType::SqlxTypesTimeTimeAsTime => gen_impl_try_from_de_er_ts(
-                        &quote::quote! {(u8,u8,u8,u32)},
+                        &ident_orgn_wire_ucc,
                         &quote::quote! {
                             match #inn_type_stdrt_nn_ts::from_hms_micro(
-                                v.0,
-                                v.1,
-                                v.2,
-                                v.3,
+                                v.hour,
+                                v.minute,
+                                v.second,
+                                v.microsecond,
                             ) {
                                 Ok(v_9932d535) => {
                                     if v_9932d535.nanosecond().checked_rem(1000).expect("0def33ce") != 0 {
@@ -2952,10 +3090,10 @@ pub fn gen_pg_types(
                                     Ok(Self(v_9932d535))
                                 },
                                 Err(er) => Err(#ident_stdrt_nn_orgn_try_new_for_de_er_ucc::#invalid_hour_or_minute_or_second_or_microsecond_ucc {
-                                    #hour_sc: v.0,
-                                    #minute_sc: v.1,
-                                    #second_sc: v.2,
-                                    #microsecond_sc: v.3,
+                                    #hour_sc: v.hour,
+                                    #minute_sc: v.minute,
+                                    #second_sc: v.second,
+                                    #microsecond_sc: v.microsecond,
                                     #er_sc: er.to_string(),
                                     loc: loc_macros::loc!(),
                                 })
@@ -3123,7 +3261,10 @@ pub fn gen_pg_types(
                     quote::quote! {Self::#new_sc(#ident_stdrt_nn_as_crate_pg_type_ts::into_inn(#v_sc))}
                 }).into(),
             };
+            let impl_as_ref_and_borrow_for_ident_orgn_ts =
+                gen_impl_wrapper_traits_ts(&ident_orgn_ucc, &ft_h, ShouldImplFrom::False);
             quote::quote! {
+                #ident_orgn_wire_ts
                 #ident_orgn_ts
                 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for #ident_orgn_ucc {
                     fn schema() -> (
@@ -3148,6 +3289,7 @@ pub fn gen_pg_types(
                 #impl_sqlx_type_and_encode_for_ident_orgn_ts
                 #impl_sqlx_decode_sqlx_pg_for_ident_orgn_ts
                 #mb_impl_from_ident_rd_for_ident_orgn_ts
+                #impl_as_ref_and_borrow_for_ident_orgn_ts
             }
         };
         let gen_pub_struct_tokens_ts = |ident_ts_prm: &dyn quote::ToTokens, ts: &dyn quote::ToTokens, derive_dflt| {
@@ -3220,6 +3362,8 @@ pub fn gen_pg_types(
                     }
                 },
             );
+            let impl_as_ref_and_borrow_for_ident_tt_ts =
+                gen_impl_wrapper_traits_ts(&ident_tt_ucc, &ident_orgn_ucc, ShouldImplFrom::True);
             quote::quote! {
                 #ident_tt_ts
                 #impl_ident_tt_ts
@@ -3227,6 +3371,7 @@ pub fn gen_pg_types(
                 #impl_sqlx_type_and_encode_for_ident_tt_ts
                 #impl_sqlx_decode_sqlx_pg_for_ident_tt_ts
                 #impl_pg_type_eq_oprtr_for_ident_tt_ts
+                #impl_as_ref_and_borrow_for_ident_tt_ts
             }
         };
         let ident_stdrt_nn_tt_ucc = naming::prm::SelfTtUcc::from_tokens(&ident_stdrt_nn_ucc);
@@ -3258,11 +3403,16 @@ pub fn gen_pg_types(
                 CanBePk::False => pg_crud_macros_cmn::gen_impl_sqlx_type_and_encode_for_ident_ts(&ident_cr_ucc, &ident_orgn_ucc, &sqlx_encode_self_dot_zero_ts),
                 CanBePk::True => macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new()),
             };
+            let mb_impl_as_ref_and_borrow_for_ident_cr_ts = match &can_be_pk {
+                CanBePk::False => gen_impl_wrapper_traits_ts(&ident_cr_ucc, &ident_orgn_ucc, ShouldImplFrom::True),
+                CanBePk::True => proc_macro2::TokenStream::new(),
+            };
             quote::quote! {
                 #ident_cr_ts
                 #mb_impl_ident_cr_ts
                 #impl_dflt_some_one_el_for_ident_cr_ts
                 #mb_impl_sqlx_type_and_encode_for_ident_cr_ts
+                #mb_impl_as_ref_and_borrow_for_ident_cr_ts
             }
         };
         let ident_sel_ucc = naming::prm::SelfSelUcc::from_tokens(&ident);
@@ -3342,29 +3492,18 @@ pub fn gen_pg_types(
                                 pg_crud_macros_cmn::flts::PgTypeFlt::RangeLen,
                             ])
                         };
-                        match &pg_type {
-                            PgType::I16AsInt2
-                            | PgType::I32AsInt4
-                            | PgType::I64AsInt8
-                            | PgType::F32AsFloat4
-                            | PgType::F64AsFloat8
-                            | PgType::I16AsSmallSerialInitByPg
-                            | PgType::I32AsSerialInitByPg
-                            | PgType::I64AsBigSerialInitByPg => gen_cmn_stdrt_pg_type_nbr_flts(),
-                            PgType::SqlxPgTypesPgMoneyAsMoney => gen_flts_with(gen_cmn_pg_type_flts(), [gen_in_flt()]),
-                            PgType::StdVecVecU8AsBytea => gen_flts_with(gen_cmn_pg_type_flts(), [pg_crud_macros_cmn::flts::PgTypeFlt::EqToEncodedStringRepresentation]),
-                            PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntTime, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTime]),
-                            PgType::SqlxTypesChronoNaiveDateAsDate => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntDate, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntDate]),
-                            PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntTimestamp, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTimestamp]),
-                            PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => gen_flts_with(gen_cmn_pg_type_flts(), [gen_before_flt(), gen_btwn_flt()]),
-                            PgType::StringAsText | PgType::SqlxTypesUuidUuidAsUuidV4InitByPg | PgType::SqlxTypesUuidUuidAsUuidInitByClient => gen_flts_with(gen_cmn_pg_type_flts(), [pg_crud_macros_cmn::flts::PgTypeFlt::Rgx]),
-                            PgType::BoolAsBool | PgType::SqlxPgTypesPgIntervalAsInterval | PgType::SqlxTypesIpnetworkIpNetworkAsInet => gen_cmn_pg_type_flts(),
-                            PgType::SqlxTypesMacAddressMacAddressAsMacAddr => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::Rgx]),
-                            PgType::SqlxPgTypesPgRangeI32AsInt4Range |
-                            PgType::SqlxPgTypesPgRangeI64AsInt8Range |
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
-                            PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => gen_ranges_cmn_flt_vec(),
+                        match pg_type.dsc().flt_kind {
+                            FltKind::Number => gen_cmn_stdrt_pg_type_nbr_flts(),
+                            FltKind::Money | FltKind::Uuid | FltKind::Bool => gen_flts_with(gen_cmn_pg_type_flts(), [gen_in_flt()]),
+                            FltKind::Bytes => gen_flts_with(gen_cmn_pg_type_flts(), [pg_crud_macros_cmn::flts::PgTypeFlt::EqToEncodedStringRepresentation]),
+                            FltKind::Time => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntTime, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTime]),
+                            FltKind::Date => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntDate, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntDate]),
+                            FltKind::Timestamp => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), gen_btwn_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::CrntTimestamp, pg_crud_macros_cmn::flts::PgTypeFlt::GreaterThanCrntTimestamp]),
+                            FltKind::TimestampTz => gen_flts_with(gen_cmn_pg_type_flts(), [gen_before_flt(), gen_btwn_flt()]),
+                            FltKind::String => gen_flts_with(gen_cmn_pg_type_flts(), [pg_crud_macros_cmn::flts::PgTypeFlt::Rgx]),
+                            FltKind::IntervalOrInet => gen_cmn_pg_type_flts(),
+                            FltKind::Mac => gen_flts_with(gen_cmn_pg_type_flts(), [gen_greater_than_flt(), pg_crud_macros_cmn::flts::PgTypeFlt::Rgx]),
+                            FltKind::Range => gen_ranges_cmn_flt_vec(),
                         }
                     }
                 }
@@ -3457,6 +3596,8 @@ pub fn gen_pg_types(
             } else {
                 macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new())
             };
+            let impl_as_ref_and_borrow_for_ident_rd_ts =
+                gen_impl_wrapper_traits_ts(&ident_rd_ucc, &ident_orgn_ucc, ShouldImplFrom::True);
             quote::quote! {
                 #ident_rd_ts
                 #impl_ident_rd_ts
@@ -3465,6 +3606,7 @@ pub fn gen_pg_types(
                 #impl_sqlx_type_and_encode_for_ident_rd_ts
                 #impl_sqlx_decode_sqlx_pg_for_ident_rd_ts
                 #mb_impl_pg_type_wh_flt_for_ident_rd_if_can_be_pk_ts
+                #impl_as_ref_and_borrow_for_ident_rd_ts
             }
         };
         let ident_rd_ids_ucc = naming::prm::SelfRdIdsUcc::from_tokens(&ident);
@@ -3481,10 +3623,13 @@ pub fn gen_pg_types(
                 &ok_self_v_ts
             );
             let impl_sqlx_type_for_ident_rd_ids_ts = pg_crud_macros_cmn::gen_impl_sqlx_type_for_ident_ts(&ident_rd_ids_ucc, &ident_rd_ucc);
+            let impl_as_ref_and_borrow_for_ident_rd_ids_ts =
+                gen_impl_wrapper_traits_ts(&ident_rd_ids_ucc, &ident_rd_ucc, ShouldImplFrom::True);
             quote::quote! {
                 #ident_rd_ids_ts
                 #impl_sqlx_decode_sqlx_pg_for_ident_rd_ids_ts
                 #impl_sqlx_type_for_ident_rd_ids_ts
+                #impl_as_ref_and_borrow_for_ident_rd_ids_ts
             }
         } else {
             proc_macro2::TokenStream::new()
@@ -3518,11 +3663,14 @@ pub fn gen_pg_types(
             let impl_dflt_some_one_el_for_ident_upd_ts =
                 pg_crud_macros_cmn::gen_impl_pg_crud_cmn_dflt_some_one_el_ts(&ident_upd_ucc, &self_dflt_some_one_el_call_ts);
             let impl_loc_lib_to_err_string_for_ident_upd_ts = pg_crud_macros_cmn::gen_impl_to_err_string_no_generics_ts(&ident_upd_ucc, &quote::quote! {self.0.#to_err_string_sc().into_inner()});
+            let impl_as_ref_and_borrow_for_ident_upd_ts =
+                gen_impl_wrapper_traits_ts(&ident_upd_ucc, &ident_orgn_ucc, ShouldImplFrom::True);
             quote::quote! {
                 #ident_upd_ts
                 #impl_ident_upd_ts
                 #impl_dflt_some_one_el_for_ident_upd_ts
                 #impl_loc_lib_to_err_string_for_ident_upd_ts
+                #impl_as_ref_and_borrow_for_ident_upd_ts
             }
         };
         let ident_upd_for_query_ucc = naming::prm::SelfUpdForQueryUcc::from_tokens(&ident);
@@ -3535,10 +3683,13 @@ pub fn gen_pg_types(
                 );
             let impl_sqlx_type_and_encode_for_ident_upd_for_query_ts = pg_crud_macros_cmn::gen_impl_sqlx_type_and_encode_for_ident_ts(&ident_upd_for_query_ucc, &ident_orgn_ucc, &sqlx_encode_self_dot_zero_ts);
             let impl_from_ident_upd_for_ident_upd_for_query_ts = macros_helpers::gen_impl_from_ts::gen_impl_from_ts(&ident_upd_ucc, &ident_upd_for_query_ucc, &quote::quote! {Self(#v_sc.0)});
+            let impl_as_ref_and_borrow_for_ident_upd_for_query_ts =
+                gen_impl_wrapper_traits_ts(&ident_upd_for_query_ucc, &ident_orgn_ucc, ShouldImplFrom::True);
             quote::quote! {
                 #ident_upd_for_query_ts
                 #impl_sqlx_type_and_encode_for_ident_upd_for_query_ts
                 #impl_from_ident_upd_for_ident_upd_for_query_ts
+                #impl_as_ref_and_borrow_for_ident_upd_for_query_ts
             }
         };
         let impl_pg_type_for_ident_ts = {

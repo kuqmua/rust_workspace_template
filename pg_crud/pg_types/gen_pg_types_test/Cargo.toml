@@ -19,6 +19,7 @@ chrono = { workspace = true }
 pg_types_chrono_net = { workspace = true }
 pg_types_numeric = { workspace = true }
 pg_types_text_misc = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 sqlx = { workspace = true }
 utoipa = { workspace = true }
