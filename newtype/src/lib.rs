@@ -5,7 +5,6 @@ struct NewtypeAttrs {
     to_err_string_mode: Option<ToErrStringMode>,
 }
 struct BoundedStringAttrs {
-    description: SynLitStr,
     max: SynExpr,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -149,17 +148,6 @@ impl AsRef<syn::Expr> for SynExpr {
 impl quote::ToTokens for SynExpr {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0.to_tokens(tokens);
-    }
-}
-struct SynLitStr(syn::LitStr);
-impl From<syn::LitStr> for SynLitStr {
-    fn from(value: syn::LitStr) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::LitStr> for SynLitStr {
-    fn as_ref(&self) -> &syn::LitStr {
-        &self.0
     }
 }
 #[derive(Clone, Copy)]
@@ -385,7 +373,9 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
     let ident = &input_ref.ident;
     let er_ident = quote::format_ident!("{ident}TryFromStringEr");
     let max = attrs.max;
-    let description = attrs.description.as_ref().value();
+    let description = ident_to_snake(SynIdentRef::from(ident))
+        .as_ref()
+        .replace('_', " ");
     Ok(ProcMacro2GeneratedTs(quote::quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum #er_ident {
@@ -483,23 +473,19 @@ fn gen_enum_from_str_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2G
 }
 #[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
 fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStringAttrs> {
-    let (max, description) = attrs
+    let max = attrs
         .as_ref()
         .iter()
         .filter(|attr| attr.path().is_ident("bounded_string"))
-        .try_fold((None, None), |(mut max, mut description), attr| {
+        .try_fold(None, |mut max, attr| {
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("max") {
                     max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                     return Ok(());
                 }
-                if meta.path.is_ident("description") {
-                    description = Some(SynLitStr::from(meta.value()?.parse::<syn::LitStr>()?));
-                    return Ok(());
-                }
                 Err(meta.error("unknown bounded_string option"))
             })?;
-            Ok::<(Option<SynExpr>, Option<SynLitStr>), syn::Error>((max, description))
+            Ok::<Option<SynExpr>, syn::Error>(max)
         })?;
     let parsed_max = max.ok_or_else(|| {
         syn::Error::new(
@@ -507,16 +493,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
             "BoundedString requires #[bounded_string(max = ...)]",
         )
     })?;
-    let parsed_description = description.ok_or_else(|| {
-        syn::Error::new(
-            proc_macro2::Span::call_site(),
-            "BoundedString requires #[bounded_string(description = \"...\")]",
-        )
-    })?;
-    Ok(BoundedStringAttrs {
-        description: parsed_description,
-        max: parsed_max,
-    })
+    Ok(BoundedStringAttrs { max: parsed_max })
 }
 #[allow(clippy::single_call_fn)] // attr parsing is intentionally isolated from code generation
 fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {

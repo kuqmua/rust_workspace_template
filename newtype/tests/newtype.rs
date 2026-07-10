@@ -39,7 +39,7 @@ mod tests {
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
-    #[bounded_string(max = STRING_VALUE_MAX_LEN, description = "string value")]
+    #[bounded_string(max = STRING_VALUE_MAX_LEN)]
     #[newtype(deref, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]

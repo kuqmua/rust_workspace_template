@@ -436,10 +436,10 @@ impl StringWrapperFromVisitor<'_> {
             .attrs
             .iter()
             .any(|attr| attr_has_bounded_string_derive(types::SynAttributeRef::from(attr)).get());
-        let has_len_bound = item_ref.attrs.iter().any(|attr| {
-            attr_has_bounded_string_len_bound(types::SynAttributeRef::from(attr)).get()
+        let has_max_bound = item_ref.attrs.iter().any(|attr| {
+            attr_has_bounded_string_max_bound(types::SynAttributeRef::from(attr)).get()
         });
-        if has_derive && has_len_bound {
+        if has_derive && has_max_bound {
             let ident = item_ref.ident.to_string();
             let _: bool = self.try_from_string_names.insert(ident.clone());
             let _: bool = self.try_from_string_len_checked_names.insert(ident);
@@ -2060,20 +2060,14 @@ fn attr_has_bounded_string_derive(attr: types::SynAttributeRef<'_>) -> types::An
             .is_ok_and(|list| list.tokens.to_string().contains("BoundedString")),
     )
 }
-#[allow(clippy::single_call_fn)] // bounded string wrappers satisfy length policy only when max and description are explicit
-fn attr_has_bounded_string_len_bound(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
+#[allow(clippy::single_call_fn)] // bounded string wrappers satisfy length policy only when max is explicit
+fn attr_has_bounded_string_max_bound(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
     if !attr_ref.path().is_ident("bounded_string") {
         return types::AnalyzerBool::default();
     }
-    let mut has_description = false;
     let mut has_max = false;
     drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident("description") {
-            drop(meta.value()?.parse::<syn::LitStr>()?);
-            has_description = true;
-            return Ok(());
-        }
         if meta.path.is_ident("max") {
             drop(meta.value()?.parse::<syn::Expr>()?);
             has_max = true;
@@ -2081,7 +2075,7 @@ fn attr_has_bounded_string_len_bound(attr: types::SynAttributeRef<'_>) -> types:
         }
         Err(meta.error("unknown bounded_string option"))
     }));
-    types::AnalyzerBool::from(has_description && has_max)
+    types::AnalyzerBool::from(has_max)
 }
 fn path_ends_with(
     path: types::SynPathRef<'_>,

@@ -6,7 +6,7 @@ struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
 struct QuotePanicId(&'static str);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
-#[bounded_string(max = QUOTED_LITERAL_MAX_LEN, description = "quoted literal")]
+#[bounded_string(max = QUOTED_LITERAL_MAX_LEN)]
 pub struct QuotedLiteral(String);
 #[derive(Debug, Clone)]
 pub struct ProcMacro2QuotedLiteralTs(proc_macro2::TokenStream);

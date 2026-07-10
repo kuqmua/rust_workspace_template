@@ -83,7 +83,7 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
         "
 const SOURCE_TEXT_MAX_LEN: usize = 1024;
 #[derive(newtype::BoundedString)]
-#[bounded_string(max = SOURCE_TEXT_MAX_LEN, description = \"source text\")]
+#[bounded_string(max = SOURCE_TEXT_MAX_LEN)]
 struct SourceText(String);
 ",
     )
