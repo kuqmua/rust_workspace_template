@@ -132,6 +132,28 @@ where
     start: T,
     end: T,
 }
+impl<'schema_lt, T> utoipa::ToSchema<'schema_lt> for Btwn<T>
+where
+    T: sqlx::Type<sqlx::Postgres>
+        + for<'encode_lt> sqlx::Encode<'encode_lt, sqlx::Postgres>
+        + utoipa::ToSchema<'schema_lt>,
+{
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "Btwn",
+            utoipa::openapi::ObjectBuilder::new()
+                .property("start", <T as utoipa::ToSchema>::schema().1)
+                .property("end", <T as utoipa::ToSchema>::schema().1)
+                .required("start")
+                .required("end")
+                .build()
+                .into(),
+        )
+    }
+}
 #[location::errors_with_loc]
 #[derive(
     Debug,
@@ -418,17 +440,25 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
         Ok(pg_crud_cmn::QpFragment::try_from(qp)?)
     }
 }
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    utoipa::ToSchema,
-    schemars::JsonSchema,
-    optml::Optml,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
 pub struct PgTypeNotEmptyUnqVec<T>(Vec<T>);
+impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
+    for PgTypeNotEmptyUnqVec<T>
+{
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "PgTypeNotEmptyUnqVec",
+            utoipa::openapi::ArrayBuilder::new()
+                .items(<T as utoipa::ToSchema>::schema().1)
+                .min_items(Some(1))
+                .build()
+                .into(),
+        )
+    }
+}
 #[allow(clippy::arbitrary_source_item_ordering)]
 impl<T> PgTypeNotEmptyUnqVec<T> {
     #[must_use]

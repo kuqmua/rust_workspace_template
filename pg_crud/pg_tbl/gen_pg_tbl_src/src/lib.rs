@@ -237,11 +237,36 @@ pub fn gen_pg_tbl(
         }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(naming_macros::AsRefStrEnumWithUnitFieldsToScStr, optml::Optml)]
+    #[derive(Clone, Copy, naming_macros::AsRefStrEnumWithUnitFieldsToScStr, optml::Optml)]
     enum OpHttpMethod {
         Post,
         Patch,
         Delete,
+    }
+    #[derive(Clone, Copy)]
+    struct OpDsc {
+        http_method: OpHttpMethod,
+        op: Op,
+        success_status_code: macros_helpers::status_code::StatusCode,
+    }
+    impl OpDsc {
+        const ALL: [Self; 8] = [
+            Self::from_op(Op::Cm),
+            Self::from_op(Op::Co),
+            Self::from_op(Op::Rm),
+            Self::from_op(Op::Ro),
+            Self::from_op(Op::Um),
+            Self::from_op(Op::Uo),
+            Self::from_op(Op::Dm),
+            Self::from_op(Op::Dlo),
+        ];
+        const fn from_op(op: Op) -> Self {
+            Self {
+                http_method: op.http_method(),
+                success_status_code: op.desirable_status_code(),
+                op,
+            }
+        }
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     enum RmOrDm {
@@ -1043,6 +1068,29 @@ pub fn gen_pg_tbl(
             .filter_map(|field_idx| fields.get(field_idx.get()))
     };
     let pk_ft = &pk_field.type0;
+    if fields_without_pk_idxs.is_empty() {
+        return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
+            syn::Error::new_spanned(
+                &**pk_ft,
+                "09a11adc: update operations require at least one non-primary-key field",
+            )
+            .into_compile_error(),
+        );
+    }
+    if let syn::Type::Path(type_path) = &**pk_ft
+        && let Some(last_segment) = type_path.path.segments.last()
+    {
+        let pk_type_name = last_segment.ident.to_string();
+        if pk_type_name.starts_with("Opt") || pk_type_name.contains("AsNl") {
+            return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
+                syn::Error::new_spanned(
+                    &**pk_ft,
+                    "d3b03ca2: primary key type must be non-nullable",
+                )
+                .into_compile_error(),
+            );
+        }
+    }
     //todo must remove this and use trait type instead
     let pk_ft_tt_ts = naming::prm::SelfTtUcc::from_type_last_segment(&pk_field.type0);
     let gen_as_pg_type_ts = |ts: &dyn quote::ToTokens| {
@@ -1059,6 +1107,46 @@ pub fn gen_pg_tbl(
         let as_pg_type_ts = gen_as_pg_type_path_ts(&ts);
         quote::quote! {#as_pg_type_ts #tokens}
     };
+    let gen_concrete_pg_type_role_ts =
+        |field_type: &macros_helpers::field_data::SynFieldType, role: &dyn quote::ToTokens| {
+            if let syn::Type::Path(type_path) = &**field_type {
+                let mut role_type_path = type_path.clone();
+                if let Some(last_segment) = role_type_path.path.segments.last_mut() {
+                    last_segment.ident = quote::format_ident!(
+                        "{}{}",
+                        last_segment.ident,
+                        role.to_token_stream().to_string()
+                    );
+                    quote::quote! {#role_type_path}
+                } else {
+                    quote::quote! {compile_error!("e396fe6d: field type path has no segments")}
+                }
+            } else {
+                quote::quote! {compile_error!("51519e44: field type must be a path")}
+            }
+        };
+    let gen_concrete_stdrt_nn_pg_type_role_ts =
+        |field_type: &macros_helpers::field_data::SynFieldType, role: &dyn quote::ToTokens| {
+            if let syn::Type::Path(type_path) = &**field_type {
+                let mut role_type_path = type_path.clone();
+                if let Some(last_segment) = role_type_path.path.segments.last_mut() {
+                    let ident_string = last_segment.ident.to_string();
+                    let without_opt = ident_string
+                        .strip_prefix("Opt")
+                        .map_or(ident_string.as_str(), |value| value);
+                    last_segment.ident = quote::format_ident!(
+                        "{}{}",
+                        without_opt.replace("AsNl", "AsNn"),
+                        role.to_token_stream().to_string()
+                    );
+                    quote::quote! {#role_type_path}
+                } else {
+                    quote::quote! {compile_error!("bf1ea32c: field type path has no segments")}
+                }
+            } else {
+                quote::quote! {compile_error!("f3f174d3: field type must be a path")}
+            }
+        };
     let gen_as_pg_type_test_cases_path_ts = |ts: &dyn quote::ToTokens| {
         quote::quote! {<#ts as #import_ts PgTypeTestCases>::}
     };
@@ -1616,7 +1704,9 @@ pub fn gen_pg_tbl(
                         &|el: &macros_helpers::field_data::SynField| {
                             let fi = &el.ident;
                             let el_syn_field_ty_as_pg_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
+                            let concrete_cr_ts = gen_concrete_pg_type_role_ts(&el.type0, &CrUcc);
                             quote::quote! {
+                                #[schema(value_type = #concrete_cr_ts)]
                                 pub #fi: #el_syn_field_ty_as_pg_type_cr_ts
                             }
                         },
@@ -1763,6 +1853,20 @@ pub fn gen_pg_tbl(
     let ident_wh_ucc = naming::prm::SelfWhManyUcc::from_tokens(&ident);
     let ident_wh_try_new_er_ucc = naming::prm::SelfWhManyTryNewErUcc::from_tokens(&ident);
     let ident_wh_ts = {
+        let fields_schema_dcl_ts = gen_fields_named_with_comma_ts(
+            &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
+                let fi = &el.ident;
+                let el_syn_field_ty_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&el.type0);
+                let concrete_wh_ts = gen_concrete_pg_type_role_ts(&el.type0, &WhUcc);
+                let field_type_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(
+                    &quote::quote! {#import_ts PgTypeWh<#el_syn_field_ty_as_pg_type_wh_ts>},
+                );
+                quote::quote! {
+                    #[schema(inline, value_type = Option<#import_ts PgTypeWh<#concrete_wh_ts>>, nullable = false)]
+                    #fi: #field_type_ts
+                }
+            },
+        );
         let fields_dcl_ts = gen_fields_named_with_comma_ts(
             &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
                 let fi = &el.ident;
@@ -1787,7 +1891,7 @@ pub fn gen_pg_tbl(
                     &proc_macro2::TokenStream::new(),
                     &ident_wh_ucc,
                     &proc_macro2::TokenStream::new(),
-                    &quote::quote! {{#fields_dcl_ts}},
+                    &quote::quote! {{#fields_schema_dcl_ts}},
                 );
             quote::quote! {
                 #AllowClippyArbitrarySrcItemOrdering
@@ -2078,9 +2182,10 @@ pub fn gen_pg_tbl(
                         let serde_ident_ts = gen_quotes::dq_ts(&el.ident);
                         let fi_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
                         let el_syn_field_ty_as_pg_type_sel_ts = gen_as_pg_type_sel_ts(&el.type0);
+                        let concrete_sel_ts = gen_concrete_pg_type_role_ts(&el.type0, &SelUcc);
                         quote::quote! {
                             #[serde(rename(serialize = #serde_ident_ts, deserialize = #serde_ident_ts))]
-                            #fi_ucc_ts(#el_syn_field_ty_as_pg_type_sel_ts)
+                            #fi_ucc_ts(#[schema(value_type = #concrete_sel_ts)] #el_syn_field_ty_as_pg_type_sel_ts)
                         }
                     });
                     quote::quote! {{#vrts}}
@@ -2145,8 +2250,10 @@ pub fn gen_pg_tbl(
                                 pg_crud_macros_cmn::gen_opt_type_dcl_ts(&gen_v_dcl_ts0(
                                     &gen_as_pg_type_rd_ts(&pk_ft),
                                 ));
+                            let concrete_pk_rd_ts = gen_concrete_pg_type_role_ts(pk_ft, &RdUcc);
                             quote::quote! {
                                 #FieldAttrSerdeSkipSerializingIfOptIsNone
+                                #[schema(inline, value_type = Option<#import_ts V<#concrete_pk_rd_ts>>, nullable = false)]
                                 pub #pk_fi: #opt_v_pk_ft_as_pg_type_rd_ts
                             }
                         };
@@ -2158,8 +2265,10 @@ pub fn gen_pg_tbl(
                                     pg_crud_macros_cmn::gen_opt_type_dcl_ts(&gen_v_dcl_ts0(
                                         &gen_as_pg_type_rd_ts(&el.type0),
                                     ));
+                                let concrete_rd_ts = gen_concrete_pg_type_role_ts(&el.type0, &RdUcc);
                                 quote::quote! {
                                     #FieldAttrSerdeSkipSerializingIfOptIsNone
+                                    #[schema(inline, value_type = Option<#import_ts V<#concrete_rd_ts>>, nullable = false)]
                                     #field_vis #fi: #opt_v_ft_as_pg_type_rd_ts
                                 }
                             },
@@ -2281,7 +2390,7 @@ pub fn gen_pg_tbl(
                         }
                         let gen_field_ts =
                             |fi: &dyn quote::ToTokens,
-                             ft: &dyn quote::ToTokens,
+                             ft: &macros_helpers::field_data::SynFieldType,
                              wrap_into_opt: &WrapIntoOpt| {
                                 let ft_ts = match &wrap_into_opt {
                                     WrapIntoOpt::False => gen_as_pg_type_rd_ids_ts(&ft),
@@ -2290,9 +2399,16 @@ pub fn gen_pg_tbl(
                                     )
                                     .into(),
                                 };
-                                quote::quote! {pub #fi: #ft_ts}
+                                let schema_attr_ts = match wrap_into_opt {
+                                    WrapIntoOpt::False => {
+                                        let concrete_rd_ids_ts = gen_concrete_pg_type_role_ts(ft, &RdIdsUcc);
+                                        quote::quote! {#[schema(value_type = #concrete_rd_ids_ts)]}
+                                    },
+                                    WrapIntoOpt::True => quote::quote! {#[schema(inline, value_type = Option<#import_ts NonPkPgTypeRdIds>, nullable = false)]},
+                                };
+                                quote::quote! {#schema_attr_ts pub #fi: #ft_ts}
                             };
-                        let pk_ts = gen_field_ts(&pk_fi, &pk_ft, &WrapIntoOpt::False);
+                        let pk_ts = gen_field_ts(&pk_fi, pk_ft, &WrapIntoOpt::False);
                         let ts = gen_fields_named_without_pk_with_comma_ts(
                             &|el: &macros_helpers::field_data::SynField| {
                                 gen_field_ts(&el.ident, &el.type0, &WrapIntoOpt::True)
@@ -2412,12 +2528,31 @@ pub fn gen_pg_tbl(
                 #fields_named_without_pk_ts
             }
         };
+        let fields_schema_dcl_ts = {
+            let fields_named_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
+                    let fi = &el.ident;
+                    let opt_v_ft_as_pg_type_upd_ts = gen_opt_v_ft_as_pg_type_upd_ts(&el.type0);
+                    let concrete_upd_ts = gen_concrete_pg_type_role_ts(&el.type0, &UpdUcc);
+                    quote::quote! {
+                        #[schema(inline, value_type = Option<#path_v_ts<#concrete_upd_ts>>, nullable = false)]
+                        #fi: #opt_v_ft_as_pg_type_upd_ts
+                    }
+                },
+            );
+            let concrete_pk_upd_ts = gen_concrete_pg_type_role_ts(pk_ft, &UpdUcc);
+            quote::quote! {
+                #[schema(value_type = #concrete_pk_upd_ts)]
+                #pk_fi: #pk_ft_upd_ts,
+                #fields_named_without_pk_ts
+            }
+        };
         let ident_upd_ts = {
             let ident_upd_struct_ts = serde_ser_utoipa_d_ts_builder.build_struct(
                 &proc_macro2::TokenStream::new(),
                 &ident_upd_ucc,
                 &proc_macro2::TokenStream::new(),
-                &quote::quote! {{#fields_dcl_ts}},
+                &quote::quote! {{#fields_schema_dcl_ts}},
             );
             quote::quote! {
                 #AllowClippyArbitrarySrcItemOrdering
@@ -2518,10 +2653,16 @@ pub fn gen_pg_tbl(
                                     &quote::quote! {#path_v_ts<#syn_type_as_pg_type_upd_for_query_ts>},
                                 )
                             };
-                            quote::quote! {#fi: #opt_v_ft_as_pg_type_upd_for_query_ts}
+                            let concrete_upd_for_query_ts = gen_concrete_pg_type_role_ts(&el.type0, &UpdForQueryUcc);
+                            quote::quote! {
+                                #[schema(inline, value_type = Option<#path_v_ts<#concrete_upd_for_query_ts>>, nullable = false)]
+                                #fi: #opt_v_ft_as_pg_type_upd_for_query_ts
+                            }
                         },
                     );
+                    let concrete_pk_upd_for_query_ts = gen_concrete_pg_type_role_ts(pk_ft, &UpdForQueryUcc);
                     quote::quote! {{
+                        #[schema(value_type = #concrete_pk_upd_for_query_ts)]
                         #pk_fi: #pk_ft_upd_for_query_ts,
                         #fields_named_without_pk_ts
                     }}
@@ -2807,7 +2948,7 @@ pub fn gen_pg_tbl(
     );
     let check_body_size_syn_vrt = new_syn_vrt(
         &CheckBodySizeUcc,
-        Some(macros_helpers::status_code::StatusCode::BadReq400),
+        Some(macros_helpers::status_code::StatusCode::PayloadTooLarge413),
         vec![(
             macros_helpers::loc_data::LocFieldAttr::EoLoc,
             &CheckBodySizeSc,
@@ -3277,6 +3418,38 @@ pub fn gen_pg_tbl(
             Op::Cm | Op::Um => &vec_ident_rd_ids_ts,
         }
     };
+    let pk_ft_orgn_ts = if let syn::Type::Path(type_path) = &**pk_ft {
+        let Some(source_last_segment) = type_path.path.segments.last() else {
+            return compile_error_ts(CompileErrorMsg(
+                "6d0adac1: cloned primary key type path has no segments",
+            ));
+        };
+        let orgn_ident = quote::format_ident!(
+            "{}",
+            naming::prm::SelfOrgnUcc::from_tokens(&source_last_segment.ident).to_string()
+        );
+        let mut orgn_type_path = type_path.clone();
+        let Some(last_segment) = orgn_type_path.path.segments.last_mut() else {
+            return compile_error_ts(CompileErrorMsg(
+                "e7408836: primary key type path has no segments",
+            ));
+        };
+        last_segment.ident = orgn_ident;
+        quote::quote! {#orgn_type_path}
+    } else {
+        return compile_error_ts(CompileErrorMsg("2ad2130d: primary key type must be a path"));
+    };
+    let pk_ft_upd_for_query_open_api_ts = gen_as_pg_type_upd_for_query_ts(&pk_ft);
+    fields.iter().fold((), |(), field| {
+        let roles: [&dyn quote::ToTokens; 6] =
+            [&CrUcc, &RdUcc, &SelUcc, &UpdUcc, &UpdForQueryUcc, &WhUcc];
+        roles.into_iter().fold((), |(), role| {
+            open_api_schema_types_ts.push(gen_concrete_pg_type_role_ts(&field.type0, role));
+        });
+        let orgn_role = quote::format_ident!("Orgn");
+        open_api_schema_types_ts.push(gen_concrete_pg_type_role_ts(&field.type0, &orgn_role));
+    });
+    open_api_schema_types_ts.push(gen_concrete_pg_type_role_ts(pk_ft, &RdIdsUcc));
     open_api_schema_types_ts.extend([
         quote::quote! {#ident_cr_ucc},
         quote::quote! {#ident_wh_ucc},
@@ -3288,25 +3461,32 @@ pub fn gen_pg_tbl(
         quote::quote! {#ident_upd_for_query_ucc},
         quote::quote! {#pk_ft_as_pg_type_rd_ucc},
         quote::quote! {#pk_ft_upd_ts},
+        quote::quote! {#pk_ft_orgn_ts},
+        quote::quote! {#pk_ft_upd_for_query_open_api_ts},
         quote::quote! {loc_lib::loc::Loc},
+        quote::quote! {loc_lib::loc::LocCol},
+        quote::quote! {loc_lib::loc::LocCommit},
+        quote::quote! {loc_lib::loc::LocFile},
+        quote::quote! {loc_lib::loc::LocLine},
+        quote::quote! {loc_lib::loc::Occr},
+        quote::quote! {loc_lib::loc::StdLocDuration},
         quote::quote! {pg_crud_cmn::NotEmptyUnqVec<#ident_sel_ucc>},
+        quote::quote! {pg_crud_cmn::Order},
+        quote::quote! {pg_crud_cmn::Oprtr},
         quote::quote! {pg_crud_cmn::OrderBy<#ident_sel_ucc>},
+        quote::quote! {pg_crud_cmn::PgCrudStringWrapperTryFromStringEr},
+        quote::quote! {pg_crud_cmn::PgnBase},
+        quote::quote! {pg_crud_cmn::PgnLimit},
+        quote::quote! {pg_crud_cmn::PgnOffset},
         quote::quote! {pg_crud_cmn::PgnStartsWithZero},
         quote::quote! {pg_crud_cmn::QpErWithSerde},
         quote::quote! {route_validators::check_body_size::BodySizeErWithSerde},
+        quote::quote! {route_validators::check_body_size::BodySizeLimitBytes},
     ]);
-    [
-        Op::Cm,
-        Op::Co,
-        Op::Rm,
-        Op::Ro,
-        Op::Um,
-        Op::Uo,
-        Op::Dm,
-        Op::Dlo,
-    ]
+    OpDsc::ALL
     .iter()
-    .fold((), |(), op| {
+    .fold((), |(), op_dsc| {
+        let op = &op_dsc.op;
         let op_h_sc_ts = op.self_h_sc_ts();
         let op_sc_ts = op.self_sc_ts();
         let op_sc_string = op.self_sc_str();
@@ -3318,12 +3498,12 @@ pub fn gen_pg_tbl(
         let open_api_path = format!("/{ident_sc_string}/{op_sc_string}");
         let open_api_path_dq_ts = gen_quotes::dq_ts(&open_api_path);
         let open_api_tag_dq_ts = gen_quotes::dq_ts(&ident_sc_string);
-        let open_api_method_ts = match op.http_method() {
+        let open_api_method_ts = match op_dsc.http_method {
             OpHttpMethod::Post => quote::quote! {post},
             OpHttpMethod::Patch => quote::quote! {patch},
             OpHttpMethod::Delete => quote::quote! {delete},
         };
-        let open_api_status_ts = if op.desirable_status_code()
+        let open_api_status_ts = if op_dsc.success_status_code
             == macros_helpers::status_code::StatusCode::Crd201
         {
             quote::quote! {201}
@@ -3345,7 +3525,9 @@ pub fn gen_pg_tbl(
                 request_body = #open_api_payload_type_ts,
                 responses(
                     (status = #open_api_status_ts, description = "Successful response", body = #open_api_response_type_ts),
-                    (status = "default", description = "Error response", body = #open_api_response_type_ts)
+                    (status = 400, description = "Invalid request", body = #open_api_response_type_ts),
+                    (status = 413, description = "Request body is too large", body = #open_api_response_type_ts),
+                    (status = 500, description = "Internal server error", body = #open_api_response_type_ts)
                 )
             )]
             fn #open_api_path_fn_ident() {}
@@ -3435,7 +3617,14 @@ pub fn gen_pg_tbl(
                     async move |
                         app_state_99328dfe: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_ts>,
                         req: axum::extract::Request
-                    | Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned).await
+                    | tracing::Instrument::instrument(
+                        Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned),
+                        tracing::info_span!(
+                            "pg_tbl.operation",
+                            table = %tbl_owned,
+                            operation = #op_sc_string,
+                        ),
+                    ).await
                 }))
                 .route(#slash_op_payload_example_dq_ts, axum::routing::get(async move||Self::#op_payload_example_sc()))
             }
@@ -3473,7 +3662,7 @@ pub fn gen_pg_tbl(
                 };
                 let future_ts = {
                     let op_http_method_sc_ts =
-                        naming_cmn::AsRefStrToScTs::case_or_panic(&op.http_method());
+                        naming_cmn::AsRefStrToScTs::case_or_panic(&op_dsc.http_method);
                     let commit_header_addition_ts = quote::quote! {
                         .header(
                             &"commit".to_owned(),
@@ -4788,6 +4977,46 @@ pub fn gen_pg_tbl(
         });
     });
     let ident_open_api_ucc = quote::format_ident!("{}OpenApi", ident);
+    let gen_role_schema_items_ts = |role: &dyn quote::ToTokens| {
+        fields
+            .iter()
+            .map(|field| {
+                let role_type_ts = gen_as_pg_type_tokens_ts(&field.type0, role);
+                quote::quote! {<#role_type_ts as utoipa::ToSchema>::schema().1}
+            })
+            .collect::<Vec<_>>()
+    };
+    let rd_schema_items_ts = gen_role_schema_items_ts(&RdUcc);
+    let sel_schema_items_ts = gen_role_schema_items_ts(&SelUcc);
+    let gen_filter_schema_items_ts = |filter_ucc: &dyn quote::ToTokens| {
+        fields
+            .iter()
+            .map(|field| {
+                let tt_type_ts = gen_as_pg_type_tokens_ts(&field.type0, &naming::TtUcc);
+                quote::quote! {<wh_flts::#filter_ucc<#tt_type_ts> as utoipa::ToSchema>::schema().1}
+            })
+            .collect::<Vec<_>>()
+    };
+    let gen_ordered_filter_schema_items_ts = |filter_ucc: &dyn quote::ToTokens| {
+        fields
+            .iter()
+            .map(|field| {
+                let tt_type_ts =
+                    gen_concrete_stdrt_nn_pg_type_role_ts(&field.type0, &naming::TtUcc);
+                quote::quote! {<wh_flts::#filter_ucc<#tt_type_ts> as utoipa::ToSchema>::schema().1}
+            })
+            .collect::<Vec<_>>()
+    };
+    let eq_filter_schema_items_ts = gen_filter_schema_items_ts(&quote::format_ident!("PgTypeWhEq"));
+    let btwn_filter_schema_items_ts =
+        gen_ordered_filter_schema_items_ts(&quote::format_ident!("PgTypeWhBtwn"));
+    let greater_than_filter_schema_items_ts =
+        gen_ordered_filter_schema_items_ts(&quote::format_ident!("PgTypeWhGreaterThan"));
+    let in_filter_schema_items_ts = gen_filter_schema_items_ts(&quote::format_ident!("PgTypeWhIn"));
+    let in_value_schema_items_ts = fields.iter().map(|field| {
+        let tt_type_ts = gen_as_pg_type_tokens_ts(&field.type0, &naming::TtUcc);
+        quote::quote! {<wh_flts::PgTypeNotEmptyUnqVec<#tt_type_ts> as utoipa::ToSchema>::schema().1}
+    }).collect::<Vec<_>>();
     let ident_open_api_ts = quote::quote! {
         #[allow(clippy::needless_for_each)] // generated utoipa 4 registration uses iterator callbacks internally
         #[derive(utoipa::OpenApi)]
@@ -4816,6 +5045,15 @@ pub fn gen_pg_tbl(
                     }
                 }
                 let mut open_api = <Self as utoipa::OpenApi>::openapi();
+                if let Some(components) = open_api.components.as_mut() {
+                    components.schemas.insert("pg_crud_cmn.PgType.Rd".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#rd_schema_items_ts))*.build()).into());
+                    components.schemas.insert("pg_crud_cmn.PgType.Sel".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#sel_schema_items_ts))*.build()).into());
+                    components.schemas.insert("wh_flts.PgTypeWhEq".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#eq_filter_schema_items_ts))*.build()).into());
+                    components.schemas.insert("wh_flts.PgTypeWhBtwn".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#btwn_filter_schema_items_ts))*.build()).into());
+                    components.schemas.insert("wh_flts.PgTypeWhGreaterThan".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#greater_than_filter_schema_items_ts))*.build()).into());
+                    components.schemas.insert("wh_flts.PgTypeWhIn".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#in_filter_schema_items_ts))*.build()).into());
+                    components.schemas.insert("PgTypeNotEmptyUnqVec".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#in_value_schema_items_ts))*.build()).into());
+                }
                 let mut refs = std::collections::BTreeSet::new();
                 if let Ok(value) = serde_json::to_value(&open_api) {
                     collect_refs(&value, &mut refs);
@@ -4824,10 +5062,9 @@ pub fn gen_pg_tbl(
                     refs.into_iter().for_each(|name| {
                         if !components.schemas.contains_key(&name) {
                             let suffix = name.rsplit('.').next().unwrap_or(name.as_str());
-                            let schema = components.schemas.get(suffix).cloned().unwrap_or_else(|| {
-                                utoipa::openapi::ObjectBuilder::new().build().into()
-                            });
-                            components.schemas.insert(name, schema);
+                            if let Some(schema) = components.schemas.get(suffix).cloned() {
+                                components.schemas.insert(name, schema);
+                            }
                         }
                     });
                 }

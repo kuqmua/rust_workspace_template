@@ -511,7 +511,7 @@ where
                 el.mb_generic();
             let type_ts =
                 opt_type_ts.map_or_else(proc_macro2::TokenStream::new, |v| quote::quote! {<#v>});
-            quote::quote! {#el_ucc(wh_flts::#prefix_wh_self_ucc #type_ts)}
+            quote::quote! {#el_ucc(#[schema(inline)] wh_flts::#prefix_wh_self_ucc #type_ts)}
         });
         quote::quote! {
             #attrs_ts

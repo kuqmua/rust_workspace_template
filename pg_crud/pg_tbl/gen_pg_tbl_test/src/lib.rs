@@ -15,6 +15,8 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }
+tracing = { workspace = true }
+wh_flts = { workspace = true }
 git_info = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }

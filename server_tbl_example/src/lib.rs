@@ -78,10 +78,20 @@ mod tests {
         ]
         .into_iter()
         .for_each(|(operation, method)| {
-            assert!(
-                doc.pointer(&format!("/paths/~1tbl_example~1{operation}/{method}"))
-                    .is_some()
-            );
+            let operation_doc = doc
+                .pointer(&format!("/paths/~1tbl_example~1{operation}/{method}"))
+                .expect("8ba5f1e7");
+            assert_eq!(operation_doc["operationId"], operation);
+            assert!(operation_doc["responses"].get("400").is_some());
+            assert!(operation_doc["responses"].get("413").is_some());
+            assert!(operation_doc["responses"].get("500").is_some());
+            assert!(operation_doc["responses"].get("default").is_none());
+            let success_status = if operation == "cm" || operation == "co" {
+                "201"
+            } else {
+                "200"
+            };
+            assert!(operation_doc["responses"].get(success_status).is_some());
         });
         let schemas = doc["components"]["schemas"].as_object().expect("95ec6823");
         assert!(!schemas.is_empty());
@@ -95,5 +105,42 @@ mod tests {
             missing_refs.is_empty(),
             "missing component schemas: {missing_refs:?}"
         );
+        assert!(
+            schemas["TblExampleCr"]["properties"]
+                .get("pk_col")
+                .is_none()
+        );
+        ["TblExampleRd", "TblExampleUpd"]
+            .into_iter()
+            .for_each(|schema_name| {
+                let nullable_projection_or_patch = &schemas[schema_name]["properties"]["col_1"];
+                assert_ne!(nullable_projection_or_patch["nullable"], true);
+                assert!(
+                    nullable_projection_or_patch.pointer("/properties/v").is_some()
+                        || nullable_projection_or_patch
+                            .pointer("/allOf/0/properties/v")
+                            .is_some(),
+                    "projection or patch schema is not an inline value object: {nullable_projection_or_patch}"
+                );
+                assert!(!schemas[schema_name]["required"]
+                    .as_array()
+                    .is_some_and(|required| required.iter().any(|field| field == "col_1")));
+            });
+        [
+            "pg_crud_cmn.PgType.Rd",
+            "pg_crud_cmn.PgType.Sel",
+            "wh_flts.PgTypeWhEq",
+            "wh_flts.PgTypeWhBtwn",
+            "wh_flts.PgTypeWhGreaterThan",
+            "wh_flts.PgTypeWhIn",
+        ]
+        .into_iter()
+        .for_each(|schema_name| {
+            assert!(
+                schemas[schema_name]["oneOf"]
+                    .as_array()
+                    .is_some_and(|items| !items.is_empty())
+            );
+        });
     }
 }

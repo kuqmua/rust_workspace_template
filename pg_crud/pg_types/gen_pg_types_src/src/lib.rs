@@ -3380,7 +3380,7 @@ pub fn gen_pg_types(
         let ident_cr_ucc = naming::prm::SelfCrUcc::from_tokens(&ident);
         let ident_cr_ts = {
             let ident_cr_ts = match &can_be_pk {
-                CanBePk::False => cmn_d_ts_builder.build_struct(
+                CanBePk::False => cmn_d_ts_builder.d_utoipa_to_schema().build_struct(
                         &proc_macro2::TokenStream::new(),
                         &ident_cr_ucc,
                         &proc_macro2::TokenStream::new(),
@@ -3611,7 +3611,7 @@ pub fn gen_pg_types(
         };
         let ident_rd_ids_ucc = naming::prm::SelfRdIdsUcc::from_tokens(&ident);
         let ident_rd_ids_ts = if matches!(&is_nn_stdrt_can_be_pk, IsNnStdrtCanBePk::True) {
-            let ident_rd_ids_ts = cmn_d_ts_builder.build_struct(
+            let ident_rd_ids_ts = cmn_d_ts_builder.d_utoipa_to_schema().build_struct(
                     &proc_macro2::TokenStream::new(),
                     &ident_rd_ids_ucc,
                     &proc_macro2::TokenStream::new(),

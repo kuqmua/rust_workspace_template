@@ -10,6 +10,7 @@ const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
     PartialOrd,
     serde::Serialize,
     serde::Deserialize,
+    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
     newtype::Newtype,
@@ -430,7 +431,15 @@ impl std::fmt::Debug for SqlxPostgresQuery<'_> {
 #[newtype(display)]
 pub struct SqlxPostgresQueryBindEr(String);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, thiserror::Error,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    thiserror::Error,
+    utoipa::ToSchema,
 )]
 pub enum PgCrudStringWrapperTryFromStringEr {
     #[error("string wrapper length {len} exceeds maximum {max}")]
@@ -711,19 +720,27 @@ impl From<PgCrudStringWrapperTryFromStringEr> for QpEr {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    utoipa::ToSchema,
-    schemars::JsonSchema,
-    optml::Optml,
-)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
 pub struct PgTypeWh<T> {
     v: NotEmptyUnqVec<T>,
     oprtr: Oprtr,
+}
+impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> for PgTypeWh<T> {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "PgTypeWh",
+            utoipa::openapi::ObjectBuilder::new()
+                .property("v", <NotEmptyUnqVec<T> as utoipa::ToSchema>::schema().1)
+                .property("oprtr", <Oprtr as utoipa::ToSchema>::schema().1)
+                .required("v")
+                .required("oprtr")
+                .build()
+                .into(),
+        )
+    }
 }
 impl<T: PartialEq + Clone> PgTypeWh<T> {
     #[must_use]
@@ -975,6 +992,7 @@ impl<T: std::fmt::Debug + PartialEq + Clone + AllEnumVrtsArrDfltSomeOneEl> DfltS
     serde::Deserialize,
     PartialEq,
     Eq,
+    utoipa::ToSchema,
     strum_macros::EnumString,
     optml::Optml,
 )]
@@ -1051,10 +1069,28 @@ impl Order {
             .unwrap_or_else(OrderUccStr::from)
     }
 }
-#[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, optml::Optml)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, optml::Optml)]
 pub struct OrderBy<ColGeneric> {
     pub col: ColGeneric,
     pub order: Option<Order>,
+}
+impl<'schema_lt, ColGeneric: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
+    for OrderBy<ColGeneric>
+{
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "OrderBy",
+            utoipa::openapi::ObjectBuilder::new()
+                .property("col", <ColGeneric as utoipa::ToSchema>::schema().1)
+                .property("order", <Order as utoipa::ToSchema>::schema().1)
+                .required("col")
+                .build()
+                .into(),
+        )
+    }
 }
 #[derive(
     Debug,
@@ -1269,12 +1305,26 @@ impl DfltSomeOneElMaxPageSize for PgnStartsWithZero {
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
 )]
 pub struct V<T> {
     pub v: T,
+}
+impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> for V<T> {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "V",
+            utoipa::openapi::ObjectBuilder::new()
+                .property("v", <T as utoipa::ToSchema>::schema().1)
+                .required("v")
+                .build()
+                .into(),
+        )
+    }
 }
 //todo ExactSizeIterator now is not a solution. er[E0658]: use of unstable library feature `exact_size_is_empty`. mb rewrite it later
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
@@ -1300,13 +1350,29 @@ pub enum NotEmptyUnqVecTryNewEr<T> {
     PartialEq,
     Eq,
     serde::Serialize,
-    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
     newtype::Newtype,
 )]
 #[newtype(into_vec)]
 pub struct NotEmptyUnqVec<T>(Vec<T>);
+impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
+    for NotEmptyUnqVec<T>
+{
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "NotEmptyUnqVec",
+            utoipa::openapi::ArrayBuilder::new()
+                .items(<T as utoipa::ToSchema>::schema().1)
+                .min_items(Some(1))
+                .build()
+                .into(),
+        )
+    }
+}
 impl<T> NotEmptyUnqVec<T> {
     #[must_use]
     pub const fn as_slice(&self) -> &[T] {
@@ -1573,6 +1639,21 @@ where
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
 pub struct NonPkPgTypeRdIds(V<Option<()>>);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPkPgTypeRdIds {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "NonPkPgTypeRdIds",
+            utoipa::openapi::ObjectBuilder::new()
+                .property("v", utoipa::openapi::ObjectBuilder::new().nullable(true))
+                .required("v")
+                .build()
+                .into(),
+        )
+    }
+}
 impl From<V<Option<()>>> for NonPkPgTypeRdIds {
     fn from(value: V<Option<()>>) -> Self {
         Self(value)

@@ -57,7 +57,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
     let t_ts = quote::quote! {T};
     let t_ann_generic_ts = quote::quote! {<#t_ts>};
     let proc_macro2_ts_new = proc_macro2::TokenStream::new();
-    let pub_v_t_ts = quote::quote! {pub #v_sc: T};
+    let pub_v_t_ts = quote::quote! {#[schema(inline)] pub #v_sc: T};
     let v_dflt_some_one_el_ts = quote::quote! {
         #v_sc: #pg_crud_cmn_dflt_some_one_el_call
     };
@@ -245,9 +245,10 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             + Clone
             + sqlx::Type<sqlx::Postgres>
             + for<'__> sqlx::Encode<'__, sqlx::Postgres>
+            + for<'schema_lt> utoipa::ToSchema<'schema_lt>
         }),
     };
-    let pub_v_btwn_t_ts = quote::quote! {pub #v_sc: Btwn<T>};
+    let pub_v_btwn_t_ts = quote::quote! {#[schema(inline)] pub #v_sc: Btwn<T>};
     let gen_match_qb_ts = |field_ts: &dyn quote::ToTokens| {
         pg_crud_macros_cmn::ts_helpers::gen_match_ok_assign_or_return_err_ts(
             &quote::quote! {#field_ts.qb(#query_sc)},
@@ -346,7 +347,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                 is_qb_mut,
                 qb_ts,
             ) = {
-                let gen_sqlx_type_pg_encode_ts = || quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres>};
+                let gen_sqlx_type_pg_encode_ts = || quote::quote! {sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> + for<'schema_lt> utoipa::ToSchema<'schema_lt>};
                 let gen_generic_true_type_encode = || Generic::True {
                     mb_extra_traits_ts: Some(gen_sqlx_type_pg_encode_ts()),
                 };

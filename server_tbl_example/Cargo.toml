@@ -19,6 +19,8 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 sqlx = { workspace = true }
 utoipa = { workspace = true }
+tracing = { workspace = true }
+wh_flts = { workspace = true }
 git_info = { workspace = true }
 gen_pg_tbl = { workspace = true }
 futures = { workspace = true }

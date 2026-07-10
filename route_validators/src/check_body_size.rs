@@ -2,7 +2,15 @@
 #[newtype(from)]
 pub struct AxumBody(axum::body::Body);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::Newtype,
 )]
 #[newtype(from, to_err_string)]
 pub struct BodySizeLimitBytes(usize);

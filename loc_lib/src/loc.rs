@@ -73,13 +73,45 @@ pub struct LocCommit(String);
     Copy,
     serde::Serialize,
     serde::Deserialize,
-    utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
     newtype::Newtype,
 )]
 #[newtype(from)]
 pub struct StdLocDuration(std::time::Duration);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocDuration {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            "StdLocDuration",
+            utoipa::openapi::ObjectBuilder::new()
+                .property(
+                    "secs",
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::SchemaType::Integer)
+                        .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                            utoipa::openapi::KnownFormat::Int64,
+                        ))),
+                )
+                .property(
+                    "nanos",
+                    utoipa::openapi::ObjectBuilder::new()
+                        .schema_type(utoipa::openapi::SchemaType::Integer)
+                        .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
+                            utoipa::openapi::KnownFormat::Int32,
+                        )))
+                        .minimum(Some(0.0))
+                        .maximum(Some(999_999_999.0)),
+                )
+                .required("secs")
+                .required("nanos")
+                .build()
+                .into(),
+        )
+    }
+}
 #[derive(Debug, Clone, Copy)]
 struct LocFileRef<'file_lt>(pub &'file_lt str);
 struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
