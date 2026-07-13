@@ -41,14 +41,6 @@ pub enum AdminAuthSvcStateBuildEr {
     #[error("administrator token issuer is invalid")]
     Issuer,
 }
-pub use server_admin_contract::{
-    AdminApiErBody, AdminApiErCode, AdminAuditDetails, AdminAuditTimestamp, AdminAuditView,
-    AdminCreateRoleReq, AdminCreateRoleRes, AdminCreateUserReq, AdminCreateUserRes,
-    AdminPermissionSummary, AdminRoleSummary, AdminSetRolePermissionsReq, AdminSetUserBanReq,
-    AdminSetUserPasswordReq, AdminSetUserRolesReq, AdminSettingText, AdminSettingsView,
-    AdminSignInReq, AdminSignInRes, AdminUpdateRoleReq, AdminUpdateSettingsReq, AdminUpdateUserReq,
-    AdminUserSummary,
-};
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
 ) -> super::AdminPassword {
@@ -100,8 +92,8 @@ fn authenticated_admin_contract(
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
     action: Option<super::AdminAuditAction>,
-    created_after: Option<AdminAuditTimestamp>,
-    created_before: Option<AdminAuditTimestamp>,
+    created_after: Option<server_admin_contract::AdminAuditTimestamp>,
+    created_before: Option<server_admin_contract::AdminAuditTimestamp>,
     resource: Option<super::AdminAuditResource>,
     user_id: Option<super::AdminUserId>,
 }
@@ -134,7 +126,7 @@ where
     }
 }
 #[derive(Debug)]
-pub struct AdminSignInJson(AdminSignInReq);
+pub struct AdminSignInJson(server_admin_contract::AdminSignInReq);
 #[derive(Debug)]
 pub struct AxumAdminJson<Value>(Value);
 #[derive(Debug)]
@@ -174,7 +166,7 @@ where
 {
     type Rejection = axum::extract::rejection::JsonRejection;
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
-        axum::Json::<AdminSignInReq>::from_request(req, state)
+        axum::Json::<server_admin_contract::AdminSignInReq>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
     }
@@ -393,28 +385,37 @@ impl axum::response::IntoResponse for AdminApiEr {
         let (status, code) = match self {
             Self::Authentication => (
                 http::StatusCode::UNAUTHORIZED,
-                AdminApiErCode::AuthenticationFailed,
+                server_admin_contract::AdminApiErCode::AuthenticationFailed,
             ),
             Self::Authorization => (
                 http::StatusCode::FORBIDDEN,
-                AdminApiErCode::AuthorizationFailed,
+                server_admin_contract::AdminApiErCode::AuthorizationFailed,
             ),
-            Self::Conflict => (http::StatusCode::CONFLICT, AdminApiErCode::Conflict),
-            Self::Csrf => (http::StatusCode::FORBIDDEN, AdminApiErCode::CsrfFailed),
+            Self::Conflict => (
+                http::StatusCode::CONFLICT,
+                server_admin_contract::AdminApiErCode::Conflict,
+            ),
+            Self::Csrf => (
+                http::StatusCode::FORBIDDEN,
+                server_admin_contract::AdminApiErCode::CsrfFailed,
+            ),
             Self::RateLimited => (
                 http::StatusCode::TOO_MANY_REQUESTS,
-                AdminApiErCode::RateLimited,
+                server_admin_contract::AdminApiErCode::RateLimited,
             ),
             Self::Validation => (
                 http::StatusCode::UNPROCESSABLE_ENTITY,
-                AdminApiErCode::ValidationFailed,
+                server_admin_contract::AdminApiErCode::ValidationFailed,
             ),
             Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => (
                 http::StatusCode::INTERNAL_SERVER_ERROR,
-                AdminApiErCode::InternalError,
+                server_admin_contract::AdminApiErCode::InternalError,
             ),
         };
-        axum::response::IntoResponse::into_response((status, axum::Json(AdminApiErBody::new(code))))
+        axum::response::IntoResponse::into_response((
+            status,
+            axum::Json(server_admin_contract::AdminApiErBody::new(code)),
+        ))
     }
 }
 impl axum::response::IntoResponse for AxumAdminResponse {
@@ -649,7 +650,7 @@ fn append_cleared_session_cookies(
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/auth/sign-in", request_body = AdminSignInReq, responses((status = 200, body = AdminSignInRes), (status = 401, body = AdminApiErBody), (status = 429, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), tag = "admin_auth")]
+#[utoipa::path(post, path = "/auth/sign-in", request_body = server_admin_contract::AdminSignInReq, responses((status = 200, body = server_admin_contract::AdminSignInRes), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 429, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), tag = "admin_auth")]
 async fn sign_in(
     auth: AdminAuthReq,
     peer: AdminPeerAddr,
@@ -787,13 +788,13 @@ async fn sign_in(
         load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id()).await?;
     let authenticated_contract = authenticated_admin_contract(&authenticated)?;
     let mut response = AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-        AdminSignInRes::new(authenticated_contract),
+        server_admin_contract::AdminSignInRes::new(authenticated_contract),
     )));
     append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/auth/me", responses((status = 200, body = server_admin_contract::AuthenticatedAdmin), (status = 401, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
+#[utoipa::path(get, path = "/auth/me", responses((status = 200, body = server_admin_contract::AuthenticatedAdmin), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
 async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     authenticate(
         auth.state.as_ref(),
@@ -808,7 +809,7 @@ async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/auth/refresh", responses((status = 200, body = AdminSignInRes), (status = 401, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), tag = "admin_auth")]
+#[utoipa::path(post, path = "/auth/refresh", responses((status = 200, body = server_admin_contract::AdminSignInRes), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), tag = "admin_auth")]
 async fn refresh(auth: AdminAuthReq, peer: AdminPeerAddr) -> Result<AxumAdminResponse, AdminApiEr> {
     let state = auth.state;
     let headers = auth.headers;
@@ -889,13 +890,13 @@ async fn refresh(auth: AdminAuthReq, peer: AdminPeerAddr) -> Result<AxumAdminRes
         load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id()).await?;
     let authenticated_contract = authenticated_admin_contract(&authenticated)?;
     let mut response = AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-        AdminSignInRes::new(authenticated_contract),
+        server_admin_contract::AdminSignInRes::new(authenticated_contract),
     )));
     append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/auth/sign-out", responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
+#[utoipa::path(post, path = "/auth/sign-out", responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
 async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let state = auth.state;
     let headers = auth.headers;
@@ -978,7 +979,7 @@ pub struct AdminSessionView {
     id: super::AdminSessionId,
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/auth/sessions", responses((status = 200, body = [AdminSessionView]), (status = 401, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
+#[utoipa::path(get, path = "/auth/sessions", responses((status = 200, body = [AdminSessionView]), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
 async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let authenticated = authenticate(
         auth.state.as_ref(),
@@ -1010,7 +1011,7 @@ async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(delete, path = "/auth/sessions/{session_id}", responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
+#[utoipa::path(delete, path = "/auth/sessions/{session_id}", responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
 async fn revoke_session(
     auth: AdminAuthReq,
     session: AdminSessionPath,
@@ -1061,7 +1062,7 @@ async fn revoke_session(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(delete, path = "/auth/sessions", responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
+#[utoipa::path(delete, path = "/auth/sessions", responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
 async fn revoke_all_sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let authenticated = authenticate(
         auth.state.as_ref(),
@@ -1129,10 +1130,10 @@ async fn authorize_custom(
     .await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/users", request_body = AdminCreateUserReq, responses((status = 201, body = AdminCreateUserRes), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(post, path = "/users", request_body = server_admin_contract::AdminCreateUserReq, responses((status = 201, body = server_admin_contract::AdminCreateUserRes), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn create_user(
     auth: AdminAuthReq,
-    request: AxumAdminJson<AdminCreateUserReq>,
+    request: AxumAdminJson<server_admin_contract::AdminCreateUserReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersCreate).await?;
     let (contract_display_name, contract_login, contract_password) = request.0.into_parts();
@@ -1191,18 +1192,18 @@ async fn create_user(
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
-            axum::Json(AdminCreateUserRes::new(
+            axum::Json(server_admin_contract::AdminCreateUserRes::new(
                 server_admin_contract::AdminUserId::from(user_id),
             )),
         )),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(patch, path = "/users/{user_id}", request_body = AdminUpdateUserReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(patch, path = "/users/{user_id}", request_body = server_admin_contract::AdminUpdateUserReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn update_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
-    request: AxumAdminJson<AdminUpdateUserReq>,
+    request: AxumAdminJson<server_admin_contract::AdminUpdateUserReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
     let (contract_display_name, contract_login) = request.0.into_parts();
@@ -1264,11 +1265,11 @@ async fn update_user(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/users/{user_id}/password", request_body = AdminSetUserPasswordReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(post, path = "/users/{user_id}/password", request_body = server_admin_contract::AdminSetUserPasswordReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn set_user_password(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
-    request: AxumAdminJson<AdminSetUserPasswordReq>,
+    request: AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
     let password = admin_password_from_contract(request.0.into_password());
@@ -1330,11 +1331,11 @@ async fn set_user_password(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/users/{user_id}/ban", request_body = AdminSetUserBanReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(post, path = "/users/{user_id}/ban", request_body = server_admin_contract::AdminSetUserBanReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn set_user_ban(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
-    request: AxumAdminJson<AdminSetUserBanReq>,
+    request: AxumAdminJson<server_admin_contract::AdminSetUserBanReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
     let is_banned = bool::from(request.0.is_banned());
@@ -1417,7 +1418,7 @@ async fn set_user_ban(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(delete, path = "/users/{user_id}", responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(delete, path = "/users/{user_id}", responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn delete_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
@@ -1481,10 +1482,10 @@ async fn delete_user(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(post, path = "/roles", request_body = AdminCreateRoleReq, responses((status = 201, body = AdminCreateRoleRes), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
+#[utoipa::path(post, path = "/roles", request_body = server_admin_contract::AdminCreateRoleReq, responses((status = 201, body = server_admin_contract::AdminCreateRoleRes), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
 async fn create_role(
     auth: AdminAuthReq,
-    request: AxumAdminJson<AdminCreateRoleReq>,
+    request: AxumAdminJson<server_admin_contract::AdminCreateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolesCreate).await?;
     let name = super::AdminRoleName::try_from(request.0.into_name().into_inner())
@@ -1530,18 +1531,18 @@ async fn create_role(
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
-            axum::Json(AdminCreateRoleRes::new(
+            axum::Json(server_admin_contract::AdminCreateRoleRes::new(
                 server_admin_contract::AdminRoleId::from(role_id),
             )),
         )),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(patch, path = "/roles/{role_id}", request_body = AdminUpdateRoleReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
+#[utoipa::path(patch, path = "/roles/{role_id}", request_body = server_admin_contract::AdminUpdateRoleReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
 async fn update_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
-    request: AxumAdminJson<AdminUpdateRoleReq>,
+    request: AxumAdminJson<server_admin_contract::AdminUpdateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolesUpdate).await?;
     let name = super::AdminRoleName::try_from(request.0.into_name().into_inner())
@@ -1592,7 +1593,7 @@ async fn update_role(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(delete, path = "/roles/{role_id}", responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
+#[utoipa::path(delete, path = "/roles/{role_id}", responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
 async fn delete_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
@@ -1634,11 +1635,11 @@ async fn delete_role(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(put, path = "/roles/{role_id}/permissions", request_body = AdminSetRolePermissionsReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
+#[utoipa::path(put, path = "/roles/{role_id}/permissions", request_body = server_admin_contract::AdminSetRolePermissionsReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_roles")]
 async fn set_role_permissions(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
-    request: AxumAdminJson<AdminSetRolePermissionsReq>,
+    request: AxumAdminJson<server_admin_contract::AdminSetRolePermissionsReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolePermissionsUpdate).await?;
     let contract_permission_ids = request.0.into_ids();
@@ -1713,11 +1714,11 @@ async fn set_role_permissions(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(put, path = "/users/{user_id}/roles", request_body = AdminSetUserRolesReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
+#[utoipa::path(put, path = "/users/{user_id}/roles", request_body = server_admin_contract::AdminSetUserRolesReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_users")]
 async fn set_user_roles(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
-    request: AxumAdminJson<AdminSetUserRolesReq>,
+    request: AxumAdminJson<server_admin_contract::AdminSetUserRolesReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UserRolesUpdate).await?;
     let contract_role_ids = request.0.into_ids();
@@ -1835,7 +1836,7 @@ async fn set_user_roles(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/audit-log", params(AdminAuditQuery), responses((status = 200, body = [AdminAuditView]), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_audit")]
+#[utoipa::path(get, path = "/audit-log", params(AdminAuditQuery), responses((status = 200, body = [server_admin_contract::AdminAuditView]), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_audit")]
 async fn audit_log(
     auth: AdminAuthReq,
     query: AxumAdminQuery<AdminAuditQuery>,
@@ -1886,11 +1887,13 @@ async fn audit_log(
     let views = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminAuditView::new(
+            Ok(server_admin_contract::AdminAuditView::new(
                 server_admin_contract::AdminText::try_from(row.3)
                     .map_err(|_er| AdminApiEr::Validation)?,
-                AdminAuditTimestamp::try_from(row.8).map_err(|_er| AdminApiEr::Validation)?,
-                row.7.map(AdminAuditDetails::from),
+                server_admin_contract::AdminAuditTimestamp::try_from(row.8)
+                    .map_err(|_er| AdminApiEr::Validation)?,
+                row.7
+                    .map(server_admin_contract::SerdeJsonAdminAuditDetails::from),
                 server_admin_contract::AdminAuditLogId::from(row.0),
                 server_admin_contract::AdminText::try_from(row.4)
                     .map_err(|_er| AdminApiEr::Validation)?,
@@ -1906,16 +1909,16 @@ async fn audit_log(
                     .map_err(|_er| AdminApiEr::Validation)?,
             ))
         })
-        .collect::<Result<Vec<AdminAuditView>, AdminApiEr>>()?;
+        .collect::<Result<Vec<server_admin_contract::AdminAuditView>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(views)),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(patch, path = "/system-settings", request_body = AdminUpdateSettingsReq, responses((status = 204), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 409, body = AdminApiErBody), (status = 422, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_settings")]
+#[utoipa::path(patch, path = "/system-settings", request_body = server_admin_contract::AdminUpdateSettingsReq, responses((status = 204), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 409, body = server_admin_contract::AdminApiErBody), (status = 422, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_settings")]
 async fn update_settings(
     auth: AdminAuthReq,
-    request: AxumAdminJson<AdminUpdateSettingsReq>,
+    request: AxumAdminJson<server_admin_contract::AdminUpdateSettingsReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::SystemSettingsUpdate).await?;
     let (
@@ -1992,7 +1995,7 @@ async fn update_settings(
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/users", responses((status = 200, body = [AdminUserSummary]), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_users")]
+#[utoipa::path(get, path = "/users", responses((status = 200, body = [server_admin_contract::AdminUserSummary]), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_users")]
 async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let _actor = authorize_generated_request(
         auth.state.as_ref(),
@@ -2010,7 +2013,7 @@ async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr>
     let users = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminUserSummary::new(
+            Ok(server_admin_contract::AdminUserSummary::new(
                 server_admin_contract::AdminDisplayName::try_from(row.2)
                     .map_err(|_er| AdminApiEr::Validation)?,
                 server_admin_contract::AdminUserId::from(row.0),
@@ -2019,13 +2022,13 @@ async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr>
                     .map_err(|_er| AdminApiEr::Validation)?,
             ))
         })
-        .collect::<Result<Vec<AdminUserSummary>, AdminApiEr>>()?;
+        .collect::<Result<Vec<server_admin_contract::AdminUserSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(users)),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/roles", responses((status = 200, body = [AdminRoleSummary]), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_roles")]
+#[utoipa::path(get, path = "/roles", responses((status = 200, body = [server_admin_contract::AdminRoleSummary]), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_roles")]
 async fn list_roles(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let _actor = authorize_generated_request(
         auth.state.as_ref(),
@@ -2043,20 +2046,20 @@ async fn list_roles(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr>
     let roles = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminRoleSummary::new(
+            Ok(server_admin_contract::AdminRoleSummary::new(
                 server_admin_contract::AdminRoleId::from(row.0),
                 server_admin_contract::AdminBool::from(row.2),
                 server_admin_contract::AdminRoleName::try_from(row.1)
                     .map_err(|_er| AdminApiEr::Validation)?,
             ))
         })
-        .collect::<Result<Vec<AdminRoleSummary>, AdminApiEr>>()?;
+        .collect::<Result<Vec<server_admin_contract::AdminRoleSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(roles)),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/permissions", responses((status = 200, body = [AdminPermissionSummary]), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_roles")]
+#[utoipa::path(get, path = "/permissions", responses((status = 200, body = [server_admin_contract::AdminPermissionSummary]), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_roles")]
 async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let _actor = authorize_generated_request(
         auth.state.as_ref(),
@@ -2073,19 +2076,19 @@ async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, Admin
     let permissions = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminPermissionSummary::new(
+            Ok(server_admin_contract::AdminPermissionSummary::new(
                 server_admin_contract::AdminPermissionId::from(row.0),
                 server_admin_contract::AdminPermissionValue::try_from(row.1)
                     .map_err(|_er| AdminApiEr::Validation)?,
             ))
         })
-        .collect::<Result<Vec<AdminPermissionSummary>, AdminApiEr>>()?;
+        .collect::<Result<Vec<server_admin_contract::AdminPermissionSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(permissions)),
     ))
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/system-settings", responses((status = 200, body = AdminSettingsView), (status = 401, body = AdminApiErBody), (status = 403, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_settings")]
+#[utoipa::path(get, path = "/system-settings", responses((status = 200, body = server_admin_contract::AdminSettingsView), (status = 401, body = server_admin_contract::AdminApiErBody), (status = 403, body = server_admin_contract::AdminApiErBody), (status = 500, body = server_admin_contract::AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_settings")]
 async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     let _actor = authorize_generated_request(
         auth.state.as_ref(),
@@ -2112,31 +2115,33 @@ async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     .fetch_one(auth.state.as_ref().pool.as_ref())
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
-    let view = AdminSettingsView::new(
-        AdminSettingText::try_from(row.4).map_err(|_er| AdminApiEr::Validation)?,
+    let view = server_admin_contract::AdminSettingsView::new(
+        server_admin_contract::AdminSettingText::try_from(row.4)
+            .map_err(|_er| AdminApiEr::Validation)?,
         row.2
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
         row.6
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
         row.5
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
         row.3
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        AdminSettingText::try_from(row.0).map_err(|_er| AdminApiEr::Validation)?,
+        server_admin_contract::AdminSettingText::try_from(row.0)
+            .map_err(|_er| AdminApiEr::Validation)?,
         row.7
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
         row.1
-            .map(AdminSettingText::try_from)
+            .map(server_admin_contract::AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
     );
@@ -2159,7 +2164,7 @@ impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
 #[derive(utoipa::OpenApi)]
 #[openapi(
     paths(sign_in, refresh, sign_out, me, sessions, revoke_session, revoke_all_sessions, list_users, create_user, update_user, set_user_password, set_user_ban, delete_user, set_user_roles, list_roles, create_role, update_role, delete_role, set_role_permissions, list_permissions, audit_log, settings, update_settings),
-    components(schemas(AdminSignInReq, AdminSignInRes, server_admin_contract::AuthenticatedAdmin, AdminSessionView, AdminApiErBody, AdminApiErCode, AdminCreateUserReq, AdminCreateUserRes, AdminUpdateUserReq, AdminSetUserPasswordReq, AdminSetUserBanReq, AdminSetUserRolesReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminUpdateRoleReq, AdminSetRolePermissionsReq, AdminAuditView, AdminAuditTimestamp, AdminAuditDetails, AdminUpdateSettingsReq, AdminSettingText, AdminUserSummary, AdminRoleSummary, AdminPermissionSummary, AdminSettingsView, super::AdminPassword, super::AdminLogin, super::AdminDisplayName, super::AdminRoleName, super::AdminUserId, super::AdminRoleId, super::AdminPermissionId, super::AdminPermission, super::AdminSessionId, super::AdminAuditLogId, super::AdminAuditAction, super::AdminAuditResource)),
+    components(schemas(server_admin_contract::AdminSignInReq, server_admin_contract::AdminSignInRes, server_admin_contract::AuthenticatedAdmin, AdminSessionView, server_admin_contract::AdminApiErBody, server_admin_contract::AdminApiErCode, server_admin_contract::AdminCreateUserReq, server_admin_contract::AdminCreateUserRes, server_admin_contract::AdminUpdateUserReq, server_admin_contract::AdminSetUserPasswordReq, server_admin_contract::AdminSetUserBanReq, server_admin_contract::AdminSetUserRolesReq, server_admin_contract::AdminCreateRoleReq, server_admin_contract::AdminCreateRoleRes, server_admin_contract::AdminUpdateRoleReq, server_admin_contract::AdminSetRolePermissionsReq, server_admin_contract::AdminAuditView, server_admin_contract::AdminAuditTimestamp, server_admin_contract::SerdeJsonAdminAuditDetails, server_admin_contract::AdminUpdateSettingsReq, server_admin_contract::AdminSettingText, server_admin_contract::AdminUserSummary, server_admin_contract::AdminRoleSummary, server_admin_contract::AdminPermissionSummary, server_admin_contract::AdminSettingsView, super::AdminPassword, super::AdminLogin, super::AdminDisplayName, super::AdminRoleName, super::AdminUserId, super::AdminRoleId, super::AdminPermissionId, super::AdminPermission, super::AdminSessionId, super::AdminAuditLogId, super::AdminAuditAction, super::AdminAuditResource)),
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"))
 )]
 struct AdminAuthOpenApi;

@@ -36,8 +36,8 @@ pub struct AdminDisplayName(String);
 pub struct AdminRoleName(String);
 #[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
 #[bounded_string(
-    min = 1usize,
     max = 1024usize,
+    min = 1usize,
     chars,
     serde,
     utoipa,
@@ -74,7 +74,7 @@ pub struct AdminAuditTimestamp(String);
     Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Newtype,
 )]
 #[newtype(from_inner)]
-pub struct AdminAuditDetails(serde_json::Value);
+pub struct SerdeJsonAdminAuditDetails(serde_json::Value);
 #[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
 #[bounded_string(
     max = 8192,
@@ -460,7 +460,7 @@ impl AdminPermissionSummary {
 pub struct AdminAuditView {
     action: AdminText,
     created_at: AdminAuditTimestamp,
-    details: Option<AdminAuditDetails>,
+    details: Option<SerdeJsonAdminAuditDetails>,
     id: AdminAuditLogId,
     resource: AdminText,
     resource_id: Option<AdminText>,
@@ -473,7 +473,7 @@ impl AdminAuditView {
     pub const fn new(
         action: AdminText,
         created_at: AdminAuditTimestamp,
-        details: Option<AdminAuditDetails>,
+        details: Option<SerdeJsonAdminAuditDetails>,
         id: AdminAuditLogId,
         resource: AdminText,
         resource_id: Option<AdminText>,
@@ -704,11 +704,27 @@ pub enum AdminRoute {
     Users,
     Version,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AdminRoutePath(Box<str>);
-impl From<String> for AdminRoutePath {
-    fn from(value: String) -> Self {
-        Self(value.into_boxed_str())
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AdminRoutePathEr {
+    TooLong,
+}
+impl std::fmt::Display for AdminRoutePathEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong => f.write_str("administrator route path is too long"),
+        }
+    }
+}
+impl TryFrom<String> for AdminRoutePath {
+    type Error = AdminRoutePathEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > 8192usize {
+            Err(AdminRoutePathEr::TooLong)
+        } else {
+            Ok(Self(value.into_boxed_str()))
+        }
     }
 }
 impl AsRef<str> for AdminRoutePath {
@@ -1016,9 +1032,9 @@ impl AdminRoute {
             | Self::Users) => value.contract().path().as_ref().to_owned(),
         };
         if matches!(self, Self::Version) {
-            AdminRoutePath::from(suffix)
+            AdminRoutePath::try_from(suffix).unwrap_or_default()
         } else {
-            AdminRoutePath::from(format!("{ADMIN_API_PREFIX}{suffix}"))
+            AdminRoutePath::try_from(format!("{ADMIN_API_PREFIX}{suffix}")).unwrap_or_default()
         }
     }
 }

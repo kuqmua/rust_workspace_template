@@ -5043,23 +5043,23 @@ pub fn gen_pg_types(
                     #frontend_bounds_ts;
             }
         };
-        let frontend_time_json_ts = |time_value_ts: &dyn quote::ToTokens, minute_name: &str, second_name: &str, microsecond_name: &str| {
+        let frontend_time_json_ts = |time_value_ts: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| {
             quote::quote! {{
                 let mut parts = #time_value_ts.split(':');
-                let hour = parts.next().ok_or_else(|| frontend_contract::FormValueEr::from("time hour is missing".to_owned()))?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
-                let minute = parts.next().ok_or_else(|| frontend_contract::FormValueEr::from("time minute is missing".to_owned()))?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                let hour = parts.next().ok_or_else(|| frontend_contract::FormValueEr::try_from("time hour is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?;
+                let minute = parts.next().ok_or_else(|| frontend_contract::FormValueEr::try_from("time minute is missing".to_owned()).unwrap_or_default())?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?;
                 let second_and_fraction = parts.next().unwrap_or("0");
                 if parts.next().is_some() {
-                    return Err(frontend_contract::FormValueEr::from("time contains too many components".to_owned()));
+                    return Err(frontend_contract::FormValueEr::try_from("time contains too many components".to_owned()).unwrap_or_default());
                 }
                 let (second_text, fraction) = second_and_fraction.split_once('.').map_or((second_and_fraction, ""), |parts| parts);
-                let second = second_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                let second = second_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?;
                 if fraction.len() > 6usize || !fraction.bytes().all(|byte| byte.is_ascii_digit()) {
-                    return Err(frontend_contract::FormValueEr::from("time fraction must contain at most six digits".to_owned()));
+                    return Err(frontend_contract::FormValueEr::try_from("time fraction must contain at most six digits".to_owned()).unwrap_or_default());
                 }
                 let mut microsecond_text = fraction.to_owned();
                 microsecond_text.extend(std::iter::repeat_n('0', 6usize.saturating_sub(microsecond_text.len())));
-                let microsecond = microsecond_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                let microsecond = microsecond_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?;
                 serde_json::json!({"hour": hour, #minute_name: minute, #second_name: second, #microsecond_name: microsecond})
             }}
         };
@@ -5075,12 +5075,12 @@ pub fn gen_pg_types(
                 };
                 let time_json_ts = frontend_time_json_ts(&quote::quote! {time}, "min", "sec", "micro");
                 quote::quote! {{
-                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueEr::from("timestamp must contain `T` between date and time".to_owned()))?;
+                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueEr::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
                     let time = #time_json_ts;
                     serde_json::json!({#date_name: date, "time": time})
                 }}
             },
-            WireKind::Bool | WireKind::Bytes | WireKind::Float32 | WireKind::Float64 | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?},
+            WireKind::Bool | WireKind::Bytes | WireKind::Float32 | WireKind::Float64 | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?},
         };
         let frontend_empty_value_ts = match &is_nl {
             pg_crud_macros_cmn::IsNl::False => quote::quote! {#frontend_parse_json_value_ts},
@@ -5092,9 +5092,9 @@ pub fn gen_pg_types(
                 }
             },
         };
-        let frontend_format_time_ts = |value_ts: &dyn quote::ToTokens, minute_name: &str, second_name: &str, microsecond_name: &str| quote::quote! {{
-            let object = #value_ts.as_object().ok_or_else(|| frontend_contract::FormValueEr::from("time wire value must be an object".to_owned()))?;
-            let field = |name: &str| object.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| frontend_contract::FormValueEr::from(format!("time wire field `{name}` is missing")));
+        let frontend_format_time_ts = |value_ts: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| quote::quote! {{
+            let object = #value_ts.as_object().ok_or_else(|| frontend_contract::FormValueEr::try_from("time wire value must be an object".to_owned()).unwrap_or_default())?;
+            let field = |name| object.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| frontend_contract::FormValueEr::try_from(format!("time wire field `{name}` is missing")).unwrap_or_default());
             let hour = field("hour")?;
             let minute = field(#minute_name)?;
             let second = field(#second_name)?;
@@ -5117,9 +5117,9 @@ pub fn gen_pg_types(
                 };
                 let time_ts = frontend_format_time_ts(&quote::quote! {time}, "min", "sec", "micro");
                 quote::quote! {{
-                    let object = value.as_object().ok_or_else(|| frontend_contract::FormValueEr::from("timestamp wire value must be an object".to_owned()))?;
-                    let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueEr::from("timestamp date wire field is missing".to_owned()))?;
-                    let time = object.get("time").ok_or_else(|| frontend_contract::FormValueEr::from("timestamp time wire field is missing".to_owned()))?;
+                    let object = value.as_object().ok_or_else(|| frontend_contract::FormValueEr::try_from("timestamp wire value must be an object".to_owned()).unwrap_or_default())?;
+                    let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueEr::try_from("timestamp date wire field is missing".to_owned()).unwrap_or_default())?;
+                    let time = object.get("time").ok_or_else(|| frontend_contract::FormValueEr::try_from("timestamp time wire field is missing".to_owned()).unwrap_or_default())?;
                     let time = #time_ts;
                     format!("{date}T{time}")
                 }}
@@ -5135,12 +5135,12 @@ pub fn gen_pg_types(
         let impl_frontend_form_value_contract_ts = quote::quote! {
             impl frontend_contract::FormValueContract for #ident_orgn_ucc {
                 fn format_form_value(&self) -> Result<frontend_contract::FormValue, frontend_contract::FormValueEr> {
-                    let value = serde_json::to_value(self).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
-                    Ok(frontend_contract::FormValue::from(#frontend_format_value_ts))
+                    let value = serde_json::to_value(self).map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())?;
+                    frontend_contract::FormValue::try_from(#frontend_format_value_ts).map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())
                 }
                 fn parse_form_value(value: frontend_contract::FormValueRef<'_>) -> Result<Self, frontend_contract::FormValueEr> {
                     let json_value = #frontend_empty_value_ts;
-                    serde_json::from_value(json_value).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))
+                    serde_json::from_value(json_value).map_err(|error| frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())
                 }
             }
         };

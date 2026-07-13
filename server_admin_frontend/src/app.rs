@@ -69,10 +69,11 @@ impl frontend_contract::Transport for GlooTransport {
         >,
     > {
         Box::pin(async move {
-            let body = String::from_utf8(request.body().as_ref().to_vec())
-                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
+            let body = String::from_utf8(request.body().as_ref().to_vec()).map_err(|error| {
+                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+            })?;
             let route = request.route();
-            let mut builder = gloo_net::http::RequestBuilder::new(request.path())
+            let mut builder = gloo_net::http::RequestBuilder::new(request.path().as_ref())
                 .method(http_method(route.method()))
                 .credentials(web_sys::RequestCredentials::Include)
                 .header("Content-Type", "application/json")
@@ -87,18 +88,21 @@ impl frontend_contract::Transport for GlooTransport {
             } else {
                 builder.body(body)
             }
-            .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
-            let response = outbound
-                .send()
-                .await
-                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
-            let status = response.status();
+            .map_err(|error| {
+                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+            })?;
+            let response = outbound.send().await.map_err(|error| {
+                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+            })?;
+            let status = frontend_contract::TransportStatus::from(response.status());
             response
                 .binary()
                 .await
                 .map(frontend_contract::TransportBody::from)
                 .map(|body| frontend_contract::TransportResponse::new(body, status))
-                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))
+                .map_err(|error| {
+                    frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+                })
         })
     }
 }
@@ -145,7 +149,8 @@ impl AdminApiClient {
         let path = route.path();
         let request = frontend_contract::TransportRequest::new(
             frontend_contract::TransportBody::from(body),
-            path.as_ref().to_owned(),
+            frontend_contract::TransportPath::try_from(path.as_ref().to_owned())
+                .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?,
             route.contract(),
         );
         let response = frontend_contract::Transport::send(&self.transport, request)
@@ -209,19 +214,19 @@ fn http_method(method: frontend_contract::HttpMethod) -> gloo_net::http::Method 
         frontend_contract::HttpMethod::Put => gloo_net::http::Method::PUT,
     }
 }
-const fn success_status(status: frontend_contract::SuccessStatus) -> u16 {
+fn success_status(status: frontend_contract::SuccessStatus) -> frontend_contract::TransportStatus {
     match status {
-        frontend_contract::SuccessStatus::Code200 => 200,
-        frontend_contract::SuccessStatus::Code201 => 201,
-        frontend_contract::SuccessStatus::Code204 => 204,
+        frontend_contract::SuccessStatus::Code200 => frontend_contract::TransportStatus::from(200),
+        frontend_contract::SuccessStatus::Code201 => frontend_contract::TransportStatus::from(201),
+        frontend_contract::SuccessStatus::Code204 => frontend_contract::TransportStatus::from(204),
     }
 }
-fn response_er(status: u16, body: &[u8]) -> ApiEr {
+fn response_er(status: frontend_contract::TransportStatus, body: &[u8]) -> ApiEr {
     let detail = serde_json::from_slice::<server_admin_contract::AdminApiErBody>(body).map_or_else(
         |_| Text::from("request failed".to_owned()),
         |body| Text::from(body.code().to_string()),
     );
-    ApiEr::Status(status, detail)
+    ApiEr::Status(u16::from(status), detail)
 }
 fn browser_window() -> Option<web_sys::Window> {
     web_sys::window()

@@ -138,12 +138,13 @@ test-utils = []",
                 .as_ref(),
             ""
         );
-        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidInitByClientOrgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("00000000-0000-4000-8000-000000000000")).expect("804f13b2");
+        let uuid_value = "7b93d4a1-6f28-4c70-9a51-2e8d3f640c12";
+        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidInitByClientOrgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(uuid_value)).expect("804f13b2");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&uuid)
                 .expect("a17bcb42")
                 .as_ref(),
-            "00000000-0000-4000-8000-000000000000"
+            uuid_value
         );
         let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("2026-07-13T12:30:00")).expect("ad1de295");
         assert_eq!(

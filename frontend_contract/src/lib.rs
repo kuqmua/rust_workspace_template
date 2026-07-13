@@ -48,6 +48,11 @@ pub enum Nullability {
     Nullable,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CapabilitySupport {
+    Supported,
+    Unsupported,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputStep {
     Any,
     Decimal,
@@ -137,15 +142,23 @@ impl TypeContract {
         self.step
     }
     #[must_use]
-    pub const fn supports_filtering(self) -> bool {
-        !matches!(
+    pub const fn supports_filtering(self) -> CapabilitySupport {
+        if matches!(
             self.format,
             ValueFormat::Bytes | ValueFormat::Interval | ValueFormat::Range
-        )
+        ) {
+            CapabilitySupport::Unsupported
+        } else {
+            CapabilitySupport::Supported
+        }
     }
     #[must_use]
-    pub const fn supports_sorting(self) -> bool {
-        !matches!(self.format, ValueFormat::Bytes | ValueFormat::Range)
+    pub const fn supports_sorting(self) -> CapabilitySupport {
+        if matches!(self.format, ValueFormat::Bytes | ValueFormat::Range) {
+            CapabilitySupport::Unsupported
+        } else {
+            CapabilitySupport::Supported
+        }
     }
     #[must_use]
     pub const fn with_example(mut self, value: ValueExample) -> Self {
@@ -171,13 +184,9 @@ impl TypeContract {
 pub trait HasTypeContract {
     const TYPE_CONTRACT: TypeContract;
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 1_048_576usize)]
 pub struct FormValue(String);
-impl From<String> for FormValue {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 impl AsRef<str> for FormValue {
     fn as_ref(&self) -> &str {
         self.0.as_str()
@@ -195,13 +204,9 @@ impl AsRef<str> for FormValueRef<'_> {
         self.0
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 65536usize)]
 pub struct FormValueEr(String);
-impl From<String> for FormValueEr {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for FormValueEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -563,12 +568,12 @@ impl AsRef<[u8]> for TransportBody {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: TransportBody,
-    path: String,
+    path: TransportPath,
     route: RouteContract,
 }
 impl TransportRequest {
     #[must_use]
-    pub const fn new(body: TransportBody, path: String, route: RouteContract) -> Self {
+    pub const fn new(body: TransportBody, path: TransportPath, route: RouteContract) -> Self {
         Self { body, path, route }
     }
     #[must_use]
@@ -576,22 +581,47 @@ impl TransportRequest {
         &self.body
     }
     #[must_use]
-    pub const fn path(&self) -> &str {
-        self.path.as_str()
+    pub const fn path(&self) -> &TransportPath {
+        &self.path
     }
     #[must_use]
     pub const fn route(&self) -> RouteContract {
         self.route
     }
 }
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 8192usize)]
+pub struct TransportPath(String);
+impl AsRef<str> for TransportPath {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TransportStatus(u16);
+impl From<u16> for TransportStatus {
+    fn from(value: u16) -> Self {
+        Self(value)
+    }
+}
+impl From<TransportStatus> for u16 {
+    fn from(value: TransportStatus) -> Self {
+        value.0
+    }
+}
+impl std::fmt::Display for TransportStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: TransportBody,
-    status: u16,
+    status: TransportStatus,
 }
 impl TransportResponse {
     #[must_use]
-    pub const fn new(body: TransportBody, status: u16) -> Self {
+    pub const fn new(body: TransportBody, status: TransportStatus) -> Self {
         Self { body, status }
     }
     #[must_use]
@@ -599,17 +629,13 @@ impl TransportResponse {
         &self.body
     }
     #[must_use]
-    pub const fn status(&self) -> u16 {
+    pub const fn status(&self) -> TransportStatus {
         self.status
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 65536usize)]
 pub struct TransportEr(String);
-impl From<String> for TransportEr {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for TransportEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -623,9 +649,12 @@ pub trait Transport {
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ClientEr {
-    Decode(String),
-    Encode(String),
-    Status { actual: u16, expected: u16 },
+    Decode(FormValueEr),
+    Encode(FormValueEr),
+    Status {
+        actual: TransportStatus,
+        expected: TransportStatus,
+    },
     Transport(TransportEr),
     UnexpectedResponse,
 }

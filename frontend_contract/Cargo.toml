@@ -10,5 +10,8 @@ keywords = ["frontend", "contract"]
 categories = ["web-programming"]
 edition = "2024"
 
+[dependencies]
+newtype = { workspace = true }
+
 [lints]
 workspace = true

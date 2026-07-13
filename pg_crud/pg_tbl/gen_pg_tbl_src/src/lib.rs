@@ -1405,7 +1405,7 @@ pub fn gen_pg_tbl(
             let sortable_assertion = frontend.sortable.then(|| {
                 quote::quote! {
                     assert!(
-                        <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_sorting(),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_sorting(), frontend_contract::CapabilitySupport::Supported),
                         "c5882cc4: frontend sorting is unsupported for this field type",
                     );
                 }
@@ -1413,7 +1413,7 @@ pub fn gen_pg_tbl(
             let filterable_assertion = frontend.filterable.then(|| {
                 quote::quote! {
                     assert!(
-                        <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_filtering(),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_filtering(), frontend_contract::CapabilitySupport::Supported),
                         "141942af: frontend filtering is unsupported for this field type",
                     );
                 }
@@ -3982,9 +3982,9 @@ pub fn gen_pg_tbl(
             let expected_status = if op_dsc.success_status_code
                 == macros_helpers::status_code::StatusCode::Crd201
             {
-                quote::quote! {201u16}
+                quote::quote! {frontend_contract::TransportStatus::from(201u16)}
             } else {
-                quote::quote! {200u16}
+                quote::quote! {frontend_contract::TransportStatus::from(200u16)}
             };
             frontend_api_client_methods_ts.push(quote::quote! {
                 pub async fn #op_client_method_sc_ts(
@@ -3997,10 +3997,11 @@ pub fn gen_pg_tbl(
                         .ok_or(frontend_contract::ClientEr::UnexpectedResponse)?;
                     let body = serde_json::to_vec(&#PrmsSc.#PayloadSc)
                         .map(frontend_contract::TransportBody::from)
-                        .map_err(|error| frontend_contract::ClientEr::Encode(error.to_string()))?;
+                        .map_err(|error| frontend_contract::ClientEr::Encode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default()))?;
                     let request = frontend_contract::TransportRequest::new(
                         body,
-                        route.path().to_owned(),
+                        frontend_contract::TransportPath::try_from(route.path().to_owned())
+                            .map_err(|error| frontend_contract::ClientEr::Encode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default()))?,
                         route.frontend_contract(),
                     );
                     let response = self
@@ -4017,7 +4018,7 @@ pub fn gen_pg_tbl(
                     let decoded = serde_json::from_slice::<#open_api_response_type_ts>(
                         response.body().as_ref(),
                     )
-                    .map_err(|error| frontend_contract::ClientEr::Decode(error.to_string()))?;
+                    .map_err(|error| frontend_contract::ClientEr::Decode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default()))?;
                     match decoded {
                         #open_api_response_type_ts::#DesirableUcc(value) => Ok(value),
                         _ => Err(frontend_contract::ClientEr::UnexpectedResponse),

@@ -65,7 +65,7 @@ mod tests {
             Box::pin(async {
                 Ok(frontend_contract::TransportResponse::new(
                     frontend_contract::TransportBody::from(Vec::new()),
-                    200u16,
+                    frontend_contract::TransportStatus::from(200u16),
                 ))
             })
         }
@@ -305,23 +305,25 @@ mod tests {
     #[test]
     fn generated_frontend_forms_parse_typed_payloads_and_report_field() {
         let create = super::TblExampleCr::try_from(super::TblExampleCreateForm {
-            col_0: frontend_contract::FormValue::from("12".to_owned()),
-            col_1: frontend_contract::FormValue::from(String::new()),
-            col_2: frontend_contract::FormValue::from("34".to_owned()),
+            col_0: frontend_contract::FormValue::try_from("12".to_owned()).expect("8f6b2f31"),
+            col_1: frontend_contract::FormValue::try_from(String::new()).expect("274d2e0c"),
+            col_2: frontend_contract::FormValue::try_from("34".to_owned()).expect("98c9cd5e"),
         });
         let _create = create.expect("af5a7ec4");
         let error = super::TblExampleCr::try_from(super::TblExampleCreateForm {
-            col_0: frontend_contract::FormValue::from("not-a-number".to_owned()),
-            col_1: frontend_contract::FormValue::from(String::new()),
-            col_2: frontend_contract::FormValue::from("34".to_owned()),
+            col_0: frontend_contract::FormValue::try_from("not-a-number".to_owned())
+                .expect("a6413c9d"),
+            col_1: frontend_contract::FormValue::try_from(String::new()).expect("1970fd5b"),
+            col_2: frontend_contract::FormValue::try_from("34".to_owned()).expect("fd5e40c9"),
         })
         .expect_err("c563853a");
         assert_eq!(error.field().as_ref(), "col_0");
         let update = super::TblExampleUpd::try_from(super::TblExampleUpdateForm {
-            pk_col: frontend_contract::FormValue::from(
+            pk_col: frontend_contract::FormValue::try_from(
                 "550e8400-e29b-41d4-a716-446655440000".to_owned(),
-            ),
-            col_0: Some(frontend_contract::FormValue::from("13".to_owned())),
+            )
+            .expect("5b8439c1"),
+            col_0: Some(frontend_contract::FormValue::try_from("13".to_owned()).expect("4bd3fc27")),
             col_1: None,
             col_2: None,
         });
