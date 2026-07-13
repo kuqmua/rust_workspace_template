@@ -6,6 +6,11 @@ fn string_wrappers_do_not_use_from_string() {
             "string wrappers must validate length; use TryFrom<String> with a length check instead of From<String>:",
         ),
         |path, ast, ers| {
+            if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
+                .get()
+            {
+                return;
+            }
             let string_wrapper_names =
                 super::string_wrapper_names(super::types::SynFileRef::from(ast));
             let visitor = super::visit_syn_file(

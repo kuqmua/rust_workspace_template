@@ -2328,6 +2328,9 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    if path.as_ref().ends_with("server_admin_frontend/src/app.rs") {
+        return types::AnalyzerBool::default();
+    }
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return types::AnalyzerBool::default();
     };

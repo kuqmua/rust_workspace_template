@@ -11,10 +11,19 @@ license = "license"
 keywords = ["admin", "frontend"]
 categories = ["web-programming"]
 
-[dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 axum = { workspace = true }
 newtype = { workspace = true }
 tower-http = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+leptos = { workspace = true }
+gloo-net = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
 
 [lints]
 workspace = true

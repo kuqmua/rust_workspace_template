@@ -117,6 +117,13 @@ cargo clippy
 RUSTFLAGS="-Awarnings" cargo clippy --all-targets --all-features
 ```
 
+The administrator frontend is a Leptos CSR application built by Trunk. Build its assets before starting the server:
+
+```bash
+cd server_admin_frontend
+trunk build --release
+```
+
 ### Development
 
 ```bash

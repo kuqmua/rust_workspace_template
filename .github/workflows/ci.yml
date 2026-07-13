@@ -29,6 +29,19 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - run: cargo fmt --all -- --check
+  admin-frontend:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-unknown
+      - run: cargo install trunk --version 0.21.14 --locked
+      - run: trunk build --release
+        working-directory: server_admin_frontend
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
