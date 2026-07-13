@@ -3,6 +3,7 @@
 #[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
 #[gen_pg_tbl::gen_pg_tbl_config{{
     "cm_max_items": 2,
+    "permission_prefix": "tbl_example",
     "tests_write_into_file": "False",
     "cmn_write_into_file": "False",
     "whole_write_into_file": "False",
@@ -86,7 +87,20 @@ mod tests {
             assert_eq!(operation_doc["operationId"], operation);
             assert!(operation_doc["responses"].get("400").is_some());
             assert!(operation_doc["responses"].get("413").is_some());
+            assert!(operation_doc["responses"].get("401").is_some());
+            assert!(operation_doc["responses"].get("403").is_some());
+            assert!(operation_doc["responses"].get("409").is_some());
+            assert!(operation_doc["responses"].get("422").is_some());
+            assert!(operation_doc["responses"].get("429").is_some());
             assert!(operation_doc["responses"].get("500").is_some());
+            assert_eq!(
+                operation_doc["security"][0]["admin_cookie"],
+                serde_json::json!([])
+            );
+            assert_eq!(
+                operation_doc["security"][1]["admin_csrf"],
+                serde_json::json!([])
+            );
             assert!(operation_doc["responses"].get("default").is_none());
             let success_status = if operation == "cm" || operation == "co" {
                 "201"
@@ -96,6 +110,14 @@ mod tests {
             assert!(operation_doc["responses"].get(success_status).is_some());
         });
         let schemas = doc["components"]["schemas"].as_object().expect("95ec6823");
+        assert_eq!(
+            doc["components"]["securitySchemes"]["admin_cookie"]["in"],
+            "cookie"
+        );
+        assert_eq!(
+            doc["components"]["securitySchemes"]["admin_csrf"]["in"],
+            "header"
+        );
         assert!(!schemas.is_empty());
         let mut refs = std::collections::BTreeSet::new();
         collect_component_refs(&doc, &mut refs);
@@ -144,5 +166,30 @@ mod tests {
                     .is_some_and(|items| !items.is_empty())
             );
         });
+    }
+    #[test]
+    fn generated_route_permissions_follow_operation_semantics() {
+        super::TblExampleRouteContract::ALL
+            .into_iter()
+            .for_each(|contract| {
+                let expected = match contract.operation() {
+                    super::TblExampleOperation::Cm | super::TblExampleOperation::Co => {
+                        "tbl_example:create"
+                    }
+                    super::TblExampleOperation::Rm | super::TblExampleOperation::Ro => {
+                        "tbl_example:read"
+                    }
+                    super::TblExampleOperation::Um | super::TblExampleOperation::Uo => {
+                        "tbl_example:update"
+                    }
+                    super::TblExampleOperation::Dlo | super::TblExampleOperation::Dm => {
+                        "tbl_example:delete"
+                    }
+                };
+                assert_eq!(
+                    contract.authentication(),
+                    super::TblExampleAuthenticationRequirement::Permission(expected)
+                );
+            });
     }
 }

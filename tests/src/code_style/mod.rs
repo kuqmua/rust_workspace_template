@@ -1878,7 +1878,7 @@ fn is_allowed_english_check_file(path: types::StdPathRef<'_>) -> types::Analyzer
 fn is_allowed_english_check_ext(ext: Option<types::SourceTextRef<'_>>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
         ext.map(types::SourceTextRef::get),
-        Some("rs" | "toml" | "md" | "txt" | "yml" | "yaml" | "json")
+        Some("rs" | "toml" | "txt" | "yml" | "yaml" | "json")
     ))
 }
 fn path_has_segment(

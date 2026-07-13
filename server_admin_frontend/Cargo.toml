@@ -1,0 +1,20 @@
+[package]
+authors = ["sergey shmakov <tyfaproject@gmail.com>"]
+edition = "2024"
+name = "server_admin_frontend"
+version = "0.1.0"
+publish = false
+description = "Reusable administrative SPA router"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["admin", "frontend"]
+categories = ["web-programming"]
+
+[dependencies]
+axum = { workspace = true }
+newtype = { workspace = true }
+tower-http = { workspace = true }
+
+[lints]
+workspace = true

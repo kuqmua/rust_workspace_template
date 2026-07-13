@@ -1,3 +1,4 @@
+#![allow(clippy::arbitrary_source_item_ordering)] // configuration declarations stay grouped with their parse errors and TryFromStdEnvVarOk implementations
 pub mod types;
 const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
 const TIMEZONE_NOT_EAST_MSG: &str = "not east";
@@ -81,6 +82,295 @@ struct ChronoEastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
+}
+const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
+#[derive(newtype::Newtype)]
+#[newtype(as_ref_owned, from_inner)]
+pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
+impl std::fmt::Debug for SecrecySecretBoxString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("[REDACTED]")
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
+pub struct StdNonZeroU64(std::num::NonZeroU64);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(deref_inner, from_inner)]
+pub struct StdNonZeroUsize(std::num::NonZeroUsize);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent, from_inner)]
+pub struct StdParseIntError(std::num::ParseIntError);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent, from_inner)]
+pub struct StdParseBoolError(std::str::ParseBoolError);
+#[derive(gen_getter_traits_for_struct_fields::GenGetterTrait, newtype::Newtype)]
+#[newtype(as_ref_owned)]
+pub struct AdminJwtSecret(SecrecySecretBoxString);
+impl std::fmt::Debug for AdminJwtSecret {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("AdminJwtSecret")
+            .field(&"[REDACTED]")
+            .finish()
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum TryFromStdEnvVarOkAdminJwtSecretEr {
+    #[error("administrator JWT secret must contain at least {ADMIN_JWT_SECRET_MIN_LEN} bytes")]
+    TooShort,
+}
+impl TryFromStdEnvVarOk for AdminJwtSecret {
+    type Error = TryFromStdEnvVarOkAdminJwtSecretEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        if v.0.len() < ADMIN_JWT_SECRET_MIN_LEN {
+            Err(Self::Error::TooShort)
+        } else {
+            Ok(Self(SecrecySecretBoxString::from(secrecy::SecretBox::new(
+                Box::new(v.0),
+            ))))
+        }
+    }
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminSignInRateLimit(StdNonZeroU64);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminSessionLimit(StdNonZeroUsize);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
+pub struct AdminPositiveU64ParsingEr(StdParseIntError);
+#[derive(Debug, thiserror::Error)]
+pub enum TryFromStdEnvVarOkAdminPositiveU64Er {
+    #[error("administrator duration must be greater than zero")]
+    IsZero,
+    #[error("{admin_positive_u64_parsing:?}")]
+    Parse {
+        admin_positive_u64_parsing: AdminPositiveU64ParsingEr,
+    },
+}
+fn parse_admin_positive_u64(
+    v: &StdEnvVarOk,
+) -> Result<StdNonZeroU64, TryFromStdEnvVarOkAdminPositiveU64Er> {
+    let parsed = v.0.parse::<u64>().map_err(|admin_positive_u64_parsing| {
+        TryFromStdEnvVarOkAdminPositiveU64Er::Parse {
+            admin_positive_u64_parsing: AdminPositiveU64ParsingEr(StdParseIntError::from(
+                admin_positive_u64_parsing,
+            )),
+        }
+    })?;
+    std::num::NonZeroU64::new(parsed)
+        .map(StdNonZeroU64::from)
+        .ok_or(TryFromStdEnvVarOkAdminPositiveU64Er::IsZero)
+}
+impl TryFromStdEnvVarOk for AdminAccessTokenTtlSeconds {
+    type Error = TryFromStdEnvVarOkAdminPositiveU64Er;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_positive_u64(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for AdminRefreshTokenTtlSeconds {
+    type Error = TryFromStdEnvVarOkAdminPositiveU64Er;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_positive_u64(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for AdminSignInRateLimit {
+    type Error = TryFromStdEnvVarOkAdminPositiveU64Er;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_positive_u64(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for AdminSessionLimit {
+    type Error = TryFromStdEnvVarOkAdminPositiveU64Er;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        let value = parse_admin_positive_u64(&v)?;
+        usize::try_from(value.0.get())
+            .ok()
+            .and_then(std::num::NonZeroUsize::new)
+            .map(StdNonZeroUsize::from)
+            .map(Self)
+            .ok_or(TryFromStdEnvVarOkAdminPositiveU64Er::IsZero)
+    }
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminPasswordHashConcurrency(StdNonZeroUsize);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
+pub struct AdminPositiveUsizeParsingEr(StdParseIntError);
+#[derive(Debug, thiserror::Error)]
+pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyEr {
+    #[error("administrator password hash concurrency must be greater than zero")]
+    IsZero,
+    #[error("{admin_positive_usize_parsing:?}")]
+    Parse {
+        admin_positive_usize_parsing: AdminPositiveUsizeParsingEr,
+    },
+}
+impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
+    type Error = TryFromStdEnvVarOkAdminPasswordHashConcurrencyEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        let parsed =
+            v.0.parse::<usize>()
+                .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
+                    admin_positive_usize_parsing: AdminPositiveUsizeParsingEr(
+                        StdParseIntError::from(admin_positive_usize_parsing),
+                    ),
+                })?;
+        std::num::NonZeroUsize::new(parsed)
+            .map(StdNonZeroUsize::from)
+            .map(Self)
+            .ok_or(Self::Error::IsZero)
+    }
+}
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminCookieSecure(bool);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::Newtype,
+)]
+#[newtype(deref_inner)]
+pub struct AdminSwaggerEnabled(bool);
+#[derive(newtype::Newtype)]
+#[newtype(debug_transparent)]
+pub struct AdminBoolParsingEr(StdParseBoolError);
+#[derive(Debug, thiserror::Error)]
+#[error("{admin_bool_parsing:?}")]
+pub struct TryFromStdEnvVarOkAdminCookieSecureEr {
+    admin_bool_parsing: AdminBoolParsingEr,
+}
+impl TryFromStdEnvVarOk for AdminCookieSecure {
+    type Error = TryFromStdEnvVarOkAdminCookieSecureEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        v.0.parse::<bool>()
+            .map(Self)
+            .map_err(|admin_bool_parsing| Self::Error {
+                admin_bool_parsing: AdminBoolParsingEr(StdParseBoolError::from(admin_bool_parsing)),
+            })
+    }
+}
+impl TryFromStdEnvVarOk for AdminSwaggerEnabled {
+    type Error = TryFromStdEnvVarOkAdminCookieSecureEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        v.0.parse::<bool>()
+            .map(Self)
+            .map_err(|admin_bool_parsing| Self::Error {
+                admin_bool_parsing: AdminBoolParsingEr(StdParseBoolError::from(admin_bool_parsing)),
+            })
+    }
+}
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::BoundedString,
+    newtype::Newtype,
+)]
+#[bounded_string(max = 256, description = "administrator token issuer")]
+#[newtype(as_ref_owned)]
+pub struct AdminTokenIssuer(String);
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    gen_getter_traits_for_struct_fields::GenGetterTrait,
+    newtype::BoundedString,
+    newtype::Newtype,
+)]
+#[bounded_string(max = 256, description = "administrator token audience")]
+#[newtype(as_ref_owned)]
+pub struct AdminTokenAudience(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum TryFromStdEnvVarOkAdminTokenTextEr {
+    #[error("administrator token text is empty")]
+    Empty,
+    #[error("administrator token text is too long")]
+    TooLong,
+}
+fn parse_admin_token_text<T, Er>(
+    v: StdEnvVarOk,
+    map: impl FnOnce(String) -> Result<T, Er>,
+) -> Result<T, TryFromStdEnvVarOkAdminTokenTextEr> {
+    if v.0.is_empty() {
+        return Err(TryFromStdEnvVarOkAdminTokenTextEr::Empty);
+    }
+    map(v.0).map_err(|_bounded_string_er| TryFromStdEnvVarOkAdminTokenTextEr::TooLong)
+}
+impl TryFromStdEnvVarOk for AdminTokenIssuer {
+    type Error = TryFromStdEnvVarOkAdminTokenTextEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_token_text(v, Self::try_from)
+    }
+}
+impl TryFromStdEnvVarOk for AdminTokenAudience {
+    type Error = TryFromStdEnvVarOkAdminTokenTextEr;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_admin_token_text(v, Self::try_from)
+    }
 }
 config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,

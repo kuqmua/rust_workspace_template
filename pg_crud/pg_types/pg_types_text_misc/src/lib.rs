@@ -1,6 +1,7 @@
 gen_pg_types::gen_pg_types!({
     "pg_tbl_cols_write_into_file": "False",
     "whole_write_into_file": "False",
+    "generate_secret_text": true,
     "vrt": {
         "Subset": [
             "StringAsText",

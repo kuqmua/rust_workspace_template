@@ -407,6 +407,8 @@ pub fn gen_pg_types(
         vrt: GenPgTypesConfigVrt,
         pg_tbl_cols_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
+        #[serde(default)]
+        generate_secret_text: bool,
     }
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
@@ -629,7 +631,7 @@ pub fn gen_pg_types(
     let unbounded_ucc = naming::UnboundedUcc;
     let upd_ucc = naming::UpdUcc;
     let v_sc = naming::VSc;
-    let (cols_ts, pg_type_arr) = {
+    let (cols_ts, mut pg_type_arr) = {
         let gen_vrts = |should_include: &dyn Fn(&PgType) -> bool| {
             let pg_type_iter =
                 <PgType as strum::IntoEnumIterator>::iter().filter(|el| should_include(el));
@@ -5033,6 +5035,76 @@ pub fn gen_pg_types(
         )
     })
     .collect::<(Vec<String>, Vec<String>)>();
+    if gen_pg_types_config.generate_secret_text {
+        pg_type_arr.push(quote::quote! {
+            /// Secret PostgreSQL text deliberately has no serialization contract.
+            ///
+            /// ```compile_fail
+            /// fn assert_serialize<Value: serde::Serialize>() {}
+            /// assert_serialize::<pg_types_text_misc::StringAsNnTextSecret>();
+            /// ```
+            #[derive(Clone, PartialEq, Eq)]
+            pub struct StringAsNnTextSecret(String);
+            impl std::fmt::Debug for StringAsNnTextSecret {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.write_str("[REDACTED]")
+                }
+            }
+            impl From<String> for StringAsNnTextSecret {
+                fn from(value: String) -> Self {
+                    Self(value)
+                }
+            }
+            impl AsRef<str> for StringAsNnTextSecret {
+                fn as_ref(&self) -> &str {
+                    self.0.as_str()
+                }
+            }
+            impl std::borrow::Borrow<str> for StringAsNnTextSecret {
+                fn borrow(&self) -> &str {
+                    self.0.as_str()
+                }
+            }
+            impl sqlx::Type<sqlx::Postgres> for StringAsNnTextSecret {
+                fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+                    <String as sqlx::Type<sqlx::Postgres>>::type_info()
+                }
+                fn compatible(ty: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+                    <String as sqlx::Type<sqlx::Postgres>>::compatible(ty)
+                }
+            }
+            impl<'query_lt> sqlx::Encode<'query_lt, sqlx::Postgres> for StringAsNnTextSecret {
+                fn encode_by_ref(&self, buffer: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer<'query_lt>) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::encode_by_ref(&self.0, buffer)
+                }
+                fn size_hint(&self) -> usize {
+                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::size_hint(&self.0)
+                }
+            }
+            impl<'row_lt> sqlx::Decode<'row_lt, sqlx::Postgres> for StringAsNnTextSecret {
+                fn decode(value: <sqlx::Postgres as sqlx::Database>::ValueRef<'row_lt>) -> Result<Self, sqlx::error::BoxDynError> {
+                    <String as sqlx::Decode<'row_lt, sqlx::Postgres>>::decode(value).map(Self)
+                }
+            }
+            #[derive(Clone, Copy)]
+            pub struct StringAsNnTextSecretRef<'value_lt>(&'value_lt str);
+            impl std::fmt::Debug for StringAsNnTextSecretRef<'_> {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.write_str("[REDACTED]")
+                }
+            }
+            impl<'value_lt> From<&'value_lt StringAsNnTextSecret> for StringAsNnTextSecretRef<'value_lt> {
+                fn from(value: &'value_lt StringAsNnTextSecret) -> Self {
+                    Self(value.0.as_str())
+                }
+            }
+            impl AsRef<str> for StringAsNnTextSecretRef<'_> {
+                fn as_ref(&self) -> &str {
+                    self.0
+                }
+            }
+        }.to_string());
+    }
     let parse_strs_to_ts2_vec = pg_crud_macros_cmn::ts_helpers::parse_strs_to_ts2_vec;
     let pg_tbl_cols_ts = {
         let ts = parse_strs_to_ts2_vec(

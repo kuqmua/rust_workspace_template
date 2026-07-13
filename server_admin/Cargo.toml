@@ -1,0 +1,57 @@
+[package]
+authors = ["sergey shmakov <tyfaproject@gmail.com>"]
+edition = "2024"
+name = "server_admin"
+version = "0.1.0"
+publish = false
+description = "Reusable administrative API and domain logic"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["admin"]
+categories = ["web-programming"]
+
+[features]
+test-utils = []
+
+[dependencies]
+app_state = { workspace = true }
+argon2 = { workspace = true }
+axum = { workspace = true }
+config_lib = { workspace = true }
+futures = { workspace = true }
+gen_pg_tbl = { workspace = true }
+git_info = { workspace = true }
+http = { workspace = true }
+jsonwebtoken = { workspace = true }
+loc_lib = { workspace = true }
+loc_macros = { workspace = true }
+location = { workspace = true }
+metrics = { workspace = true }
+newtype = { workspace = true }
+optml = { workspace = true }
+pg_crud_cmn = { workspace = true, features = ["test-utils"] }
+pg_tbl = { workspace = true, features = ["test-utils"] }
+pg_types_chrono_net = { workspace = true, features = ["test-utils"] }
+pg_types_numeric = { workspace = true, features = ["test-utils"] }
+pg_types_text_misc = { workspace = true, features = ["test-utils"] }
+reqwest = { workspace = true }
+route_validators = { workspace = true }
+secrecy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+sqlx = { workspace = true, features = ["macros"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+to_err_string = { workspace = true }
+tracing = { workspace = true }
+utoipa = { workspace = true }
+uuid = { workspace = true }
+wh_flts = { workspace = true }
+
+[dev-dependencies]
+tower = { workspace = true }
+
+[lints]
+workspace = true

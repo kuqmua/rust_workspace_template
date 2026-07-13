@@ -98,7 +98,7 @@ pub fn gen_pg_tbl(
                 ),
                 Self::Dlo => (
                     macros_helpers::derive_ts_builder::DClone::True,
-                    macros_helpers::derive_ts_builder::DCopy::True,
+                    macros_helpers::derive_ts_builder::DCopy::False,
                 ),
             }
         }
@@ -111,7 +111,7 @@ pub fn gen_pg_tbl(
             match self {
                 Self::Co | Self::Dlo => (
                     macros_helpers::derive_ts_builder::DClone::True,
-                    macros_helpers::derive_ts_builder::DCopy::True,
+                    macros_helpers::derive_ts_builder::DCopy::False,
                 ),
                 Self::Cm | Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm => (
                     macros_helpers::derive_ts_builder::DClone::False,
@@ -348,13 +348,46 @@ pub fn gen_pg_tbl(
         #[serde(default)]
         cm_max_items: Option<StdBulkItemsMax>,
         #[serde(default)]
+        create_exclude_fields: StdCreateExcludeFields,
+        #[serde(default)]
+        read_exclude_fields: StdReadExcludeFields,
+        #[serde(default)]
+        permission_prefix: Option<String>,
+        #[serde(default)]
         um_max_items: Option<StdBulkItemsMax>,
         tests_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         cmn_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
+        #[serde(default)]
+        api_mode: GenPgTblApiMode,
+    }
+    #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
+    enum GenPgTblApiMode {
+        AppendOnly,
+        CreateReadDelete,
+        #[default]
+        Crud,
+        ReadOnly,
+        ReadUpdate,
     }
     #[derive(Clone, Copy, Debug, serde::Deserialize)]
     struct StdBulkItemsMax(usize);
+    #[derive(Debug, Default, serde::Deserialize)]
+    struct StdCreateExcludeFields(Vec<String>);
+    impl std::ops::Deref for StdCreateExcludeFields {
+        type Target = Vec<String>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+    #[derive(Debug, Default, serde::Deserialize)]
+    struct StdReadExcludeFields(Vec<String>);
+    impl std::ops::Deref for StdReadExcludeFields {
+        type Target = Vec<String>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
     struct GenPgTblInputModel {
         config: GenPgTblConfig,
         er_vrts_by_attr: std::collections::BTreeMap<GenPgTblAttr, Vec<GenPgTblVariantModel>>,
@@ -716,6 +749,16 @@ pub fn gen_pg_tbl(
         {
             return Err(compile_error_ts(CompileErrorMsg(
                 "536203b7: bulk item limit must be greater than zero",
+            )));
+        }
+        if config.permission_prefix.as_ref().is_some_and(|prefix| {
+            prefix.is_empty()
+                || !prefix
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+        }) {
+            return Err(compile_error_ts(CompileErrorMsg(
+                "d5f1b3a7: permission prefix must use lowercase ASCII letters, digits, or underscores",
             )));
         }
         let er_vrts_by_attr = [
@@ -1080,6 +1123,69 @@ pub fn gen_pg_tbl(
             .iter()
             .filter_map(|field_idx| fields.get(field_idx.get()))
     };
+    if gen_pg_tbl_input_model
+        .config
+        .create_exclude_fields
+        .iter()
+        .any(|excluded| {
+            excluded == &pk_field.ident.to_string()
+                || !fields_without_pk_iter().any(|field| field.ident.to_string() == *excluded)
+        })
+    {
+        return compile_error_ts(CompileErrorMsg(
+            "741aa5f9: create_exclude_fields must contain unique non-primary-key field names",
+        ));
+    }
+    let create_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
+        gen_pg_tbl_input_model
+            .config
+            .create_exclude_fields
+            .iter()
+            .any(|excluded| excluded == &field.ident.to_string())
+    };
+    let create_fields_without_pk_iter =
+        || fields_without_pk_iter().filter(|field| !create_field_is_excluded(field));
+    let read_excluded_fields_are_unique = gen_pg_tbl_input_model
+        .config
+        .read_exclude_fields
+        .iter()
+        .collect::<std::collections::HashSet<_>>()
+        .len()
+        == gen_pg_tbl_input_model.config.read_exclude_fields.len();
+    let read_excluded_fields_are_valid = gen_pg_tbl_input_model
+        .config
+        .read_exclude_fields
+        .iter()
+        .all(|excluded| {
+            excluded != &pk_field.ident.to_string()
+                && fields_without_pk_iter().any(|field| field.ident.to_string() == *excluded)
+        });
+    if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
+        return compile_error_ts(CompileErrorMsg(
+            "91a3d9f2: read_exclude_fields must contain unique non-primary-key field names",
+        ));
+    }
+    let read_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
+        gen_pg_tbl_input_model
+            .config
+            .read_exclude_fields
+            .iter()
+            .any(|excluded| excluded == &field.ident.to_string())
+    };
+    let read_fields_iter = || fields.iter().filter(|field| !read_field_is_excluded(field));
+    let read_fields_without_pk_iter =
+        || fields_without_pk_iter().filter(|field| !read_field_is_excluded(field));
+    let read_fields = read_fields_iter().cloned().collect::<Vec<_>>();
+    let read_fields_len = read_fields.len();
+    let op_is_enabled = |op: &Op| match gen_pg_tbl_input_model.config.api_mode {
+        GenPgTblApiMode::Crud => true,
+        GenPgTblApiMode::AppendOnly => matches!(op, Op::Cm | Op::Co | Op::Rm | Op::Ro),
+        GenPgTblApiMode::CreateReadDelete => {
+            matches!(op, Op::Cm | Op::Co | Op::Rm | Op::Ro | Op::Dm | Op::Dlo)
+        }
+        GenPgTblApiMode::ReadOnly => matches!(op, Op::Rm | Op::Ro),
+        GenPgTblApiMode::ReadUpdate => matches!(op, Op::Rm | Op::Ro | Op::Um | Op::Uo),
+    };
     let pk_ft = &pk_field.type0;
     if fields_without_pk_idxs.is_empty() {
         return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
@@ -1233,6 +1339,26 @@ pub fn gen_pg_tbl(
         let fields_ts = fields_without_pk_iter().map(fn0);
         quote::quote! {#(#fields_ts)*}
     };
+    let gen_read_fields_with_comma_ts =
+        |fn0: &dyn Fn(&macros_helpers::field_data::SynField) -> proc_macro2::TokenStream| {
+            let fields_ts = read_fields_iter().map(fn0);
+            quote::quote! {#(#fields_ts),*}
+        };
+    let gen_read_fields_without_pk_with_comma_ts =
+        |fn0: &dyn Fn(&macros_helpers::field_data::SynField) -> proc_macro2::TokenStream| {
+            let fields_ts = read_fields_without_pk_iter().map(fn0);
+            quote::quote! {#(#fields_ts),*}
+        };
+    let gen_read_fields_without_pk_without_comma_ts =
+        |fn0: &dyn Fn(&macros_helpers::field_data::SynField) -> proc_macro2::TokenStream| {
+            let fields_ts = read_fields_without_pk_iter().map(fn0);
+            quote::quote! {#(#fields_ts)*}
+        };
+    let gen_read_fields_without_comma_ts =
+        |fn0: &dyn Fn(&macros_helpers::field_data::SynField) -> proc_macro2::TokenStream| {
+            let fields_ts = read_fields_iter().map(fn0);
+            quote::quote! {#(#fields_ts)*}
+        };
     let gen_match_ok_err_ts = |ts0: &dyn quote::ToTokens,
                                ts1: &dyn quote::ToTokens,
                                ts2: &dyn quote::ToTokens,
@@ -1252,6 +1378,8 @@ pub fn gen_pg_tbl(
     let none_ts = quote::quote! {None};
     let fields_named_with_comma_none_ts =
         gen_fields_named_with_comma_ts(&|_| -> proc_macro2::TokenStream { none_ts.clone() });
+    let read_fields_with_comma_none_ts =
+        gen_read_fields_with_comma_ts(&|_| -> proc_macro2::TokenStream { none_ts.clone() });
     let fields_named_without_pk_with_comma_none_ts =
         gen_fields_named_without_pk_with_comma_ts(&|_| -> proc_macro2::TokenStream {
             none_ts.clone()
@@ -1402,7 +1530,7 @@ pub fn gen_pg_tbl(
             }
         };
         let fn_gen_sel_qp_ts = {
-            let vrts_ts = gen_fields_named_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
+            let vrts_ts = gen_read_fields_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
                 let fi_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
                 let init_ts = {
                     let fi_string_dq_ts = gen_quotes::dq_ts(&el.ident);
@@ -1706,7 +1834,6 @@ pub fn gen_pg_tbl(
             .make_pub()
             .d_debug()
             .d_clone()
-            .d_copy()
             .d_serde_serialize()
             .d_serde_deserialize()
             .d_utoipa_to_schema()
@@ -1715,8 +1842,8 @@ pub fn gen_pg_tbl(
                 &ident_cr_ucc,
                 &proc_macro2::TokenStream::new(),
                 &{
-                    let ts = gen_fields_named_without_pk_with_comma_ts(
-                        &|el: &macros_helpers::field_data::SynField| {
+                    let ts = create_fields_without_pk_iter().map(
+                        |el: &macros_helpers::field_data::SynField| {
                             let fi = &el.ident;
                             let el_syn_field_ty_as_pg_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
                             let concrete_cr_ts = gen_concrete_pg_type_role_ts(&el.type0, &CrUcc);
@@ -1726,7 +1853,7 @@ pub fn gen_pg_tbl(
                             }
                         },
                     );
-                    quote::quote! {{#ts}}
+                    quote::quote! {{#(#ts),*}}
                 },
             );
         let impl_ident_cr_ts = {
@@ -1771,19 +1898,24 @@ pub fn gen_pg_tbl(
                     pk_ft,
                     &pk_ft_as_dflt_some_one_el_call_ts,
                 );
-                let col_incrs_ts = gen_fields_named_without_pk_without_comma_ts(
-                    &|el: &macros_helpers::field_data::SynField| {
-                        gen_match_as_pg_crud_pg_type_pg_type_cr_qp_ts(&el.type0, &{
+                let col_incrs_ts = fields_without_pk_iter()
+                    .map(|el: &macros_helpers::field_data::SynField| {
+                        let field_value_ts = if create_field_is_excluded(el) {
+                            let field_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
+                            quote::quote! {<#field_type_cr_ts as #import_ts #DfltSomeOneElUcc>::#DfltSomeOneElSc()}
+                        } else {
                             let el_fi = &el.ident;
                             quote::quote! {self.#el_fi}
+                        };
+                        gen_match_as_pg_crud_pg_type_pg_type_cr_qp_ts(&el.type0, &{
+                            field_value_ts
                         })
-                    },
-                );
+                    });
                 let ts = gen_acc_string_pop_ok_acc_ts(
                     &quote::quote! {acc},
                     &quote::quote! {
                         #pk_ts
-                        #col_incrs_ts
+                        #(#col_incrs_ts)*
                     },
                 );
                 quote::quote! {
@@ -1810,18 +1942,23 @@ pub fn gen_pg_tbl(
                     pk_ft,
                     &pk_ft_as_dflt_some_one_el_call_ts,
                 );
-                let binded_query_modifications_ts = gen_fields_named_without_pk_without_comma_ts(
-                    &|el: &macros_helpers::field_data::SynField| {
-                        gen_query_as_pg_crud_pg_type_pg_type_cr_qb_ts(&el.type0, &{
+                let binded_query_modifications_ts = fields_without_pk_iter()
+                    .map(|el: &macros_helpers::field_data::SynField| {
+                        let field_value_ts = if create_field_is_excluded(el) {
+                            let field_type_cr_ts = gen_as_pg_type_cr_ts(&el.type0);
+                            quote::quote! {<#field_type_cr_ts as #import_ts #DfltSomeOneElUcc>::#DfltSomeOneElSc()}
+                        } else {
                             let fi = &el.ident;
                             quote::quote! {self.#fi}
+                        };
+                        gen_query_as_pg_crud_pg_type_pg_type_cr_qb_ts(&el.type0, &{
+                            field_value_ts
                         })
-                    },
-                );
+                    });
                 quote::quote! {
                     fn #CrQbSc(self, mut #QuerySc: #import_ts SqlxPostgresQuery<'_>) -> Result<#import_ts SqlxPostgresQuery<'_>, #import_ts SqlxPostgresQueryBindEr> {
                         #pk_ts
-                        #binded_query_modifications_ts
+                        #(#binded_query_modifications_ts)*
                         Ok(#QuerySc)
                     }
                 }
@@ -1836,12 +1973,14 @@ pub fn gen_pg_tbl(
         };
         let impl_pg_crud_dflt_some_one_el_for_ident_cr_ts =
             gen_impl_pg_crud_dflt_some_one_el_for_tokens_no_lt_ts(&ident_cr_ucc, &{
-                let fields_init_without_pk_with_dflt_some_one_el_ts =
-                    gen_fields_named_without_pk_with_comma_ts(
-                        &|el: &macros_helpers::field_data::SynField| {
+                let fields_init_without_pk_with_dflt_some_one_el_ts = {
+                    let create_fields_ts = create_fields_without_pk_iter().map(
+                        |el: &macros_helpers::field_data::SynField| {
                             gen_fi_dflt_some_one_el_call_ts(&el.ident)
                         },
                     );
+                    quote::quote! {#(#create_fields_ts),*}
+                };
                 quote::quote! {
                     Self{#fields_init_without_pk_with_dflt_some_one_el_ts}
                 }
@@ -1868,7 +2007,7 @@ pub fn gen_pg_tbl(
     let ident_wh_ucc = naming::prm::SelfWhManyUcc::from_tokens(&ident);
     let ident_wh_try_new_er_ucc = naming::prm::SelfWhManyTryNewErUcc::from_tokens(&ident);
     let ident_wh_ts = {
-        let fields_schema_dcl_ts = gen_fields_named_with_comma_ts(
+        let fields_schema_dcl_ts = gen_read_fields_with_comma_ts(
             &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
                 let fi = &el.ident;
                 let el_syn_field_ty_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&el.type0);
@@ -1882,7 +2021,7 @@ pub fn gen_pg_tbl(
                 }
             },
         );
-        let fields_dcl_ts = gen_fields_named_with_comma_ts(
+        let fields_dcl_ts = gen_read_fields_with_comma_ts(
             &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
                 let fi = &el.ident;
                 let el_syn_field_ty_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&el.type0);
@@ -1922,7 +2061,7 @@ pub fn gen_pg_tbl(
                 &ident_wh_try_new_er_ucc,
                 &{
                     let gen_fields_ts = |add_borrow: AddBorrow| {
-                        gen_fields_named_with_comma_ts(
+                        gen_read_fields_with_comma_ts(
                         &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
                             let fi = &el.ident;
                             quote::quote! {#add_borrow #fi}
@@ -1932,7 +2071,7 @@ pub fn gen_pg_tbl(
                     let fields_ts = gen_fields_ts(AddBorrow::True);
                     let fields_inialization_ts = gen_fields_ts(AddBorrow::False);
                     quote::quote! {
-                        if matches!((#fields_ts), (#fields_named_with_comma_none_ts)) {
+                        if matches!((#fields_ts), (#read_fields_with_comma_none_ts)) {
                             return Err(#ident_wh_try_new_er_ucc::#NoFieldsProvidedUcc {
                                 loc: loc_macros::loc!(),
                             });
@@ -1943,8 +2082,8 @@ pub fn gen_pg_tbl(
             );
         let impl_de_for_ident_wh_ts = pg_crud_macros_cmn::gen_impl_de_for_struct_by_fields_ts(
             &ident_wh_ucc,
-            pg_crud_macros_cmn::SynFieldRefs::from(fields.as_slice()),
-            pg_crud_macros_cmn::DeLen::from(fields_len),
+            pg_crud_macros_cmn::SynFieldRefs::from(read_fields.as_slice()),
+            pg_crud_macros_cmn::DeLen::from(read_fields_len),
             &|_, syn_type| {
                 let syn_type_as_pg_type_wh_ts = gen_as_pg_type_wh_ts(&syn_type);
                 pg_crud_macros_cmn::gen_opt_type_dcl_ts(
@@ -1954,7 +2093,7 @@ pub fn gen_pg_tbl(
         );
         let impl_pg_crud_dflt_some_one_el_for_ident_wh_ts =
             gen_impl_pg_crud_dflt_some_one_el_for_tokens_no_lt_ts(&ident_wh_ucc, &{
-                let fields_ts = gen_fields_named_without_comma_ts(
+                let fields_ts = gen_read_fields_without_comma_ts(
                     &|el: &macros_helpers::field_data::SynField| {
                         let fi = &el.ident;
                         quote::quote! {
@@ -2017,7 +2156,7 @@ pub fn gen_pg_tbl(
                 &pg_crud_macros_cmn::ColPrmUndrscr::True,
                 &pg_crud_macros_cmn::AddOprtrUndrscr::True,
                 &{
-                    let extra_prms_modification_ts = fields.iter().enumerate().map(|(i, el)| {
+                    let extra_prms_modification_ts = read_fields_iter().enumerate().map(|(i, el)| {
                     let fi = &el.ident;
                     gen_if_let_some_ts(
                         &quote::quote! {v_da0f0616},
@@ -2034,7 +2173,7 @@ pub fn gen_pg_tbl(
                             },
                             &quote::quote! {v_9e3f8fdd},
                             &{
-                                let ts = if i == fields_len_without_pk {
+                                let ts = if i.saturating_add(1usize) == read_fields_len {
                                     proc_macro2::TokenStream::new()
                                 } else {
                                     quote::quote! {is_first_push_to_extra_prms_already_happend = true;}
@@ -2068,7 +2207,7 @@ pub fn gen_pg_tbl(
                     let ts = gen_if_let_some_ts(
                         &quote::quote! {v_27176ffb},
                         &quote::quote! {self.into_option()},
-                        &gen_fields_named_without_comma_ts(
+                        &gen_read_fields_without_comma_ts(
                             &|el: &macros_helpers::field_data::SynField| {
                                 let fi = &el.ident;
                                 gen_if_let_some_ts(
@@ -2184,7 +2323,6 @@ pub fn gen_pg_tbl(
     let sel_ts = {
         let ident_sel_ts = {
             let ident_sel_enum_ts = pg_crud_macros_cmn::ts_helpers::cmn_d_ts_builder()
-            .d_copy()
             .d_eq()
             .d_std_hash_hash()
             .d_utoipa_to_schema()
@@ -2193,7 +2331,7 @@ pub fn gen_pg_tbl(
                 &ident_sel_ucc,
                 &proc_macro2::TokenStream::new(),
                 &{
-                    let vrts = gen_fields_named_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
+                    let vrts = gen_read_fields_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
                         let serde_ident_ts = gen_quotes::dq_ts(&el.ident);
                         let fi_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
                         let el_syn_field_ty_as_pg_type_sel_ts = gen_as_pg_type_sel_ts(&el.type0);
@@ -2227,7 +2365,7 @@ pub fn gen_pg_tbl(
             pg_crud_macros_cmn::gen_impl_pg_crud_cmn_all_vrts_dflt_some_one_el_ts(
                 &ident_sel_ucc,
                 &{
-                    let els_ts = gen_fields_named_with_comma_ts(
+                    let els_ts = gen_read_fields_with_comma_ts(
                         &|el: &macros_helpers::field_data::SynField| {
                             let fi_ucc_ts = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
                             quote::quote! {
@@ -2272,7 +2410,7 @@ pub fn gen_pg_tbl(
                                 pub #pk_fi: #opt_v_pk_ft_as_pg_type_rd_ts
                             }
                         };
-                        let fields_opts_without_pk_ts = gen_fields_named_without_pk_with_comma_ts(
+                        let fields_opts_without_pk_ts = gen_read_fields_without_pk_with_comma_ts(
                             &|el: &macros_helpers::field_data::SynField| -> proc_macro2::TokenStream {
                                 let field_vis = &el.vis;
                                 let fi = &el.ident;
@@ -2309,7 +2447,7 @@ pub fn gen_pg_tbl(
                         let mut #pk_fi: #opt_v_pk_ft_as_pk_ts = None;
                     }
                 };
-                let dcl_without_pk_ts = gen_fields_named_without_pk_without_comma_ts(
+                let dcl_without_pk_ts = gen_read_fields_without_pk_without_comma_ts(
                     &|el: &macros_helpers::field_data::SynField| {
                         let fi = &el.ident;
                         let opt_v_ft_as_pg_type_rd_ts = pg_crud_macros_cmn::gen_opt_type_dcl_ts(
@@ -2351,7 +2489,7 @@ pub fn gen_pg_tbl(
                             &gen_quotes::dq_ts(&pk_fi),
                             &pk_fi,
                         ),
-                        fields_without_pk_iter().map(|el| {
+                        read_fields_without_pk_iter().map(|el| {
                             gen_assign_ts(
                                 &naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident),
                                 &gen_as_pg_type_rd_ts(&el.type0),
@@ -2361,7 +2499,7 @@ pub fn gen_pg_tbl(
                         }),
                     )
                 };
-                let fields_init_ts = fields.iter().map(|el| el.ident.as_ref());
+                let fields_init_ts = read_fields_iter().map(|el| el.ident.as_ref());
                 quote::quote! {
                     fn #try_from_sqlx_pg_pg_row_with_not_empty_unq_vec_ident_sel_sc(
                         #VSc: &sqlx::postgres::PgRow,
@@ -3527,27 +3665,48 @@ pub fn gen_pg_tbl(
         };
         let open_api_payload_type_ts = gen_ident_op_payload_ucc(op);
         let open_api_response_type_ts = gen_ident_op_res_vrts_ucc(op);
+        let (open_api_security_ts, open_api_auth_responses_ts) = gen_pg_tbl_input_model
+            .config
+            .permission_prefix
+            .as_ref()
+            .map_or_else(
+                || (proc_macro2::TokenStream::new(), proc_macro2::TokenStream::new()),
+                |_| {
+                    (
+                        quote::quote! {security(("admin_cookie" = []), ("admin_csrf" = [])),},
+                        quote::quote! {
+                            (status = 401, description = "Authentication is required", body = #open_api_response_type_ts),
+                            (status = 403, description = "Required permission is missing", body = #open_api_response_type_ts),
+                            (status = 409, description = "Resource state conflict", body = #open_api_response_type_ts),
+                            (status = 422, description = "Request validation failed", body = #open_api_response_type_ts),
+                            (status = 429, description = "Request rate limit exceeded", body = #open_api_response_type_ts),
+                        },
+                    )
+                },
+            );
         let ident_op_prms_ucc = gen_ident_op_prms_ucc(op);
         let ident_try_op_er_ucc = gen_ident_try_op_er_ucc(op);
         let result_ok_type_ts = gen_op_result_type_ts(op);
         let try_op_h_sc_ts = op.try_self_h_sc_ts();
         let op_client_method_sc_ts = op.self_sc_ts();
-        api_client_methods_ts.push(quote::quote! {
-            pub async fn #op_client_method_sc_ts(
-                &self,
-                #PrmsSc: #ident_op_prms_ucc,
-            ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
-                #ident::#try_op_h_sc_ts(
-                    &self.client,
-                    self.endpoint.as_url().as_str(),
-                    #PrmsSc,
-                    #ident::#TblNameSc(),
-                ).await
-            }
-        });
-        open_api_path_fn_idents.push(open_api_path_fn_ident.clone());
-        open_api_schema_types_ts.push(open_api_payload_type_ts.clone());
-        open_api_schema_types_ts.push(open_api_response_type_ts.clone());
+        if op_is_enabled(op) {
+            api_client_methods_ts.push(quote::quote! {
+                pub async fn #op_client_method_sc_ts(
+                    &self,
+                    #PrmsSc: #ident_op_prms_ucc,
+                ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
+                    #ident::#try_op_h_sc_ts(
+                        &self.client,
+                        self.endpoint.as_url().as_str(),
+                        #PrmsSc,
+                        #ident::#TblNameSc(),
+                    ).await
+                }
+            });
+            open_api_path_fn_idents.push(open_api_path_fn_ident.clone());
+            open_api_schema_types_ts.push(open_api_payload_type_ts.clone());
+            open_api_schema_types_ts.push(open_api_response_type_ts.clone());
+        }
         let open_api_path_fn_ts = quote::quote! {
             #[allow(dead_code)]
             #[utoipa::path(
@@ -3555,11 +3714,13 @@ pub fn gen_pg_tbl(
                 path = #open_api_path_dq_ts,
                 operation_id = #op_sc_string,
                 tag = #open_api_tag_dq_ts,
+                #open_api_security_ts
                 request_body = #open_api_payload_type_ts,
                 responses(
                     (status = #open_api_status_ts, description = "Successful response", body = #open_api_response_type_ts),
                     (status = 400, description = "Invalid request", body = #open_api_response_type_ts),
                     (status = 413, description = "Request body is too large", body = #open_api_response_type_ts),
+                    #open_api_auth_responses_ts
                     (status = 500, description = "Internal server error", body = #open_api_response_type_ts)
                 )
             )]
@@ -3619,6 +3780,7 @@ pub fn gen_pg_tbl(
             }
             acc
         };
+        if op_is_enabled(op) {
         op_routes_ts.push({
             let method_ts = match &op {
                 Op::Cm |
@@ -3684,6 +3846,7 @@ pub fn gen_pg_tbl(
                 .route(#slash_op_payload_example_dq_ts, axum::routing::get(async move||Self::#op_payload_example_sc()))
             }
         });
+        }
         impl_ident_vec_ts.push({
             let try_op_ts = {
                 let try_op_sc_ts = op.try_self_sc_ts();
@@ -4061,7 +4224,7 @@ pub fn gen_pg_tbl(
                                 gen_quotes::dq_ts(&format!("{{}}{OrderSc} {BySc} {{}} {{}}"));
                             let pk_fi_dq_ts = gen_quotes::dq_ts(&pk_fi);
                             let order_by_col_match_ts =
-                                gen_fields_named_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
+                                gen_read_fields_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
                                     let fi_ucc = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
                                     let fi_dq_ts = gen_quotes::dq_ts(&el.ident);
                                     quote::quote! {
@@ -5128,31 +5291,61 @@ pub fn gen_pg_tbl(
     let ident_operation_ucc = quote::format_ident!("{}Operation", ident);
     let ident_route_contract_ucc = quote::format_ident!("{}RouteContract", ident);
     let ident_success_status_ucc = quote::format_ident!("{}SuccessStatus", ident);
-    let route_contract_items_ts = OpDsc::ALL.iter().map(|op_dsc| {
-        let operation = quote::format_ident!("{}", op_dsc.op.to_string());
-        let http_method = match op_dsc.http_method {
-            OpHttpMethod::Post => quote::format_ident!("Post"),
-            OpHttpMethod::Patch => quote::format_ident!("Patch"),
-            OpHttpMethod::Delete => quote::format_ident!("Delete"),
-        };
-        let success_status =
-            if op_dsc.success_status_code == macros_helpers::status_code::StatusCode::Crd201 {
-                quote::format_ident!("Code201")
-            } else {
-                quote::format_ident!("Code200")
+    let enabled_operation_count = OpDsc::ALL
+        .iter()
+        .filter(|op_dsc| op_is_enabled(&op_dsc.op))
+        .count();
+    let route_contract_items_ts = OpDsc::ALL
+        .iter()
+        .filter(|op_dsc| op_is_enabled(&op_dsc.op))
+        .map(|op_dsc| {
+            let operation = quote::format_ident!("{}", op_dsc.op.to_string());
+            let http_method = match op_dsc.http_method {
+                OpHttpMethod::Post => quote::format_ident!("Post"),
+                OpHttpMethod::Patch => quote::format_ident!("Patch"),
+                OpHttpMethod::Delete => quote::format_ident!("Delete"),
             };
-        quote::quote! {
-            #ident_route_contract_ucc::new(
-                #ident_auth_requirement_ucc::Public,
-                #ident_http_method_ucc::#http_method,
-                #ident_operation_ucc::#operation,
-                #ident_success_status_ucc::#success_status,
-            )
-        }
+            let success_status =
+                if op_dsc.success_status_code == macros_helpers::status_code::StatusCode::Crd201 {
+                    quote::format_ident!("Code201")
+                } else {
+                    quote::format_ident!("Code200")
+                };
+            let authentication = gen_pg_tbl_input_model
+                .config
+                .permission_prefix
+                .as_ref()
+                .map_or_else(
+                    || quote::quote! {#ident_auth_requirement_ucc::Public},
+                    |permission_prefix| {
+                        let permission_action = match op_dsc.op {
+                            Op::Cm | Op::Co => "create",
+                            Op::Rm | Op::Ro => "read",
+                            Op::Um | Op::Uo => "update",
+                            Op::Dm | Op::Dlo => "delete",
+                        };
+                        let permission = format!("{permission_prefix}:{permission_action}");
+                        quote::quote! {#ident_auth_requirement_ucc::Permission(#permission)}
+                    },
+                );
+            quote::quote! {
+                #ident_route_contract_ucc::new(
+                    #authentication,
+                    #ident_http_method_ucc::#http_method,
+                    #ident_operation_ucc::#operation,
+                    #ident_success_status_ucc::#success_status,
+                )
+            }
+        });
+    let route_contract_path_arms_ts = OpDsc::ALL.iter().map(|op_dsc| {
+        let operation = quote::format_ident!("{}", op_dsc.op.to_string());
+        let path = format!("/{}/{}", ident_sc_string, op_dsc.op.self_sc_str());
+        quote::quote! {#ident_operation_ucc::#operation => #path}
     });
     let ident_route_contract_ts = quote::quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #ident_auth_requirement_ucc {
+            Permission(&'static str),
             Public,
         }
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -5185,7 +5378,7 @@ pub fn gen_pg_tbl(
             success_status: #ident_success_status_ucc,
         }
         impl #ident_route_contract_ucc {
-            pub const ALL: [Self; 8] = [#(#route_contract_items_ts),*];
+            pub const ALL: [Self; #enabled_operation_count] = [#(#route_contract_items_ts),*];
             #[must_use]
             pub const fn authentication(self) -> #ident_auth_requirement_ucc {
                 self.authentication
@@ -5201,6 +5394,27 @@ pub fn gen_pg_tbl(
             #[must_use]
             pub const fn operation(self) -> #ident_operation_ucc {
                 self.operation
+            }
+            #[must_use]
+            pub fn for_path(path: &str) -> Option<Self> {
+                Self::ALL.into_iter().find(|contract| path.ends_with(contract.path()))
+            }
+            #[must_use]
+            pub const fn mutates(self) -> bool {
+                matches!(self.operation, #ident_operation_ucc::Cm | #ident_operation_ucc::Co | #ident_operation_ucc::Um | #ident_operation_ucc::Uo | #ident_operation_ucc::Dm | #ident_operation_ucc::Dlo)
+            }
+            #[must_use]
+            pub const fn path(self) -> &'static str {
+                match self.operation {
+                    #(#route_contract_path_arms_ts),*
+                }
+            }
+            #[must_use]
+            pub const fn permission(self) -> Option<&'static str> {
+                match self.authentication {
+                    #ident_auth_requirement_ucc::Permission(permission) => Some(permission),
+                    #ident_auth_requirement_ucc::Public => None,
+                }
             }
             #[must_use]
             pub const fn success_status(self) -> #ident_success_status_ucc {
@@ -5249,6 +5463,36 @@ pub fn gen_pg_tbl(
         let tt_type_ts = gen_as_pg_type_tokens_ts(&field.type0, &naming::TtUcc);
         quote::quote! {<wh_flts::PgTypeNotEmptyUnqVec<#tt_type_ts> as utoipa::ToSchema>::schema().1}
     }).collect::<Vec<_>>();
+    let open_api_security_schemes_ts = gen_pg_tbl_input_model
+        .config
+        .permission_prefix
+        .as_ref()
+        .map_or_else(proc_macro2::TokenStream::new, |_| {
+            quote::quote! {
+                components.add_security_scheme(
+                    "admin_cookie",
+                    utoipa::openapi::security::SecurityScheme::ApiKey(
+                        utoipa::openapi::security::ApiKey::Cookie(
+                            utoipa::openapi::security::ApiKeyValue::with_description(
+                                "admin_access_token",
+                                "HttpOnly administrator access-token cookie",
+                            ),
+                        ),
+                    ),
+                );
+                components.add_security_scheme(
+                    "admin_csrf",
+                    utoipa::openapi::security::SecurityScheme::ApiKey(
+                        utoipa::openapi::security::ApiKey::Header(
+                            utoipa::openapi::security::ApiKeyValue::with_description(
+                                "X-CSRF-Token",
+                                "CSRF token required for mutating cookie-authenticated requests",
+                            ),
+                        ),
+                    ),
+                );
+            }
+        });
     let ident_open_api_ts = quote::quote! {
         #[allow(clippy::needless_for_each)] // generated utoipa 4 registration uses iterator callbacks internally
         #[derive(utoipa::OpenApi)]
@@ -5278,6 +5522,7 @@ pub fn gen_pg_tbl(
                 }
                 let mut open_api = <Self as utoipa::OpenApi>::openapi();
                 if let Some(components) = open_api.components.as_mut() {
+                    #open_api_security_schemes_ts
                     components.schemas.insert("pg_crud_cmn.PgType.Rd".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#rd_schema_items_ts))*.build()).into());
                     components.schemas.insert("pg_crud_cmn.PgType.Sel".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#sel_schema_items_ts))*.build()).into());
                     components.schemas.insert("wh_flts.PgTypeWhEq".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#eq_filter_schema_items_ts))*.build()).into());
@@ -5305,6 +5550,35 @@ pub fn gen_pg_tbl(
         }
     };
     let generated_contract_tests_ts = {
+        let route_auth_assertion_ts = gen_pg_tbl_input_model
+            .config
+            .permission_prefix
+            .as_ref()
+            .map_or_else(
+                || quote::quote! {
+                    assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| contract.authentication() == #ident_auth_requirement_ucc::Public));
+                },
+                |_| quote::quote! {
+                    assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| matches!(contract.authentication(), #ident_auth_requirement_ucc::Permission(_))));
+                },
+            );
+        let api_mode_assertion_ts = match gen_pg_tbl_input_model.config.api_mode {
+            GenPgTblApiMode::Crud => quote::quote! {
+                assert_eq!(#ident_route_contract_ucc::ALL.len(), 8usize);
+            },
+            GenPgTblApiMode::AppendOnly => quote::quote! {
+                assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| matches!(contract.operation(), #ident_operation_ucc::Cm | #ident_operation_ucc::Co | #ident_operation_ucc::Rm | #ident_operation_ucc::Ro)));
+            },
+            GenPgTblApiMode::CreateReadDelete => quote::quote! {
+                assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| matches!(contract.operation(), #ident_operation_ucc::Cm | #ident_operation_ucc::Co | #ident_operation_ucc::Rm | #ident_operation_ucc::Ro | #ident_operation_ucc::Dm | #ident_operation_ucc::Dlo)));
+            },
+            GenPgTblApiMode::ReadOnly => quote::quote! {
+                assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| matches!(contract.operation(), #ident_operation_ucc::Rm | #ident_operation_ucc::Ro)));
+            },
+            GenPgTblApiMode::ReadUpdate => quote::quote! {
+                assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| matches!(contract.operation(), #ident_operation_ucc::Rm | #ident_operation_ucc::Ro | #ident_operation_ucc::Um | #ident_operation_ucc::Uo)));
+            },
+        };
         let round_trip_tests_ts = OpDsc::ALL.iter().map(|op_dsc| {
             let op = &op_dsc.op;
             let payload_type_ts = gen_ident_op_payload_ucc(op);
@@ -5364,7 +5638,10 @@ pub fn gen_pg_tbl(
         let route_open_api_parity_test_ident =
             quote::format_ident!("{}_route_open_api_parity", ident_sc_string);
         let ident_rm_payload_ucc = gen_ident_op_payload_ucc(&Op::Rm);
-        let route_open_api_parity_assertions_ts = OpDsc::ALL.iter().map(|op_dsc| {
+        let route_open_api_parity_assertions_ts = OpDsc::ALL
+            .iter()
+            .filter(|op_dsc| op_is_enabled(&op_dsc.op))
+            .map(|op_dsc| {
             let operation = op_dsc.op.self_sc_str();
             let path = format!("/{ident_sc_string}/{operation}");
             let method = match op_dsc.http_method {
@@ -5419,6 +5696,57 @@ pub fn gen_pg_tbl(
                 }
             })
         });
+        let create_excluded_fields_test_ts = if gen_pg_tbl_input_model
+            .config
+            .create_exclude_fields
+            .is_empty()
+        {
+            proc_macro2::TokenStream::new()
+        } else {
+            let test_ident =
+                quote::format_ident!("{}_create_excluded_fields_are_not_public", ident_sc_string);
+            let excluded_fields = &gen_pg_tbl_input_model.config.create_exclude_fields;
+            quote::quote! {
+                #[test]
+                fn #test_ident() {
+                    let value = serde_json::to_value(<#ident_cr_ucc as pg_crud_cmn::DfltSomeOneEl>::dflt_some_one_el()).expect("629e2f81");
+                    let properties = value.as_object().expect("e3f16d97");
+                    #(
+                        assert!(!properties.contains_key(#excluded_fields));
+                    )*
+                    let document = serde_json::to_value(#ident_open_api_ucc::open_api()).expect("46eabc30");
+                    let schema_properties = document.pointer(concat!("/components/schemas/", stringify!(#ident_cr_ucc), "/properties")).and_then(serde_json::Value::as_object).expect("b8537774");
+                    #(
+                        assert!(!schema_properties.contains_key(#excluded_fields));
+                    )*
+                }
+            }
+        };
+        let read_excluded_fields_test_ts = if gen_pg_tbl_input_model
+            .config
+            .read_exclude_fields
+            .is_empty()
+        {
+            proc_macro2::TokenStream::new()
+        } else {
+            let test_ident =
+                quote::format_ident!("{}_read_excluded_fields_are_not_public", ident_sc_string);
+            let excluded_fields = &gen_pg_tbl_input_model.config.read_exclude_fields;
+            quote::quote! {
+                #[test]
+                fn #test_ident() {
+                    let document = serde_json::to_value(#ident_open_api_ucc::open_api()).expect("5014a91c");
+                    let read_properties = document.pointer(concat!("/components/schemas/", stringify!(#ident_rd_ucc), "/properties")).and_then(serde_json::Value::as_object).expect("0241d202");
+                    let filter_properties = document.pointer(concat!("/components/schemas/", stringify!(#ident_wh_ucc), "/properties")).and_then(serde_json::Value::as_object).expect("ad94914b");
+                    let selection_schema = document.pointer(concat!("/components/schemas/", stringify!(#ident_sel_ucc))).expect("fae40d82").to_string();
+                    #(
+                        assert!(!read_properties.contains_key(#excluded_fields));
+                        assert!(!filter_properties.contains_key(#excluded_fields));
+                        assert!(!selection_schema.contains(#excluded_fields));
+                    )*
+                }
+            }
+        };
         quote::quote! {
             #[cfg(test)]
             mod #contract_tests_mod_ident {
@@ -5465,16 +5793,21 @@ pub fn gen_pg_tbl(
                 #[test]
                 fn #route_open_api_parity_test_ident() {
                     let document = serde_json::to_value(#ident_open_api_ucc::open_api()).expect("eb512de9");
-                    assert_eq!(#ident_route_contract_ucc::ALL.len(), 8usize);
-                    assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| contract.authentication() == #ident_auth_requirement_ucc::Public));
+                    assert_eq!(#ident_route_contract_ucc::ALL.len(), #enabled_operation_count);
+                    #api_mode_assertion_ts
+                    #route_auth_assertion_ts
                     let operation_ids = #ident_route_contract_ucc::ALL.into_iter().map(|contract| format!("{:?}", contract.operation())).collect::<std::collections::BTreeSet<String>>();
                     assert_eq!(operation_ids.len(), #ident_route_contract_ucc::ALL.len());
+                    assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| #ident_route_contract_ucc::for_path(contract.path()) == Some(contract)));
+                    assert!(#ident_route_contract_ucc::for_path("/unknown").is_none());
                     assert_eq!(document.get("paths").and_then(serde_json::Value::as_object).map(serde_json::Map::len), Some(#ident_route_contract_ucc::ALL.len()));
                     #(#route_open_api_parity_assertions_ts)*
                 }
                 #(#round_trip_tests_ts)*
                 #(#unknown_field_tests_ts)*
                 #(#bulk_limit_tests_ts)*
+                #create_excluded_fields_test_ts
+                #read_excluded_fields_test_ts
             }
         }
     };
@@ -5566,18 +5899,16 @@ pub fn gen_pg_tbl(
         );
         //todo instead of first dropping tbl - check if its not exists. if exists Test must fail
         let sel_dflt_all_with_max_page_size_not_empty_unq_vec_ts = {
-            let ts = gen_fields_named_with_comma_ts(
-                &|el: &macros_helpers::field_data::SynField| {
-                    let fi = &el.ident;
-                    let ft = &el.type0;
-                    let fi_ucc = naming_cmn::ToTokensToUccTs::case_or_panic(&fi);
-                    quote::quote! {
-                        #ident_sel_ucc::#fi_ucc(
-                            <<#ft as #import_ts PgType>::Sel as #import_ts #DfltSomeOneElMaxPageSizeUcc>::#DfltSomeOneElMaxPageSizeSc()
-                        )
-                    }
-                },
-            );
+            let ts = gen_read_fields_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
+                let fi = &el.ident;
+                let ft = &el.type0;
+                let fi_ucc = naming_cmn::ToTokensToUccTs::case_or_panic(&fi);
+                quote::quote! {
+                    #ident_sel_ucc::#fi_ucc(
+                        <<#ft as #import_ts PgType>::Sel as #import_ts #DfltSomeOneElMaxPageSizeUcc>::#DfltSomeOneElMaxPageSizeSc()
+                    )
+                }
+            });
             quote::quote! {
                 let sel_dflt_all_with_max_page_size = #import_ts NotEmptyUnqVec::try_new_by_hash(vec![
                     #ts

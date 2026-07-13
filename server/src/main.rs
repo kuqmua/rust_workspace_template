@@ -45,8 +45,109 @@ struct ServerConfigEr(server_config::ConfigTryFromEnvEr);
 struct SqlxServerPgConnectEr(sqlx::Error);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
+struct ServerAdminMigrateEr(server_admin::AdminMigrateEr);
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
 struct ServerPrepPgEr(#[from] server_tbl_example::TblExamplePrepPgEr);
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+struct ServerAdminAuthSvcStateBuildEr(server_admin::auth::AdminAuthSvcStateBuildEr);
 struct AxumApiRoutes(axum::Router);
+#[derive(Clone, Debug)]
+struct AdminGeneratedAuthLayer {
+    state: server_admin::auth::StdSharedAdminAuthSvcState,
+}
+#[derive(Clone, Debug)]
+struct AdminGeneratedAuthService<Service> {
+    inner: Service,
+    state: server_admin::auth::StdSharedAdminAuthSvcState,
+}
+impl<Service> tower::Layer<Service> for AdminGeneratedAuthLayer {
+    type Service = AdminGeneratedAuthService<Service>;
+    fn layer(&self, inner: Service) -> Self::Service {
+        AdminGeneratedAuthService {
+            inner,
+            state: self.state.clone(),
+        }
+    }
+}
+impl<Service> tower::Service<axum::extract::Request> for AdminGeneratedAuthService<Service>
+where
+    Service: tower::Service<axum::extract::Request, Response = axum::response::Response>
+        + Clone
+        + Send
+        + 'static,
+    Service::Future: Send + 'static,
+    Service::Error: Send + 'static,
+{
+    type Error = Service::Error;
+    type Future = std::pin::Pin<
+        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
+    >;
+    type Response = axum::response::Response;
+    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
+        let mut inner = self.inner.clone();
+        std::mem::swap(&mut inner, &mut self.inner);
+        let state = self.state.clone();
+        Box::pin(async move {
+            let path = req.uri().path();
+            let contract = server_admin::generated_tables::AdminRolesRouteContract::for_path(path)
+                .map(|contract| (contract.permission(), contract.mutates()))
+                .or_else(|| {
+                    server_admin::generated_tables::AdminRolePermissionsRouteContract::for_path(
+                        path,
+                    )
+                    .map(|contract| (contract.permission(), contract.mutates()))
+                })
+                .or_else(|| {
+                    server_admin::generated_tables::AdminPermissionsRouteContract::for_path(path)
+                        .map(|contract| (contract.permission(), contract.mutates()))
+                })
+                .or_else(|| {
+                    server_admin::generated_tables::AdminSystemSettingsRouteContract::for_path(path)
+                        .map(|contract| (contract.permission(), contract.mutates()))
+                })
+                .or_else(|| {
+                    server_admin::generated_tables::AdminUserRolesRouteContract::for_path(path)
+                        .map(|contract| (contract.permission(), contract.mutates()))
+                })
+                .or_else(|| {
+                    server_admin::generated_tables::AdminUsersRouteContract::for_path(path)
+                        .map(|contract| (contract.permission(), contract.mutates()))
+                })
+                .or_else(|| {
+                    path.ends_with("/admin/openapi.json")
+                        .then_some((Some("openapi:read"), false))
+                })
+                .or_else(|| {
+                    path.ends_with("/admin/metrics")
+                        .then_some((Some("metrics:read"), false))
+                });
+            let Some((Some(permission), mutates)) = contract else {
+                return Ok(axum::response::IntoResponse::into_response(
+                    server_admin::auth::AdminApiEr::Authorization,
+                ));
+            };
+            if let Err(er) = server_admin::auth::authorize_generated_request(
+                state.as_ref(),
+                server_admin::HttpAdminHeaderMapRef::from(req.headers()),
+                server_admin::StdAdminStrRef::from(permission),
+                server_admin::StdAdminBool::from(mutates),
+            )
+            .await
+            {
+                return Ok(axum::response::IntoResponse::into_response(er));
+            }
+            tower::Service::call(&mut inner, req).await
+        })
+    }
+    fn poll_ready(
+        &mut self,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        tower::Service::poll_ready(&mut self.inner, cx)
+    }
+}
 #[derive(Clone, Copy)]
 struct CorsAllowOriginTextRef<'text_lt>(&'text_lt str);
 #[derive(Clone, Copy)]
@@ -64,6 +165,8 @@ impl std::process::Termination for StdServerExitCode {
 }
 #[derive(Debug, thiserror::Error)]
 enum RunServerEr {
+    #[error("failed to build administrator authentication state: {0}")]
+    AdminAuthState(ServerAdminAuthSvcStateBuildEr),
     #[error("failed to bind service socket: {0}")]
     BindServiceSocket(StdServerIoEr),
     #[error("failed to build tokio runtime: {0}")]
@@ -76,6 +179,8 @@ enum RunServerEr {
     MetricsRecorder(MetricsExporterPrometheusBuildEr),
     #[error("failed to connect to postgres: {0}")]
     PgConnect(SqlxServerPgConnectEr),
+    #[error("failed to prepare administrator schema: {0}")]
+    PrepAdminPg(ServerAdminMigrateEr),
     #[error("failed to prepare postgres schema: {0}")]
     PrepPg(ServerPrepPgEr),
     #[error("invalid server runtime timeout: {0}")]
@@ -86,8 +191,53 @@ enum RunServerEr {
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
     app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
+    admin_auth_state: server_admin::auth::StdSharedAdminAuthSvcState,
     metrics_handle: MetricsExporterPrometheusHandle,
 ) -> AxumApiRoutes {
+    let generated_admin_auth_state = admin_auth_state.clone();
+    let generated_table_routes =
+        server_admin::generated_tables::AdminRoles::routes(std::sync::Arc::<
+            server_app_state::ServerAppState<'static>,
+        >::clone(app_state))
+        .merge(
+            server_admin::generated_tables::AdminRolePermissions::routes(std::sync::Arc::<
+                server_app_state::ServerAppState<'static>,
+            >::clone(
+                app_state
+            )),
+        )
+        .merge(server_admin::generated_tables::AdminPermissions::routes(
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+        ))
+        .merge(server_admin::generated_tables::AdminSystemSettings::routes(
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+        ))
+        .merge(server_admin::generated_tables::AdminUsers::routes(
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+        ))
+        .merge(server_admin::generated_tables::AdminUserRoles::routes(
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+        ));
+    let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
+        generated_table_routes.route(
+            "/openapi.json",
+            axum::routing::get(async || {
+                axum::Json(utoipa::openapi::OpenApi::from(
+                    server_admin::generated_tables::generated_open_api(),
+                ))
+            }),
+        )
+    } else {
+        generated_table_routes
+    };
+    let secured_admin_routes = documented_admin_routes
+        .route(
+            "/metrics",
+            axum::routing::get(async move || metrics_handle.0.render()),
+        )
+        .route_layer(AdminGeneratedAuthLayer {
+            state: generated_admin_auth_state,
+        });
     AxumApiRoutes(
         axum::Router::new()
             .merge(axum::Router::from(cmn_routes::cmn_routes(
@@ -100,24 +250,11 @@ fn mk_api_routes(
             >::clone(
                 app_state
             )))
-            .route(
-                "/metrics",
-                axum::routing::get(async move || metrics_handle.0.render()),
+            .nest(
+                "/admin",
+                axum::Router::from(server_admin::auth::routes(admin_auth_state)),
             )
-            .route(
-                "/api-docs/openapi.json",
-                axum::routing::get(async || {
-                    axum::Json(server_tbl_example::TblExampleOpenApi::open_api())
-                }),
-            )
-            .route(
-                "/swagger-ui",
-                axum::routing::get(async || {
-                    axum::response::Html(
-                        r#"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Swagger UI</title><link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></head><body><div id="swagger-ui"></div><script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script><script>window.onload=()=>SwaggerUIBundle({url:'/api-docs/openapi.json',dom_id:'#swagger-ui'});</script></body></html>"#,
-                    )
-                }),
-            ),
+            .nest("/admin", secured_admin_routes),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
@@ -225,6 +362,9 @@ async fn run_server() -> Result<(), RunServerEr> {
     let config = server_config::Config::try_from_env()
         .map_err(|er| RunServerEr::Config(ServerConfigEr(er)))?;
     let pg_pool = mk_pg_pool(&config).await?;
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
+        .await
+        .map_err(|er| RunServerEr::PrepAdminPg(ServerAdminMigrateEr(er)))?;
     server_tbl_example::TblExample::prep_pg(pg_pool.as_ref())
         .await
         .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
@@ -236,12 +376,30 @@ async fn run_server() -> Result<(), RunServerEr> {
     let cors_origins = parse_cors_allow_origin(CorsAllowOriginTextRef(
         config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config),
     ));
+    let admin_auth_state =
+        server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(
+            server_admin::auth::AdminAuthSvcState::try_new(
+                pg_pool.clone(),
+                &config.admin_jwt_secret,
+                &config.admin_access_token_ttl_seconds,
+                &config.admin_refresh_token_ttl_seconds,
+                &config.admin_session_limit,
+                &config.admin_sign_in_rate_limit,
+                &config.admin_password_hash_concurrency,
+                &config.admin_cookie_secure,
+                &config.admin_token_issuer,
+                &config.admin_token_audience,
+                &config.cors_allow_origin,
+            )
+            .map_err(|er| RunServerEr::AdminAuthState(ServerAdminAuthSvcStateBuildEr(er)))?,
+        ));
+    let swagger_enabled = *config.admin_swagger_enabled;
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
         .map(MetricsExporterPrometheusHandle)
         .map_err(|er| RunServerEr::MetricsRecorder(MetricsExporterPrometheusBuildEr(er)))?;
-    let api_routes = mk_api_routes(&app_state, metrics_handle);
+    let api_routes = mk_api_routes(&app_state, admin_auth_state, metrics_handle);
     let governor_conf = std::sync::Arc::new(
         tower_governor::governor::GovernorConfigBuilder::default()
             .per_second(2)
@@ -257,13 +415,33 @@ async fn run_server() -> Result<(), RunServerEr> {
             .apply(
                 server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
                     server_runtime::AxumRouter::from(
-                        axum::Router::new().nest("/api/v1", api_routes.0).layer(
-                            tower::ServiceBuilder::new()
-                                .layer(
-                                    tower_http::cors::CorsLayer::new().allow_origin(cors_origins.0),
-                                )
-                                .layer(tower_governor::GovernorLayer::new(governor_conf)),
-                        ),
+                        axum::Router::new()
+                            .nest("/api/v1", api_routes.0)
+                            .merge(axum::Router::from(if swagger_enabled {
+                                server_admin_frontend::routes()
+                            } else {
+                                server_admin_frontend::routes_without_swagger()
+                            }))
+                            .layer(
+                                tower::ServiceBuilder::new()
+                                    .layer(
+                                        tower_http::cors::CorsLayer::new()
+                                            .allow_origin(cors_origins.0)
+                                            .allow_credentials(true)
+                                            .allow_headers([
+                                                axum::http::header::CONTENT_TYPE,
+                                                axum::http::HeaderName::from_static("x-csrf-token"),
+                                            ])
+                                            .allow_methods([
+                                                axum::http::Method::GET,
+                                                axum::http::Method::POST,
+                                                axum::http::Method::PUT,
+                                                axum::http::Method::PATCH,
+                                                axum::http::Method::DELETE,
+                                            ]),
+                                    )
+                                    .layer(tower_governor::GovernorLayer::new(governor_conf)),
+                            ),
                     ),
                 ),
             ),

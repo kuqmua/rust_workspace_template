@@ -114,6 +114,10 @@ to_err_string = { workspace = true }
                 let ts = gen_pg_tbl_src::gen_pg_tbl(
                     macros_helpers::ts_writer::ProcMacro2TsRef::from(&gen_pg_tbl_input_ts),
                 );
+                let repeated_ts = gen_pg_tbl_src::gen_pg_tbl(
+                    macros_helpers::ts_writer::ProcMacro2TsRef::from(&gen_pg_tbl_input_ts),
+                );
+                assert_eq!(ts.to_string(), repeated_ts.to_string());
                 let tbl_struct_ts = gen_tbl_example_ts(AddGenPgTblPk::False);
                 quote::quote! {
                     #ts

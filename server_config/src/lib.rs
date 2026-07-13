@@ -4,6 +4,14 @@ pub struct Config {
     //todo mb auto gen .env and docker-compose environment variables. and mb write in directly into files
     pub cors_allow_origin: config_lib::CorsAllowOrigin,
     pub database_url: config_lib::DatabaseUrl,
+    pub admin_jwt_secret: config_lib::AdminJwtSecret,
+    pub admin_token_audience: config_lib::AdminTokenAudience,
+    pub admin_token_issuer: config_lib::AdminTokenIssuer,
+    pub admin_access_token_ttl_seconds: config_lib::AdminAccessTokenTtlSeconds,
+    pub admin_password_hash_concurrency: config_lib::AdminPasswordHashConcurrency,
+    pub admin_refresh_token_ttl_seconds: config_lib::AdminRefreshTokenTtlSeconds,
+    pub admin_session_limit: config_lib::AdminSessionLimit,
+    pub admin_sign_in_rate_limit: config_lib::AdminSignInRateLimit,
     pub maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
     pub service_socket_address: config_lib::ServiceSocketAddress,
     pub pg_pool_max_connections: config_lib::PgPoolMaxConnections,
@@ -11,6 +19,8 @@ pub struct Config {
     pub src_place_type: config_lib::SrcPlaceType,
     pub tracing_level: config_lib::TracingLevel,
     pub enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck,
+    pub admin_cookie_secure: config_lib::AdminCookieSecure,
+    pub admin_swagger_enabled: config_lib::AdminSwaggerEnabled,
 }
 impl config_lib::GetCorsAllowOrigin for Config {
     fn get_cors_allow_origin(&self) -> &String {
@@ -55,6 +65,41 @@ impl config_lib::GetTracingLevel for Config {
 impl config_lib::GetEnableApiGitCommitCheck for Config {
     fn get_enable_api_git_commit_check(&self) -> &bool {
         &self.enable_api_git_commit_check.0
+    }
+}
+impl config_lib::GetAdminAccessTokenTtlSeconds for Config {
+    fn get_admin_access_token_ttl_seconds(&self) -> &config_lib::StdNonZeroU64 {
+        &self.admin_access_token_ttl_seconds
+    }
+}
+impl config_lib::GetAdminCookieSecure for Config {
+    fn get_admin_cookie_secure(&self) -> &bool {
+        &self.admin_cookie_secure
+    }
+}
+impl config_lib::GetAdminJwtSecret for Config {
+    fn get_admin_jwt_secret(&self) -> &config_lib::SecrecySecretBoxString {
+        self.admin_jwt_secret.as_ref()
+    }
+}
+impl config_lib::GetAdminPasswordHashConcurrency for Config {
+    fn get_admin_password_hash_concurrency(&self) -> &config_lib::StdNonZeroUsize {
+        &self.admin_password_hash_concurrency
+    }
+}
+impl config_lib::GetAdminRefreshTokenTtlSeconds for Config {
+    fn get_admin_refresh_token_ttl_seconds(&self) -> &config_lib::StdNonZeroU64 {
+        &self.admin_refresh_token_ttl_seconds
+    }
+}
+impl config_lib::GetAdminTokenAudience for Config {
+    fn get_admin_token_audience(&self) -> &String {
+        self.admin_token_audience.as_ref()
+    }
+}
+impl config_lib::GetAdminTokenIssuer for Config {
+    fn get_admin_token_issuer(&self) -> &String {
+        self.admin_token_issuer.as_ref()
     }
 }
 impl config_lib::GetCorsAllowOrigin for &Config {
@@ -102,8 +147,53 @@ impl config_lib::GetEnableApiGitCommitCheck for &Config {
         Config::get_enable_api_git_commit_check(self)
     }
 }
+impl config_lib::GetAdminAccessTokenTtlSeconds for &Config {
+    fn get_admin_access_token_ttl_seconds(&self) -> &config_lib::StdNonZeroU64 {
+        Config::get_admin_access_token_ttl_seconds(self)
+    }
+}
+impl config_lib::GetAdminCookieSecure for &Config {
+    fn get_admin_cookie_secure(&self) -> &bool {
+        Config::get_admin_cookie_secure(self)
+    }
+}
+impl config_lib::GetAdminJwtSecret for &Config {
+    fn get_admin_jwt_secret(&self) -> &config_lib::SecrecySecretBoxString {
+        Config::get_admin_jwt_secret(self)
+    }
+}
+impl config_lib::GetAdminPasswordHashConcurrency for &Config {
+    fn get_admin_password_hash_concurrency(&self) -> &config_lib::StdNonZeroUsize {
+        Config::get_admin_password_hash_concurrency(self)
+    }
+}
+impl config_lib::GetAdminRefreshTokenTtlSeconds for &Config {
+    fn get_admin_refresh_token_ttl_seconds(&self) -> &config_lib::StdNonZeroU64 {
+        Config::get_admin_refresh_token_ttl_seconds(self)
+    }
+}
+impl config_lib::GetAdminTokenAudience for &Config {
+    fn get_admin_token_audience(&self) -> &String {
+        Config::get_admin_token_audience(self)
+    }
+}
+impl config_lib::GetAdminTokenIssuer for &Config {
+    fn get_admin_token_issuer(&self) -> &String {
+        Config::get_admin_token_issuer(self)
+    }
+}
 #[cfg(test)]
 mod tests {
+    fn env<T>(value: &str) -> T
+    where
+        T: config_lib::TryFromStdEnvVarOk,
+        T::Error: std::fmt::Debug,
+    {
+        T::try_from_std_env_var_ok(
+            config_lib::StdEnvVarOk::try_from(value.to_owned()).expect("aa12cd88"),
+        )
+        .expect("741e5201")
+    }
     #[test]
     fn generated_getters_return_expected_refs_and_values() {
         let cfg =
@@ -112,6 +202,15 @@ mod tests {
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
                     "postgres://db".to_owned(),
                 ))),
+                admin_jwt_secret: env("test-only-admin-jwt-secret-with-32-bytes"),
+                admin_token_audience: env("test-audience"),
+                admin_token_issuer: env("test-issuer"),
+                admin_access_token_ttl_seconds: env("900"),
+                admin_password_hash_concurrency: env("4"),
+                admin_refresh_token_ttl_seconds: env("2592000"),
+                admin_session_limit: env("20"),
+                admin_sign_in_rate_limit: env("10"),
+                admin_swagger_enabled: env("true"),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a"),
                 service_socket_address: config_lib::ServiceSocketAddress(
@@ -126,6 +225,7 @@ mod tests {
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
+                admin_cookie_secure: env("false"),
             };
         assert_eq!(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),

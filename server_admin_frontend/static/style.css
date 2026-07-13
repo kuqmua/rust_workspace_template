@@ -1,0 +1,59 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+body {
+  margin: 0;
+}
+header {
+  align-items: center;
+  border-bottom: 1px solid #8885;
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+nav {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+main {
+  margin: 0 auto;
+  max-width: 80rem;
+  padding: 1rem;
+}
+form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 28rem;
+}
+input,
+button {
+  font: inherit;
+  margin: 0.15rem;
+  padding: 0.55rem;
+}
+button {
+  cursor: pointer;
+}
+pre {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th,
+td {
+  border-bottom: 1px solid #8885;
+  padding: 0.5rem;
+  text-align: left;
+}
+.error {
+  color: #c62828;
+}
+.hidden {
+  display: none;
+}

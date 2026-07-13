@@ -30,6 +30,22 @@ mod tests {
         .expect("13df9134");
     }
     #[test]
+    fn generated_output_is_deterministic() {
+        let config = quote::quote! {{
+            "pg_tbl_cols_write_into_file": "False",
+            "whole_write_into_file": "False",
+            "generate_secret_text": true,
+            "vrt": "All"
+        }};
+        let first = gen_pg_types_src::gen_pg_types(
+            macros_helpers::ts_writer::ProcMacro2TsRef::from(&config),
+        );
+        let second = gen_pg_types_src::gen_pg_types(
+            macros_helpers::ts_writer::ProcMacro2TsRef::from(&config),
+        );
+        assert_eq!(first.to_string(), second.to_string());
+    }
+    #[test]
     fn clippy() {
         macro_clippy_check_cmn::clippy_check(
             "gen_pg_types_test_cnt",
@@ -58,6 +74,7 @@ test-utils = []",
                     {
                         "pg_tbl_cols_write_into_file": "False",
                         "whole_write_into_file": "False",
+                        "generate_secret_text": true,
                         "vrt": "All"
                     }
                 },
@@ -267,5 +284,24 @@ test-utils = []",
             pg_types_numeric::I16AsNnInt2UpdForQuery,
             pg_types_numeric::I16AsNnInt2Orgn,
         >();
+    }
+    #[test]
+    fn generated_secret_text_is_redacted_and_borrowable() {
+        fn assert_traits<T>()
+        where
+            T: Clone
+                + Eq
+                + std::fmt::Debug
+                + AsRef<str>
+                + std::borrow::Borrow<str>
+                + sqlx::Type<sqlx::Postgres>,
+        {
+        }
+        assert_traits::<pg_types_text_misc::StringAsNnTextSecret>();
+        let secret = pg_types_text_misc::StringAsNnTextSecret::from("secret-value".to_owned());
+        assert_eq!(format!("{secret:?}"), "[REDACTED]");
+        let borrowed = pg_types_text_misc::StringAsNnTextSecretRef::from(&secret);
+        assert_eq!(format!("{borrowed:?}"), "[REDACTED]");
+        assert_eq!(borrowed.as_ref(), "secret-value");
     }
 }

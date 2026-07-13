@@ -812,7 +812,13 @@ where
 {
     let (shutdown_started_tx, shutdown_started_rx) = tokio::sync::oneshot::channel();
     let server = IntoFuture::into_future(
-        axum::serve(listener.0, router.0.into_make_service()).with_graceful_shutdown(async move {
+        axum::serve(
+            listener.0,
+            router
+                .0
+                .into_make_service_with_connect_info::<std::net::SocketAddr>(),
+        )
+        .with_graceful_shutdown(async move {
             shutdown.await;
             let _send_result = shutdown_started_tx.send(());
         }),
