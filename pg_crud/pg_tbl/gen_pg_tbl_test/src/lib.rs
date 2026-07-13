@@ -67,11 +67,26 @@ mod tests {
         assert!(generated.to_string().contains("bc1d3b08"));
     }
     #[test]
+    fn generated_metrics_use_bounded_labels() {
+        let input = table_input(&quote::quote! {
+            pub col_0: pg_types_numeric::I16AsNnInt2,
+        });
+        let generated =
+            gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ts_writer::ProcMacro2TsRef::from(&input))
+                .to_string();
+        assert!(generated.contains("pg_tbl_requests_total"));
+        assert!(generated.contains("\"table\" => \"tbl_example\""));
+        assert!(generated.contains("\"status\" => \"409\""));
+        assert!(generated.contains("\"status\" => \"425\""));
+        assert!(!generated.contains("\"table\" => tbl_owned"));
+    }
+    #[test]
     fn clippy() {
         macro_clippy_check_cmn::clippy_check(
             "gen_pg_tbl_test_cnt",
             "../pg_crud/pg_tbl/",
             r#"[dependencies]
+app_state = { workspace = true }
 axum = { workspace = true }
 futures = { workspace = true }
 frontend_contract = { workspace = true }
@@ -97,6 +112,7 @@ pg_types_text_misc = { workspace = true }
 gen_pg_tbl = { workspace = true }
 optml = { workspace = true }
 route_validators = { workspace = true }
+server_runtime = { workspace = true }
 to_err_string = { workspace = true }
 "#,
             &{

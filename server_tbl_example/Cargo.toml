@@ -11,6 +11,7 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
+app_state = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }
 reqwest = { workspace = true }
@@ -34,6 +35,10 @@ pg_crud_cmn = { workspace = true, features = ["test-utils"] }
 pg_types_numeric = { workspace = true, features = ["test-utils"] }
 pg_types_text_misc = { workspace = true, features = ["test-utils"] }
 route_validators = { workspace = true }
+server_runtime = { workspace = true }
+server_app_state = { workspace = true, features = ["test-utils"] }
+tower = { workspace = true }
+tokio = { workspace = true }
 optml = { workspace = true }
 to_err_string = { workspace = true }
 [lints]

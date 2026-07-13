@@ -1,5 +1,120 @@
 const REQUEST_ID_HEADER_NAME: &str = "x-request-id";
 const CORRELATION_ID_HEADER_NAME: &str = "x-correlation-id";
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ResourceBudgetMaximum(usize);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ResourceBudgetAmount(usize);
+impl From<usize> for ResourceBudgetAmount {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug)]
+struct StdAtomicUsize(std::sync::atomic::AtomicUsize);
+#[derive(Clone, Debug)]
+struct StdSharedAtomicUsize(std::sync::Arc<StdAtomicUsize>);
+impl TryFrom<usize> for ResourceBudgetMaximum {
+    type Error = ResourceBudgetConfigEr;
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == 0usize {
+            Err(ResourceBudgetConfigEr)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(value.get())
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ResourceBudgetConfigEr;
+impl std::fmt::Display for ResourceBudgetConfigEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("resource budget maximum must be greater than zero")
+    }
+}
+impl std::error::Error for ResourceBudgetConfigEr {}
+#[derive(Clone, Debug)]
+pub struct ResourceBudget {
+    maximum: ResourceBudgetMaximum,
+    reserved: StdSharedAtomicUsize,
+}
+pub trait GetBulkItemResourceBudget {
+    fn get_bulk_item_resource_budget(&self) -> &ResourceBudget;
+}
+pub trait GetIdempotencyResponseResourceBudget {
+    fn get_idempotency_response_resource_budget(&self) -> &ResourceBudget;
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ResourceBudgetReserveEr {
+    Exhausted,
+    Overflow,
+}
+impl std::fmt::Display for ResourceBudgetReserveEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Exhausted => f.write_str("resource budget exhausted"),
+            Self::Overflow => f.write_str("resource budget reservation overflow"),
+        }
+    }
+}
+impl std::error::Error for ResourceBudgetReserveEr {}
+#[derive(Debug)]
+#[must_use]
+pub struct ResourceBudgetReservation {
+    amount: ResourceBudgetAmount,
+    reserved: StdSharedAtomicUsize,
+}
+impl ResourceBudget {
+    #[must_use]
+    pub fn new(maximum: ResourceBudgetMaximum) -> Self {
+        Self {
+            maximum,
+            reserved: StdSharedAtomicUsize(std::sync::Arc::from(StdAtomicUsize(
+                std::sync::atomic::AtomicUsize::new(0usize),
+            ))),
+        }
+    }
+    pub fn reserve(
+        &self,
+        amount: ResourceBudgetAmount,
+    ) -> Result<ResourceBudgetReservation, ResourceBudgetReserveEr> {
+        let result = self.reserved.0.0.try_update(
+            std::sync::atomic::Ordering::AcqRel,
+            std::sync::atomic::Ordering::Acquire,
+            |current| {
+                current
+                    .checked_add(amount.0)
+                    .filter(|next| *next <= self.maximum.0)
+            },
+        );
+        match result {
+            Ok(_previous) => Ok(ResourceBudgetReservation {
+                amount,
+                reserved: self.reserved.clone(),
+            }),
+            Err(current) if current.checked_add(amount.0).is_none() => {
+                Err(ResourceBudgetReserveEr::Overflow)
+            }
+            Err(_current) => Err(ResourceBudgetReserveEr::Exhausted),
+        }
+    }
+    #[must_use]
+    pub fn reserved(&self) -> ResourceBudgetAmount {
+        ResourceBudgetAmount::from(self.reserved.0.0.load(std::sync::atomic::Ordering::Acquire))
+    }
+}
+impl Drop for ResourceBudgetReservation {
+    fn drop(&mut self) {
+        let _previous = self
+            .reserved
+            .0
+            .0
+            .fetch_sub(self.amount.0, std::sync::atomic::Ordering::AcqRel);
+    }
+}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RequestId(String);
 impl std::fmt::Display for RequestId {
@@ -837,6 +952,87 @@ where
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn resource_budget_reservations_are_bounded_and_released() {
+        let budget = super::ResourceBudget::new(
+            super::ResourceBudgetMaximum::try_from(5usize).expect("0c6362a4"),
+        );
+        let first = budget
+            .reserve(super::ResourceBudgetAmount::from(3usize))
+            .expect("3bfeb37c");
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(3usize));
+        assert_eq!(
+            budget
+                .reserve(super::ResourceBudgetAmount::from(3usize))
+                .expect_err("3c31187b"),
+            super::ResourceBudgetReserveEr::Exhausted
+        );
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(3usize));
+        let second = budget
+            .reserve(super::ResourceBudgetAmount::from(2usize))
+            .expect("d86085db");
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(5usize));
+        drop(first);
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(2usize));
+        drop(second);
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(0usize));
+    }
+    #[test]
+    fn resource_budget_reports_overflow_without_changing_count() {
+        let budget = super::ResourceBudget::new(
+            super::ResourceBudgetMaximum::try_from(usize::MAX).expect("65f2f229"),
+        );
+        let reservation = budget
+            .reserve(super::ResourceBudgetAmount::from(1usize))
+            .expect("1a2bb321");
+        assert_eq!(
+            budget
+                .reserve(super::ResourceBudgetAmount::from(usize::MAX))
+                .expect_err("e317c775"),
+            super::ResourceBudgetReserveEr::Overflow
+        );
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(1usize));
+        drop(reservation);
+    }
+    #[test]
+    fn concurrent_resource_budget_reservations_never_exceed_maximum() {
+        let budget = super::ResourceBudget::new(
+            super::ResourceBudgetMaximum::try_from(5usize).expect("57a61ca4"),
+        );
+        let start = std::sync::Arc::new(std::sync::Barrier::new(3usize));
+        let finish = std::sync::Arc::new(std::sync::Barrier::new(3usize));
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::scope(|scope| {
+            let left_budget = budget.clone();
+            let left_start = std::sync::Arc::clone(&start);
+            let left_finish = std::sync::Arc::clone(&finish);
+            let left_tx = tx.clone();
+            let _left_handle = scope.spawn(move || {
+                let _start_result = left_start.wait();
+                let reservation = left_budget.reserve(super::ResourceBudgetAmount::from(3usize));
+                left_tx.send(reservation.is_ok()).expect("b048535e");
+                let _finish_result = left_finish.wait();
+                drop(reservation);
+            });
+            let right_budget = budget.clone();
+            let right_start = std::sync::Arc::clone(&start);
+            let right_finish = std::sync::Arc::clone(&finish);
+            let right_tx = tx.clone();
+            let _right_handle = scope.spawn(move || {
+                let _start_result = right_start.wait();
+                let reservation = right_budget.reserve(super::ResourceBudgetAmount::from(3usize));
+                right_tx.send(reservation.is_ok()).expect("cd734995");
+                let _finish_result = right_finish.wait();
+                drop(reservation);
+            });
+            let _start_result = start.wait();
+            let outcomes = [rx.recv().expect("7393afca"), rx.recv().expect("67824b65")];
+            assert_eq!(outcomes.into_iter().filter(|value| *value).count(), 1usize);
+            assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(3usize));
+            let _finish_result = finish.wait();
+        });
+        assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(0usize));
+    }
     #[tokio::test]
     async fn async_run_history_keeps_latest_reports() {
         let history = super::AsyncRunHistory::new(

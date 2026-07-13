@@ -78,6 +78,12 @@ impl frontend_contract::Transport for GlooTransport {
                 .credentials(web_sys::RequestCredentials::Include)
                 .header("Content-Type", "application/json")
                 .header("commit", git_info::PROJECT_GIT_INFO.commit.as_ref());
+            if let Some(idempotency_key) = request.idempotency_key() {
+                builder = builder.header("Idempotency-Key", idempotency_key.as_ref());
+            }
+            if let Some(if_match) = request.if_match() {
+                builder = builder.header("If-Match", if_match.as_ref());
+            }
             if route.mutation() == frontend_contract::MutationKind::Mutating
                 && let Some(token) = csrf_token()
             {
@@ -106,13 +112,31 @@ impl frontend_contract::Transport for GlooTransport {
         })
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct AdminApiClient {
+    auth_refresh: std::sync::Arc<std::sync::RwLock<AuthRefreshCoordinator>>,
     transport: GlooTransport,
 }
+#[derive(Default)]
+struct AuthRefreshCoordinator {
+    state: crate::auth_keep_alive::AuthRefreshState,
+    waiters: Vec<futures::channel::oneshot::Sender<Result<(), ApiEr>>>,
+}
+enum AuthRefreshWork {
+    Start,
+    Join(futures::channel::oneshot::Receiver<Result<(), ApiEr>>),
+}
+fn auth_refresh_state_er() -> ApiEr {
+    ApiEr::Request(Text::from(
+        "authentication refresh state is unavailable".to_owned(),
+    ))
+}
 impl AdminApiClient {
-    const fn new() -> Self {
+    fn new() -> Self {
         Self {
+            auth_refresh: std::sync::Arc::from(std::sync::RwLock::new(
+                AuthRefreshCoordinator::default(),
+            )),
             transport: GlooTransport,
         }
     }
@@ -146,21 +170,136 @@ impl AdminApiClient {
         route: server_admin_contract::AdminRoute,
         body: Vec<u8>,
     ) -> Result<frontend_contract::TransportResponse, ApiEr> {
-        let path = route.path();
-        let request = frontend_contract::TransportRequest::new(
-            frontend_contract::TransportBody::from(body),
-            frontend_contract::TransportPath::try_from(path.as_ref().to_owned())
-                .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?,
-            route.contract(),
-        );
-        let response = frontend_contract::Transport::send(&self.transport, request)
-            .await
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
+        let response = self.transport_response_once(route, body.as_slice()).await?;
+        if u16::from(response.status()) == 401u16
+            && !matches!(
+                route,
+                server_admin_contract::AdminRoute::Refresh
+                    | server_admin_contract::AdminRoute::SignIn
+            )
+        {
+            self.refresh_session().await?;
+            return self
+                .transport_response_once(route, body.as_slice())
+                .await
+                .and_then(|retried| {
+                    let expected = success_status(route.contract().success_status());
+                    if retried.status() == expected {
+                        Ok(retried)
+                    } else {
+                        Err(response_er(retried.status(), retried.body().as_ref()))
+                    }
+                });
+        }
         let expected = success_status(route.contract().success_status());
         if response.status() != expected {
             return Err(response_er(response.status(), response.body().as_ref()));
         }
         Ok(response)
+    }
+    async fn transport_response_once(
+        &self,
+        route: server_admin_contract::AdminRoute,
+        body: &[u8],
+    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+        Self::send_once(self.transport, route, body).await
+    }
+    async fn send_once(
+        transport: GlooTransport,
+        route: server_admin_contract::AdminRoute,
+        body: &[u8],
+    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+        let path = route.path();
+        let request = frontend_contract::TransportRequest::new(
+            frontend_contract::TransportBody::from(body.to_vec()),
+            frontend_contract::TransportPath::try_from(path.as_ref().to_owned())
+                .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?,
+            route.contract(),
+        );
+        frontend_contract::Transport::send(&transport, request)
+            .await
+            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
+    }
+    async fn refresh_session(&self) -> Result<(), ApiEr> {
+        let now = crate::auth_keep_alive::StdAuthRefreshInstant::now();
+        let work = match self
+            .auth_refresh
+            .write()
+            .map_err(|_error| auth_refresh_state_er())?
+            .state
+            .begin(now)
+        {
+            crate::auth_keep_alive::AuthRefreshBegin::Start => AuthRefreshWork::Start,
+            crate::auth_keep_alive::AuthRefreshBegin::Join => {
+                let (sender, receiver) = futures::channel::oneshot::channel();
+                self.auth_refresh
+                    .write()
+                    .map_err(|_error| auth_refresh_state_er())?
+                    .waiters
+                    .push(sender);
+                AuthRefreshWork::Join(receiver)
+            }
+            crate::auth_keep_alive::AuthRefreshBegin::Rejected => {
+                redirect("/admin/sign-in");
+                return Err(ApiEr::Status(
+                    401u16,
+                    Text::from("authentication refresh rejected".to_owned()),
+                ));
+            }
+            crate::auth_keep_alive::AuthRefreshBegin::Wait => {
+                return Err(ApiEr::Request(Text::from(
+                    "authentication refresh retry is delayed".to_owned(),
+                )));
+            }
+        };
+        if let AuthRefreshWork::Join(receiver) = work {
+            return receiver.await.map_err(|_error| auth_refresh_state_er())?;
+        }
+        let response = Self::send_once(
+            self.transport,
+            server_admin_contract::AdminRoute::Refresh,
+            &[],
+        )
+        .await;
+        let result = response.and_then(|value| {
+            let expected = success_status(
+                server_admin_contract::AdminRoute::Refresh
+                    .contract()
+                    .success_status(),
+            );
+            if value.status() == expected {
+                Ok(())
+            } else {
+                Err(response_er(value.status(), value.body().as_ref()))
+            }
+        });
+        let outcome = match &result {
+            Ok(()) => crate::auth_keep_alive::AuthRefreshOutcome::Refreshed,
+            Err(ApiEr::Status(401u16 | 403u16, _detail)) => {
+                crate::auth_keep_alive::AuthRefreshOutcome::Rejected
+            }
+            Err(ApiEr::Request(_) | ApiEr::Status(_, _)) => {
+                crate::auth_keep_alive::AuthRefreshOutcome::TemporaryFailure
+            }
+        };
+        let waiters = {
+            let mut coordinator = self
+                .auth_refresh
+                .write()
+                .map_err(|_error| auth_refresh_state_er())?;
+            coordinator.state.finish(outcome, now);
+            std::mem::take(&mut coordinator.waiters)
+        };
+        waiters.into_iter().for_each(|sender| {
+            let _send_result = sender.send(result.clone());
+        });
+        if matches!(
+            outcome,
+            crate::auth_keep_alive::AuthRefreshOutcome::Rejected
+        ) {
+            redirect("/admin/sign-in");
+        }
+        result
     }
     async fn audit(&self) -> Result<Vec<server_admin_contract::AdminAuditView>, ApiEr> {
         self.get(server_admin_contract::AdminRoute::Audit).await
@@ -222,9 +361,9 @@ fn success_status(status: frontend_contract::SuccessStatus) -> frontend_contract
     }
 }
 fn response_er(status: frontend_contract::TransportStatus, body: &[u8]) -> ApiEr {
-    let detail = serde_json::from_slice::<server_admin_contract::AdminApiErBody>(body).map_or_else(
+    let detail = serde_json::from_slice::<frontend_contract::ApiProblem>(body).map_or_else(
         |_| Text::from("request failed".to_owned()),
-        |body| Text::from(body.code().to_string()),
+        |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
     ApiEr::Status(u16::from(status), detail)
 }

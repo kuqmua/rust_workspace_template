@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[allow(clippy::needless_for_each)] // table-driven assertions avoid repository-forbidden for loops
 mod tests {
     #[derive(Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     struct JsonContractValue {
@@ -10,6 +11,56 @@ mod tests {
             macros_helpers::json_contract::JsonFixtureRef::from(r#"{"value":[1,2]}"#),
         )
         .expect("46f3bec1");
+    }
+    #[test]
+    fn text_search_patterns_escape_reserved_symbols_for_every_mode() {
+        let cases = [
+            (wh_flts::TextSearchMode::Contains, r"%a\%\_b%"),
+            (wh_flts::TextSearchMode::StartsWith, r"a\%\_b%"),
+            (wh_flts::TextSearchMode::EndsWith, r"%a\%\_b"),
+        ];
+        cases.into_iter().for_each(|(mode, expected)| {
+            let pattern = wh_flts::build_text_search_pattern("a%_b", mode).expect("bfcd929a");
+            assert_eq!(pattern.as_ref(), expected);
+        });
+    }
+    #[test]
+    fn text_search_rejects_empty_and_oversized_values() {
+        assert_eq!(
+            wh_flts::build_text_search_pattern("", wh_flts::TextSearchMode::Contains),
+            Err(wh_flts::TextSearchValueEr::Empty)
+        );
+        let oversized = "a".repeat(wh_flts::TEXT_SEARCH_MAXIMUM_INPUT_BYTES.saturating_add(1usize));
+        assert_eq!(
+            wh_flts::build_text_search_pattern(
+                oversized.as_str(),
+                wh_flts::TextSearchMode::Contains
+            ),
+            Err(wh_flts::TextSearchValueEr::TooLong {
+                actual_bytes: oversized.len(),
+                maximum_bytes: wh_flts::TEXT_SEARCH_MAXIMUM_INPUT_BYTES,
+            })
+        );
+    }
+    #[test]
+    fn text_search_query_fragment_uses_ilike_escape_and_ordered_placeholder() {
+        let filter = wh_flts::PgTypeWhTextSearch::try_new(
+            pg_crud_cmn::Oprtr::And,
+            wh_flts::TextSearchMode::Contains,
+            "literal%value".to_owned(),
+        )
+        .expect("20d018ab");
+        let mut parameter_index = 4u64;
+        let column = "display_name".to_owned();
+        let fragment = <wh_flts::PgTypeWhTextSearch as pg_crud_cmn::PgTypeWhFlt>::qp(
+            &filter,
+            &mut parameter_index,
+            pg_crud_cmn::SqlColRef::from(&column),
+            pg_crud_cmn::AddOprtr::from(true),
+        )
+        .expect("509f61f8");
+        assert_eq!(fragment.as_ref(), "and display_name ILIKE $5 ESCAPE '\\'");
+        assert_eq!(parameter_index, 5u64);
     }
     #[test]
     fn clippy() {

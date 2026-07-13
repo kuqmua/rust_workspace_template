@@ -1,6 +1,8 @@
 #![cfg_attr(target_arch = "wasm32", allow(clippy::absolute_paths))]
 #[cfg(target_arch = "wasm32")]
 pub mod app;
+#[cfg(any(target_arch = "wasm32", test))]
+mod auth_keep_alive;
 #[cfg(not(target_arch = "wasm32"))]
 const ADMIN_OPEN_API_HTML: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Admin API</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body><main><h1>Admin API</h1><pre id=\"openapi\">Loading OpenAPI document...</pre></main><script src=\"/admin/assets/swagger.js\" defer></script></body></html>";
 #[cfg(not(target_arch = "wasm32"))]
@@ -98,6 +100,7 @@ mod tests {
             "AdminRoute::Settings",
             "AdminRoute::Metrics",
             "AdminRoute::SignIn",
+            "AdminRoute::Refresh",
             "AdminRoute::SignOut",
             "TransportRequest::new",
             "RequestCredentials::Include",

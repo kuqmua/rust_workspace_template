@@ -355,9 +355,13 @@ pub fn gen_pg_tbl(
         permission_prefix: Option<String>,
         #[serde(default)]
         um_max_items: Option<StdBulkItemsMax>,
+        #[serde(default)]
+        optimistic_revision_field: Option<String>,
         tests_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         cmn_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
+        #[serde(default)]
+        idempotent_mutations: bool,
         #[serde(default)]
         api_mode: GenPgTblApiMode,
     }
@@ -1278,14 +1282,53 @@ pub fn gen_pg_tbl(
         || fields_without_pk_iter().filter(|field| !read_field_is_excluded(field));
     let read_fields = read_fields_iter().cloned().collect::<Vec<_>>();
     let read_fields_len = read_fields.len();
+    let optimistic_revision_field_idx = if let Some(revision_field_name) = gen_pg_tbl_input_model
+        .config
+        .optimistic_revision_field
+        .as_ref()
+    {
+        let Some(field_idx) = fields
+            .iter()
+            .position(|field| field.ident.to_string() == *revision_field_name)
+        else {
+            return compile_error_ts(CompileErrorMsg(
+                "f7ea4b19: optimistic_revision_field must name an existing field",
+            ));
+        };
+        let revision_type_is_valid = fields.get(field_idx).is_some_and(|field| {
+            let syn::Type::Path(type_path) = &*field.type0 else {
+                return false;
+            };
+            type_path.path.segments.last().is_some_and(|segment| {
+                matches!(
+                    segment.ident.to_string().as_str(),
+                    "I64AsNnInt8" | "I64AsNnBigSerialInitByPg"
+                )
+            })
+        });
+        if field_idx == pk_field_idx.get() || !revision_type_is_valid {
+            return compile_error_ts(CompileErrorMsg(
+                "45dff0e2: optimistic_revision_field must be a non-primary-key signed 64-bit field",
+            ));
+        }
+        Some(field_idx)
+    } else {
+        None
+    };
+    let optimistic_revision_field_ident = optimistic_revision_field_idx
+        .and_then(|field_idx| fields.get(field_idx))
+        .map(|field| field.ident.clone());
     let op_is_enabled = |op: &Op| match gen_pg_tbl_input_model.config.api_mode {
-        GenPgTblApiMode::Crud => true,
+        GenPgTblApiMode::Crud => optimistic_revision_field_idx.is_none() || !matches!(op, Op::Um),
         GenPgTblApiMode::AppendOnly => matches!(op, Op::Cm | Op::Co | Op::Rm | Op::Ro),
         GenPgTblApiMode::CreateReadDelete => {
             matches!(op, Op::Cm | Op::Co | Op::Rm | Op::Ro | Op::Dm | Op::Dlo)
         }
         GenPgTblApiMode::ReadOnly => matches!(op, Op::Rm | Op::Ro),
-        GenPgTblApiMode::ReadUpdate => matches!(op, Op::Rm | Op::Ro | Op::Um | Op::Uo),
+        GenPgTblApiMode::ReadUpdate => {
+            matches!(op, Op::Rm | Op::Ro | Op::Uo)
+                || (optimistic_revision_field_idx.is_none() && matches!(op, Op::Um))
+        }
     };
     let mut frontend_field_order = frontend_fields
         .iter()
@@ -1664,6 +1707,7 @@ pub fn gen_pg_tbl(
         .d_serde_serialize()
         .d_utoipa_to_schema();
     let ident_prep_pg_er_ucc = naming::prm::SelfPrepPgErUcc::from_tokens(&ident);
+    let prep_idempotency_ucc = quote::format_ident!("PrepIdempotency");
     let ident_prep_pg_er_ts = pg_crud_macros_cmn::ts_helpers::er_enum_d_ts_builder().build_enum(
         &proc_macro2::TokenStream::new(),
         &ident_prep_pg_er_ucc,
@@ -1680,6 +1724,11 @@ pub fn gen_pg_tbl(
                 },
                 #PrepPgUcc {
                     #ts
+                },
+                #prep_idempotency_ucc {
+                    #[eo_to_err_string]
+                    er: pg_tbl::SqlxPgTblIdempotencyEr,
+                    loc: loc_lib::loc::Loc,
                 },
             }}
         },
@@ -1783,10 +1832,23 @@ pub fn gen_pg_tbl(
                 }
             }
         };
+        let prep_idempotency_ts = if gen_pg_tbl_input_model.config.idempotent_mutations {
+            quote::quote! {
+                if let Err(er) = pg_tbl::ensure_pg_tbl_idempotency_schema(app_state::SqlxPgPoolRef::from(#PoolSc)).await {
+                    return Err(#ident_prep_pg_er_ucc::#prep_idempotency_ucc {
+                        er,
+                        loc: loc_macros::loc!(),
+                    });
+                }
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
         let pub_async_fn_prep_pg_ts = quote::quote! {
             pub async fn #PrepPgSc(#PoolSc: &sqlx::Pool<sqlx::Postgres>) -> Result<(), #ident_prep_pg_er_ucc> {
                 Self::#PrepExtensionsSc(#PoolSc).await?;
                 Self::#PrepPgTblSc(#PoolSc, #ident_sc_dq_ts).await?;
+                #prep_idempotency_ts
                 Ok(())
             }
         };
@@ -3557,17 +3619,79 @@ pub fn gen_pg_tbl(
         let pg_transaction_commit_ts = {
             let pg_syn_vrt_er_init_eprintln_res_creation_ts =
                 gen_op_er_init_eprintln_res_ts(op, &pg_syn_vrt, std::panic::Location::caller());
+            let release_ts = if gen_pg_tbl_input_model.config.idempotent_mutations
+                && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
+            {
+                quote::quote! {
+                    let _release_result = pg_tbl::release_pg_tbl_idempotency(
+                        app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                        &idempotency_request_0a0ae019,
+                    ).await;
+                }
+            } else {
+                proc_macro2::TokenStream::new()
+            };
             quote::quote! {
                 if let Err(#Er0) = #ExecutorSc.#CommitSc().await {
+                    #release_ts
                     #pg_syn_vrt_er_init_eprintln_res_creation_ts
                 }
             }
         };
+        let idempotency_transaction_completion_ts = if gen_pg_tbl_input_model
+            .config
+            .idempotent_mutations
+            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
+        {
+            let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
+            let desirable_status_ts = op.desirable_status_code().to_http_status_code_ts();
+            quote::quote! {
+                let response_value_1a2393ae = #ident_op_res_vrts_ucc::#DesirableUcc(#VSc);
+                let response_body_649297c9 = match serde_json::to_vec(&response_value_1a2393ae) {
+                    Ok(value) => value,
+                    Err(_error) => {
+                        let _rollback_result = #ExecutorSc.#RollbackSc().await;
+                        let _release_result = pg_tbl::release_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                        return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
+                    }
+                };
+                let _idempotency_response_reservation_f07d6371 = match server_runtime::GetIdempotencyResponseResourceBudget::get_idempotency_response_resource_budget(#AppStateSc.as_ref()).reserve(
+                    server_runtime::ResourceBudgetAmount::from(response_body_649297c9.len()),
+                ) {
+                    Ok(value) => value,
+                    Err(_error) => {
+                        let _rollback_result = #ExecutorSc.#RollbackSc().await;
+                        let _release_result = pg_tbl::release_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                        return axum::response::IntoResponse::into_response(http::StatusCode::TOO_MANY_REQUESTS);
+                    }
+                };
+                if pg_tbl::complete_pg_tbl_idempotency_in_connection(
+                    pg_tbl::SqlxPgTblPgConnectionRef::from(#ExecutorSc.as_mut()),
+                    &idempotency_request_0a0ae019,
+                    pg_tbl::PgTblIdempotencyResponseStatus::from(#desirable_status_ts.as_u16()),
+                    pg_tbl::PgTblIdempotencyBodyRef::from(response_body_649297c9.as_slice()),
+                ).await.is_err() {
+                    let _rollback_result = #ExecutorSc.#RollbackSc().await;
+                    let _release_result = pg_tbl::release_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await;
+                    return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
+                }
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
+        let transaction_output_ts = if gen_pg_tbl_input_model.config.idempotent_mutations
+            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
+        {
+            quote::quote! {(response_value_1a2393ae, response_body_649297c9)}
+        } else {
+            quote::quote! {#VSc}
+        };
         quote::quote! {
             #pg_transaction_begin_ts
             #ts
+            #idempotency_transaction_completion_ts
             #pg_transaction_commit_ts
-            #VSc
+            #transaction_output_ts
         }
     };
     let gen_loc_attr_view_ts = |fi_ref: SynGenPgTblIdentRef<'_>,
@@ -3910,11 +4034,22 @@ pub fn gen_pg_tbl(
         quote::quote! {pg_crud_cmn::QpErWithSerde},
         quote::quote! {route_validators::check_body_size::BodySizeErWithSerde},
         quote::quote! {route_validators::check_body_size::BodySizeLimitBytes},
+        quote::quote! {frontend_contract::ApiProblem},
+        quote::quote! {frontend_contract::ApiProblemDetail},
+        quote::quote! {frontend_contract::ApiProblemField},
+        quote::quote! {frontend_contract::ApiProblemKind},
+        quote::quote! {frontend_contract::ApiProblemRequestId},
+        quote::quote! {frontend_contract::ApiProblemStatus},
+        quote::quote! {frontend_contract::ApiProblemViolation},
     ]);
     OpDsc::ALL
     .iter()
     .fold((), |(), op_dsc| {
         let op = &op_dsc.op;
+        let idempotency_enabled = gen_pg_tbl_input_model.config.idempotent_mutations
+            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo);
+        let optimistic_concurrency_enabled =
+            optimistic_revision_field_idx.is_some() && matches!(op, Op::Uo);
         let op_h_sc_ts = op.self_h_sc_ts();
         let op_sc_ts = op.self_sc_ts();
         let op_sc_string = op.self_sc_str();
@@ -3940,6 +4075,37 @@ pub fn gen_pg_tbl(
         };
         let open_api_payload_type_ts = gen_ident_op_payload_ucc(op);
         let open_api_response_type_ts = gen_ident_op_res_vrts_ucc(op);
+        let open_api_extra_params_ts = match (idempotency_enabled, optimistic_concurrency_enabled) {
+            (true, true) => quote::quote! {
+                params(
+                    ("Idempotency-Key" = String, Header, description = "Required key for safely retrying this mutation"),
+                    ("If-Match" = i64, Header, description = "Required current non-negative row revision"),
+                ),
+            },
+            (true, false) => quote::quote! {
+                params(("Idempotency-Key" = String, Header, description = "Required key for safely retrying this mutation")),
+            },
+            (false, true) => quote::quote! {
+                params(("If-Match" = i64, Header, description = "Required current non-negative row revision")),
+            },
+            (false, false) => proc_macro2::TokenStream::new(),
+        };
+        let open_api_idempotency_responses_ts = if idempotency_enabled {
+            quote::quote! {
+                (status = 409, description = "Idempotency key conflicts with another request", body = frontend_contract::ApiProblem),
+                (status = 425, description = "An identical request with this key is still running", body = frontend_contract::ApiProblem),
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
+        let open_api_optimistic_responses_ts = if optimistic_concurrency_enabled {
+            quote::quote! {
+                (status = 412, description = "The supplied row revision is stale", body = frontend_contract::ApiProblem),
+                (status = 428, description = "A valid If-Match row revision is required", body = frontend_contract::ApiProblem),
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
         let (open_api_security_ts, open_api_auth_responses_ts) = gen_pg_tbl_input_model
             .config
             .permission_prefix
@@ -3950,11 +4116,11 @@ pub fn gen_pg_tbl(
                     (
                         quote::quote! {security(("admin_cookie" = []), ("admin_csrf" = [])),},
                         quote::quote! {
-                            (status = 401, description = "Authentication is required", body = #open_api_response_type_ts),
-                            (status = 403, description = "Required permission is missing", body = #open_api_response_type_ts),
-                            (status = 409, description = "Resource state conflict", body = #open_api_response_type_ts),
-                            (status = 422, description = "Request validation failed", body = #open_api_response_type_ts),
-                            (status = 429, description = "Request rate limit exceeded", body = #open_api_response_type_ts),
+                            (status = 401, description = "Authentication is required", body = frontend_contract::ApiProblem),
+                            (status = 403, description = "Required permission is missing", body = frontend_contract::ApiProblem),
+                            (status = 409, description = "Resource state conflict", body = frontend_contract::ApiProblem),
+                            (status = 422, description = "Request validation failed", body = frontend_contract::ApiProblem),
+                            (status = 429, description = "Request rate limit exceeded", body = frontend_contract::ApiProblem),
                         },
                     )
                 },
@@ -3964,16 +4130,48 @@ pub fn gen_pg_tbl(
         let result_ok_type_ts = gen_op_result_type_ts(op);
         let try_op_h_sc_ts = op.try_self_h_sc_ts();
         let op_client_method_sc_ts = op.self_sc_ts();
+        let frontend_idempotency_request_ts = if idempotency_enabled {
+            quote::quote! {
+                .with_idempotency_key(match frontend_contract::TransportIdempotencyKey::try_from(pg_tbl::new_pg_tbl_idempotency_key().as_ref().to_owned()) {
+                    Ok(value) => value,
+                    Err(error) => return Err(frontend_contract::ClientEr::Encode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())),
+                })
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
+        let optimistic_client_param_ts = if optimistic_concurrency_enabled {
+            quote::quote! {optimistic_revision_9f023d8e: pg_tbl::PgTblRevision,}
+        } else {
+            proc_macro2::TokenStream::new()
+        };
+        let optimistic_client_arg_ts = if optimistic_concurrency_enabled {
+            quote::quote! {optimistic_revision_9f023d8e,}
+        } else {
+            proc_macro2::TokenStream::new()
+        };
+        let frontend_optimistic_request_ts = if optimistic_concurrency_enabled {
+            quote::quote! {
+                .with_if_match(match frontend_contract::TransportIfMatch::try_from(optimistic_revision_9f023d8e.to_string()) {
+                    Ok(value) => value,
+                    Err(error) => return Err(frontend_contract::ClientEr::Encode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default())),
+                })
+            }
+        } else {
+            proc_macro2::TokenStream::new()
+        };
         if op_is_enabled(op) {
             api_client_methods_ts.push(quote::quote! {
                 pub async fn #op_client_method_sc_ts(
                     &self,
                     #PrmsSc: #ident_op_prms_ucc,
+                    #optimistic_client_param_ts
                 ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
                     #ident::#try_op_h_sc_ts(
                         &self.client,
                         self.endpoint.as_url().as_str(),
                         #PrmsSc,
+                        #optimistic_client_arg_ts
                         #ident::#TblNameSc(),
                     ).await
                 }
@@ -3990,6 +4188,7 @@ pub fn gen_pg_tbl(
                 pub async fn #op_client_method_sc_ts(
                     &self,
                     #PrmsSc: #ident_op_prms_ucc,
+                    #optimistic_client_param_ts
                 ) -> Result<#result_ok_type_ts, frontend_contract::ClientEr> {
                     let route = #ident_route_contract_ucc::ALL
                         .into_iter()
@@ -4003,7 +4202,7 @@ pub fn gen_pg_tbl(
                         frontend_contract::TransportPath::try_from(route.path().to_owned())
                             .map_err(|error| frontend_contract::ClientEr::Encode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default()))?,
                         route.frontend_contract(),
-                    );
+                    )#frontend_idempotency_request_ts #frontend_optimistic_request_ts;
                     let response = self
                         .transport
                         .send(request)
@@ -4037,13 +4236,16 @@ pub fn gen_pg_tbl(
                 operation_id = #op_sc_string,
                 tag = #open_api_tag_dq_ts,
                 #open_api_security_ts
+                #open_api_extra_params_ts
                 request_body = #open_api_payload_type_ts,
                 responses(
                     (status = #open_api_status_ts, description = "Successful response", body = #open_api_response_type_ts),
-                    (status = 400, description = "Invalid request", body = #open_api_response_type_ts),
-                    (status = 413, description = "Request body is too large", body = #open_api_response_type_ts),
+                    (status = 400, description = "Invalid request", body = frontend_contract::ApiProblem),
+                    (status = 413, description = "Request body is too large", body = frontend_contract::ApiProblem),
+                    #open_api_idempotency_responses_ts
+                    #open_api_optimistic_responses_ts
                     #open_api_auth_responses_ts
-                    (status = 500, description = "Internal server error", body = #open_api_response_type_ts)
+                    (status = 500, description = "Internal server error", body = frontend_contract::ApiProblem)
                 )
             )]
             fn #open_api_path_fn_ident() {}
@@ -4131,21 +4333,25 @@ pub fn gen_pg_tbl(
             quote::quote! {
                 .route(#slash_op_dq_ts, axum::routing::#method_ts({
                     let tbl_owned = tbl.to_owned();
-                    let requests_metric = metrics::counter!("pg_tbl_requests_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string);
-                    let duration_metric = metrics::histogram!("pg_tbl_request_duration_seconds", "table" => tbl_owned.clone(), "operation" => #op_sc_string);
-                    let response_200_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "200");
-                    let response_201_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "201");
-                    let response_400_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "400");
-                    let response_413_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "413");
-                    let response_500_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "500");
-                    let response_other_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "other");
+                    let requests_metric = metrics::counter!("pg_tbl_requests_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string);
+                    let duration_metric = metrics::histogram!("pg_tbl_request_duration_seconds", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string);
+                    let response_200_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "200");
+                    let response_201_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "201");
+                    let response_400_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "400");
+                    let response_409_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "409");
+                    let response_412_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "412");
+                    let response_413_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "413");
+                    let response_425_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "425");
+                    let response_428_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "428");
+                    let response_500_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "500");
+                    let response_other_metric = metrics::counter!("pg_tbl_responses_total", "table" => #ident_sc_dq_ts, "operation" => #op_sc_string, "status" => "other");
                     async move |
                         app_state_99328dfe: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_ts>,
                         req: axum::extract::Request
                     | {
                         let started_at = std::time::Instant::now();
                         requests_metric.increment(1u64);
-                        let response = tracing::Instrument::instrument(
+                        let response_2b9f176e = tracing::Instrument::instrument(
                             Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned),
                             tracing::info_span!(
                                 "pg_tbl.operation",
@@ -4153,12 +4359,32 @@ pub fn gen_pg_tbl(
                                 operation = #op_sc_string,
                             ),
                         ).await;
+                        let response = if response_2b9f176e.status().is_success() {
+                            response_2b9f176e
+                        } else {
+                            let status_59091f23 = response_2b9f176e.status();
+                            let problem_0ae0baf4 = frontend_contract::ApiProblem::from_status(
+                                frontend_contract::ApiProblemStatus::from(status_59091f23.as_u16()),
+                            );
+                            let body_94b3d116 = serde_json::to_vec(&problem_0ae0baf4).unwrap_or_default();
+                            let mut normalized_8af76410 = axum::response::Response::new(axum::body::Body::from(body_94b3d116));
+                            *normalized_8af76410.status_mut() = status_59091f23;
+                            let _previous_content_type = normalized_8af76410.headers_mut().insert(
+                                http::header::CONTENT_TYPE,
+                                http::HeaderValue::from_static("application/problem+json"),
+                            );
+                            normalized_8af76410
+                        };
                         duration_metric.record(started_at.elapsed().as_secs_f64());
                         match response.status().as_u16() {
                             200u16 => response_200_metric.increment(1u64),
                             201u16 => response_201_metric.increment(1u64),
                             400u16 => response_400_metric.increment(1u64),
+                            409u16 => response_409_metric.increment(1u64),
+                            412u16 => response_412_metric.increment(1u64),
                             413u16 => response_413_metric.increment(1u64),
+                            425u16 => response_425_metric.increment(1u64),
+                            428u16 => response_428_metric.increment(1u64),
                             500u16 => response_500_metric.increment(1u64),
                             _ => response_other_metric.increment(1u64),
                         }
@@ -4209,11 +4435,27 @@ pub fn gen_pg_tbl(
                     let content_type_app_json_header_addition_ts = quote::quote! {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_dq_ts)
                     };
+                    let idempotency_header_addition_ts = if idempotency_enabled {
+                        quote::quote! {
+                            .header("idempotency-key", pg_tbl::new_pg_tbl_idempotency_key().as_ref())
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
+                    let optimistic_header_addition_ts = if optimistic_concurrency_enabled {
+                        quote::quote! {
+                            .header(http::header::IF_MATCH, optimistic_revision_9f023d8e.to_string())
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
                     quote::quote! {
                         let #FutureSc = #client_sc
                             .#op_http_method_sc_ts(&#UrlSc)
                             #commit_header_addition_ts
                             #content_type_app_json_header_addition_ts
+                            #idempotency_header_addition_ts
+                            #optimistic_header_addition_ts
                             .#BodySc(#PayloadSc)
                             .send();
                     }
@@ -4321,6 +4563,7 @@ pub fn gen_pg_tbl(
                         #client_sc: &reqwest::Client,
                         #EndpointLocSc: #RefStr,
                         #PrmsSc: #ident_op_prms_ucc,
+                        #optimistic_client_param_ts
                         #TblSc: &str,
                     ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
                         #payload_ts
@@ -4336,13 +4579,15 @@ pub fn gen_pg_tbl(
                     }
                     pub async fn #try_op_sc_ts(
                         #EndpointLocSc: #RefStr,
-                        #PrmsSc: #ident_op_prms_ucc
+                        #PrmsSc: #ident_op_prms_ucc,
+                        #optimistic_client_param_ts
                     ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
                         let #client_sc = reqwest::Client::new();
                         Self::#try_op_h_sc_ts(
                             &#client_sc,
                             #EndpointLocSc,
                             #PrmsSc,
+                            #optimistic_client_arg_ts
                             #self_tbl_name_call_ts
                         ).await
                     }
@@ -4350,6 +4595,64 @@ pub fn gen_pg_tbl(
             };
             let op_h_ts = {
                 let req_parts_preparation_ts = {
+                    let idempotency_metadata_ts = if idempotency_enabled {
+                        quote::quote! {
+                            let idempotency_actor_5d99d3d2 = match parts.extensions.get::<pg_tbl::PgTblIdempotencyActor>() {
+                                Some(value) => value.clone(),
+                                None => match pg_tbl::PgTblIdempotencyActor::try_from("anonymous".to_owned()) {
+                                    Ok(value) => value,
+                                    Err(_error) => {
+                                        return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR);
+                                    }
+                                },
+                            };
+                            let idempotency_method_4c3bc5ac = parts.method.as_str().to_owned();
+                            let idempotency_route_a66541e9 = parts.uri.path().to_owned();
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
+                    let idempotency_request_ts = if idempotency_enabled {
+                        quote::quote! {
+                            let idempotency_key_text_31ae975a = {
+                                let mut values_4c39e88b = headers.get_all("idempotency-key").iter();
+                                match (values_4c39e88b.next(), values_4c39e88b.next()) {
+                                    (Some(value), None) => match value.to_str() {
+                                        Ok(value) => value.to_owned(),
+                                        Err(_error) => return axum::response::IntoResponse::into_response(http::StatusCode::BAD_REQUEST),
+                                    },
+                                    (None | Some(_), Some(_)) | (None, None) => return axum::response::IntoResponse::into_response(http::StatusCode::BAD_REQUEST),
+                                }
+                            };
+                            let idempotency_scope_8af2bd7d = match (
+                                pg_tbl::PgTblIdempotencyMethod::try_from(idempotency_method_4c3bc5ac),
+                                pg_tbl::PgTblIdempotencyRoute::try_from(idempotency_route_a66541e9),
+                                pg_tbl::PgTblIdempotencyKey::try_from(idempotency_key_text_31ae975a),
+                            ) {
+                                (Ok(method), Ok(route), Ok(key)) => pg_tbl::PgTblIdempotencyScope::new(idempotency_actor_5d99d3d2, method, route, key),
+                                (Err(_error), _, _) | (_, Err(_error), _) | (_, _, Err(_error)) => return axum::response::IntoResponse::into_response(http::StatusCode::BAD_REQUEST),
+                            };
+                            let idempotency_request_0a0ae019 = pg_tbl::PgTblIdempotencyRequest::new(idempotency_scope_8af2bd7d, pg_tbl::PgTblIdempotencyBodyRef::from(body_bytes.as_ref()));
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
+                    let optimistic_revision_ts = if optimistic_concurrency_enabled {
+                        quote::quote! {
+                            let optimistic_revision_9f023d8e = {
+                                let mut values_c2818fdc = headers.get_all(http::header::IF_MATCH).iter();
+                                match (values_c2818fdc.next(), values_c2818fdc.next()) {
+                                    (Some(value), None) => match value.to_str().ok().map(str::to_owned).and_then(|value| pg_tbl::PgTblRevision::try_from(value).ok()) {
+                                        Some(value) => value,
+                                        None => return axum::response::IntoResponse::into_response(http::StatusCode::PRECONDITION_REQUIRED),
+                                    },
+                                    (None | Some(_), Some(_)) | (None, None) => return axum::response::IntoResponse::into_response(http::StatusCode::PRECONDITION_REQUIRED),
+                                }
+                            };
+                        }
+                    } else {
+                        proc_macro2::TokenStream::new()
+                    };
                     let ts0 = &gen_op_er_init_eprintln_res_ts(
                         op,
                         &header_cnt_type_app_json_not_found_syn_vrt,
@@ -4369,6 +4672,7 @@ pub fn gen_pg_tbl(
                     );
                     quote::quote! {
                         let (parts, #BodySc) = #ReqSc.into_parts();
+                        #idempotency_metadata_ts
                         let headers = parts.headers;
                         if !matches!(
                             headers.get(http::header::CONTENT_TYPE),
@@ -4377,7 +4681,33 @@ pub fn gen_pg_tbl(
                             #ts0
                         }
                         let body_bytes = #ts1;
+                        #idempotency_request_ts
+                        #optimistic_revision_ts
                     }
+                };
+                let idempotency_begin_ts = if idempotency_enabled {
+                    quote::quote! {
+                        let idempotency_pool_193acb3c = app_state::GetSqlxPgPool::get_sqlx_pg_pool(#AppStateSc.as_ref());
+                        match pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()), &idempotency_request_0a0ae019).await {
+                            Ok(pg_tbl::PgTblIdempotencyBegin::Acquired) => {}
+                            Ok(pg_tbl::PgTblIdempotencyBegin::Conflict) => return axum::response::IntoResponse::into_response(http::StatusCode::CONFLICT),
+                            Ok(pg_tbl::PgTblIdempotencyBegin::InProgress) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_EARLY),
+                            Ok(pg_tbl::PgTblIdempotencyBegin::Replay(replay)) => {
+                                let (status, body) = replay.into_parts();
+                                let status = match http::StatusCode::from_u16(u16::from(status)) {
+                                    Ok(value) => value,
+                                    Err(_error) => return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR),
+                                };
+                                let mut response = axum::response::Response::new(axum::body::Body::from(body.as_ref().to_vec()));
+                                *response.status_mut() = status;
+                                let _previous_content_type = response.headers_mut().insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/json"));
+                                return response;
+                            }
+                            Err(_error) => return axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR),
+                        }
+                    }
+                } else {
+                    proc_macro2::TokenStream::new()
                 };
                 let extra_validators_ts = {
                     let cmn_logic_ts = gen_logic_ts(GenPgTblAttr::CmnLogic);
@@ -4412,15 +4742,27 @@ pub fn gen_pg_tbl(
                             };
                         }
                     };
+                    let bulk_reservation_ts = quote::quote! {
+                        let _bulk_resource_reservation_6416eead = match server_runtime::GetBulkItemResourceBudget::get_bulk_item_resource_budget(#AppStateSc.as_ref()).reserve(
+                            server_runtime::ResourceBudgetAmount::from(#PrmsSc.#PayloadSc.as_slice().len()),
+                        ) {
+                            Ok(value) => value,
+                            Err(_error) => return axum::response::IntoResponse::into_response(http::StatusCode::TOO_MANY_REQUESTS),
+                        };
+                    };
                     match &op {
-                        Op::Cm
-                        | Op::Co
+                        Op::Cm => quote::quote! {
+                            #prms_logic_ts0
+                            #bulk_reservation_ts
+                        },
+                        Op::Co
                         | Op::Rm
                         | Op::Ro
                         | Op::Dm
                         | Op::Dlo => prms_logic_ts0,
                         Op::Um => quote::quote! {
                             #prms_logic_ts0
+                            #bulk_reservation_ts
                             let #UpdForQueryVecSc = #PrmsSc.#PayloadSc.into_vec().into_iter()
                             .map(#ident_upd_for_query_ucc::#FromHSc)
                             .collect::<Vec<#ident_upd_for_query_ucc>>();
@@ -4749,6 +5091,11 @@ pub fn gen_pg_tbl(
                                 &|el: &macros_helpers::field_data::SynField| {
                                     let fi = &el.ident;
                                     let fi_dq_ts = gen_quotes::dq_ts(&fi);
+                                    if optimistic_revision_field_ident.as_ref() == Some(fi) {
+                                        return quote::quote! {
+                                            acc_683e37b8.push_str(concat!(#fi_dq_ts, " = ", #fi_dq_ts, " + 1,"));
+                                        };
+                                    }
                                     let gen_col_queals_v_comma_uo_qp_sc =
                                         naming::GenColQuealsVCommaUoQpSc;
                                     let upd_qp_fi_sc = naming::prm::UpdQpSelfSc::from_tokens(&fi);
@@ -4780,6 +5127,23 @@ pub fn gen_pg_tbl(
                                 &gen_sel_only_updd_ids_qp_ts(&UpdForQuerySc),
                                 &quote::quote! {v_7f0d86a1},
                             );
+                            let optimistic_query_ts = optimistic_revision_field_ident
+                                .as_ref()
+                                .map_or_else(
+                                    || quote::quote! {query_297f2e40},
+                                    |revision_ident| {
+                                        let revision_ident_dq_ts =
+                                            gen_quotes::dq_ts(revision_ident);
+                                        quote::quote! {
+                                            let optimistic_revision_qp_f64c18e5 = format!("${}", #IncrSc.saturating_add(1u64));
+                                            pg_tbl::add_uo_optimistic_revision_predicate(
+                                                query_297f2e40,
+                                                pg_tbl::PgTblSqlFragmentRef::from(#revision_ident_dq_ts),
+                                                pg_tbl::PgTblSqlFragmentRef::from(&optimistic_revision_qp_f64c18e5),
+                                            )
+                                        }
+                                    },
+                                );
                             quote::quote! {
                                 {
                                     #incr_init_ts
@@ -4788,13 +5152,14 @@ pub fn gen_pg_tbl(
                                     };
                                     let #PkQpSc = #extra_prms_pk_modification_ts;
                                     let return_cols = #ts;
-                                    pg_tbl::gen_uo_query_string(
+                                    let query_297f2e40 = pg_tbl::gen_uo_query_string(
                                         pg_tbl::PgTblNameRef::from(#TblSc),
                                         pg_tbl::PgTblSqlFragmentRef::from(&#ColsSc),
                                         pg_tbl::PgTblSqlFragmentRef::from(Self::#PkSc()),
                                         pg_tbl::PgTblSqlFragmentRef::from(&#PkQpSc),
                                         pg_tbl::PgTblSqlFragmentRef::from(&return_cols)
-                                    )
+                                    );
+                                    #optimistic_query_ts
                                 }
                             }
                         }
@@ -4929,6 +5294,9 @@ pub fn gen_pg_tbl(
                             let gen_binded_query_ts =
                                 |var_name, method_name| {
                                     gen_fields_named_without_pk_without_comma_ts(&|el: &macros_helpers::field_data::SynField| {
+                                        if optimistic_revision_field_ident.as_ref() == Some(&el.ident) {
+                                            return proc_macro2::TokenStream::new();
+                                        }
                                         gen_if_let_some_ts(
                                             &var_name,
                                             &{
@@ -4961,10 +5329,21 @@ pub fn gen_pg_tbl(
                                 quote::quote! {v_b2902425},
                                 quote::quote! {sel_only_updd_ids_qb(&v_b2902425.#VSc, #import_ts SqlxPostgresQuery::from(#QuerySc)).map(#import_ts SqlxPostgresQuery::into_inner).map_err(#import_ts SqlxPostgresQueryBindEr::into_inner)},
                             );
+                            let binded_optimistic_revision_ts = if optimistic_concurrency_enabled {
+                                quote::quote! {
+                                    if let Err(er_8ce463be) = #QuerySc.try_bind(optimistic_revision_9f023d8e) {
+                                        let #Er0 = er_8ce463be.to_string();
+                                        #op_er_init_try_bind_ts
+                                    }
+                                }
+                            } else {
+                                proc_macro2::TokenStream::new()
+                            };
                             quote::quote! {
                                 #binded_query_modifications_ts
                                 #binded_query_pk_modification_ts
                                 #binded_query_sel_only_updd_ids_qb_ts
+                                #binded_optimistic_revision_ts
                             }
                         }
                         Op::Dm => {
@@ -5103,10 +5482,56 @@ pub fn gen_pg_tbl(
                             op,
                             &gen_cr_upd_dm_fetch_ts(&CrOrUpdOrDm::Upd),
                         ),
-                        Op::Uo => wrap_into_pg_transaction_begin_commit_ts(
-                            op,
-                            &gen_cr_upd_dlo_fetch_ts(&CrOrUpdOrDlo::Upd),
-                        ),
+                        Op::Uo => {
+                            if optimistic_concurrency_enabled {
+                                let rollback_er_ts = gen_match_pg_transaction_rollback_await_ts(
+                                    op,
+                                    std::panic::Location::caller(),
+                                );
+                                let row_ts = gen_match_ident_rd_ids_as_from_row_from_row_ts(
+                                    &rollback_er_ts,
+                                );
+                                let rollback_failed_ts = gen_op_er_init_eprintln_res_ts(
+                                    op,
+                                    &pg_syn_vrt,
+                                    std::panic::Location::caller(),
+                                );
+                                let release_ts = if idempotency_enabled {
+                                    quote::quote! {
+                                        let _release_result = pg_tbl::release_pg_tbl_idempotency(
+                                            app_state::SqlxPgPoolRef::from(idempotency_pool_193acb3c.as_ref()),
+                                            &idempotency_request_0a0ae019,
+                                        ).await;
+                                    }
+                                } else {
+                                    proc_macro2::TokenStream::new()
+                                };
+                                wrap_into_pg_transaction_begin_commit_ts(
+                                    op,
+                                    &quote::quote! {
+                                        let #VSc = match #BindedQuerySc.fetch_optional(#ExecutorSc.as_mut()).await {
+                                            Ok(Some(v_b27d7d79)) => #row_ts,
+                                            Ok(None) => {
+                                                if let Err(#Er1) = #ExecutorSc.#RollbackSc().await {
+                                                    let #Er0 = #Er1;
+                                                    #rollback_failed_ts
+                                                }
+                                                #release_ts
+                                                return axum::response::IntoResponse::into_response(http::StatusCode::PRECONDITION_FAILED);
+                                            }
+                                            Err(#Er0) => {
+                                                #rollback_er_ts
+                                            }
+                                        };
+                                    },
+                                )
+                            } else {
+                                wrap_into_pg_transaction_begin_commit_ts(
+                                    op,
+                                    &gen_cr_upd_dlo_fetch_ts(&CrOrUpdOrDlo::Upd),
+                                )
+                            }
+                        }
                         Op::Dm => wrap_into_pg_transaction_begin_commit_ts(
                             op,
                             &gen_cr_upd_dm_fetch_ts(&CrOrUpdOrDm::Del),
@@ -5125,6 +5550,18 @@ pub fn gen_pg_tbl(
                     &op.desirable_status_code().to_http_status_code_ts(),
                     &AddReturn::False,
                 );
+                let success_response_ts = if idempotency_enabled {
+                    let desirable_status_ts = op.desirable_status_code().to_http_status_code_ts();
+                    quote::quote! {
+                        let (response_value_1a2393ae, response_body_649297c9) = #VSc;
+                        let mut response = axum::response::Response::new(axum::body::Body::from(response_body_649297c9));
+                        *response.status_mut() = #desirable_status_ts;
+                        let _previous_content_type = response.headers_mut().insert(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/json"));
+                        response
+                    }
+                } else {
+                    wraped_into_axum_res_ts
+                };
                 quote::quote! {
                     #[allow(clippy::single_call_fn)]
                     async fn #op_h_sc_ts(
@@ -5135,6 +5572,7 @@ pub fn gen_pg_tbl(
                         #req_parts_preparation_ts
                         #extra_validators_ts
                         #prms_logic_ts
+                        #idempotency_begin_ts
                         let #QueryStringSc = #query_string_ts;
                         //println!("{}", #QueryStringSc);
                         let #BindedQuerySc = {
@@ -5146,7 +5584,7 @@ pub fn gen_pg_tbl(
                         let #VSc = {
                             #pg_logic_ts
                         };
-                        #wraped_into_axum_res_ts
+                        #success_response_ts
                     }
                 }
             };
@@ -5349,6 +5787,10 @@ pub fn gen_pg_tbl(
                             );
                         let impl_pub_try_new_for_ident_op_payload_ts = quote::quote! {
                             impl #ident_op_payload_ucc {
+                                #[must_use]
+                                pub const fn as_slice(&self) -> &[#ident_upd_ucc] {
+                                    self.0.as_slice()
+                                }
                                 #[must_use]
                                 pub fn into_vec(self) -> #vec_ident_upd_ts {
                                     self.0
@@ -5952,6 +6394,10 @@ pub fn gen_pg_tbl(
                 },
             );
         let api_mode_assertion_ts = match gen_pg_tbl_input_model.config.api_mode {
+            GenPgTblApiMode::Crud if optimistic_revision_field_idx.is_some() => quote::quote! {
+                assert_eq!(#ident_route_contract_ucc::ALL.len(), 7usize);
+                assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| !matches!(contract.operation(), #ident_operation_ucc::Um)));
+            },
             GenPgTblApiMode::Crud => quote::quote! {
                 assert_eq!(#ident_route_contract_ucc::ALL.len(), 8usize);
             },
@@ -8144,8 +8590,14 @@ pub fn gen_pg_tbl(
                         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
                         let #undrscr_unused_ts = tokio::spawn(async move {
                             let #AppStateSc = std::sync::Arc::new(server_app_state::ServerAppState {
+                                bulk_item_budget: server_runtime::ResourceBudget::new(
+                                    server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("f9304636"),
+                                ),
                                 #PgPoolSc: app_state::SqlxPgPool::from(#PgPoolForTokioSpawnSyncMoveSc.clone()),
                                 #ConfigSc,
+                                idempotency_response_budget: server_runtime::ResourceBudget::new(
+                                    server_runtime::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935"),
+                                ),
                                 project_git_info: &git_info::PROJECT_GIT_INFO,
                             });
                             started_tx.send(()).expect("431a6f8d");
@@ -8328,6 +8780,24 @@ pub fn gen_pg_tbl(
                             &format!("/{tbl}"),
                             axum::Router::new()
                             #(#op_routes_ts)*
+                            .method_not_allowed_fallback(|| async {
+                                (
+                                    http::StatusCode::METHOD_NOT_ALLOWED,
+                                    [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
+                                    axum::Json(frontend_contract::ApiProblem::from_status(
+                                        frontend_contract::ApiProblemStatus::from(http::StatusCode::METHOD_NOT_ALLOWED.as_u16()),
+                                    )),
+                                )
+                            })
+                            .fallback(|| async {
+                                (
+                                    http::StatusCode::NOT_FOUND,
+                                    [(http::header::CONTENT_TYPE, http::HeaderValue::from_static("application/problem+json"))],
+                                    axum::Json(frontend_contract::ApiProblem::from_status(
+                                        frontend_contract::ApiProblemStatus::from(http::StatusCode::NOT_FOUND.as_u16()),
+                                    )),
+                                )
+                            })
                             .with_state(#AppStateSc)
                         )
                     }

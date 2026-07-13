@@ -855,6 +855,108 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
+    let text_search_ts = quote::quote! {
+        pub const TEXT_SEARCH_MAXIMUM_INPUT_BYTES: usize = 1_024usize;
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
+        #[serde(rename_all = "snake_case")]
+        pub enum TextSearchMode {
+            Contains,
+            EndsWith,
+            StartsWith,
+        }
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub struct TextSearchPattern(String);
+        impl AsRef<str> for TextSearchPattern {
+            fn as_ref(&self) -> &str {
+                self.0.as_str()
+            }
+        }
+        impl From<TextSearchPattern> for String {
+            fn from(value: TextSearchPattern) -> Self {
+                value.0
+            }
+        }
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum TextSearchValueEr {
+            Empty,
+            TooLong { actual_bytes: usize, maximum_bytes: usize },
+        }
+        impl std::fmt::Display for TextSearchValueEr {
+            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    Self::Empty => formatter.write_str("text search value must not be empty"),
+                    Self::TooLong { actual_bytes, maximum_bytes } => write!(formatter, "text search value exceeds {maximum_bytes} bytes: got {actual_bytes}"),
+                }
+            }
+        }
+        impl std::error::Error for TextSearchValueEr {}
+        pub fn build_text_search_pattern(value: &str, mode: TextSearchMode) -> Result<TextSearchPattern, TextSearchValueEr> {
+            if value.is_empty() {
+                return Err(TextSearchValueEr::Empty);
+            }
+            if value.len() > TEXT_SEARCH_MAXIMUM_INPUT_BYTES {
+                return Err(TextSearchValueEr::TooLong {
+                    actual_bytes: value.len(),
+                    maximum_bytes: TEXT_SEARCH_MAXIMUM_INPUT_BYTES,
+                });
+            }
+            let wildcard_count = match mode {
+                TextSearchMode::Contains => 2usize,
+                TextSearchMode::EndsWith | TextSearchMode::StartsWith => 1usize,
+            };
+            let escaped_symbol_count = value.as_bytes().iter().copied().filter(|byte| matches!(byte, b'\\' | b'%' | b'_')).count();
+            let mut pattern = String::with_capacity(value.len().saturating_add(escaped_symbol_count).saturating_add(wildcard_count));
+            if matches!(mode, TextSearchMode::Contains | TextSearchMode::EndsWith) {
+                pattern.push('%');
+            }
+            value.chars().for_each(|character| {
+                if matches!(character, '\\' | '%' | '_') {
+                    pattern.push('\\');
+                }
+                pattern.push(character);
+            });
+            if matches!(mode, TextSearchMode::Contains | TextSearchMode::StartsWith) {
+                pattern.push('%');
+            }
+            Ok(TextSearchPattern(pattern))
+        }
+        #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
+        #[serde(deny_unknown_fields)]
+        pub struct PgTypeWhTextSearch {
+            value: String,
+            mode: TextSearchMode,
+            oprtr: pg_crud_cmn::Oprtr,
+        }
+        impl PgTypeWhTextSearch {
+            pub fn try_new(oprtr: pg_crud_cmn::Oprtr, mode: TextSearchMode, value: String) -> Result<Self, TextSearchValueEr> {
+                let _validated_pattern = build_text_search_pattern(value.as_str(), mode)?;
+                Ok(Self { value, mode, oprtr })
+            }
+            pub fn pattern(&self) -> Result<TextSearchPattern, TextSearchValueEr> {
+                build_text_search_pattern(self.value.as_str(), self.mode)
+            }
+        }
+        impl<'query_lt> pg_crud_cmn::PgTypeWhFlt<'query_lt> for PgTypeWhTextSearch {
+            fn qb(self, mut query: pg_crud_cmn::SqlxPostgresQuery<'query_lt>) -> Result<pg_crud_cmn::SqlxPostgresQuery<'query_lt>, pg_crud_cmn::SqlxPostgresQueryBindEr> {
+                let pattern = self.pattern().map_err(|error| match pg_crud_cmn::SqlxPostgresQueryBindEr::try_from(error.to_string()) {
+                    Ok(value) => value,
+                    Err(conversion_error) => pg_crud_cmn::SqlxPostgresQueryBindEr::from(conversion_error),
+                })?;
+                if let Err(error) = query.as_mut().try_bind(String::from(pattern)) {
+                    return Err(match pg_crud_cmn::SqlxPostgresQueryBindEr::try_from(error.to_string()) {
+                        Ok(value) => value,
+                        Err(conversion_error) => pg_crud_cmn::SqlxPostgresQueryBindEr::from(conversion_error),
+                    });
+                }
+                Ok(query)
+            }
+            fn qp(&self, incr: &mut dyn pg_crud_cmn::QpIncrMut, col: pg_crud_cmn::SqlColRef<'_>, add_oprtr: pg_crud_cmn::AddOprtr) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
+                let parameter = incr.checked_add_one().ok_or_else(|| pg_crud_cmn::QpEr::CheckedAdd { loc: loc_macros::loc!() })?;
+                let fragment = format!("{}{} ILIKE ${parameter} ESCAPE '\\'", self.oprtr.to_qp(add_oprtr), col);
+                pg_crud_cmn::QpFragment::try_from(fragment).map_err(pg_crud_cmn::QpEr::from)
+            }
+        }
+    };
     let gen_wh_flts_mod = quote::format_ident!("gen_wh_flts_mod");
     let gend = quote::quote! {
         #[allow(unused_qualifications)]
@@ -863,6 +965,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #[allow(clippy::arbitrary_source_item_ordering)]
         mod #gen_wh_flts_mod {
             #imports_ts
+            #text_search_ts
             #pg_type_ts
         }
         pub use #gen_wh_flts_mod::*;

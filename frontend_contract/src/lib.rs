@@ -6,6 +6,143 @@ impl From<&'static str> for ContractStr {
         Self(value)
     }
 }
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum ApiProblemKind {
+    Authentication,
+    Authorization,
+    Conflict,
+    InProgress,
+    Internal,
+    InvalidRequest,
+    PayloadTooLarge,
+    Precondition,
+    PreconditionRequired,
+    RateLimited,
+    RequestFailed,
+    Validation,
+}
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+#[serde(transparent)]
+pub struct ApiProblemStatus(u16);
+impl From<u16> for ApiProblemStatus {
+    fn from(value: u16) -> Self {
+        Self(value)
+    }
+}
+impl From<ApiProblemStatus> for u16 {
+    fn from(value: ApiProblemStatus) -> Self {
+        value.0
+    }
+}
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
+#[bounded_string(max = 1024usize)]
+#[serde(transparent)]
+pub struct ApiProblemDetail(String);
+impl AsRef<str> for ApiProblemDetail {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
+#[bounded_string(max = 128usize)]
+#[serde(transparent)]
+pub struct ApiProblemRequestId(String);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+)]
+#[bounded_string(max = 128usize)]
+#[serde(transparent)]
+pub struct ApiProblemField(String);
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct ApiProblemViolation {
+    detail: ApiProblemDetail,
+    field: ApiProblemField,
+}
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct ApiProblem {
+    detail: ApiProblemDetail,
+    kind: ApiProblemKind,
+    request_id: Option<ApiProblemRequestId>,
+    status: ApiProblemStatus,
+    violations: Vec<ApiProblemViolation>,
+}
+impl ApiProblem {
+    #[must_use]
+    pub fn from_status(status: ApiProblemStatus) -> Self {
+        let (kind, detail) = match u16::from(status) {
+            400u16 => (ApiProblemKind::InvalidRequest, "invalid request"),
+            401u16 => (ApiProblemKind::Authentication, "authentication required"),
+            403u16 => (ApiProblemKind::Authorization, "authorization failed"),
+            409u16 => (ApiProblemKind::Conflict, "resource state conflict"),
+            412u16 => (ApiProblemKind::Precondition, "resource precondition failed"),
+            413u16 => (ApiProblemKind::PayloadTooLarge, "request body is too large"),
+            422u16 => (ApiProblemKind::Validation, "request validation failed"),
+            425u16 => (
+                ApiProblemKind::InProgress,
+                "matching request is still in progress",
+            ),
+            428u16 => (
+                ApiProblemKind::PreconditionRequired,
+                "request precondition is required",
+            ),
+            429u16 => (ApiProblemKind::RateLimited, "request rate limit exceeded"),
+            500u16..=599u16 => (ApiProblemKind::Internal, "internal server error"),
+            _ => (ApiProblemKind::RequestFailed, "request failed"),
+        };
+        Self {
+            detail: ApiProblemDetail::try_from(detail.to_owned()).unwrap_or_default(),
+            kind,
+            request_id: None,
+            status,
+            violations: Vec::new(),
+        }
+    }
+    #[must_use]
+    pub const fn detail(&self) -> &ApiProblemDetail {
+        &self.detail
+    }
+    #[must_use]
+    pub const fn kind(&self) -> ApiProblemKind {
+        self.kind
+    }
+    #[must_use]
+    pub const fn status(&self) -> ApiProblemStatus {
+        self.status
+    }
+}
 impl AsRef<str> for ContractStr {
     fn as_ref(&self) -> &str {
         self.0
@@ -570,11 +707,19 @@ pub struct TransportRequest {
     body: TransportBody,
     path: TransportPath,
     route: RouteContract,
+    idempotency_key: Option<TransportIdempotencyKey>,
+    if_match: Option<TransportIfMatch>,
 }
 impl TransportRequest {
     #[must_use]
     pub const fn new(body: TransportBody, path: TransportPath, route: RouteContract) -> Self {
-        Self { body, path, route }
+        Self {
+            body,
+            path,
+            route,
+            idempotency_key: None,
+            if_match: None,
+        }
     }
     #[must_use]
     pub const fn body(&self) -> &TransportBody {
@@ -587,6 +732,40 @@ impl TransportRequest {
     #[must_use]
     pub const fn route(&self) -> RouteContract {
         self.route
+    }
+    #[must_use]
+    pub const fn idempotency_key(&self) -> Option<&TransportIdempotencyKey> {
+        self.idempotency_key.as_ref()
+    }
+    #[must_use]
+    pub const fn if_match(&self) -> Option<&TransportIfMatch> {
+        self.if_match.as_ref()
+    }
+    #[must_use]
+    pub fn with_idempotency_key(mut self, value: TransportIdempotencyKey) -> Self {
+        self.idempotency_key = Some(value);
+        self
+    }
+    #[must_use]
+    pub fn with_if_match(mut self, value: TransportIfMatch) -> Self {
+        self.if_match = Some(value);
+        self
+    }
+}
+#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 255usize, min = 1usize)]
+pub struct TransportIdempotencyKey(String);
+impl AsRef<str> for TransportIdempotencyKey {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString)]
+#[bounded_string(max = 20usize, min = 1usize)]
+pub struct TransportIfMatch(String);
+impl AsRef<str> for TransportIfMatch {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
     }
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
@@ -711,6 +890,29 @@ impl PageContract {
 }
 #[cfg(test)]
 mod tests {
+    #[allow(clippy::needless_for_each)] // iterator form follows the workspace ban on explicit for loops
+    #[test]
+    fn api_problem_status_mapping_is_stable_and_redacted() {
+        let cases = [
+            (401u16, super::ApiProblemKind::Authentication),
+            (403u16, super::ApiProblemKind::Authorization),
+            (409u16, super::ApiProblemKind::Conflict),
+            (412u16, super::ApiProblemKind::Precondition),
+            (425u16, super::ApiProblemKind::InProgress),
+            (428u16, super::ApiProblemKind::PreconditionRequired),
+            (429u16, super::ApiProblemKind::RateLimited),
+            (500u16, super::ApiProblemKind::Internal),
+        ];
+        cases.into_iter().for_each(|(status, expected_kind)| {
+            let problem = super::ApiProblem::from_status(super::ApiProblemStatus::from(status));
+            assert_eq!(problem.kind(), expected_kind);
+            assert_eq!(u16::from(problem.status()), status);
+            let serialized = serde_json::to_string(&problem).expect("f459312e");
+            assert!(!serialized.contains("postgres://"));
+            assert!(!serialized.contains("sqlx"));
+            assert!(!serialized.contains("password"));
+        });
+    }
     #[test]
     fn contracts_preserve_typed_metadata() {
         let type_contract = super::TypeContract::new(

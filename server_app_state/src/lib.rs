@@ -1,6 +1,8 @@
 #[derive(Debug, optml::Optml)]
 pub struct ServerAppState<'lt> {
+    pub bulk_item_budget: server_runtime::ResourceBudget,
     pub config: server_config::Config,
+    pub idempotency_response_budget: server_runtime::ResourceBudget,
     pub pg_pool: app_state::SqlxPgPool,
     pub project_git_info: &'lt git_info::ProjectGitInfo<'lt>,
 }
@@ -12,6 +14,16 @@ impl ServerAppState<'_> {
 }
 impl cmn_routes::CmnRoutesPrms for ServerAppState<'_> {}
 impl pg_tbl::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
+impl server_runtime::GetBulkItemResourceBudget for ServerAppState<'_> {
+    fn get_bulk_item_resource_budget(&self) -> &server_runtime::ResourceBudget {
+        &self.bulk_item_budget
+    }
+}
+impl server_runtime::GetIdempotencyResponseResourceBudget for ServerAppState<'_> {
+    fn get_idempotency_response_resource_budget(&self) -> &server_runtime::ResourceBudget {
+        &self.idempotency_response_budget
+    }
+}
 server_app_state_macros::impl_cfg_getter!(
     config_lib::GetEnableApiGitCommitCheck,
     get_enable_api_git_commit_check,
@@ -77,6 +89,89 @@ impl AsRef<str> for ServerAppState<'_> {
         self.project_git_info.commit.as_ref()
     }
 }
+#[cfg(feature = "test-utils")]
+fn test_env<T>(value: config_lib::StdEnvVarOk) -> T
+where
+    T: config_lib::TryFromStdEnvVarOk,
+    T::Error: std::fmt::Debug,
+{
+    T::try_from_std_env_var_ok(value).expect("3f1c7bb7")
+}
+#[cfg(feature = "test-utils")]
+#[must_use]
+pub fn mk_test_server_app_state() -> ServerAppState<'static> {
+    ServerAppState {
+        bulk_item_budget: server_runtime::ResourceBudget::new(
+            server_runtime::ResourceBudgetMaximum::try_from(8usize).expect("86d3d452"),
+        ),
+        config: server_config::Config {
+            cors_allow_origin: config_lib::CorsAllowOrigin("*".to_owned()),
+            database_url: test_env(
+                config_lib::StdEnvVarOk::try_from(
+                    "postgres://usr:pwd@127.0.0.1:1/unreachable".to_owned(),
+                )
+                .expect("3e33c100"),
+            ),
+            admin_jwt_secret: test_env(
+                config_lib::StdEnvVarOk::try_from(
+                    "test-only-admin-jwt-secret-with-32-bytes".to_owned(),
+                )
+                .expect("f29cc79a"),
+            ),
+            admin_token_audience: test_env(
+                config_lib::StdEnvVarOk::try_from("test-audience".to_owned()).expect("5b218444"),
+            ),
+            admin_token_issuer: test_env(
+                config_lib::StdEnvVarOk::try_from("test-issuer".to_owned()).expect("8357484d"),
+            ),
+            admin_access_token_ttl_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from("900".to_owned()).expect("4e1b2430"),
+            ),
+            admin_password_hash_concurrency: test_env(
+                config_lib::StdEnvVarOk::try_from("1".to_owned()).expect("763e1bd9"),
+            ),
+            admin_refresh_token_ttl_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from("3600".to_owned()).expect("467a6513"),
+            ),
+            admin_session_limit: test_env(
+                config_lib::StdEnvVarOk::try_from("20".to_owned()).expect("b26f4a08"),
+            ),
+            admin_sign_in_rate_limit: test_env(
+                config_lib::StdEnvVarOk::try_from("10".to_owned()).expect("53224f39"),
+            ),
+            admin_swagger_enabled: test_env(
+                config_lib::StdEnvVarOk::try_from("true".to_owned()).expect("818b46e8"),
+            ),
+            maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes::try_from(
+                1_024usize,
+            )
+            .expect("d7a590e3"),
+            service_socket_address: config_lib::ServiceSocketAddress(
+                "127.0.0.1:3000".parse().expect("9cba6537"),
+            ),
+            pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(1u32)
+                .expect("58530f0e"),
+            timezone: config_lib::ChronoTimezone::try_from(
+                chrono::FixedOffset::east_opt(10_800i32).expect("695a2c2a"),
+            )
+            .expect("e3e42aa5"),
+            src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
+            tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+            enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(false),
+            admin_cookie_secure: test_env(
+                config_lib::StdEnvVarOk::try_from("false".to_owned()).expect("dbe97ef3"),
+            ),
+        },
+        idempotency_response_budget: server_runtime::ResourceBudget::new(
+            server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("799dc227"),
+        ),
+        pg_pool: app_state::SqlxPgPool::from(
+            sqlx::PgPool::connect_lazy("postgres://usr:pwd@127.0.0.1:1/unreachable")
+                .expect("d53d8ff0"),
+        ),
+        project_git_info: &git_info::PROJECT_GIT_INFO,
+    }
+}
 #[cfg(test)]
 mod tests {
     const TEST_COMMIT: &str = "abc123";
@@ -100,6 +195,9 @@ mod tests {
         project_git_info: &'state_lt git_info::ProjectGitInfo<'state_lt>,
     ) -> super::ServerAppState<'state_lt> {
         super::ServerAppState {
+            bulk_item_budget: server_runtime::ResourceBudget::new(
+                server_runtime::ResourceBudgetMaximum::try_from(128usize).expect("837f89a0"),
+            ),
             config: server_config::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin("*".to_owned()),
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
@@ -133,6 +231,9 @@ mod tests {
             pg_pool: app_state::SqlxPgPool::from(
                 sqlx::PgPool::connect_lazy("postgres://usr:pwd@localhost:5432/db")
                     .expect("4bd3f0a1"),
+            ),
+            idempotency_response_budget: server_runtime::ResourceBudget::new(
+                server_runtime::ResourceBudgetMaximum::try_from(1_048_576usize).expect("926ce310"),
             ),
             project_git_info,
         }

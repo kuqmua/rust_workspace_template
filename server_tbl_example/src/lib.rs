@@ -1,8 +1,12 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 OpenApi derive expands iterator callbacks at crate scope
+#![cfg_attr(not(test), allow(unused_crate_dependencies))] // HTTP contract fixtures use server_app_state, tokio, and tower only in this crate's test target
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // utoipa 4 derives component registration with iterator callbacks
 #[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
 #[gen_pg_tbl::gen_pg_tbl_config{{
     "cm_max_items": 2,
+    "create_exclude_fields": ["revision"],
+    "idempotent_mutations": true,
+    "optimistic_revision_field": "revision",
     "permission_prefix": "tbl_example",
     "tests_write_into_file": "False",
     "cmn_write_into_file": "False",
@@ -37,15 +41,168 @@ pub struct TblExample {
     pub col_1: pg_types_numeric::OptI16AsNlInt2,
     #[gen_pg_tbl_frontend(hidden, order = 2)]
     pub col_2: pg_types_numeric::I32AsNnInt4,
+    #[gen_pg_tbl_frontend(hidden, order = 4)]
+    pub revision: pg_types_numeric::I64AsNnBigSerialInitByPg,
 }
 #[cfg(test)]
 #[allow(
+    clippy::arbitrary_source_item_ordering,
     clippy::indexing_slicing,
     clippy::needless_for_each,
     clippy::shadow_reuse,
-    clippy::shadow_unrelated
-)] // compact recursive JSON assertions keep the generated document structure visible
+    clippy::shadow_unrelated,
+    clippy::while_let_loop
+)] // generated HTTP matrix and compact recursive JSON assertions stay grouped by the contract they verify
 mod tests {
+    #[tokio::test]
+    async fn generated_negative_http_contracts_reject_before_database_io() {
+        let app_state = std::sync::Arc::new(server_app_state::mk_test_server_app_state());
+        let router = super::TblExample::routes(app_state);
+        let mut contracts = super::TblExampleRouteContract::ALL.into_iter();
+        loop {
+            let Some(contract) = contracts.next() else {
+                break;
+            };
+            let method = match contract.http_method() {
+                super::TblExampleHttpMethod::Delete => http::Method::DELETE,
+                super::TblExampleHttpMethod::Patch => http::Method::PATCH,
+                super::TblExampleHttpMethod::Post => http::Method::POST,
+            };
+            let response = tower::ServiceExt::oneshot(
+                router.clone(),
+                http::Request::builder()
+                    .method(method)
+                    .uri(contract.path())
+                    .header(http::header::CONTENT_TYPE, "text/plain")
+                    .body(axum::body::Body::from("{}"))
+                    .expect("dc39ba13"),
+            )
+            .await
+            .expect("aeb6ad70");
+            assert_eq!(response.status(), http::StatusCode::BAD_REQUEST);
+            assert_eq!(
+                response.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static("application/problem+json"))
+            );
+            let body = axum::body::to_bytes(response.into_body(), 4_096usize)
+                .await
+                .expect("bf4bcc30");
+            let problem =
+                serde_json::from_slice::<frontend_contract::ApiProblem>(&body).expect("8da011ba");
+            assert_eq!(u16::from(problem.status()), 400u16);
+        }
+        let cm_payload: super::TblExampleCmPayload = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
+        let valid_body = serde_json::to_vec(&cm_payload).expect("29fc2f21");
+        let missing_key = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::POST)
+                .uri("/tbl_example/cm")
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .body(axum::body::Body::from(valid_body.clone()))
+                .expect("d02ba9f0"),
+        )
+        .await
+        .expect("81f86e3f");
+        assert_eq!(missing_key.status(), http::StatusCode::BAD_REQUEST);
+        let wrong_content_type = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::POST)
+                .uri("/tbl_example/cm")
+                .header(http::header::CONTENT_TYPE, "text/plain")
+                .header("idempotency-key", "negative-content-type")
+                .body(axum::body::Body::from(valid_body.clone()))
+                .expect("2f6ee062"),
+        )
+        .await
+        .expect("503936ec");
+        assert_eq!(wrong_content_type.status(), http::StatusCode::BAD_REQUEST);
+        let malformed = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::POST)
+                .uri("/tbl_example/cm")
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .header("idempotency-key", "negative-malformed")
+                .body(axum::body::Body::from("{"))
+                .expect("21af9e85"),
+        )
+        .await
+        .expect("cc0e9ff2");
+        assert_eq!(malformed.status(), http::StatusCode::BAD_REQUEST);
+        assert_eq!(
+            malformed.headers().get(http::header::CONTENT_TYPE),
+            Some(&http::HeaderValue::from_static("application/problem+json"))
+        );
+        let malformed_body = axum::body::to_bytes(malformed.into_body(), 4_096usize)
+            .await
+            .expect("7ae01090");
+        let malformed_problem =
+            serde_json::from_slice::<frontend_contract::ApiProblem>(&malformed_body)
+                .expect("56e16453");
+        assert_eq!(
+            malformed_problem.kind(),
+            frontend_contract::ApiProblemKind::InvalidRequest
+        );
+        let duplicate_key = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::POST)
+                .uri("/tbl_example/cm")
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .header("idempotency-key", "duplicate-a")
+                .header("idempotency-key", "duplicate-b")
+                .body(axum::body::Body::from(valid_body))
+                .expect("aa9ff040"),
+        )
+        .await
+        .expect("f1a92b49");
+        assert_eq!(duplicate_key.status(), http::StatusCode::BAD_REQUEST);
+        let missing_revision = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::PATCH)
+                .uri("/tbl_example/uo")
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .header("idempotency-key", "missing-revision")
+                .body(axum::body::Body::from("{}"))
+                .expect("19855efd"),
+        )
+        .await
+        .expect("230693f3");
+        assert_eq!(
+            missing_revision.status(),
+            http::StatusCode::PRECONDITION_REQUIRED
+        );
+        let oversized = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::builder()
+                .method(http::Method::POST)
+                .uri("/tbl_example/cm")
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .header("idempotency-key", "negative-oversized")
+                .body(axum::body::Body::from("x".repeat(2_048usize)))
+                .expect("aed15d30"),
+        )
+        .await
+        .expect("0d8df630");
+        assert_eq!(oversized.status(), http::StatusCode::PAYLOAD_TOO_LARGE);
+        let unsupported_method = tower::ServiceExt::oneshot(
+            router,
+            http::Request::builder()
+                .method(http::Method::GET)
+                .uri("/tbl_example/cm")
+                .body(axum::body::Body::empty())
+                .expect("76f6f737"),
+        )
+        .await
+        .expect("fb5aee1d");
+        assert_eq!(
+            unsupported_method.status(),
+            http::StatusCode::METHOD_NOT_ALLOWED
+        );
+    }
     #[derive(Clone, Copy, Debug)]
     struct TestTransport;
     impl frontend_contract::Transport for TestTransport {
@@ -102,7 +259,6 @@ mod tests {
             ("co", "post"),
             ("rm", "post"),
             ("ro", "post"),
-            ("um", "patch"),
             ("uo", "patch"),
             ("dm", "delete"),
             ("dlo", "delete"),
@@ -136,7 +292,32 @@ mod tests {
                 "200"
             };
             assert!(operation_doc["responses"].get(success_status).is_some());
+            operation_doc["responses"]
+                .as_object()
+                .expect("7c9b7f2b")
+                .iter()
+                .filter(|(status, _response)| status.as_str() != success_status)
+                .for_each(|(_status, response)| {
+                    assert_eq!(
+                        response.pointer("/content/application~1json/schema/$ref"),
+                        Some(&serde_json::Value::String(
+                            "#/components/schemas/frontend_contract.ApiProblem".to_owned()
+                        ))
+                    );
+                });
+            if operation == "uo" {
+                assert!(operation_doc["responses"].get("412").is_some());
+                assert!(operation_doc["responses"].get("428").is_some());
+                assert!(
+                    operation_doc["parameters"]
+                        .as_array()
+                        .is_some_and(|parameters| parameters
+                            .iter()
+                            .any(|parameter| parameter["name"] == "If-Match"))
+                );
+            }
         });
+        assert!(doc.pointer("/paths/~1tbl_example~1um").is_none());
         let schemas = doc["components"]["schemas"].as_object().expect("95ec6823");
         assert_eq!(
             doc["components"]["securitySchemes"]["admin_cookie"]["in"],
@@ -223,7 +404,7 @@ mod tests {
     #[test]
     fn generated_frontend_fields_follow_table_and_crud_contract() {
         let fields = super::TblExample::frontend_fields();
-        assert_eq!(fields.as_ref().len(), 4usize);
+        assert_eq!(fields.as_ref().len(), 5usize);
         let first = fields.as_ref().first().expect("fead1583");
         assert_eq!(first.name().as_ref(), "col_0");
         assert_eq!(first.label().as_ref(), "Small number");
@@ -231,7 +412,11 @@ mod tests {
             first.sortable(),
             frontend_contract::FieldCapability::Enabled
         );
-        let pk = fields.as_ref().last().expect("0a4fe013");
+        let pk = fields
+            .as_ref()
+            .iter()
+            .find(|field| field.primary_key() == frontend_contract::PrimaryKeyKind::Primary)
+            .expect("0a4fe013");
         assert_eq!(pk.name().as_ref(), "pk_col");
         assert_eq!(pk.label().as_ref(), "Identifier");
         assert_eq!(pk.primary_key(), frontend_contract::PrimaryKeyKind::Primary);
@@ -292,7 +477,7 @@ mod tests {
         let page = super::TblExample::frontend_page();
         assert_eq!(page.path().as_ref(), "/tbl_example");
         assert_eq!(page.title().as_ref(), "Tbl Example");
-        assert_eq!(page.fields().as_ref().len(), 4usize);
+        assert_eq!(page.fields().as_ref().len(), 5usize);
         assert_eq!(
             page.actions().as_ref().len(),
             super::TblExampleRouteContract::ALL.len()
@@ -326,6 +511,7 @@ mod tests {
             col_0: Some(frontend_contract::FormValue::try_from("13".to_owned()).expect("4bd3fc27")),
             col_1: None,
             col_2: None,
+            revision: None,
         });
         let _update = update.expect("c5d0bf17");
     }

@@ -14,6 +14,11 @@ edition = "2024"
 app_state = { workspace = true }
 config_lib = { workspace = true }
 newtype = { workspace = true }
+sha2 = { workspace = true }
+server_runtime = { workspace = true }
+sqlx = { workspace = true }
+to_err_string = { workspace = true }
+uuid = { workspace = true }
 [lints]
 workspace = true
 

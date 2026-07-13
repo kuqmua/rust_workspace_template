@@ -1,8 +1,12 @@
 //todo gen openapi spec
 const SLASH_HEALTH_CHECK: &str = "/health_check";
+const SLASH_HEALTH: &str = "/health";
+const SLASH_HEALTH_LIVE: &str = "/health/live";
+const SLASH_HEALTH_READY: &str = "/health/ready";
 const SLASH_GIT_INFO: &str = "/git_info";
 const SLASH_SWAGGER_UI: &str = "/swagger-ui";
 const HEALTH_CHECK_SQL: &str = "SELECT 1";
+const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
 const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
@@ -33,6 +37,78 @@ struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
 struct NoRouteMsgCapacity(usize);
 #[derive(Debug, Clone, Copy, optml::Optml)]
 struct HealthCheckSucceeded(bool);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct HealthDatabaseAvailable(bool);
+impl From<bool> for HealthDatabaseAvailable {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum HealthStatus {
+    Degraded,
+    Error,
+    Ok,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum HealthComponentKind {
+    DatabaseConnectivity,
+    ServiceAvailability,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+pub struct HealthComponent {
+    kind: HealthComponentKind,
+    status: HealthStatus,
+}
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+pub struct HealthReport {
+    components: Vec<HealthComponent>,
+    status: HealthStatus,
+}
+impl HealthReport {
+    #[must_use]
+    pub fn liveness() -> Self {
+        Self {
+            components: vec![HealthComponent {
+                kind: HealthComponentKind::ServiceAvailability,
+                status: HealthStatus::Ok,
+            }],
+            status: HealthStatus::Ok,
+        }
+    }
+    #[must_use]
+    pub fn readiness(database_available: HealthDatabaseAvailable) -> Self {
+        let database_status = if database_available.0 {
+            HealthStatus::Ok
+        } else {
+            HealthStatus::Error
+        };
+        let status = if database_available.0 {
+            HealthStatus::Ok
+        } else {
+            HealthStatus::Degraded
+        };
+        Self {
+            components: vec![
+                HealthComponent {
+                    kind: HealthComponentKind::ServiceAvailability,
+                    status: HealthStatus::Ok,
+                },
+                HealthComponent {
+                    kind: HealthComponentKind::DatabaseConnectivity,
+                    status: database_status,
+                },
+            ],
+            status,
+        }
+    }
+    #[must_use]
+    pub const fn status(&self) -> HealthStatus {
+        self.status
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 struct AxumHealthCheckStatus(axum::http::StatusCode);
 #[derive(Debug, optml::Optml)]
@@ -157,25 +233,53 @@ const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheck
         HEALTH_CHECK_ER_STATUS
     }
 }
+async fn database_is_ready(app_state: &dyn CmnRoutesPrms) -> HealthCheckSucceeded {
+    let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
+    let probe = sqlx::query(HEALTH_CHECK_SQL).execute(pool.as_ref());
+    HealthCheckSucceeded(matches!(
+        tokio::time::timeout(HEALTH_PROBE_TIMEOUT, probe).await,
+        Ok(Ok(_))
+    ))
+}
+const fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
+    let status = match report.status() {
+        HealthStatus::Ok => HEALTH_CHECK_OK_STATUS,
+        HealthStatus::Degraded | HealthStatus::Error => HEALTH_CHECK_ER_STATUS,
+    };
+    mk_json_res(status, report)
+}
 #[must_use]
 pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes {
     let app_state = app_state_b9fc2d94.0;
     AxumCmnRoutes(
         axum::Router::new()
             .route(
+                SLASH_HEALTH_LIVE,
+                axum::routing::get(async || health_report_response(HealthReport::liveness())),
+            )
+            .route(
+                SLASH_HEALTH_READY,
+                axum::routing::get(async |axum::extract::State(app_state_raw)| {
+                    let ready_state: std::sync::Arc<dyn CmnRoutesPrms> = app_state_raw;
+                    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
+                        database_is_ready(ready_state.as_ref()).await.0,
+                    )))
+                }),
+            )
+            .route(
+                SLASH_HEALTH,
+                axum::routing::get(async |axum::extract::State(app_state_raw)| {
+                    let aggregate_state: std::sync::Arc<dyn CmnRoutesPrms> = app_state_raw;
+                    health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
+                        database_is_ready(aggregate_state.as_ref()).await.0,
+                    )))
+                }),
+            )
+            .route(
                 SLASH_HEALTH_CHECK,
                 axum::routing::get(async |axum::extract::State(app_state_hc_raw)| {
                     let app_state_hc: std::sync::Arc<dyn CmnRoutesPrms> = app_state_hc_raw;
-                    map_health_check_status(HealthCheckSucceeded(
-                        sqlx::query(HEALTH_CHECK_SQL)
-                            .execute(
-                                app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state_hc.as_ref())
-                                    .as_ref(),
-                            )
-                            .await
-                            .is_ok(),
-                    ))
-                    .0
+                    map_health_check_status(database_is_ready(app_state_hc.as_ref()).await).0
                 }),
             )
             .route(
@@ -202,8 +306,24 @@ pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes 
     )
 }
 #[cfg(test)]
+#[allow(clippy::arbitrary_source_item_ordering)] // fixtures remain adjacent to the tests that exercise their route state
 mod tests {
     const TEST_COMMIT: &str = "abc123";
+    #[test]
+    fn health_reports_distinguish_liveness_and_dependency_readiness() {
+        let live = super::HealthReport::liveness();
+        assert_eq!(live.status(), super::HealthStatus::Ok);
+        assert_eq!(live.components.len(), 1usize);
+        let ready = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(true));
+        assert_eq!(ready.status(), super::HealthStatus::Ok);
+        assert_eq!(ready.components.len(), 2usize);
+        let degraded = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(false));
+        assert_eq!(degraded.status(), super::HealthStatus::Degraded);
+        assert_eq!(
+            degraded.components.get(1usize).expect("16ca1c84").status,
+            super::HealthStatus::Error
+        );
+    }
     #[derive(Debug)]
     struct TestState {
         commit: &'static str,

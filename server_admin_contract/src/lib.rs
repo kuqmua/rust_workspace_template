@@ -690,6 +690,7 @@ pub enum AdminRoute {
     Me,
     Metrics,
     Permissions,
+    Refresh,
     Roles,
     SetRolePermissions(AdminRoleId),
     SetUserBan(AdminUserId),
@@ -897,6 +898,13 @@ impl AdminRoute {
                 "/permissions",
                 frontend_contract::SuccessStatus::Code200,
             ),
+            Self::Refresh => (
+                frontend_contract::AuthenticationRequirement::Public,
+                frontend_contract::HttpMethod::Post,
+                frontend_contract::MutationKind::Mutating,
+                "/auth/refresh",
+                frontend_contract::SuccessStatus::Code200,
+            ),
             Self::Roles => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from("roles:read"),
@@ -1024,6 +1032,7 @@ impl AdminRoute {
             | Self::Me
             | Self::Metrics
             | Self::Permissions
+            | Self::Refresh
             | Self::Roles
             | Self::Settings
             | Self::SignIn

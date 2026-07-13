@@ -1,5 +1,6 @@
 const TRACING_DFLT_FILTER: &str = "info";
 const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
+const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct StdServerIoEr(std::io::Error);
@@ -21,12 +22,36 @@ impl std::error::Error for MetricsExporterPrometheusBuildEr {
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 #[derive(Debug)]
 struct ServerRuntimeRequestTimeoutEr(server_runtime::StdRequestTimeoutTryFromDurationEr);
+#[derive(Debug)]
+struct ServerRuntimeRunIntervalEr(server_runtime::StdRunIntervalTryFromDurationEr);
+#[derive(Debug)]
+struct ServerRuntimeBackgroundTaskShutdownEr(server_runtime::BackgroundTaskShutdownEr);
+#[derive(Debug)]
+struct ServerAdminCleanupCfgEr(server_admin::AdminCleanupCfgEr);
 impl std::fmt::Display for ServerRuntimeRequestTimeoutEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 impl std::error::Error for ServerRuntimeRequestTimeoutEr {}
+impl std::fmt::Display for ServerRuntimeRunIntervalEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeRunIntervalEr {}
+impl std::fmt::Display for ServerRuntimeBackgroundTaskShutdownEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeBackgroundTaskShutdownEr {}
+impl std::fmt::Display for ServerAdminCleanupCfgEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerAdminCleanupCfgEr {}
 impl std::fmt::Display for ServerRuntimeServeEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -85,7 +110,7 @@ where
         Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
     >;
     type Response = axum::response::Response;
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
+    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
         let mut inner = self.inner.clone();
         std::mem::swap(&mut inner, &mut self.inner);
         let state = self.state.clone();
@@ -128,7 +153,7 @@ where
                     server_admin::auth::AdminApiEr::Authorization,
                 ));
             };
-            if let Err(er) = server_admin::auth::authorize_generated_request(
+            let authenticated = match server_admin::auth::authorize_generated_request(
                 state.as_ref(),
                 server_admin::HttpAdminHeaderMapRef::from(req.headers()),
                 server_admin::StdAdminStrRef::from(permission),
@@ -136,8 +161,19 @@ where
             )
             .await
             {
-                return Ok(axum::response::IntoResponse::into_response(er));
-            }
+                Ok(value) => value,
+                Err(er) => return Ok(axum::response::IntoResponse::into_response(er)),
+            };
+            let actor =
+                match pg_tbl::PgTblIdempotencyActor::try_from(authenticated.id().to_string()) {
+                    Ok(value) => value,
+                    Err(_error) => {
+                        return Ok(axum::response::IntoResponse::into_response(
+                            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        ));
+                    }
+                };
+            let _previous_actor = req.extensions_mut().insert(actor);
             tower::Service::call(&mut inner, req).await
         })
     }
@@ -167,6 +203,10 @@ impl std::process::Termination for StdServerExitCode {
 enum RunServerEr {
     #[error("failed to build administrator authentication state: {0}")]
     AdminAuthState(ServerAdminAuthSvcStateBuildEr),
+    #[error("invalid administrator cleanup configuration: {0}")]
+    AdminCleanupConfig(ServerAdminCleanupCfgEr),
+    #[error("administrator cleanup task shutdown failed: {0}")]
+    AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownEr),
     #[error("failed to bind service socket: {0}")]
     BindServiceSocket(StdServerIoEr),
     #[error("failed to build tokio runtime: {0}")]
@@ -183,10 +223,29 @@ enum RunServerEr {
     PrepAdminPg(ServerAdminMigrateEr),
     #[error("failed to prepare postgres schema: {0}")]
     PrepPg(ServerPrepPgEr),
+    #[error("invalid server runtime interval: {0}")]
+    RuntimeInterval(ServerRuntimeRunIntervalEr),
     #[error("invalid server runtime timeout: {0}")]
     RuntimeTimeout(ServerRuntimeRequestTimeoutEr),
     #[error("server failed: {0}")]
     Serve(ServerRuntimeServeEr),
+}
+#[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
+fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerEr> {
+    let batch_size = server_admin::AdminCleanupBatchSize::try_from(1_000i64)
+        .map_err(|error| RunServerEr::AdminCleanupConfig(ServerAdminCleanupCfgEr(error)))?;
+    let retention = |seconds| {
+        server_admin::AdminCleanupRetentionSeconds::try_from(seconds)
+            .map_err(|error| RunServerEr::AdminCleanupConfig(ServerAdminCleanupCfgEr(error)))
+    };
+    Ok(server_admin::AdminCleanupCfg::new(
+        batch_size,
+        retention(604_800i64)?,
+        retention(7_776_000i64)?,
+        retention(86_400i64)?,
+        retention(86_400i64)?,
+        retention(3_600i64)?,
+    ))
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
@@ -263,8 +322,19 @@ fn mk_app_state(
     pg_pool: app_state::SqlxPgPool,
 ) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
     std::sync::Arc::new(server_app_state::ServerAppState {
-        pg_pool,
+        bulk_item_budget: server_runtime::ResourceBudget::new(
+            server_runtime::ResourceBudgetMaximum::from(
+                std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
+            ),
+        ),
         config,
+        idempotency_response_budget: server_runtime::ResourceBudget::new(
+            server_runtime::ResourceBudgetMaximum::from(
+                std::num::NonZeroUsize::new(64usize.saturating_mul(1_048_576usize))
+                    .unwrap_or(std::num::NonZeroUsize::MIN),
+            ),
+        ),
+        pg_pool,
         project_git_info: &git_info::PROJECT_GIT_INFO,
     })
 }
@@ -368,6 +438,38 @@ async fn run_server() -> Result<(), RunServerEr> {
     server_tbl_example::TblExample::prep_pg(pg_pool.as_ref())
         .await
         .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
+    let cleanup_cfg = mk_admin_cleanup_cfg()?;
+    let cleanup_interval = server_runtime::StdRunInterval::try_from(
+        std::time::Duration::from_secs(ADMIN_CLEANUP_INTERVAL_SECONDS),
+    )
+    .map_err(|error| RunServerEr::RuntimeInterval(ServerRuntimeRunIntervalEr(error)))?;
+    let cleanup_pool = pg_pool.clone();
+    let Some(cleanup_task) = server_runtime::spawn_interval_task(
+        Some(cleanup_interval),
+        move || {
+            let run_pool = cleanup_pool.clone();
+            async move {
+                match server_admin::cleanup_admin_tables(
+                    app_state::SqlxPgPoolRef::from(run_pool.as_ref()),
+                    cleanup_cfg,
+                )
+                .await
+                {
+                    Ok(report) => tracing::info!(
+                        deleted_rows = %report.total_rows(),
+                        "administrator operational tables cleaned"
+                    ),
+                    Err(error) => {
+                        tracing::error!(error = %error, "administrator operational table cleanup failed");
+                    }
+                }
+            }
+        },
+    ) else {
+        return Err(RunServerEr::RuntimeInterval(ServerRuntimeRunIntervalEr(
+            server_runtime::StdRunIntervalTryFromDurationEr,
+        )));
+    };
     let tcp_listener = tokio::net::TcpListener::bind(
         config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
     )
@@ -447,7 +549,7 @@ async fn run_server() -> Result<(), RunServerEr> {
                 ),
             ),
     );
-    server_runtime::serve_with_graceful_shutdown(
+    let serve_result = server_runtime::serve_with_graceful_shutdown(
         server_runtime::TokioTcpListener::from(tcp_listener),
         router,
         async {
@@ -457,8 +559,14 @@ async fn run_server() -> Result<(), RunServerEr> {
         },
         request_timeout,
     )
-    .await
-    .map_err(|er| RunServerEr::Serve(ServerRuntimeServeEr(er)))?;
+    .await;
+    let _cleanup_outcome = cleanup_task
+        .shutdown(request_timeout)
+        .await
+        .map_err(|error| {
+            RunServerEr::AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownEr(error))
+        })?;
+    serve_result.map_err(|er| RunServerEr::Serve(ServerRuntimeServeEr(er)))?;
     Ok(())
 }
 fn main() -> StdServerExitCode {

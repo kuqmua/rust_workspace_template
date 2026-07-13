@@ -20,6 +20,7 @@ tower-http = { workspace = true }
 leptos = { workspace = true }
 gloo-net = { workspace = true }
 frontend_contract = { workspace = true }
+futures = { workspace = true }
 git_info = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }

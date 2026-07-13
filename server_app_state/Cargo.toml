@@ -17,12 +17,15 @@ cmn_routes = { workspace = true }
 git_info = { workspace = true }
 app_state = { workspace = true }
 server_config = { workspace = true }
+server_runtime = { workspace = true }
+sqlx = { workspace = true }
 pg_tbl = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
 secrecy = { workspace = true }
-sqlx = { workspace = true }
 tokio = { workspace = true }
+[features]
+test-utils = []
 [lints]
 workspace = true

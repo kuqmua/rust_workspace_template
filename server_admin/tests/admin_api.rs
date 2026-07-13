@@ -188,6 +188,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("0ea8d516");
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+        .await
+        .expect("676c00f1");
     let _truncate_result = sqlx::query("TRUNCATE admin_rate_limits, admin_audit_log, admin_login_attempts, admin_access_sessions, admin_refresh_tokens, admin_user_roles, admin_users RESTART IDENTITY CASCADE")
         .execute(&pool.0)
         .await
@@ -208,11 +211,57 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     )
     .await
     .expect("e2c94d67");
+    let original_password_hash = sqlx::query_scalar::<_, String>(
+        "SELECT password_hash FROM admin_users WHERE login = 'root_admin'",
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("1282b56e");
+    let repeated_password =
+        serde_json::from_str::<server_admin::AdminPassword>("\"different-password\"")
+            .expect("e411f376");
+    assert!(matches!(
+        server_admin::bootstrap_admin(
+            app_state::SqlxPgPoolRef::from(&pool.0),
+            server_admin::AdminLogin::try_from("other_admin".to_owned()).expect("8359ca1a"),
+            server_admin::AdminDisplayName::try_from("Other Admin".to_owned()).expect("d968dddb"),
+            repeated_password,
+            &hasher,
+        )
+        .await,
+        Err(server_admin::AdminBootstrapEr::AlreadyInitialized)
+    ));
+    let preserved_password_hash = sqlx::query_scalar::<_, String>(
+        "SELECT password_hash FROM admin_users WHERE login = 'root_admin'",
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("65ff827e");
+    assert_eq!(preserved_password_hash, original_password_hash);
+    let administrator_count = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM admin_users")
+        .fetch_one(&pool.0)
+        .await
+        .expect("ae89c3bd");
+    assert_eq!(administrator_count, 1i64);
     let admin_id =
         sqlx::query_scalar::<_, i64>("SELECT id FROM admin_users WHERE login = 'root_admin'")
             .fetch_one(&pool.0)
             .await
             .expect("a61329bf");
+    let dangling_role_links = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM admin_user_roles link LEFT JOIN admin_users usr ON usr.id = link.user_id LEFT JOIN admin_roles role ON role.id = link.role_id WHERE usr.id IS NULL OR role.id IS NULL",
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("08ef120f");
+    assert_eq!(dangling_role_links, 0i64);
+    let dangling_permission_links = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM admin_role_permissions link LEFT JOIN admin_roles role ON role.id = link.role_id LEFT JOIN admin_permissions permission ON permission.id = link.permission_id WHERE role.id IS NULL OR permission.id IS NULL",
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("aebf6dc8");
+    assert_eq!(dangling_permission_links, 0i64);
     let wrong_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
@@ -681,4 +730,405 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .iter()
             .any(|(succeeded, count)| *succeeded && *count > 0)
     );
+}
+#[tokio::test]
+async fn postgresql_generated_mutation_idempotency_contract() {
+    #[cfg(feature = "test-utils")]
+    let database_url = std::env::var("DATABASE_URL").expect("31c46f77");
+    #[cfg(not(feature = "test-utils"))]
+    let Ok(database_url) = std::env::var("DATABASE_URL") else {
+        return;
+    };
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(4u32)
+        .connect(database_url.as_str())
+        .await
+        .expect("cb6830bc");
+    pg_tbl::ensure_pg_tbl_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
+        .await
+        .expect("6c338824");
+    let _truncate_result = sqlx::query("TRUNCATE pg_tbl_idempotency")
+        .execute(&pool)
+        .await
+        .expect("d93beb69");
+    let make_request = |actor: StdAdminApiTestStrRef<'_>,
+                        route: StdAdminApiTestStrRef<'_>,
+                        key: StdAdminApiTestStrRef<'_>,
+                        body: pg_tbl::PgTblIdempotencyBodyRef<'_>| {
+        pg_tbl::PgTblIdempotencyRequest::new(
+            pg_tbl::PgTblIdempotencyScope::new(
+                pg_tbl::PgTblIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036"),
+                pg_tbl::PgTblIdempotencyMethod::try_from("POST".to_owned()).expect("94bc0508"),
+                pg_tbl::PgTblIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f"),
+                pg_tbl::PgTblIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d"),
+            ),
+            body,
+        )
+    };
+    let first_request = make_request(
+        StdAdminApiTestStrRef("actor-a"),
+        StdAdminApiTestStrRef("/items/cm"),
+        StdAdminApiTestStrRef("key-a"),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+    );
+    let first =
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &first_request)
+            .await
+            .expect("c8b3565c");
+    assert_eq!(first, pg_tbl::PgTblIdempotencyBegin::Acquired);
+    let pending =
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &first_request)
+            .await
+            .expect("c5c45332");
+    assert_eq!(pending, pg_tbl::PgTblIdempotencyBegin::InProgress);
+    let conflicting_request = make_request(
+        StdAdminApiTestStrRef("actor-a"),
+        StdAdminApiTestStrRef("/items/cm"),
+        StdAdminApiTestStrRef("key-a"),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
+    );
+    let conflict = pg_tbl::begin_pg_tbl_idempotency(
+        app_state::SqlxPgPoolRef::from(&pool),
+        &conflicting_request,
+    )
+    .await
+    .expect("7f419767");
+    assert_eq!(conflict, pg_tbl::PgTblIdempotencyBegin::Conflict);
+    let response_body = br#"{"desirable":{"id":1}}"#;
+    pg_tbl::complete_pg_tbl_idempotency(
+        app_state::SqlxPgPoolRef::from(&pool),
+        &first_request,
+        pg_tbl::PgTblIdempotencyResponseStatus::from(201u16),
+        pg_tbl::PgTblIdempotencyBodyRef::from(response_body.as_slice()),
+    )
+    .await
+    .expect("9106c1e6");
+    let replay =
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &first_request)
+            .await
+            .expect("0721b23f");
+    let pg_tbl::PgTblIdempotencyBegin::Replay(replay_value) = replay else {
+        panic!("9f97fb0d");
+    };
+    assert_eq!(
+        replay_value.into_parts(),
+        (
+            pg_tbl::PgTblIdempotencyResponseStatus::from(201u16),
+            pg_tbl::PgTblIdempotencyBody::from(response_body.to_vec()),
+        )
+    );
+    let other_actor = make_request(
+        StdAdminApiTestStrRef("actor-b"),
+        StdAdminApiTestStrRef("/items/cm"),
+        StdAdminApiTestStrRef("key-a"),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
+    );
+    assert_eq!(
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &other_actor)
+            .await
+            .expect("e581d572"),
+        pg_tbl::PgTblIdempotencyBegin::Acquired
+    );
+    pg_tbl::release_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &other_actor)
+        .await
+        .expect("31e0437d");
+    assert_eq!(
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &other_actor)
+            .await
+            .expect("fe57d4dc"),
+        pg_tbl::PgTblIdempotencyBegin::Acquired
+    );
+    let concurrent = make_request(
+        StdAdminApiTestStrRef("actor-concurrent"),
+        StdAdminApiTestStrRef("/items/cm"),
+        StdAdminApiTestStrRef("key-concurrent"),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
+    );
+    let (left, right) = tokio::join!(
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &concurrent),
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &concurrent)
+    );
+    let outcomes = [left.expect("874153ec"), right.expect("64c4cc46")];
+    assert_eq!(
+        outcomes
+            .iter()
+            .filter(|outcome| **outcome == pg_tbl::PgTblIdempotencyBegin::Acquired)
+            .count(),
+        1usize
+    );
+    assert_eq!(
+        outcomes
+            .iter()
+            .filter(|outcome| **outcome == pg_tbl::PgTblIdempotencyBegin::InProgress)
+            .count(),
+        1usize
+    );
+    let _atomic_table = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS pg_tbl_idempotency_atomic_test (id BIGINT PRIMARY KEY)",
+    )
+    .execute(&pool)
+    .await
+    .expect("af066e8b");
+    let _atomic_clear = sqlx::query("TRUNCATE pg_tbl_idempotency_atomic_test")
+        .execute(&pool)
+        .await
+        .expect("3130e593");
+    let atomic = make_request(
+        StdAdminApiTestStrRef("actor-atomic"),
+        StdAdminApiTestStrRef("/items/co"),
+        StdAdminApiTestStrRef("key-atomic"),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+    );
+    assert_eq!(
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &atomic)
+            .await
+            .expect("925ea283"),
+        pg_tbl::PgTblIdempotencyBegin::Acquired
+    );
+    let mut rollback_tx = pool.begin().await.expect("fcba80e1");
+    let _mutation = sqlx::query("INSERT INTO pg_tbl_idempotency_atomic_test (id) VALUES (1)")
+        .execute(&mut *rollback_tx)
+        .await
+        .expect("67503e70");
+    pg_tbl::complete_pg_tbl_idempotency_in_connection(
+        pg_tbl::SqlxPgTblPgConnectionRef::from(&mut *rollback_tx),
+        &atomic,
+        pg_tbl::PgTblIdempotencyResponseStatus::from(201u16),
+        pg_tbl::PgTblIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
+    )
+    .await
+    .expect("8ad86515");
+    rollback_tx.rollback().await.expect("11cfcb27");
+    let mutation_count =
+        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM pg_tbl_idempotency_atomic_test")
+            .fetch_one(&pool)
+            .await
+            .expect("84e57ab6");
+    assert_eq!(mutation_count, 0i64);
+    assert_eq!(
+        pg_tbl::begin_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &atomic)
+            .await
+            .expect("3903bf53"),
+        pg_tbl::PgTblIdempotencyBegin::InProgress
+    );
+    pg_tbl::release_pg_tbl_idempotency(app_state::SqlxPgPoolRef::from(&pool), &atomic)
+        .await
+        .expect("67973e68");
+    let _age_records = sqlx::query("UPDATE pg_tbl_idempotency SET created_at=TIMESTAMPTZ '2000-01-01 00:00:00+00',completed_at=CASE WHEN state='completed' THEN TIMESTAMPTZ '2000-01-01 00:00:00+00' ELSE NULL END")
+        .execute(&pool)
+        .await
+        .expect("a46f7336");
+    let before_cleanup = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM pg_tbl_idempotency")
+        .fetch_one(&pool)
+        .await
+        .expect("2c080f6d");
+    let cleaned = pg_tbl::cleanup_pg_tbl_idempotency(
+        app_state::SqlxPgPoolRef::from(&pool),
+        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(1i64),
+        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(1i64),
+        pg_tbl::PgTblIdempotencyCleanupBatchSize::from(2i64),
+    )
+    .await
+    .expect("b1ba49cc");
+    assert_eq!(u64::from(cleaned), 2u64);
+    let after_cleanup = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM pg_tbl_idempotency")
+        .fetch_one(&pool)
+        .await
+        .expect("6863201e");
+    assert_eq!(
+        before_cleanup.checked_sub(after_cleanup).expect("f93ed3cf"),
+        2i64
+    );
+}
+#[tokio::test]
+async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
+    #[cfg(feature = "test-utils")]
+    let database_url = std::env::var("DATABASE_URL").expect("52556424");
+    #[cfg(not(feature = "test-utils"))]
+    let Ok(database_url) = std::env::var("DATABASE_URL") else {
+        return;
+    };
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(4u32)
+        .connect(database_url.as_str())
+        .await
+        .expect("2480f8c4");
+    let _drop_before = sqlx::query("DROP TABLE IF EXISTS pg_tbl_optimistic_revision_test")
+        .execute(&pool)
+        .await
+        .expect("e5e1f7cb");
+    let _create = sqlx::query("CREATE TABLE pg_tbl_optimistic_revision_test (id BIGINT PRIMARY KEY, revision BIGINT NOT NULL, value BIGINT NOT NULL)")
+        .execute(&pool)
+        .await
+        .expect("a75bc224");
+    let _insert = sqlx::query(
+        "INSERT INTO pg_tbl_optimistic_revision_test (id,revision,value) VALUES (1,0,0)",
+    )
+    .execute(&pool)
+    .await
+    .expect("da271038");
+    let update = "UPDATE pg_tbl_optimistic_revision_test SET value=$1,revision=revision+1 WHERE id=1 AND revision=$2 RETURNING revision";
+    let (left, right) = tokio::join!(
+        sqlx::query_scalar::<_, i64>(update)
+            .bind(1i64)
+            .bind(pg_tbl::PgTblRevision::try_from("0".to_owned()).expect("979fa4b2"))
+            .fetch_optional(&pool),
+        sqlx::query_scalar::<_, i64>(update)
+            .bind(2i64)
+            .bind(pg_tbl::PgTblRevision::try_from("0".to_owned()).expect("589ea31d"))
+            .fetch_optional(&pool),
+    );
+    let outcomes = [left.expect("a1a1382a"), right.expect("8406b933")];
+    assert_eq!(
+        outcomes.iter().filter(|value| value.is_some()).count(),
+        1usize
+    );
+    assert_eq!(
+        sqlx::query_scalar::<_, i64>(
+            "SELECT revision FROM pg_tbl_optimistic_revision_test WHERE id=1",
+        )
+        .fetch_one(&pool)
+        .await
+        .expect("c0f01a04"),
+        1i64
+    );
+    let stale = sqlx::query_scalar::<_, i64>(update)
+        .bind(3i64)
+        .bind(pg_tbl::PgTblRevision::try_from("0".to_owned()).expect("a3a08aeb"))
+        .fetch_optional(&pool)
+        .await
+        .expect("964e3ef4");
+    assert_eq!(stale, None);
+    let _drop_after = sqlx::query("DROP TABLE pg_tbl_optimistic_revision_test")
+        .execute(&pool)
+        .await
+        .expect("a4d77f54");
+}
+#[tokio::test]
+async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
+    #[cfg(feature = "test-utils")]
+    let database_url = std::env::var("DATABASE_URL").expect("0cc78f70");
+    #[cfg(not(feature = "test-utils"))]
+    let Ok(database_url) = std::env::var("DATABASE_URL") else {
+        return;
+    };
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(2u32)
+        .connect(database_url.as_str())
+        .await
+        .expect("f6a51733");
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
+        .await
+        .expect("029cb682");
+    pg_tbl::ensure_pg_tbl_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
+        .await
+        .expect("eb08dffc");
+    let _clear = sqlx::query(
+        "TRUNCATE admin_access_sessions, admin_refresh_tokens, admin_login_attempts, admin_rate_limits, admin_audit_log, pg_tbl_idempotency",
+    )
+    .execute(&pool)
+    .await
+    .expect("e1b22572");
+    let _attempts = sqlx::query("INSERT INTO admin_login_attempts (login,succeeded,attempted_at) SELECT 'old-' || value::TEXT,FALSE,TIMESTAMPTZ '2000-01-01 00:00:00+00' FROM generate_series(1,3) value")
+        .execute(&pool)
+        .await
+        .expect("480b06eb");
+    let _limits = sqlx::query("INSERT INTO admin_rate_limits (scope,subject,window_started_at,request_count) SELECT 'test','old-' || value::TEXT,TIMESTAMPTZ '2000-01-01 00:00:00+00',1 FROM generate_series(1,3) value")
+        .execute(&pool)
+        .await
+        .expect("0375574d");
+    let _audit = sqlx::query("INSERT INTO admin_audit_log (action,resource,succeeded,created_at) SELECT 'test','test',TRUE,TIMESTAMPTZ '2000-01-01 00:00:00+00' FROM generate_series(1,3)")
+        .execute(&pool)
+        .await
+        .expect("f50ef817");
+    let retention = server_admin::AdminCleanupRetentionSeconds::try_from(1i64).expect("ab892fc5");
+    let config = server_admin::AdminCleanupCfg::new(
+        server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c"),
+        retention,
+        retention,
+        retention,
+        retention,
+        retention,
+    );
+    let report = server_admin::cleanup_admin_tables(app_state::SqlxPgPoolRef::from(&pool), config)
+        .await
+        .expect("a422e8d4");
+    assert_eq!(report.total_rows().to_string(), "6");
+    let remaining = sqlx::query_as::<_, (i64, i64, i64)>("SELECT (SELECT COUNT(*) FROM admin_login_attempts),(SELECT COUNT(*) FROM admin_rate_limits),(SELECT COUNT(*) FROM admin_audit_log)")
+        .fetch_one(&pool)
+        .await
+        .expect("f37a3ab4");
+    assert_eq!(remaining, (1i64, 1i64, 1i64));
+    let ordinary_delete = sqlx::query("DELETE FROM admin_audit_log")
+        .execute(&pool)
+        .await;
+    assert!(matches!(ordinary_delete, Err(_error)));
+}
+#[tokio::test]
+async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
+    #[cfg(feature = "test-utils")]
+    let database_url = std::env::var("DATABASE_URL").expect("20d00aef");
+    #[cfg(not(feature = "test-utils"))]
+    let Ok(database_url) = std::env::var("DATABASE_URL") else {
+        return;
+    };
+    let base_pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(1u32)
+        .connect(database_url.as_str())
+        .await
+        .expect("0047f74e");
+    let _drop_schemas = sqlx::raw_sql(
+        "DROP SCHEMA IF EXISTS admin_migration_fresh_test CASCADE; DROP SCHEMA IF EXISTS admin_migration_upgrade_test CASCADE",
+    )
+    .execute(&base_pool)
+    .await
+    .expect("df91b04d");
+    let _create_schemas = sqlx::raw_sql(
+        "CREATE SCHEMA admin_migration_fresh_test; CREATE SCHEMA admin_migration_upgrade_test",
+    )
+    .execute(&base_pool)
+    .await
+    .expect("02bcd1c2");
+    let connect = |schema: StdAdminApiTestStrRef<'static>| {
+        let options = <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(
+            database_url.as_str(),
+        )
+        .expect("aa7735db")
+        .options([("search_path", schema.0)]);
+        sqlx::postgres::PgPoolOptions::new()
+            .max_connections(1u32)
+            .connect_lazy_with(options)
+    };
+    let fresh_pool = connect(StdAdminApiTestStrRef("admin_migration_fresh_test"));
+    let upgrade_pool = connect(StdAdminApiTestStrRef("admin_migration_upgrade_test"));
+    let full = sqlx::migrate!("./migrations");
+    full.run(&fresh_pool).await.expect("4b6c3bd6");
+    let baseline = sqlx::migrate::Migrator {
+        migrations: std::borrow::Cow::Owned(full.migrations.iter().take(3usize).cloned().collect()),
+        ignore_missing: false,
+        locking: true,
+        no_tx: false,
+    };
+    baseline.run(&upgrade_pool).await.expect("2e03eccc");
+    let baseline_version = sqlx::query_scalar::<_, i64>(
+        "SELECT MAX(version) FROM _sqlx_migrations WHERE success = TRUE",
+    )
+    .fetch_one(&upgrade_pool)
+    .await
+    .expect("17862da9");
+    assert_eq!(baseline_version, 3i64);
+    full.run(&upgrade_pool).await.expect("3664ecff");
+    let versions = sqlx::query_as::<_, (i64, i64)>("SELECT (SELECT MAX(version) FROM admin_migration_fresh_test._sqlx_migrations WHERE success = TRUE),(SELECT MAX(version) FROM admin_migration_upgrade_test._sqlx_migrations WHERE success = TRUE)")
+        .fetch_one(&base_pool)
+        .await
+        .expect("5c10c931");
+    assert_eq!(versions, (4i64, 4i64));
+    fresh_pool.close().await;
+    upgrade_pool.close().await;
+    let _drop_after = sqlx::raw_sql(
+        "DROP SCHEMA admin_migration_fresh_test CASCADE; DROP SCHEMA admin_migration_upgrade_test CASCADE",
+    )
+    .execute(&base_pool)
+    .await
+    .expect("88dd90b8");
 }

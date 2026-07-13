@@ -79,6 +79,11 @@ pub struct SqlxAdminEr(sqlx::Error);
 )]
 #[newtype(from_inner)]
 pub struct AdminUserId(i64);
+impl std::fmt::Display for AdminUserId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -787,6 +792,185 @@ pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigr
         .await
         .map_err(|er| AdminMigrateEr(SqlxAdminMigrateEr::from(er)))
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminCleanupBatchSize(i64);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminCleanupRetentionSeconds(i64);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminCleanupCfg {
+    audit_retention: AdminCleanupRetentionSeconds,
+    auth_retention: AdminCleanupRetentionSeconds,
+    batch_size: AdminCleanupBatchSize,
+    idempotency_completed_retention: AdminCleanupRetentionSeconds,
+    idempotency_pending_retention: AdminCleanupRetentionSeconds,
+    rate_limit_retention: AdminCleanupRetentionSeconds,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminCleanupReport {
+    access_sessions: AdminCleanupRows,
+    audit_log: AdminCleanupRows,
+    idempotency: AdminCleanupRows,
+    login_attempts: AdminCleanupRows,
+    rate_limits: AdminCleanupRows,
+    refresh_tokens: AdminCleanupRows,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminCleanupRows(u64);
+impl From<u64> for AdminCleanupRows {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Add for AdminCleanupRows {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0.saturating_add(rhs.0))
+    }
+}
+impl AdminCleanupRows {
+    const fn saturating_add(self, rhs: Self) -> Self {
+        Self(self.0.saturating_add(rhs.0))
+    }
+}
+impl std::fmt::Display for AdminCleanupRows {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AdminCleanupCfgEr {
+    BatchSizeOutOfRange,
+    RetentionMustBePositive,
+}
+impl std::fmt::Display for AdminCleanupCfgEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BatchSizeOutOfRange => {
+                f.write_str("cleanup batch size must be between 1 and 10000")
+            }
+            Self::RetentionMustBePositive => {
+                f.write_str("cleanup retention must be greater than zero")
+            }
+        }
+    }
+}
+impl std::error::Error for AdminCleanupCfgEr {}
+#[derive(Debug)]
+pub enum AdminCleanupEr {
+    Idempotency(pg_tbl::SqlxPgTblIdempotencyEr),
+    Pg(SqlxAdminEr),
+}
+impl std::fmt::Display for AdminCleanupEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Idempotency(error) => write!(f, "idempotency cleanup failed: {error}"),
+            Self::Pg(error) => write!(f, "administrator table cleanup failed: {error:?}"),
+        }
+    }
+}
+impl std::error::Error for AdminCleanupEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Idempotency(error) => Some(error),
+            Self::Pg(error) => Some(&error.0),
+        }
+    }
+}
+impl TryFrom<i64> for AdminCleanupBatchSize {
+    type Error = AdminCleanupCfgEr;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if (1i64..=10_000i64).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(AdminCleanupCfgEr::BatchSizeOutOfRange)
+        }
+    }
+}
+impl TryFrom<i64> for AdminCleanupRetentionSeconds {
+    type Error = AdminCleanupCfgEr;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value > 0i64 {
+            Ok(Self(value))
+        } else {
+            Err(AdminCleanupCfgEr::RetentionMustBePositive)
+        }
+    }
+}
+impl AdminCleanupCfg {
+    #[must_use]
+    pub const fn new(
+        batch_size: AdminCleanupBatchSize,
+        auth_retention: AdminCleanupRetentionSeconds,
+        audit_retention: AdminCleanupRetentionSeconds,
+        rate_limit_retention: AdminCleanupRetentionSeconds,
+        idempotency_completed_retention: AdminCleanupRetentionSeconds,
+        idempotency_pending_retention: AdminCleanupRetentionSeconds,
+    ) -> Self {
+        Self {
+            audit_retention,
+            auth_retention,
+            batch_size,
+            idempotency_completed_retention,
+            idempotency_pending_retention,
+            rate_limit_retention,
+        }
+    }
+}
+impl AdminCleanupReport {
+    #[must_use]
+    pub const fn total_rows(self) -> AdminCleanupRows {
+        self.access_sessions
+            .saturating_add(self.audit_log)
+            .saturating_add(self.idempotency)
+            .saturating_add(self.login_attempts)
+            .saturating_add(self.rate_limits)
+            .saturating_add(self.refresh_tokens)
+    }
+}
+pub async fn cleanup_admin_tables(
+    pool: app_state::SqlxPgPoolRef<'_>,
+    cfg: AdminCleanupCfg,
+) -> Result<AdminCleanupReport, AdminCleanupEr> {
+    let access_sessions = sqlx::query("WITH expired AS (SELECT id FROM admin_access_sessions WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_access_sessions target USING expired WHERE target.id=expired.id")
+        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
+    let refresh_tokens = sqlx::query("WITH expired AS (SELECT id FROM admin_refresh_tokens WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_refresh_tokens target USING expired WHERE target.id=expired.id")
+        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
+    let login_attempts = sqlx::query("WITH expired AS (SELECT id FROM admin_login_attempts WHERE attempted_at < NOW() - make_interval(secs => $1) ORDER BY attempted_at LIMIT $2) DELETE FROM admin_login_attempts target USING expired WHERE target.id=expired.id")
+        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
+    let mut audit_tx = sqlx::Acquire::begin(pool.as_ref())
+        .await
+        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
+    let _audit_cleanup_permission = sqlx::query("SET LOCAL app.admin_audit_cleanup = 'on'")
+        .execute(&mut *audit_tx)
+        .await
+        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
+    let audit_log = sqlx::query("WITH expired AS (SELECT id FROM admin_audit_log WHERE created_at < NOW() - make_interval(secs => $1) ORDER BY created_at LIMIT $2) DELETE FROM admin_audit_log target USING expired WHERE target.id=expired.id")
+        .bind(cfg.audit_retention.0).bind(cfg.batch_size.0).execute(&mut *audit_tx).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
+    audit_tx
+        .commit()
+        .await
+        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
+    let rate_limits = sqlx::query("WITH expired AS (SELECT scope,subject FROM admin_rate_limits WHERE window_started_at < NOW() - make_interval(secs => $1) ORDER BY window_started_at LIMIT $2) DELETE FROM admin_rate_limits target USING expired WHERE target.scope=expired.scope AND target.subject=expired.subject")
+        .bind(cfg.rate_limit_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
+    let idempotency = pg_tbl::cleanup_pg_tbl_idempotency(
+        pool,
+        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(
+            cfg.idempotency_completed_retention.0,
+        ),
+        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(cfg.idempotency_pending_retention.0),
+        pg_tbl::PgTblIdempotencyCleanupBatchSize::from(cfg.batch_size.0),
+    )
+    .await
+    .map_err(AdminCleanupEr::Idempotency)?;
+    Ok(AdminCleanupReport {
+        access_sessions: AdminCleanupRows::from(access_sessions),
+        audit_log: AdminCleanupRows::from(audit_log),
+        idempotency: AdminCleanupRows::from(u64::from(idempotency)),
+        login_attempts: AdminCleanupRows::from(login_attempts),
+        rate_limits: AdminCleanupRows::from(rate_limits),
+        refresh_tokens: AdminCleanupRows::from(refresh_tokens),
+    })
+}
 #[derive(Debug, thiserror::Error)]
 pub enum AdminBootstrapEr {
     #[error("administrator bootstrap display name is empty")]
@@ -869,6 +1053,29 @@ pub async fn bootstrap_admin(
 #[cfg(test)]
 #[allow(clippy::needless_for_each, clippy::single_call_fn)] // repository policy forbids for loops and compact fixtures keep secret setup deterministic
 mod tests {
+    #[test]
+    fn cleanup_configuration_enforces_positive_bounded_values() {
+        assert_eq!(
+            super::AdminCleanupBatchSize::try_from(0i64),
+            Err(super::AdminCleanupCfgEr::BatchSizeOutOfRange)
+        );
+        assert_eq!(
+            super::AdminCleanupBatchSize::try_from(10_001i64),
+            Err(super::AdminCleanupCfgEr::BatchSizeOutOfRange)
+        );
+        assert_eq!(
+            super::AdminCleanupRetentionSeconds::try_from(0i64),
+            Err(super::AdminCleanupCfgEr::RetentionMustBePositive)
+        );
+        assert_eq!(
+            super::AdminCleanupBatchSize::try_from(1_000i64),
+            Ok(super::AdminCleanupBatchSize(1_000i64))
+        );
+        assert_eq!(
+            super::AdminCleanupRetentionSeconds::try_from(3_600i64),
+            Ok(super::AdminCleanupRetentionSeconds(3_600i64))
+        );
+    }
     fn secret(value: &str) -> super::SecrecyAdminString {
         super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(value.to_owned())))
     }

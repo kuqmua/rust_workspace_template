@@ -16,6 +16,8 @@ macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 quote = { workspace = true }
 macros_helpers = { workspace = true, features = ["test-utils"] }
 serde = { workspace = true }
+pg_crud_cmn = { workspace = true }
+wh_flts = { workspace = true }
 [lints]
 workspace = true
 
