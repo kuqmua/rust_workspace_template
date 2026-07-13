@@ -182,40 +182,45 @@ where
     >;
     type Response = axum::response::Response;
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
-        let request_id = [REQUEST_ID_HEADER_NAME, CORRELATION_ID_HEADER_NAME]
+        let request_id_and_header_value = [REQUEST_ID_HEADER_NAME, CORRELATION_ID_HEADER_NAME]
             .into_iter()
             .find_map(|header_name| {
-                req.headers()
-                    .get(header_name)
-                    .and_then(|value| RequestId::try_from(value).ok())
+                req.headers().get(header_name).and_then(|value| {
+                    RequestId::try_from(value)
+                        .ok()
+                        .map(|request_id| (request_id, value.clone()))
+                })
             })
             .unwrap_or_else(|| {
                 loop {
-                    if let Ok(value) = RequestId::try_from(uuid::Uuid::new_v4().to_string()) {
-                        break value;
+                    if let Ok(value) = RequestId::try_from(uuid::Uuid::new_v4().to_string())
+                        && let Ok(header_value) = http::HeaderValue::try_from(&value)
+                    {
+                        break (value, header_value);
                     }
                 }
             });
-        let _previous_extension_request_id = req.extensions_mut().insert(request_id.clone());
-        let method = req.method().clone();
-        let path = req.uri().path().to_owned();
         let started_at = tokio::time::Instant::now();
-        let span = tracing::info_span!("http.request", request_id = %request_id, method = %method, path = %path);
+        let span = tracing::info_span!("http.request", request_id = %request_id_and_header_value.0, method = %req.method(), path = %req.uri().path());
+        let _previous_extension_request_id =
+            req.extensions_mut().insert(request_id_and_header_value.0);
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(tracing::Instrument::instrument(
             async move {
                 let mut response = response_future.await?;
-                tracing::info!(request_id = %request_id, status = response.status().as_u16(), duration_ms = started_at.elapsed().as_millis(), "http request completed");
-                if let Ok(value) = http::HeaderValue::try_from(&request_id) {
-                    let _previous_header_request_id = response.headers_mut().insert(
-                        http::HeaderName::from_static(REQUEST_ID_HEADER_NAME),
-                        value.clone(),
-                    );
-                    let _previous_correlation_id = response.headers_mut().insert(
-                        http::HeaderName::from_static(CORRELATION_ID_HEADER_NAME),
-                        value,
-                    );
-                }
+                tracing::info!(
+                    status = response.status().as_u16(),
+                    duration_ms = started_at.elapsed().as_millis(),
+                    "http request completed"
+                );
+                let _previous_header_request_id = response.headers_mut().insert(
+                    http::HeaderName::from_static(REQUEST_ID_HEADER_NAME),
+                    request_id_and_header_value.1.clone(),
+                );
+                let _previous_correlation_id = response.headers_mut().insert(
+                    http::HeaderName::from_static(CORRELATION_ID_HEADER_NAME),
+                    request_id_and_header_value.1,
+                );
                 Ok(response)
             },
             span,
@@ -648,6 +653,57 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::OK);
         let optional_interval_task = super::spawn_interval_task(None, async || {});
         assert!(optional_interval_task.is_none());
+    }
+    #[tokio::test]
+    async fn request_id_layer_propagates_existing_and_generated_values() {
+        let make_router = || {
+            axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
+                axum::Router::new().route("/", axum::routing::get(async || http::StatusCode::OK)),
+            )))
+        };
+        let existing = http::HeaderValue::from_static("existing-request-id");
+        let existing_response = tower::ServiceExt::oneshot(
+            make_router(),
+            axum::extract::Request::builder()
+                .uri("/")
+                .header(super::REQUEST_ID_HEADER_NAME, existing.clone())
+                .body(axum::body::Body::empty())
+                .expect("319b3cb4"),
+        )
+        .await
+        .expect("d5a0693b");
+        assert_eq!(
+            existing_response
+                .headers()
+                .get(super::REQUEST_ID_HEADER_NAME),
+            Some(&existing)
+        );
+        assert_eq!(
+            existing_response
+                .headers()
+                .get(super::CORRELATION_ID_HEADER_NAME),
+            Some(&existing)
+        );
+        let generated_response = tower::ServiceExt::oneshot(
+            make_router(),
+            axum::extract::Request::builder()
+                .uri("/")
+                .body(axum::body::Body::empty())
+                .expect("27ce5fbd"),
+        )
+        .await
+        .expect("4cd32371");
+        let generated = generated_response
+            .headers()
+            .get(super::REQUEST_ID_HEADER_NAME)
+            .expect("12ed6f85");
+        assert_eq!(generated.as_bytes().len(), 36usize);
+        assert_eq!(
+            generated_response
+                .headers()
+                .get(super::CORRELATION_ID_HEADER_NAME),
+            Some(generated)
+        );
     }
     #[tokio::test]
     async fn security_headers_only_trust_forwarded_proto_when_configured() {

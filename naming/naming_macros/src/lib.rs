@@ -21,20 +21,23 @@ fn gen_impl_to_tokens_ts(
 #[proc_macro]
 pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_loc::panic_loc();
+    let rgx = regex::Regex::new(REGEX_VALUE).expect("20948d87");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_ts.to_string())
         .expect("90e5793b")
         .into_iter()
         .map(|el| {
-            let rgx = regex::Regex::new(REGEX_VALUE).expect("20948d87");
             assert!(el.iter().all(|el0| rgx.is_match(el0)), "faadba8a");
-            let phrase_part_ucc_str = el.iter().fold(String::new(), |mut acc, el0| {
-                acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
-                acc
-            });
-            let phrase_part_sc_str =
-                el.iter()
-                    .enumerate()
-                    .fold(String::new(), |mut acc, (i, el0)| {
+            let parts_len = el.iter().map(String::len).sum::<usize>();
+            let phrase_part_ucc_str = el.iter().fold(
+                String::with_capacity(parts_len),
+                |mut acc, el0| {
+                    acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
+                    acc
+                },
+            );
+            let phrase_part_sc_str = el.iter().enumerate().fold(
+                String::with_capacity(parts_len.saturating_add(el.len().saturating_sub(1usize))),
+                |mut acc, (i, el0)| {
                         let el_sc_str = naming_cmn::AsRefStrToScStr::case(el0);
                         if i == 0 {
                             acc.push_str(&el_sc_str);
@@ -46,7 +49,8 @@ pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macr
                             );
                         }
                         acc
-                    });
+                },
+            );
             let phrase_part_ucc_ucc_ts = format!("{phrase_part_ucc_str}Ucc")
                 .parse::<proc_macro2::TokenStream>()
                 .expect("4ab6a54c");
@@ -128,8 +132,8 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
     input_ts: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_loc::panic_loc();
+    let rgx = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_ts.to_string()).expect("9d6a20af").into_iter().map(|el| {
-        let rgx = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
         assert!(el.iter().all(|el0| rgx.is_match(el0)), "4a12d90f");
         let self_match_name = "self";
         {
@@ -139,11 +143,12 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
         let (els_concat_v_ucc_dq_ts, els_concat_v_sc_dq_ts, struct_ucc_ucc_ts, struct_sc_token_ucc_ts, trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {
             let ucc_ucc_str = "Ucc";
             let sc_ucc_str = "Sc";
-            let els_concat_ucc_str = el.iter().fold(String::new(), |mut acc, el0| {
+            let parts_len = el.iter().map(String::len).sum::<usize>();
+            let els_concat_ucc_str = el.iter().fold(String::with_capacity(parts_len), |mut acc, el0| {
                 acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
                 acc
             });
-            let els_concat_v_ucc_dq_ts = gen_quotes::dq_ts(&el.iter().fold(String::new(), |mut acc, el0| {
+            let els_concat_v_ucc_dq_ts = gen_quotes::dq_ts(&el.iter().fold(String::with_capacity(parts_len), |mut acc, el0| {
                 if el0 == "self" {
                     acc.push_str("{v}");
                 } else {
@@ -152,7 +157,7 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
                 acc
             }));
             let els_concat_v_sc_dq_ts = gen_quotes::dq_ts(&{
-                let mut acc = el.iter().fold(String::new(), |mut acc, el0| {
+                let mut acc = el.iter().fold(String::with_capacity(parts_len.saturating_add(el.len())), |mut acc, el0| {
                     let symbol = '_';
                     if el0 == "self" {
                         assert!(std::fmt::Write::write_fmt(&mut acc, format_args!("{{v}}{symbol}")).is_ok(), "6a02a2ff");
@@ -221,12 +226,17 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
                     }
                     pub fn from_type_last_segment(v: &syn::Type) -> Self {
                         if let syn::Type::Path(type_path) = v {
-                            let path_before_str = type_path.path.segments.iter().take(
-                                type_path.path.segments.len().checked_sub(1).expect("e1f5a332")
-                            )
-                            .fold(String::new(), |mut acc, el| {
-                                use std::fmt::Write as _;
-                                assert!(write!(acc, "{}::", el.ident).is_ok(), "67c90ce9");
+                            let path_before_len = type_path.path.segments.len().checked_sub(1).expect("e1f5a332");
+                            let path_before_capacity = path_before_len.saturating_mul(16usize);
+                            let path_before_str = type_path.path.segments.iter().take(path_before_len)
+                            .fold(String::with_capacity(path_before_capacity), |mut acc, el| {
+                                assert!(
+                                    std::fmt::Write::write_fmt(
+                                        &mut acc,
+                                        format_args!("{}::", el.ident),
+                                    ).is_ok(),
+                                    "67c90ce9"
+                                );
                                 acc
                             });
                             let last = type_path.path.segments.iter().last().expect("19f6e1a6");

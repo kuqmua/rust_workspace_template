@@ -73,77 +73,94 @@ categories = ["category"]
     let workspace_cargo_toml = std::fs::read_to_string(root.join("Cargo.toml"))
         .unwrap_or_else(|er| panic!("bf40d675: {er}"));
     let root_path = root.display().to_string();
-    let cargo_toml_extra = extra_cnt
-        .lines()
-        .map(|line| {
-            if !line.contains("workspace = true") {
-                return line.to_owned();
-            }
-            let Some((dep_name, _)) = line.split_once(" = ") else {
-                return line.to_owned();
-            };
-            let prefix = format!("{dep_name} = ");
-            let braces_balance = |value: &str| -> i32 {
-                value.chars().fold(0i32, |acc, ch| match ch {
-                    '{' | '[' => acc.checked_add(1i32).unwrap_or_else(|| panic!("0a8df093")),
-                    '}' | ']' => acc.checked_sub(1i32).unwrap_or_else(|| panic!("4e404fc9")),
-                    _ => acc,
-                })
-            };
-            let mut in_workspace_deps = false;
-            let mut workspace_lines = workspace_cargo_toml.lines();
-            let mut dep_entry = loop {
-                let Some(workspace_line) = workspace_lines.next() else {
-                    panic!("1bb3996c");
+    let cargo_toml_extra = extra_cnt.lines().fold(
+        String::with_capacity(extra_cnt.len()),
+        |mut output, line| {
+            let transform_line = || -> std::borrow::Cow<'_, str> {
+                if !line.contains("workspace = true") {
+                    return std::borrow::Cow::Borrowed(line);
+                }
+                let Some((dep_name, _)) = line.split_once(" = ") else {
+                    return std::borrow::Cow::Borrowed(line);
                 };
-                if workspace_line == "[workspace.dependencies]" {
-                    in_workspace_deps = true;
-                    continue;
-                }
-                assert!(
-                    !(in_workspace_deps && workspace_line.starts_with('[')),
-                    "1bb3996c"
-                );
-                if in_workspace_deps && workspace_line.starts_with(&prefix) {
-                    let mut out = String::from(workspace_line);
-                    let mut balance = braces_balance(workspace_line);
-                    while balance > 0i32 {
-                        let next_line =
-                            workspace_lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
-                        out.push('\n');
-                        out.push_str(next_line);
-                        balance = balance
-                            .checked_add(braces_balance(next_line))
-                            .unwrap_or_else(|| panic!("f1e71cd6"));
-                    }
-                    break out;
-                }
-            };
-            let feature_list = line.split_once("features = ").map(|(_, tail)| {
-                tail.chars()
-                    .scan(false, |done, ch| {
-                        if *done {
-                            None
-                        } else {
-                            if ch == ']' {
-                                *done = true;
-                            }
-                            Some(ch)
-                        }
+                let prefix = format!("{dep_name} = ");
+                let braces_balance = |value: &str| -> i32 {
+                    value.chars().fold(0i32, |acc, ch| match ch {
+                        '{' | '[' => acc.checked_add(1i32).unwrap_or_else(|| panic!("0a8df093")),
+                        '}' | ']' => acc.checked_sub(1i32).unwrap_or_else(|| panic!("4e404fc9")),
+                        _ => acc,
                     })
-                    .collect::<String>()
-            });
-            if !dep_entry.contains("features = ")
-                && let Some(features) = feature_list
-                && let Some(idx) = dep_entry.rfind('}')
-            {
-                dep_entry.insert_str(idx, &format!(", features = {features}"));
+                };
+                let mut in_workspace_deps = false;
+                let mut workspace_lines = workspace_cargo_toml.lines();
+                let mut dep_entry = loop {
+                    let Some(workspace_line) = workspace_lines.next() else {
+                        panic!("1bb3996c");
+                    };
+                    if workspace_line == "[workspace.dependencies]" {
+                        in_workspace_deps = true;
+                        continue;
+                    }
+                    assert!(
+                        !(in_workspace_deps && workspace_line.starts_with('[')),
+                        "1bb3996c"
+                    );
+                    if in_workspace_deps && workspace_line.starts_with(&prefix) {
+                        let mut out = String::from(workspace_line);
+                        let mut balance = braces_balance(workspace_line);
+                        while balance > 0i32 {
+                            let next_line =
+                                workspace_lines.next().unwrap_or_else(|| panic!("7bb3cd14"));
+                            out.push('\n');
+                            out.push_str(next_line);
+                            balance = balance
+                                .checked_add(braces_balance(next_line))
+                                .unwrap_or_else(|| panic!("f1e71cd6"));
+                        }
+                        break out;
+                    }
+                };
+                let feature_list = line.split_once("features = ").map(|(_, tail)| {
+                    tail.chars()
+                        .scan(false, |done, ch| {
+                            if *done {
+                                None
+                            } else {
+                                if ch == ']' {
+                                    *done = true;
+                                }
+                                Some(ch)
+                            }
+                        })
+                        .collect::<String>()
+                });
+                if !dep_entry.contains("features = ")
+                    && let Some(features) = feature_list
+                    && let Some(idx) = dep_entry.rfind('}')
+                {
+                    dep_entry.insert_str(idx, &format!(", features = {features}"));
+                }
+                if let Some(path_prefix_idx) = dep_entry.find("path = \"./") {
+                    let dot_idx = path_prefix_idx.saturating_add("path = \"".len());
+                    if dep_entry.get(dot_idx..dot_idx.saturating_add(1usize)) == Some(".") {
+                        dep_entry
+                            .replace_range(dot_idx..dot_idx.saturating_add(1usize), &root_path);
+                    }
+                }
+                std::borrow::Cow::Owned(dep_entry)
+            };
+            if !output.is_empty() {
+                output.push('\n');
             }
-            dep_entry.replace("path = \"./", &format!("path = \"{root_path}/"))
-        })
-        .collect::<Vec<String>>()
-        .join("\n");
-    let cargo_toml_full = format!("{cargo_toml_cnt}\n{cargo_toml_extra}");
+            output.push_str(&transform_line());
+            output
+        },
+    );
+    let mut cargo_toml_full = cargo_toml_cnt;
+    cargo_toml_full.reserve(1usize.saturating_add(cargo_toml_extra.len()));
+    cargo_toml_full.push('\n');
+    cargo_toml_full.push_str(&cargo_toml_extra);
+    drop(cargo_toml_extra);
     std::fs::write(path_cargo_toml, cargo_toml_full).unwrap_or_else(|er| panic!("3757da9b: {er}"));
     std::fs::write(path_lib_rs, content_to_gen).unwrap_or_else(|er| panic!("55124f90: {er}"));
     CARGO_CHECK_STEPS

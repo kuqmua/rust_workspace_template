@@ -127,28 +127,18 @@ impl std::fmt::Display for Oprtr {
 impl Oprtr {
     #[must_use]
     pub fn to_qp(&self, add_oprtr: AddOprtr) -> QpFragment {
-        const SPACE: &str = " ";
-        let mut qp = String::with_capacity(8);
-        if bool::from(add_oprtr) {
-            let write_res = match *self {
-                Self::And | Self::AndNot => {
-                    std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::AndSc, SPACE))
-                }
-                Self::Or | Self::OrNot => {
-                    std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::OrSc, SPACE))
-                }
-            };
-            if write_res.is_err() {
-                return QpFragment::empty();
-            }
+        let fragment = match (bool::from(add_oprtr), *self) {
+            (false, Self::And | Self::Or) => return QpFragment(String::new()),
+            (false, Self::AndNot | Self::OrNot) => "not ",
+            (true, Self::And) => "and ",
+            (true, Self::AndNot) => "and not ",
+            (true, Self::Or) => "or ",
+            (true, Self::OrNot) => "or not ",
+        };
+        match QpFragment::try_from(String::from(fragment)) {
+            Ok(v) => v,
+            Err(er) => QpFragment::from(er),
         }
-        if matches!(*self, Self::AndNot | Self::OrNot)
-            && std::fmt::Write::write_fmt(&mut qp, format_args!("{}{}", naming::NotSc, SPACE))
-                .is_err()
-        {
-            return QpFragment::empty();
-        }
-        QpFragment(qp)
     }
 }
 #[cfg(test)]
@@ -517,9 +507,6 @@ pub struct IsPk(bool);
 #[newtype(as_ref_str, deref_target, display)]
 pub struct QpFragment(String);
 impl QpFragment {
-    const fn empty() -> Self {
-        Self(String::new())
-    }
     #[must_use]
     pub fn into_inner(self) -> String {
         self.0
@@ -944,7 +931,16 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
         col: SqlColRef<'_>,
         add_oprtr: AddOprtr,
     ) -> Result<QpFragment, QpEr> {
-        let mut acc = String::with_capacity(self.v.0.len().saturating_mul(32));
+        let oprtr_qp = self.oprtr.to_qp(add_oprtr);
+        let mut qp = String::with_capacity(
+            oprtr_qp
+                .as_ref()
+                .len()
+                .saturating_add(self.v.0.len().saturating_mul(32))
+                .saturating_add(2),
+        );
+        qp.push_str(oprtr_qp.as_ref());
+        qp.push('(');
         let mut add_oprtr_inn_h = AddOprtr::from(false);
         let mut is_first = true;
         self.v.0.iter().try_for_each(|el| {
@@ -952,23 +948,12 @@ impl<'query_lt, T: PgTypeWhFlt<'query_lt>> PgTypeWhFlt<'query_lt> for PgTypeWh<T
             if is_first {
                 is_first = false;
             } else {
-                acc.push(' ');
+                qp.push(' ');
             }
-            acc.push_str(v.as_ref());
+            qp.push_str(v.as_ref());
             add_oprtr_inn_h = AddOprtr::from(true);
             Ok::<(), QpEr>(())
         })?;
-        let oprtr_qp = self.oprtr.to_qp(add_oprtr);
-        let mut qp = String::with_capacity(
-            oprtr_qp
-                .as_ref()
-                .len()
-                .saturating_add(acc.len())
-                .saturating_add(2),
-        );
-        qp.push_str(oprtr_qp.as_ref());
-        qp.push('(');
-        qp.push_str(&acc);
         qp.push(')');
         Ok(QpFragment::try_from(qp).unwrap_or_else(QpFragment::from))
     }

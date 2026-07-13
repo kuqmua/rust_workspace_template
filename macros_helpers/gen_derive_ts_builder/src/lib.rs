@@ -6,12 +6,21 @@ struct ToScInput<'input_lt>(&'input_lt str);
 struct ScString(String);
 #[allow(clippy::single_call_fn)] // extracted to isolate case-normalization logic and keep macro expansion flow focused
 fn to_sc(input: ToScInput<'_>) -> ScString {
-    let normalized = input
-        .0
-        .split(|ch| !char::is_alphanumeric(ch))
-        .filter(|part| !part.is_empty())
-        .collect::<Vec<&str>>()
-        .join(" ");
+    let (normalized, _) = input.0.chars().fold(
+        (String::with_capacity(input.0.len()), false),
+        |(mut normalized, separator_pending), ch| {
+            if char::is_alphanumeric(ch) {
+                if separator_pending && !normalized.is_empty() {
+                    normalized.push(' ');
+                }
+                normalized.push(ch);
+                (normalized, false)
+            } else {
+                let next_separator_pending = !normalized.is_empty();
+                (normalized, next_separator_pending)
+            }
+        },
+    );
     ScString::try_from(naming_cmn::AsRefStrToScStr::case(&normalized))
         .unwrap_or_else(ScString::from)
 }

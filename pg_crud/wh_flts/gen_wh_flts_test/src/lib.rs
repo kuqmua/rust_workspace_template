@@ -9,6 +9,7 @@ mod tests {
 sqlx = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
+utoipa = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }
 location = { workspace = true }

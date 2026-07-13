@@ -170,10 +170,11 @@ pub fn gen_pg_tbl(
             quote::quote! {#v}
         }
         fn self_sc_str(self) -> String {
-            naming_cmn::AsRefStrToScStr::case(&self.to_string())
+            naming_cmn::AsRefStrToScStr::case(&self)
         }
         fn self_sc_ts(self) -> proc_macro2::TokenStream {
-            naming_cmn::AsRefStrToScTs::case_or_panic(&self.to_string())
+            let ident = quote::format_ident!("{}", self.self_sc_str());
+            quote::quote! {#ident}
         }
         fn try_self_h_sc_ts(self) -> proc_macro2::TokenStream {
             let v = naming::prm::TrySelfHSc::from_tokens(&self.self_sc_ts());
@@ -303,30 +304,27 @@ pub fn gen_pg_tbl(
     }
     impl GenPgTblAttr {
         fn gen_path_to_attr(self) -> String {
-            format!(
-                "{}::{}",
-                "gen_pg_tbl",
-                match self {
-                    Self::CmErVrts => naming::CmErVrtsSc.to_string(),
-                    Self::CoErVrts => naming::CoErVrtsSc.to_string(),
-                    Self::RmErVrts => naming::RmErVrtsSc.to_string(),
-                    Self::RoErVrts => naming::RoErVrtsSc.to_string(),
-                    Self::UmErVrts => naming::UmErVrtsSc.to_string(),
-                    Self::UoErVrts => naming::UoErVrtsSc.to_string(),
-                    Self::DmErVrts => naming::DmErVrtsSc.to_string(),
-                    Self::DloErVrts => naming::DloErVrtsSc.to_string(),
-                    Self::CmnErVrts => naming::CmnErVrtsSc.to_string(),
-                    Self::CmLogic => naming::CmLogicSc.to_string(),
-                    Self::CoLogic => naming::CoLogicSc.to_string(),
-                    Self::RmLogic => naming::RmLogicSc.to_string(),
-                    Self::RoLogic => naming::RoLogicSc.to_string(),
-                    Self::UmLogic => naming::UmLogicSc.to_string(),
-                    Self::UoLogic => naming::UoLogicSc.to_string(),
-                    Self::DmLogic => naming::DmLogicSc.to_string(),
-                    Self::DloLogic => naming::DloLogicSc.to_string(),
-                    Self::CmnLogic => naming::CmnLogicSc.to_string(),
-                }
-            )
+            let attr_name: &dyn std::fmt::Display = match self {
+                Self::CmErVrts => &naming::CmErVrtsSc,
+                Self::CoErVrts => &naming::CoErVrtsSc,
+                Self::RmErVrts => &naming::RmErVrtsSc,
+                Self::RoErVrts => &naming::RoErVrtsSc,
+                Self::UmErVrts => &naming::UmErVrtsSc,
+                Self::UoErVrts => &naming::UoErVrtsSc,
+                Self::DmErVrts => &naming::DmErVrtsSc,
+                Self::DloErVrts => &naming::DloErVrtsSc,
+                Self::CmnErVrts => &naming::CmnErVrtsSc,
+                Self::CmLogic => &naming::CmLogicSc,
+                Self::CoLogic => &naming::CoLogicSc,
+                Self::RmLogic => &naming::RmLogicSc,
+                Self::RoLogic => &naming::RoLogicSc,
+                Self::UmLogic => &naming::UmLogicSc,
+                Self::UoLogic => &naming::UoLogicSc,
+                Self::DmLogic => &naming::DmLogicSc,
+                Self::DloLogic => &naming::DloLogicSc,
+                Self::CmnLogic => &naming::CmnLogicSc,
+            };
+            format!("gen_pg_tbl::{attr_name}")
         }
     }
     enum ShouldWrapIntoV {
@@ -3650,12 +3648,20 @@ pub fn gen_pg_tbl(
             quote::quote! {
                 .route(#slash_op_dq_ts, axum::routing::#method_ts({
                     let tbl_owned = tbl.to_owned();
+                    let requests_metric = metrics::counter!("pg_tbl_requests_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string);
+                    let duration_metric = metrics::histogram!("pg_tbl_request_duration_seconds", "table" => tbl_owned.clone(), "operation" => #op_sc_string);
+                    let response_200_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "200");
+                    let response_201_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "201");
+                    let response_400_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "400");
+                    let response_413_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "413");
+                    let response_500_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "500");
+                    let response_other_metric = metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => "other");
                     async move |
                         app_state_99328dfe: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_ts>,
                         req: axum::extract::Request
                     | {
                         let started_at = std::time::Instant::now();
-                        metrics::counter!("pg_tbl_requests_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string).increment(1u64);
+                        requests_metric.increment(1u64);
                         let response = tracing::Instrument::instrument(
                             Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned),
                             tracing::info_span!(
@@ -3664,16 +3670,15 @@ pub fn gen_pg_tbl(
                                 operation = #op_sc_string,
                             ),
                         ).await;
-                        metrics::histogram!("pg_tbl_request_duration_seconds", "table" => tbl_owned.clone(), "operation" => #op_sc_string).record(started_at.elapsed().as_secs_f64());
-                        let status_label = match response.status().as_u16() {
-                            200u16 => "200",
-                            201u16 => "201",
-                            400u16 => "400",
-                            413u16 => "413",
-                            500u16 => "500",
-                            _ => "other",
-                        };
-                        metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => status_label).increment(1u64);
+                        duration_metric.record(started_at.elapsed().as_secs_f64());
+                        match response.status().as_u16() {
+                            200u16 => response_200_metric.increment(1u64),
+                            201u16 => response_201_metric.increment(1u64),
+                            400u16 => response_400_metric.increment(1u64),
+                            413u16 => response_413_metric.increment(1u64),
+                            500u16 => response_500_metric.increment(1u64),
+                            _ => response_other_metric.increment(1u64),
+                        }
                         response
                     }
                 }))
@@ -4054,7 +4059,7 @@ pub fn gen_pg_tbl(
                                 &RmOrDm::Rm,
                             );
                             let extra_prms_order_by_h_ts =
-                                gen_quotes::dq_ts(&format!("{{}}{OrderSc} {BySc} {{}} {{}}{{}}"));
+                                gen_quotes::dq_ts(&format!("{{}}{OrderSc} {BySc} {{}} {{}}"));
                             let pk_fi_dq_ts = gen_quotes::dq_ts(&pk_fi);
                             let order_by_col_match_ts =
                                 gen_fields_named_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
@@ -4079,21 +4084,7 @@ pub fn gen_pg_tbl(
                                         match &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc {
                                             #order_by_col_match_ts
                                         },
-                                        #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref().map_or_else(
-                                            || #import_ts Order::default().to_sc_str(),
-                                            #import_ts Order::to_sc_str
-                                        ),
-                                        match &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc {
-                                            #ident_sel_ucc::#pk_fi_ucc_ts(_) => String::new(),
-                                            _ => format!(
-                                                ", {} {}",
-                                                #pk_fi_dq_ts,
-                                                #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref().map_or_else(
-                                                    || #import_ts Order::default().to_sc_str(),
-                                                    #import_ts Order::to_sc_str
-                                                )
-                                            ),
-                                        }
+                                        &order_691f662a
                                     }),
                                     gen_if_write_is_err_curly_braces_short_ts(&{
                                         let ts = gen_match_ok_err_upd_ts(
@@ -4113,6 +4104,15 @@ pub fn gen_pg_tbl(
                                     }),
                                 )
                             };
+                            let if_write_is_err_order_tie_ts = macros_helpers::gen_if_write_is_err_ts::gen_if_write_is_err_ts(
+                                &quote::quote! {
+                                    #ExtraPrmsSc,
+                                    ", {} {}",
+                                    #pk_fi_dq_ts,
+                                    order_691f662a
+                                },
+                                &write_into_buffer_qp_syn_vrt_er_init_eprintln_res_creation_ts,
+                            );
                             quote::quote! {pg_tbl::gen_rm_query_string(
                                 pg_tbl::PgTblNameRef::from(#TblSc),
                                 pg_tbl::PgTblSqlFragmentRef::from(&#sel_qp_prms_payload_sel_ts),
@@ -4120,7 +4120,17 @@ pub fn gen_pg_tbl(
                                     #incr_init_ts
                                     let mut #ExtraPrmsSc = #extra_prms_init_ts;
                                     let #PrefixSc = if extra_prms.is_empty() {""} else {" "};
+                                    let order_691f662a = match #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref() {
+                                        Some(#import_ts Order::Asc) | None => "asc",
+                                        Some(#import_ts Order::Desc) => "desc",
+                                    };
                                     #if_write_is_err_curly_braces_0_ts
+                                    if !matches!(
+                                        &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc,
+                                        #ident_sel_ucc::#pk_fi_ucc_ts(_)
+                                    ) {
+                                        #if_write_is_err_order_tie_ts
+                                    }
                                     #if_write_is_err_curly_braces_1_ts
                                     #ExtraPrmsSc
                                 })

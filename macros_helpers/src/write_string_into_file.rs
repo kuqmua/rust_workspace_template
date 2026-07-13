@@ -65,8 +65,36 @@ fn should_write_string_into_file(
             if v.len() != new_len_u64 {
                 return Ok(ShouldWriteString::from(true));
             }
-            std::fs::read_to_string(path_ref)
-                .map(|old_cnt| ShouldWriteString::from(old_cnt != string_cnt_ref))
+            let mut old_file = std::fs::File::open(path_ref)?;
+            let mut offset = 0usize;
+            let mut old_chunk = [0u8; 8192];
+            loop {
+                let read_len = std::io::Read::read(&mut old_file, &mut old_chunk)?;
+                if read_len == 0usize {
+                    if offset == string_cnt_ref.len() {
+                        return Ok(ShouldWriteString::from(false));
+                    }
+                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    return Ok(ShouldWriteString::from(true));
+                }
+                let end = offset.checked_add(read_len).ok_or_else(|| {
+                    std::io::Error::other("5f28d14c generated file comparison offset overflow")
+                })?;
+                let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
+                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    return Ok(ShouldWriteString::from(true));
+                };
+                let Some(old_chunk_read) = old_chunk.get(..read_len) else {
+                    return Err(std::io::Error::other(
+                        "f83d470a generated file comparison read length exceeds buffer",
+                    ));
+                };
+                if old_chunk_read != new_chunk {
+                    let _validated_old_cnt = std::fs::read_to_string(path_ref)?;
+                    return Ok(ShouldWriteString::from(true));
+                }
+                offset = end;
+            }
         }
         Err(er) if er.kind() == std::io::ErrorKind::NotFound => Ok(ShouldWriteString::from(true)),
         Err(er) => Err(er),
@@ -253,6 +281,28 @@ mod tests {
         let should_write =
             super::should_write_string_into_file(path_ref(&path), cnt("same")).expect("3e7adf2f");
         assert!(!bool::from(should_write));
+        cleanup(path.as_path());
+    }
+    #[test]
+    fn should_write_string_into_file_compares_equal_content_in_chunks() {
+        let path = txt_path("macros_helpers_should_write_large_same");
+        let content = "abcd".repeat(4097usize);
+        std::fs::write(&path, &content).expect("1d706d27");
+        let should_write =
+            super::should_write_string_into_file(path_ref(&path), cnt(&content)).expect("d6619712");
+        assert!(!bool::from(should_write));
+        cleanup(path.as_path());
+    }
+    #[test]
+    fn should_write_string_into_file_finds_diff_after_first_chunk() {
+        let path = txt_path("macros_helpers_should_write_large_diff");
+        let old_content = "a".repeat(16_388usize);
+        let mut new_content = old_content.clone();
+        new_content.replace_range(16_387usize.., "b");
+        std::fs::write(&path, old_content).expect("abfd8fbc");
+        let should_write = super::should_write_string_into_file(path_ref(&path), cnt(&new_content))
+            .expect("a3040fa0");
+        assert!(bool::from(should_write));
         cleanup(path.as_path());
     }
     #[test]

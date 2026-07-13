@@ -15,19 +15,15 @@ pub fn gen_getter_traits_for_struct_fields(
             (fi, naming_cmn::ToTokensToUccStr::case(&fi))
         };
         let ft = field.ty;
-        let path_trait_ident = format!("app_state::Get{ucc_fi}")
-            .parse::<proc_macro2::TokenStream>()
-            .expect("8fb2cb27");
-        let fn_name_ident = format!("get_{fi}")
-            .parse::<proc_macro2::TokenStream>()
-            .expect("a349efd0");
+        let trait_ident = quote::format_ident!("Get{}", ucc_fi);
+        let fn_name_ident = quote::format_ident!("get_{}", fi);
         quote::quote! {
-            impl #path_trait_ident for #ident {
+            impl app_state::#trait_ident for #ident {
                 fn #fn_name_ident (&self) -> &#ft {
                     &self.#fi
                 }
             }
-            impl #path_trait_ident for &#ident {
+            impl app_state::#trait_ident for &#ident {
                 fn #fn_name_ident (&self) -> &#ft {
                     &self.#fi
                 }

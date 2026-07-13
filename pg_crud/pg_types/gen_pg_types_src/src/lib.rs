@@ -782,8 +782,7 @@ pub fn gen_pg_types(
             let pg_type_name = PgTypeName::from(pg_type_prm);
             let is_nl_rust = is_nl_prm.rust();
             let nn_or_nl_str = is_nl_prm.nn_or_nl_str();
-            let (rust_part, pg_part) = (format!("{rust_type_name}"), format!("{pg_type_name}"));
-            format!("{is_nl_rust}{rust_part}{as_ucc}{nn_or_nl_str}{pg_part}")
+            format!("{is_nl_rust}{rust_type_name}{as_ucc}{nn_or_nl_str}{pg_type_name}")
         };
         let gen_ident_ts = |
             pg_type_prm: &PgType,
@@ -1292,7 +1291,7 @@ pub fn gen_pg_types(
                         }
                     };
                     let impl_ser_for_nn_orgn_start_end_ts = gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&ser_cnt_start_end_ts);
-                    let impl_ser_for_uuid_uuid_ts = gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&gen_ser_cnt(&quote::quote! {.to_string()}));
+                    let impl_ser_for_uuid_uuid_ts = gen_impl_ser_for_ident_stdrt_nn_orgn_tokens(&gen_ser_cnt(&proc_macro2::TokenStream::new()));
                     let gen_impl_ser_for_ident_stdrt_nn_orgn_start_end_range_tokens = |ts: &dyn quote::ToTokens| {
                         let gen_ser_field_match_std_ops_bound_ts = |start_or_end: &StartOrEnd| {
                             let start_or_end_ts = gen_start_or_end_sc(start_or_end);
@@ -2823,7 +2822,7 @@ pub fn gen_pg_types(
                         PgType::SqlxTypesUuidUuidAsUuidInitByClient |
                         PgType::SqlxTypesMacAddressMacAddressAsMacAddr => pg_crud_macros_cmn::gen_impl_crate_is_string_empty_for_ident_ts(
                             &ident_orgn_ucc,
-                            &quote::quote! {self.0.to_string().is_empty()},
+                            &quote::quote! {false},
                         ),
                     },
                     pg_crud_macros_cmn::IsNl::True => macros_helpers::generated_rust_ts::GeneratedRustTs::from(proc_macro2::TokenStream::new()),

@@ -460,33 +460,20 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         pg_crud_macros_cmn::IncrPrmUndrscr::False,
                         {
                             let format_ts = gen_quotes::dq_ts(&format!(
-                                "{{}}({{}}{} in ({{}}))",
+                                "{{}}({{}}{} in (",
                                 pg_type_kind.format_argument()
                             ));
                             let if_write_is_err_ts =
                                 macros_helpers::gen_if_write_is_err_ts::gen_if_write_is_err_ts(
-                                    &quote::quote! {acc, "${v_daedba9c},"},
+                                    &quote::quote! {qp_bce8c9ae, "${v_daedba9c},"},
                                     &quote::quote! {return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });},
                                 );
                             quote::quote! {
                                 #mb_dims_ies_init_ts
-                                let #v_sc = {
-                                    let values = #self_sc.#v_sc.to_vec();
-                                    let mut acc = String::with_capacity(values.len().saturating_mul(8));
-                                    for _ in values {
-                                        match #import::incr_checked_add_one_returning_incr(#incr_sc) {
-                                            Ok(v_daedba9c) => {
-                                                #if_write_is_err_ts
-                                            },
-                                            Err(#er_sc) => {
-                                                return Err(#er_sc);
-                                            },
-                                        }
-                                    }
-                                    let _: Option<char> = acc.pop();
-                                    acc
-                                };
-                                let mut qp_bce8c9ae = String::with_capacity(32usize.saturating_add(#v_sc.len()));
+                                let values = #self_sc.#v_sc.to_vec();
+                                let mut qp_bce8c9ae = String::with_capacity(
+                                    32usize.saturating_add(values.len().saturating_mul(8))
+                                );
                                 if std::fmt::Write::write_fmt(
                                     &mut qp_bce8c9ae,
                                     format_args!(
@@ -494,13 +481,19 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                                         #self_oprtr_to_qp_ts
                                         #col_sc,
                                         #mb_extra_prms_ts
-                                        #v_sc
                                     ),
                                 )
                                 .is_err()
                                 {
                                     return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
                                 }
+                                values.iter().try_for_each(|_| {
+                                    let v_daedba9c = #import::incr_checked_add_one_returning_incr(#incr_sc)?;
+                                    #if_write_is_err_ts
+                                    Ok::<(), #import::QpEr>(())
+                                })?;
+                                let _: Option<char> = qp_bce8c9ae.pop();
+                                qp_bce8c9ae.push_str("))");
                                 Ok(#import::QpFragment::try_from(qp_bce8c9ae)?)
                             }
                         },
@@ -697,45 +690,30 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         },
                     )
                 };
-                let gen_eq_oprtr_qp_ts =
-                    |mb_dims_ies_init_ts: &dyn quote::ToTokens, format_ts: &dyn quote::ToTokens| {
-                        quote::quote! {
-                            #mb_dims_ies_init_ts
-                            let oprtr = <T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc);
-                            let oprtr_query_str = oprtr.to_query_str();
-                            let qp_oprtr_6e4b019d = match oprtr {
-                                #import::EqOprtr::Eq => {
-                                    #v_match_incr_checked_add_one_init_ts
-                                    let mut acc_6e4b019d = String::with_capacity(16);
-                                    if std::fmt::Write::write_fmt(
-                                        &mut acc_6e4b019d,
-                                        format_args!("{oprtr_query_str} ${v}"),
-                                    )
-                                    .is_err()
-                                    {
-                                        return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
-                                    }
-                                    acc_6e4b019d
-                                },
-                                #import::EqOprtr::IsNull => oprtr_query_str.to_string(),
-                            };
-                            let mut qp_6e4b019d = String::with_capacity(32usize.saturating_add(qp_oprtr_6e4b019d.len()));
-                            if std::fmt::Write::write_fmt(
+                let gen_eq_oprtr_qp_ts = |mb_dims_ies_init_ts: &dyn quote::ToTokens| {
+                    quote::quote! {
+                        #mb_dims_ies_init_ts
+                        let oprtr = <T as #import::PgTypeEqOprtr>::oprtr(&#self_sc.#v_sc);
+                        let mut qp_6e4b019d = String::with_capacity(48);
+                        let write_result_6e4b019d = match oprtr {
+                            #import::EqOprtr::Eq => {
+                                #v_match_incr_checked_add_one_init_ts
+                                std::fmt::Write::write_fmt(
+                                    &mut qp_6e4b019d,
+                                    format_args!("{}({} = ${v})", #self_oprtr_to_qp_ts #col_sc),
+                                )
+                            },
+                            #import::EqOprtr::IsNull => std::fmt::Write::write_fmt(
                                 &mut qp_6e4b019d,
-                                format_args!(
-                                    #format_ts,
-                                    #self_oprtr_to_qp_ts
-                                    #col_sc,
-                                    qp_oprtr_6e4b019d
-                                ),
-                            )
-                            .is_err()
-                            {
-                                return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
-                            }
-                            Ok(#import::QpFragment::try_from(qp_6e4b019d)?)
+                                format_args!("{}({} is null)", #self_oprtr_to_qp_ts #col_sc),
+                            ),
+                        };
+                        if write_result_6e4b019d.is_err() {
+                            return Err(#import::QpEr::WriteIntoBuffer { loc: loc_macros::loc!() });
                         }
-                    };
+                        Ok(#import::QpFragment::try_from(qp_6e4b019d)?)
+                    }
+                };
                 let gen_eq_oprtr_qb_ts = |ts: &dyn quote::ToTokens| {
                     quote::quote! {
                         #ts
@@ -770,7 +748,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                             gen_mb_dims_dcl_pub_v_t_ts(&mb_dims_dcl_ts),
                             gen_mb_dims_dflt_init_v_dflt_ts(&mb_dims_dflt_init_ts),
                             pg_crud_macros_cmn::IncrPrmUndrscr::False,
-                            gen_eq_oprtr_qp_ts(&mb_dims_ies_init_ts, &quote::quote! {"{}({} {})"}),
+                            gen_eq_oprtr_qp_ts(&mb_dims_ies_init_ts),
                             is_qb_mut_true,
                             gen_eq_oprtr_qb_ts(&mb_dims_qb_ts),
                         )

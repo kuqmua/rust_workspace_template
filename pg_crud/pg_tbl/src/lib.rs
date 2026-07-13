@@ -109,16 +109,33 @@ fn gen_insert_query_string(
     cols_to_return: PgTblSqlFragmentRef<'_>,
     insert_values_fmt: InsertValuesFmt,
 ) -> PgTblQueryString {
-    match insert_values_fmt {
-        InsertValuesFmt::Raw => PgTblQueryString::try_from(format!(
-            "insert into {tbl} ({cols}) values {values} returning {cols_to_return}"
-        ))
-        .unwrap_or_else(PgTblQueryString::from),
-        InsertValuesFmt::Wrapped => PgTblQueryString::try_from(format!(
-            "insert into {tbl} ({cols}) values ({values}) returning {cols_to_return}"
-        ))
-        .unwrap_or_else(PgTblQueryString::from),
+    let wrapper_len = match insert_values_fmt {
+        InsertValuesFmt::Raw => 0usize,
+        InsertValuesFmt::Wrapped => 2usize,
+    };
+    let mut query = String::with_capacity(
+        34usize
+            .saturating_add(tbl.as_ref().len())
+            .saturating_add(cols.as_ref().len())
+            .saturating_add(values.as_ref().len())
+            .saturating_add(cols_to_return.as_ref().len())
+            .saturating_add(wrapper_len),
+    );
+    query.push_str("insert into ");
+    query.push_str(tbl.as_ref());
+    query.push_str(" (");
+    query.push_str(cols.as_ref());
+    query.push_str(") values ");
+    if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
+        query.push('(');
     }
+    query.push_str(values.as_ref());
+    if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
+        query.push(')');
+    }
+    query.push_str(" returning ");
+    query.push_str(cols_to_return.as_ref());
+    PgTblQueryString::try_from(query).unwrap_or_else(PgTblQueryString::from)
 }
 fn gen_select_query_string(
     tbl: PgTblNameRef<'_>,
@@ -126,16 +143,27 @@ fn gen_select_query_string(
     wh_string: PgTblSqlFragmentRef<'_>,
     select_where_fmt: SelectWhereFmt,
 ) -> PgTblQueryString {
+    let where_len = match select_where_fmt {
+        SelectWhereFmt::Plain => 1usize,
+        SelectWhereFmt::Where => 7usize,
+    };
+    let mut query = String::with_capacity(
+        13usize
+            .saturating_add(sel_string.as_ref().len())
+            .saturating_add(tbl.as_ref().len())
+            .saturating_add(wh_string.as_ref().len())
+            .saturating_add(where_len),
+    );
+    query.push_str("select ");
+    query.push_str(sel_string.as_ref());
+    query.push_str(" from ");
+    query.push_str(tbl.as_ref());
     match select_where_fmt {
-        SelectWhereFmt::Plain => {
-            PgTblQueryString::try_from(format!("select {sel_string} from {tbl} {wh_string}"))
-                .unwrap_or_else(PgTblQueryString::from)
-        }
-        SelectWhereFmt::Where => {
-            PgTblQueryString::try_from(format!("select {sel_string} from {tbl} where {wh_string}"))
-                .unwrap_or_else(PgTblQueryString::from)
-        }
+        SelectWhereFmt::Plain => query.push(' '),
+        SelectWhereFmt::Where => query.push_str(" where "),
     }
+    query.push_str(wh_string.as_ref());
+    PgTblQueryString::try_from(query).unwrap_or_else(PgTblQueryString::from)
 }
 fn gen_update_query_string(
     tbl: PgTblNameRef<'_>,
@@ -145,32 +173,65 @@ fn gen_update_query_string(
     cols_to_return: PgTblSqlFragmentRef<'_>,
     update_selector_fmt: UpdateSelectorFmt,
 ) -> PgTblQueryString {
+    let selector_len = match update_selector_fmt {
+        UpdateSelectorFmt::Eq => 3usize,
+        UpdateSelectorFmt::InList => 6usize,
+    };
+    let mut query = String::with_capacity(
+        30usize
+            .saturating_add(tbl.as_ref().len())
+            .saturating_add(cols_or_els.as_ref().len())
+            .saturating_add(pk_field_name.as_ref().len())
+            .saturating_add(pk_selector.as_ref().len())
+            .saturating_add(cols_to_return.as_ref().len())
+            .saturating_add(selector_len),
+    );
+    query.push_str("update ");
+    query.push_str(tbl.as_ref());
+    query.push_str(" set ");
+    query.push_str(cols_or_els.as_ref());
+    query.push_str(" where ");
+    query.push_str(pk_field_name.as_ref());
     match update_selector_fmt {
-        UpdateSelectorFmt::Eq => PgTblQueryString::try_from(format!(
-            "update {tbl} set {cols_or_els} where {pk_field_name} = {pk_selector} returning {cols_to_return}"
-        )).unwrap_or_else(PgTblQueryString::from),
-        UpdateSelectorFmt::InList => PgTblQueryString::try_from(format!(
-            "update {tbl} set {cols_or_els} where {pk_field_name} in ({pk_selector}) returning {cols_to_return}"
-        )).unwrap_or_else(PgTblQueryString::from),
+        UpdateSelectorFmt::Eq => query.push_str(" = "),
+        UpdateSelectorFmt::InList => query.push_str(" in ("),
     }
+    query.push_str(pk_selector.as_ref());
+    if matches!(update_selector_fmt, UpdateSelectorFmt::InList) {
+        query.push(')');
+    }
+    query.push_str(" returning ");
+    query.push_str(cols_to_return.as_ref());
+    PgTblQueryString::try_from(query).unwrap_or_else(PgTblQueryString::from)
 }
 fn gen_delete_query_string(
     tbl: PgTblNameRef<'_>,
     pk_field_name: PgTblSqlFragmentRef<'_>,
     wh_string: Option<PgTblSqlFragmentRef<'_>>,
 ) -> PgTblQueryString {
-    wh_string.map_or_else(
-        || {
-            PgTblQueryString::try_from(format!(
-                "delete from {tbl} where {pk_field_name} = $1 returning {pk_field_name}"
-            ))
-            .unwrap_or_else(PgTblQueryString::from)
-        },
-        |v| {
-            PgTblQueryString::try_from(format!("delete from {tbl} {v} returning {pk_field_name}"))
-                .unwrap_or_else(PgTblQueryString::from)
-        },
-    )
+    let wh_len = wh_string.map_or_else(
+        || 12usize.saturating_add(pk_field_name.as_ref().len()),
+        |v| v.as_ref().len(),
+    );
+    let mut query = String::with_capacity(
+        24usize
+            .saturating_add(tbl.as_ref().len())
+            .saturating_add(wh_len)
+            .saturating_add(pk_field_name.as_ref().len()),
+    );
+    query.push_str("delete from ");
+    query.push_str(tbl.as_ref());
+    query.push(' ');
+    if let Some(v) = wh_string {
+        query.push_str(v.as_ref());
+    } else {
+        query.push_str("where ");
+        query.push_str(pk_field_name.as_ref());
+        query.push_str(" = $1");
+    }
+    query.push_str(" returning ");
+    query.push_str(pk_field_name.as_ref());
+    PgTblQueryString::try_from(query).unwrap_or_else(PgTblQueryString::from)
 }
 #[must_use]
 pub fn gen_cm_query_string(
