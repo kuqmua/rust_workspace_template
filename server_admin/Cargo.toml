@@ -48,13 +48,11 @@ sqlx = { workspace = true, features = ["macros"] }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 to_err_string = { workspace = true }
+tower = { workspace = true }
 tracing = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
 wh_flts = { workspace = true }
-
-[dev-dependencies]
-tower = { workspace = true }
 
 [lints]
 workspace = true

@@ -13,9 +13,8 @@ edition = "2024"
 [dependencies]
 newtype = { workspace = true }
 serde = { workspace = true }
-utoipa = { workspace = true }
-[dev-dependencies]
 serde_json = { workspace = true }
+utoipa = { workspace = true }
 
 [lints]
 workspace = true

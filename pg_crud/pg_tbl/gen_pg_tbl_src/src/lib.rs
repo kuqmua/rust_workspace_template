@@ -175,6 +175,15 @@ pub fn gen_pg_tbl(
             let ident = quote::format_ident!("{}", self.self_sc_str());
             quote::quote! {#ident}
         }
+        const fn supports_idempotency(self) -> bool {
+            matches!(
+                self,
+                Self::Cm | Self::Co | Self::Um | Self::Uo | Self::Dm | Self::Dlo
+            )
+        }
+        const fn supports_optimistic_concurrency(self) -> bool {
+            matches!(self, Self::Uo)
+        }
         fn try_self_h_sc_ts(self) -> proc_macro2::TokenStream {
             let v = naming::prm::TrySelfHSc::from_tokens(&self.self_sc_ts());
             quote::quote! {#v}
@@ -244,9 +253,24 @@ pub fn gen_pg_tbl(
         Delete,
     }
     #[derive(Clone, Copy)]
+    enum OpKind {
+        CreateMany,
+        CreateOne,
+        DeleteMany,
+        DeleteOne,
+        ReadMany,
+        ReadOne,
+        UpdateMany,
+        UpdateOne,
+    }
+    #[derive(Clone, Copy)]
     struct OpDsc {
         http_method: OpHttpMethod,
+        idempotency_capable: bool,
         op: Op,
+        operation_kind: OpKind,
+        optimistic_concurrency_capable: bool,
+        permission_action: &'static str,
         success_status_code: macros_helpers::status_code::StatusCode,
     }
     impl OpDsc {
@@ -263,6 +287,24 @@ pub fn gen_pg_tbl(
         const fn from_op(op: Op) -> Self {
             Self {
                 http_method: op.http_method(),
+                idempotency_capable: op.supports_idempotency(),
+                operation_kind: match op {
+                    Op::Cm => OpKind::CreateMany,
+                    Op::Co => OpKind::CreateOne,
+                    Op::Dm => OpKind::DeleteMany,
+                    Op::Dlo => OpKind::DeleteOne,
+                    Op::Rm => OpKind::ReadMany,
+                    Op::Ro => OpKind::ReadOne,
+                    Op::Um => OpKind::UpdateMany,
+                    Op::Uo => OpKind::UpdateOne,
+                },
+                optimistic_concurrency_capable: op.supports_optimistic_concurrency(),
+                permission_action: match op {
+                    Op::Cm | Op::Co => "create",
+                    Op::Rm | Op::Ro => "read",
+                    Op::Um | Op::Uo => "update",
+                    Op::Dm | Op::Dlo => "delete",
+                },
                 success_status_code: op.desirable_status_code(),
                 op,
             }
@@ -3620,7 +3662,7 @@ pub fn gen_pg_tbl(
             let pg_syn_vrt_er_init_eprintln_res_creation_ts =
                 gen_op_er_init_eprintln_res_ts(op, &pg_syn_vrt, std::panic::Location::caller());
             let release_ts = if gen_pg_tbl_input_model.config.idempotent_mutations
-                && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
+                && op.supports_idempotency()
             {
                 quote::quote! {
                     let _release_result = pg_tbl::release_pg_tbl_idempotency(
@@ -3641,7 +3683,7 @@ pub fn gen_pg_tbl(
         let idempotency_transaction_completion_ts = if gen_pg_tbl_input_model
             .config
             .idempotent_mutations
-            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
+            && op.supports_idempotency()
         {
             let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
             let desirable_status_ts = op.desirable_status_code().to_http_status_code_ts();
@@ -3679,13 +3721,12 @@ pub fn gen_pg_tbl(
         } else {
             proc_macro2::TokenStream::new()
         };
-        let transaction_output_ts = if gen_pg_tbl_input_model.config.idempotent_mutations
-            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo)
-        {
-            quote::quote! {(response_value_1a2393ae, response_body_649297c9)}
-        } else {
-            quote::quote! {#VSc}
-        };
+        let transaction_output_ts =
+            if gen_pg_tbl_input_model.config.idempotent_mutations && op.supports_idempotency() {
+                quote::quote! {(response_value_1a2393ae, response_body_649297c9)}
+            } else {
+                quote::quote! {#VSc}
+            };
         quote::quote! {
             #pg_transaction_begin_ts
             #ts
@@ -4047,9 +4088,9 @@ pub fn gen_pg_tbl(
     .fold((), |(), op_dsc| {
         let op = &op_dsc.op;
         let idempotency_enabled = gen_pg_tbl_input_model.config.idempotent_mutations
-            && matches!(op, Op::Cm | Op::Co | Op::Um | Op::Uo | Op::Dm | Op::Dlo);
-        let optimistic_concurrency_enabled =
-            optimistic_revision_field_idx.is_some() && matches!(op, Op::Uo);
+            && op_dsc.idempotency_capable;
+        let optimistic_concurrency_enabled = optimistic_revision_field_idx.is_some()
+            && op_dsc.optimistic_concurrency_capable;
         let op_h_sc_ts = op.self_h_sc_ts();
         let op_sc_ts = op.self_sc_ts();
         let op_sc_string = op.self_sc_str();
@@ -4177,13 +4218,6 @@ pub fn gen_pg_tbl(
                 }
             });
             let operation = quote::format_ident!("{}", op.to_string());
-            let expected_status = if op_dsc.success_status_code
-                == macros_helpers::status_code::StatusCode::Crd201
-            {
-                quote::quote! {frontend_contract::TransportStatus::from(201u16)}
-            } else {
-                quote::quote! {frontend_contract::TransportStatus::from(200u16)}
-            };
             frontend_api_client_methods_ts.push(quote::quote! {
                 pub async fn #op_client_method_sc_ts(
                     &self,
@@ -4208,14 +4242,11 @@ pub fn gen_pg_tbl(
                         .send(request)
                         .await
                         .map_err(frontend_contract::ClientEr::Transport)?;
-                    if response.status() != #expected_status {
-                        return Err(frontend_contract::ClientEr::Status {
-                            actual: response.status(),
-                            expected: #expected_status,
-                        });
-                    }
+                    let response_body = response.success_body(
+                        route.frontend_contract().success_status().transport_status(),
+                    )?;
                     let decoded = serde_json::from_slice::<#open_api_response_type_ts>(
-                        response.body().as_ref(),
+                        response_body.as_ref(),
                     )
                     .map_err(|error| frontend_contract::ClientEr::Decode(frontend_contract::FormValueEr::try_from(error.to_string()).unwrap_or_default()))?;
                     match decoded {
@@ -4306,15 +4337,10 @@ pub fn gen_pg_tbl(
         };
         if op_is_enabled(op) {
         op_routes_ts.push({
-            let method_ts = match &op {
-                Op::Cm |
-                Op::Co |
-                Op::Rm |
-                Op::Ro => quote::quote! {post},
-                Op::Um |
-                Op::Uo => quote::quote! {patch},
-                Op::Dm |
-                Op::Dlo => quote::quote! {delete},
+            let method_ts = match op_dsc.http_method {
+                OpHttpMethod::Post => quote::quote! {post},
+                OpHttpMethod::Patch => quote::quote! {patch},
+                OpHttpMethod::Delete => quote::quote! {delete},
             };
             let op_payload_example_sc =
                 op.op_payload_example_sc();
@@ -5547,11 +5573,12 @@ pub fn gen_pg_tbl(
                         let ident_op_res_vrts_ucc = gen_ident_op_res_vrts_ucc(op);
                         quote::quote! {#ident_op_res_vrts_ucc::#DesirableUcc(#VSc)}
                     },
-                    &op.desirable_status_code().to_http_status_code_ts(),
+                    &op_dsc.success_status_code.to_http_status_code_ts(),
                     &AddReturn::False,
                 );
                 let success_response_ts = if idempotency_enabled {
-                    let desirable_status_ts = op.desirable_status_code().to_http_status_code_ts();
+                    let desirable_status_ts =
+                        op_dsc.success_status_code.to_http_status_code_ts();
                     quote::quote! {
                         let (response_value_1a2393ae, response_body_649297c9) = #VSc;
                         let mut response = axum::response::Response::new(axum::body::Body::from(response_body_649297c9));
@@ -6086,6 +6113,10 @@ pub fn gen_pg_tbl(
                 } else {
                     quote::format_ident!("Code200")
                 };
+            let idempotency_required =
+                gen_pg_tbl_input_model.config.idempotent_mutations && op_dsc.idempotency_capable;
+            let optimistic_revision_required =
+                optimistic_revision_field_idx.is_some() && op_dsc.optimistic_concurrency_capable;
             let authentication = gen_pg_tbl_input_model
                 .config
                 .permission_prefix
@@ -6093,21 +6124,18 @@ pub fn gen_pg_tbl(
                 .map_or_else(
                     || quote::quote! {#ident_auth_requirement_ucc::Public},
                     |permission_prefix| {
-                        let permission_action = match op_dsc.op {
-                            Op::Cm | Op::Co => "create",
-                            Op::Rm | Op::Ro => "read",
-                            Op::Um | Op::Uo => "update",
-                            Op::Dm | Op::Dlo => "delete",
-                        };
-                        let permission = format!("{permission_prefix}:{permission_action}");
+                        let permission =
+                            format!("{permission_prefix}:{}", op_dsc.permission_action);
                         quote::quote! {#ident_auth_requirement_ucc::Permission(#permission)}
                     },
                 );
             quote::quote! {
-                #ident_route_contract_ucc::new(
+                #ident_route_contract_ucc::new_with_capabilities(
                     #authentication,
                     #ident_http_method_ucc::#http_method,
+                    #idempotency_required,
                     #ident_operation_ucc::#operation,
+                    #optimistic_revision_required,
                     #ident_success_status_ucc::#success_status,
                 )
             }
@@ -6119,15 +6147,15 @@ pub fn gen_pg_tbl(
     });
     let route_contract_operation_kind_arms_ts = OpDsc::ALL.iter().map(|op_dsc| {
         let operation = quote::format_ident!("{}", op_dsc.op.to_string());
-        let operation_kind = match op_dsc.op {
-            Op::Cm => quote::format_ident!("CreateMany"),
-            Op::Co => quote::format_ident!("CreateOne"),
-            Op::Dm => quote::format_ident!("DeleteMany"),
-            Op::Dlo => quote::format_ident!("DeleteOne"),
-            Op::Rm => quote::format_ident!("ReadMany"),
-            Op::Ro => quote::format_ident!("ReadOne"),
-            Op::Um => quote::format_ident!("UpdateMany"),
-            Op::Uo => quote::format_ident!("UpdateOne"),
+        let operation_kind = match op_dsc.operation_kind {
+            OpKind::CreateMany => quote::format_ident!("CreateMany"),
+            OpKind::CreateOne => quote::format_ident!("CreateOne"),
+            OpKind::DeleteMany => quote::format_ident!("DeleteMany"),
+            OpKind::DeleteOne => quote::format_ident!("DeleteOne"),
+            OpKind::ReadMany => quote::format_ident!("ReadMany"),
+            OpKind::ReadOne => quote::format_ident!("ReadOne"),
+            OpKind::UpdateMany => quote::format_ident!("UpdateMany"),
+            OpKind::UpdateOne => quote::format_ident!("UpdateOne"),
         };
         quote::quote! {#ident_operation_ucc::#operation => frontend_contract::OperationKind::#operation_kind}
     });
@@ -6163,7 +6191,9 @@ pub fn gen_pg_tbl(
         pub struct #ident_route_contract_ucc {
             authentication: #ident_auth_requirement_ucc,
             http_method: #ident_http_method_ucc,
+            idempotency_required: bool,
             operation: #ident_operation_ucc,
+            optimistic_revision_required: bool,
             success_status: #ident_success_status_ucc,
         }
         impl #ident_route_contract_ucc {
@@ -6178,11 +6208,22 @@ pub fn gen_pg_tbl(
             }
             #[must_use]
             pub const fn new(authentication: #ident_auth_requirement_ucc, http_method: #ident_http_method_ucc, operation: #ident_operation_ucc, success_status: #ident_success_status_ucc) -> Self {
-                Self { authentication, http_method, operation, success_status }
+                Self { authentication, http_method, idempotency_required: false, operation, optimistic_revision_required: false, success_status }
+            }
+            const fn new_with_capabilities(authentication: #ident_auth_requirement_ucc, http_method: #ident_http_method_ucc, idempotency_required: bool, operation: #ident_operation_ucc, optimistic_revision_required: bool, success_status: #ident_success_status_ucc) -> Self {
+                Self { authentication, http_method, idempotency_required, operation, optimistic_revision_required, success_status }
+            }
+            #[must_use]
+            pub const fn idempotency_required(self) -> bool {
+                self.idempotency_required
             }
             #[must_use]
             pub const fn operation(self) -> #ident_operation_ucc {
                 self.operation
+            }
+            #[must_use]
+            pub const fn optimistic_revision_required(self) -> bool {
+                self.optimistic_revision_required
             }
             #[must_use]
             pub fn for_path(path: &str) -> Option<Self> {
@@ -6491,7 +6532,14 @@ pub fn gen_pg_tbl(
             } else {
                 "200"
             };
+            let idempotency_required = gen_pg_tbl_input_model.config.idempotent_mutations
+                && op_dsc.idempotency_capable;
+            let optimistic_revision_required = optimistic_revision_field_idx.is_some()
+                && op_dsc.optimistic_concurrency_capable;
             quote::quote! {
+                let route_contract = #ident_route_contract_ucc::for_path(#path).expect("80dc7c11");
+                assert_eq!(route_contract.idempotency_required(), #idempotency_required);
+                assert_eq!(route_contract.optimistic_revision_required(), #optimistic_revision_required);
                 let operation_document = document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).expect("b822e594");
                 assert_eq!(operation_document.get("operationId").and_then(serde_json::Value::as_str), Some(#operation));
                 assert!(operation_document.pointer(&format!("/responses/{}", #success_status)).is_some());
@@ -6500,6 +6548,9 @@ pub fn gen_pg_tbl(
                 assert!(operation_document.pointer("/responses/400").is_some());
                 assert!(operation_document.pointer("/responses/413").is_some());
                 assert!(operation_document.pointer("/responses/500").is_some());
+                let parameters = operation_document.get("parameters").and_then(serde_json::Value::as_array);
+                assert_eq!(parameters.is_some_and(|values| values.iter().any(|value| value.get("name").and_then(serde_json::Value::as_str) == Some("Idempotency-Key"))), #idempotency_required);
+                assert_eq!(parameters.is_some_and(|values| values.iter().any(|value| value.get("name").and_then(serde_json::Value::as_str) == Some("If-Match"))), #optimistic_revision_required);
             }
         });
         let bulk_limit_tests_ts = [

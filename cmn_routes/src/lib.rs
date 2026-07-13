@@ -235,10 +235,18 @@ const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheck
 }
 async fn database_is_ready(app_state: &dyn CmnRoutesPrms) -> HealthCheckSucceeded {
     let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
-    let probe = sqlx::query(HEALTH_CHECK_SQL).execute(pool.as_ref());
-    HealthCheckSucceeded(matches!(
-        tokio::time::timeout(HEALTH_PROBE_TIMEOUT, probe).await,
-        Ok(Ok(_))
+    let probe = async {
+        sqlx::query(HEALTH_CHECK_SQL)
+            .execute(pool.as_ref())
+            .await
+            .is_ok()
+    };
+    HealthCheckSucceeded(bool::from(
+        server_runtime::run_health_probe(
+            server_runtime::StdHealthProbeTimeout::from(HEALTH_PROBE_TIMEOUT),
+            probe,
+        )
+        .await,
     ))
 }
 const fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {

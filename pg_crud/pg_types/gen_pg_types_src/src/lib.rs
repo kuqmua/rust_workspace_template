@@ -207,45 +207,51 @@ pub fn gen_pg_types(
         Uuid,
     }
     #[derive(Clone, Copy)]
-    struct PgTypeDsc {
+    enum CanBePk {
+        False,
+        True,
+    }
+    #[derive(Clone, Copy)]
+    struct PgTypeSpec {
         can_be_nl: CanBeNl,
+        can_be_pk: CanBePk,
         flt_kind: FltKind,
         pg_name: &'static str,
         wire_kind: WireKind,
     }
     impl PgType {
         const fn can_be_nl(self) -> CanBeNl {
-            self.dsc().can_be_nl
+            self.spec().can_be_nl
         }
-        const fn dsc(self) -> PgTypeDsc {
+        const fn spec(self) -> PgTypeSpec {
             match self {
-                Self::I16AsInt2 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int2", wire_kind: WireKind::Int16 },
-                Self::I32AsInt4 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int4", wire_kind: WireKind::Int32 },
-                Self::I64AsInt8 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int8", wire_kind: WireKind::Int64 },
-                Self::F32AsFloat4 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float4", wire_kind: WireKind::Float32 },
-                Self::F64AsFloat8 => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float8", wire_kind: WireKind::Float64 },
-                Self::I16AsSmallSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "smallserial", wire_kind: WireKind::Int16 },
-                Self::I32AsSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "serial", wire_kind: WireKind::Int32 },
-                Self::I64AsBigSerialInitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "bigserial", wire_kind: WireKind::Int64 },
-                Self::SqlxPgTypesPgMoneyAsMoney => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Money, pg_name: "money", wire_kind: WireKind::Int64 },
-                Self::BoolAsBool => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Bool, pg_name: "bool", wire_kind: WireKind::Bool },
-                Self::StringAsText => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::String, pg_name: "text", wire_kind: WireKind::String },
-                Self::StdVecVecU8AsBytea => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Bytes, pg_name: "bytea", wire_kind: WireKind::Bytes },
-                Self::SqlxTypesChronoNaiveTimeAsTime => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeChrono },
-                Self::SqlxTypesTimeTimeAsTime => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeTime },
-                Self::SqlxPgTypesPgIntervalAsInterval => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "interval", wire_kind: WireKind::Interval },
-                Self::SqlxTypesChronoNaiveDateAsDate => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Date, pg_name: "date", wire_kind: WireKind::Date },
-                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Timestamp, pg_name: "timestamp", wire_kind: WireKind::Timestamp },
-                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::TimestampTz, pg_name: "timestamptz", wire_kind: WireKind::TimestampTz },
-                Self::SqlxTypesUuidUuidAsUuidV4InitByPg => PgTypeDsc { can_be_nl: CanBeNl::False, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
-                Self::SqlxTypesUuidUuidAsUuidInitByClient => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
-                Self::SqlxTypesIpnetworkIpNetworkAsInet => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "inet", wire_kind: WireKind::Inet },
-                Self::SqlxTypesMacAddressMacAddressAsMacAddr => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Mac, pg_name: "macaddr", wire_kind: WireKind::Mac },
-                Self::SqlxPgTypesPgRangeI32AsInt4Range => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int4range", wire_kind: WireKind::RangeInt32 },
-                Self::SqlxPgTypesPgRangeI64AsInt8Range => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int8range", wire_kind: WireKind::RangeInt64 },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "daterange", wire_kind: WireKind::RangeDate },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tsrange", wire_kind: WireKind::RangeTimestamp },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => PgTypeDsc { can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tstzrange", wire_kind: WireKind::RangeTimestampTz },
+                Self::I16AsInt2 => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int2", wire_kind: WireKind::Int16 },
+                Self::I32AsInt4 => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int4", wire_kind: WireKind::Int32 },
+                Self::I64AsInt8 => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "int8", wire_kind: WireKind::Int64 },
+                Self::F32AsFloat4 => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float4", wire_kind: WireKind::Float32 },
+                Self::F64AsFloat8 => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Number, pg_name: "float8", wire_kind: WireKind::Float64 },
+                Self::I16AsSmallSerialInitByPg => PgTypeSpec { can_be_pk: CanBePk::True, can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "smallserial", wire_kind: WireKind::Int16 },
+                Self::I32AsSerialInitByPg => PgTypeSpec { can_be_pk: CanBePk::True, can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "serial", wire_kind: WireKind::Int32 },
+                Self::I64AsBigSerialInitByPg => PgTypeSpec { can_be_pk: CanBePk::True, can_be_nl: CanBeNl::False, flt_kind: FltKind::Number, pg_name: "bigserial", wire_kind: WireKind::Int64 },
+                Self::SqlxPgTypesPgMoneyAsMoney => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Money, pg_name: "money", wire_kind: WireKind::Int64 },
+                Self::BoolAsBool => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Bool, pg_name: "bool", wire_kind: WireKind::Bool },
+                Self::StringAsText => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::String, pg_name: "text", wire_kind: WireKind::String },
+                Self::StdVecVecU8AsBytea => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Bytes, pg_name: "bytea", wire_kind: WireKind::Bytes },
+                Self::SqlxTypesChronoNaiveTimeAsTime => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeChrono },
+                Self::SqlxTypesTimeTimeAsTime => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Time, pg_name: "time", wire_kind: WireKind::TimeTime },
+                Self::SqlxPgTypesPgIntervalAsInterval => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "interval", wire_kind: WireKind::Interval },
+                Self::SqlxTypesChronoNaiveDateAsDate => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Date, pg_name: "date", wire_kind: WireKind::Date },
+                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Timestamp, pg_name: "timestamp", wire_kind: WireKind::Timestamp },
+                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::TimestampTz, pg_name: "timestamptz", wire_kind: WireKind::TimestampTz },
+                Self::SqlxTypesUuidUuidAsUuidV4InitByPg => PgTypeSpec { can_be_pk: CanBePk::True, can_be_nl: CanBeNl::False, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
+                Self::SqlxTypesUuidUuidAsUuidInitByClient => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Uuid, pg_name: "uuid", wire_kind: WireKind::Uuid },
+                Self::SqlxTypesIpnetworkIpNetworkAsInet => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::IntervalOrInet, pg_name: "inet", wire_kind: WireKind::Inet },
+                Self::SqlxTypesMacAddressMacAddressAsMacAddr => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Mac, pg_name: "macaddr", wire_kind: WireKind::Mac },
+                Self::SqlxPgTypesPgRangeI32AsInt4Range => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int4range", wire_kind: WireKind::RangeInt32 },
+                Self::SqlxPgTypesPgRangeI64AsInt8Range => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "int8range", wire_kind: WireKind::RangeInt64 },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "daterange", wire_kind: WireKind::RangeDate },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tsrange", wire_kind: WireKind::RangeTimestamp },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => PgTypeSpec { can_be_pk: CanBePk::False, can_be_nl: CanBeNl::True, flt_kind: FltKind::Range, pg_name: "tstzrange", wire_kind: WireKind::RangeTimestampTz },
             }
         }
     }
@@ -719,10 +725,6 @@ pub fn gen_pg_types(
             PgType,
             PgTypeTestCases,
         }
-        enum CanBePk {
-            False,
-            True,
-        }
         enum IsNnStdrtCanBePk {
             False,
             True,
@@ -882,7 +884,7 @@ pub fn gen_pg_types(
             pg_crud_macros_cmn::IsNl::False => quote::quote! {false},
             pg_crud_macros_cmn::IsNl::True => quote::quote! {true},
         };
-        let pg_type_dsc = pg_type.dsc();
+        let pg_type_dsc = pg_type.spec();
         let pg_name = pg_type_dsc.pg_name;
         let open_api_object_builder_ts = |schema_type: &dyn quote::ToTokens,
                                           extra: &dyn quote::ToTokens| {
@@ -1135,32 +1137,7 @@ pub fn gen_pg_types(
                 pg_crud_macros_cmn::IsNl::True => &ident_inn_type_opt_ts,
             },
         };
-        let can_be_pk = match &pg_type {
-            PgType::I16AsInt2
-            | PgType::I32AsInt4
-            | PgType::I64AsInt8
-            | PgType::F32AsFloat4
-            | PgType::F64AsFloat8
-            | PgType::SqlxPgTypesPgMoneyAsMoney
-            | PgType::BoolAsBool
-            | PgType::StringAsText
-            | PgType::StdVecVecU8AsBytea
-            | PgType::SqlxTypesChronoNaiveTimeAsTime
-            | PgType::SqlxTypesTimeTimeAsTime
-            | PgType::SqlxPgTypesPgIntervalAsInterval
-            | PgType::SqlxTypesChronoNaiveDateAsDate
-            | PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
-            | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-            | PgType::SqlxTypesUuidUuidAsUuidInitByClient
-            | PgType::SqlxTypesIpnetworkIpNetworkAsInet
-            | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
-            | PgType::SqlxPgTypesPgRangeI32AsInt4Range
-            | PgType::SqlxPgTypesPgRangeI64AsInt8Range
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
-            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => CanBePk::False,
-            PgType::I16AsSmallSerialInitByPg | PgType::I32AsSerialInitByPg | PgType::I64AsBigSerialInitByPg | PgType::SqlxTypesUuidUuidAsUuidV4InitByPg => CanBePk::True,
-        };
+        let can_be_pk = pg_type.spec().can_be_pk;
         let is_stdrt_nn = if matches!((&pg_type_pattern, &is_nl), (PgTypePattern::Stdrt, pg_crud_macros_cmn::IsNl::False)) {
             pg_crud_macros_cmn::IsStdrtNn::True
         } else {
@@ -3493,7 +3470,7 @@ pub fn gen_pg_types(
                                 pg_crud_macros_cmn::flts::PgTypeFlt::RangeLen,
                             ])
                         };
-                        match pg_type.dsc().flt_kind {
+                        match pg_type.spec().flt_kind {
                             FltKind::Number => gen_cmn_stdrt_pg_type_nbr_flts(),
                             FltKind::Money | FltKind::Uuid | FltKind::Bool => gen_flts_with(gen_cmn_pg_type_flts(), [gen_in_flt()]),
                             FltKind::Bytes => gen_flts_with(gen_cmn_pg_type_flts(), [pg_crud_macros_cmn::flts::PgTypeFlt::EqToEncodedStringRepresentation]),

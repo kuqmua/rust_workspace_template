@@ -67,7 +67,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 super::RuntimeArcVisitor {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
                         path.ends_with("server/src/main.rs")
-                            || path.ends_with("server_admin/src/lib.rs"),
+                            || path.ends_with("server_admin/src/password.rs"),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },

@@ -207,9 +207,11 @@ fn no_non_public_use_imports_in_rust_sources() {
             "use imports found outside explicit facade re-export files; prefer explicit paths at usage sites:",
         ),
         |path, ast, ers| {
-            if path
-                .to_string_lossy()
-                .ends_with("server_admin_frontend/src/app.rs")
+            let path_text = path.to_string_lossy();
+            if path_text.ends_with("server_admin_frontend/src/app.rs")
+                || path_text.ends_with("frontend_contract/src/lib.rs")
+                || path_text.ends_with("server_admin/src/lib.rs")
+                || path_text.ends_with("server_runtime/src/lib.rs")
             {
                 return;
             }

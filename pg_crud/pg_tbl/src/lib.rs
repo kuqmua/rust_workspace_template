@@ -25,23 +25,31 @@ pub struct PgTblIdempotencyMethod(String);
 pub struct PgTblIdempotencyRoute(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTblIdempotencyRequestHash([u8; 32usize]);
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(as_ref_target, from_inner)]
 pub struct PgTblIdempotencyBody(Vec<u8>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(as_ref_inner, from_inner)]
 pub struct PgTblIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct PgTblIdempotencyResponseStatus(u16);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(display, from_inner)]
 pub struct PgTblIdempotencyTextBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct PgTblIdempotencyCleanupRetentionSeconds(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(from_inner)]
 pub struct PgTblIdempotencyCleanupBatchSize(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(from_inner, into_inner_from)]
 pub struct PgTblIdempotencyCleanupRows(u64);
 #[derive(Debug)]
 pub struct SqlxPgTblPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype, sqlx::Type)]
+#[newtype(display)]
 #[sqlx(transparent)]
 pub struct PgTblRevision(i64);
 #[derive(Debug)]
@@ -78,66 +86,6 @@ impl TryFrom<String> for PgTblRevision {
         } else {
             Ok(Self(parsed))
         }
-    }
-}
-impl std::fmt::Display for PgTblRevision {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl From<Vec<u8>> for PgTblIdempotencyBody {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[u8]> for PgTblIdempotencyBody {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
-impl<'body_lt> From<&'body_lt [u8]> for PgTblIdempotencyBodyRef<'body_lt> {
-    fn from(value: &'body_lt [u8]) -> Self {
-        Self(value)
-    }
-}
-impl From<u16> for PgTblIdempotencyResponseStatus {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
-impl From<PgTblIdempotencyResponseStatus> for u16 {
-    fn from(value: PgTblIdempotencyResponseStatus) -> Self {
-        value.0
-    }
-}
-impl From<usize> for PgTblIdempotencyTextBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for PgTblIdempotencyTextBytes {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl From<i64> for PgTblIdempotencyCleanupRetentionSeconds {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
-impl From<i64> for PgTblIdempotencyCleanupBatchSize {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
-impl From<u64> for PgTblIdempotencyCleanupRows {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-impl From<PgTblIdempotencyCleanupRows> for u64 {
-    fn from(value: PgTblIdempotencyCleanupRows) -> Self {
-        value.0
     }
 }
 #[derive(Clone, Debug, Eq, PartialEq)]

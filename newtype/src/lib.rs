@@ -34,6 +34,7 @@ enum NewtypeOption {
     AsRefInner,
     AsRefOwned,
     AsRefStr,
+    AsRefTarget,
     AsSlice,
     DebugTransparent,
     DerefInner,
@@ -46,6 +47,7 @@ enum NewtypeOption {
     IntoInner,
     IntoInnerFrom,
     IntoVec,
+    Secret,
     ToTokens,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,6 +79,7 @@ impl NewtypeBool {
     }
 }
 struct SnakeIdent(String);
+#[derive(Debug)]
 struct SnakeIdentLen(usize);
 impl From<usize> for SnakeIdentLen {
     fn from(value: usize) -> Self {
@@ -86,11 +89,6 @@ impl From<usize> for SnakeIdentLen {
 #[derive(Debug)]
 struct SnakeIdentTryFromStringEr {
     len: SnakeIdentLen,
-}
-impl std::fmt::Debug for SnakeIdentLen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
 }
 impl std::fmt::Display for SnakeIdentTryFromStringEr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -345,6 +343,18 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
             }
         }
     });
+    let as_ref_target_ts = attrs.contains(NewtypeOption::AsRefTarget).get().then(|| {
+        quote::quote! {
+            impl #impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #ident #ty_generics #where_clause
+            where
+                #inner_ty_ref: std::ops::Deref,
+            {
+                fn as_ref(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target {
+                    std::ops::Deref::deref(&self.0)
+                }
+            }
+        }
+    });
     let as_slice_ts = attrs.contains(NewtypeOption::AsSlice).get().then(|| {
         quote::quote! {
             impl #impl_generics #ident #ty_generics #where_clause {
@@ -479,6 +489,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
         #as_ref_ts
         #as_ref_inner_ts
         #as_ref_owned_ts
+        #as_ref_target_ts
         #as_slice_ts
         #deref_inner_ts
         #deref_target_ts
@@ -792,6 +803,10 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                     acc.insert(NewtypeOption::AsRefOwned);
                     return Ok(());
                 }
+                if meta.path.is_ident("as_ref_target") {
+                    acc.insert(NewtypeOption::AsRefTarget);
+                    return Ok(());
+                }
                 if meta.path.is_ident("as_slice") {
                     acc.insert(NewtypeOption::AsSlice);
                     return Ok(());
@@ -838,6 +853,10 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
                 }
                 if meta.path.is_ident("into_vec") {
                     acc.insert(NewtypeOption::IntoVec);
+                    return Ok(());
+                }
+                if meta.path.is_ident("secret") {
+                    acc.insert(NewtypeOption::Secret);
                     return Ok(());
                 }
                 if meta.path.is_ident("to_tokens") {
@@ -899,6 +918,17 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
         return Err(syn::Error::new_spanned(
             input.as_ref(),
             "deref_mut_target requires deref_target",
+        ));
+    }
+    if attrs.contains(NewtypeOption::Secret).get()
+        && (attrs.contains(NewtypeOption::DebugTransparent).get()
+            || attrs.contains(NewtypeOption::Display).get()
+            || attrs.contains(NewtypeOption::ToTokens).get()
+            || attrs.to_err_string_mode.is_some())
+    {
+        return Err(syn::Error::new_spanned(
+            input.as_ref(),
+            "secret cannot be combined with formatting, token, or error-string forwarding",
         ));
     }
     Ok(())
@@ -1117,6 +1147,22 @@ mod tests {
             assert_eq!(
                 er.to_string(),
                 "#[newtype(from_inner)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead"
+            );
+        }
+    }
+    #[test]
+    fn newtype_secret_formatting_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(Newtype)]
+            #[newtype(debug_transparent, secret)]
+            struct SecretValue(Vec<u8>);
+        };
+        let result = super::gen_newtype_ts(super::SynDeriveInputRef::from(&input));
+        assert!(result.is_err(), "46d9f064");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "secret cannot be combined with formatting, token, or error-string forwarding"
             );
         }
     }

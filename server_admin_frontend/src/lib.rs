@@ -3,6 +3,8 @@
 pub mod app;
 #[cfg(any(target_arch = "wasm32", test))]
 mod auth_keep_alive;
+#[cfg(target_arch = "wasm32")]
+mod transport;
 #[cfg(not(target_arch = "wasm32"))]
 const ADMIN_OPEN_API_HTML: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Admin API</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body><main><h1>Admin API</h1><pre id=\"openapi\">Loading OpenAPI document...</pre></main><script src=\"/admin/assets/swagger.js\" defer></script></body></html>";
 #[cfg(not(target_arch = "wasm32"))]
@@ -92,6 +94,9 @@ mod tests {
     fn leptos_client_uses_typed_operational_api_contracts() {
         let script = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app.rs"))
             .expect("fe89c42a");
+        let transport =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/transport.rs"))
+                .expect("320c7d1e");
         [
             "AdminRoute::Users",
             "AdminRoute::Roles",
@@ -102,8 +107,6 @@ mod tests {
             "AdminRoute::SignIn",
             "AdminRoute::Refresh",
             "AdminRoute::SignOut",
-            "TransportRequest::new",
-            "RequestCredentials::Include",
         ]
         .into_iter()
         .for_each(|contract| {
@@ -112,7 +115,9 @@ mod tests {
                 "missing SPA contract: {contract}"
             );
         });
-        assert!(script.contains("X-CSRF-Token"));
+        assert!(transport.contains("TransportRequest"));
+        assert!(transport.contains("RequestCredentials::Include"));
+        assert!(transport.contains("X-CSRF-Token"));
         assert!(!script.contains("/api/v1/admin/users"));
         assert!(!script.contains("serde_json::json!"));
     }

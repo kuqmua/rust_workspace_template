@@ -22,6 +22,50 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
     enum PgTypeKind {
         Stdrt,
     }
+    #[derive(Clone, Copy)]
+    enum FilterValueShape {
+        Scalar,
+        Text,
+    }
+    #[derive(Clone, Copy)]
+    struct FilterSpec {
+        bind_count: usize,
+        sql_operator: &'static str,
+        sql_suffix: &'static str,
+        value_shape: FilterValueShape,
+    }
+    impl FilterSpec {
+        const ADJACENT: Self = Self::scalar("-|-");
+        const BEFORE: Self = Self::scalar("<");
+        const CONTAINS: Self = Self::scalar("@>");
+        const EQUALITY: Self = Self::scalar("=");
+        const LEFT_OF: Self = Self::scalar("&<");
+        const OVERLAPS: Self = Self::scalar("&&");
+        const RIGHT_OF: Self = Self::scalar("&>");
+        const TEXT_SEARCH: Self = Self {
+            bind_count: 1usize,
+            sql_operator: "ILIKE",
+            sql_suffix: "ESCAPE '\\'",
+            value_shape: FilterValueShape::Text,
+        };
+        const WITHIN: Self = Self::scalar("<@");
+        const fn is_valid(self) -> bool {
+            self.bind_count == 1usize
+                && !self.sql_operator.is_empty()
+                && match self.value_shape {
+                    FilterValueShape::Scalar => self.sql_suffix.is_empty(),
+                    FilterValueShape::Text => !self.sql_suffix.is_empty(),
+                }
+        }
+        const fn scalar(sql_operator: &'static str) -> Self {
+            Self {
+                bind_count: 1usize,
+                sql_operator,
+                sql_suffix: "",
+                value_shape: FilterValueShape::Scalar,
+            }
+        }
+    }
     impl PgTypeKind {
         const fn format_argument(&self) -> &'static str {
             match &self {
@@ -44,6 +88,20 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                 return ProcMacro2GenWhFltsTs::from(quote::quote! { compile_error!(#msg); });
             }
         };
+    if !FilterSpec::ADJACENT.is_valid()
+        || !FilterSpec::BEFORE.is_valid()
+        || !FilterSpec::CONTAINS.is_valid()
+        || !FilterSpec::EQUALITY.is_valid()
+        || !FilterSpec::LEFT_OF.is_valid()
+        || !FilterSpec::OVERLAPS.is_valid()
+        || !FilterSpec::RIGHT_OF.is_valid()
+        || !FilterSpec::TEXT_SEARCH.is_valid()
+        || !FilterSpec::WITHIN.is_valid()
+    {
+        return ProcMacro2GenWhFltsTs::from(
+            quote::quote! { compile_error!("invalid filter specification"); },
+        );
+    }
     let col_sc = naming::ColSc;
     let er_sc = naming::ErSc;
     let incr_sc = naming::IncrSc;
@@ -690,6 +748,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         },
                     )
                 };
+                let equality_sql_operator = FilterSpec::EQUALITY.sql_operator;
                 let gen_eq_oprtr_qp_ts = |mb_dims_ies_init_ts: &dyn quote::ToTokens| {
                     quote::quote! {
                         #mb_dims_ies_init_ts
@@ -700,7 +759,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                                 #v_match_incr_checked_add_one_init_ts
                                 std::fmt::Write::write_fmt(
                                     &mut qp_6e4b019d,
-                                    format_args!("{}({} = ${v})", #self_oprtr_to_qp_ts #col_sc),
+                                    format_args!("{}({} {} ${v})", #self_oprtr_to_qp_ts #col_sc, #equality_sql_operator),
                                 )
                             },
                             #import::EqOprtr::IsNull => std::fmt::Write::write_fmt(
@@ -760,7 +819,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                     pg_crud_macros_cmn::flts::PgTypeFlt::In { .. } => gen_in_ts(&pg_type_ptrn_stdrt),
                     pg_crud_macros_cmn::flts::PgTypeFlt::Rgx => gen_rgx_ts(&pg_type_ptrn_stdrt),
                     pg_crud_macros_cmn::flts::PgTypeFlt::Before { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"<")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::BEFORE.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::CrntDate => {
                         gen_pg_syntax_flt_ts(&pg_type_ptrn_stdrt, &"= current_date")
@@ -784,16 +843,16 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         gen_eq_to_encoded_string_representation_ts(&pg_type_ptrn_stdrt)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesWithinGivenRange { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"<@")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::WITHIN.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::FindRangesThatFullyContainTheGivenRange {
                         ..
-                    } => gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"@>"),
+                    } => gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::CONTAINS.sql_operator),
                     pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToLeftOfRange { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&<")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::LEFT_OF.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::StrictlyToRightOfRange { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&>")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::RIGHT_OF.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::IncludedLowerBound { .. } => {
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "lower", "=")
@@ -808,10 +867,10 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
                         gen_range_bound_cmp_flt_ts(&pg_type_ptrn_stdrt, "upper", ">")
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::OverlapWithRange { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"&&")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::OVERLAPS.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::AdjacentWithRange { .. } => {
-                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &"-|-")
+                        gen_oprtr_cmp_flt_ts(&pg_type_ptrn_stdrt, &FilterSpec::ADJACENT.sql_operator)
                     }
                     pg_crud_macros_cmn::flts::PgTypeFlt::RangeLen => {
                         gen_range_len_ts(&pg_type_ptrn_stdrt)
@@ -855,6 +914,8 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
+    let text_search_sql_operator = FilterSpec::TEXT_SEARCH.sql_operator;
+    let text_search_sql_suffix = FilterSpec::TEXT_SEARCH.sql_suffix;
     let text_search_ts = quote::quote! {
         pub const TEXT_SEARCH_MAXIMUM_INPUT_BYTES: usize = 1_024usize;
         #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
@@ -952,7 +1013,7 @@ pub fn gen_wh_flts(input_ts: ProcMacro2GenWhFltsInput<'_>) -> ProcMacro2GenWhFlt
             }
             fn qp(&self, incr: &mut dyn pg_crud_cmn::QpIncrMut, col: pg_crud_cmn::SqlColRef<'_>, add_oprtr: pg_crud_cmn::AddOprtr) -> Result<pg_crud_cmn::QpFragment, pg_crud_cmn::QpEr> {
                 let parameter = incr.checked_add_one().ok_or_else(|| pg_crud_cmn::QpEr::CheckedAdd { loc: loc_macros::loc!() })?;
-                let fragment = format!("{}{} ILIKE ${parameter} ESCAPE '\\'", self.oprtr.to_qp(add_oprtr), col);
+                let fragment = format!("{}{} {} ${parameter} {}", self.oprtr.to_qp(add_oprtr), col, #text_search_sql_operator, #text_search_sql_suffix);
                 pg_crud_cmn::QpFragment::try_from(fragment).map_err(pg_crud_cmn::QpEr::from)
             }
         }

@@ -78,6 +78,12 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
     #[newtype(as_ref_owned, from_inner)]
     struct OwnedValue(Vec<u8>);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+    #[newtype(as_ref_target, from_inner)]
+    struct OwnedSliceValue(Vec<u8>);
+    #[derive(Debug, Clone, Copy, newtype::Newtype)]
+    #[newtype(as_ref_inner, from_inner)]
+    struct SliceValueRef<'value_lt>(&'value_lt [u8]);
     #[derive(newtype::Newtype)]
     #[newtype(debug_transparent)]
     struct TransparentDebugValue(u16);
@@ -225,6 +231,14 @@ mod tests {
     fn owned_inner_impls_are_generated() {
         let v = OwnedValue::from(vec![3, 5, 8]);
         assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
+    }
+    #[test]
+    fn owned_and_borrowed_slice_impls_are_generated() {
+        let bytes = vec![3u8, 5u8, 8u8];
+        let owned = OwnedSliceValue::from(bytes.clone());
+        let borrowed = SliceValueRef::from(bytes.as_slice());
+        assert_eq!(AsRef::<[u8]>::as_ref(&owned), bytes.as_slice());
+        assert_eq!(AsRef::<[u8]>::as_ref(&borrowed), bytes.as_slice());
     }
     #[test]
     fn transparent_debug_forwards_inner_format() {

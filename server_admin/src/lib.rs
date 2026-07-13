@@ -1,55 +1,20 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // domain declarations are grouped by authentication and authorization responsibility
 #![cfg_attr(test, allow(unused_crate_dependencies))] // tower is used by the separate admin_api integration test target
 pub mod auth;
+mod cleanup;
+mod domain;
+mod generated_auth;
 pub mod generated_tables;
-#[derive(newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
-pub struct SecrecyAdminString(secrecy::SecretBox<String>);
-impl std::fmt::Debug for SecrecyAdminString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("[REDACTED]")
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::BoundedString,
-    newtype::Newtype,
-)]
-#[bounded_string(max = 8192, description = "administrator internal text")]
-#[newtype(as_ref_owned, into_inner)]
-pub struct StdAdminString(String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, std::hash::Hash, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
-pub struct StdAdminStrRef<'value_lt>(&'value_lt str);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct StdAdminBool(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
-pub struct StdAdminNonZeroUsize(std::num::NonZeroUsize);
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct UuidAdminValue(uuid::Uuid);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
-pub struct StdAdminSocketAddr(std::net::SocketAddr);
+mod migrations;
+mod password;
+mod rbac;
+mod token;
+pub use domain::{
+    AdminAuditLogId, AdminDisplayName, AdminLogin, AdminPermissionId, AdminPermissionName,
+    AdminRoleId, AdminRoleName, AdminUserId, SecrecyAdminString, StdAdminBool,
+    StdAdminNonZeroUsize, StdAdminSocketAddr, StdAdminStrRef, StdAdminString, UuidAdminValue,
+};
+pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::Newtype)]
@@ -64,108 +29,6 @@ pub struct Argon2AdminPasswordHashEr(argon2::password_hash::Error);
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
 pub struct SqlxAdminEr(sqlx::Error);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct AdminUserId(i64);
-impl std::fmt::Display for AdminUserId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    std::hash::Hash,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct AdminRoleId(i64);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    std::hash::Hash,
-    PartialOrd,
-    Ord,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct AdminPermissionId(i64);
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::Newtype,
-)]
-#[newtype(from_inner)]
-pub struct AdminAuditLogId(i64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
-pub struct AdminPermissionName(AdminPermission);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::BoundedString,
-    newtype::Newtype,
-)]
-#[serde(try_from = "String")]
-#[bounded_string(max = 128, chars, description = "administrator login", utoipa)]
-#[newtype(as_ref_owned)]
-pub struct AdminLogin(String);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::BoundedString,
-    newtype::Newtype,
-)]
-#[serde(try_from = "String")]
-#[bounded_string(max = 256, chars, description = "administrator display name", utoipa)]
-#[newtype(as_ref_owned)]
-pub struct AdminDisplayName(String);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::BoundedString,
-    newtype::Newtype,
-)]
-#[serde(try_from = "String")]
-#[bounded_string(max = 128, chars, description = "administrator role name", utoipa)]
-#[newtype(as_ref_owned)]
-pub struct AdminRoleName(String);
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
@@ -300,11 +163,7 @@ pub struct AdminGeneratedToken {
 impl AdminGeneratedToken {
     #[must_use]
     pub fn generate() -> Self {
-        let token = AdminOpaqueToken::new(SecrecyAdminString::from(secrecy::SecretBox::new(
-            Box::new(format!("{}.{}", uuid::Uuid::new_v4(), uuid::Uuid::new_v4())),
-        )));
-        let hash = hash_opaque_token(&token);
-        Self { hash, token }
+        token::generate_token()
     }
     #[must_use]
     pub const fn hash(&self) -> &AdminTokenHash {
@@ -317,12 +176,7 @@ impl AdminGeneratedToken {
 }
 #[must_use]
 pub fn hash_opaque_token(token: &AdminOpaqueToken) -> AdminTokenHash {
-    let digest = <sha2::Sha256 as sha2::Digest>::digest(
-        secrecy::ExposeSecret::expose_secret(token.0.as_ref()).as_bytes(),
-    );
-    AdminTokenHash::new(SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
-        format!("{digest:x}"),
-    ))))
+    token::hash_opaque_token(token)
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(from_inner)]
@@ -495,79 +349,6 @@ pub enum AdminPasswordHashEr {
 pub struct AdminPasswordHasher {
     semaphore: StdAdminSharedSemaphore,
 }
-impl AdminPasswordHasher {
-    #[must_use]
-    #[allow(clippy::missing_const_for_fn)] // Tokio semaphore and Arc constructors are not const
-    pub fn new(max_concurrent_hashes: AdminPasswordHashConcurrency) -> Self {
-        Self {
-            semaphore: StdAdminSharedSemaphore(std::sync::Arc::new(tokio::sync::Semaphore::new(
-                max_concurrent_hashes.0.0.get(),
-            ))),
-        }
-    }
-    pub async fn hash(
-        &self,
-        password: AdminPassword,
-    ) -> Result<AdminPasswordHash, AdminPasswordHashEr> {
-        let permit = std::sync::Arc::<tokio::sync::Semaphore>::clone(&self.semaphore.0)
-            .acquire_owned()
-            .await
-            .map_err(|er| AdminPasswordHashEr::SemaphoreClosed(TokioAdminAcquireEr::from(er)))?;
-        tokio::task::spawn_blocking(move || {
-            let password_secret = password.into_inner();
-            let salt = argon2::password_hash::SaltString::generate(
-                &mut argon2::password_hash::rand_core::OsRng,
-            );
-            let result = argon2::PasswordHasher::hash_password(
-                &argon2::Argon2::default(),
-                secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
-                &salt,
-            )
-            .map(|hash| {
-                AdminPasswordHash::new(pg_types_text_misc::StringAsNnTextSecret::from(
-                    hash.to_string(),
-                ))
-            })
-            .map_err(|er| AdminPasswordHashEr::PasswordHash(Argon2AdminPasswordHashEr::from(er)));
-            drop(permit);
-            result
-        })
-        .await
-        .map_err(|er| AdminPasswordHashEr::Join(TokioAdminJoinEr::from(er)))?
-    }
-    pub async fn verify(
-        &self,
-        password: AdminPassword,
-        expected_hash: AdminPasswordHash,
-    ) -> Result<StdAdminBool, AdminPasswordHashEr> {
-        let permit = std::sync::Arc::<tokio::sync::Semaphore>::clone(&self.semaphore.0)
-            .acquire_owned()
-            .await
-            .map_err(|er| AdminPasswordHashEr::SemaphoreClosed(TokioAdminAcquireEr::from(er)))?;
-        tokio::task::spawn_blocking(move || {
-            let password_secret = password.into_inner();
-            let parsed_hash =
-                argon2::PasswordHash::new(expected_hash.0.as_ref()).map_err(|er| {
-                    AdminPasswordHashEr::PasswordHash(Argon2AdminPasswordHashEr::from(er))
-                })?;
-            let result = argon2::PasswordVerifier::verify_password(
-                &argon2::Argon2::default(),
-                secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
-                &parsed_hash,
-            );
-            drop(permit);
-            match result {
-                Ok(()) => Ok(StdAdminBool::from(true)),
-                Err(argon2::password_hash::Error::Password) => Ok(StdAdminBool::from(false)),
-                Err(er) => Err(AdminPasswordHashEr::PasswordHash(
-                    Argon2AdminPasswordHashEr::from(er),
-                )),
-            }
-        })
-        .await
-        .map_err(|er| AdminPasswordHashEr::Join(TokioAdminJoinEr::from(er)))?
-    }
-}
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
 pub struct JsonwebtokenAdminEr(jsonwebtoken::errors::Error);
@@ -582,15 +363,7 @@ pub fn encode_access_token(
     claims: &AdminAccessClaims,
     secret: &AdminJwtSecret,
 ) -> Result<StdAdminAccessToken, AdminAccessTokenEr> {
-    jsonwebtoken::encode(
-        &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
-        claims,
-        &jsonwebtoken::EncodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
-        ),
-    )
-    .map(StdAdminAccessToken)
-    .map_err(|er| AdminAccessTokenEr(JsonwebtokenAdminEr::from(er)))
+    token::encode_access_token(claims, secret)
 }
 pub fn decode_access_token(
     token: &StdAdminAccessToken,
@@ -598,18 +371,7 @@ pub fn decode_access_token(
     issuer: &AdminTokenIssuer,
     audience: &AdminTokenAudience,
 ) -> Result<AdminAccessClaims, AdminAccessTokenEr> {
-    let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
-    validation.set_issuer(&[issuer.as_ref()]);
-    validation.set_audience(&[audience.as_ref()]);
-    jsonwebtoken::decode::<AdminAccessClaims>(
-        token.as_ref(),
-        &jsonwebtoken::DecodingKey::from_secret(
-            secrecy::ExposeSecret::expose_secret(secret.0.as_ref()).as_bytes(),
-        ),
-        &validation,
-    )
-    .map(|data| data.claims)
-    .map_err(|er| AdminAccessTokenEr(JsonwebtokenAdminEr::from(er)))
+    token::decode_access_token(token, secret, issuer, audience)
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, utoipa::ToSchema, optml::Optml)]
 pub enum AdminPermission {
@@ -676,110 +438,11 @@ pub enum AdminAuditResource {
     SystemSettings,
     User,
 }
-impl AdminAuditAction {
-    #[must_use]
-    pub fn as_str(self) -> StdAdminStrRef<'static> {
-        StdAdminStrRef::from(match self {
-            Self::Create => "create",
-            Self::Delete => "delete",
-            Self::Refresh => "refresh",
-            Self::SignIn => "sign_in",
-            Self::SignOut => "sign_out",
-            Self::Update => "update",
-        })
-    }
-}
-impl AdminAuditResource {
-    #[must_use]
-    pub fn as_str(self) -> StdAdminStrRef<'static> {
-        StdAdminStrRef::from(match self {
-            Self::AuditLog => "audit_log",
-            Self::Permission => "permission",
-            Self::Role => "role",
-            Self::Session => "session",
-            Self::SystemSettings => "system_settings",
-            Self::User => "user",
-        })
-    }
-}
-impl AdminPermission {
-    #[must_use]
-    pub fn as_str(self) -> StdAdminStrRef<'static> {
-        StdAdminStrRef::from(match self {
-            Self::AuditLogRead => "audit_log:read",
-            Self::MetricsRead => "metrics:read",
-            Self::OpenApiRead => "openapi:read",
-            Self::PermissionsRead => "permissions:read",
-            Self::RolePermissionsCreate => "role_permissions:create",
-            Self::RolePermissionsDelete => "role_permissions:delete",
-            Self::RolePermissionsRead => "role_permissions:read",
-            Self::RolePermissionsUpdate => "role_permissions:update",
-            Self::RolesCreate => "roles:create",
-            Self::RolesDelete => "roles:delete",
-            Self::RolesRead => "roles:read",
-            Self::RolesUpdate => "roles:update",
-            Self::SystemSettingsRead => "system_settings:read",
-            Self::SystemSettingsUpdate => "system_settings:update",
-            Self::UserRolesCreate => "user_roles:create",
-            Self::UserRolesDelete => "user_roles:delete",
-            Self::UserRolesRead => "user_roles:read",
-            Self::UserRolesUpdate => "user_roles:update",
-            Self::UsersCreate => "users:create",
-            Self::UsersDelete => "users:delete",
-            Self::UsersRead => "users:read",
-            Self::UsersUpdate => "users:update",
-        })
-    }
-}
-impl serde::Serialize for AdminPermission {
-    fn serialize<Serializer>(
-        &self,
-        serializer: Serializer,
-    ) -> Result<Serializer::Ok, Serializer::Error>
-    where
-        Serializer: serde::Serializer,
-    {
-        serializer.serialize_str(self.as_str().as_ref())
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[error("unknown administrator permission: {value:?}")]
 pub struct AdminPermissionTryFromStrEr {
     value: StdAdminString,
 }
-impl TryFrom<&str> for AdminPermission {
-    type Error = AdminPermissionTryFromStrEr;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "audit_log:read" => Ok(Self::AuditLogRead),
-            "metrics:read" => Ok(Self::MetricsRead),
-            "openapi:read" => Ok(Self::OpenApiRead),
-            "permissions:read" => Ok(Self::PermissionsRead),
-            "role_permissions:create" => Ok(Self::RolePermissionsCreate),
-            "role_permissions:delete" => Ok(Self::RolePermissionsDelete),
-            "role_permissions:read" => Ok(Self::RolePermissionsRead),
-            "role_permissions:update" => Ok(Self::RolePermissionsUpdate),
-            "roles:create" => Ok(Self::RolesCreate),
-            "roles:delete" => Ok(Self::RolesDelete),
-            "roles:read" => Ok(Self::RolesRead),
-            "roles:update" => Ok(Self::RolesUpdate),
-            "system_settings:read" => Ok(Self::SystemSettingsRead),
-            "system_settings:update" => Ok(Self::SystemSettingsUpdate),
-            "user_roles:create" => Ok(Self::UserRolesCreate),
-            "user_roles:delete" => Ok(Self::UserRolesDelete),
-            "user_roles:read" => Ok(Self::UserRolesRead),
-            "user_roles:update" => Ok(Self::UserRolesUpdate),
-            "users:create" => Ok(Self::UsersCreate),
-            "users:delete" => Ok(Self::UsersDelete),
-            "users:read" => Ok(Self::UsersRead),
-            "users:update" => Ok(Self::UsersUpdate),
-            _ => Err(AdminPermissionTryFromStrEr {
-                value: StdAdminString(value.to_owned()),
-            }),
-        }
-    }
-}
-static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
 pub struct SqlxAdminMigrateEr(sqlx::migrate::MigrateError);
@@ -787,10 +450,7 @@ pub struct SqlxAdminMigrateEr(sqlx::migrate::MigrateError);
 #[error("failed to migrate administrator schema: {0:?}")]
 pub struct AdminMigrateEr(SqlxAdminMigrateEr);
 pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateEr> {
-    ADMIN_MIGRATOR
-        .run(pool.as_ref())
-        .await
-        .map_err(|er| AdminMigrateEr(SqlxAdminMigrateEr::from(er)))
+    migrations::prep_pg(pool).await
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminCleanupBatchSize(i64);
@@ -931,45 +591,7 @@ pub async fn cleanup_admin_tables(
     pool: app_state::SqlxPgPoolRef<'_>,
     cfg: AdminCleanupCfg,
 ) -> Result<AdminCleanupReport, AdminCleanupEr> {
-    let access_sessions = sqlx::query("WITH expired AS (SELECT id FROM admin_access_sessions WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_access_sessions target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
-    let refresh_tokens = sqlx::query("WITH expired AS (SELECT id FROM admin_refresh_tokens WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_refresh_tokens target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
-    let login_attempts = sqlx::query("WITH expired AS (SELECT id FROM admin_login_attempts WHERE attempted_at < NOW() - make_interval(secs => $1) ORDER BY attempted_at LIMIT $2) DELETE FROM admin_login_attempts target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
-    let mut audit_tx = sqlx::Acquire::begin(pool.as_ref())
-        .await
-        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
-    let _audit_cleanup_permission = sqlx::query("SET LOCAL app.admin_audit_cleanup = 'on'")
-        .execute(&mut *audit_tx)
-        .await
-        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
-    let audit_log = sqlx::query("WITH expired AS (SELECT id FROM admin_audit_log WHERE created_at < NOW() - make_interval(secs => $1) ORDER BY created_at LIMIT $2) DELETE FROM admin_audit_log target USING expired WHERE target.id=expired.id")
-        .bind(cfg.audit_retention.0).bind(cfg.batch_size.0).execute(&mut *audit_tx).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
-    audit_tx
-        .commit()
-        .await
-        .map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?;
-    let rate_limits = sqlx::query("WITH expired AS (SELECT scope,subject FROM admin_rate_limits WHERE window_started_at < NOW() - make_interval(secs => $1) ORDER BY window_started_at LIMIT $2) DELETE FROM admin_rate_limits target USING expired WHERE target.scope=expired.scope AND target.subject=expired.subject")
-        .bind(cfg.rate_limit_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| AdminCleanupEr::Pg(SqlxAdminEr::from(error)))?.rows_affected();
-    let idempotency = pg_tbl::cleanup_pg_tbl_idempotency(
-        pool,
-        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(
-            cfg.idempotency_completed_retention.0,
-        ),
-        pg_tbl::PgTblIdempotencyCleanupRetentionSeconds::from(cfg.idempotency_pending_retention.0),
-        pg_tbl::PgTblIdempotencyCleanupBatchSize::from(cfg.batch_size.0),
-    )
-    .await
-    .map_err(AdminCleanupEr::Idempotency)?;
-    Ok(AdminCleanupReport {
-        access_sessions: AdminCleanupRows::from(access_sessions),
-        audit_log: AdminCleanupRows::from(audit_log),
-        idempotency: AdminCleanupRows::from(u64::from(idempotency)),
-        login_attempts: AdminCleanupRows::from(login_attempts),
-        rate_limits: AdminCleanupRows::from(rate_limits),
-        refresh_tokens: AdminCleanupRows::from(refresh_tokens),
-    })
+    cleanup::cleanup_admin_tables(pool, cfg).await
 }
 #[derive(Debug, thiserror::Error)]
 pub enum AdminBootstrapEr {
@@ -984,18 +606,6 @@ pub enum AdminBootstrapEr {
     #[error("administrator bootstrap database operation failed: {0:?}")]
     Pg(SqlxAdminEr),
 }
-#[allow(clippy::single_call_fn)] // shared validator keeps bootstrap behavior directly unit-testable and aligned with the database constraint
-fn admin_login_has_valid_format(login: &AdminLogin) -> StdAdminBool {
-    let value: &String = login.as_ref();
-    StdAdminBool::from(
-        value.len() >= 3
-            && value.bytes().all(|byte| {
-                byte.is_ascii_lowercase()
-                    || byte.is_ascii_digit()
-                    || matches!(byte, b'_' | b'.' | b'-')
-            }),
-    )
-}
 pub async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
     login: AdminLogin,
@@ -1003,52 +613,7 @@ pub async fn bootstrap_admin(
     password: AdminPassword,
     password_hasher: &AdminPasswordHasher,
 ) -> Result<AdminUserId, AdminBootstrapEr> {
-    if !admin_login_has_valid_format(&login).0 {
-        return Err(AdminBootstrapEr::InvalidLogin);
-    }
-    if display_name.as_ref().trim().is_empty() {
-        return Err(AdminBootstrapEr::EmptyDisplayName);
-    }
-    let password_hash = password_hasher
-        .hash(password)
-        .await
-        .map_err(AdminBootstrapEr::PasswordHash)?;
-    let mut tx = pool
-        .as_ref()
-        .begin()
-        .await
-        .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    let _lock_result = sqlx::query("LOCK TABLE admin_users IN EXCLUSIVE MODE")
-        .execute(&mut *tx)
-        .await
-        .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    let user_exists = sqlx::query_scalar::<_, bool>("SELECT EXISTS (SELECT 1 FROM admin_users)")
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    if user_exists {
-        return Err(AdminBootstrapEr::AlreadyInitialized);
-    }
-    let user_id = sqlx::query_scalar::<_, i64>(
-        "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id",
-    )
-    .bind(login.as_ref())
-    .bind(display_name.as_ref())
-    .bind(password_hash.0.as_ref())
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    let _role_link_result = sqlx::query(
-        "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, id FROM admin_roles WHERE name = 'admin'",
-    )
-    .bind(user_id)
-    .execute(&mut *tx)
-    .await
-    .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    tx.commit()
-        .await
-        .map_err(|er| AdminBootstrapEr::Pg(SqlxAdminEr::from(er)))?;
-    Ok(AdminUserId::from(user_id))
+    migrations::bootstrap_admin(pool, login, display_name, password, password_hasher).await
 }
 #[cfg(test)]
 #[allow(clippy::needless_for_each, clippy::single_call_fn)] // repository policy forbids for loops and compact fixtures keep secret setup deterministic
@@ -1137,12 +702,17 @@ mod tests {
     }
     #[test]
     fn migration_inventory_is_not_empty() {
-        let migrations = super::ADMIN_MIGRATOR.iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 3usize);
+        let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
+        assert_eq!(migrations.len(), 4usize);
         assert!(
             migrations
                 .iter()
                 .any(|migration| migration.description == "admin rate limits")
+        );
+        assert!(
+            migrations
+                .iter()
+                .any(|migration| migration.description == "admin audit cleanup")
         );
     }
     #[tokio::test]
@@ -1231,9 +801,9 @@ mod tests {
         let valid = super::AdminLogin::try_from("admin.user-1".to_owned()).expect("078c759d");
         let uppercase = super::AdminLogin::try_from("Admin".to_owned()).expect("a164aedd");
         let too_short = super::AdminLogin::try_from("ab".to_owned()).expect("735a2858");
-        assert!(super::admin_login_has_valid_format(&valid).0);
-        assert!(!super::admin_login_has_valid_format(&uppercase).0);
-        assert!(!super::admin_login_has_valid_format(&too_short).0);
+        assert!(super::migrations::admin_login_has_valid_format(&valid).0);
+        assert!(!super::migrations::admin_login_has_valid_format(&uppercase).0);
+        assert!(!super::migrations::admin_login_has_valid_format(&too_short).0);
     }
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {

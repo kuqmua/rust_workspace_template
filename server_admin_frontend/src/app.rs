@@ -52,70 +52,10 @@ enum ApiEr {
     #[error("server returned HTTP {0}: {1}")]
     Status(u16, Text),
 }
-#[derive(Clone, Copy, Debug)]
-struct GlooTransport;
-impl frontend_contract::Transport for GlooTransport {
-    fn send(
-        &self,
-        request: frontend_contract::TransportRequest,
-    ) -> std::pin::Pin<
-        Box<
-            dyn Future<
-                    Output = Result<
-                        frontend_contract::TransportResponse,
-                        frontend_contract::TransportEr,
-                    >,
-                > + '_,
-        >,
-    > {
-        Box::pin(async move {
-            let body = String::from_utf8(request.body().as_ref().to_vec()).map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
-            })?;
-            let route = request.route();
-            let mut builder = gloo_net::http::RequestBuilder::new(request.path().as_ref())
-                .method(http_method(route.method()))
-                .credentials(web_sys::RequestCredentials::Include)
-                .header("Content-Type", "application/json")
-                .header("commit", git_info::PROJECT_GIT_INFO.commit.as_ref());
-            if let Some(idempotency_key) = request.idempotency_key() {
-                builder = builder.header("Idempotency-Key", idempotency_key.as_ref());
-            }
-            if let Some(if_match) = request.if_match() {
-                builder = builder.header("If-Match", if_match.as_ref());
-            }
-            if route.mutation() == frontend_contract::MutationKind::Mutating
-                && let Some(token) = csrf_token()
-            {
-                builder = builder.header("X-CSRF-Token", &token.0);
-            }
-            let outbound = if route.method() == frontend_contract::HttpMethod::Get {
-                builder.build()
-            } else {
-                builder.body(body)
-            }
-            .map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
-            })?;
-            let response = outbound.send().await.map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
-            })?;
-            let status = frontend_contract::TransportStatus::from(response.status());
-            response
-                .binary()
-                .await
-                .map(frontend_contract::TransportBody::from)
-                .map(|body| frontend_contract::TransportResponse::new(body, status))
-                .map_err(|error| {
-                    frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
-                })
-        })
-    }
-}
 #[derive(Clone)]
 struct AdminApiClient {
     auth_refresh: std::sync::Arc<std::sync::RwLock<AuthRefreshCoordinator>>,
-    transport: GlooTransport,
+    transport: crate::transport::GlooTransport,
 }
 #[derive(Default)]
 struct AuthRefreshCoordinator {
@@ -137,7 +77,7 @@ impl AdminApiClient {
             auth_refresh: std::sync::Arc::from(std::sync::RwLock::new(
                 AuthRefreshCoordinator::default(),
             )),
-            transport: GlooTransport,
+            transport: crate::transport::GlooTransport,
         }
     }
     async fn get<Output>(&self, route: server_admin_contract::AdminRoute) -> Result<Output, ApiEr>
@@ -183,17 +123,17 @@ impl AdminApiClient {
                 .transport_response_once(route, body.as_slice())
                 .await
                 .and_then(|retried| {
-                    let expected = success_status(route.contract().success_status());
+                    let expected = route.contract().success_status().transport_status();
                     if retried.status() == expected {
                         Ok(retried)
                     } else {
-                        Err(response_er(retried.status(), retried.body().as_ref()))
+                        Err(response_er(retried.status(), retried.body()))
                     }
                 });
         }
-        let expected = success_status(route.contract().success_status());
+        let expected = route.contract().success_status().transport_status();
         if response.status() != expected {
-            return Err(response_er(response.status(), response.body().as_ref()));
+            return Err(response_er(response.status(), response.body()));
         }
         Ok(response)
     }
@@ -205,7 +145,7 @@ impl AdminApiClient {
         Self::send_once(self.transport, route, body).await
     }
     async fn send_once(
-        transport: GlooTransport,
+        transport: crate::transport::GlooTransport,
         route: server_admin_contract::AdminRoute,
         body: &[u8],
     ) -> Result<frontend_contract::TransportResponse, ApiEr> {
@@ -262,15 +202,14 @@ impl AdminApiClient {
         )
         .await;
         let result = response.and_then(|value| {
-            let expected = success_status(
-                server_admin_contract::AdminRoute::Refresh
-                    .contract()
-                    .success_status(),
-            );
+            let expected = server_admin_contract::AdminRoute::Refresh
+                .contract()
+                .success_status()
+                .transport_status();
             if value.status() == expected {
                 Ok(())
             } else {
-                Err(response_er(value.status(), value.body().as_ref()))
+                Err(response_er(value.status(), value.body()))
             }
         });
         let outcome = match &result {
@@ -344,25 +283,12 @@ impl AdminApiClient {
             .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
     }
 }
-fn http_method(method: frontend_contract::HttpMethod) -> gloo_net::http::Method {
-    match method {
-        frontend_contract::HttpMethod::Delete => gloo_net::http::Method::DELETE,
-        frontend_contract::HttpMethod::Get => gloo_net::http::Method::GET,
-        frontend_contract::HttpMethod::Patch => gloo_net::http::Method::PATCH,
-        frontend_contract::HttpMethod::Post => gloo_net::http::Method::POST,
-        frontend_contract::HttpMethod::Put => gloo_net::http::Method::PUT,
-    }
-}
-fn success_status(status: frontend_contract::SuccessStatus) -> frontend_contract::TransportStatus {
-    match status {
-        frontend_contract::SuccessStatus::Code200 => frontend_contract::TransportStatus::from(200),
-        frontend_contract::SuccessStatus::Code201 => frontend_contract::TransportStatus::from(201),
-        frontend_contract::SuccessStatus::Code204 => frontend_contract::TransportStatus::from(204),
-    }
-}
-fn response_er(status: frontend_contract::TransportStatus, body: &[u8]) -> ApiEr {
-    let detail = serde_json::from_slice::<frontend_contract::ApiProblem>(body).map_or_else(
-        |_| Text::from("request failed".to_owned()),
+fn response_er(
+    status: frontend_contract::TransportStatus,
+    body: &frontend_contract::TransportBody,
+) -> ApiEr {
+    let detail = frontend_contract::decode_api_problem(body).map_or_else(
+        || Text::from("request failed".to_owned()),
         |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
     ApiEr::Status(u16::from(status), detail)
@@ -403,18 +329,6 @@ fn permission_ids(value: &str) -> Vec<server_admin_contract::AdminPermissionId> 
         .filter_map(|item| item.trim().parse::<i64>().ok())
         .map(server_admin_contract::AdminPermissionId::from)
         .collect()
-}
-fn csrf_token() -> Option<Text> {
-    let document = browser_window()?
-        .document()?
-        .dyn_into::<web_sys::HtmlDocument>()
-        .ok()?;
-    let cookies = document.cookie().ok()?;
-    cookies.split(';').map(str::trim).find_map(|cookie| {
-        cookie
-            .strip_prefix("admin_csrf_token=")
-            .map(|value| Text::from(value.to_owned()))
-    })
 }
 fn has_permission(
     auth: &Option<server_admin_contract::AuthenticatedAdmin>,

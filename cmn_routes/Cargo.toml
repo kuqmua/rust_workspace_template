@@ -13,8 +13,8 @@ edition = "2024"
 [dependencies]
 axum = { workspace = true }
 serde = { workspace = true }
+server_runtime = { workspace = true }
 sqlx = { workspace = true }
-tokio = { workspace = true }
 utoipa = { workspace = true }
 app_state = { workspace = true }
 git_info = { workspace = true }
