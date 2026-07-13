@@ -21,6 +21,7 @@ axum = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }
 tower_governor = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
 num_cpus = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
@@ -32,6 +33,7 @@ config_lib = { workspace = true }
 cmn_routes = { workspace = true }
 server_app_state = { workspace = true }
 server_config = { workspace = true }
+server_runtime = { workspace = true }
 server_tbl_example = { workspace = true }
 thiserror = { workspace = true }
 [dev-dependencies]

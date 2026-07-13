@@ -1,0 +1,24 @@
+[package]
+name = "server_runtime"
+version = "0.1.0"
+publish = false
+description = "Shared HTTP server runtime primitives"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["server"]
+categories = ["web-programming"]
+edition = "2024"
+
+[dependencies]
+axum = { workspace = true }
+http = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[lints]
+workspace = true

@@ -3,6 +3,40 @@ const CORS_ALLOW_ORIGIN_SPLIT_CH: char = ',';
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct StdServerIoEr(std::io::Error);
+#[derive(Debug)]
+struct ServerRuntimeServeEr(server_runtime::ServeWithGracefulShutdownEr);
+#[derive(Debug)]
+struct MetricsExporterPrometheusBuildEr(metrics_exporter_prometheus::BuildError);
+impl std::fmt::Display for MetricsExporterPrometheusBuildEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for MetricsExporterPrometheusBuildEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Clone, Debug)]
+struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
+#[derive(Debug)]
+struct ServerRuntimeRequestTimeoutEr(server_runtime::StdRequestTimeoutTryFromDurationEr);
+impl std::fmt::Display for ServerRuntimeRequestTimeoutEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeRequestTimeoutEr {}
+impl std::fmt::Display for ServerRuntimeServeEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeServeEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct ServerConfigEr(server_config::ConfigTryFromEnvEr);
@@ -38,16 +72,21 @@ enum RunServerEr {
     Config(ServerConfigEr),
     #[error("failed to build governor config")]
     GovernorConfig,
+    #[error("failed to install metrics recorder: {0}")]
+    MetricsRecorder(MetricsExporterPrometheusBuildEr),
     #[error("failed to connect to postgres: {0}")]
     PgConnect(SqlxServerPgConnectEr),
     #[error("failed to prepare postgres schema: {0}")]
     PrepPg(ServerPrepPgEr),
+    #[error("invalid server runtime timeout: {0}")]
+    RuntimeTimeout(ServerRuntimeRequestTimeoutEr),
     #[error("server failed: {0}")]
-    Serve(StdServerIoEr),
+    Serve(ServerRuntimeServeEr),
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
     app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
+    metrics_handle: MetricsExporterPrometheusHandle,
 ) -> AxumApiRoutes {
     AxumApiRoutes(
         axum::Router::new()
@@ -61,6 +100,10 @@ fn mk_api_routes(
             >::clone(
                 app_state
             )))
+            .route(
+                "/metrics",
+                axum::routing::get(async move || metrics_handle.0.render()),
+            )
             .route(
                 "/api-docs/openapi.json",
                 axum::routing::get(async || {
@@ -194,7 +237,11 @@ async fn run_server() -> Result<(), RunServerEr> {
         config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config),
     ));
     let app_state = mk_app_state(config, pg_pool);
-    let api_routes = mk_api_routes(&app_state);
+    let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
+        .install_recorder()
+        .map(MetricsExporterPrometheusHandle)
+        .map_err(|er| RunServerEr::MetricsRecorder(MetricsExporterPrometheusBuildEr(er)))?;
+    let api_routes = mk_api_routes(&app_state, metrics_handle);
     let governor_conf = std::sync::Arc::new(
         tower_governor::governor::GovernorConfigBuilder::default()
             .per_second(2)
@@ -202,29 +249,37 @@ async fn run_server() -> Result<(), RunServerEr> {
             .finish()
             .ok_or(RunServerEr::GovernorConfig)?,
     );
-    axum::serve(
-        tcp_listener,
-        axum::Router::new()
-            .nest("/api/v1", api_routes.0)
-            .layer(
-                tower::ServiceBuilder::new()
-                    .layer(tower_http::request_id::PropagateRequestIdLayer::x_request_id())
-                    .layer(tower_http::trace::TraceLayer::new_for_http())
-                    .layer(tower_http::request_id::SetRequestIdLayer::x_request_id(
-                        tower_http::request_id::MakeRequestUuid,
-                    ))
-                    .layer(tower_http::cors::CorsLayer::new().allow_origin(cors_origins.0))
-                    .layer(tower_governor::GovernorLayer::new(governor_conf)),
-            )
-            .into_make_service(),
+    let request_timeout =
+        server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
+            .map_err(|er| RunServerEr::RuntimeTimeout(ServerRuntimeRequestTimeoutEr(er)))?;
+    let router = server_runtime::RequestIdLayer.apply(
+        server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
+            .apply(
+                server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
+                    server_runtime::AxumRouter::from(
+                        axum::Router::new().nest("/api/v1", api_routes.0).layer(
+                            tower::ServiceBuilder::new()
+                                .layer(
+                                    tower_http::cors::CorsLayer::new().allow_origin(cors_origins.0),
+                                )
+                                .layer(tower_governor::GovernorLayer::new(governor_conf)),
+                        ),
+                    ),
+                ),
+            ),
+    );
+    server_runtime::serve_with_graceful_shutdown(
+        server_runtime::TokioTcpListener::from(tcp_listener),
+        router,
+        async {
+            if let Err(er) = tokio::signal::ctrl_c().await {
+                eprintln!("failed to wait for ctrl-c signal: {er}");
+            }
+        },
+        request_timeout,
     )
-    .with_graceful_shutdown(async {
-        if let Err(er) = tokio::signal::ctrl_c().await {
-            eprintln!("failed to wait for ctrl-c signal: {er}");
-        }
-    })
     .await
-    .map_err(|er| RunServerEr::Serve(StdServerIoEr(er)))?;
+    .map_err(|er| RunServerEr::Serve(ServerRuntimeServeEr(er)))?;
     Ok(())
 }
 fn main() -> StdServerExitCode {

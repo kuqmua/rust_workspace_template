@@ -348,10 +348,16 @@ pub fn gen_pg_tbl(
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, serde::Deserialize, optml::Optml)]
     struct GenPgTblConfig {
+        #[serde(default)]
+        cm_max_items: Option<StdBulkItemsMax>,
+        #[serde(default)]
+        um_max_items: Option<StdBulkItemsMax>,
         tests_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         cmn_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
         whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTsIntoFile,
     }
+    #[derive(Clone, Copy, Debug, serde::Deserialize)]
+    struct StdBulkItemsMax(usize);
     struct GenPgTblInputModel {
         config: GenPgTblConfig,
         er_vrts_by_attr: std::collections::BTreeMap<GenPgTblAttr, Vec<GenPgTblVariantModel>>,
@@ -705,6 +711,16 @@ pub fn gen_pg_tbl(
                 ));
             }
         };
+        if config
+            .cm_max_items
+            .into_iter()
+            .chain(config.um_max_items)
+            .any(|limit| limit.0 == 0usize)
+        {
+            return Err(compile_error_ts(CompileErrorMsg(
+                "536203b7: bulk item limit must be greater than zero",
+            )));
+        }
         let er_vrts_by_attr = [
             GenPgTblAttr::CmErVrts,
             GenPgTblAttr::CoErVrts,
@@ -1269,6 +1285,8 @@ pub fn gen_pg_tbl(
     let mut impl_ident_vec_ts = Vec::with_capacity(op_count.saturating_add(2));
     let mut op_routes_ts = Vec::with_capacity(op_count);
     let mut content_ts = Vec::with_capacity(op_count);
+    let mut api_client_methods_ts = Vec::with_capacity(op_count);
+    let client_sc = quote::format_ident!("client");
     let mut open_api_path_fn_idents = Vec::with_capacity(op_count);
     let mut open_api_schema_types_ts = Vec::with_capacity(op_count.saturating_mul(2));
     let er_enum_d_ts_builder = pg_crud_macros_cmn::ts_helpers::er_enum_d_ts_builder();
@@ -1696,7 +1714,7 @@ pub fn gen_pg_tbl(
             .d_serde_deserialize()
             .d_utoipa_to_schema()
             .build_struct(
-                &proc_macro2::TokenStream::new(),
+                &quote::quote! {#[serde(deny_unknown_fields)]},
                 &ident_cr_ucc,
                 &proc_macro2::TokenStream::new(),
                 &{
@@ -3512,6 +3530,24 @@ pub fn gen_pg_tbl(
         };
         let open_api_payload_type_ts = gen_ident_op_payload_ucc(op);
         let open_api_response_type_ts = gen_ident_op_res_vrts_ucc(op);
+        let ident_op_prms_ucc = gen_ident_op_prms_ucc(op);
+        let ident_try_op_er_ucc = gen_ident_try_op_er_ucc(op);
+        let result_ok_type_ts = gen_op_result_type_ts(op);
+        let try_op_h_sc_ts = op.try_self_h_sc_ts();
+        let op_client_method_sc_ts = op.self_sc_ts();
+        api_client_methods_ts.push(quote::quote! {
+            pub async fn #op_client_method_sc_ts(
+                &self,
+                #PrmsSc: #ident_op_prms_ucc,
+            ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
+                #ident::#try_op_h_sc_ts(
+                    &self.client,
+                    self.endpoint.as_url().as_str(),
+                    #PrmsSc,
+                    #ident::#TblNameSc(),
+                ).await
+            }
+        });
         open_api_path_fn_idents.push(open_api_path_fn_ident.clone());
         open_api_schema_types_ts.push(open_api_payload_type_ts.clone());
         open_api_schema_types_ts.push(open_api_response_type_ts.clone());
@@ -3617,25 +3653,36 @@ pub fn gen_pg_tbl(
                     async move |
                         app_state_99328dfe: axum::extract::State<#std_sync_arc_combination_of_app_state_logic_traits_ts>,
                         req: axum::extract::Request
-                    | tracing::Instrument::instrument(
-                        Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned),
-                        tracing::info_span!(
-                            "pg_tbl.operation",
-                            table = %tbl_owned,
-                            operation = #op_sc_string,
-                        ),
-                    ).await
+                    | {
+                        let started_at = std::time::Instant::now();
+                        metrics::counter!("pg_tbl_requests_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string).increment(1u64);
+                        let response = tracing::Instrument::instrument(
+                            Self::#op_h_sc_ts(app_state_99328dfe, req, &tbl_owned),
+                            tracing::info_span!(
+                                "pg_tbl.operation",
+                                table = %tbl_owned,
+                                operation = #op_sc_string,
+                            ),
+                        ).await;
+                        metrics::histogram!("pg_tbl_request_duration_seconds", "table" => tbl_owned.clone(), "operation" => #op_sc_string).record(started_at.elapsed().as_secs_f64());
+                        let status_label = match response.status().as_u16() {
+                            200u16 => "200",
+                            201u16 => "201",
+                            400u16 => "400",
+                            413u16 => "413",
+                            500u16 => "500",
+                            _ => "other",
+                        };
+                        metrics::counter!("pg_tbl_responses_total", "table" => tbl_owned.clone(), "operation" => #op_sc_string, "status" => status_label).increment(1u64);
+                        response
+                    }
                 }))
                 .route(#slash_op_payload_example_dq_ts, axum::routing::get(async move||Self::#op_payload_example_sc()))
             }
         });
         impl_ident_vec_ts.push({
             let try_op_ts = {
-                let result_ok_type_ts = gen_op_result_type_ts(op);
                 let try_op_sc_ts = op.try_self_sc_ts();
-                let try_op_h_sc_ts = op.try_self_h_sc_ts();
-                let ident_try_op_er_ucc = gen_ident_try_op_er_ucc(op);
-                let ident_op_prms_ucc = gen_ident_op_prms_ucc(op);
                 let payload_ts = {
                     let ts = gen_match_ok_err_short_ts(
                         &quote::quote! {serde_json::to_string(&#PrmsSc.#PayloadSc)},
@@ -3674,7 +3721,7 @@ pub fn gen_pg_tbl(
                         .header(reqwest::header::CONTENT_TYPE, #app_json_dq_ts)
                     };
                     quote::quote! {
-                        let #FutureSc = reqwest::Client::new()
+                        let #FutureSc = #client_sc
                             .#op_http_method_sc_ts(&#UrlSc)
                             #commit_header_addition_ts
                             #content_type_app_json_header_addition_ts
@@ -3782,6 +3829,7 @@ pub fn gen_pg_tbl(
                 quote::quote! {
                     #[allow(clippy::single_call_fn)]
                     async fn #try_op_h_sc_ts(
+                        #client_sc: &reqwest::Client,
                         #EndpointLocSc: #RefStr,
                         #PrmsSc: #ident_op_prms_ucc,
                         #TblSc: &str,
@@ -3801,7 +3849,9 @@ pub fn gen_pg_tbl(
                         #EndpointLocSc: #RefStr,
                         #PrmsSc: #ident_op_prms_ucc
                     ) -> Result<#result_ok_type_ts, #ident_try_op_er_ucc> {
+                        let #client_sc = reqwest::Client::new();
                         Self::#try_op_h_sc_ts(
+                            &#client_sc,
                             #EndpointLocSc,
                             #PrmsSc,
                             #self_tbl_name_call_ts
@@ -3850,7 +3900,6 @@ pub fn gen_pg_tbl(
                 };
                 let prms_logic_ts = {
                     let prms_logic_ts0 = {
-                        let ident_op_prms_ucc = gen_ident_op_prms_ucc(op);
                         //todo in case of large type there is a stackoverflow. for example it was a 3.5md json file gend by cm_payload_example. 3400 fields = success. 16000 = stackoverflow
                         let ts = gen_match_ok_err_short_ts(
                             &{
@@ -4005,7 +4054,8 @@ pub fn gen_pg_tbl(
                                 &RmOrDm::Rm,
                             );
                             let extra_prms_order_by_h_ts =
-                                gen_quotes::dq_ts(&format!("{{}}{OrderSc} {BySc} {{}} {{}}"));
+                                gen_quotes::dq_ts(&format!("{{}}{OrderSc} {BySc} {{}} {{}}{{}}"));
+                            let pk_fi_dq_ts = gen_quotes::dq_ts(&pk_fi);
                             let order_by_col_match_ts =
                                 gen_fields_named_with_comma_ts(&|el: &macros_helpers::field_data::SynField| {
                                     let fi_ucc = naming_cmn::ToTokensToUccTs::case_or_panic(&el.ident);
@@ -4032,7 +4082,18 @@ pub fn gen_pg_tbl(
                                         #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref().map_or_else(
                                             || #import_ts Order::default().to_sc_str(),
                                             #import_ts Order::to_sc_str
-                                        )
+                                        ),
+                                        match &#PrmsSc.#PayloadSc.#OrderBySc.#ColSc {
+                                            #ident_sel_ucc::#pk_fi_ucc_ts(_) => String::new(),
+                                            _ => format!(
+                                                ", {} {}",
+                                                #pk_fi_dq_ts,
+                                                #PrmsSc.#PayloadSc.#OrderBySc.#OrderSc.as_ref().map_or_else(
+                                                    || #import_ts Order::default().to_sc_str(),
+                                                    #import_ts Order::to_sc_str
+                                                )
+                                            ),
+                                        }
                                     }),
                                     gen_if_write_is_err_curly_braces_short_ts(&{
                                         let ts = gen_match_ok_err_upd_ts(
@@ -4637,15 +4698,22 @@ pub fn gen_pg_tbl(
                         let ident_op_payload_ucc = gen_ident_op_payload_ucc(op);
                         let ident_op_payload_ts = {
                             let (derive_clone, derive_copy) = op.derive_clone_and_copy();
-                            let ident_op_payload_struct_ts = macros_helpers::derive_ts_builder::DTsBuilder::new()
+                            let payload_builder_without_deserialize = macros_helpers::derive_ts_builder::DTsBuilder::new()
                                 .make_pub()
                                 .d_debug()
                                 .d_clone_if(derive_clone)
                                 .d_copy_if(derive_copy)
-                                .d_serde_serialize()
-                                .d_serde_deserialize()
+                                .d_serde_serialize();
+                            let payload_builder = if matches!(op, Op::Cm)
+                                && gen_pg_tbl_input_model.config.cm_max_items.is_some()
+                            {
+                                payload_builder_without_deserialize
+                            } else {
+                                payload_builder_without_deserialize.d_serde_deserialize()
+                            };
+                            let ident_op_payload_struct_ts = payload_builder
                                 .d_utoipa_to_schema()
-                                .build_struct(&proc_macro2::TokenStream::new(),&ident_op_payload_ucc, &proc_macro2::TokenStream::new(), &dcl_ts);
+                                .build_struct(&quote::quote! {#[serde(deny_unknown_fields)]},&ident_op_payload_ucc, &proc_macro2::TokenStream::new(), &dcl_ts);
                             quote::quote! {
                                 #AllowClippyArbitrarySrcItemOrdering
                                 #ident_op_payload_struct_ts
@@ -4670,8 +4738,29 @@ pub fn gen_pg_tbl(
                             &quote::quote! {(#vec_ident_cr_ts);},
                             &quote::quote! {(vec![#PgCrudCmnDfltSomeOneElCall])},
                         );
+                        let limited_deserialize_ts = gen_pg_tbl_input_model.config.cm_max_items.map_or_else(
+                            proc_macro2::TokenStream::new,
+                            |limit| {
+                                let limit_value = limit.0;
+                                quote::quote! {
+                                impl<'de> serde::Deserialize<'de> for #ident_op_payload_ucc {
+                                    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+                                    where
+                                        Deserializer: serde::Deserializer<'de>,
+                                    {
+                                        let raw = <#vec_ident_cr_ts as serde::Deserialize>::deserialize(deserializer)?;
+                                        if raw.len() > #limit_value {
+                                            return Err(serde::de::Error::custom(format!("bulk create item count {} exceeds limit {}", raw.len(), #limit_value)));
+                                        }
+                                        Ok(Self(raw))
+                                    }
+                                }
+                            }
+                            },
+                        );
                         quote::quote! {
                             #payload_ts
+                            #limited_deserialize_ts
                             impl #ident_op_payload_ucc {
                                 #[must_use]
                                 pub const fn as_slice(&self) -> &[#ident_cr_ucc] {
@@ -4775,6 +4864,17 @@ pub fn gen_pg_tbl(
                                 }
                             }
                         };
+                        let um_item_limit_check_ts = gen_pg_tbl_input_model.config.um_max_items.map_or_else(
+                            proc_macro2::TokenStream::new,
+                            |limit| {
+                                let limit_value = limit.0;
+                                quote::quote! {
+                                    if raw.len() > #limit_value {
+                                        return Err(_serde::de::Error::custom(format!("bulk update item count {} exceeds limit {}", raw.len(), #limit_value)));
+                                    }
+                                }
+                            },
+                        );
                         let impl_de_for_ident_um_payload_ts = quote::quote! {
                             #[allow(unused_qualifications)]
                             #[allow(clippy::absolute_paths)]
@@ -4789,6 +4889,7 @@ pub fn gen_pg_tbl(
                                         __D: _serde::Deserializer<'de>,
                                     {
                                         let raw = <#vec_ident_upd_ts as _serde::Deserialize>::deserialize(__deserializer)?;
+                                        #um_item_limit_check_ts
                                         Self::try_new(raw).map_err(|er| _serde::de::Error::custom(format!("{er:?}")))
                                     }
                                 }
@@ -4976,6 +5077,120 @@ pub fn gen_pg_tbl(
             }
         });
     });
+    let ident_api_endpoint_ucc = quote::format_ident!("{}ApiEndpoint", ident);
+    let ident_api_client_ucc = quote::format_ident!("{}ApiClient", ident);
+    let ident_api_client_ts = quote::quote! {
+        #[derive(Clone, Debug)]
+        pub struct #ident_api_endpoint_ucc(reqwest::Url);
+        impl #ident_api_endpoint_ucc {
+            #[must_use]
+            pub const fn as_url(&self) -> &reqwest::Url {
+                &self.0
+            }
+        }
+        impl From<reqwest::Url> for #ident_api_endpoint_ucc {
+            fn from(value: reqwest::Url) -> Self {
+                Self(value)
+            }
+        }
+        #[derive(Clone, Debug)]
+        pub struct #ident_api_client_ucc {
+            client: reqwest::Client,
+            endpoint: #ident_api_endpoint_ucc,
+        }
+        impl #ident_api_client_ucc {
+            #[must_use]
+            pub const fn new(client: reqwest::Client, endpoint: #ident_api_endpoint_ucc) -> Self {
+                Self { client, endpoint }
+            }
+            #(#api_client_methods_ts)*
+        }
+    };
+    let ident_auth_requirement_ucc = quote::format_ident!("{}AuthenticationRequirement", ident);
+    let ident_http_method_ucc = quote::format_ident!("{}HttpMethod", ident);
+    let ident_operation_ucc = quote::format_ident!("{}Operation", ident);
+    let ident_route_contract_ucc = quote::format_ident!("{}RouteContract", ident);
+    let ident_success_status_ucc = quote::format_ident!("{}SuccessStatus", ident);
+    let route_contract_items_ts = OpDsc::ALL.iter().map(|op_dsc| {
+        let operation = quote::format_ident!("{}", op_dsc.op.to_string());
+        let http_method = match op_dsc.http_method {
+            OpHttpMethod::Post => quote::format_ident!("Post"),
+            OpHttpMethod::Patch => quote::format_ident!("Patch"),
+            OpHttpMethod::Delete => quote::format_ident!("Delete"),
+        };
+        let success_status =
+            if op_dsc.success_status_code == macros_helpers::status_code::StatusCode::Crd201 {
+                quote::format_ident!("Code201")
+            } else {
+                quote::format_ident!("Code200")
+            };
+        quote::quote! {
+            #ident_route_contract_ucc::new(
+                #ident_auth_requirement_ucc::Public,
+                #ident_http_method_ucc::#http_method,
+                #ident_operation_ucc::#operation,
+                #ident_success_status_ucc::#success_status,
+            )
+        }
+    });
+    let ident_route_contract_ts = quote::quote! {
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub enum #ident_auth_requirement_ucc {
+            Public,
+        }
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub enum #ident_http_method_ucc {
+            Delete,
+            Patch,
+            Post,
+        }
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub enum #ident_operation_ucc {
+            Cm,
+            Co,
+            Dlo,
+            Dm,
+            Rm,
+            Ro,
+            Um,
+            Uo,
+        }
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub enum #ident_success_status_ucc {
+            Code200,
+            Code201,
+        }
+        #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+        pub struct #ident_route_contract_ucc {
+            authentication: #ident_auth_requirement_ucc,
+            http_method: #ident_http_method_ucc,
+            operation: #ident_operation_ucc,
+            success_status: #ident_success_status_ucc,
+        }
+        impl #ident_route_contract_ucc {
+            pub const ALL: [Self; 8] = [#(#route_contract_items_ts),*];
+            #[must_use]
+            pub const fn authentication(self) -> #ident_auth_requirement_ucc {
+                self.authentication
+            }
+            #[must_use]
+            pub const fn http_method(self) -> #ident_http_method_ucc {
+                self.http_method
+            }
+            #[must_use]
+            pub const fn new(authentication: #ident_auth_requirement_ucc, http_method: #ident_http_method_ucc, operation: #ident_operation_ucc, success_status: #ident_success_status_ucc) -> Self {
+                Self { authentication, http_method, operation, success_status }
+            }
+            #[must_use]
+            pub const fn operation(self) -> #ident_operation_ucc {
+                self.operation
+            }
+            #[must_use]
+            pub const fn success_status(self) -> #ident_success_status_ucc {
+                self.success_status
+            }
+        }
+    };
     let ident_open_api_ucc = quote::format_ident!("{}OpenApi", ident);
     let gen_role_schema_items_ts = |role: &dyn quote::ToTokens| {
         fields
@@ -5069,6 +5284,161 @@ pub fn gen_pg_tbl(
                     });
                 }
                 open_api
+            }
+        }
+    };
+    let generated_contract_tests_ts = {
+        let round_trip_tests_ts = OpDsc::ALL.iter().map(|op_dsc| {
+            let op = &op_dsc.op;
+            let payload_type_ts = gen_ident_op_payload_ucc(op);
+            let test_ident = quote::format_ident!(
+                "{}_{}_payload_json_round_trip",
+                ident_sc_string,
+                op.self_sc_str()
+            );
+            let normalize_default_filter_ts = if matches!(op, Op::Rm | Op::Dm) {
+                quote::quote! {
+                    serialized.as_object_mut().expect("58c97ca7").insert(
+                        "wh_many".to_owned(),
+                        serde_json::Value::Null,
+                    );
+                }
+            } else {
+                proc_macro2::TokenStream::new()
+            };
+            quote::quote! {
+                #[test]
+                fn #test_ident() {
+                    let original: #payload_type_ts = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
+                    let mut serialized = serde_json::to_value(&original).expect("84094d13");
+                    #normalize_default_filter_ts
+                    let deserialized = serde_json::from_value::<#payload_type_ts>(serialized.clone()).expect("b388de0c");
+                    let round_trip = serde_json::to_value(deserialized).expect("570ac825");
+                    assert_eq!(round_trip, serialized);
+                }
+            }
+        });
+        let unknown_field_tests_ts = [Op::Rm, Op::Ro, Op::Dm, Op::Dlo].into_iter().map(|op| {
+            let payload_type_ts = gen_ident_op_payload_ucc(&op);
+            let test_ident = quote::format_ident!(
+                "{}_{}_payload_rejects_unknown_field",
+                ident_sc_string,
+                op.self_sc_str()
+            );
+            quote::quote! {
+                #[test]
+                fn #test_ident() {
+                    let original: #payload_type_ts = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
+                    let mut serialized = serde_json::to_value(original).expect("aeedc9e8");
+                    serialized.as_object_mut().expect("b9d4b58e").insert(
+                        "unknown_field".to_owned(),
+                        serde_json::Value::Bool(true),
+                    );
+                    assert!(serde_json::from_value::<#payload_type_ts>(serialized).is_err());
+                }
+            }
+        });
+        let contract_tests_mod_ident = quote::format_ident!("{}_contract_tests", ident_sc_string);
+        let api_client_owns_reusable_client_test_ident =
+            quote::format_ident!("{}_api_client_owns_reusable_client", ident_sc_string);
+        let read_query_negative_contracts_test_ident =
+            quote::format_ident!("{}_read_query_negative_contracts", ident_sc_string);
+        let route_open_api_parity_test_ident =
+            quote::format_ident!("{}_route_open_api_parity", ident_sc_string);
+        let ident_rm_payload_ucc = gen_ident_op_payload_ucc(&Op::Rm);
+        let route_open_api_parity_assertions_ts = OpDsc::ALL.iter().map(|op_dsc| {
+            let path = format!("/{ident_sc_string}/{}", op_dsc.op.self_sc_str());
+            let method = match op_dsc.http_method {
+                OpHttpMethod::Post => "post",
+                OpHttpMethod::Patch => "patch",
+                OpHttpMethod::Delete => "delete",
+            };
+            quote::quote! {
+                assert!(document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).is_some());
+            }
+        });
+        let bulk_limit_tests_ts = [
+            (Op::Cm, gen_pg_tbl_input_model.config.cm_max_items),
+            (Op::Um, gen_pg_tbl_input_model.config.um_max_items),
+        ]
+        .into_iter()
+        .filter_map(|(op, optional_limit)| {
+            let configured_limit = optional_limit?;
+            let limit_value = configured_limit.0;
+            let payload_type_ts = gen_ident_op_payload_ucc(&op);
+            let test_ident = quote::format_ident!(
+                "{}_{}_payload_enforces_item_limit",
+                ident_sc_string,
+                op.self_sc_str()
+            );
+            Some(quote::quote! {
+                #[test]
+                fn #test_ident() {
+                    let original: #payload_type_ts = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
+                    let original_value = serde_json::to_value(original).expect("d4d4cc0d");
+                    let item = original_value.as_array().and_then(|items| items.first()).cloned().expect("79b00707");
+                    assert!(serde_json::from_value::<#payload_type_ts>(original_value).is_ok());
+                    let above_limit = serde_json::Value::Array(std::iter::repeat_n(item, #limit_value.saturating_add(1usize)).collect());
+                    match serde_json::from_value::<#payload_type_ts>(above_limit) {
+                        Ok(_) => panic!("1a74209c"),
+                        Err(error) => assert!(error.to_string().contains("exceeds limit")),
+                    }
+                }
+            })
+        });
+        quote::quote! {
+            #[cfg(test)]
+            mod #contract_tests_mod_ident {
+                use super::*;
+                #[test]
+                fn #api_client_owns_reusable_client_test_ident() {
+                    let url = reqwest::Url::parse("http://127.0.0.1:3000/").expect("ca76d3e6");
+                    let endpoint = #ident_api_endpoint_ucc::from(url.clone());
+                    assert_eq!(endpoint.as_url(), &url);
+                    let client = #ident_api_client_ucc::new(reqwest::Client::new(), endpoint);
+                    assert!(format!("{client:?}").contains(stringify!(#ident_api_client_ucc)));
+                }
+                #[test]
+                fn #read_query_negative_contracts_test_ident() {
+                    let original: #ident_rm_payload_ucc = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
+                    let serialized = serde_json::to_value(original).expect("bbb88adf");
+                    let mut empty_filter_payload = serialized.clone();
+                    empty_filter_payload.as_object_mut().expect("aa1919f0").insert("wh_many".to_owned(), serde_json::json!({}));
+                    assert!(serde_json::from_value::<#ident_rm_payload_ucc>(empty_filter_payload).is_err());
+                    let mut unknown_filter_payload = serialized.clone();
+                    unknown_filter_payload.as_object_mut().expect("42671a58").insert("wh_many".to_owned(), serde_json::json!({"unknown_field": null}));
+                    assert!(serde_json::from_value::<#ident_rm_payload_ucc>(unknown_filter_payload).is_err());
+                    let wh_many = serialized.get("wh_many").and_then(serde_json::Value::as_object).expect("e0b089c7");
+                    let (field_name, field_filter) = wh_many.iter().next().expect("5d781d42");
+                    let filters = field_filter.get("v").and_then(serde_json::Value::as_array).expect("2ca9da9a");
+                    let mut multi_operator = filters.first().and_then(serde_json::Value::as_object).cloned().expect("3a86c2c9");
+                    let (second_operator_name, second_operator_value) = filters.get(1usize).and_then(serde_json::Value::as_object).and_then(|value| value.iter().next()).expect("8589f0ef");
+                    multi_operator.insert(second_operator_name.clone(), second_operator_value.clone());
+                    let mut multi_operator_field_filter = field_filter.clone();
+                    let multi_operator_filters = multi_operator_field_filter.as_object_mut().and_then(|value| value.get_mut("v")).and_then(serde_json::Value::as_array_mut).expect("5df08753");
+                    multi_operator_filters.clear();
+                    multi_operator_filters.push(serde_json::Value::Object(multi_operator));
+                    let mut multi_operator_payload = serialized.clone();
+                    let mut multi_operator_wh_many = serde_json::Map::new();
+                    multi_operator_wh_many.insert(field_name.clone(), multi_operator_field_filter);
+                    multi_operator_payload.as_object_mut().expect("c92118fe").insert("wh_many".to_owned(), serde_json::Value::Object(multi_operator_wh_many));
+                    assert!(serde_json::from_value::<#ident_rm_payload_ucc>(multi_operator_payload).is_err());
+                    let duplicate_filter_json = format!("{{\"{field_name}\":{field_filter},\"{field_name}\":{field_filter}}}");
+                    assert!(serde_json::from_str::<#ident_wh_ucc>(&duplicate_filter_json).is_err());
+                    let mut cursor_payload = serialized;
+                    cursor_payload.as_object_mut().expect("c12f9360").insert("cursor".to_owned(), serde_json::Value::String("forbidden".to_owned()));
+                    assert!(serde_json::from_value::<#ident_rm_payload_ucc>(cursor_payload).is_err());
+                }
+                #[test]
+                fn #route_open_api_parity_test_ident() {
+                    let document = serde_json::to_value(#ident_open_api_ucc::open_api()).expect("eb512de9");
+                    assert_eq!(#ident_route_contract_ucc::ALL.len(), 8usize);
+                    assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| contract.authentication() == #ident_auth_requirement_ucc::Public));
+                    #(#route_open_api_parity_assertions_ts)*
+                }
+                #(#round_trip_tests_ts)*
+                #(#unknown_field_tests_ts)*
+                #(#bulk_limit_tests_ts)*
             }
         }
     };
@@ -7106,8 +7476,11 @@ pub fn gen_pg_tbl(
                     }
                 }
                 #(#content_ts)*
+                #ident_api_client_ts
+                #ident_route_contract_ts
                 #ident_open_api_ts
                 #cmn_ts
+                #generated_contract_tests_ts
                 #ident_tests_ts
         };
         quote::quote! {

@@ -20,6 +20,7 @@ wh_flts = { workspace = true }
 git_info = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }
+metrics = { workspace = true }
 location = { workspace = true }
 pg_crud = { workspace = true, features = ["test-utils"] }
 pg_crud_cmn = { workspace = true }

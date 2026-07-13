@@ -2,9 +2,11 @@
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // utoipa 4 derives component registration with iterator callbacks
 #[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
 #[gen_pg_tbl::gen_pg_tbl_config{{
+    "cm_max_items": 2,
     "tests_write_into_file": "False",
     "cmn_write_into_file": "False",
-    "whole_write_into_file": "False"
+    "whole_write_into_file": "False",
+    "um_max_items": 2
 }}]
 #[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
 #[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
