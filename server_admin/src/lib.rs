@@ -606,8 +606,7 @@ pub fn decode_access_token(
     .map(|data| data.claims)
     .map_err(|er| AdminAccessTokenEr(JsonwebtokenAdminEr::from(er)))
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, optml::Optml)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, utoipa::ToSchema, optml::Optml)]
 pub enum AdminPermission {
     AuditLogRead,
     MetricsRead,
@@ -725,6 +724,17 @@ impl AdminPermission {
             Self::UsersRead => "users:read",
             Self::UsersUpdate => "users:update",
         })
+    }
+}
+impl serde::Serialize for AdminPermission {
+    fn serialize<Serializer>(
+        &self,
+        serializer: Serializer,
+    ) -> Result<Serializer::Ok, Serializer::Error>
+    where
+        Serializer: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str().as_ref())
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -906,6 +916,13 @@ mod tests {
                 permission
             );
         });
+    }
+    #[test]
+    fn permission_serializes_as_public_contract_value() {
+        assert_eq!(
+            serde_json::to_string(&super::AdminPermission::UsersRead).expect("9a6b413e"),
+            "\"users:read\""
+        );
     }
     #[test]
     fn unknown_permission_is_rejected() {

@@ -17,6 +17,7 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 thiserror = { workspace = true }
 gen_pg_types = { workspace = true }
+frontend_contract = { workspace = true }
 pg_crud_cmn = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }

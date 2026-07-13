@@ -21,84 +21,14 @@
 )] // Leptos component expansion and single-threaded browser futures intentionally conflict with server-oriented workspace lints
 pub use leptos::prelude::*;
 pub use wasm_bindgen::JsCast;
-const API: &str = "/api/v1/admin";
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, newtype::Newtype)]
 #[serde(transparent)]
+#[newtype(display)]
 struct Text(String);
-impl std::fmt::Display for Text {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl From<String> for Text {
     fn from(value: String) -> Self {
         Self(value)
     }
-}
-#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(transparent)]
-struct Id(i64);
-impl TryFrom<&str> for Id {
-    type Error = std::num::ParseIntError;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        value.parse().map(Self)
-    }
-}
-impl std::fmt::Display for Id {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct AuthenticatedAdmin {
-    display_name: Text,
-    permissions: Vec<Text>,
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct SignInRes {
-    user: AuthenticatedAdmin,
-}
-#[derive(serde::Serialize)]
-struct SignInReq {
-    login: Text,
-    password: Text,
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct User {
-    display_name: Text,
-    id: Id,
-    is_banned: bool,
-    login: Text,
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct Role {
-    id: Id,
-    is_system: bool,
-    name: Text,
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct Permission {
-    id: Id,
-    name: Text,
-}
-#[derive(Clone, Debug, serde::Deserialize)]
-struct AuditEntry {
-    action: Text,
-    created_at: Text,
-    resource: Text,
-    succeeded: bool,
-    user_id: Option<Id>,
-}
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-struct Settings {
-    default_admin_route: Text,
-    main_logo: Option<Text>,
-    organization_contacts: Option<Text>,
-    organization_name: Option<Text>,
-    primary_color: Option<Text>,
-    site_name: Text,
-    support_url: Option<Text>,
-    tab_title: Option<Text>,
 }
 #[derive(Clone, Debug, serde::Deserialize)]
 struct GitInfo {
@@ -107,11 +37,11 @@ struct GitInfo {
 #[derive(Clone, Debug)]
 enum Page {
     Loading,
-    Users(Vec<User>),
-    Roles(Vec<Role>),
-    Permissions(Vec<Permission>),
-    Audit(Vec<AuditEntry>),
-    Settings(Settings),
+    Users(Vec<server_admin_contract::AdminUserSummary>),
+    Roles(Vec<server_admin_contract::AdminRoleSummary>),
+    Permissions(Vec<server_admin_contract::AdminPermissionSummary>),
+    Audit(Vec<server_admin_contract::AdminAuditView>),
+    Settings(server_admin_contract::AdminSettingsView),
     Text(Text),
     Error(Text),
 }
@@ -119,115 +49,179 @@ enum Page {
 enum ApiEr {
     #[error("request failed: {0}")]
     Request(Text),
-    #[error("server returned HTTP {0}")]
-    Status(u16),
+    #[error("server returned HTTP {0}: {1}")]
+    Status(u16, Text),
+}
+#[derive(Clone, Copy, Debug)]
+struct GlooTransport;
+impl frontend_contract::Transport for GlooTransport {
+    fn send(
+        &self,
+        request: frontend_contract::TransportRequest,
+    ) -> std::pin::Pin<
+        Box<
+            dyn Future<
+                    Output = Result<
+                        frontend_contract::TransportResponse,
+                        frontend_contract::TransportEr,
+                    >,
+                > + '_,
+        >,
+    > {
+        Box::pin(async move {
+            let body = String::from_utf8(request.body().as_ref().to_vec())
+                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
+            let route = request.route();
+            let mut builder = gloo_net::http::RequestBuilder::new(request.path())
+                .method(http_method(route.method()))
+                .credentials(web_sys::RequestCredentials::Include)
+                .header("Content-Type", "application/json")
+                .header("commit", git_info::PROJECT_GIT_INFO.commit.as_ref());
+            if route.mutation() == frontend_contract::MutationKind::Mutating
+                && let Some(token) = csrf_token()
+            {
+                builder = builder.header("X-CSRF-Token", &token.0);
+            }
+            let outbound = if route.method() == frontend_contract::HttpMethod::Get {
+                builder.build()
+            } else {
+                builder.body(body)
+            }
+            .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
+            let response = outbound
+                .send()
+                .await
+                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))?;
+            let status = response.status();
+            response
+                .binary()
+                .await
+                .map(frontend_contract::TransportBody::from)
+                .map(|body| frontend_contract::TransportResponse::new(body, status))
+                .map_err(|error| frontend_contract::TransportEr::from(error.to_string()))
+        })
+    }
 }
 #[derive(Clone, Debug)]
-struct AdminApiClient {}
+struct AdminApiClient {
+    transport: GlooTransport,
+}
 impl AdminApiClient {
     const fn new() -> Self {
-        Self {}
+        Self {
+            transport: GlooTransport,
+        }
     }
-    async fn get<Output>(&self, path: &str) -> Result<Output, ApiEr>
+    async fn get<Output>(&self, route: server_admin_contract::AdminRoute) -> Result<Output, ApiEr>
     where
         Output: serde::de::DeserializeOwned,
     {
-        self.decode(gloo_net::http::Request::get(path).send().await)
-            .await
+        let response = self.transport_response(route, Vec::new()).await?;
+        serde_json::from_slice(response.body().as_ref())
+            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
     }
     async fn send_json<Input>(
         self,
-        method: gloo_net::http::Method,
-        path: String,
+        route: server_admin_contract::AdminRoute,
         input: Input,
     ) -> Result<(), ApiEr>
     where
         Input: serde::Serialize,
     {
-        let mut request = gloo_net::http::RequestBuilder::new(&path).method(method);
-        if let Some(token) = csrf_token() {
-            request = request.header("X-CSRF-Token", &token.0);
-        }
-        let request = request
-            .json(&input)
+        let body = serde_json::to_vec(&input)
             .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
-        self.empty(request.send().await).await
+        let _response = self.transport_response(route, body).await?;
+        Ok(())
     }
-    async fn send(self, method: gloo_net::http::Method, path: String) -> Result<(), ApiEr> {
-        let mut request = gloo_net::http::RequestBuilder::new(&path).method(method);
-        if let Some(token) = csrf_token() {
-            request = request.header("X-CSRF-Token", &token.0);
-        }
-        self.empty(request.send().await).await
+    async fn send(self, route: server_admin_contract::AdminRoute) -> Result<(), ApiEr> {
+        let _response = self.transport_response(route, Vec::new()).await?;
+        Ok(())
     }
-    async fn decode<Output>(
+    async fn transport_response(
         &self,
-        response: Result<gloo_net::http::Response, gloo_net::Error>,
-    ) -> Result<Output, ApiEr>
-    where
-        Output: serde::de::DeserializeOwned,
-    {
-        let response = response.map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
-        if !(200..300).contains(&response.status()) {
-            return Err(ApiEr::Status(response.status()));
-        }
-        response
-            .json()
+        route: server_admin_contract::AdminRoute,
+        body: Vec<u8>,
+    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+        let path = route.path();
+        let request = frontend_contract::TransportRequest::new(
+            frontend_contract::TransportBody::from(body),
+            path.as_ref().to_owned(),
+            route.contract(),
+        );
+        let response = frontend_contract::Transport::send(&self.transport, request)
             .await
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
-    }
-    async fn empty(
-        &self,
-        response: Result<gloo_net::http::Response, gloo_net::Error>,
-    ) -> Result<(), ApiEr> {
-        let response = response.map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
-        if (200..300).contains(&response.status()) {
-            Ok(())
-        } else {
-            Err(ApiEr::Status(response.status()))
+            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
+        let expected = success_status(route.contract().success_status());
+        if response.status() != expected {
+            return Err(response_er(response.status(), response.body().as_ref()));
         }
+        Ok(response)
     }
-    async fn audit(&self) -> Result<Vec<AuditEntry>, ApiEr> {
-        self.get("/api/v1/admin/audit-log").await
+    async fn audit(&self) -> Result<Vec<server_admin_contract::AdminAuditView>, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Audit).await
     }
-    async fn me(&self) -> Result<AuthenticatedAdmin, ApiEr> {
-        self.get("/api/v1/admin/auth/me").await
+    async fn me(&self) -> Result<server_admin_contract::AuthenticatedAdmin, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Me).await
     }
-    async fn permissions(&self) -> Result<Vec<Permission>, ApiEr> {
-        self.get("/api/v1/admin/permissions").await
+    async fn permissions(
+        &self,
+    ) -> Result<Vec<server_admin_contract::AdminPermissionSummary>, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Permissions)
+            .await
     }
-    async fn roles(&self) -> Result<Vec<Role>, ApiEr> {
-        self.get("/api/v1/admin/roles").await
+    async fn roles(&self) -> Result<Vec<server_admin_contract::AdminRoleSummary>, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Roles).await
     }
-    async fn settings(&self) -> Result<Settings, ApiEr> {
-        self.get("/api/v1/admin/system-settings").await
+    async fn settings(&self) -> Result<server_admin_contract::AdminSettingsView, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Settings).await
     }
-    async fn users(&self) -> Result<Vec<User>, ApiEr> {
-        self.get("/api/v1/admin/users").await
+    async fn users(&self) -> Result<Vec<server_admin_contract::AdminUserSummary>, ApiEr> {
+        self.get(server_admin_contract::AdminRoute::Users).await
     }
     async fn metrics(&self) -> Result<Text, ApiEr> {
-        let response = gloo_net::http::Request::get(concat!("/api/v1/admin", "/metrics"))
-            .send()
-            .await
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
-        if !(200..300).contains(&response.status()) {
-            return Err(ApiEr::Status(response.status()));
-        }
-        response
-            .text()
-            .await
+        let route = server_admin_contract::AdminRoute::Metrics;
+        let response = self.transport_response(route, Vec::new()).await?;
+        String::from_utf8(response.body().as_ref().to_vec())
             .map(Text::from)
             .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
     }
     async fn version(&self) -> Result<GitInfo, ApiEr> {
-        self.get("/api/v1/git_info").await
+        self.get(server_admin_contract::AdminRoute::Version).await
     }
-    async fn sign_in(&self, input: &SignInReq) -> Result<SignInRes, ApiEr> {
-        let request = gloo_net::http::Request::post(concat!("/api/v1/admin", "/auth/sign-in"))
-            .json(input)
+    async fn sign_in(
+        &self,
+        input: server_admin_contract::AdminSignInReq,
+    ) -> Result<server_admin_contract::AdminSignInRes, ApiEr> {
+        let route = server_admin_contract::AdminRoute::SignIn;
+        let body = serde_json::to_vec(&input)
             .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
-        self.decode(request.send().await).await
+        let response = self.transport_response(route, body).await?;
+        serde_json::from_slice(response.body().as_ref())
+            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
     }
+}
+fn http_method(method: frontend_contract::HttpMethod) -> gloo_net::http::Method {
+    match method {
+        frontend_contract::HttpMethod::Delete => gloo_net::http::Method::DELETE,
+        frontend_contract::HttpMethod::Get => gloo_net::http::Method::GET,
+        frontend_contract::HttpMethod::Patch => gloo_net::http::Method::PATCH,
+        frontend_contract::HttpMethod::Post => gloo_net::http::Method::POST,
+        frontend_contract::HttpMethod::Put => gloo_net::http::Method::PUT,
+    }
+}
+const fn success_status(status: frontend_contract::SuccessStatus) -> u16 {
+    match status {
+        frontend_contract::SuccessStatus::Code200 => 200,
+        frontend_contract::SuccessStatus::Code201 => 201,
+        frontend_contract::SuccessStatus::Code204 => 204,
+    }
+}
+fn response_er(status: u16, body: &[u8]) -> ApiEr {
+    let detail = serde_json::from_slice::<server_admin_contract::AdminApiErBody>(body).map_or_else(
+        |_| Text::from("request failed".to_owned()),
+        |body| Text::from(body.code().to_string()),
+    );
+    ApiEr::Status(status, detail)
 }
 fn browser_window() -> Option<web_sys::Window> {
     web_sys::window()
@@ -252,11 +246,18 @@ fn prompt(label: &str, current: &str) -> Option<Text> {
         })
         .map(Text::from)
 }
-fn ids(value: &str) -> Vec<i64> {
+fn role_ids(value: &str) -> Vec<server_admin_contract::AdminRoleId> {
     value
         .split(',')
-        .filter_map(|item| Id::try_from(item.trim()).ok())
-        .map(|item| item.0)
+        .filter_map(|item| item.trim().parse::<i64>().ok())
+        .map(server_admin_contract::AdminRoleId::from)
+        .collect()
+}
+fn permission_ids(value: &str) -> Vec<server_admin_contract::AdminPermissionId> {
+    value
+        .split(',')
+        .filter_map(|item| item.trim().parse::<i64>().ok())
+        .map(server_admin_contract::AdminPermissionId::from)
         .collect()
 }
 fn csrf_token() -> Option<Text> {
@@ -271,29 +272,72 @@ fn csrf_token() -> Option<Text> {
             .map(|value| Text::from(value.to_owned()))
     })
 }
-fn has_permission(auth: &Option<AuthenticatedAdmin>, permission: &str) -> bool {
-    auth.as_ref()
-        .is_some_and(|value| value.permissions.iter().any(|item| item.0 == permission))
+fn has_permission(
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
+    permission: &str,
+) -> bool {
+    auth.as_ref().is_some_and(|value| {
+        value
+            .permissions()
+            .iter()
+            .any(|item| item.as_ref() == permission)
+    })
+}
+fn has_route_permission(
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
+    route: server_admin_contract::AdminRoute,
+) -> bool {
+    match route.contract().authentication() {
+        frontend_contract::AuthenticationRequirement::Authenticated => auth.is_some(),
+        frontend_contract::AuthenticationRequirement::Permission(permission) => {
+            has_permission(auth, permission.as_ref())
+        }
+        frontend_contract::AuthenticationRequirement::Public => true,
+    }
+}
+fn has_page_permission(
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
+    page: server_admin_contract::AdminPage,
+) -> bool {
+    match page.authentication() {
+        frontend_contract::AuthenticationRequirement::Authenticated => auth.is_some(),
+        frontend_contract::AuthenticationRequirement::Permission(permission) => {
+            has_permission(auth, permission.as_ref())
+        }
+        frontend_contract::AuthenticationRequirement::Public => true,
+    }
 }
 fn load(client: AdminApiClient, page: RwSignal<Page>) {
     page.set(Page::Loading);
     leptos::task::spawn_local(async move {
-        let result = match path().as_str() {
-            "/admin/users" => client.users().await.map(Page::Users),
-            "/admin/roles" => client.roles().await.map(Page::Roles),
-            "/admin/permissions" => client.permissions().await.map(Page::Permissions),
-            "/admin/audit-log" => client.audit().await.map(Page::Audit),
-            "/admin/system-settings" => client.settings().await.map(Page::Settings),
-            "/admin/metrics" => client.metrics().await.map(Page::Text),
-            "/admin/version" => client.version().await.map(|value| {
-                Page::Text(
-                    value
-                        .commit
-                        .unwrap_or_else(|| Text::from("Unknown version".to_owned())),
-                )
-            }),
-            _ => {
-                redirect("/admin/version");
+        let current_path = path();
+        let current_page = server_admin_contract::AdminPage::from_path(
+            server_admin_contract::AdminPagePathRef::from(current_path.as_str()),
+        );
+        let result = match current_page {
+            Some(server_admin_contract::AdminPage::Users) => client.users().await.map(Page::Users),
+            Some(server_admin_contract::AdminPage::Roles) => client.roles().await.map(Page::Roles),
+            Some(server_admin_contract::AdminPage::Permissions) => {
+                client.permissions().await.map(Page::Permissions)
+            }
+            Some(server_admin_contract::AdminPage::Audit) => client.audit().await.map(Page::Audit),
+            Some(server_admin_contract::AdminPage::Settings) => {
+                client.settings().await.map(Page::Settings)
+            }
+            Some(server_admin_contract::AdminPage::Metrics) => {
+                client.metrics().await.map(Page::Text)
+            }
+            Some(server_admin_contract::AdminPage::Version) => {
+                client.version().await.map(|value| {
+                    Page::Text(
+                        value
+                            .commit
+                            .unwrap_or_else(|| Text::from("Unknown version".to_owned())),
+                    )
+                })
+            }
+            Some(server_admin_contract::AdminPage::OpenApi) | None => {
+                redirect(server_admin_contract::AdminPage::Version.path().as_ref());
                 return;
             }
         };
@@ -316,111 +360,162 @@ fn SignIn(client: AdminApiClient) -> impl IntoView {
     let login = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
     let error = RwSignal::new(Option::<Text>::None);
+    let pending = RwSignal::new(false);
     view! {
-        <main><h1>"Sign in"</h1>
-        <form on:submit=move |event| {
+        <main class="auth-page"><section class="auth-card"><div class="auth-brand"><span class="brand-mark">"A"</span><div><strong>"Admin Console"</strong><small>"Workspace control center"</small></div></div><div class="auth-copy"><p class="eyebrow">"Secure access"</p><h1>"Welcome back"</h1><p>"Sign in to manage users, roles and system settings."</p></div>
+        <form class="auth-form" on:submit=move |event| {
             event.prevent_default();
             let client = client.clone();
+            pending.set(true);
+            error.set(None);
             leptos::task::spawn_local(async move {
-                let input = SignInReq { login: Text::from(login.get()), password: Text::from(password.get()) };
-                match client.sign_in(&input).await {
-                    Ok(value) => { let _display_name = value.user.display_name; redirect("/admin"); },
-                    Err(value) => error.set(Some(Text::from(value.to_string()))),
+                let input = match (server_admin_contract::AdminLogin::try_from(login.get()), server_admin_contract::AdminPassword::try_from(password.get())) {
+                    (Ok(login), Ok(password)) => server_admin_contract::AdminSignInReq::new(login, password),
+                    (Err(value), _) => { pending.set(false); error.set(Some(Text::from(value.to_string()))); return; },
+                    (_, Err(value)) => { pending.set(false); error.set(Some(Text::from(value.to_string()))); return; },
+                };
+                match client.sign_in(input).await {
+                    Ok(value) => { let _display_name = value.user().display_name(); redirect("/admin"); },
+                    Err(value) => { pending.set(false); error.set(Some(Text::from(value.to_string()))); },
                 }
             });
         }>
-        <input placeholder="Login" autocomplete="username" prop:value=move || login.get() on:input=move |event| login.set(event_target_value(&event)) />
-        <input type="password" placeholder="Password" autocomplete="current-password" prop:value=move || password.get() on:input=move |event| password.set(event_target_value(&event)) />
-        <button type="submit">"Sign in"</button>
+        <label><span>"Login"</span><input placeholder="Enter your login" autocomplete="username" prop:value=move || login.get() on:input=move |event| login.set(event_target_value(&event)) /></label>
+        <label><span>"Password"</span><input type="password" placeholder="Enter your password" autocomplete="current-password" prop:value=move || password.get() on:input=move |event| password.set(event_target_value(&event)) /></label>
+        <button class="primary-button" type="submit" disabled=move || pending.get()>{move || if pending.get() { "Signing in..." } else { "Sign in" }}</button>
         </form>
-        {move || error.get().map(|value| view! { <p class="error">{value.to_string()}</p> })}
-        </main>
+        {move || error.get().map(|value| view! { <div class="alert error" role="alert"><strong>"Unable to sign in"</strong><span>{value.to_string()}</span></div> })}
+        <p class="auth-footnote">"Protected administrator area"</p></section><div class="auth-visual"><div class="visual-orb"></div><div class="visual-card"><span>"SYSTEM STATUS"</span><strong>"All controls in one place"</strong><p>"Fast, typed and secure administration powered by Rust."</p></div></div></main>
     }
 }
 #[component]
-fn Shell(auth: AuthenticatedAdmin, client: AdminApiClient) -> impl IntoView {
+fn Shell(auth: server_admin_contract::AuthenticatedAdmin, client: AdminApiClient) -> impl IntoView {
     let auth = Some(auth);
     let page = RwSignal::new(Page::Loading);
-    load(client.clone(), page);
-    let nav = [
-        ("/admin/users", "Users", "users:read"),
-        ("/admin/roles", "Roles", "roles:read"),
-        ("/admin/permissions", "Permissions", "permissions:read"),
-        ("/admin/audit-log", "Audit log", "audit_log:read"),
-        ("/admin/system-settings", "Settings", "system_settings:read"),
-        ("/admin/metrics", "Metrics", "metrics:read"),
-        ("/admin/version", "Version", ""),
-        ("/admin/swagger-ui", "API", "openapi:read"),
-    ];
+    let nav = server_admin_contract::AdminPage::ALL;
+    if path() == "/admin" {
+        let target = nav
+            .iter()
+            .find(|item| has_page_permission(&auth, **item))
+            .copied()
+            .unwrap_or(server_admin_contract::AdminPage::Version);
+        redirect(target.path().as_ref());
+    } else {
+        load(client.clone(), page);
+    }
     let client_for_sign_out = client.clone();
+    let current_path = path();
     view! {
-        <header><strong>"Admin"</strong><nav>
-        {nav.into_iter().filter(|item| item.2.is_empty() || has_permission(&auth, item.2)).map(|item| view! { <a href=item.0>{item.1}</a> }).collect_view()}
-        </nav><span>{auth.as_ref().map(|value| value.display_name.to_string())}
-        <a href="#" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(gloo_net::http::Method::POST, concat!("/api/v1/admin", "/auth/sign-out").to_owned()).await.is_ok() { redirect("/admin/sign-in"); } }); }>"Sign out"</a></span></header>
-        <main><PageView page client auth /></main>
+        <div class="app-shell"><header class="sidebar"><a class="brand" href="/admin"><span class="brand-mark">"A"</span><span><strong>"Admin"</strong><small>"Control center"</small></span></a><nav>
+        {nav.into_iter().filter(|item| has_page_permission(&auth, *item)).map(|item| { let item_path = item.path().as_ref().to_owned(); let item_title = item.title().as_ref().to_owned(); let active = current_path == item_path; view! { <a class:active=active href=item_path><span class="nav-dot"></span>{item_title}</a> } }).collect_view()}
+        </nav><div class="profile"><div class="avatar">{auth.as_ref().and_then(|value| value.display_name().as_ref().chars().next()).unwrap_or('A').to_string()}</div><div><strong>{auth.as_ref().map(|value| value.display_name().to_string())}</strong><small>"Administrator"</small></div><button class="icon-button" title="Sign out" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(server_admin_contract::AdminRoute::SignOut).await.is_ok() { redirect("/admin/sign-in"); } }); }>"Exit"</button></div></header>
+        <main class="content"><PageView page client auth /></main></div>
     }
 }
 #[component]
 fn PageView(
     page: RwSignal<Page>,
     client: AdminApiClient,
-    auth: Option<AuthenticatedAdmin>,
+    auth: Option<server_admin_contract::AuthenticatedAdmin>,
 ) -> impl IntoView {
     move || {
         match page.get() {
-        Page::Loading => view! { <p>"Loading..."</p> }.into_any(),
-        Page::Error(value) => view! { <p class="error">{value.to_string()}</p> }.into_any(),
-        Page::Text(value) => view! { <pre>{value.to_string()}</pre> }.into_any(),
+        Page::Loading => view! { <div class="loading-state"><span class="spinner"></span><strong>"Loading workspace"</strong><p>"Fetching the latest data..."</p></div> }.into_any(),
+        Page::Error(value) => view! { <div class="alert error page-alert" role="alert"><strong>"Something went wrong"</strong><span>{value.to_string()}</span></div> }.into_any(),
+        Page::Text(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"System"</p><h1>"Runtime information"</h1></div></div><div class="code-card"><pre>{value.to_string()}</pre></div></section> }.into_any(),
         Page::Users(values) => users_view(values, client.clone(), page, &auth).into_any(),
         Page::Roles(values) => roles_view(values, client.clone(), page, &auth).into_any(),
-        Page::Permissions(values) => view! { <section><h1>"Permissions"</h1><table><thead><tr><th>"ID"</th><th>"Name"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.id.to_string()}</td><td>{value.name.to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
-        Page::Audit(values) => view! { <section><h1>"Audit log"</h1><table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.created_at.to_string()}</td><td>{value.user_id.map(|id| id.to_string()).unwrap_or_default()}</td><td>{value.action.to_string()}</td><td>{value.resource.to_string()}</td><td>{value.succeeded.to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
+        Page::Permissions(values) => view! { <section><h1>"Permissions"</h1><table><thead><tr><th>"ID"</th><th>"Name"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.id().to_string()}</td><td>{value.name().to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
+        Page::Audit(values) => view! { <section><h1>"Audit log"</h1><table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.created_at().to_string()}</td><td>{value.user_id().map(|id| id.to_string()).unwrap_or_default()}</td><td>{value.action().to_string()}</td><td>{value.resource().to_string()}</td><td>{value.succeeded().to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
         Page::Settings(value) => settings_view(value, client.clone(), page, &auth).into_any(),
     }
     }
 }
 fn users_view(
-    values: Vec<User>,
+    values: Vec<server_admin_contract::AdminUserSummary>,
     client: AdminApiClient,
     page: RwSignal<Page>,
-    auth: &Option<AuthenticatedAdmin>,
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
 ) -> impl IntoView {
-    let can_create = has_permission(auth, "users:create");
+    let can_create = has_route_permission(auth, server_admin_contract::AdminRoute::CreateUser);
     let client_for_create = client.clone();
-    view! { <section><h1>"Users"</h1>
-    <button disabled=!can_create on:click=move |_| { if let (Some(login), Some(display_name), Some(password)) = (prompt("Login", ""), prompt("Display name", ""), prompt("Password", "")) { let body = serde_json::json!({"login": login.0, "display_name": display_name.0, "password": password.0}); let action_client = client_for_create.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::POST, concat!("/api/v1/admin", "/users").to_owned(), body), action_client, page); } }>"Create user"</button>
+    let content = view! { <div class="crud-content">
+    <button disabled=!can_create on:click=move |_| { if let (Some(login), Some(display_name), Some(password)) = (prompt("Login", ""), prompt("Display name", ""), prompt("Password", "")) && let (Ok(login), Ok(display_name), Ok(password)) = (server_admin_contract::AdminLogin::try_from(login.0), server_admin_contract::AdminDisplayName::try_from(display_name.0), server_admin_contract::AdminPassword::try_from(password.0)) { let body = server_admin_contract::AdminCreateUserReq::new(display_name, login, password); let action_client = client_for_create.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::CreateUser, body), action_client, page); } }>"Create user"</button>
     <table><thead><tr><th>"ID"</th><th>"Login"</th><th>"Display name"</th><th>"Banned"</th><th>"Actions"</th></tr></thead><tbody>
-    {values.into_iter().map(|value| { let edit_client = client.clone(); let ban_client = client.clone(); let password_client = client.clone(); let roles_client = client.clone(); let delete_client = client.clone(); let id = value.id; let edit_login = value.login.clone(); let edit_display_name = value.display_name.clone(); let delete_login = value.login.clone(); let is_banned = value.is_banned; view! { <tr><td>{id.to_string()}</td><td>{value.login.to_string()}</td><td>{value.display_name.to_string()}</td><td>{is_banned.to_string()}</td><td>
-    <button disabled=!has_permission(auth, "users:update") on:click=move |_| { if let (Some(login), Some(display_name)) = (prompt("Login", &edit_login.0), prompt("Display name", &edit_display_name.0)) { let body = serde_json::json!({"login": login.0, "display_name": display_name.0}); let action_client = edit_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::PATCH, format!("{API}/users/{id}"), body), action_client, page); } }>"Edit"</button>
-    <button disabled=!has_permission(auth, "users:update") on:click=move |_| { let body = serde_json::json!({"is_banned": !is_banned}); let action_client = ban_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::POST, format!("{API}/users/{id}/ban"), body), action_client, page); }>{if is_banned { "Unban" } else { "Ban" }}</button>
-    <button disabled=!has_permission(auth, "users:update") on:click=move |_| { if let Some(password) = prompt("New password", "") { let body = serde_json::json!({"password": password.0}); let action_client = password_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::POST, format!("{API}/users/{id}/password"), body), action_client, page); } }>"Password"</button>
-    <button disabled=!has_permission(auth, "user_roles:update") on:click=move |_| { if let Some(value) = prompt("Role IDs separated by commas", "") { let body = serde_json::json!({"role_ids": ids(&value.0)}); let action_client = roles_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::PUT, format!("{API}/users/{id}/roles"), body), action_client, page); } }>"Roles"</button>
-    <button disabled=!has_permission(auth, "users:delete") on:click=move |_| { let confirmed = browser_window().and_then(|window| window.confirm_with_message(&format!("Delete {delete_login}?")).ok()).unwrap_or(false); if confirmed { let action_client = delete_client.clone(); run_action(action_client.clone().send(gloo_net::http::Method::DELETE, format!("{API}/users/{id}")), action_client, page); } }>"Delete"</button>
+    {values.into_iter().map(|value| { let edit_client = client.clone(); let ban_client = client.clone(); let password_client = client.clone(); let roles_client = client.clone(); let delete_client = client.clone(); let id = value.id(); let edit_login = value.login().clone(); let edit_display_name = value.display_name().clone(); let delete_login = value.login().clone(); let is_banned = bool::from(value.is_banned()); view! { <tr><td>{id.to_string()}</td><td>{value.login().to_string()}</td><td>{value.display_name().to_string()}</td><td>{is_banned.to_string()}</td><td>
+    <button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::UpdateUser(id)) on:click=move |_| { if let (Some(login), Some(display_name)) = (prompt("Login", edit_login.as_ref()), prompt("Display name", edit_display_name.as_ref())) && let (Ok(login), Ok(display_name)) = (server_admin_contract::AdminLogin::try_from(login.0), server_admin_contract::AdminDisplayName::try_from(display_name.0)) { let body = server_admin_contract::AdminUpdateUserReq::new(Some(display_name), Some(login)); let action_client = edit_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateUser(id), body), action_client, page); } }>"Edit"</button>
+    <button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::SetUserBan(id)) on:click=move |_| { let body = server_admin_contract::AdminSetUserBanReq::new(server_admin_contract::AdminBool::from(!is_banned)); let action_client = ban_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::SetUserBan(id), body), action_client, page); }>{if is_banned { "Unban" } else { "Ban" }}</button>
+    <button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::SetUserPassword(id)) on:click=move |_| { if let Some(password) = prompt("New password", "") && let Ok(password) = server_admin_contract::AdminPassword::try_from(password.0) { let body = server_admin_contract::AdminSetUserPasswordReq::new(password); let action_client = password_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::SetUserPassword(id), body), action_client, page); } }>"Password"</button>
+    <button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::SetUserRoles(id)) on:click=move |_| { if let Some(value) = prompt("Role IDs separated by commas", "") { let body = server_admin_contract::AdminSetUserRolesReq::from_ids(role_ids(&value.0)); let action_client = roles_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::SetUserRoles(id), body), action_client, page); } }>"Roles"</button>
+    <button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::DeleteUser(id)) on:click=move |_| { let confirmed = browser_window().and_then(|window| window.confirm_with_message(&format!("Delete {delete_login}?")).ok()).unwrap_or(false); if confirmed { let action_client = delete_client.clone(); run_action(action_client.clone().send(server_admin_contract::AdminRoute::DeleteUser(id)), action_client, page); } }>"Delete"</button>
     </td></tr> } }).collect_view()}
-    </tbody></table></section> }
+    </tbody></table></div> };
+    crud_page(server_admin_contract::AdminPage::Users, content)
 }
 fn roles_view(
-    values: Vec<Role>,
+    values: Vec<server_admin_contract::AdminRoleSummary>,
     client: AdminApiClient,
     page: RwSignal<Page>,
-    auth: &Option<AuthenticatedAdmin>,
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
 ) -> impl IntoView {
-    let can_create = has_permission(auth, "roles:create");
+    let can_create = has_route_permission(auth, server_admin_contract::AdminRoute::CreateRole);
     let client_for_create = client.clone();
-    view! { <section><h1>"Roles"</h1><button disabled=!can_create on:click=move |_| { if let Some(name) = prompt("Name", "") { let body = serde_json::json!({"name": name.0}); let action_client = client_for_create.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::POST, concat!("/api/v1/admin", "/roles").to_owned(), body), action_client, page); } }>"Create role"</button>
-    <table><thead><tr><th>"ID"</th><th>"Name"</th><th>"System"</th><th>"Actions"</th></tr></thead><tbody>{values.into_iter().map(|value| { let edit_client = client.clone(); let permissions_client = client.clone(); let delete_client = client.clone(); let id = value.id; let edit_name = value.name.clone(); let delete_name = value.name.clone(); view! { <tr><td>{id.to_string()}</td><td>{value.name.to_string()}</td><td>{value.is_system.to_string()}</td><td><button disabled=!has_permission(auth, "roles:update") on:click=move |_| { if let Some(name) = prompt("Name", &edit_name.0) { let body = serde_json::json!({"name": name.0}); let action_client = edit_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::PATCH, format!("{API}/roles/{id}"), body), action_client, page); } }>"Edit"</button><button disabled=!has_permission(auth, "role_permissions:update") on:click=move |_| { if let Some(value) = prompt("Permission IDs separated by commas", "") { let body = serde_json::json!({"permission_ids": ids(&value.0)}); let action_client = permissions_client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::PUT, format!("{API}/roles/{id}/permissions"), body), action_client, page); } }>"Permissions"</button><button disabled=!has_permission(auth, "roles:delete") on:click=move |_| { let confirmed = browser_window().and_then(|window| window.confirm_with_message(&format!("Delete {delete_name}?")).ok()).unwrap_or(false); if confirmed { let action_client = delete_client.clone(); run_action(action_client.clone().send(gloo_net::http::Method::DELETE, format!("{API}/roles/{id}")), action_client, page); } }>"Delete"</button></td></tr> } }).collect_view()}</tbody></table></section> }
+    let content = view! { <section class="crud-content"><button disabled=!can_create on:click=move |_| { if let Some(name) = prompt("Name", "") && let Ok(name) = server_admin_contract::AdminRoleName::try_from(name.0) { let body = server_admin_contract::AdminCreateRoleReq::new(name); let action_client = client_for_create.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::CreateRole, body), action_client, page); } }>"Create role"</button>
+    <table><thead><tr><th>"ID"</th><th>"Name"</th><th>"System"</th><th>"Actions"</th></tr></thead><tbody>{values.into_iter().map(|value| { let edit_client = client.clone(); let permissions_client = client.clone(); let delete_client = client.clone(); let id = value.id(); let edit_name = value.name().clone(); let delete_name = value.name().clone(); view! { <tr><td>{id.to_string()}</td><td>{value.name().to_string()}</td><td>{value.is_system().to_string()}</td><td><button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::UpdateRole(id)) on:click=move |_| { if let Some(name) = prompt("Name", edit_name.as_ref()) && let Ok(name) = server_admin_contract::AdminRoleName::try_from(name.0) { let body = server_admin_contract::AdminUpdateRoleReq::new(name); let action_client = edit_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateRole(id), body), action_client, page); } }>"Edit"</button><button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::SetRolePermissions(id)) on:click=move |_| { if let Some(value) = prompt("Permission IDs separated by commas", "") { let body = server_admin_contract::AdminSetRolePermissionsReq::from_ids(permission_ids(&value.0)); let action_client = permissions_client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::SetRolePermissions(id), body), action_client, page); } }>"Permissions"</button><button disabled=!has_route_permission(auth, server_admin_contract::AdminRoute::DeleteRole(id)) on:click=move |_| { let confirmed = browser_window().and_then(|window| window.confirm_with_message(&format!("Delete {delete_name}?")).ok()).unwrap_or(false); if confirmed { let action_client = delete_client.clone(); run_action(action_client.clone().send(server_admin_contract::AdminRoute::DeleteRole(id)), action_client, page); } }>"Delete"</button></td></tr> } }).collect_view()}</tbody></table></section> };
+    crud_page(server_admin_contract::AdminPage::Roles, content)
+}
+fn crud_page(page: server_admin_contract::AdminPage, content: impl IntoView) -> impl IntoView {
+    view! { <section><div class="page-heading"><div><p class="eyebrow">"Administration"</p><h1>{page.title().as_ref().to_owned()}</h1></div></div>{content}</section> }
 }
 fn settings_view(
-    value: Settings,
+    value: server_admin_contract::AdminSettingsView,
     client: AdminApiClient,
     page: RwSignal<Page>,
-    auth: &Option<AuthenticatedAdmin>,
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
 ) -> impl IntoView {
-    let site_name = RwSignal::new(value.site_name.0);
-    let default_admin_route = RwSignal::new(value.default_admin_route.0);
-    let can_update = has_permission(auth, "system_settings:update");
-    view! { <section><h1>"Settings"</h1><form on:submit=move |event| { event.prevent_default(); let body = serde_json::json!({"site_name": site_name.get(), "default_admin_route": default_admin_route.get()}); let action_client = client.clone(); run_action(action_client.clone().send_json(gloo_net::http::Method::PATCH, concat!("/api/v1/admin", "/system-settings").to_owned(), body), action_client, page); }><input placeholder="site_name" prop:value=move || site_name.get() on:input=move |event| site_name.set(event_target_value(&event)) /><input placeholder="default_admin_route" prop:value=move || default_admin_route.get() on:input=move |event| default_admin_route.set(event_target_value(&event)) /><button type="submit" disabled=!can_update>"Save"</button></form></section> }
+    let site_name = RwSignal::new(value.site_name().as_ref().to_owned());
+    let default_admin_route = RwSignal::new(value.default_admin_route().as_ref().to_owned());
+    let tab_title = RwSignal::new(
+        value
+            .tab_title()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let main_logo = RwSignal::new(
+        value
+            .main_logo()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let primary_color = RwSignal::new(
+        value
+            .primary_color()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let organization_name = RwSignal::new(
+        value
+            .organization_name()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let organization_contacts = RwSignal::new(
+        value
+            .organization_contacts()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let support_url = RwSignal::new(
+        value
+            .support_url()
+            .map_or_else(String::new, |item| item.as_ref().to_owned()),
+    );
+    let can_update = has_route_permission(auth, server_admin_contract::AdminRoute::UpdateSettings);
+    view! { <section><p class="eyebrow">"Configuration"</p><h1>"System settings"</h1><form class="settings-form" on:submit=move |event| { event.prevent_default(); if let (Ok(site_name), Ok(default_admin_route), Ok(tab_title), Ok(main_logo), Ok(primary_color), Ok(organization_name), Ok(organization_contacts), Ok(support_url)) = (server_admin_contract::AdminSettingText::try_from(site_name.get()), server_admin_contract::AdminSettingText::try_from(default_admin_route.get()), server_admin_contract::AdminSettingText::try_from(tab_title.get()), server_admin_contract::AdminSettingText::try_from(main_logo.get()), server_admin_contract::AdminSettingText::try_from(primary_color.get()), server_admin_contract::AdminSettingText::try_from(organization_name.get()), server_admin_contract::AdminSettingText::try_from(organization_contacts.get()), server_admin_contract::AdminSettingText::try_from(support_url.get())) { let body = server_admin_contract::AdminUpdateSettingsReq::new(Some(default_admin_route), Some(main_logo), Some(organization_contacts), Some(organization_name), Some(primary_color), Some(site_name), Some(support_url), Some(tab_title)); let action_client = client.clone(); run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateSettings, body), action_client, page); } }>
+    <label><span>"Site name"</span><input placeholder="Administration" prop:value=move || site_name.get() on:input=move |event| site_name.set(event_target_value(&event)) /></label>
+    <label><span>"Browser tab title"</span><input placeholder="Admin Console" prop:value=move || tab_title.get() on:input=move |event| tab_title.set(event_target_value(&event)) /></label>
+    <label><span>"Default admin route"</span><input placeholder="/admin/users" prop:value=move || default_admin_route.get() on:input=move |event| default_admin_route.set(event_target_value(&event)) /></label>
+    <label><span>"Primary color"</span><input placeholder="#6757e8" prop:value=move || primary_color.get() on:input=move |event| primary_color.set(event_target_value(&event)) /></label>
+    <label class="full-field"><span>"Logo URL"</span><input placeholder="https://..." prop:value=move || main_logo.get() on:input=move |event| main_logo.set(event_target_value(&event)) /></label>
+    <label><span>"Organization"</span><input placeholder="Organization name" prop:value=move || organization_name.get() on:input=move |event| organization_name.set(event_target_value(&event)) /></label>
+    <label><span>"Contacts"</span><input placeholder="support@example.com" prop:value=move || organization_contacts.get() on:input=move |event| organization_contacts.set(event_target_value(&event)) /></label>
+    <label class="full-field"><span>"Support URL"</span><input placeholder="https://support.example.com" prop:value=move || support_url.get() on:input=move |event| support_url.set(event_target_value(&event)) /></label>
+    <button type="submit" disabled=!can_update>"Save changes"</button></form></section> }
 }
 #[component]
 pub fn App() -> impl IntoView {

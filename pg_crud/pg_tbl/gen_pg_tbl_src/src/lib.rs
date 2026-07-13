@@ -425,7 +425,17 @@ pub fn gen_pg_tbl(
     }
     struct GenPgTblFieldModel {
         field: macros_helpers::field_data::SynField,
+        frontend: GenPgTblFrontendFieldConfig,
         is_pk: bool,
+    }
+    #[derive(Clone, Debug, Default)]
+    struct GenPgTblFrontendFieldConfig {
+        filterable: bool,
+        hidden: bool,
+        label: Option<String>,
+        order: Option<usize>,
+        placeholder: Option<String>,
+        sortable: bool,
     }
     struct GenPgTblVariantFieldModel {
         ident: syn::Ident,
@@ -464,6 +474,7 @@ pub fn gen_pg_tbl(
     struct GenPgTblFieldsModel {
         fields: Vec<macros_helpers::field_data::SynField>,
         fields_without_pk_idxs: Vec<GenPgTblFieldIdx>,
+        frontend_fields: Vec<GenPgTblFrontendFieldConfig>,
         pk_field_idx: GenPgTblFieldIdx,
     }
     #[derive(Clone, Copy)]
@@ -555,6 +566,77 @@ pub fn gen_pg_tbl(
             type0: macros_helpers::field_data::SynFieldType::from(syn_field.ty.clone()),
             ident: macros_helpers::field_data::SynFieldIdent::from(fi),
         };
+        let mut frontend = GenPgTblFrontendFieldConfig::default();
+        let mut frontend_attr_count = 0usize;
+        syn_field
+            .attrs
+            .iter()
+            .filter(|attr| attr.path().is_ident("gen_pg_tbl_frontend"))
+            .try_for_each(|attr| {
+                frontend_attr_count = frontend_attr_count.saturating_add(1usize);
+                if frontend_attr_count > 1usize {
+                    return Err(syn::Error::new_spanned(
+                        attr,
+                        "88a934b8: duplicate gen_pg_tbl_frontend attribute",
+                    ));
+                }
+                attr.parse_nested_meta(|meta| {
+                    if meta.path.is_ident("filterable") {
+                        if frontend.filterable {
+                            return Err(meta.error("99307572: duplicate filterable option"));
+                        }
+                        frontend.filterable = true;
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("hidden") {
+                        if frontend.hidden {
+                            return Err(meta.error("8689c32f: duplicate hidden option"));
+                        }
+                        frontend.hidden = true;
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("label") {
+                        if frontend.label.is_some() {
+                            return Err(meta.error("8af07b63: duplicate label option"));
+                        }
+                        let value = meta.value()?.parse::<syn::LitStr>()?.value();
+                        if value.trim().is_empty() {
+                            return Err(meta.error("d78d2e63: frontend label must not be empty"));
+                        }
+                        frontend.label = Some(value);
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("order") {
+                        if frontend.order.is_some() {
+                            return Err(meta.error("511d995e: duplicate order option"));
+                        }
+                        frontend.order = Some(
+                            meta.value()?
+                                .parse::<syn::LitInt>()?
+                                .base10_parse::<usize>()?,
+                        );
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("placeholder") {
+                        if frontend.placeholder.is_some() {
+                            return Err(meta.error("9898d208: duplicate placeholder option"));
+                        }
+                        frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("sortable") {
+                        if frontend.sortable {
+                            return Err(meta.error("d1b677d4: duplicate sortable option"));
+                        }
+                        frontend.sortable = true;
+                        return Ok(());
+                    }
+                    Err(meta.error("bc1d3b08: unsupported gen_pg_tbl_frontend option"))
+                })
+            })
+            .map_err(|error| {
+                macros_helpers::generated_rust_ts::GeneratedRustTs::from(error.into_compile_error())
+            })?;
         let is_pk = syn_field
             .attrs
             .iter()
@@ -565,7 +647,11 @@ pub fn gen_pg_tbl(
                     .first()
                     .is_some_and(|first_segment| first_segment.ident == pk_attr_name.get())
             });
-        Ok(GenPgTblFieldModel { field, is_pk })
+        Ok(GenPgTblFieldModel {
+            field,
+            frontend,
+            is_pk,
+        })
     }
     #[allow(clippy::single_call_fn)]
     fn gen_pg_tbl_variant_field_model_stage(
@@ -678,8 +764,10 @@ pub fn gen_pg_tbl(
                         None,
                         Vec::with_capacity(fields_named.named.len()),
                         Vec::with_capacity(fields_named.named.len()),
+                        Vec::with_capacity(fields_named.named.len()),
                     ),
-                    |(mut opt_pk_field, mut fields, mut fields_without_pk), el| {
+                    |(mut opt_pk_field, mut fields, mut fields_without_pk, mut frontend_fields),
+                     el| {
                         let field_model = gen_pg_tbl_field_model_stage(
                             SynGenPgTblFieldRef::from(el),
                             pk_attr_name,
@@ -696,10 +784,11 @@ pub fn gen_pg_tbl(
                             fields_without_pk.push(field_idx);
                         }
                         fields.push(field_model.field);
-                        Ok((opt_pk_field, fields, fields_without_pk))
+                        frontend_fields.push(field_model.frontend);
+                        Ok((opt_pk_field, fields, fields_without_pk, frontend_fields))
                     },
                 );
-                let (opt_pk_field, fields, fields_without_pk_idxs) = fields_acc?;
+                let (opt_pk_field, fields, fields_without_pk_idxs, frontend_fields) = fields_acc?;
                 let Some(pk_field_idx) = opt_pk_field else {
                     return Err(compile_error_ts(CompileErrorMsg(
                         "6a529a99: primary key field not found",
@@ -708,6 +797,7 @@ pub fn gen_pg_tbl(
                 Ok(GenPgTblFieldsModel {
                     fields,
                     fields_without_pk_idxs,
+                    frontend_fields,
                     pk_field_idx,
                 })
             } else {
@@ -850,6 +940,11 @@ pub fn gen_pg_tbl(
         {
             return Err(compile_error_ts(CompileErrorMsg(
                 "22bc6672: non-primary-key field index not found",
+            )));
+        }
+        if model.fields.len() != model.frontend_fields.len() {
+            return Err(compile_error_ts(CompileErrorMsg(
+                "8a5fbef9: frontend field configuration count does not match fields",
             )));
         }
         Ok(model)
@@ -1093,6 +1188,11 @@ pub fn gen_pg_tbl(
     let ident = &di.ident;
     let ident_sc_string = naming_cmn::ToTokensToScStr::case(&ident);
     let ident_sc_dq_ts = gen_quotes::dq_ts(&ident_sc_string);
+    let ident_auth_requirement_ucc = quote::format_ident!("{}AuthenticationRequirement", ident);
+    let ident_http_method_ucc = quote::format_ident!("{}HttpMethod", ident);
+    let ident_operation_ucc = quote::format_ident!("{}Operation", ident);
+    let ident_route_contract_ucc = quote::format_ident!("{}RouteContract", ident);
+    let ident_success_status_ucc = quote::format_ident!("{}SuccessStatus", ident);
     let self_tbl_name_call_ts = quote::quote! {Self::#TblNameSc()};
     let gen_pg_tbl_pk_sc_str = GenPgTblPkSc.to_string();
     let fields_model = match build_gen_pg_tbl_fields_model_stage(
@@ -1109,6 +1209,7 @@ pub fn gen_pg_tbl(
     let GenPgTblFieldsModel {
         fields,
         fields_without_pk_idxs,
+        frontend_fields,
         pk_field_idx,
     } = validated_fields_model;
     let fields_len = fields.len();
@@ -1186,6 +1287,147 @@ pub fn gen_pg_tbl(
         GenPgTblApiMode::ReadOnly => matches!(op, Op::Rm | Op::Ro),
         GenPgTblApiMode::ReadUpdate => matches!(op, Op::Rm | Op::Ro | Op::Um | Op::Uo),
     };
+    let mut frontend_field_order = frontend_fields
+        .iter()
+        .enumerate()
+        .map(|(field_idx, config)| (config.order.unwrap_or(field_idx), field_idx))
+        .collect::<Vec<_>>();
+    frontend_field_order.sort_unstable_by_key(|(order, _field_idx)| *order);
+    let frontend_orders_are_unique = frontend_field_order
+        .iter()
+        .map(|(order, _field_idx)| order)
+        .collect::<std::collections::HashSet<_>>()
+        .len()
+        == frontend_field_order.len();
+    if !frontend_orders_are_unique {
+        return compile_error_ts(CompileErrorMsg(
+            "35d30bd7: frontend field order values must be unique",
+        ));
+    }
+    let frontend_field_contracts_ts = frontend_field_order
+        .iter()
+        .filter_map(|(order, field_idx)| {
+            let field = fields.get(*field_idx)?;
+            let frontend = frontend_fields.get(*field_idx)?;
+            let field_name = field.ident.to_string();
+            let field_name_dq_ts = gen_quotes::dq_ts(&field_name);
+            let label = frontend.label.clone().unwrap_or_else(|| {
+                let mut value = String::with_capacity(field_name.len());
+                field_name
+                    .split('_')
+                    .enumerate()
+                    .for_each(|(part_idx, part)| {
+                        if part_idx != 0usize {
+                            value.push(' ');
+                        }
+                        let mut chars = part.chars();
+                        if let Some(first) = chars.next() {
+                            value.extend(first.to_uppercase());
+                            value.extend(chars);
+                        }
+                    });
+                value
+            });
+            let label_dq_ts = gen_quotes::dq_ts(&label);
+            let field_type = &field.type0;
+            let primary_key_ts = if *field_idx == pk_field_idx.get() {
+                quote::quote! {frontend_contract::PrimaryKeyKind::Primary}
+            } else {
+                quote::quote! {frontend_contract::PrimaryKeyKind::NonPrimary}
+            };
+            let creatable_ts = if *field_idx != pk_field_idx.get()
+                && !create_field_is_excluded(field)
+                && (op_is_enabled(&Op::Cm) || op_is_enabled(&Op::Co))
+            {
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
+            } else {
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
+            };
+            let readable_ts = if !read_field_is_excluded(field)
+                && (op_is_enabled(&Op::Rm) || op_is_enabled(&Op::Ro))
+            {
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
+            } else {
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
+            };
+            let updatable_ts = if *field_idx != pk_field_idx.get()
+                && (op_is_enabled(&Op::Um) || op_is_enabled(&Op::Uo))
+            {
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
+            } else {
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
+            };
+            let filterable_ts = if frontend.filterable {
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
+            } else {
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
+            };
+            let sortable_ts = if frontend.sortable {
+                quote::quote! {frontend_contract::FieldCapability::Enabled}
+            } else {
+                quote::quote! {frontend_contract::FieldCapability::Disabled}
+            };
+            let visibility_ts = if frontend.hidden {
+                quote::quote! {frontend_contract::FieldVisibility::Hidden}
+            } else {
+                quote::quote! {frontend_contract::FieldVisibility::Visible}
+            };
+            let placeholder_ts = frontend.placeholder.as_ref().map_or_else(
+                || quote::quote! {frontend_contract::FieldPlaceholder::None},
+                |value| {
+                    let value_dq_ts = gen_quotes::dq_ts(value);
+                    quote::quote! {frontend_contract::FieldPlaceholder::Value(frontend_contract::ContractStr::from(#value_dq_ts))}
+                },
+            );
+            Some(quote::quote! {
+                frontend_contract::FieldContract::new(
+                    frontend_contract::ContractStr::from(#field_name_dq_ts),
+                    frontend_contract::ContractStr::from(#label_dq_ts),
+                    <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT,
+                )
+                .with_primary_key(#primary_key_ts)
+                .with_creatable(#creatable_ts)
+                .with_filterable(#filterable_ts)
+                .with_order(frontend_contract::FieldOrder::from(#order))
+                .with_placeholder(#placeholder_ts)
+                .with_readable(#readable_ts)
+                .with_sortable(#sortable_ts)
+                .with_updatable(#updatable_ts)
+                .with_visibility(#visibility_ts)
+            })
+        })
+        .collect::<Vec<_>>();
+    let frontend_capability_assertions_ts = fields
+        .iter()
+        .zip(frontend_fields.iter())
+        .filter_map(|(field, frontend)| {
+            let field_type = &field.type0;
+            let sortable_assertion = frontend.sortable.then(|| {
+                quote::quote! {
+                    assert!(
+                        <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_sorting(),
+                        "c5882cc4: frontend sorting is unsupported for this field type",
+                    );
+                }
+            });
+            let filterable_assertion = frontend.filterable.then(|| {
+                quote::quote! {
+                    assert!(
+                        <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_filtering(),
+                        "141942af: frontend filtering is unsupported for this field type",
+                    );
+                }
+            });
+            (sortable_assertion.is_some() || filterable_assertion.is_some()).then(|| {
+                quote::quote! {
+                    const _: () = {
+                        #sortable_assertion
+                        #filterable_assertion
+                    };
+                }
+            })
+        })
+        .collect::<Vec<_>>();
     let pk_ft = &pk_field.type0;
     if fields_without_pk_idxs.is_empty() {
         return macros_helpers::generated_rust_ts::GeneratedRustTs::from(
@@ -1411,6 +1653,7 @@ pub fn gen_pg_tbl(
     let mut op_routes_ts = Vec::with_capacity(op_count);
     let mut content_ts = Vec::with_capacity(op_count);
     let mut api_client_methods_ts = Vec::with_capacity(op_count);
+    let mut frontend_api_client_methods_ts = Vec::with_capacity(op_count);
     let client_sc = quote::format_ident!("client");
     let mut open_api_path_fn_idents = Vec::with_capacity(op_count);
     let mut open_api_schema_types_ts = Vec::with_capacity(op_count.saturating_mul(2));
@@ -1442,10 +1685,40 @@ pub fn gen_pg_tbl(
         },
     );
     impl_ident_vec_ts.push({
+        let frontend_page_path_dq_ts = gen_quotes::dq_ts(&format!("/{ident_sc_string}"));
+        let frontend_page_title = ident_sc_string
+            .split('_')
+            .map(|part| {
+                let mut chars = part.chars();
+                chars.next().map_or_else(String::new, |first| {
+                    first.to_uppercase().chain(chars).collect::<String>()
+                })
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let frontend_page_title_dq_ts = gen_quotes::dq_ts(&frontend_page_title);
         let pub_fn_tbl_ts = quote::quote! {
             #MustUse
             pub const fn #TblNameSc() -> &'static str {
                 #ident_sc_dq_ts
+            }
+        };
+        let pub_fn_frontend_fields_ts = quote::quote! {
+            #[must_use]
+            pub fn frontend_fields() -> frontend_contract::FieldContracts {
+                frontend_contract::FieldContracts::from(vec![#(#frontend_field_contracts_ts),*])
+            }
+        };
+        let pub_fn_frontend_page_ts = quote::quote! {
+            #[must_use]
+            pub fn frontend_page() -> frontend_contract::PageContract {
+                frontend_contract::PageContract::new(
+                    #ident_route_contract_ucc::frontend_actions(),
+                    Self::frontend_fields(),
+                    frontend_contract::ContractStr::from(#frontend_page_path_dq_ts),
+                    #ident_route_contract_ucc::frontend_contracts(),
+                    frontend_contract::ContractStr::from(#frontend_page_title_dq_ts),
+                )
             }
         };
         let fn_pk_ts = {
@@ -1568,6 +1841,8 @@ pub fn gen_pg_tbl(
         };
         quote::quote! {
             #pub_fn_tbl_ts
+            #pub_fn_frontend_fields_ts
+            #pub_fn_frontend_page_ts
             #fn_pk_ts
             #pub_async_fn_prep_extensions_ts
             #pub_async_fn_prep_pg_tbl_ts
@@ -3703,6 +3978,52 @@ pub fn gen_pg_tbl(
                     ).await
                 }
             });
+            let operation = quote::format_ident!("{}", op.to_string());
+            let expected_status = if op_dsc.success_status_code
+                == macros_helpers::status_code::StatusCode::Crd201
+            {
+                quote::quote! {201u16}
+            } else {
+                quote::quote! {200u16}
+            };
+            frontend_api_client_methods_ts.push(quote::quote! {
+                pub async fn #op_client_method_sc_ts(
+                    &self,
+                    #PrmsSc: #ident_op_prms_ucc,
+                ) -> Result<#result_ok_type_ts, frontend_contract::ClientEr> {
+                    let route = #ident_route_contract_ucc::ALL
+                        .into_iter()
+                        .find(|route| route.operation() == #ident_operation_ucc::#operation)
+                        .ok_or(frontend_contract::ClientEr::UnexpectedResponse)?;
+                    let body = serde_json::to_vec(&#PrmsSc.#PayloadSc)
+                        .map(frontend_contract::TransportBody::from)
+                        .map_err(|error| frontend_contract::ClientEr::Encode(error.to_string()))?;
+                    let request = frontend_contract::TransportRequest::new(
+                        body,
+                        route.path().to_owned(),
+                        route.frontend_contract(),
+                    );
+                    let response = self
+                        .transport
+                        .send(request)
+                        .await
+                        .map_err(frontend_contract::ClientEr::Transport)?;
+                    if response.status() != #expected_status {
+                        return Err(frontend_contract::ClientEr::Status {
+                            actual: response.status(),
+                            expected: #expected_status,
+                        });
+                    }
+                    let decoded = serde_json::from_slice::<#open_api_response_type_ts>(
+                        response.body().as_ref(),
+                    )
+                    .map_err(|error| frontend_contract::ClientEr::Decode(error.to_string()))?;
+                    match decoded {
+                        #open_api_response_type_ts::#DesirableUcc(value) => Ok(value),
+                        _ => Err(frontend_contract::ClientEr::UnexpectedResponse),
+                    }
+                }
+            });
             open_api_path_fn_idents.push(open_api_path_fn_ident.clone());
             open_api_schema_types_ts.push(open_api_payload_type_ts.clone());
             open_api_schema_types_ts.push(open_api_response_type_ts.clone());
@@ -5259,6 +5580,7 @@ pub fn gen_pg_tbl(
     });
     let ident_api_endpoint_ucc = quote::format_ident!("{}ApiEndpoint", ident);
     let ident_api_client_ucc = quote::format_ident!("{}ApiClient", ident);
+    let ident_frontend_api_client_ucc = quote::format_ident!("{}FrontendApiClient", ident);
     let ident_api_client_ts = quote::quote! {
         #[derive(Clone, Debug)]
         pub struct #ident_api_endpoint_ucc(reqwest::Url);
@@ -5285,12 +5607,22 @@ pub fn gen_pg_tbl(
             }
             #(#api_client_methods_ts)*
         }
+        #[derive(Clone, Debug)]
+        pub struct #ident_frontend_api_client_ucc<Transport> {
+            transport: Transport,
+        }
+        #[allow(clippy::future_not_send)] // browser transports and WASM futures are intentionally single-threaded
+        impl<Transport> #ident_frontend_api_client_ucc<Transport>
+        where
+            Transport: frontend_contract::Transport,
+        {
+            #[must_use]
+            pub const fn new(transport: Transport) -> Self {
+                Self { transport }
+            }
+            #(#frontend_api_client_methods_ts)*
+        }
     };
-    let ident_auth_requirement_ucc = quote::format_ident!("{}AuthenticationRequirement", ident);
-    let ident_http_method_ucc = quote::format_ident!("{}HttpMethod", ident);
-    let ident_operation_ucc = quote::format_ident!("{}Operation", ident);
-    let ident_route_contract_ucc = quote::format_ident!("{}RouteContract", ident);
-    let ident_success_status_ucc = quote::format_ident!("{}SuccessStatus", ident);
     let enabled_operation_count = OpDsc::ALL
         .iter()
         .filter(|op_dsc| op_is_enabled(&op_dsc.op))
@@ -5341,6 +5673,20 @@ pub fn gen_pg_tbl(
         let operation = quote::format_ident!("{}", op_dsc.op.to_string());
         let path = format!("/{}/{}", ident_sc_string, op_dsc.op.self_sc_str());
         quote::quote! {#ident_operation_ucc::#operation => #path}
+    });
+    let route_contract_operation_kind_arms_ts = OpDsc::ALL.iter().map(|op_dsc| {
+        let operation = quote::format_ident!("{}", op_dsc.op.to_string());
+        let operation_kind = match op_dsc.op {
+            Op::Cm => quote::format_ident!("CreateMany"),
+            Op::Co => quote::format_ident!("CreateOne"),
+            Op::Dm => quote::format_ident!("DeleteMany"),
+            Op::Dlo => quote::format_ident!("DeleteOne"),
+            Op::Rm => quote::format_ident!("ReadMany"),
+            Op::Ro => quote::format_ident!("ReadOne"),
+            Op::Um => quote::format_ident!("UpdateMany"),
+            Op::Uo => quote::format_ident!("UpdateOne"),
+        };
+        quote::quote! {#ident_operation_ucc::#operation => frontend_contract::OperationKind::#operation_kind}
     });
     let ident_route_contract_ts = quote::quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -5398,6 +5744,48 @@ pub fn gen_pg_tbl(
             #[must_use]
             pub fn for_path(path: &str) -> Option<Self> {
                 Self::ALL.into_iter().find(|contract| path.ends_with(contract.path()))
+            }
+            #[must_use]
+            pub fn frontend_contract(self) -> frontend_contract::RouteContract {
+                let authentication = match self.authentication {
+                    #ident_auth_requirement_ucc::Permission(permission) => frontend_contract::AuthenticationRequirement::Permission(frontend_contract::ContractStr::from(permission)),
+                    #ident_auth_requirement_ucc::Public => frontend_contract::AuthenticationRequirement::Public,
+                };
+                let method = match self.http_method {
+                    #ident_http_method_ucc::Delete => frontend_contract::HttpMethod::Delete,
+                    #ident_http_method_ucc::Patch => frontend_contract::HttpMethod::Patch,
+                    #ident_http_method_ucc::Post => frontend_contract::HttpMethod::Post,
+                };
+                let mutation = if self.mutates() {
+                    frontend_contract::MutationKind::Mutating
+                } else {
+                    frontend_contract::MutationKind::ReadOnly
+                };
+                let success_status = match self.success_status {
+                    #ident_success_status_ucc::Code200 => frontend_contract::SuccessStatus::Code200,
+                    #ident_success_status_ucc::Code201 => frontend_contract::SuccessStatus::Code201,
+                };
+                frontend_contract::RouteContract::new(authentication, method, mutation, frontend_contract::ContractStr::from(self.path()), success_status)
+            }
+            #[must_use]
+            pub fn frontend_contracts() -> frontend_contract::RouteContracts {
+                frontend_contract::RouteContracts::from(Self::ALL.into_iter().map(Self::frontend_contract).collect::<Vec<frontend_contract::RouteContract>>())
+            }
+            #[must_use]
+            pub fn frontend_action(self) -> frontend_contract::ActionContract {
+                let operation = match self.operation {
+                    #(#route_contract_operation_kind_arms_ts),*
+                };
+                let action = frontend_contract::ActionContract::new(operation, self.frontend_contract());
+                if matches!(self.operation, #ident_operation_ucc::Dm | #ident_operation_ucc::Dlo) {
+                    action.with_confirmation(frontend_contract::ConfirmationRequirement::Required)
+                } else {
+                    action
+                }
+            }
+            #[must_use]
+            pub fn frontend_actions() -> frontend_contract::ActionContracts {
+                frontend_contract::ActionContracts::from(Self::ALL.into_iter().map(Self::frontend_action).collect::<Vec<frontend_contract::ActionContract>>())
             }
             #[must_use]
             pub const fn mutates(self) -> bool {
@@ -7819,6 +8207,103 @@ pub fn gen_pg_tbl(
         ProcMacro2GenPgTblTestsTs(generated_ident_tests_ts),
     )
     .into_inner();
+    let ident_create_form_ucc = quote::format_ident!("{}CreateForm", ident);
+    let ident_update_form_ucc = quote::format_ident!("{}UpdateForm", ident);
+    let create_form_fields_ts = create_fields_without_pk_iter().map(|field| {
+        let field_ident = &field.ident;
+        quote::quote! {pub #field_ident: frontend_contract::FormValue}
+    });
+    let update_form_fields_ts = std::iter::once({
+        let field_ident = &pk_field.ident;
+        quote::quote! {pub #field_ident: frontend_contract::FormValue}
+    })
+    .chain(fields_without_pk_iter().map(|field| {
+        let field_ident = &field.ident;
+        quote::quote! {pub #field_ident: Option<frontend_contract::FormValue>}
+    }));
+    let create_form_conversion_ts = create_fields_without_pk_iter().map(|field| {
+        let field_ident = &field.ident;
+        let field_name_dq_ts = gen_quotes::dq_ts(&field.ident);
+        let orgn_role = quote::format_ident!("Orgn");
+        let orgn_type = gen_concrete_pg_type_role_ts(&field.type0, &orgn_role);
+        let cr_type = gen_concrete_pg_type_role_ts(&field.type0, &CrUcc);
+        quote::quote! {
+            #field_ident: #cr_type::from(
+                <#orgn_type as frontend_contract::FormValueContract>::parse_form_value(
+                    frontend_contract::FormValueRef::from(value.#field_ident.as_ref()),
+                )
+                .map_err(|error| frontend_contract::FormFieldEr::new(
+                    error,
+                    frontend_contract::ContractStr::from(#field_name_dq_ts),
+                ))?,
+            )
+        }
+    });
+    let update_form_conversion_ts = std::iter::once({
+        let field_ident = &pk_field.ident;
+        let field_name_dq_ts = gen_quotes::dq_ts(&pk_field.ident);
+        let orgn_role = quote::format_ident!("Orgn");
+        let orgn_type = gen_concrete_pg_type_role_ts(&pk_field.type0, &orgn_role);
+        let upd_type = gen_concrete_pg_type_role_ts(&pk_field.type0, &UpdUcc);
+        quote::quote! {
+            #field_ident: #upd_type::from(
+                <#orgn_type as frontend_contract::FormValueContract>::parse_form_value(
+                    frontend_contract::FormValueRef::from(value.#field_ident.as_ref()),
+                )
+                .map_err(|error| frontend_contract::FormFieldEr::new(
+                    error,
+                    frontend_contract::ContractStr::from(#field_name_dq_ts),
+                ))?,
+            )
+        }
+    })
+    .chain(fields_without_pk_iter().map(|field| {
+        let field_ident = &field.ident;
+        let field_name_dq_ts = gen_quotes::dq_ts(&field.ident);
+        let orgn_role = quote::format_ident!("Orgn");
+        let orgn_type = gen_concrete_pg_type_role_ts(&field.type0, &orgn_role);
+        let upd_type = gen_concrete_pg_type_role_ts(&field.type0, &UpdUcc);
+        quote::quote! {
+            #field_ident: value.#field_ident
+                .map(|field_value| {
+                    <#orgn_type as frontend_contract::FormValueContract>::parse_form_value(
+                        frontend_contract::FormValueRef::from(field_value.as_ref()),
+                    )
+                    .map(|parsed| pg_crud_cmn::V { v: #upd_type::from(parsed) })
+                    .map_err(|error| frontend_contract::FormFieldEr::new(
+                        error,
+                        frontend_contract::ContractStr::from(#field_name_dq_ts),
+                    ))
+                })
+                .transpose()?
+        }
+    }));
+    let frontend_form_ts = quote::quote! {
+        #[derive(Clone, Debug, Default)]
+        pub struct #ident_create_form_ucc {
+            #(#create_form_fields_ts),*
+        }
+        impl TryFrom<#ident_create_form_ucc> for #ident_cr_ucc {
+            type Error = frontend_contract::FormFieldEr;
+            fn try_from(value: #ident_create_form_ucc) -> Result<Self, Self::Error> {
+                Ok(Self {
+                    #(#create_form_conversion_ts),*
+                })
+            }
+        }
+        #[derive(Clone, Debug, Default)]
+        pub struct #ident_update_form_ucc {
+            #(#update_form_fields_ts),*
+        }
+        impl TryFrom<#ident_update_form_ucc> for #ident_upd_ucc {
+            type Error = frontend_contract::FormFieldEr;
+            fn try_from(value: #ident_update_form_ucc) -> Result<Self, Self::Error> {
+                Ok(Self {
+                    #(#update_form_conversion_ts),*
+                })
+            }
+        }
+    };
     let cmn_ts = quote::quote! {
         #ident_prep_pg_er_ts
         #ident_cr_ts
@@ -7849,6 +8334,8 @@ pub fn gen_pg_tbl(
                 #(#content_ts)*
                 #ident_api_client_ts
                 #ident_route_contract_ts
+                #frontend_form_ts
+                #(#frontend_capability_assertions_ts)*
                 #ident_open_api_ts
                 #cmn_ts
                 #generated_contract_tests_ts

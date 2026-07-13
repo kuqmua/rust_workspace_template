@@ -56,6 +56,7 @@ uuid = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+frontend_contract = { workspace = true }
 thiserror = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }
@@ -91,6 +92,66 @@ test-utils = []",
         assert_eq!(schema_json["minimum"], -32768);
         assert_eq!(schema_json["maximum"], 32767);
         assert_eq!(schema_json["example"], 42);
+    }
+    #[test]
+    fn generated_frontend_type_contract_matches_integer_wire_contract() {
+        let contract =
+            <pg_types_numeric::I16AsNnInt2 as frontend_contract::HasTypeContract>::TYPE_CONTRACT;
+        assert_eq!(contract.input_kind(), frontend_contract::InputKind::Number);
+        assert_eq!(contract.format(), frontend_contract::ValueFormat::Int16);
+        assert_eq!(
+            contract.nullability(),
+            frontend_contract::Nullability::NonNullable
+        );
+        assert_eq!(
+            contract.minimum(),
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MIN)
+        );
+        assert_eq!(
+            contract.maximum(),
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MAX)
+        );
+    }
+    #[test]
+    fn generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
+        let contract = <pg_types_text_misc::OptSqlxTypesUuidUuidAsNlUuidInitByClient as frontend_contract::HasTypeContract>::TYPE_CONTRACT;
+        assert_eq!(contract.input_kind(), frontend_contract::InputKind::Uuid);
+        assert_eq!(contract.format(), frontend_contract::ValueFormat::Uuid);
+        assert_eq!(
+            contract.nullability(),
+            frontend_contract::Nullability::Nullable
+        );
+    }
+    #[test]
+    fn generated_form_value_contract_parses_and_formats_wire_values() {
+        let integer = <pg_types_numeric::I16AsNnInt2Orgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("42")).expect("0935c11d");
+        assert_eq!(
+            frontend_contract::FormValueContract::format_form_value(&integer)
+                .expect("144c7c4c")
+                .as_ref(),
+            "42"
+        );
+        let nullable = <pg_types_numeric::OptI16AsNlInt2Orgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("")).expect("502918c1");
+        assert_eq!(
+            frontend_contract::FormValueContract::format_form_value(&nullable)
+                .expect("56531064")
+                .as_ref(),
+            ""
+        );
+        let uuid = <pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidInitByClientOrgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("00000000-0000-4000-8000-000000000000")).expect("804f13b2");
+        assert_eq!(
+            frontend_contract::FormValueContract::format_form_value(&uuid)
+                .expect("a17bcb42")
+                .as_ref(),
+            "00000000-0000-4000-8000-000000000000"
+        );
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNnTimestampOrgn as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from("2026-07-13T12:30:00")).expect("ad1de295");
+        assert_eq!(
+            frontend_contract::FormValueContract::format_form_value(&timestamp)
+                .expect("5a9f7d9c")
+                .as_ref(),
+            "2026-07-13T12:30:00"
+        );
     }
     #[test]
     fn generated_nullable_open_api_schema_is_nullable() {

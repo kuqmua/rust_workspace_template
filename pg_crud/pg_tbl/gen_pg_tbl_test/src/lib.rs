@@ -4,12 +4,67 @@ mod tests {
     struct JsonContractValue {
         operation: String,
     }
+    fn table_input(field_attrs: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+        quote::quote! {
+            #[derive(Debug, Clone, Copy, optml::Optml)]
+            #[gen_pg_tbl::gen_pg_tbl_config{{
+                "tests_write_into_file": "False",
+                "cmn_write_into_file": "False",
+                "whole_write_into_file": "False"
+            }}]
+            #[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
+            #[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
+            #[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
+            #[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
+            #[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
+            #[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
+            #[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
+            #[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
+            #[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
+            #[gen_pg_tbl::cm_logic{}]
+            #[gen_pg_tbl::co_logic{}]
+            #[gen_pg_tbl::rm_logic{}]
+            #[gen_pg_tbl::ro_logic{}]
+            #[gen_pg_tbl::um_logic{}]
+            #[gen_pg_tbl::uo_logic{}]
+            #[gen_pg_tbl::dm_logic{}]
+            #[gen_pg_tbl::dlo_logic{}]
+            #[gen_pg_tbl::cmn_logic{}]
+            pub struct TblExample {
+                #[gen_pg_tbl_pk]
+                pub pk_col: pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
+                #field_attrs
+            }
+        }
+    }
     #[test]
     fn shared_json_contract_helper_round_trips_table_fixture() {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
             macros_helpers::json_contract::JsonFixtureRef::from(r#"{"operation":"rm"}"#),
         )
         .expect("f9f9af71");
+    }
+    #[test]
+    fn duplicate_frontend_order_is_rejected_during_generation() {
+        let input = table_input(&quote::quote! {
+            #[gen_pg_tbl_frontend(order = 1)]
+            pub col_0: pg_types_numeric::I16AsNnInt2,
+            #[gen_pg_tbl_frontend(order = 1)]
+            pub col_1: pg_types_numeric::I32AsNnInt4,
+        });
+        let generated =
+            gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ts_writer::ProcMacro2TsRef::from(&input));
+        assert!(generated.to_string().contains("35d30bd7"));
+    }
+    #[test]
+    fn unknown_frontend_option_is_rejected_during_generation() {
+        let input = table_input(&quote::quote! {
+            #[gen_pg_tbl_frontend(unknown)]
+            pub col_0: pg_types_numeric::I16AsNnInt2,
+        });
+        let generated =
+            gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ts_writer::ProcMacro2TsRef::from(&input));
+        assert!(generated.to_string().contains("bc1d3b08"));
     }
     #[test]
     fn clippy() {
@@ -19,6 +74,7 @@ mod tests {
             r#"[dependencies]
 axum = { workspace = true }
 futures = { workspace = true }
+frontend_contract = { workspace = true }
 http = { workspace = true }
 sqlx = { workspace = true }
 reqwest = { workspace = true }

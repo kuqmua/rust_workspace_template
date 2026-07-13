@@ -41,10 +41,20 @@ pub enum AdminAuthSvcStateBuildEr {
     #[error("administrator token issuer is invalid")]
     Issuer,
 }
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminSignInReq {
-    login: super::AdminLogin,
-    password: super::AdminPassword,
+pub use server_admin_contract::{
+    AdminApiErBody, AdminApiErCode, AdminAuditDetails, AdminAuditTimestamp, AdminAuditView,
+    AdminCreateRoleReq, AdminCreateRoleRes, AdminCreateUserReq, AdminCreateUserRes,
+    AdminPermissionSummary, AdminRoleSummary, AdminSetRolePermissionsReq, AdminSetUserBanReq,
+    AdminSetUserPasswordReq, AdminSetUserRolesReq, AdminSettingText, AdminSettingsView,
+    AdminSignInReq, AdminSignInRes, AdminUpdateRoleReq, AdminUpdateSettingsReq, AdminUpdateUserReq,
+    AdminUserSummary,
+};
+fn admin_password_from_contract(
+    value: server_admin_contract::AdminPassword,
+) -> super::AdminPassword {
+    super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
+        Box::new(value.into_inner()),
+    )))
 }
 #[derive(Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
@@ -55,62 +65,37 @@ pub struct AuthenticatedAdmin {
     roles: Vec<super::AdminRoleName>,
     session_id: super::AdminSessionId,
 }
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminSignInRes {
-    user: AuthenticatedAdmin,
+fn authenticated_admin_contract(
+    value: &AuthenticatedAdmin,
+) -> Result<server_admin_contract::AuthenticatedAdmin, AdminApiEr> {
+    let permissions = value
+        .permissions
+        .iter()
+        .map(|permission| {
+            server_admin_contract::AdminPermissionValue::try_from(
+                permission.as_str().as_ref().to_owned(),
+            )
+            .map_err(|_error| AdminApiEr::Validation)
+        })
+        .collect::<Result<Vec<_>, AdminApiEr>>()?;
+    let roles = value
+        .roles
+        .iter()
+        .map(|role| {
+            server_admin_contract::AdminRoleName::try_from(role.as_ref().to_owned())
+                .map_err(|_error| AdminApiEr::Validation)
+        })
+        .collect::<Result<Vec<_>, AdminApiEr>>()?;
+    Ok(server_admin_contract::AuthenticatedAdmin::new(
+        server_admin_contract::AdminDisplayName::try_from(value.display_name.as_ref().to_owned())
+            .map_err(|_error| AdminApiEr::Validation)?,
+        server_admin_contract::AdminUserId::from(value.id.0),
+        server_admin_contract::AdminLogin::try_from(value.login.as_ref().to_owned())
+            .map_err(|_error| AdminApiEr::Validation)?,
+        permissions,
+        roles,
+    ))
 }
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminCreateUserReq {
-    display_name: super::AdminDisplayName,
-    login: super::AdminLogin,
-    password: super::AdminPassword,
-}
-#[derive(Debug, Clone, Copy, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminCreateUserRes {
-    id: super::AdminUserId,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminUpdateUserReq {
-    display_name: Option<super::AdminDisplayName>,
-    login: Option<super::AdminLogin>,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminSetUserPasswordReq {
-    password: super::AdminPassword,
-}
-#[derive(Debug, Clone, Copy, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminSetUserBanReq {
-    is_banned: super::StdAdminBool,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminCreateRoleReq {
-    name: super::AdminRoleName,
-}
-#[derive(Debug, Clone, Copy, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminCreateRoleRes {
-    id: super::AdminRoleId,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminUpdateRoleReq {
-    name: super::AdminRoleName,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminSetUserRolesReq {
-    role_ids: Vec<super::AdminRoleId>,
-}
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminSetRolePermissionsReq {
-    permission_ids: Vec<super::AdminPermissionId>,
-}
-#[derive(Debug, Clone, serde::Serialize, utoipa::ToSchema, newtype::Newtype)]
-#[newtype(from_inner)]
-pub struct SerdeJsonAdminValue(serde_json::Value);
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, newtype::BoundedString, newtype::Newtype,
-)]
-#[bounded_string(max = 64, chars, description = "administrator audit timestamp", utoipa)]
-#[newtype(as_ref_owned)]
-pub struct AdminAuditTimestamp(String);
 #[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
@@ -119,79 +104,6 @@ pub struct AdminAuditQuery {
     created_before: Option<AdminAuditTimestamp>,
     resource: Option<super::AdminAuditResource>,
     user_id: Option<super::AdminUserId>,
-}
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminAuditView {
-    action: super::AdminAuditAction,
-    created_at: AdminAuditTimestamp,
-    details: Option<SerdeJsonAdminValue>,
-    id: super::AdminAuditLogId,
-    resource: super::AdminAuditResource,
-    resource_id: Option<super::StdAdminString>,
-    succeeded: super::StdAdminBool,
-    user_id: Option<super::AdminUserId>,
-    user_login: Option<super::AdminLogin>,
-}
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, newtype::BoundedString, newtype::Newtype,
-)]
-#[bounded_string(max = 8192, chars, description = "administrator setting text", utoipa)]
-#[newtype(as_ref_owned)]
-pub struct AdminSettingText(String);
-#[derive(Debug, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminUpdateSettingsReq {
-    default_admin_route: Option<AdminSettingText>,
-    main_logo: Option<AdminSettingText>,
-    organization_contacts: Option<AdminSettingText>,
-    organization_name: Option<AdminSettingText>,
-    primary_color: Option<AdminSettingText>,
-    site_name: Option<AdminSettingText>,
-    support_url: Option<AdminSettingText>,
-    tab_title: Option<AdminSettingText>,
-}
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminUserSummary {
-    display_name: super::AdminDisplayName,
-    id: super::AdminUserId,
-    is_banned: super::StdAdminBool,
-    login: super::AdminLogin,
-}
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminRoleSummary {
-    id: super::AdminRoleId,
-    is_system: super::StdAdminBool,
-    name: super::AdminRoleName,
-}
-#[derive(Debug, Clone, Copy, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminPermissionSummary {
-    id: super::AdminPermissionId,
-    name: super::AdminPermission,
-}
-#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminSettingsView {
-    default_admin_route: AdminSettingText,
-    main_logo: Option<AdminSettingText>,
-    organization_contacts: Option<AdminSettingText>,
-    organization_name: Option<AdminSettingText>,
-    primary_color: Option<AdminSettingText>,
-    site_name: AdminSettingText,
-    support_url: Option<AdminSettingText>,
-    tab_title: Option<AdminSettingText>,
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, utoipa::ToSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum AdminApiErCode {
-    AuthenticationFailed,
-    AuthorizationFailed,
-    CsrfFailed,
-    Conflict,
-    InternalError,
-    RateLimited,
-    ValidationFailed,
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminApiErBody {
-    code: AdminApiErCode,
 }
 #[derive(Debug, newtype::Newtype)]
 #[newtype(as_ref_owned, from_inner)]
@@ -502,7 +414,7 @@ impl axum::response::IntoResponse for AdminApiEr {
                 AdminApiErCode::InternalError,
             ),
         };
-        axum::response::IntoResponse::into_response((status, axum::Json(AdminApiErBody { code })))
+        axum::response::IntoResponse::into_response((status, axum::Json(AdminApiErBody::new(code))))
     }
 }
 impl axum::response::IntoResponse for AxumAdminResponse {
@@ -746,6 +658,10 @@ async fn sign_in(
     let state = auth.state;
     let headers = auth.headers;
     let request = request_json.0;
+    let (contract_login, contract_password) = request.into_parts();
+    let login = super::AdminLogin::try_from(contract_login.into_inner())
+        .map_err(|_error| AdminApiEr::Validation)?;
+    let password = admin_password_from_contract(contract_password);
     let peer_subject = super::StdAdminString::try_from(peer.0.as_ref().ip().to_string())
         .map_err(|_er| AdminApiEr::Validation)?;
     enforce_rate_limit(
@@ -756,12 +672,9 @@ async fn sign_in(
         StdAdminRateLimitWindowSeconds::from(900i32),
     )
     .await?;
-    let pair_subject = super::StdAdminString::try_from(format!(
-        "{}|{}",
-        peer.0.as_ref().ip(),
-        request.login.as_ref()
-    ))
-    .map_err(|_er| AdminApiEr::Validation)?;
+    let pair_subject =
+        super::StdAdminString::try_from(format!("{}|{}", peer.0.as_ref().ip(), login.as_ref()))
+            .map_err(|_er| AdminApiEr::Validation)?;
     enforce_rate_limit(
         state.as_ref(),
         AdminRateLimitScope::SignInIpLogin,
@@ -781,7 +694,7 @@ async fn sign_in(
     let recent_failures = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM admin_login_attempts WHERE login = $1 AND succeeded = FALSE AND attempted_at > NOW() - INTERVAL '15 minutes'",
     )
-    .bind(request.login.as_ref())
+    .bind(login.as_ref())
     .fetch_one(state.as_ref().pool.as_ref())
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
@@ -791,7 +704,7 @@ async fn sign_in(
     let user = sqlx::query_as::<_, (i64, String, bool)>(
         "SELECT id, password_hash, is_banned FROM admin_users WHERE lower(login) = lower($1)",
     )
-    .bind(request.login.as_ref())
+    .bind(login.as_ref())
     .fetch_optional(state.as_ref().pool.as_ref())
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
@@ -800,13 +713,13 @@ async fn sign_in(
             state
                 .as_ref()
                 .password_hasher
-                .hash(request.password)
+                .hash(password)
                 .await
                 .map_err(AdminApiEr::PasswordHash)?,
         );
         record_login_attempt(
             state.as_ref(),
-            &request.login,
+            &login,
             peer,
             super::StdAdminBool::from(false),
         )
@@ -817,7 +730,7 @@ async fn sign_in(
         .as_ref()
         .password_hasher
         .verify(
-            request.password,
+            password,
             super::AdminPasswordHash::new(pg_types_text_misc::StringAsNnTextSecret::from(
                 password_hash,
             )),
@@ -827,7 +740,7 @@ async fn sign_in(
     if !verified.0 || is_banned {
         record_login_attempt(
             state.as_ref(),
-            &request.login,
+            &login,
             peer,
             super::StdAdminBool::from(false),
         )
@@ -836,7 +749,7 @@ async fn sign_in(
     }
     record_login_attempt(
         state.as_ref(),
-        &request.login,
+        &login,
         peer,
         super::StdAdminBool::from(true),
     )
@@ -860,7 +773,7 @@ async fn sign_in(
         SqlxAdminPgConnectionRef::from(&mut *tx),
         AdminAuditSuccessRef {
             action: super::AdminAuditAction::SignIn,
-            login: &request.login,
+            login: &login,
             resource: super::AdminAuditResource::Session,
             resource_id: AdminAuditResourceId::Session(session.session_id()),
             user_id: admin_user_id,
@@ -872,22 +785,22 @@ async fn sign_in(
         .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
     let authenticated =
         load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id()).await?;
+    let authenticated_contract = authenticated_admin_contract(&authenticated)?;
     let mut response = AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-        AdminSignInRes {
-            user: authenticated,
-        },
+        AdminSignInRes::new(authenticated_contract),
     )));
     append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/auth/me", responses((status = 200, body = AuthenticatedAdmin), (status = 401, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
+#[utoipa::path(get, path = "/auth/me", responses((status = 200, body = server_admin_contract::AuthenticatedAdmin), (status = 401, body = AdminApiErBody), (status = 500, body = AdminApiErBody)), security(("admin_cookie" = [])), tag = "admin_auth")]
 async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     authenticate(
         auth.state.as_ref(),
         super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
     )
     .await
+    .and_then(|authenticated| authenticated_admin_contract(&authenticated))
     .map(|authenticated| {
         AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             authenticated,
@@ -974,10 +887,9 @@ async fn refresh(auth: AdminAuthReq, peer: AdminPeerAddr) -> Result<AxumAdminRes
         .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
     let authenticated =
         load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id()).await?;
+    let authenticated_contract = authenticated_admin_contract(&authenticated)?;
     let mut response = AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-        AdminSignInRes {
-            user: authenticated,
-        },
+        AdminSignInRes::new(authenticated_contract),
     )));
     append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
@@ -1223,11 +1135,17 @@ async fn create_user(
     request: AxumAdminJson<AdminCreateUserReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersCreate).await?;
+    let (contract_display_name, contract_login, contract_password) = request.0.into_parts();
+    let display_name = super::AdminDisplayName::try_from(contract_display_name.into_inner())
+        .map_err(|_error| AdminApiEr::Validation)?;
+    let login = super::AdminLogin::try_from(contract_login.into_inner())
+        .map_err(|_error| AdminApiEr::Validation)?;
+    let password = admin_password_from_contract(contract_password);
     let password_hash = auth
         .state
         .as_ref()
         .password_hasher
-        .hash(request.0.password)
+        .hash(password)
         .await
         .map_err(AdminApiEr::PasswordHash)?;
     let mut tx = auth
@@ -1241,8 +1159,8 @@ async fn create_user(
     let user_id = sqlx::query_scalar::<_, i64>(
         "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id",
     )
-    .bind(request.0.login.as_ref())
-    .bind(request.0.display_name.as_ref())
+    .bind(login.as_ref())
+    .bind(display_name.as_ref())
     .bind(password_hash.0.as_ref())
     .fetch_one(&mut *tx)
     .await
@@ -1273,9 +1191,9 @@ async fn create_user(
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
-            axum::Json(AdminCreateUserRes {
-                id: super::AdminUserId::from(user_id),
-            }),
+            axum::Json(AdminCreateUserRes::new(
+                server_admin_contract::AdminUserId::from(user_id),
+            )),
         )),
     ))
 }
@@ -1287,7 +1205,16 @@ async fn update_user(
     request: AxumAdminJson<AdminUpdateUserReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
-    if request.0.login.is_none() && request.0.display_name.is_none() {
+    let (contract_display_name, contract_login) = request.0.into_parts();
+    let display_name = contract_display_name
+        .map(|value| super::AdminDisplayName::try_from(value.into_inner()))
+        .transpose()
+        .map_err(|_error| AdminApiEr::Validation)?;
+    let login = contract_login
+        .map(|value| super::AdminLogin::try_from(value.into_inner()))
+        .transpose()
+        .map_err(|_error| AdminApiEr::Validation)?;
+    if login.is_none() && display_name.is_none() {
         return Err(AdminApiEr::Validation);
     }
     let mut tx = auth
@@ -1302,14 +1229,8 @@ async fn update_user(
         "UPDATE admin_users SET login = COALESCE($2, login), display_name = COALESCE($3, display_name) WHERE id = $1 RETURNING TRUE",
     )
     .bind(path.0.0)
-    .bind(request.0.login.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(
-        request
-            .0
-            .display_name
-            .as_ref()
-            .map(|value| value.as_ref().as_str()),
-    )
+    .bind(login.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
     .fetch_optional(&mut *tx)
     .await
     .map_err(|er| {
@@ -1350,11 +1271,12 @@ async fn set_user_password(
     request: AxumAdminJson<AdminSetUserPasswordReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
+    let password = admin_password_from_contract(request.0.into_password());
     let password_hash = auth
         .state
         .as_ref()
         .password_hasher
-        .hash(request.0.password)
+        .hash(password)
         .await
         .map_err(AdminApiEr::PasswordHash)?;
     let mut tx = auth
@@ -1415,7 +1337,8 @@ async fn set_user_ban(
     request: AxumAdminJson<AdminSetUserBanReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UsersUpdate).await?;
-    if request.0.is_banned.0 && actor.id == path.0 {
+    let is_banned = bool::from(request.0.is_banned());
+    if is_banned && actor.id == path.0 {
         return Err(AdminApiEr::Conflict);
     }
     let mut tx = auth
@@ -1431,7 +1354,7 @@ async fn set_user_ban(
             .execute(&mut *tx)
             .await
             .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
-    if request.0.is_banned.0 {
+    if is_banned {
         let target_is_admin = sqlx::query_scalar::<_, bool>(
             "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = 'admin')",
         )
@@ -1453,13 +1376,13 @@ async fn set_user_ban(
         "UPDATE admin_users SET is_banned = $2 WHERE id = $1 RETURNING TRUE",
     )
     .bind(path.0.0)
-    .bind(request.0.is_banned.0)
+    .bind(is_banned)
     .fetch_optional(&mut *tx)
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
     .ok_or(AdminApiEr::Conflict)
     .map(drop)?;
-    if request.0.is_banned.0 {
+    if is_banned {
         let _access = sqlx::query(
             "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL",
         )
@@ -1564,6 +1487,8 @@ async fn create_role(
     request: AxumAdminJson<AdminCreateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolesCreate).await?;
+    let name = super::AdminRoleName::try_from(request.0.into_name().into_inner())
+        .map_err(|_error| AdminApiEr::Validation)?;
     let mut tx = auth
         .state
         .as_ref()
@@ -1575,7 +1500,7 @@ async fn create_role(
     let role_id = sqlx::query_scalar::<_, i64>(
         "INSERT INTO admin_roles (name, is_system) VALUES ($1, FALSE) RETURNING id",
     )
-    .bind(request.0.name.as_ref())
+    .bind(name.as_ref())
     .fetch_one(&mut *tx)
     .await
     .map_err(|er| {
@@ -1605,9 +1530,9 @@ async fn create_role(
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
-            axum::Json(AdminCreateRoleRes {
-                id: super::AdminRoleId::from(role_id),
-            }),
+            axum::Json(AdminCreateRoleRes::new(
+                server_admin_contract::AdminRoleId::from(role_id),
+            )),
         )),
     ))
 }
@@ -1619,6 +1544,8 @@ async fn update_role(
     request: AxumAdminJson<AdminUpdateRoleReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolesUpdate).await?;
+    let name = super::AdminRoleName::try_from(request.0.into_name().into_inner())
+        .map_err(|_error| AdminApiEr::Validation)?;
     let mut tx = auth
         .state
         .as_ref()
@@ -1631,7 +1558,7 @@ async fn update_role(
         "UPDATE admin_roles SET name = $2 WHERE id = $1 AND is_system = FALSE RETURNING TRUE",
     )
     .bind(path.0.0)
-    .bind(request.0.name.as_ref())
+    .bind(name.as_ref())
     .fetch_optional(&mut *tx)
     .await
     .map_err(|er| {
@@ -1714,21 +1641,18 @@ async fn set_role_permissions(
     request: AxumAdminJson<AdminSetRolePermissionsReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::RolePermissionsUpdate).await?;
-    if request
-        .0
-        .permission_ids
+    let contract_permission_ids = request.0.into_ids();
+    if contract_permission_ids
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != request.0.permission_ids.len()
+        != contract_permission_ids.len()
     {
         return Err(AdminApiEr::Validation);
     }
-    let permission_ids = request
-        .0
-        .permission_ids
+    let permission_ids = contract_permission_ids
         .into_iter()
-        .map(|permission_id| permission_id.0)
+        .map(i64::from)
         .collect::<Vec<i64>>();
     let mut tx = auth
         .state
@@ -1796,21 +1720,18 @@ async fn set_user_roles(
     request: AxumAdminJson<AdminSetUserRolesReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::UserRolesUpdate).await?;
-    if request
-        .0
-        .role_ids
+    let contract_role_ids = request.0.into_ids();
+    if contract_role_ids
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != request.0.role_ids.len()
+        != contract_role_ids.len()
     {
         return Err(AdminApiEr::Validation);
     }
-    let role_ids = request
-        .0
-        .role_ids
+    let role_ids = contract_role_ids
         .into_iter()
-        .map(|role_id| role_id.0)
+        .map(i64::from)
         .collect::<Vec<i64>>();
     let mut tx = auth
         .state
@@ -1965,26 +1886,25 @@ async fn audit_log(
     let views = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminAuditView {
-                action: row.3.parse().map_err(|_er| AdminApiEr::Validation)?,
-                created_at: AdminAuditTimestamp::try_from(row.8)
+            Ok(AdminAuditView::new(
+                server_admin_contract::AdminText::try_from(row.3)
                     .map_err(|_er| AdminApiEr::Validation)?,
-                details: row.7.map(SerdeJsonAdminValue::from),
-                id: super::AdminAuditLogId::from(row.0),
-                resource: row.4.parse().map_err(|_er| AdminApiEr::Validation)?,
-                resource_id: row
-                    .5
-                    .map(super::StdAdminString::try_from)
+                AdminAuditTimestamp::try_from(row.8).map_err(|_er| AdminApiEr::Validation)?,
+                row.7.map(AdminAuditDetails::from),
+                server_admin_contract::AdminAuditLogId::from(row.0),
+                server_admin_contract::AdminText::try_from(row.4)
+                    .map_err(|_er| AdminApiEr::Validation)?,
+                row.5
+                    .map(server_admin_contract::AdminText::try_from)
                     .transpose()
                     .map_err(|_er| AdminApiEr::Validation)?,
-                succeeded: super::StdAdminBool::from(row.6),
-                user_id: row.1.map(super::AdminUserId::from),
-                user_login: row
-                    .2
-                    .map(super::AdminLogin::try_from)
+                server_admin_contract::AdminBool::from(row.6),
+                row.1.map(server_admin_contract::AdminUserId::from),
+                row.2
+                    .map(server_admin_contract::AdminLogin::try_from)
                     .transpose()
                     .map_err(|_er| AdminApiEr::Validation)?,
-            })
+            ))
         })
         .collect::<Result<Vec<AdminAuditView>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
@@ -1998,26 +1918,32 @@ async fn update_settings(
     request: AxumAdminJson<AdminUpdateSettingsReq>,
 ) -> Result<AxumAdminResponse, AdminApiEr> {
     let actor = authorize_custom(&auth, super::AdminPermission::SystemSettingsUpdate).await?;
+    let (
+        default_admin_route,
+        main_logo,
+        organization_contacts,
+        organization_name,
+        primary_color,
+        site_name,
+        support_url,
+        tab_title,
+    ) = request.0.into_parts();
     let has_field = [
-        request.0.default_admin_route.is_some(),
-        request.0.main_logo.is_some(),
-        request.0.organization_contacts.is_some(),
-        request.0.organization_name.is_some(),
-        request.0.primary_color.is_some(),
-        request.0.site_name.is_some(),
-        request.0.support_url.is_some(),
-        request.0.tab_title.is_some(),
+        default_admin_route.is_some(),
+        main_logo.is_some(),
+        organization_contacts.is_some(),
+        organization_name.is_some(),
+        primary_color.is_some(),
+        site_name.is_some(),
+        support_url.is_some(),
+        tab_title.is_some(),
     ]
     .into_iter()
     .any(std::convert::identity);
-    let site_name_is_valid = request
-        .0
-        .site_name
+    let site_name_is_valid = site_name
         .as_ref()
         .is_none_or(|value| !value.as_ref().trim().is_empty());
-    let route_is_valid = request
-        .0
-        .default_admin_route
+    let route_is_valid = default_admin_route
         .as_ref()
         .is_none_or(|value| value.as_ref().starts_with("/admin"));
     if !has_field || !site_name_is_valid || !route_is_valid {
@@ -2034,14 +1960,14 @@ async fn update_settings(
     sqlx::query_scalar::<_, bool>(
         "UPDATE admin_system_settings SET site_name = COALESCE($1, site_name), tab_title = COALESCE($2, tab_title), main_logo = COALESCE($3, main_logo), primary_color = COALESCE($4, primary_color), default_admin_route = COALESCE($5, default_admin_route), organization_name = COALESCE($6, organization_name), organization_contacts = COALESCE($7, organization_contacts), support_url = COALESCE($8, support_url) WHERE id = 1 RETURNING TRUE",
     )
-    .bind(request.0.site_name.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.tab_title.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.main_logo.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.primary_color.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.default_admin_route.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.organization_name.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.organization_contacts.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(request.0.support_url.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(site_name.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(tab_title.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(main_logo.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(primary_color.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(default_admin_route.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(organization_name.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(organization_contacts.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(support_url.as_ref().map(|value| value.as_ref().as_str()))
     .fetch_optional(&mut *tx)
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
@@ -2084,13 +2010,14 @@ async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr>
     let users = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminUserSummary {
-                display_name: super::AdminDisplayName::try_from(row.2)
+            Ok(AdminUserSummary::new(
+                server_admin_contract::AdminDisplayName::try_from(row.2)
                     .map_err(|_er| AdminApiEr::Validation)?,
-                id: super::AdminUserId::from(row.0),
-                is_banned: super::StdAdminBool::from(row.3),
-                login: super::AdminLogin::try_from(row.1).map_err(|_er| AdminApiEr::Validation)?,
-            })
+                server_admin_contract::AdminUserId::from(row.0),
+                server_admin_contract::AdminBool::from(row.3),
+                server_admin_contract::AdminLogin::try_from(row.1)
+                    .map_err(|_er| AdminApiEr::Validation)?,
+            ))
         })
         .collect::<Result<Vec<AdminUserSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
@@ -2116,12 +2043,12 @@ async fn list_roles(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr>
     let roles = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminRoleSummary {
-                id: super::AdminRoleId::from(row.0),
-                is_system: super::StdAdminBool::from(row.2),
-                name: super::AdminRoleName::try_from(row.1)
+            Ok(AdminRoleSummary::new(
+                server_admin_contract::AdminRoleId::from(row.0),
+                server_admin_contract::AdminBool::from(row.2),
+                server_admin_contract::AdminRoleName::try_from(row.1)
                     .map_err(|_er| AdminApiEr::Validation)?,
-            })
+            ))
         })
         .collect::<Result<Vec<AdminRoleSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
@@ -2146,11 +2073,11 @@ async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, Admin
     let permissions = rows
         .into_iter()
         .map(|row| {
-            Ok(AdminPermissionSummary {
-                id: super::AdminPermissionId::from(row.0),
-                name: super::AdminPermission::try_from(row.1.as_str())
+            Ok(AdminPermissionSummary::new(
+                server_admin_contract::AdminPermissionId::from(row.0),
+                server_admin_contract::AdminPermissionValue::try_from(row.1)
                     .map_err(|_er| AdminApiEr::Validation)?,
-            })
+            ))
         })
         .collect::<Result<Vec<AdminPermissionSummary>, AdminApiEr>>()?;
     Ok(AxumAdminResponse(
@@ -2185,41 +2112,34 @@ async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
     .fetch_one(auth.state.as_ref().pool.as_ref())
     .await
     .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
-    let view = AdminSettingsView {
-        default_admin_route: AdminSettingText::try_from(row.4)
-            .map_err(|_er| AdminApiEr::Validation)?,
-        main_logo: row
-            .2
+    let view = AdminSettingsView::new(
+        AdminSettingText::try_from(row.4).map_err(|_er| AdminApiEr::Validation)?,
+        row.2
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        organization_contacts: row
-            .6
+        row.6
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        organization_name: row
-            .5
+        row.5
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        primary_color: row
-            .3
+        row.3
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        site_name: AdminSettingText::try_from(row.0).map_err(|_er| AdminApiEr::Validation)?,
-        support_url: row
-            .7
+        AdminSettingText::try_from(row.0).map_err(|_er| AdminApiEr::Validation)?,
+        row.7
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-        tab_title: row
-            .1
+        row.1
             .map(AdminSettingText::try_from)
             .transpose()
             .map_err(|_er| AdminApiEr::Validation)?,
-    };
+    );
     Ok(AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(view)),
     ))
@@ -2239,7 +2159,7 @@ impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
 #[derive(utoipa::OpenApi)]
 #[openapi(
     paths(sign_in, refresh, sign_out, me, sessions, revoke_session, revoke_all_sessions, list_users, create_user, update_user, set_user_password, set_user_ban, delete_user, set_user_roles, list_roles, create_role, update_role, delete_role, set_role_permissions, list_permissions, audit_log, settings, update_settings),
-    components(schemas(AdminSignInReq, AdminSignInRes, AuthenticatedAdmin, AdminSessionView, AdminApiErBody, AdminApiErCode, AdminCreateUserReq, AdminCreateUserRes, AdminUpdateUserReq, AdminSetUserPasswordReq, AdminSetUserBanReq, AdminSetUserRolesReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminUpdateRoleReq, AdminSetRolePermissionsReq, AdminAuditView, AdminAuditTimestamp, SerdeJsonAdminValue, AdminUpdateSettingsReq, AdminSettingText, AdminUserSummary, AdminRoleSummary, AdminPermissionSummary, AdminSettingsView, super::AdminPassword, super::AdminLogin, super::AdminDisplayName, super::AdminRoleName, super::AdminUserId, super::AdminRoleId, super::AdminPermissionId, super::AdminPermission, super::AdminSessionId, super::AdminAuditLogId, super::AdminAuditAction, super::AdminAuditResource)),
+    components(schemas(AdminSignInReq, AdminSignInRes, server_admin_contract::AuthenticatedAdmin, AdminSessionView, AdminApiErBody, AdminApiErCode, AdminCreateUserReq, AdminCreateUserRes, AdminUpdateUserReq, AdminSetUserPasswordReq, AdminSetUserBanReq, AdminSetUserRolesReq, AdminCreateRoleReq, AdminCreateRoleRes, AdminUpdateRoleReq, AdminSetRolePermissionsReq, AdminAuditView, AdminAuditTimestamp, AdminAuditDetails, AdminUpdateSettingsReq, AdminSettingText, AdminUserSummary, AdminRoleSummary, AdminPermissionSummary, AdminSettingsView, super::AdminPassword, super::AdminLogin, super::AdminDisplayName, super::AdminRoleName, super::AdminUserId, super::AdminRoleId, super::AdminPermissionId, super::AdminPermission, super::AdminSessionId, super::AdminAuditLogId, super::AdminAuditAction, super::AdminAuditResource)),
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"))
 )]
 struct AdminAuthOpenApi;

@@ -24,6 +24,7 @@ wh_flts = { workspace = true }
 git_info = { workspace = true }
 gen_pg_tbl = { workspace = true }
 futures = { workspace = true }
+frontend_contract = { workspace = true }
 loc_lib = { workspace = true }
 loc_macros = { workspace = true }
 metrics = { workspace = true }

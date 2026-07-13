@@ -87,18 +87,20 @@ mod tests {
     }
     #[test]
     #[allow(clippy::needless_for_each)] // workspace policy prohibits for loops in test inventories
-    fn leptos_client_contains_operational_api_contracts() {
+    fn leptos_client_uses_typed_operational_api_contracts() {
         let script = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app.rs"))
             .expect("fe89c42a");
         [
-            "/api/v1/admin/users",
-            "/api/v1/admin/roles",
-            "/api/v1/admin/permissions",
-            "/api/v1/admin/audit-log",
-            "/api/v1/admin/system-settings",
-            "/metrics",
-            "/auth/sign-in",
-            "/auth/sign-out",
+            "AdminRoute::Users",
+            "AdminRoute::Roles",
+            "AdminRoute::Permissions",
+            "AdminRoute::Audit",
+            "AdminRoute::Settings",
+            "AdminRoute::Metrics",
+            "AdminRoute::SignIn",
+            "AdminRoute::SignOut",
+            "TransportRequest::new",
+            "RequestCredentials::Include",
         ]
         .into_iter()
         .for_each(|contract| {
@@ -108,5 +110,7 @@ mod tests {
             );
         });
         assert!(script.contains("X-CSRF-Token"));
+        assert!(!script.contains("/api/v1/admin/users"));
+        assert!(!script.contains("serde_json::json!"));
     }
 }

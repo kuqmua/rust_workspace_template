@@ -5006,6 +5006,144 @@ pub fn gen_pg_types(
         } else {
             pg_crud_macros_cmn::gen_impl_pg_type_not_pk_for_ident_ts(&import, &ident)
         };
+        let frontend_nullability_ts = match &is_nl {
+            pg_crud_macros_cmn::IsNl::False => quote::quote! {frontend_contract::Nullability::NonNullable},
+            pg_crud_macros_cmn::IsNl::True => quote::quote! {frontend_contract::Nullability::Nullable},
+        };
+        let (frontend_input_kind_ts, frontend_value_format_ts, frontend_step_ts, frontend_example_ts) = match pg_type_dsc.wire_kind {
+            WireKind::Bool => (quote::quote! {frontend_contract::InputKind::Checkbox}, quote::quote! {frontend_contract::ValueFormat::Bool}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Boolean}),
+            WireKind::Bytes => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Bytes}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Date => (quote::quote! {frontend_contract::InputKind::Date}, quote::quote! {frontend_contract::ValueFormat::Date}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Date}),
+            WireKind::Float32 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Float32}, quote::quote! {frontend_contract::InputStep::Decimal}, quote::quote! {frontend_contract::ValueExample::Decimal}),
+            WireKind::Float64 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Float64}, quote::quote! {frontend_contract::InputStep::Decimal}, quote::quote! {frontend_contract::ValueExample::Decimal}),
+            WireKind::Inet => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Inet}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Int16 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int16}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Int32 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int32}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Int64 => (quote::quote! {frontend_contract::InputKind::Number}, quote::quote! {frontend_contract::ValueFormat::Int64}, quote::quote! {frontend_contract::InputStep::Integer}, quote::quote! {frontend_contract::ValueExample::Integer}),
+            WireKind::Interval => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Interval}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::Mac => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Mac}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Range}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::String => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Text}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
+            WireKind::TimeChrono | WireKind::TimeTime => (quote::quote! {frontend_contract::InputKind::Time}, quote::quote! {frontend_contract::ValueFormat::Time}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Time}),
+            WireKind::Timestamp => (quote::quote! {frontend_contract::InputKind::DateTime}, quote::quote! {frontend_contract::ValueFormat::Timestamp}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::DateTime}),
+            WireKind::TimestampTz => (quote::quote! {frontend_contract::InputKind::DateTime}, quote::quote! {frontend_contract::ValueFormat::TimestampTz}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::DateTime}),
+            WireKind::Uuid => (quote::quote! {frontend_contract::InputKind::Uuid}, quote::quote! {frontend_contract::ValueFormat::Uuid}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Uuid}),
+        };
+        let frontend_bounds_ts = match pg_type_dsc.wire_kind {
+            WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MAX))},
+            WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I32_MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I32_MAX))},
+            WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::MAX))},
+            WireKind::Bool | WireKind::Bytes | WireKind::Date | WireKind::Float32 | WireKind::Float64 | WireKind::Inet | WireKind::Interval | WireKind::Mac | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz | WireKind::String | WireKind::TimeChrono | WireKind::TimeTime | WireKind::Timestamp | WireKind::TimestampTz | WireKind::Uuid => proc_macro2::TokenStream::new(),
+        };
+        let impl_frontend_type_contract_ts = quote::quote! {
+            impl frontend_contract::HasTypeContract for #ident {
+                const TYPE_CONTRACT: frontend_contract::TypeContract = frontend_contract::TypeContract::new(#frontend_input_kind_ts, #frontend_value_format_ts, #frontend_nullability_ts)
+                    .with_step(#frontend_step_ts)
+                    .with_example(#frontend_example_ts)
+                    #frontend_bounds_ts;
+            }
+        };
+        let frontend_time_json_ts = |time_value_ts: &dyn quote::ToTokens, minute_name: &str, second_name: &str, microsecond_name: &str| {
+            quote::quote! {{
+                let mut parts = #time_value_ts.split(':');
+                let hour = parts.next().ok_or_else(|| frontend_contract::FormValueEr::from("time hour is missing".to_owned()))?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                let minute = parts.next().ok_or_else(|| frontend_contract::FormValueEr::from("time minute is missing".to_owned()))?.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                let second_and_fraction = parts.next().unwrap_or("0");
+                if parts.next().is_some() {
+                    return Err(frontend_contract::FormValueEr::from("time contains too many components".to_owned()));
+                }
+                let (second_text, fraction) = second_and_fraction.split_once('.').map_or((second_and_fraction, ""), |parts| parts);
+                let second = second_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                if fraction.len() > 6usize || !fraction.bytes().all(|byte| byte.is_ascii_digit()) {
+                    return Err(frontend_contract::FormValueEr::from("time fraction must contain at most six digits".to_owned()));
+                }
+                let mut microsecond_text = fraction.to_owned();
+                microsecond_text.extend(std::iter::repeat_n('0', 6usize.saturating_sub(microsecond_text.len())));
+                let microsecond = microsecond_text.parse::<u32>().map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                serde_json::json!({"hour": hour, #minute_name: minute, #second_name: second, #microsecond_name: microsecond})
+            }}
+        };
+        let frontend_parse_json_value_ts = match pg_type_dsc.wire_kind {
+            WireKind::Date | WireKind::Inet | WireKind::Mac | WireKind::String | WireKind::Uuid => quote::quote! {serde_json::Value::String(value.as_ref().to_owned())},
+            WireKind::TimeChrono => frontend_time_json_ts(&quote::quote! {value.as_ref()}, "min", "sec", "micro"),
+            WireKind::TimeTime => frontend_time_json_ts(&quote::quote! {value.as_ref()}, "minute", "second", "microsecond"),
+            WireKind::Timestamp | WireKind::TimestampTz => {
+                let date_name = match pg_type_dsc.wire_kind {
+                    WireKind::Timestamp => "date",
+                    WireKind::TimestampTz => "date_naive",
+                    _ => unreachable!(),
+                };
+                let time_json_ts = frontend_time_json_ts(&quote::quote! {time}, "min", "sec", "micro");
+                quote::quote! {{
+                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueEr::from("timestamp must contain `T` between date and time".to_owned()))?;
+                    let time = #time_json_ts;
+                    serde_json::json!({#date_name: date, "time": time})
+                }}
+            },
+            WireKind::Bool | WireKind::Bytes | WireKind::Float32 | WireKind::Float64 | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?},
+        };
+        let frontend_empty_value_ts = match &is_nl {
+            pg_crud_macros_cmn::IsNl::False => quote::quote! {#frontend_parse_json_value_ts},
+            pg_crud_macros_cmn::IsNl::True => quote::quote! {
+                if value.as_ref().is_empty() {
+                    serde_json::Value::Null
+                } else {
+                    #frontend_parse_json_value_ts
+                }
+            },
+        };
+        let frontend_format_time_ts = |value_ts: &dyn quote::ToTokens, minute_name: &str, second_name: &str, microsecond_name: &str| quote::quote! {{
+            let object = #value_ts.as_object().ok_or_else(|| frontend_contract::FormValueEr::from("time wire value must be an object".to_owned()))?;
+            let field = |name: &str| object.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| frontend_contract::FormValueEr::from(format!("time wire field `{name}` is missing")));
+            let hour = field("hour")?;
+            let minute = field(#minute_name)?;
+            let second = field(#second_name)?;
+            let microsecond = field(#microsecond_name)?;
+            let fraction = format!("{microsecond:06}").trim_end_matches('0').to_owned();
+            if fraction.is_empty() {
+                format!("{hour:02}:{minute:02}:{second:02}")
+            } else {
+                format!("{hour:02}:{minute:02}:{second:02}.{fraction}")
+            }
+        }};
+        let frontend_format_value_ts = match pg_type_dsc.wire_kind {
+            WireKind::TimeChrono => frontend_format_time_ts(&quote::quote! {value}, "min", "sec", "micro"),
+            WireKind::TimeTime => frontend_format_time_ts(&quote::quote! {value}, "minute", "second", "microsecond"),
+            WireKind::Timestamp | WireKind::TimestampTz => {
+                let date_name = match pg_type_dsc.wire_kind {
+                    WireKind::Timestamp => "date",
+                    WireKind::TimestampTz => "date_naive",
+                    _ => unreachable!(),
+                };
+                let time_ts = frontend_format_time_ts(&quote::quote! {time}, "min", "sec", "micro");
+                quote::quote! {{
+                    let object = value.as_object().ok_or_else(|| frontend_contract::FormValueEr::from("timestamp wire value must be an object".to_owned()))?;
+                    let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueEr::from("timestamp date wire field is missing".to_owned()))?;
+                    let time = object.get("time").ok_or_else(|| frontend_contract::FormValueEr::from("timestamp time wire field is missing".to_owned()))?;
+                    let time = #time_ts;
+                    format!("{date}T{time}")
+                }}
+            },
+            WireKind::Bool | WireKind::Bytes | WireKind::Date | WireKind::Float32 | WireKind::Float64 | WireKind::Inet | WireKind::Int16 | WireKind::Int32 | WireKind::Int64 | WireKind::Interval | WireKind::Mac | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz | WireKind::String | WireKind::Uuid => quote::quote! {
+                match value {
+                    serde_json::Value::Null => String::new(),
+                    serde_json::Value::String(value) => value,
+                    value => value.to_string(),
+                }
+            },
+        };
+        let impl_frontend_form_value_contract_ts = quote::quote! {
+            impl frontend_contract::FormValueContract for #ident_orgn_ucc {
+                fn format_form_value(&self) -> Result<frontend_contract::FormValue, frontend_contract::FormValueEr> {
+                    let value = serde_json::to_value(self).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))?;
+                    Ok(frontend_contract::FormValue::from(#frontend_format_value_ts))
+                }
+                fn parse_form_value(value: frontend_contract::FormValueRef<'_>) -> Result<Self, frontend_contract::FormValueEr> {
+                    let json_value = #frontend_empty_value_ts;
+                    serde_json::from_value(json_value).map_err(|error| frontend_contract::FormValueEr::from(error.to_string()))
+                }
+            }
+        };
         let generated = quote::quote! {
             #ident_ts
             #ident_orgn_ts
@@ -5022,6 +5160,8 @@ pub fn gen_pg_types(
             #impl_pg_type_test_cases_for_ident_ts
             #mb_impl_pg_type_pk_for_ident_stdrt_nn_if_can_be_pk_ts
             #mb_impl_pg_type_not_pk_for_ident_ts
+            #impl_frontend_type_contract_ts
+            #impl_frontend_form_value_contract_ts
         };
         (
             {

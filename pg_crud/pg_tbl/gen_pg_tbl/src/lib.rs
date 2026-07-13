@@ -131,7 +131,7 @@ pub fn cmn_logic(
 ) -> proc_macro::TokenStream {
     item
 }
-#[proc_macro_derive(GenPgTbl, attributes(gen_pg_tbl_pk))]
+#[proc_macro_derive(GenPgTbl, attributes(gen_pg_tbl_frontend, gen_pg_tbl_pk))]
 pub fn gen_pg_tbl(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input_ts = input.into();
     gen_pg_tbl_src::gen_pg_tbl(macros_helpers::ts_writer::ProcMacro2TsRef::from(&input_ts))

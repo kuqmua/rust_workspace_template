@@ -410,37 +410,38 @@ async fn run_server() -> Result<(), RunServerEr> {
     let request_timeout =
         server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
             .map_err(|er| RunServerEr::RuntimeTimeout(ServerRuntimeRequestTimeoutEr(er)))?;
+    let rate_limited_api_routes = api_routes
+        .0
+        .layer(tower_governor::GovernorLayer::new(governor_conf));
     let router = server_runtime::RequestIdLayer.apply(
         server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
             .apply(
                 server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
                     server_runtime::AxumRouter::from(
                         axum::Router::new()
-                            .nest("/api/v1", api_routes.0)
+                            .nest("/api/v1", rate_limited_api_routes)
                             .merge(axum::Router::from(if swagger_enabled {
                                 server_admin_frontend::routes()
                             } else {
                                 server_admin_frontend::routes_without_swagger()
                             }))
                             .layer(
-                                tower::ServiceBuilder::new()
-                                    .layer(
-                                        tower_http::cors::CorsLayer::new()
-                                            .allow_origin(cors_origins.0)
-                                            .allow_credentials(true)
-                                            .allow_headers([
-                                                axum::http::header::CONTENT_TYPE,
-                                                axum::http::HeaderName::from_static("x-csrf-token"),
-                                            ])
-                                            .allow_methods([
-                                                axum::http::Method::GET,
-                                                axum::http::Method::POST,
-                                                axum::http::Method::PUT,
-                                                axum::http::Method::PATCH,
-                                                axum::http::Method::DELETE,
-                                            ]),
-                                    )
-                                    .layer(tower_governor::GovernorLayer::new(governor_conf)),
+                                tower::ServiceBuilder::new().layer(
+                                    tower_http::cors::CorsLayer::new()
+                                        .allow_origin(cors_origins.0)
+                                        .allow_credentials(true)
+                                        .allow_headers([
+                                            axum::http::header::CONTENT_TYPE,
+                                            axum::http::HeaderName::from_static("x-csrf-token"),
+                                        ])
+                                        .allow_methods([
+                                            axum::http::Method::GET,
+                                            axum::http::Method::POST,
+                                            axum::http::Method::PUT,
+                                            axum::http::Method::PATCH,
+                                            axum::http::Method::DELETE,
+                                        ]),
+                                ),
                             ),
                     ),
                 ),

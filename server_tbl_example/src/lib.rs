@@ -29,9 +29,13 @@
 #[gen_pg_tbl::cmn_logic{}]
 pub struct TblExample {
     #[gen_pg_tbl_pk]
+    #[gen_pg_tbl_frontend(label = "Identifier", order = 3, sortable)]
     pub pk_col: pg_types_text_misc::SqlxTypesUuidUuidAsNnUuidV4InitByPg,
+    #[gen_pg_tbl_frontend(label = "Small number", order = 0, sortable)]
     pub col_0: pg_types_numeric::I16AsNnInt2,
+    #[gen_pg_tbl_frontend(filterable, order = 1, placeholder = "Optional number")]
     pub col_1: pg_types_numeric::OptI16AsNlInt2,
+    #[gen_pg_tbl_frontend(hidden, order = 2)]
     pub col_2: pg_types_numeric::I32AsNnInt4,
 }
 #[cfg(test)]
@@ -42,6 +46,30 @@ pub struct TblExample {
     clippy::shadow_unrelated
 )] // compact recursive JSON assertions keep the generated document structure visible
 mod tests {
+    #[derive(Clone, Copy, Debug)]
+    struct TestTransport;
+    impl frontend_contract::Transport for TestTransport {
+        fn send(
+            &self,
+            _request: frontend_contract::TransportRequest,
+        ) -> std::pin::Pin<
+            Box<
+                dyn Future<
+                        Output = Result<
+                            frontend_contract::TransportResponse,
+                            frontend_contract::TransportEr,
+                        >,
+                    > + '_,
+            >,
+        > {
+            Box::pin(async {
+                Ok(frontend_contract::TransportResponse::new(
+                    frontend_contract::TransportBody::from(Vec::new()),
+                    200u16,
+                ))
+            })
+        }
+    }
     fn collect_component_refs(
         value: &serde_json::Value,
         refs: &mut std::collections::BTreeSet<String>,
@@ -191,5 +219,118 @@ mod tests {
                     super::TblExampleAuthenticationRequirement::Permission(expected)
                 );
             });
+    }
+    #[test]
+    fn generated_frontend_fields_follow_table_and_crud_contract() {
+        let fields = super::TblExample::frontend_fields();
+        assert_eq!(fields.as_ref().len(), 4usize);
+        let first = fields.as_ref().first().expect("fead1583");
+        assert_eq!(first.name().as_ref(), "col_0");
+        assert_eq!(first.label().as_ref(), "Small number");
+        assert_eq!(
+            first.sortable(),
+            frontend_contract::FieldCapability::Enabled
+        );
+        let pk = fields.as_ref().last().expect("0a4fe013");
+        assert_eq!(pk.name().as_ref(), "pk_col");
+        assert_eq!(pk.label().as_ref(), "Identifier");
+        assert_eq!(pk.primary_key(), frontend_contract::PrimaryKeyKind::Primary);
+        assert_eq!(pk.creatable(), frontend_contract::FieldCapability::Disabled);
+        assert_eq!(pk.readable(), frontend_contract::FieldCapability::Enabled);
+        let nullable = fields.as_ref().get(1usize).expect("0cb93d7f");
+        assert_eq!(nullable.name().as_ref(), "col_1");
+        assert_eq!(
+            nullable.type_contract().nullability(),
+            frontend_contract::Nullability::Nullable
+        );
+        assert_eq!(
+            nullable.updatable(),
+            frontend_contract::FieldCapability::Enabled
+        );
+        assert_eq!(
+            nullable.filterable(),
+            frontend_contract::FieldCapability::Enabled
+        );
+        assert_eq!(
+            nullable.placeholder(),
+            frontend_contract::FieldPlaceholder::Value(frontend_contract::ContractStr::from(
+                "Optional number"
+            ))
+        );
+        let hidden = fields.as_ref().get(2usize).expect("0685ff24");
+        assert_eq!(
+            hidden.visibility(),
+            frontend_contract::FieldVisibility::Hidden
+        );
+    }
+    #[test]
+    fn generated_frontend_routes_share_operation_model() {
+        let routes = super::TblExampleRouteContract::frontend_contracts();
+        assert_eq!(
+            routes.as_ref().len(),
+            super::TblExampleRouteContract::ALL.len()
+        );
+        assert!(routes.as_ref().iter().all(|route| matches!(
+            route.authentication(),
+            frontend_contract::AuthenticationRequirement::Permission(_)
+        )));
+        assert!(
+            routes
+                .as_ref()
+                .iter()
+                .any(|route| route.mutation() == frontend_contract::MutationKind::Mutating)
+        );
+        assert!(
+            routes
+                .as_ref()
+                .iter()
+                .any(|route| route.mutation() == frontend_contract::MutationKind::ReadOnly)
+        );
+    }
+    #[test]
+    fn generated_frontend_page_uses_routes_fields_and_actions() {
+        let page = super::TblExample::frontend_page();
+        assert_eq!(page.path().as_ref(), "/tbl_example");
+        assert_eq!(page.title().as_ref(), "Tbl Example");
+        assert_eq!(page.fields().as_ref().len(), 4usize);
+        assert_eq!(
+            page.actions().as_ref().len(),
+            super::TblExampleRouteContract::ALL.len()
+        );
+        assert!(page.actions().as_ref().iter().any(|action| {
+            action.operation() == frontend_contract::OperationKind::DeleteOne
+                && action.confirmation() == frontend_contract::ConfirmationRequirement::Required
+        }));
+    }
+    #[test]
+    fn generated_frontend_forms_parse_typed_payloads_and_report_field() {
+        let create = super::TblExampleCr::try_from(super::TblExampleCreateForm {
+            col_0: frontend_contract::FormValue::from("12".to_owned()),
+            col_1: frontend_contract::FormValue::from(String::new()),
+            col_2: frontend_contract::FormValue::from("34".to_owned()),
+        });
+        let _create = create.expect("af5a7ec4");
+        let error = super::TblExampleCr::try_from(super::TblExampleCreateForm {
+            col_0: frontend_contract::FormValue::from("not-a-number".to_owned()),
+            col_1: frontend_contract::FormValue::from(String::new()),
+            col_2: frontend_contract::FormValue::from("34".to_owned()),
+        })
+        .expect_err("c563853a");
+        assert_eq!(error.field().as_ref(), "col_0");
+        let update = super::TblExampleUpd::try_from(super::TblExampleUpdateForm {
+            pk_col: frontend_contract::FormValue::from(
+                "550e8400-e29b-41d4-a716-446655440000".to_owned(),
+            ),
+            col_0: Some(frontend_contract::FormValue::from("13".to_owned())),
+            col_1: None,
+            col_2: None,
+        });
+        let _update = update.expect("c5d0bf17");
+    }
+    #[test]
+    fn generated_frontend_client_accepts_transport_adapter() {
+        let client = super::TblExampleFrontendApiClient::new(TestTransport);
+        let cloned = client.clone();
+        assert_eq!(format!("{client:?}"), format!("{cloned:?}"));
     }
 }

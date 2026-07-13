@@ -20,6 +20,7 @@ argon2 = { workspace = true }
 axum = { workspace = true }
 config_lib = { workspace = true }
 futures = { workspace = true }
+frontend_contract = { workspace = true }
 gen_pg_tbl = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
@@ -40,6 +41,7 @@ route_validators = { workspace = true }
 secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+server_admin_contract = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
 thiserror = { workspace = true }
