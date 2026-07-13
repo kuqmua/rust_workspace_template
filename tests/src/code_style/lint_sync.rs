@@ -12,6 +12,7 @@ fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lint
 fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() {
     let exceptions = [
         "fuzzy_provenance_casts",
+        "implicit_provenance_casts",
         "lossy_provenance_casts",
         "multiple_supertrait_upcastable",
         "must_not_suspend",
