@@ -1331,7 +1331,7 @@ fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPani
     if !duplicates.is_empty() {
         all_ers.push(format!("duplicate UUIDs found: {duplicates:?}"));
     }
-    assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}",);
+    assert!(all_ers.is_empty(), "6062a9e9 {all_ers:#?}");
 }
 #[allow(clippy::single_call_fn)] // shared lint-compare wrapper keeps clippy/rust lint test flow aligned and reduces duplicate wiring
 fn assert_workspace_lints_match(

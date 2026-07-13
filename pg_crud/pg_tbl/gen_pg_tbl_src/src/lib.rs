@@ -3310,7 +3310,7 @@ pub fn gen_pg_tbl(
                         ));
                     };
                     let el_vec_type_with_serde_ts =
-                        match format!("{}{}", quote::quote! {#first_arg}, with_serde_ucc,)
+                        match format!("{}{}", quote::quote! {#first_arg}, with_serde_ucc)
                             .parse::<proc_macro2::TokenStream>()
                         {
                             Ok(parsed_ts) => parsed_ts,
