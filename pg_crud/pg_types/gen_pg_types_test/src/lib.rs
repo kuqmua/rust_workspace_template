@@ -1,6 +1,10 @@
 #[cfg(test)]
 #[allow(clippy::default_numeric_fallback, clippy::indexing_slicing)] // literal JSON assertions mirror the exact serialized OpenAPI wire values
 mod tests {
+    #[derive(Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    struct JsonContractValue {
+        value: i32,
+    }
     fn assert_schema_example_deserializes<T>()
     where
         T: for<'schema_lt> utoipa::ToSchema<'schema_lt>
@@ -17,6 +21,13 @@ mod tests {
     where
         T: From<Inner> + AsRef<Inner> + std::borrow::Borrow<Inner>,
     {
+    }
+    #[test]
+    fn shared_json_contract_helper_round_trips_pg_type_fixture() {
+        macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
+            macros_helpers::json_contract::JsonFixtureRef::from(r#"{"value":7}"#),
+        )
+        .expect("13df9134");
     }
     #[test]
     fn clippy() {

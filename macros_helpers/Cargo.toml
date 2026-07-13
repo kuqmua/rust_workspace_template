@@ -16,6 +16,7 @@ quote = { workspace = true }
 syn = { workspace = true }
 strum_macros = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true }
 token_patterns = { workspace = true }
 gen_quotes = { workspace = true }
@@ -25,5 +26,7 @@ naming_macros = { workspace = true }
 newtype = { workspace = true }
 gen_derive_ts_builder = { workspace = true }
 optml = { workspace = true }
+[features]
+test-utils = ["dep:serde_json"]
 [lints]
 workspace = true

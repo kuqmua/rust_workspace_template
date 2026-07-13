@@ -1,24 +1,39 @@
 const CARGO_FMT_CHECK_ARGS: [&str; 2] = ["fmt", "--check"];
-const CARGO_CLIPPY_ARGS: [&str; 6] = [
+const CARGO_CLIPPY_ARGS: [&str; 7] = [
     "clippy",
+    "--locked",
     "--all-targets",
     "--all-features",
     "--",
     "-D",
     "warnings",
 ];
-const CARGO_TEST_STYLE_ARGS: [&str; 4] = ["test", "-p", "tests", "--lib"];
-const CARGO_TEST_GEN_PG_TBL_ARGS: [&str; 5] =
-    ["test", "-p", "gen_pg_tbl_test", "--features", "test-utils"];
-const CARGO_TEST_GEN_PG_TYPES_ARGS: [&str; 5] = [
+const CARGO_TEST_STYLE_ARGS: [&str; 5] = ["test", "--locked", "-p", "tests", "--lib"];
+const CARGO_TEST_GEN_PG_TBL_ARGS: [&str; 6] = [
     "test",
+    "--locked",
+    "-p",
+    "gen_pg_tbl_test",
+    "--features",
+    "test-utils",
+];
+const CARGO_TEST_GEN_PG_TYPES_ARGS: [&str; 6] = [
+    "test",
+    "--locked",
     "-p",
     "gen_pg_types_test",
     "--features",
     "test-utils",
 ];
-const CARGO_TEST_GEN_WH_FLTS_ARGS: [&str; 5] =
-    ["test", "-p", "gen_wh_flts_test", "--features", "test-utils"];
+const CARGO_TEST_GEN_WH_FLTS_ARGS: [&str; 6] = [
+    "test",
+    "--locked",
+    "-p",
+    "gen_wh_flts_test",
+    "--features",
+    "test-utils",
+];
+const CARGO_TEST_DATABASE_ARGS: [&str; 4] = ["test", "--locked", "--features", "test-utils"];
 const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
 const MEASURE_REPEAT_COUNT: usize = 1000;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
@@ -555,6 +570,21 @@ fn main() {
     };
     let result = match mode.as_deref() {
         None | Some("static") => run_commands(&STATIC_COMMANDS),
+        Some("database") => match std::env::var("DATABASE_URL") {
+            Ok(database_url) => match macros_helpers::test_database::validate_test_database_url(
+                macros_helpers::test_database::UrlRef::from(database_url.as_str()),
+            ) {
+                Ok(_target) => run_commands(&[("cargo", &CARGO_TEST_DATABASE_ARGS)]),
+                Err(error) => {
+                    eprintln!("database test guard rejected DATABASE_URL: {error}");
+                    Err(())
+                }
+            },
+            Err(error) => {
+                eprintln!("database test mode requires DATABASE_URL: {error}");
+                Err(())
+            }
+        },
         Some("alloc-workload-gen-pg-tbl-src") => {
             run_alloc_workload_gen_pg_tbl_src();
             Ok(())
@@ -1364,7 +1394,7 @@ fn main() {
         }),
         Some(other) => {
             eprintln!(
-                "unknown mode `{other}`; expected `static`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
+                "unknown mode `{other}`; expected `static`, `database`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
             );
             Err(())
         }

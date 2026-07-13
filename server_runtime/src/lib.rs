@@ -97,11 +97,108 @@ impl From<ReqwestClient> for reqwest::Client {
         value.0
     }
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum BackgroundTaskOutcome {
+    Completed,
+    ShutdownRequested,
+}
 #[derive(Debug)]
-pub struct TokioTaskJoinHandle(tokio::task::JoinHandle<()>);
-impl TokioTaskJoinHandle {
-    pub fn abort(&self) {
-        self.0.abort();
+pub struct TokioTaskJoinEr(tokio::task::JoinError);
+impl std::fmt::Display for TokioTaskJoinEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for TokioTaskJoinEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug)]
+pub enum BackgroundTaskShutdownEr {
+    Join(TokioTaskJoinEr),
+    Timeout,
+}
+impl std::fmt::Display for BackgroundTaskShutdownEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Join(error) => write!(f, "background task failed: {error}"),
+            Self::Timeout => f.write_str("background task shutdown timed out"),
+        }
+    }
+}
+impl std::error::Error for BackgroundTaskShutdownEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Join(error) => Some(error),
+            Self::Timeout => None,
+        }
+    }
+}
+#[derive(Debug)]
+#[must_use]
+pub struct BackgroundTask {
+    handle: Option<TokioBackgroundTaskJoinHandle>,
+    shutdown_tx: Option<TokioBackgroundTaskShutdownSender>,
+}
+#[derive(Debug)]
+struct TokioBackgroundTaskJoinHandle(tokio::task::JoinHandle<BackgroundTaskOutcome>);
+impl From<tokio::task::JoinHandle<BackgroundTaskOutcome>> for TokioBackgroundTaskJoinHandle {
+    fn from(value: tokio::task::JoinHandle<BackgroundTaskOutcome>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug)]
+struct TokioBackgroundTaskShutdownSender(tokio::sync::oneshot::Sender<()>);
+impl From<tokio::sync::oneshot::Sender<()>> for TokioBackgroundTaskShutdownSender {
+    fn from(value: tokio::sync::oneshot::Sender<()>) -> Self {
+        Self(value)
+    }
+}
+impl BackgroundTask {
+    pub async fn join(mut self) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownEr> {
+        let shutdown_tx = self.shutdown_tx.take();
+        let result = match self.handle.take() {
+            Some(handle) => handle
+                .0
+                .await
+                .map_err(|error| BackgroundTaskShutdownEr::Join(TokioTaskJoinEr(error))),
+            None => Ok(BackgroundTaskOutcome::Completed),
+        };
+        drop(shutdown_tx);
+        result
+    }
+    pub async fn shutdown(
+        mut self,
+        timeout: StdRequestTimeout,
+    ) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownEr> {
+        if let Some(shutdown_tx) = self.shutdown_tx.take() {
+            let _send_result = shutdown_tx.0.send(());
+        }
+        let Some(mut handle) = self.handle.take().map(|value| value.0) else {
+            return Ok(BackgroundTaskOutcome::ShutdownRequested);
+        };
+        match tokio::time::timeout(timeout.0, &mut handle).await {
+            Ok(result) => {
+                result.map_err(|error| BackgroundTaskShutdownEr::Join(TokioTaskJoinEr(error)))
+            }
+            Err(_elapsed) => {
+                handle.abort();
+                match handle.await {
+                    Ok(_) | Err(_) => Err(BackgroundTaskShutdownEr::Timeout),
+                }
+            }
+        }
+    }
+}
+impl Drop for BackgroundTask {
+    fn drop(&mut self) {
+        if let Some(shutdown_tx) = self.shutdown_tx.take() {
+            let _send_result = shutdown_tx.0.send(());
+        }
+        if let Some(handle) = self.handle.take() {
+            handle.0.abort();
+        }
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -126,16 +223,16 @@ impl std::fmt::Display for StdRunIntervalTryFromDurationEr {
 impl std::error::Error for StdRunIntervalTryFromDurationEr {}
 #[derive(Debug)]
 pub struct ServiceRuntime {
-    optional_task: Option<TokioTaskJoinHandle>,
+    optional_task: Option<BackgroundTask>,
     router: AxumRouter,
 }
 impl ServiceRuntime {
     #[must_use]
-    pub fn into_parts(self) -> (AxumRouter, Option<TokioTaskJoinHandle>) {
+    pub fn into_parts(self) -> (AxumRouter, Option<BackgroundTask>) {
         (self.router, self.optional_task)
     }
     #[must_use]
-    pub const fn new(router: AxumRouter, optional_task: Option<TokioTaskJoinHandle>) -> Self {
+    pub const fn new(router: AxumRouter, optional_task: Option<BackgroundTask>) -> Self {
         Self {
             optional_task,
             router,
@@ -253,6 +350,97 @@ impl std::fmt::Display for StdRequestTimeoutTryFromDurationEr {
     }
 }
 impl std::error::Error for StdRequestTimeoutTryFromDurationEr {}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdPermitWaitTimeout(std::time::Duration);
+impl From<std::time::Duration> for StdPermitWaitTimeout {
+    fn from(value: std::time::Duration) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RetryAfterSecs(u64);
+impl TryFrom<u64> for RetryAfterSecs {
+    type Error = RetryAfterSecsTryFromU64Er;
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        if value == 0u64 {
+            Err(RetryAfterSecsTryFromU64Er)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RetryAfterSecsTryFromU64Er;
+impl std::fmt::Display for RetryAfterSecsTryFromU64Er {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("retry-after seconds must be greater than zero")
+    }
+}
+impl std::error::Error for RetryAfterSecsTryFromU64Er {}
+impl TryFrom<RetryAfterSecs> for http::HeaderValue {
+    type Error = http::header::InvalidHeaderValue;
+    fn try_from(value: RetryAfterSecs) -> Result<Self, Self::Error> {
+        Self::from_str(value.0.to_string().as_str())
+    }
+}
+#[derive(Clone, Debug)]
+pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
+impl From<std::sync::Arc<tokio::sync::Semaphore>> for StdArcTokioSemaphore {
+    fn from(value: std::sync::Arc<tokio::sync::Semaphore>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug)]
+pub struct TokioAcquireEr(tokio::sync::AcquireError);
+impl std::fmt::Display for TokioAcquireEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for TokioAcquireEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Debug)]
+pub enum AcquirePermitEr {
+    Closed(TokioAcquireEr),
+    Timeout(RetryAfterSecs),
+}
+#[derive(Debug)]
+pub struct TokioOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
+impl From<tokio::sync::OwnedSemaphorePermit> for TokioOwnedSemaphorePermit {
+    fn from(value: tokio::sync::OwnedSemaphorePermit) -> Self {
+        Self(value)
+    }
+}
+impl TokioOwnedSemaphorePermit {
+    pub fn forget(self) {
+        self.0.forget();
+    }
+}
+impl std::fmt::Display for AcquirePermitEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Closed(error) => write!(f, "concurrency limiter is closed: {error}"),
+            Self::Timeout(retry_after) => {
+                write!(
+                    f,
+                    "concurrency limit reached; retry after {} seconds",
+                    retry_after.0
+                )
+            }
+        }
+    }
+}
+impl std::error::Error for AcquirePermitEr {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Closed(error) => Some(error),
+            Self::Timeout(_) => None,
+        }
+    }
+}
 #[derive(Clone, Copy, Debug)]
 pub struct RequestTimeoutLayer(StdRequestTimeout);
 impl From<StdRequestTimeout> for RequestTimeoutLayer {
@@ -563,6 +751,17 @@ impl std::error::Error for ServeWithGracefulShutdownEr {
         }
     }
 }
+pub async fn acquire_permit(
+    semaphore: StdArcTokioSemaphore,
+    wait_timeout: StdPermitWaitTimeout,
+    retry_after: RetryAfterSecs,
+) -> Result<TokioOwnedSemaphorePermit, AcquirePermitEr> {
+    match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {
+        Ok(Ok(permit)) => Ok(TokioOwnedSemaphorePermit::from(permit)),
+        Ok(Err(error)) => Err(AcquirePermitEr::Closed(TokioAcquireEr(error))),
+        Err(_elapsed) => Err(AcquirePermitEr::Timeout(retry_after)),
+    }
+}
 #[must_use]
 pub fn add_status_route(router: AxumRouter) -> AxumRouter {
     AxumRouter(
@@ -572,23 +771,34 @@ pub fn add_status_route(router: AxumRouter) -> AxumRouter {
     )
 }
 #[must_use]
+#[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
     optional_interval: Option<StdRunInterval>,
     mut run: Run,
-) -> Option<TokioTaskJoinHandle>
+) -> Option<BackgroundTask>
 where
     Run: FnMut() -> RunFuture + Send + 'static,
     RunFuture: Future<Output = ()> + Send + 'static,
 {
     let interval = optional_interval?;
-    Some(TokioTaskJoinHandle(tokio::spawn(async move {
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel();
+    let handle = tokio::spawn(async move {
         let mut timer = tokio::time::interval(interval.0);
         timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
-            let _tick = timer.tick().await;
-            run().await;
+            tokio::select! {
+                shutdown_result = &mut shutdown_rx => {
+                    drop(shutdown_result);
+                    return BackgroundTaskOutcome::ShutdownRequested;
+                }
+                _tick = timer.tick() => run().await,
+            }
         }
-    })))
+    });
+    Some(BackgroundTask {
+        handle: Some(TokioBackgroundTaskJoinHandle::from(handle)),
+        shutdown_tx: Some(TokioBackgroundTaskShutdownSender::from(shutdown_tx)),
+    })
 }
 #[allow(clippy::integer_division_remainder_used)] // tokio::select expansion uses internal randomized branch arithmetic
 pub async fn serve_with_graceful_shutdown<Shutdown>(
@@ -653,6 +863,85 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::OK);
         let optional_interval_task = super::spawn_interval_task(None, async || {});
         assert!(optional_interval_task.is_none());
+    }
+    #[tokio::test]
+    async fn background_task_shutdown_is_observable() {
+        let interval = super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
+            .expect("e76640c4");
+        let task = super::spawn_interval_task(Some(interval), async || {}).expect("32858863");
+        let timeout = super::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+            .expect("728b52b3");
+        assert_eq!(
+            task.shutdown(timeout).await.expect("0d71d1b8"),
+            super::BackgroundTaskOutcome::ShutdownRequested
+        );
+    }
+    #[tokio::test]
+    async fn background_task_panic_is_observable() {
+        let interval = super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
+            .expect("c9d73cab");
+        let task = super::spawn_interval_task(Some(interval), async || panic!("62839854"))
+            .expect("7a86a253");
+        assert!(matches!(
+            task.join().await,
+            Err(super::BackgroundTaskShutdownEr::Join(_))
+        ));
+    }
+    #[tokio::test(start_paused = true)]
+    async fn stuck_background_task_reaches_shutdown_timeout() {
+        let interval = super::StdRunInterval::try_from(std::time::Duration::from_secs(1u64))
+            .expect("f797718f");
+        let task = super::spawn_interval_task(Some(interval), async || {
+            std::future::pending::<()>().await;
+        })
+        .expect("a58f09dc");
+        tokio::task::yield_now().await;
+        let timeout = super::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+            .expect("ae1262bb");
+        let shutdown = tokio::spawn(task.shutdown(timeout));
+        tokio::task::yield_now().await;
+        tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
+        assert!(matches!(
+            shutdown.await.expect("9e76a810"),
+            Err(super::BackgroundTaskShutdownEr::Timeout)
+        ));
+    }
+    #[tokio::test]
+    async fn acquire_permit_distinguishes_available_timeout_and_closed() {
+        let retry_after = super::RetryAfterSecs::try_from(3u64).expect("c52d0e93");
+        let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(1usize));
+        let permit = super::acquire_permit(
+            super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
+            super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+            retry_after,
+        )
+        .await
+        .expect("e1394cd0");
+        let timeout = super::acquire_permit(
+            super::StdArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore)),
+            super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+            retry_after,
+        )
+        .await;
+        assert!(matches!(
+            timeout,
+            Err(super::AcquirePermitEr::Timeout(value)) if value == retry_after
+        ));
+        drop(timeout);
+        drop(permit);
+        semaphore.close();
+        let closed = super::acquire_permit(
+            super::StdArcTokioSemaphore::from(semaphore),
+            super::StdPermitWaitTimeout::from(std::time::Duration::ZERO),
+            retry_after,
+        )
+        .await;
+        assert!(matches!(closed, Err(super::AcquirePermitEr::Closed(_))));
+        drop(closed);
+        assert_eq!(
+            http::HeaderValue::try_from(retry_after).expect("cb2a239c"),
+            http::HeaderValue::from_static("3")
+        );
     }
     #[tokio::test]
     async fn request_id_layer_propagates_existing_and_generated_values() {

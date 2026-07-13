@@ -29,7 +29,6 @@ fn compile_error_ts(
 //todo gen json schema from rust type https://docs.rs/schemars/laTest/schemars/
 //todo support rd tbl len
 //todo what is pub what is private
-//todo header Retry-After logic
 #[must_use]
 #[allow(non_snake_case)]
 #[allow(unused_variables)]
@@ -4744,8 +4743,15 @@ pub fn gen_pg_tbl(
                         let ident_op_payload_ucc = gen_ident_op_payload_ucc(op);
                         let vec_ident_cr_ts =
                             pg_crud_macros_cmn::gen_vec_tokens_dcl_ts(&ident_cr_ucc);
+                        let vec_ident_cr_schema_ts = gen_pg_tbl_input_model.config.cm_max_items.map_or_else(
+                            || quote::quote! {#vec_ident_cr_ts},
+                            |limit| {
+                                let limit_value = limit.0;
+                                quote::quote! {#[schema(max_items = #limit_value)] #vec_ident_cr_ts}
+                            },
+                        );
                         let payload_ts = gen_prms_payload_and_dflt_ts(
-                            &quote::quote! {(#vec_ident_cr_ts);},
+                            &quote::quote! {(#vec_ident_cr_schema_ts);},
                             &quote::quote! {(vec![#PgCrudCmnDfltSomeOneElCall])},
                         );
                         let limited_deserialize_ts = gen_pg_tbl_input_model.config.cm_max_items.map_or_else(
@@ -4758,11 +4764,8 @@ pub fn gen_pg_tbl(
                                     where
                                         Deserializer: serde::Deserializer<'de>,
                                     {
-                                        let raw = <#vec_ident_cr_ts as serde::Deserialize>::deserialize(deserializer)?;
-                                        if raw.len() > #limit_value {
-                                            return Err(serde::de::Error::custom(format!("bulk create item count {} exceeds limit {}", raw.len(), #limit_value)));
-                                        }
-                                        Ok(Self(raw))
+                                        let bounded = <pg_crud_cmn::bounded_vec::BoundedVec<#ident_cr_ucc, 0usize, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
+                                        Ok(Self(bounded.into_vec()))
                                     }
                                 }
                             }
@@ -4829,12 +4832,19 @@ pub fn gen_pg_tbl(
                     Op::Um => {
                         let ident_op_payload_ucc = gen_ident_op_payload_ucc(op);
                         let vec_ident_upd_ts = pg_crud_macros_cmn::gen_vec_tokens_dcl_ts(&ident_upd_ucc);
+                        let vec_ident_upd_schema_ts = gen_pg_tbl_input_model.config.um_max_items.map_or_else(
+                            || quote::quote! {#vec_ident_upd_ts},
+                            |limit| {
+                                let limit_value = limit.0;
+                                quote::quote! {#[schema(max_items = #limit_value)] #vec_ident_upd_ts}
+                            },
+                        );
                         let ident_op_payload_vec_ts = serde_ser_utoipa_d_ts_builder
                             .build_struct(
                                 &proc_macro2::TokenStream::new(),
                                 &ident_op_payload_ucc,
                                 &proc_macro2::TokenStream::new(),
-                                &quote::quote! {(#vec_ident_upd_ts);},
+                                &quote::quote! {(#vec_ident_upd_schema_ts);},
                             );
                         let ident_op_payload_try_new_er_ucc =
                             gen_ident_op_suffix_ts(op, "PayloadTryNewEr");
@@ -4874,14 +4884,12 @@ pub fn gen_pg_tbl(
                                 }
                             }
                         };
-                        let um_item_limit_check_ts = gen_pg_tbl_input_model.config.um_max_items.map_or_else(
-                            proc_macro2::TokenStream::new,
+                        let um_deserialize_raw_ts = gen_pg_tbl_input_model.config.um_max_items.map_or_else(
+                            || quote::quote! {<#vec_ident_upd_ts as _serde::Deserialize>::deserialize(__deserializer)?},
                             |limit| {
                                 let limit_value = limit.0;
                                 quote::quote! {
-                                    if raw.len() > #limit_value {
-                                        return Err(_serde::de::Error::custom(format!("bulk update item count {} exceeds limit {}", raw.len(), #limit_value)));
-                                    }
+                                    <pg_crud_cmn::bounded_vec::BoundedVec<#ident_upd_ucc, 0usize, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?.into_vec()
                                 }
                             },
                         );
@@ -4898,8 +4906,7 @@ pub fn gen_pg_tbl(
                                     where
                                         __D: _serde::Deserializer<'de>,
                                     {
-                                        let raw = <#vec_ident_upd_ts as _serde::Deserialize>::deserialize(__deserializer)?;
-                                        #um_item_limit_check_ts
+                                        let raw = #um_deserialize_raw_ts;
                                         Self::try_new(raw).map_err(|er| _serde::de::Error::custom(format!("{er:?}")))
                                     }
                                 }
@@ -5316,11 +5323,12 @@ pub fn gen_pg_tbl(
             } else {
                 proc_macro2::TokenStream::new()
             };
+            let mut_ts = matches!(op, Op::Rm | Op::Dm).then(|| quote::quote! { mut });
             quote::quote! {
                 #[test]
                 fn #test_ident() {
                     let original: #payload_type_ts = pg_crud_cmn::DfltSomeOneEl::dflt_some_one_el();
-                    let mut serialized = serde_json::to_value(&original).expect("84094d13");
+                    let #mut_ts serialized = serde_json::to_value(&original).expect("84094d13");
                     #normalize_default_filter_ts
                     let deserialized = serde_json::from_value::<#payload_type_ts>(serialized.clone()).expect("b388de0c");
                     let round_trip = serde_json::to_value(deserialized).expect("570ac825");
@@ -5357,14 +5365,29 @@ pub fn gen_pg_tbl(
             quote::format_ident!("{}_route_open_api_parity", ident_sc_string);
         let ident_rm_payload_ucc = gen_ident_op_payload_ucc(&Op::Rm);
         let route_open_api_parity_assertions_ts = OpDsc::ALL.iter().map(|op_dsc| {
-            let path = format!("/{ident_sc_string}/{}", op_dsc.op.self_sc_str());
+            let operation = op_dsc.op.self_sc_str();
+            let path = format!("/{ident_sc_string}/{operation}");
             let method = match op_dsc.http_method {
                 OpHttpMethod::Post => "post",
                 OpHttpMethod::Patch => "patch",
                 OpHttpMethod::Delete => "delete",
             };
+            let success_status = if op_dsc.success_status_code
+                == macros_helpers::status_code::StatusCode::Crd201
+            {
+                "201"
+            } else {
+                "200"
+            };
             quote::quote! {
-                assert!(document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).is_some());
+                let operation_document = document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).expect("b822e594");
+                assert_eq!(operation_document.get("operationId").and_then(serde_json::Value::as_str), Some(#operation));
+                assert!(operation_document.pointer(&format!("/responses/{}", #success_status)).is_some());
+                assert!(operation_document.pointer("/requestBody/content/application~1json").is_some());
+                assert!(operation_document.pointer(&format!("/responses/{}/content/application~1json", #success_status)).is_some());
+                assert!(operation_document.pointer("/responses/400").is_some());
+                assert!(operation_document.pointer("/responses/413").is_some());
+                assert!(operation_document.pointer("/responses/500").is_some());
             }
         });
         let bulk_limit_tests_ts = [
@@ -5444,6 +5467,9 @@ pub fn gen_pg_tbl(
                     let document = serde_json::to_value(#ident_open_api_ucc::open_api()).expect("eb512de9");
                     assert_eq!(#ident_route_contract_ucc::ALL.len(), 8usize);
                     assert!(#ident_route_contract_ucc::ALL.into_iter().all(|contract| contract.authentication() == #ident_auth_requirement_ucc::Public));
+                    let operation_ids = #ident_route_contract_ucc::ALL.into_iter().map(|contract| format!("{:?}", contract.operation())).collect::<std::collections::BTreeSet<String>>();
+                    assert_eq!(operation_ids.len(), #ident_route_contract_ucc::ALL.len());
+                    assert_eq!(document.get("paths").and_then(serde_json::Value::as_object).map(serde_json::Map::len), Some(#ident_route_contract_ucc::ALL.len()));
                     #(#route_open_api_parity_assertions_ts)*
                 }
                 #(#round_trip_tests_ts)*
@@ -7299,12 +7325,16 @@ pub fn gen_pg_tbl(
                     tracing_subscriber::fmt::init();
                     tokio::runtime::Builder::new_multi_thread().worker_threads(num_cpus::get()).enable_all().build().expect("38823c21").block_on(async {
                         //todo mb refactor
+                        let database_url = "postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_test?connect_timeout=10";
+                        macros_helpers::test_database::validate_test_database_url(
+                            macros_helpers::test_database::UrlRef::from(database_url)
+                        ).expect("1876fb4e");
                         let mut #ConfigSc = #config_path_ts {
                             service_socket_address: <config_lib::ServiceSocketAddress as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "127.0.0.1:0".to_owned()
                             )).expect("b5b3915a").0,
                             database_url: <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
-                                "postgres://postgres:postgres@127.0.0.1:5432/postgres?connect_timeout=10".to_owned()
+                                database_url.to_owned()
                             )).expect("f9c20f05").0,
                             timezone: <config_lib::ChronoTimezone as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(config_lib::StdEnvVarOk(
                                 "10800".to_owned()

@@ -14,7 +14,7 @@ edition = "2024"
 quote = { workspace = true }
 macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 gen_pg_types_src = { workspace = true }
-macros_helpers = { workspace = true }
+macros_helpers = { workspace = true, features = ["test-utils"] }
 chrono = { workspace = true }
 pg_types_chrono_net = { workspace = true }
 pg_types_numeric = { workspace = true }

@@ -15,6 +15,8 @@ pub mod gen_new_or_try_new;
 pub mod gen_pub_type_al_ts;
 pub mod gen_simple_syn_punct;
 pub mod generated_rust_ts;
+#[cfg(feature = "test-utils")]
+pub mod json_contract;
 #[path = "loc.rs"]
 pub mod loc_data;
 pub mod loc_syn_field;
@@ -24,6 +26,8 @@ pub mod rs_file_path;
 pub mod status_code;
 #[path = "write_string_into_file.rs"]
 pub mod string_writer;
+#[cfg(feature = "test-utils")]
+pub mod test_database;
 #[cfg(test)]
 mod test_hlp;
 #[path = "write_ts_into_file.rs"]

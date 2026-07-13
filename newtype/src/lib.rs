@@ -1,4 +1,14 @@
 const SNAKE_IDENT_MAX_LEN: usize = 1_048_576;
+#[cfg(test)]
+#[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
+fn dependency_markers<Value>(
+    _: Option<Value>,
+    _: Option<serde_json::Value>,
+    _: Option<utoipa::openapi::OpenApi>,
+) where
+    Value: serde::Serialize,
+{
+}
 #[derive(Debug, Default)]
 struct NewtypeAttrs {
     options: std::collections::BTreeSet<NewtypeOption>,
@@ -6,7 +16,17 @@ struct NewtypeAttrs {
 }
 struct BoundedStringAttrs {
     description: Option<SynExpr>,
-    max: SynExpr,
+    max: Option<SynExpr>,
+    min: Option<SynExpr>,
+    options: std::collections::BTreeSet<BoundedStringOption>,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum BoundedStringOption {
+    Chars,
+    NulFree,
+    Serde,
+    Trim,
+    Utoipa,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
@@ -493,7 +513,85 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
     let ident = &input_ref.ident;
     let vis = &input_ref.vis;
     let er_ident = quote::format_ident!("{ident}TryFromStringEr");
-    let BoundedStringAttrs { description, max } = attrs;
+    let BoundedStringAttrs {
+        description,
+        max: max_option,
+        min,
+        options,
+    } = attrs;
+    let max = max_option.ok_or_else(|| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "BoundedString requires #[bounded_string(max = ...)]",
+        )
+    })?;
+    let chars = options.contains(&BoundedStringOption::Chars);
+    let nul_free = options.contains(&BoundedStringOption::NulFree);
+    let serde = options.contains(&BoundedStringOption::Serde);
+    let trim = options.contains(&BoundedStringOption::Trim);
+    let utoipa = options.contains(&BoundedStringOption::Utoipa);
+    if utoipa && !chars {
+        return Err(syn::Error::new_spanned(
+            input_ref,
+            "BoundedString utoipa requires chars so OpenAPI length semantics match runtime",
+        ));
+    }
+    let min_ts =
+        min.unwrap_or_else(|| SynExpr::from(syn::Expr::Verbatim(quote::quote! { 0usize })));
+    let normalize_ts = trim.then(|| quote::quote! { let value = value.trim().to_owned(); });
+    let len_ts = if chars {
+        quote::quote! { value.chars().count() }
+    } else {
+        quote::quote! { value.len() }
+    };
+    let nul_check_ts = nul_free.then(|| {
+        quote::quote! {
+            if value.contains('\0') {
+                return Err(Self::Error::ContainsNul);
+            }
+        }
+    });
+    let serde_ts = serde.then(|| {
+        quote::quote! {
+            impl serde::Serialize for #ident {
+                fn serialize<Serializer>(&self, serializer: Serializer) -> Result<Serializer::Ok, Serializer::Error>
+                where
+                    Serializer: serde::Serializer,
+                {
+                    serde::Serialize::serialize(&self.0, serializer)
+                }
+            }
+            impl<'de> serde::Deserialize<'de> for #ident {
+                fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+                where
+                    Deserializer: serde::Deserializer<'de>,
+                {
+                    let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+                    Self::try_from(value).map_err(serde::de::Error::custom)
+                }
+            }
+        }
+    });
+    let utoipa_ts = utoipa.then(|| {
+        quote::quote! {
+            impl<'schema_lt> utoipa::ToSchema<'schema_lt> for #ident {
+                fn schema() -> (
+                    &'schema_lt str,
+                    utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+                ) {
+                    (
+                        stringify!(#ident),
+                        utoipa::openapi::ObjectBuilder::new()
+                            .schema_type(utoipa::openapi::schema::SchemaType::String)
+                            .min_length(Some(#min_ts))
+                            .max_length(Some(#max))
+                            .build()
+                            .into(),
+                    )
+                }
+            }
+        }
+    });
     let description_ts = description.map_or_else(
         || {
             let value = ident_to_snake(SynIdentRef::from(ident))
@@ -506,14 +604,24 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
     Ok(ProcMacro2GeneratedTs(quote::quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         #vis enum #er_ident {
+            InvalidBounds { min: usize, max: usize },
+            TooShort { len: usize, min: usize },
             TooLong { len: usize, max: usize },
+            ContainsNul,
         }
         impl std::fmt::Display for #er_ident {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
+                    Self::InvalidBounds { min, max } => {
+                        write!(f, "{} minimum length {min} exceeds maximum {max}", #description_ts)
+                    }
+                    Self::TooShort { len, min } => {
+                        write!(f, "{} length {len} is below minimum {min}", #description_ts)
+                    }
                     Self::TooLong { len, max } => {
                         write!(f, "{} length {len} exceeds maximum {max}", #description_ts)
                     }
+                    Self::ContainsNul => write!(f, "{} contains a NUL character", #description_ts),
                 }
             }
         }
@@ -525,15 +633,26 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
         impl TryFrom<String> for #ident {
             type Error = #er_ident;
             fn try_from(value: String) -> Result<Self, Self::Error> {
-                if value.len() > #max {
+                #normalize_ts
+                if #min_ts > #max {
+                    return Err(Self::Error::InvalidBounds { min: #min_ts, max: #max });
+                }
+                #nul_check_ts
+                let len = #len_ts;
+                if len < #min_ts {
+                    return Err(Self::Error::TooShort { len, min: #min_ts });
+                }
+                if len > #max {
                     return Err(Self::Error::TooLong {
-                        len: value.len(),
+                        len,
                         max: #max,
                     });
                 }
                 Ok(Self(value))
             }
         }
+        #serde_ts
+        #utoipa_ts
     }))
 }
 #[allow(clippy::single_call_fn)] // keeps enum parsing derive independent from newtype tuple-struct generation
@@ -590,34 +709,64 @@ fn gen_enum_from_str_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2G
 }
 #[allow(clippy::single_call_fn)] // required checked-string options are parsed together for focused diagnostics
 fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStringAttrs> {
-    let (description, max) = attrs
+    let parsed = attrs
         .as_ref()
         .iter()
         .filter(|attr| attr.path().is_ident("bounded_string"))
-        .try_fold((None, None), |(mut description, mut max), attr| {
-            attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident("max") {
-                    max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                    return Ok(());
-                }
-                if meta.path.is_ident("description") {
-                    description = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                    return Ok(());
-                }
-                Err(meta.error("unknown bounded_string option"))
-            })?;
-            Ok::<(Option<SynExpr>, Option<SynExpr>), syn::Error>((description, max))
-        })?;
-    let parsed_max = max.ok_or_else(|| {
-        syn::Error::new(
+        .try_fold(
+            BoundedStringAttrs {
+                description: None,
+                max: None,
+                min: None,
+                options: std::collections::BTreeSet::new(),
+            },
+            |mut parsed, attr| {
+                attr.parse_nested_meta(|meta| {
+                    if meta.path.is_ident("max") {
+                        parsed.max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("min") {
+                        parsed.min = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("description") {
+                        parsed.description =
+                            Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("chars") {
+                        let _inserted = parsed.options.insert(BoundedStringOption::Chars);
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("nul_free") {
+                        let _inserted = parsed.options.insert(BoundedStringOption::NulFree);
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("serde") {
+                        let _inserted = parsed.options.insert(BoundedStringOption::Serde);
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("trim") {
+                        let _inserted = parsed.options.insert(BoundedStringOption::Trim);
+                        return Ok(());
+                    }
+                    if meta.path.is_ident("utoipa") {
+                        let _inserted = parsed.options.insert(BoundedStringOption::Utoipa);
+                        return Ok(());
+                    }
+                    Err(meta.error("unknown bounded_string option"))
+                })?;
+                Ok::<BoundedStringAttrs, syn::Error>(parsed)
+            },
+        )?;
+    if parsed.max.is_none() {
+        return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             "BoundedString requires #[bounded_string(max = ...)]",
-        )
-    })?;
-    Ok(BoundedStringAttrs {
-        description,
-        max: parsed_max,
-    })
+        ));
+    }
+    Ok(parsed)
 }
 #[allow(clippy::single_call_fn)] // attr parsing is intentionally isolated from code generation
 fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
@@ -891,6 +1040,38 @@ fn gen_to_err_string_ts(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn bounded_string_missing_max_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(BoundedString)]
+            #[bounded_string(min = 1)]
+            struct Value(String);
+        };
+        let result = super::gen_bounded_string_ts(super::SynDeriveInputRef::from(&input));
+        assert!(result.is_err(), "29f8ddc2");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "BoundedString requires #[bounded_string(max = ...)]"
+            );
+        }
+    }
+    #[test]
+    fn bounded_string_utoipa_byte_length_returns_compile_error() {
+        let input = syn::parse_quote! {
+            #[derive(BoundedString)]
+            #[bounded_string(max = 4, utoipa)]
+            struct Value(String);
+        };
+        let result = super::gen_bounded_string_ts(super::SynDeriveInputRef::from(&input));
+        assert!(result.is_err(), "da6f2151");
+        if let Err(er) = result {
+            assert_eq!(
+                er.to_string(),
+                "BoundedString utoipa requires chars so OpenAPI length semantics match runtime"
+            );
+        }
+    }
     #[test]
     fn newtype_as_ref_owned_reference_returns_compile_error() {
         let input = syn::parse_quote! {

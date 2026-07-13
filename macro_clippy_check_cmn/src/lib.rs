@@ -10,13 +10,16 @@ const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 6] = [
     "warnings",
 ];
 #[cfg(feature = "test-utils")]
-const CARGO_CHECK_STEPS: [(&[&str], &str, &str); 2] = [
+const CARGO_TEST_LIB_ARGS: [&str; 2] = ["test", "--lib"];
+#[cfg(feature = "test-utils")]
+const CARGO_CHECK_STEPS: [(&[&str], &str, &str); 3] = [
     (&CARGO_FMT_ARGS, "8dc4f045", "2a1deb01"),
     (
         &CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
         "cd48b869",
         "2c037283",
     ),
+    (&CARGO_TEST_LIB_ARGS, "4ef60f4d", "8b3eb4d4"),
 ];
 #[cfg(feature = "test-utils")]
 struct RemoveDirOnDrop {

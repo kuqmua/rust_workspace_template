@@ -64,6 +64,9 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
     struct DescribedValue(String);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
+    struct RichValue(String);
     #[derive(Debug, Clone, newtype::Newtype)]
     #[newtype(display, from_inner, into_inner, to_tokens)]
     struct ProcMacro2TokenValue(proc_macro2::TokenStream);
@@ -149,6 +152,60 @@ mod tests {
     fn bounded_string_description_is_configurable() {
         let er = DescribedValue::try_from(String::from("abc")).expect_err("3dfca278");
         assert_eq!(er.to_string(), "described value length 3 exceeds maximum 2");
+    }
+    #[test]
+    fn bounded_string_rich_policies_share_runtime_and_serde_validation() {
+        assert_eq!(
+            RichValue::try_from(String::from("  \u{430}\u{431}  ")),
+            Ok(RichValue(String::from("\u{430}\u{431}")))
+        );
+        assert!(matches!(
+            RichValue::try_from(String::from("   ")),
+            Err(RichValueTryFromStringEr::TooShort { len: 0, min: 1 })
+        ));
+        assert!(matches!(
+            RichValue::try_from(String::from("abcd")),
+            Err(RichValueTryFromStringEr::TooLong { len: 4, max: 3 })
+        ));
+        assert!(matches!(
+            RichValue::try_from(String::from("a\0b")),
+            Err(RichValueTryFromStringEr::ContainsNul)
+        ));
+        assert_eq!(
+            serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1"),
+            RichValue(String::from("\u{430}\u{431}"))
+        );
+        let _error = serde_json::from_str::<RichValue>(r#""abcd""#).expect_err("c0e03c6d");
+    }
+    #[test]
+    fn bounded_string_openapi_limits_match_runtime_limits() {
+        let schema = <RichValue as utoipa::ToSchema>::schema().1;
+        let json = serde_json::to_value(schema).expect("756f3fe9");
+        assert_eq!(json.get("minLength"), Some(&serde_json::json!(1usize)));
+        assert_eq!(json.get("maxLength"), Some(&serde_json::json!(3usize)));
+    }
+    #[test]
+    fn bounded_string_small_input_space_matches_reference_model() {
+        let alphabet = ['a', ' ', '\0'];
+        let all_match = alphabet
+            .into_iter()
+            .flat_map(|first| {
+                alphabet.into_iter().flat_map(move |second| {
+                    alphabet.into_iter().flat_map(move |third| {
+                        alphabet
+                            .into_iter()
+                            .map(move |fourth| [first, second, third, fourth])
+                    })
+                })
+            })
+            .all(|chars| {
+                let value = chars.into_iter().collect::<String>();
+                let normalized = value.trim();
+                let expected_ok = !normalized.contains('\0')
+                    && (1usize..=3usize).contains(&normalized.chars().count());
+                RichValue::try_from(value).is_ok() == expected_ok
+            });
+        assert!(all_match);
     }
     #[test]
     fn token_impls_are_generated() {

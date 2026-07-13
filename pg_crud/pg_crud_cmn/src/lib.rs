@@ -1,3 +1,4 @@
+pub mod bounded_vec;
 pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
 const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 #[derive(

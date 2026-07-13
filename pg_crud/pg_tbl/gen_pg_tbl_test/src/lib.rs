@@ -1,5 +1,16 @@
 #[cfg(test)]
 mod tests {
+    #[derive(Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    struct JsonContractValue {
+        operation: String,
+    }
+    #[test]
+    fn shared_json_contract_helper_round_trips_table_fixture() {
+        macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
+            macros_helpers::json_contract::JsonFixtureRef::from(r#"{"operation":"rm"}"#),
+        )
+        .expect("f9f9af71");
+    }
     #[test]
     fn clippy() {
         macro_clippy_check_cmn::clippy_check(

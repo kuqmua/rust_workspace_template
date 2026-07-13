@@ -13,7 +13,7 @@ edition = "2024"
 gen_pg_tbl_src = { workspace = true }
 gen_pg_types_src = { workspace = true }
 gen_wh_flts_src = { workspace = true }
-macros_helpers = { workspace = true }
+macros_helpers = { workspace = true, features = ["test-utils"] }
 newtype = { workspace = true }
 pg_crud_cmn = { workspace = true }
 quote = { workspace = true }

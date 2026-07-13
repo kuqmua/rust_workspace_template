@@ -14,10 +14,11 @@ edition = "2024"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 gen_pg_tbl_src = { workspace = true }
-macros_helpers = { workspace = true }
+macros_helpers = { workspace = true, features = ["test-utils"] }
 macro_clippy_check_cmn = { workspace = true, features = ["test-utils"] }
 token_patterns = { workspace = true }
 optml = { workspace = true }
+serde = { workspace = true }
 [lints]
 workspace = true
 

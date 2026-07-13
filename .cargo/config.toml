@@ -3,7 +3,8 @@ jobs = 8
 [env]
 RUST_TEST_THREADS = "8"
 [alias]
-test-isolated = "!f(){ rust_workspace_template_cargo_session=\"${RUST_WORKSPACE_TEMPLATE_CARGO_SESSION:-$$}\"; CARGO_TARGET_DIR=\"target/isolated/${rust_workspace_template_cargo_session}\" CARGO_BUILD_BUILD_DIR=\"target/isolated-build/${rust_workspace_template_cargo_session}\" cargo test \"$@\"; }; f"
-pre-commit-checks = "!cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings"
-pre-push-checks = "!cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo run -p workspace_test_runner -- static"
-verify-strict = "!cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && cargo test --features test-utils && cargo run -p workspace_test_runner -- all && RUSTDOCFLAGS='-D warnings' cargo doc --workspace --all-features --no-deps"
+test-isolated = "!f(){ rust_workspace_template_cargo_session=\"${RUST_WORKSPACE_TEMPLATE_CARGO_SESSION:-$$}\"; CARGO_TARGET_DIR=\"target/isolated/${rust_workspace_template_cargo_session}\" CARGO_BUILD_BUILD_DIR=\"target/isolated-build/${rust_workspace_template_cargo_session}\" cargo test --locked \"$@\"; }; f"
+openapi-contract-suite = "test --locked -p gen_pg_tbl_test --features test-utils"
+pre-commit-checks = "!cargo fmt --check && cargo clippy --locked --all-targets --all-features -- -D warnings"
+pre-push-checks = "!cargo fmt --check && cargo clippy --locked --all-targets --all-features -- -D warnings && cargo run --locked -p workspace_test_runner -- static"
+verify-strict = "!cargo fmt --check && cargo clippy --locked --all-targets --all-features -- -D warnings && cargo test --locked --features test-utils && cargo run --locked -p workspace_test_runner -- all && RUSTDOCFLAGS='-D warnings' cargo doc --locked --workspace --all-features --no-deps"

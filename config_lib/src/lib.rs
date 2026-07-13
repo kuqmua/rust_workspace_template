@@ -360,6 +360,26 @@ mod tests {
         );
     }
     #[test]
+    fn secret_url_debug_output_redacts_credentials() {
+        let all_redacted = [
+            "postgres://username@localhost/test",
+            "postgres://username:password@localhost/test?sslmode=disable",
+            "postgres://percent%40name:percent%2Fpassword@[::1]/test#fragment",
+        ]
+        .into_iter()
+        .all(|raw| {
+            let value = parse_env::<super::DatabaseUrl>(raw).expect("ae91f62c");
+            let debug = format!("{value:?}");
+            !debug.contains(raw)
+                && !debug.contains("username")
+                && !debug.contains("password")
+                && !debug.contains("percent%40name")
+                && !debug.contains("percent%2Fpassword")
+                && debug.contains("REDACTED")
+        });
+        assert!(all_redacted);
+    }
+    #[test]
     fn mongo_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::MongoUrl,
