@@ -2,8 +2,6 @@
 #[cfg(target_arch = "wasm32")]
 pub mod app;
 #[cfg(not(target_arch = "wasm32"))]
-const ADMIN_SPA_HTML: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Admin</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body><script type=\"module\" src=\"/admin/assets/server_admin_frontend.js\"></script></body></html>";
-#[cfg(not(target_arch = "wasm32"))]
 const ADMIN_OPEN_API_HTML: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Admin API</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body><main><h1>Admin API</h1><pre id=\"openapi\">Loading OpenAPI document...</pre></main><script src=\"/admin/assets/swagger.js\" defer></script></body></html>";
 #[cfg(not(target_arch = "wasm32"))]
 const ADMIN_PAGE_PATHS: [&str; 10] = [
@@ -24,26 +22,21 @@ const ADMIN_PAGE_PATHS: [&str; 10] = [
 pub struct AxumAdminFrontendRouter(axum::Router);
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug)]
-pub struct AxumAdminSpaHtml(axum::response::Html<&'static str>);
+struct AxumAdminOpenApiHtml(axum::response::Html<&'static str>);
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Newtype)]
 #[newtype(from_inner)]
 struct AdminSwaggerEnabled(bool);
 #[cfg(not(target_arch = "wasm32"))]
-impl axum::response::IntoResponse for AxumAdminSpaHtml {
+impl axum::response::IntoResponse for AxumAdminOpenApiHtml {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(self.0)
     }
 }
 #[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::single_call_fn)] // one shared handler is registered for every SPA history route
-async fn spa() -> AxumAdminSpaHtml {
-    AxumAdminSpaHtml(axum::response::Html(ADMIN_SPA_HTML))
-}
-#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::single_call_fn)] // dedicated documentation handler is registered once
-async fn open_api() -> AxumAdminSpaHtml {
-    AxumAdminSpaHtml(axum::response::Html(ADMIN_OPEN_API_HTML))
+async fn open_api() -> AxumAdminOpenApiHtml {
+    AxumAdminOpenApiHtml(axum::response::Html(ADMIN_OPEN_API_HTML))
 }
 #[cfg(not(target_arch = "wasm32"))]
 #[must_use]
@@ -57,11 +50,12 @@ pub fn routes_without_swagger() -> AxumAdminFrontendRouter {
 }
 #[cfg(not(target_arch = "wasm32"))]
 fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFrontendRouter {
+    let index_path = concat!(env!("CARGO_MANIFEST_DIR"), "/dist/index.html");
     let page_routes = ADMIN_PAGE_PATHS
         .into_iter()
         .filter(|path| *path != "/admin/swagger-ui")
         .fold(axum::Router::new(), |router, path| {
-            router.route(path, axum::routing::get(spa))
+            router.route_service(path, tower_http::services::ServeFile::new(index_path))
         });
     let enabled_page_routes = if swagger_enabled.0 {
         page_routes.route("/admin/swagger-ui", axum::routing::get(open_api))
@@ -97,14 +91,14 @@ mod tests {
         let script = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app.rs"))
             .expect("fe89c42a");
         [
-            "\"/users\"",
-            "\"/roles\"",
-            "\"/permissions\"",
-            "\"/audit-log\"",
-            "\"/system-settings\"",
-            "\"/metrics\"",
-            "\"/auth/sign-in\"",
-            "\"/auth/sign-out\"",
+            "/api/v1/admin/users",
+            "/api/v1/admin/roles",
+            "/api/v1/admin/permissions",
+            "/api/v1/admin/audit-log",
+            "/api/v1/admin/system-settings",
+            "/metrics",
+            "/auth/sign-in",
+            "/auth/sign-out",
         ]
         .into_iter()
         .for_each(|contract| {
