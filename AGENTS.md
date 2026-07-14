@@ -1,41 +1,33 @@
 ## WHAT AGENT MUST DO
 
 - Place shared logic in a dedicated shared crate.
-- Use workspace-level dependencies.
 - Add dependencies only when prompt explicitly requests it.
 - Disable default features unless required.
 - Prefer `std` over external crates.
-- Declare crates.io dependencies only in workspace.dependencies.
-- Use `dep = { workspace = true }` for dependencies in workspace projects
+- Declare crates.io dependencies only in `workspace.dependencies` using concrete crate types, and reference all workspace dependencies as `dep = { workspace = true }` in workspace projects.
 - Prefer borrowing over cloning, especially for large structures.
-- Use `Arc` only for cross-thread sharing.
-- Use `Mutex` only for interior mutability.
 - Prefer immutable data.
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
 - Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
-- Use a single async runtime across workspace.
+- Use a single async runtime across workspace; do not mix async runtimes.
 - Keep trait bounds explicit.
 - Use trait objects only when dynamic dispatch is required.
-- Keep public API minimal.
 - Add unit tests for public logic.
 - Use test helpers for repeated setup.
 - Keep tests deterministic.
 - If error message contains 8 random symbols then search workspace for that id.
 - Avoid allocations inside hot loops.
-- Preserve behavior unless change is requested.
+- Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
 - Keep generated functions and closures inside usage scope.
 - Prefer explicit paths at usage sites over `use` imports.
-- `expect()` messages must contain **8 first symbols from random UUID v4**.
+- `expect()` messages must contain the **first 8 symbols from a random UUID v4**.
 - Use abbreviations when creating names.
-- Use conrete crates types from crates.io in workspace Cargo.toml
-- Use `crate_name = { workspace = true }` for workspace crates dependencies in Cargo.toml
 
 ## WHAT AGENT MUST NOT DO
 
 - Merge unrelated crates.
-- Break architecture boundaries or introduce hidden coupling.
 - Edit Cargo.toml of unrelated crates.
 - Add new crates unless explicitly requested.
 - Silence clippy without justification.
@@ -52,26 +44,23 @@
 - Use outdated versions in case of adding new crate.
 - Block async executors.
 - Hold locks across `.await`.
-- Mix async runtimes.
 - Ignore cancellation safety.
 - Depend on external services in tests.
 - Use flaky time-based tests.
 - Use `include_str!()` or `include_bytes!()` outside explicit generated/test fixture allowlist.
-- Change public API without instruction.
 - Leak generics to users.
 - Refactor or reformat without request.
 - Rename public items casually.
-- Change semantics silently.
 - Insert blank lines between code
 
 ## Review-only rules
 
 These rules require code review judgment and are not fully proven by automated tests:
 
-- Absence of hidden coupling.
-- Minimal public API surface.
-- Whether `Arc` is semantically required for cross-thread sharing.
-- Whether `Mutex` is semantically required for interior mutability.
+- Do not break architecture boundaries or introduce hidden coupling.
+- Keep public API minimal and do not change it without instruction.
+- Use `Arc` only when semantically required for cross-thread sharing.
+- Use `Mutex` only when semantically required for interior mutability.
 
 ## Run before completion
 
