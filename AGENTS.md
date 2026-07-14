@@ -51,7 +51,6 @@
 - Leak generics to users.
 - Refactor or reformat without request.
 - Rename public items casually.
-- Insert blank lines between code
 
 ## Review-only rules
 
