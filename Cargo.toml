@@ -11,6 +11,7 @@ members = [
   "frontend_contract",
   "gen_quotes",
   "git_info",
+  "initialize_environment_files",
   "loc_lib",
   "loc_lib/loc_macros",
   "loc_lib/loc_test",
@@ -122,6 +123,8 @@ web-sys = { version = "=0.3.91", default-features = false, features = [
   "Window",
 ] }
 tokio = { version = "=1.52.3", default-features = false, features = [
+  "fs",
+  "io-util",
   "macros",
   "rt-multi-thread",
   "signal",
@@ -235,7 +238,11 @@ schemars = { version = "=1.2.1", default-features = false, features = [
 rayon = { version = "=1.12.0", default-features = false }
 bytes = { version = "=1.12.0", default-features = false, features = ["std"] }
 cargo_metadata = { version = "=0.23.1", default-features = false }
+criterion = { version = "=0.8.2", default-features = false, features = [
+  "cargo_bench_support",
+] }
 walkdir = { version = "=2.5.0", default-features = false }
+trybuild = { version = "=1.0.116", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 itertools = { version = "=0.14.0", default-features = false, features = [
   "use_std",
@@ -256,6 +263,7 @@ gen_quotes = { path = "./gen_quotes", version = "0.1.0" }
 gen_wh_flts = { path = "./pg_crud/wh_flts/gen_wh_flts", version = "0.1.0" }
 gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", version = "0.1.0", default-features = false }
 git_info = { path = "./git_info", version = "0.1.0" }
+initialize_environment_files = { path = "./initialize_environment_files", version = "0.1.0" }
 loc_lib = { path = "./loc_lib", version = "0.1.0" }
 loc_macros = { path = "./loc_lib/loc_macros", version = "0.1.0" }
 location = { path = "./loc_lib/location", version = "0.1.0" }

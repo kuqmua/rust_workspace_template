@@ -1,8 +1,14 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
 mod problem;
+mod route;
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,
     ApiProblemStatus, ApiProblemViolation,
+};
+pub use route::{
+    AuthenticatedTransport, PublicTransport, RouteMetadata, RouteRequest, RouteResponse,
+    RouteTransport, TypedRoute, client_request, client_route_metadata, openapi_route_metadata,
+    server_response, server_route_metadata,
 };
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContractStr(&'static str);

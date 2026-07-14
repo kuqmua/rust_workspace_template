@@ -37,6 +37,53 @@ const CARGO_TEST_GEN_WH_FLTS_ARGS: [&str; 6] = [
     "test-utils",
 ];
 const CARGO_TEST_DATABASE_ARGS: [&str; 4] = ["test", "--locked", "--features", "test-utils"];
+const CARGO_TEST_WORKSPACE_ARGS: [&str; 5] = [
+    "test",
+    "--locked",
+    "--workspace",
+    "--all-features",
+    "--no-fail-fast",
+];
+const CARGO_TEST_IGNORED_ARGS: [&str; 7] = [
+    "test",
+    "--locked",
+    "--workspace",
+    "--all-features",
+    "--no-fail-fast",
+    "--",
+    "--ignored",
+];
+const CARGO_TEST_DOC_ARGS: [&str; 5] =
+    ["test", "--locked", "--workspace", "--doc", "--all-features"];
+const NEXTEST_WORKSPACE_ARGS: [&str; 7] = [
+    "nextest",
+    "run",
+    "--no-fail-fast",
+    "--workspace",
+    "--all-features",
+    "-P",
+    "static_workspace",
+];
+const NEXTEST_IGNORED_ARGS: [&str; 9] = [
+    "nextest",
+    "run",
+    "--no-fail-fast",
+    "--workspace",
+    "--all-features",
+    "-P",
+    "static_workspace",
+    "--run-ignored",
+    "only",
+];
+const NEXTEST_HEAVY_ARGS: [&str; 7] = [
+    "nextest",
+    "run",
+    "--no-fail-fast",
+    "--workspace",
+    "--all-features",
+    "-P",
+    "heavy_load",
+];
 const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
 const MEASURE_REPEAT_COUNT: usize = 1000;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
@@ -44,6 +91,16 @@ const STATIC_COMMANDS: [(&str, &[&str]); 3] = [
     ("cargo", &CARGO_FMT_CHECK_ARGS),
     ("cargo", &CARGO_CLIPPY_ARGS),
     ("cargo", &CARGO_TEST_STYLE_ARGS),
+];
+const CARGO_TEST_COMMANDS: [(&str, &[&str]); 3] = [
+    ("cargo", &CARGO_TEST_WORKSPACE_ARGS),
+    ("cargo", &CARGO_TEST_IGNORED_ARGS),
+    ("cargo", &CARGO_TEST_DOC_ARGS),
+];
+const NEXTEST_COMMANDS: [(&str, &[&str]); 3] = [
+    ("cargo", &NEXTEST_WORKSPACE_ARGS),
+    ("cargo", &NEXTEST_IGNORED_ARGS),
+    ("cargo", &CARGO_TEST_DOC_ARGS),
 ];
 const MACRO_GENERATION_MEASUREMENTS: [(MeasurementName, CargoArgs); 3] = [
     (
@@ -565,6 +622,41 @@ fn run_alloc_workload_wh_flts_qp() -> Result<(), ()> {
     );
     Ok(())
 }
+fn cargo_subcommand_available(subcommand: &str) -> bool {
+    let args = [subcommand, "--version"];
+    macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from("cargo"),
+    )
+    .args(macros_helpers::tool_command::ToolArgsRef::from(
+        args.as_slice(),
+    ))
+    .output()
+    .is_ok_and(|output| output.status.success())
+}
+#[allow(
+    clippy::needless_for_each,
+    clippy::single_call_fn,
+    reason = "keeps release-tool reporting separate and repository policy forbids for loops"
+)]
+fn print_optional_release_tools() {
+    ["semver-checks", "udeps", "machete", "llvm-cov"]
+        .into_iter()
+        .for_each(|tool| {
+            println!(
+                "release_tool={tool} available={}",
+                cargo_subcommand_available(tool)
+            );
+        });
+}
+fn run_workspace_tests() -> Result<(), ()> {
+    if cargo_subcommand_available("nextest") {
+        println!("test_executor=nextest");
+        execution::run_commands(&NEXTEST_COMMANDS)
+    } else {
+        println!("test_executor=cargo fallback=true");
+        execution::run_commands(&CARGO_TEST_COMMANDS)
+    }
+}
 fn main() {
     let mode = discovery::mode();
     let result = match mode.as_deref() {
@@ -599,6 +691,19 @@ fn main() {
             .try_fold((), |(), (measurement_name, args)| {
                 measure_cargo_command(*measurement_name, *args)
             }),
+        Some("tests") => run_workspace_tests(),
+        Some("heavy-load") => {
+            if cargo_subcommand_available("nextest") {
+                execution::run_commands(&[("cargo", &NEXTEST_HEAVY_ARGS)])
+            } else {
+                eprintln!("heavy-load mode requires cargo-nextest; optional tool is unavailable");
+                Err(())
+            }
+        }
+        Some("release") => {
+            print_optional_release_tools();
+            execution::run_commands(&STATIC_COMMANDS).and_then(|()| run_workspace_tests())
+        }
         Some("measure") => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 ALLOCATION_TOOLS.iter().try_fold((), |(), tool| {
@@ -1382,16 +1487,18 @@ fn main() {
                 }
             }
         }
-        Some("all") => execution::run_commands(&STATIC_COMMANDS).and_then(|()| {
-            MACRO_GENERATION_MEASUREMENTS
-                .iter()
-                .try_fold((), |(), (measurement_name, args)| {
-                    measure_cargo_command(*measurement_name, *args)
-                })
-        }),
+        Some("all") => execution::run_commands(&STATIC_COMMANDS)
+            .and_then(|()| run_workspace_tests())
+            .and_then(|()| {
+                MACRO_GENERATION_MEASUREMENTS
+                    .iter()
+                    .try_fold((), |(), (measurement_name, args)| {
+                        measure_cargo_command(*measurement_name, *args)
+                    })
+            }),
         Some(other) => {
             eprintln!(
-                "unknown mode `{other}`; expected `static`, `database`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
+                "unknown mode `{other}`; expected `static`, `database`, `tests`, `heavy-load`, `release`, `macro-generation`, `measure`, `all`, or `alloc-workload-*`"
             );
             Err(())
         }

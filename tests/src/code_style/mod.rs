@@ -1,6 +1,8 @@
 mod cargo_policy;
+mod ci_policy;
 mod domain_type_policy;
 mod lint_sync;
+mod route_contract_policy;
 mod runtime_policy;
 mod snapshot;
 mod source_policy;
@@ -317,6 +319,32 @@ impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
 }
 struct DirectPathCallVisitor {
     calls: types::DiagnosticMsgs,
+}
+struct UnboundedReadVisitor {
+    calls: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if let Some(path) = expr_call_path(types::SynExprCallRef::from(i)) {
+            let call = path_to_string(path);
+            if matches!(
+                call.as_ref(),
+                "std::fs::read"
+                    | "std::fs::read_to_string"
+                    | "tokio::fs::read"
+                    | "tokio::fs::read_to_string"
+            ) {
+                self.calls.push(call.as_ref().to_owned());
+            }
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if i.method == "text" {
+            self.calls.push(format!(".{}()", i.method));
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
 }
 impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
@@ -2366,7 +2394,15 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    if path.as_ref().starts_with("../workspace_test_runner/src/") {
+    if path.as_ref().starts_with("../workspace_test_runner/src/")
+        || path
+            .as_ref()
+            .starts_with("../initialize_environment_files/src/")
+        || path
+            .as_ref()
+            .components()
+            .any(|component| component.as_os_str() == "benches")
+    {
         return types::AnalyzerBool::default();
     }
     if path.as_ref().ends_with("server_admin_frontend/src/app.rs")
@@ -2747,6 +2783,12 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
         .as_ref()
         .components()
         .any(|component| component.as_os_str() == "src")
+    {
+        return types::AnalyzerBool::default();
+    }
+    if path
+        .as_ref()
+        .starts_with("../initialize_environment_files/src/")
     {
         return types::AnalyzerBool::default();
     }

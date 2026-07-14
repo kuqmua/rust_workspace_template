@@ -33,5 +33,12 @@ to_err_string = { workspace = true }
 [features]
 test-utils = []
 
+[dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "query_builders"
+harness = false
+
 [lints]
 workspace = true

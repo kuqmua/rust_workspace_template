@@ -1,3 +1,7 @@
+#![allow(
+    clippy::needless_for_each,
+    reason = "utoipa OpenApi derive expands to an internal for_each"
+)]
 //todo gen openapi spec
 const SLASH_HEALTH_CHECK: &str = "/health_check";
 const SLASH_HEALTH: &str = "/health";
@@ -13,8 +17,8 @@ const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
     AxumHealthCheckStatus(axum::http::StatusCode::OK);
 const HEALTH_CHECK_ER_STATUS: AxumHealthCheckStatus =
     AxumHealthCheckStatus(axum::http::StatusCode::SERVICE_UNAVAILABLE);
-#[derive(Debug, serde::Serialize, optml::Optml)]
-struct GitInfo {
+#[derive(Debug, serde::Serialize, utoipa::ToSchema, optml::Optml)]
+pub struct GitInfo {
     commit: git_info::StdGitCommitLinkCow,
 }
 #[derive(Debug, serde::Serialize, optml::Optml)]
@@ -139,9 +143,35 @@ where
 pub struct AxumCmnRoutes(axum::Router);
 #[derive(Clone, optml::Optml)]
 pub struct StdArcCmnRoutesAppState(std::sync::Arc<dyn CmnRoutesPrms>);
+#[derive(Clone, Copy, Debug, utoipa::OpenApi)]
+#[openapi(
+    paths(health_live, git_info_open_api),
+    components(schemas(
+        HealthReport,
+        HealthComponent,
+        HealthComponentKind,
+        HealthStatus,
+        GitInfo
+    ))
+)]
+pub struct CmnRoutesOpenApi;
+#[derive(serde::Serialize)]
+#[serde(transparent)]
+pub struct UtoipaCmnRoutesOpenApiDocument(utoipa::openapi::OpenApi);
+impl CmnRoutesOpenApi {
+    #[must_use]
+    pub fn open_api() -> UtoipaCmnRoutesOpenApiDocument {
+        UtoipaCmnRoutesOpenApiDocument(<Self as utoipa::OpenApi>::openapi())
+    }
+}
 impl std::fmt::Debug for StdArcCmnRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("StdArcCmnRoutesAppState").finish()
+    }
+}
+impl std::fmt::Debug for UtoipaCmnRoutesOpenApiDocument {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("UtoipaCmnRoutesOpenApiDocument").finish()
     }
 }
 impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for StdArcCmnRoutesAppState
@@ -256,15 +286,27 @@ const fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
     };
     mk_json_res(status, report)
 }
+#[utoipa::path(get, path = "/health/live", responses((status = 200, body = HealthReport)), tag = "service")]
+#[allow(
+    clippy::single_call_fn,
+    reason = "the concrete handler is intentionally shared by Axum and OpenAPI metadata"
+)]
+async fn health_live() -> JsonRes<HealthReport> {
+    health_report_response(HealthReport::liveness())
+}
+#[utoipa::path(get, path = "/git_info", responses((status = 200, body = GitInfo)), tag = "service")]
+#[allow(
+    dead_code,
+    clippy::single_call_fn,
+    reason = "Utoipa consumes this metadata-only handler through its derive expansion"
+)]
+const fn git_info_open_api() {}
 #[must_use]
 pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes {
     let app_state = app_state_b9fc2d94.0;
     AxumCmnRoutes(
         axum::Router::new()
-            .route(
-                SLASH_HEALTH_LIVE,
-                axum::routing::get(async || health_report_response(HealthReport::liveness())),
-            )
+            .route(SLASH_HEALTH_LIVE, axum::routing::get(health_live))
             .route(
                 SLASH_HEALTH_READY,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
@@ -292,9 +334,8 @@ pub fn cmn_routes(app_state_b9fc2d94: StdArcCmnRoutesAppState) -> AxumCmnRoutes 
             )
             .route(
                 SLASH_GIT_INFO,
-                axum::routing::get(async |axum::extract::State(app_state_76fb2013_raw)| {
-                    let app_state_76fb2013: std::sync::Arc<dyn CmnRoutesPrms> =
-                        app_state_76fb2013_raw;
+                axum::routing::get(async |axum::extract::State(app_state_raw)| {
+                    let app_state_76fb2013: std::sync::Arc<dyn CmnRoutesPrms> = app_state_raw;
                     mk_commit_json_res(
                         app_state_76fb2013.as_ref(),
                         AxumHealthCheckStatus(axum::http::StatusCode::OK),
@@ -540,5 +581,60 @@ mod tests {
         );
         assert_eq!(response.status.0, axum::http::StatusCode::OK);
         assert_git_info_commit(&response.payload.0, test_commit_link().as_str());
+    }
+    #[tokio::test]
+    async fn runtime_health_version_and_public_read_match_openapi() {
+        let router = axum::Router::from(super::cmn_routes(super::StdArcCmnRoutesAppState(
+            test_state(),
+        )));
+        let document = serde_json::to_value(super::CmnRoutesOpenApi::open_api()).expect("f96bcc6e");
+        let check = |path: &'static str| {
+            let cloned_router = router.clone();
+            let cloned_document = document.clone();
+            async move {
+                let response = tower::ServiceExt::oneshot(
+                    cloned_router,
+                    axum::http::Request::builder()
+                        .uri(path)
+                        .body(axum::body::Body::empty())
+                        .expect("6e9abf44"),
+                )
+                .await
+                .expect("634c635b");
+                assert_eq!(response.status(), axum::http::StatusCode::OK);
+                assert!(
+                    response
+                        .headers()
+                        .get(axum::http::header::CONTENT_TYPE)
+                        .is_some()
+                );
+                let escaped_path = path.replace('/', "~1");
+                assert!(
+                    cloned_document
+                        .pointer(format!("/paths/{escaped_path}/get/responses/200").as_str())
+                        .is_some()
+                );
+                let body = axum::body::to_bytes(response.into_body(), 16_384usize)
+                    .await
+                    .expect("e7d5f988");
+                assert!(
+                    serde_json::from_slice::<serde_json::Value>(&body)
+                        .expect("5013a777")
+                        .is_object()
+                );
+            }
+        };
+        check("/health/live").await;
+        check("/git_info").await;
+        let not_found = tower::ServiceExt::oneshot(
+            router,
+            axum::http::Request::builder()
+                .uri("/missing")
+                .body(axum::body::Body::empty())
+                .expect("bb258755"),
+        )
+        .await
+        .expect("d2b9cc45");
+        assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
     }
 }

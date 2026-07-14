@@ -1,3 +1,4 @@
+mod bounded_read;
 mod client_ip;
 mod cors;
 mod health;
@@ -6,6 +7,11 @@ mod lifecycle;
 mod limits;
 mod request_id;
 mod resource_budget;
+pub use bounded_read::{
+    BoundedBytes, BoundedReadEr, BoundedReadMaximumBytes, BoundedText, ReqwestEr, ReqwestResponse,
+    StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Er, StdIoEr,
+    StdPathRef, read_bounded_file, read_bounded_file_async, read_bounded_http_response,
+};
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseEr, StdParseIntEr, StdResolvedClientIp, StdSocketAddr,
     TrustedProxyRange, TrustedProxyRangeParseEr, TrustedProxyRanges, resolve_client_ip,

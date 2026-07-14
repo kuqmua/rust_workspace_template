@@ -23,5 +23,8 @@ rayon = { workspace = true }
 cargo_metadata = { workspace = true }
 macros_helpers = { workspace = true }
 newtype = { workspace = true }
+frontend_contract = { workspace = true }
+serde = { workspace = true }
+trybuild = { workspace = true }
 [lints]
 workspace = true

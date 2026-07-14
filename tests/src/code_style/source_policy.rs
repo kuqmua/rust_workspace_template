@@ -128,6 +128,8 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
                 || path_text.contains("/macros_helpers/")
                 || path_text.contains("/tests/")
                 || path_text.contains("/workspace_test_runner/")
+                || path_text.contains("/initialize_environment_files/")
+                || path_text.ends_with("server_runtime/src/bounded_read.rs")
                 || path_text.ends_with("server_admin_frontend/src/lib.rs")
             {
                 return;
@@ -146,6 +148,78 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
             }));
         },
     );
+}
+#[test]
+fn runtime_data_reads_are_bounded() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("37b593ce"),
+        super::types::SourceTextRef::from(
+            "runtime code performs an unbounded file or HTTP response read:",
+        ),
+        |path, ast, ers| {
+            let path_text = path.to_string_lossy();
+            if path_text.contains("/tests/")
+                || path_text.contains("/macros_helpers/")
+                || path_text.contains("/macro_clippy_check_cmn/")
+                || path_text.contains("/workspace_test_runner/")
+                || path_text.contains("/initialize_environment_files/")
+                || path_text.ends_with("server_runtime/src/bounded_read.rs")
+                || path_text.ends_with("server_admin_frontend/src/lib.rs")
+            {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::UnboundedReadVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .calls
+                    .into_iter()
+                    .map(|call| format!("{}: unbounded `{call}`", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
+    let mut observed = std::collections::BTreeMap::<String, usize>::new();
+    super::for_each_rs_file_content(|path, content| {
+        let path_text = path.to_string_lossy();
+        if path_text.contains("/tests/")
+            || path_text.ends_with("pg_crud/pg_crud_cmn/src/sql_identifier.rs")
+        {
+            return;
+        }
+        let count = [" FROM ", " INTO ", "UPDATE "]
+            .into_iter()
+            .map(|pattern| content.matches(pattern).count())
+            .sum::<usize>();
+        if count != 0usize {
+            let workspace_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .parent()
+                .expect("19512c63");
+            let relative = path
+                .strip_prefix(workspace_root)
+                .unwrap_or(path)
+                .to_string_lossy()
+                .to_string();
+            let _previous = observed.insert(relative, count);
+        }
+    });
+    let expected = std::collections::BTreeMap::from([
+        ("../pg_crud/pg_tbl/src/lib.rs".to_owned(), 7usize),
+        ("../server_admin/src/auth.rs".to_owned(), 7usize),
+        ("../server_admin/src/auth/audit.rs".to_owned(), 2usize),
+        ("../server_admin/src/auth/handlers.rs".to_owned(), 46usize),
+        ("../server_admin/src/auth/rate_limit.rs".to_owned(), 2usize),
+        ("../server_admin/src/auth/session.rs".to_owned(), 6usize),
+        ("../server_admin/src/cleanup.rs".to_owned(), 10usize),
+        ("../server_admin/src/migrations.rs".to_owned(), 4usize),
+    ]);
+    assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
 fn direct_process_command_creation_stays_in_shared_tooling() {

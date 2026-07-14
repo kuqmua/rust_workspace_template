@@ -7,6 +7,8 @@ on:
   workflow_dispatch:
 env:
   CARGO_TERM_COLOR: always
+permissions:
+  contents: read
 jobs:
   metadata:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -50,6 +52,53 @@ jobs:
         with:
           tool: typos-cli
       - run: typos
+  actionlint:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca
+  machete:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+        with:
+          toolchain: nightly
+      - uses: taiki-e/install-action@59979a424d2584f3cdeca89833d69ca54b72d84f
+        with:
+          tool: cargo-machete
+      - run: cargo machete
+  llvm-cov:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
+        with:
+          tool: cargo-llvm-cov
+      - run: cargo llvm-cov --workspace --all-features --all-targets --summary-only -- --ensure-time -Z unstable-options
+  trivy:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
   admin-frontend:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -200,3 +249,27 @@ jobs:
           toolchain: nightly
       - run: cargo install --locked cargo-udeps
       - run: cargo udeps --workspace --all-targets --all-features --locked
+  unused-dependencies:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+        with:
+          toolchain: nightly
+      - uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
+        with:
+          tool: cargo-udeps
+      - run: cargo +nightly udeps --workspace --all-targets --all-features --locked
+  benchmark-history:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
+        with:
+          toolchain: nightly
+      - run: cargo bench --locked -p pg_crud_cmn --bench query_builders -- --save-baseline ci
+      - run: cargo bench --locked -p pg_crud_cmn --bench query_builders -- --baseline ci

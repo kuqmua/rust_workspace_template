@@ -1,0 +1,21 @@
+[package]
+name = "initialize_environment_files"
+version = "0.1.0"
+publish = false
+description = "Safely initialize workspace environment files from examples"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["environment"]
+categories = ["development-tools"]
+edition = "2024"
+
+[dependencies]
+thiserror = { workspace = true }
+toml = { workspace = true }
+
+[dev-dependencies]
+uuid = { workspace = true }
+
+[lints]
+workspace = true

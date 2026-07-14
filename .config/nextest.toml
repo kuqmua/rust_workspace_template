@@ -15,3 +15,14 @@ max-threads = 1
 retries = 2
 slow-timeout = { period = "120s", terminate-after = 3 }
 failure-output = "immediate-final"
+
+[profile.static_workspace]
+retries = 0
+slow-timeout = { period = "120s" }
+failure-output = "immediate"
+
+[profile.heavy_load]
+default-filter = "test(/load|concurrent|bulk/)"
+test-threads = 1
+retries = 0
+slow-timeout = { period = "300s", terminate-after = 2 }

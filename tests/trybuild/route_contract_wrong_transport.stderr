@@ -1,0 +1,21 @@
+error[E0271]: type mismatch resolving `<AuthenticatedRoute as TypedRoute>::Transport == PublicTransport`
+  --> trybuild/route_contract_wrong_transport.rs:18:20
+   |
+18 |     require_public(frontend_contract::client_request::<AuthenticatedRoute>(Request));
+   |     -------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ type mismatch resolving `<AuthenticatedRoute as TypedRoute>::Transport == PublicTransport`
+   |     |
+   |     required by a bound introduced by this call
+   |
+note: expected this to be `PublicTransport`
+  --> trybuild/route_contract_wrong_transport.rs:14:22
+   |
+14 |     type Transport = frontend_contract::AuthenticatedTransport;
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `require_public`
+  --> trybuild/route_contract_wrong_transport.rs:3:42
+   |
+ 1 | fn require_public<Route>(_request: frontend_contract::RouteRequest<Route>)
+   |    -------------- required by a bound in this function
+ 2 | where
+ 3 |     Route: frontend_contract::TypedRoute<Transport = frontend_contract::PublicTransport>,
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `require_public`

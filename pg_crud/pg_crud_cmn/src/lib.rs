@@ -4,6 +4,7 @@ mod cardinality;
 mod errors;
 mod pagination;
 mod query_fragment;
+mod sql_identifier;
 pub use bind_index::{QpIncr, QpIncrMut, incr_checked_add_one_returning_incr};
 pub use cardinality::{
     DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash, take_fst_dup,
@@ -14,6 +15,9 @@ pub use errors::{
 };
 pub use pagination::{DEFAULT_PAGINATION_LIMIT, PgnEnd, PgnLimit, PgnOffset, PgnStart};
 pub use query_fragment::{QpFragment, SqlColRef};
+pub use sql_identifier::{
+    SqlIdentifier, SqlIdentifierEr, SqlQualifiedIdentifier, SqlSelectBuilder,
+};
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;
