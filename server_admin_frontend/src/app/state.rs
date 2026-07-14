@@ -19,6 +19,7 @@ pub(super) enum Page {
     Permissions(Vec<server_admin_contract::AdminPermissionSummary>),
     Audit(Vec<server_admin_contract::AdminAuditView>),
     Settings(server_admin_contract::AdminSettingsView),
+    OpenApi(Text),
     Text(Text),
     Error(Text),
 }

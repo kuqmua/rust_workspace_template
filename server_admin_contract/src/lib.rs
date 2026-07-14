@@ -699,6 +699,7 @@ pub enum AdminRoute {
     DeleteUser(AdminUserId),
     Me,
     Metrics,
+    OpenApi,
     Permissions,
     Refresh,
     RevokeAllSessions,
@@ -804,7 +805,7 @@ impl AdminPage {
         match self {
             Self::Audit => Some(AdminRoute::Audit),
             Self::Metrics => Some(AdminRoute::Metrics),
-            Self::OpenApi => None,
+            Self::OpenApi => Some(AdminRoute::OpenApi),
             Self::Permissions => Some(AdminRoute::Permissions),
             Self::Roles => Some(AdminRoute::Roles),
             Self::Settings => Some(AdminRoute::Settings),
@@ -930,6 +931,15 @@ impl AdminRoute {
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
                 "/metrics",
+                frontend_contract::SuccessStatus::Code200,
+            ),
+            Self::OpenApi => (
+                frontend_contract::AuthenticationRequirement::Permission(
+                    frontend_contract::ContractStr::from("openapi:read"),
+                ),
+                frontend_contract::HttpMethod::Get,
+                frontend_contract::MutationKind::ReadOnly,
+                "/openapi.json",
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Permissions => (
@@ -1105,6 +1115,7 @@ impl AdminRoute {
             | Self::CreateUser
             | Self::Me
             | Self::Metrics
+            | Self::OpenApi
             | Self::Permissions
             | Self::Refresh
             | Self::RevokeAllSessions
@@ -1181,6 +1192,21 @@ mod tests {
             frontend_contract::AuthenticationRequirement::Permission(
                 frontend_contract::ContractStr::from("users:update")
             )
+        );
+    }
+    #[test]
+    fn open_api_page_uses_the_typed_authenticated_api_route() {
+        let route = super::AdminRoute::OpenApi;
+        assert_eq!(route.path().as_ref(), "/api/v1/admin/openapi.json");
+        assert_eq!(
+            route.contract().authentication(),
+            frontend_contract::AuthenticationRequirement::Permission(
+                frontend_contract::ContractStr::from("openapi:read"),
+            )
+        );
+        assert_eq!(
+            super::AdminPage::OpenApi.route(),
+            Some(super::AdminRoute::OpenApi)
         );
     }
     #[test]

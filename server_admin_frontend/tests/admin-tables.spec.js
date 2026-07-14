@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
         display_name: 'Root Admin',
         id: 1,
         login: 'root',
-        permissions: ['users:read'],
+        permissions: ['users:read', 'openapi:read'],
         roles: ['administrator'],
       }),
     });
@@ -23,6 +23,20 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/admin/users', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(users) });
   });
+  await page.route('**/api/v1/admin/openapi.json', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ openapi: '3.1.0', paths: { '/users': { get: {} } } }),
+    });
+  });
+});
+
+test('OpenAPI page is rendered by the Leptos SPA', async ({ page }) => {
+  await page.goto('/admin/swagger-ui');
+  await expect(page.getByRole('heading', { name: 'OpenAPI document' })).toBeVisible();
+  await expect(page.locator('#openapi')).toContainText('"openapi": "3.1.0"');
+  await expect(page.locator('#openapi')).toContainText('"/users"');
+  await expect(page.locator('script[src$="swagger.js"]')).toHaveCount(0);
 });
 
 test('header navigation and table discovery controls work in the SPA', async ({ page }) => {

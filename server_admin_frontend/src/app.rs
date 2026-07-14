@@ -254,6 +254,14 @@ impl AdminApiClient {
             .map(Text::from)
             .map_err(|error| ApiError::Request(Text::from(error.to_string())))
     }
+    async fn open_api(&self) -> Result<Text, ApiError> {
+        let document = self
+            .get::<serde_json::Value>(server_admin_contract::AdminRoute::OpenApi)
+            .await?;
+        serde_json::to_string_pretty(&document)
+            .map(Text::from)
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))
+    }
     async fn version(&self) -> Result<GitInfo, ApiError> {
         self.get(server_admin_contract::AdminRoute::Version).await
     }
@@ -331,7 +339,10 @@ fn load(client: AdminApiClient, page: RwSignal<Page>) {
                     )
                 })
             }
-            Some(server_admin_contract::AdminPage::OpenApi) | None => {
+            Some(server_admin_contract::AdminPage::OpenApi) => {
+                client.open_api().await.map(Page::OpenApi)
+            }
+            None => {
                 redirect(server_admin_contract::AdminPage::Version.path().as_ref());
                 return;
             }

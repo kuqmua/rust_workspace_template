@@ -41,6 +41,7 @@ fn PageView(
         super::Page::Loading => super::tables::loading().into_any(),
         super::Page::Error(value) => super::tables::error(value).into_any(),
         super::Page::Text(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"System"</p><h1>"Runtime information"</h1></div></div><div class="code-card"><pre>{value.to_string()}</pre></div></section> }.into_any(),
+        super::Page::OpenApi(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"Developer tools"</p><h1>"OpenAPI document"</h1></div></div><div class="code-card api-document"><pre id="openapi">{value.to_string()}</pre></div></section> }.into_any(),
         super::Page::Users(values) => super::tables::users_view(values, client.clone(), page, &auth).into_any(),
         super::Page::Roles(values) => super::tables::roles_view(values, client.clone(), page, &auth).into_any(),
         super::Page::Permissions(values) => super::tables::permissions_view(values).into_any(),
