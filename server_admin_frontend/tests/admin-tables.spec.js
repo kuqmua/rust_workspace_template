@@ -151,7 +151,9 @@ test('header navigation and table discovery controls work in the SPA', async ({ 
 
 test('users permissions and audit keep one header layout and session', async ({ page }) => {
   let meRequests = 0;
+  let apiRequests = 0;
   page.on('request', (request) => {
+    if (request.url().includes('/api/v1/admin/')) apiRequests += 1;
     if (request.url().includes('/api/v1/admin/auth/me')) meRequests += 1;
   });
 
@@ -170,5 +172,6 @@ test('users permissions and audit keep one header layout and session', async ({ 
   await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
   await expect(page.locator('header.topbar')).toBeVisible();
   await expect(page.locator('header.sidebar')).toHaveCount(0);
-  expect(meRequests).toBe(3);
+  expect(meRequests).toBe(1);
+  expect(apiRequests).toBe(4);
 });

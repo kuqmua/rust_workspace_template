@@ -305,6 +305,20 @@ fn reload() {
         let _result = value.location().reload();
     }
 }
+fn push_path(path: &str) {
+    if let Some(value) = browser_window()
+        && let Ok(history) = value.history()
+    {
+        let _result = history.push_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(path));
+    }
+}
+fn replace_path(path: &str) {
+    if let Some(value) = browser_window()
+        && let Ok(history) = value.history()
+    {
+        let _result = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(path));
+    }
+}
 fn authentication_is_rejected(error: &ApiError) -> bool {
     matches!(error, ApiError::Status(401u16 | 403u16, _detail))
 }
