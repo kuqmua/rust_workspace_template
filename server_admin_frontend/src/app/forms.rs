@@ -57,7 +57,7 @@ pub(super) fn SignIn(client: super::AdminApiClient) -> impl IntoView {
                     (_, Err(value)) => { pending.set(false); error.set(Some(super::Text::from(value.to_string()))); return; },
                 };
                 match client.sign_in(input).await {
-                    Ok(value) => { let _display_name = value.user().display_name(); super::redirect("/admin"); },
+                    Ok(value) => { let _display_name = value.user().display_name(); super::redirect(server_admin_contract::admin_page_paths::ROOT); },
                     Err(value) => { pending.set(false); error.set(Some(super::Text::from(value.to_string()))); },
                 }
             });
@@ -113,7 +113,7 @@ pub(super) fn settings_view(
     view! { <section><p class="eyebrow">"Configuration"</p><h1>"System settings"</h1><form class="settings-form" on:submit=move |event| { event.prevent_default(); if let (Ok(site_name), Ok(default_admin_route), Ok(tab_title), Ok(main_logo), Ok(primary_color), Ok(organization_name), Ok(organization_contacts), Ok(support_url)) = (server_admin_contract::AdminSettingText::try_from(site_name.get()), server_admin_contract::AdminSettingText::try_from(default_admin_route.get()), server_admin_contract::AdminSettingText::try_from(tab_title.get()), server_admin_contract::AdminSettingText::try_from(main_logo.get()), server_admin_contract::AdminSettingText::try_from(primary_color.get()), server_admin_contract::AdminSettingText::try_from(organization_name.get()), server_admin_contract::AdminSettingText::try_from(organization_contacts.get()), server_admin_contract::AdminSettingText::try_from(support_url.get())) { let body = server_admin_contract::AdminUpdateSettingsReq::new(Some(default_admin_route), Some(main_logo), Some(organization_contacts), Some(organization_name), Some(primary_color), Some(site_name), Some(support_url), Some(tab_title)); let action_client = client.clone(); super::run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateSettings, body), action_client, loader); } }>
     <label><span>"Site name"</span><input placeholder="Administration" prop:value=move || site_name.get() on:input=move |event| site_name.set(event_target_value(&event)) /></label>
     <label><span>"Browser tab title"</span><input placeholder="Admin Console" prop:value=move || tab_title.get() on:input=move |event| tab_title.set(event_target_value(&event)) /></label>
-    <label><span>"Default admin route"</span><input placeholder="/admin/users" prop:value=move || default_admin_route.get() on:input=move |event| default_admin_route.set(event_target_value(&event)) /></label>
+    <label><span>"Default admin route"</span><input placeholder=server_admin_contract::admin_page_paths::USERS prop:value=move || default_admin_route.get() on:input=move |event| default_admin_route.set(event_target_value(&event)) /></label>
     <label><span>"Primary color"</span><input placeholder="#6757e8" prop:value=move || primary_color.get() on:input=move |event| primary_color.set(event_target_value(&event)) /></label>
     <label class="full-field"><span>"Logo URL"</span><input placeholder="https://..." prop:value=move || main_logo.get() on:input=move |event| main_logo.set(event_target_value(&event)) /></label>
     <label><span>"Organization"</span><input placeholder="Organization name" prop:value=move || organization_name.get() on:input=move |event| organization_name.set(event_target_value(&event)) /></label>

@@ -1,3 +1,4 @@
+const EXPECTED_CLOSURE_ERROR: &str = "case_trait_pair expects closure";
 #[proc_macro]
 pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
@@ -36,21 +37,17 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let Some(closure_text) =
         workspace_macro_helpers::part_at(&parts, 3).map(|part| part.to_string())
     else {
-        return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects closure",
-        )
-        .into_inner()
-        .into();
+        return workspace_macro_helpers::compile_error_token_stream(EXPECTED_CLOSURE_ERROR)
+            .into_inner()
+            .into();
     };
     let Some((param_part, body_part)) = closure_text
         .split_once('|')
         .and_then(|(_, rest)| rest.split_once('|'))
     else {
-        return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects closure",
-        )
-        .into_inner()
-        .into();
+        return workspace_macro_helpers::compile_error_token_stream(EXPECTED_CLOSURE_ERROR)
+            .into_inner()
+            .into();
     };
     let param_identifier = quote::format_ident!("{}", param_part.trim());
     let Ok(body_token_stream) = body_part.trim().parse::<proc_macro2::TokenStream>() else {

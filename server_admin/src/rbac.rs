@@ -25,31 +25,75 @@ impl super::AdminAuditResource {
     }
 }
 impl super::AdminPermission {
+    pub const ALL: [Self; 22] = [
+        Self::AuditLogRead,
+        Self::MetricsRead,
+        Self::OpenApiRead,
+        Self::PermissionsRead,
+        Self::RolePermissionsCreate,
+        Self::RolePermissionsDelete,
+        Self::RolePermissionsRead,
+        Self::RolePermissionsUpdate,
+        Self::RolesCreate,
+        Self::RolesDelete,
+        Self::RolesRead,
+        Self::RolesUpdate,
+        Self::SystemSettingsRead,
+        Self::SystemSettingsUpdate,
+        Self::UserRolesCreate,
+        Self::UserRolesDelete,
+        Self::UserRolesRead,
+        Self::UserRolesUpdate,
+        Self::UsersCreate,
+        Self::UsersDelete,
+        Self::UsersRead,
+        Self::UsersUpdate,
+    ];
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::AuditLogRead => "audit_log:read",
-            Self::MetricsRead => "metrics:read",
-            Self::OpenApiRead => "openapi:read",
-            Self::PermissionsRead => "permissions:read",
-            Self::RolePermissionsCreate => "role_permissions:create",
-            Self::RolePermissionsDelete => "role_permissions:delete",
-            Self::RolePermissionsRead => "role_permissions:read",
-            Self::RolePermissionsUpdate => "role_permissions:update",
-            Self::RolesCreate => "roles:create",
-            Self::RolesDelete => "roles:delete",
-            Self::RolesRead => "roles:read",
-            Self::RolesUpdate => "roles:update",
-            Self::SystemSettingsRead => "system_settings:read",
-            Self::SystemSettingsUpdate => "system_settings:update",
-            Self::UserRolesCreate => "user_roles:create",
-            Self::UserRolesDelete => "user_roles:delete",
-            Self::UserRolesRead => "user_roles:read",
-            Self::UserRolesUpdate => "user_roles:update",
-            Self::UsersCreate => "users:create",
-            Self::UsersDelete => "users:delete",
-            Self::UsersRead => "users:read",
-            Self::UsersUpdate => "users:update",
+            Self::AuditLogRead => server_admin_contract::admin_permission_values::AUDIT_LOG_READ,
+            Self::MetricsRead => server_admin_contract::admin_permission_values::METRICS_READ,
+            Self::OpenApiRead => server_admin_contract::admin_permission_values::OPEN_API_READ,
+            Self::PermissionsRead => {
+                server_admin_contract::admin_permission_values::PERMISSIONS_READ
+            }
+            Self::RolePermissionsCreate => {
+                server_admin_contract::admin_permission_values::ROLE_PERMISSIONS_CREATE
+            }
+            Self::RolePermissionsDelete => {
+                server_admin_contract::admin_permission_values::ROLE_PERMISSIONS_DELETE
+            }
+            Self::RolePermissionsRead => {
+                server_admin_contract::admin_permission_values::ROLE_PERMISSIONS_READ
+            }
+            Self::RolePermissionsUpdate => {
+                server_admin_contract::admin_permission_values::ROLE_PERMISSIONS_UPDATE
+            }
+            Self::RolesCreate => server_admin_contract::admin_permission_values::ROLES_CREATE,
+            Self::RolesDelete => server_admin_contract::admin_permission_values::ROLES_DELETE,
+            Self::RolesRead => server_admin_contract::admin_permission_values::ROLES_READ,
+            Self::RolesUpdate => server_admin_contract::admin_permission_values::ROLES_UPDATE,
+            Self::SystemSettingsRead => {
+                server_admin_contract::admin_permission_values::SYSTEM_SETTINGS_READ
+            }
+            Self::SystemSettingsUpdate => {
+                server_admin_contract::admin_permission_values::SYSTEM_SETTINGS_UPDATE
+            }
+            Self::UserRolesCreate => {
+                server_admin_contract::admin_permission_values::USER_ROLES_CREATE
+            }
+            Self::UserRolesDelete => {
+                server_admin_contract::admin_permission_values::USER_ROLES_DELETE
+            }
+            Self::UserRolesRead => server_admin_contract::admin_permission_values::USER_ROLES_READ,
+            Self::UserRolesUpdate => {
+                server_admin_contract::admin_permission_values::USER_ROLES_UPDATE
+            }
+            Self::UsersCreate => server_admin_contract::admin_permission_values::USERS_CREATE,
+            Self::UsersDelete => server_admin_contract::admin_permission_values::USERS_DELETE,
+            Self::UsersRead => server_admin_contract::admin_permission_values::USERS_READ,
+            Self::UsersUpdate => server_admin_contract::admin_permission_values::USERS_UPDATE,
         })
     }
 }
@@ -67,32 +111,11 @@ impl serde::Serialize for super::AdminPermission {
 impl TryFrom<&str> for super::AdminPermission {
     type Error = super::AdminPermissionTryFromStrError;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "audit_log:read" => Ok(Self::AuditLogRead),
-            "metrics:read" => Ok(Self::MetricsRead),
-            "openapi:read" => Ok(Self::OpenApiRead),
-            "permissions:read" => Ok(Self::PermissionsRead),
-            "role_permissions:create" => Ok(Self::RolePermissionsCreate),
-            "role_permissions:delete" => Ok(Self::RolePermissionsDelete),
-            "role_permissions:read" => Ok(Self::RolePermissionsRead),
-            "role_permissions:update" => Ok(Self::RolePermissionsUpdate),
-            "roles:create" => Ok(Self::RolesCreate),
-            "roles:delete" => Ok(Self::RolesDelete),
-            "roles:read" => Ok(Self::RolesRead),
-            "roles:update" => Ok(Self::RolesUpdate),
-            "system_settings:read" => Ok(Self::SystemSettingsRead),
-            "system_settings:update" => Ok(Self::SystemSettingsUpdate),
-            "user_roles:create" => Ok(Self::UserRolesCreate),
-            "user_roles:delete" => Ok(Self::UserRolesDelete),
-            "user_roles:read" => Ok(Self::UserRolesRead),
-            "user_roles:update" => Ok(Self::UserRolesUpdate),
-            "users:create" => Ok(Self::UsersCreate),
-            "users:delete" => Ok(Self::UsersDelete),
-            "users:read" => Ok(Self::UsersRead),
-            "users:update" => Ok(Self::UsersUpdate),
-            _ => Err(super::AdminPermissionTryFromStrError {
+        Self::ALL
+            .into_iter()
+            .find(|permission| permission.as_str().as_ref() == value)
+            .ok_or_else(|| super::AdminPermissionTryFromStrError {
                 value: super::StdAdminString(value.to_owned()),
-            }),
-        }
+            })
     }
 }

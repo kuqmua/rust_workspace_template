@@ -37,7 +37,7 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Cookie(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        "admin_access_token",
+                        super::super::ADMIN_ACCESS_COOKIE_NAME,
                         "HttpOnly administrator access token cookie",
                     ),
                 ),
@@ -60,54 +60,72 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
 pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdminAuthRouter {
     super::AxumAdminAuthRouter(
         axum::Router::new()
-            .route("/auth/sign-in", axum::routing::post(super::sign_in))
-            .route("/auth/refresh", axum::routing::post(super::refresh))
-            .route("/auth/sign-out", axum::routing::post(super::sign_out))
-            .route("/auth/me", axum::routing::get(super::me))
             .route(
-                "/auth/sessions",
+                server_admin_contract::admin_api_paths::AUTH_SIGN_IN,
+                axum::routing::post(super::sign_in),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::AUTH_REFRESH,
+                axum::routing::post(super::refresh),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::AUTH_SIGN_OUT,
+                axum::routing::post(super::sign_out),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::AUTH_ME,
+                axum::routing::get(super::me),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::AUTH_SESSIONS,
                 axum::routing::get(super::sessions).delete(super::revoke_all_sessions),
             )
             .route(
-                "/auth/sessions/{session_id}",
+                server_admin_contract::admin_api_paths::AUTH_SESSION,
                 axum::routing::delete(super::revoke_session),
             )
             .route(
-                "/users",
+                server_admin_contract::admin_api_paths::USERS,
                 axum::routing::get(super::list_users).post(super::create_user),
             )
             .route(
-                "/users/{user_id}",
+                server_admin_contract::admin_api_paths::USER,
                 axum::routing::patch(super::update_user).delete(super::delete_user),
             )
             .route(
-                "/users/{user_id}/password",
+                server_admin_contract::admin_api_paths::USER_PASSWORD,
                 axum::routing::post(super::set_user_password),
             )
             .route(
-                "/users/{user_id}/ban",
+                server_admin_contract::admin_api_paths::USER_BAN,
                 axum::routing::post(super::set_user_ban),
             )
             .route(
-                "/roles",
+                server_admin_contract::admin_api_paths::ROLES,
                 axum::routing::get(super::list_roles).post(super::create_role),
             )
             .route(
-                "/roles/{role_id}",
+                server_admin_contract::admin_api_paths::ROLE,
                 axum::routing::patch(super::update_role).delete(super::delete_role),
             )
             .route(
-                "/roles/{role_id}/permissions",
+                server_admin_contract::admin_api_paths::ROLE_PERMISSIONS,
                 axum::routing::put(super::set_role_permissions),
             )
             .route(
-                "/users/{user_id}/roles",
+                server_admin_contract::admin_api_paths::USER_ROLES,
                 axum::routing::put(super::set_user_roles),
             )
-            .route("/permissions", axum::routing::get(super::list_permissions))
-            .route("/audit-log", axum::routing::get(super::audit_log))
             .route(
-                "/system-settings",
+                server_admin_contract::admin_api_paths::PERMISSIONS,
+                axum::routing::get(super::list_permissions),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::AUDIT,
+                axum::routing::get(super::audit_log),
+            )
+            .route(
+                server_admin_contract::admin_api_paths::SETTINGS,
                 axum::routing::get(super::settings).patch(super::update_settings),
             )
             .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed)

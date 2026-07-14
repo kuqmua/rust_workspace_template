@@ -1,3 +1,10 @@
+pub const EXPECTED_ANGLE_BRACKETED_ARGS_ERROR: &str = "07c6ab44: expected angle bracketed args";
+pub const EXPECTED_FIRST_PATH_SEGMENT_ERROR: &str = "595050cf: expected first path segment";
+pub const EXPECTED_HASH_MAP_C1_ERROR: &str = "c1d03b71: expected HashMap<K, T>";
+pub const EXPECTED_HASH_MAP_C8_ERROR: &str = "c828da34: expected HashMap<K, T>";
+pub const EXPECTED_HASH_MAP_E9_ERROR: &str = "e9c6a7d2: expected HashMap<K, T>";
+pub const EXPECTED_NAMED_FIELD_ERROR: &str = "438aa90e: expected named field identifier";
+pub const EXPECTED_NAMED_VARIANT_FIELDS_ERROR: &str = "79b0f231: expected named variant fields";
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum LocationFieldAttr {
@@ -14,27 +21,13 @@ pub enum LocationFieldAttr {
 impl std::str::FromStr for LocationFieldAttr {
     type Err = ();
     fn from_str(v: &str) -> Result<Self, Self::Err> {
-        if v == "eo_to_err_string" {
-            Ok(Self::EoToErrString)
-        } else if v == "eo_to_err_string_serde" {
-            Ok(Self::EoToErrStringSerde)
-        } else if v == "eo_location" {
-            Ok(Self::EoLocation)
-        } else if v == "eo_vec_to_err_string" {
-            Ok(Self::EoVecToErrString)
-        } else if v == "eo_vec_to_err_string_serde" {
-            Ok(Self::EoVecToErrStringSerde)
-        } else if v == "eo_vec_location" {
-            Ok(Self::EoVecLocation)
-        } else if v == "eo_hashmap_k_string_v_to_err_string" {
-            Ok(Self::EoHashMapKStringVToErrString)
-        } else if v == "eo_hashmap_k_string_v_to_err_string_serde" {
-            Ok(Self::EoHashMapKStringVToErrStringSerde)
-        } else if v == "eo_hashmap_k_string_v_location" {
-            Ok(Self::EoHashMapKStringVLocation)
-        } else {
-            Err(())
-        }
+        Self::ALL
+            .into_iter()
+            .find(|item| {
+                crate::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(item).as_ref()
+                    == v
+            })
+            .ok_or(())
     }
 }
 impl TryFrom<&syn::Field> for LocationFieldAttr {
@@ -70,6 +63,17 @@ impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
     }
 }
 impl LocationFieldAttr {
+    const ALL: [Self; 9] = [
+        Self::EoToErrString,
+        Self::EoToErrStringSerde,
+        Self::EoLocation,
+        Self::EoVecToErrString,
+        Self::EoVecToErrStringSerde,
+        Self::EoVecLocation,
+        Self::EoHashMapKStringVToErrString,
+        Self::EoHashMapKStringVToErrStringSerde,
+        Self::EoHashMapKStringVLocation,
+    ];
     #[must_use]
     pub fn to_attr_view_token_stream(
         &self,
@@ -112,12 +116,12 @@ pub fn generate_serde_version_of_named_syn_variant(
         &fields.named
     } else {
         return compile_error_token_stream(CompileErrorMessage(
-            "79b0f231: expected named variant fields",
+            EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
         ));
     };
     let fields_with_serde_token_stream = fields.iter().map(|element| {
         let Some(element_c25b655e_identifier) = element.ident.as_ref() else {
-            return compile_error_token_stream(CompileErrorMessage("438aa90e: expected named field identifier"));
+            return compile_error_token_stream(CompileErrorMessage(EXPECTED_NAMED_FIELD_ERROR));
         };
         let ts = if *element_c25b655e_identifier == *location_snake_case.to_string() {
             quote::quote! {#location_snake_case: location_lib::location::Location}
@@ -175,7 +179,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                     assert!(segments.len() == 1, "0c65bbaa");
                     let Some(first_segment) = segments.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "595050cf: expected first path segment",
+                            EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
                     let element_vec_type_with_serde_token_stream = if let syn::PathArguments::AngleBracketed(
@@ -206,7 +210,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         }
                     } else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "07c6ab44: expected angle bracketed args",
+                            EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
                     quote::quote! {
@@ -216,7 +220,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "c1d03b71: expected HashMap<K, T>",
+                            EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
                     quote::quote! {
@@ -226,7 +230,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "e9c6a7d2: expected HashMap<K, T>",
+                            EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
                     quote::quote! {
@@ -236,7 +240,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "c828da34: expected HashMap<K, T>",
+                            EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
                     let element_hashmap_v_type_with_serde_token_stream =

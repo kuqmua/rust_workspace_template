@@ -210,10 +210,10 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([
-        ("../pg_crud/pg_table/src/lib.rs".to_owned(), 7usize),
+        ("../pg_crud/pg_table/src/lib.rs".to_owned(), 6usize),
         ("../server_admin/src/auth.rs".to_owned(), 7usize),
         ("../server_admin/src/auth/audit.rs".to_owned(), 2usize),
-        ("../server_admin/src/auth/handlers.rs".to_owned(), 46usize),
+        ("../server_admin/src/auth/handlers.rs".to_owned(), 36usize),
         ("../server_admin/src/auth/rate_limit.rs".to_owned(), 2usize),
         ("../server_admin/src/auth/session.rs".to_owned(), 6usize),
         ("../server_admin/src/cleanup.rs".to_owned(), 10usize),
@@ -531,6 +531,51 @@ fn no_duplicated_string_literals_in_non_policy_test_code() {
         super::types::StaticStr("de729a31"),
         super::types::SourceTextRef::from(
             "duplicated string literals found in non-policy test code:",
+        ),
+    );
+}
+#[test]
+fn long_production_string_literals_are_reused() {
+    let mut literal_locations_by_crate_and_value =
+        std::collections::BTreeMap::<(String, String), Vec<String>>::new();
+    super::for_each_rs_syn_file(|path, ast| {
+        let path_text = path.display().to_string();
+        if path_text.contains("/tests/") || path_text.contains("/tests/src/code_style/") {
+            return;
+        }
+        let visitor = super::visit_syn_file(
+            super::types::SynFileRef::from(ast),
+            super::ProductionStringLiteralVisitor {
+                values: super::types::SourceTextList::default(),
+            },
+        );
+        visitor
+            .values
+            .into_iter()
+            .filter(|literal_value| literal_value.len() >= 16usize)
+            .for_each(|literal_value| {
+                let crate_path = path_text
+                    .split_once("/src/")
+                    .map_or(path_text.as_str(), |(prefix, _)| prefix)
+                    .to_owned();
+                literal_locations_by_crate_and_value
+                    .entry((crate_path, literal_value))
+                    .or_default()
+                    .push(path_text.clone());
+            });
+    });
+    let ers = literal_locations_by_crate_and_value
+        .into_iter()
+        .filter(|(_, locations)| locations.len() > 1usize)
+        .map(|((_crate_path, literal_value), locations)| {
+            format!("duplicated long production string literal {literal_value:?} in {locations:?}")
+        })
+        .collect::<Vec<String>>();
+    super::assert_joined_ers_empty_with_ctx(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr("9d1c7e4a"),
+        super::types::SourceTextRef::from(
+            "long production string literals must be defined once and reused:",
         ),
     );
 }

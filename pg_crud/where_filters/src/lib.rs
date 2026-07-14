@@ -1,3 +1,5 @@
+const BETWEEN_EXPECTING: &str = "struct Between with 2 els";
+const PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME: &str = "PgTypeNotEmptyUniqueVec";
 generate_where_filters::generate_where_filters!({
     "pg_types_write_into_file": "False",
     "whole_write_into_file": "False"
@@ -295,13 +297,13 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             1usize,
-                            &"struct Between with 2 els",
+                            &BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &"struct Between with 2 els",
+                            &BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -453,7 +455,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "PgTypeNotEmptyUniqueVec",
+            PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
@@ -554,7 +556,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                "PgTypeNotEmptyUniqueVec",
+                PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,

@@ -9,16 +9,16 @@ mod table_state;
 mod transport;
 #[cfg(not(target_arch = "wasm32"))]
 const ADMIN_PAGE_PATHS: [&str; 10] = [
-    "/admin",
-    "/admin/sign-in",
-    "/admin/users",
-    "/admin/roles",
-    "/admin/permissions",
-    "/admin/audit-log",
-    "/admin/system-settings",
-    "/admin/metrics",
-    "/admin/version",
-    "/admin/swagger-ui",
+    server_admin_contract::admin_page_paths::ROOT,
+    server_admin_contract::admin_page_paths::SIGN_IN,
+    server_admin_contract::admin_page_paths::USERS,
+    server_admin_contract::admin_page_paths::ROLES,
+    server_admin_contract::admin_page_paths::PERMISSIONS,
+    server_admin_contract::admin_page_paths::AUDIT,
+    server_admin_contract::admin_page_paths::SETTINGS,
+    server_admin_contract::admin_page_paths::METRICS,
+    server_admin_contract::admin_page_paths::VERSION,
+    server_admin_contract::admin_page_paths::OPEN_API,
 ];
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Clone, newtype::Newtype)]
@@ -43,7 +43,9 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
     let index_path = concat!(env!("CARGO_MANIFEST_DIR"), "/dist/index.html");
     let page_routes = ADMIN_PAGE_PATHS
         .into_iter()
-        .filter(|path| swagger_enabled.0 || *path != "/admin/swagger-ui")
+        .filter(|path| {
+            swagger_enabled.0 || *path != server_admin_contract::admin_page_paths::OPEN_API
+        })
         .fold(axum::Router::new(), |router, path| {
             router.route_service(path, tower_http::services::ServeFile::new(index_path))
         })
@@ -52,7 +54,7 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
             axum::http::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
         ));
     AxumAdminFrontendRouter(page_routes.nest_service(
-        "/admin/assets",
+        server_admin_contract::admin_page_paths::ASSETS,
         tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/dist")).fallback(
             tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static")),
         ),
@@ -69,10 +71,14 @@ mod tests {
     }
     #[test]
     fn page_inventory_contains_auth_and_operations() {
-        assert!(super::ADMIN_PAGE_PATHS.contains(&"/admin/sign-in"));
-        assert!(super::ADMIN_PAGE_PATHS.contains(&"/admin/users"));
-        assert!(super::ADMIN_PAGE_PATHS.contains(&"/admin/audit-log"));
-        assert!(super::ADMIN_PAGE_PATHS.contains(&"/admin/swagger-ui"));
+        assert!(
+            super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::SIGN_IN)
+        );
+        assert!(super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::USERS));
+        assert!(super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::AUDIT));
+        assert!(
+            super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::OPEN_API)
+        );
     }
     #[test]
     #[allow(clippy::needless_for_each)] // workspace policy prohibits for loops in test inventories

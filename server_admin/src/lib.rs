@@ -197,13 +197,14 @@ pub enum AdminCookieKind {
     Csrf,
     Refresh,
 }
+const ADMIN_ACCESS_COOKIE_NAME: &str = "admin_access_token";
 impl AdminCookieKind {
     fn is_http_only(self) -> StdAdminBool {
         StdAdminBool::from(!matches!(self, Self::Csrf))
     }
     fn name(self) -> StdAdminStrRef<'static> {
         StdAdminStrRef::from(match self {
-            Self::Access => "admin_access_token",
+            Self::Access => ADMIN_ACCESS_COOKIE_NAME,
             Self::Csrf => "admin_csrf_token",
             Self::Refresh => "admin_refresh_token",
         })
@@ -657,37 +658,15 @@ mod tests {
     }
     #[test]
     fn permission_round_trip_is_exhaustive() {
-        [
-            super::AdminPermission::AuditLogRead,
-            super::AdminPermission::MetricsRead,
-            super::AdminPermission::OpenApiRead,
-            super::AdminPermission::PermissionsRead,
-            super::AdminPermission::RolePermissionsCreate,
-            super::AdminPermission::RolePermissionsDelete,
-            super::AdminPermission::RolePermissionsRead,
-            super::AdminPermission::RolePermissionsUpdate,
-            super::AdminPermission::RolesCreate,
-            super::AdminPermission::RolesDelete,
-            super::AdminPermission::RolesRead,
-            super::AdminPermission::RolesUpdate,
-            super::AdminPermission::SystemSettingsRead,
-            super::AdminPermission::SystemSettingsUpdate,
-            super::AdminPermission::UserRolesCreate,
-            super::AdminPermission::UserRolesDelete,
-            super::AdminPermission::UserRolesRead,
-            super::AdminPermission::UserRolesUpdate,
-            super::AdminPermission::UsersCreate,
-            super::AdminPermission::UsersDelete,
-            super::AdminPermission::UsersRead,
-            super::AdminPermission::UsersUpdate,
-        ]
-        .into_iter()
-        .for_each(|permission| {
-            assert_eq!(
-                super::AdminPermission::try_from(permission.as_str().as_ref()).expect("0f53b75c"),
-                permission
-            );
-        });
+        super::AdminPermission::ALL
+            .into_iter()
+            .for_each(|permission| {
+                assert_eq!(
+                    super::AdminPermission::try_from(permission.as_str().as_ref())
+                        .expect("0f53b75c"),
+                    permission
+                );
+            });
     }
     #[test]
     fn permission_serializes_as_public_contract_value() {

@@ -8,4 +8,4 @@ mod parse;
 mod route;
 mod source;
 mod sql;
-pub use source::generate_pg_table;
+pub use source::{GENERATE_PG_TABLE_CONFIG_PATH, generate_pg_table};

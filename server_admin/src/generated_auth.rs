@@ -104,18 +104,20 @@ where
                         )
                     })
                     .or_else(|| {
-                        path.ends_with("/admin/openapi.json").then_some((
-                            Some("openapi:read"),
-                            false,
-                            frontend_contract::HttpMethod::Get,
-                        ))
+                        path.ends_with(server_admin_contract::admin_page_paths::OPEN_API_DOCUMENT)
+                            .then_some((
+                                Some(server_admin_contract::admin_permission_values::OPEN_API_READ),
+                                false,
+                                frontend_contract::HttpMethod::Get,
+                            ))
                     })
                     .or_else(|| {
-                        path.ends_with("/admin/metrics").then_some((
-                            Some("metrics:read"),
-                            false,
-                            frontend_contract::HttpMethod::Get,
-                        ))
+                        path.ends_with(server_admin_contract::admin_page_paths::METRICS)
+                            .then_some((
+                                Some(server_admin_contract::admin_permission_values::METRICS_READ),
+                                false,
+                                frontend_contract::HttpMethod::Get,
+                            ))
                     });
             let Some((Some(permission), mutates, method)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(

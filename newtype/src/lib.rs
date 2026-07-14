@@ -1,4 +1,9 @@
+const AS_REF_INNER_SHARED_REF_ERROR: &str =
+    "#[newtype(as_ref_inner)] requires a shared reference inner type";
+const BOUNDED_STRING_MAX_ERROR: &str = "BoundedString requires #[bounded_string(max = ...)]";
+const DUPLICATE_BOUNDED_STRING_OPTION_ERROR: &str = "duplicate bounded_string option";
 const SNAKE_IDENT_MAX_LEN: usize = 1_048_576;
+const TUPLE_STRUCT_ERROR: &str = "Newtype supports only tuple structs";
 #[cfg(test)]
 #[allow(dead_code)] // dev dependencies are exercised by integration tests, not proc-macro unit code
 fn dependency_markers<Value>(
@@ -325,7 +330,7 @@ fn generate_newtype_token_stream(
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                "#[newtype(as_ref_inner)] requires a shared reference inner type",
+                AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -540,12 +545,8 @@ fn generate_bounded_string_token_stream(
         min,
         options,
     } = attrs;
-    let max = max_option.ok_or_else(|| {
-        syn::Error::new(
-            proc_macro2::Span::call_site(),
-            "BoundedString requires #[bounded_string(max = ...)]",
-        )
-    })?;
+    let max = max_option
+        .ok_or_else(|| syn::Error::new(proc_macro2::Span::call_site(), BOUNDED_STRING_MAX_ERROR))?;
     let chars = options.contains(BoundedStringOption::Chars).get();
     let nul_free = options.contains(BoundedStringOption::NulFree).get();
     let serde = options.contains(BoundedStringOption::Serde).get();
@@ -763,35 +764,35 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Chars, || {
-                                meta.error("duplicate bounded_string option")
+                                meta.error(DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident("nul_free") {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::NulFree, || {
-                                meta.error("duplicate bounded_string option")
+                                meta.error(DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident("serde") {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Serde, || {
-                                meta.error("duplicate bounded_string option")
+                                meta.error(DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident("trim") {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Trim, || {
-                                meta.error("duplicate bounded_string option")
+                                meta.error(DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident("utoipa") {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Utoipa, || {
-                                meta.error("duplicate bounded_string option")
+                                meta.error(DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     Err(meta.error("unknown bounded_string option"))
@@ -802,7 +803,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
     if parsed.max.is_none() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            "BoundedString requires #[bounded_string(max = ...)]",
+            BOUNDED_STRING_MAX_ERROR,
         ));
     }
     Ok(parsed)
@@ -995,7 +996,7 @@ fn validate_newtype_inner_ty_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            "#[newtype(as_ref_inner)] requires a shared reference inner type",
+            AS_REF_INNER_SHARED_REF_ERROR,
         ));
     }
     if attrs.contains(NewtypeOption::AsRefOwned).get()
@@ -1019,18 +1020,13 @@ fn validate_newtype_inner_ty_attrs(
 #[allow(clippy::single_call_fn)] // tuple field extraction is separate to keep derive input validation explicit
 fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTypeRef<'_>> {
     let input_ref = input.0;
-    let shape =
-        workspace_macro_helpers::SynStructShapeRef::try_from(input_ref).map_err(|_error| {
-            syn::Error::new_spanned(input_ref, "Newtype supports only tuple structs")
-        })?;
+    let shape = workspace_macro_helpers::SynStructShapeRef::try_from(input_ref)
+        .map_err(|_error| syn::Error::new_spanned(input_ref, TUPLE_STRUCT_ERROR))?;
     let unnamed = match shape {
         workspace_macro_helpers::SynStructShapeRef::Tuple(v) => &v.get().unnamed,
         workspace_macro_helpers::SynStructShapeRef::Named(_)
         | workspace_macro_helpers::SynStructShapeRef::Unit => {
-            return Err(syn::Error::new_spanned(
-                input_ref,
-                "Newtype supports only tuple structs",
-            ));
+            return Err(syn::Error::new_spanned(input_ref, TUPLE_STRUCT_ERROR));
         }
     };
     if unnamed.len() != 1 {

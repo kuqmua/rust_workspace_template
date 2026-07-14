@@ -24,6 +24,8 @@ pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
+const NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME: &str = "NotEmptyUniqueVec";
+const PG_TYPE_WHERE_EXPECTING: &str = "struct PgTypeWhere with 2 els";
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
     fn all_variants_default_some_one_element() -> Vec<Self>;
 }
@@ -667,14 +669,14 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             0usize,
-                            &"struct PgTypeWhere with 2 els",
+                            &PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             1usize,
-                            &"struct PgTypeWhere with 2 els",
+                            &PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     match PgTypeWhere::try_new(f0, f1) {
@@ -1195,7 +1197,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "NotEmptyUniqueVec",
+            NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
@@ -1307,7 +1309,7 @@ const _: () = {
             }
             serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                "NotEmptyUniqueVec",
+                NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,

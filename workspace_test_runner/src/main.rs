@@ -1,6 +1,14 @@
 mod discovery;
 mod execution;
 mod reporting;
+const FORMAT_QUERY_PART_FRAGMENT: &str = "QueryPartFragment :: try_from (format !";
+const GENERATE_PG_TABLE_WORKLOAD: &str = "alloc-workload-generate-pg-table-src";
+const GENERATE_PG_TYPES_WORKLOAD: &str = "alloc-workload-generate-pg-types-src";
+const PG_CRUD_COMMON_QUERY_PART_WORKLOAD: &str = "alloc-workload-pg-crud-common-query_part";
+const STD_FMT_WRITE_CALL: &str = "std :: fmt :: Write :: write_fmt";
+const STRING_WITH_CAPACITY_CALL: &str = "String :: with_capacity";
+const STATIC_WORKSPACE_PROFILE: &str = "static_workspace";
+const WHERE_FILTERS_QUERY_PART_WORKLOAD: &str = "alloc-workload-where-filters-query_part";
 const CARGO_FMT_CHECK_ARGS: [&str; 2] = ["fmt", "--check"];
 const CARGO_CLIPPY_ARGS: [&str; 7] = [
     "clippy",
@@ -62,7 +70,7 @@ const NEXTEST_WORKSPACE_ARGS: [&str; 7] = [
     "--workspace",
     "--all-features",
     "-P",
-    "static_workspace",
+    STATIC_WORKSPACE_PROFILE,
 ];
 const NEXTEST_IGNORED_ARGS: [&str; 9] = [
     "nextest",
@@ -71,7 +79,7 @@ const NEXTEST_IGNORED_ARGS: [&str; 9] = [
     "--workspace",
     "--all-features",
     "-P",
-    "static_workspace",
+    STATIC_WORKSPACE_PROFILE,
     "--run-ignored",
     "only",
 ];
@@ -682,20 +690,16 @@ fn main() {
                 Err(())
             }
         },
-        Some("alloc-workload-generate-pg-table-src") => {
+        Some(GENERATE_PG_TABLE_WORKLOAD) => {
             run_alloc_workload_generate_pg_table_src();
             Ok(())
         }
-        Some("alloc-workload-generate-pg-types-src") => {
+        Some(GENERATE_PG_TYPES_WORKLOAD) => {
             run_alloc_workload_generate_pg_types_src();
             Ok(())
         }
-        Some("alloc-workload-pg-crud-common-query_part") => {
-            run_alloc_workload_pg_crud_common_query_part()
-        }
-        Some("alloc-workload-where-filters-query_part") => {
-            run_alloc_workload_where_filters_query_part()
-        }
+        Some(PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => run_alloc_workload_pg_crud_common_query_part(),
+        Some(WHERE_FILTERS_QUERY_PART_WORKLOAD) => run_alloc_workload_where_filters_query_part(),
         Some("macro-generation") => MACRO_GENERATION_MEASUREMENTS
             .iter()
             .try_fold((), |(), (measurement_name, args)| {
@@ -755,19 +759,19 @@ fn main() {
                 [
                     (
                         MeasurementName("generate_pg_table_src"),
-                        "alloc-workload-generate-pg-table-src",
+                        GENERATE_PG_TABLE_WORKLOAD,
                     ),
                     (
                         MeasurementName("generate_pg_types_src"),
-                        "alloc-workload-generate-pg-types-src",
+                        GENERATE_PG_TYPES_WORKLOAD,
                     ),
                     (
                         MeasurementName("pg_crud_common_query_part"),
-                        "alloc-workload-pg-crud-common-query_part",
+                        PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
                     ),
                     (
                         MeasurementName("where_filters_query_part"),
-                        "alloc-workload-where-filters-query_part",
+                        WHERE_FILTERS_QUERY_PART_WORKLOAD,
                     ),
                 ]
                 .into_iter()
@@ -1005,7 +1009,7 @@ fn main() {
                     let config_started = std::time::Instant::now();
                     let config_attr_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
                         &parsed.attrs,
-                        "generate_pg_table::generate_pg_table_config",
+                        generate_pg_table_src::GENERATE_PG_TABLE_CONFIG_PATH,
                     );
                     let config_value =
                         match serde_json::from_str::<serde_json::Value>(&config_attr_token_stream.to_string())
@@ -1214,11 +1218,11 @@ fn main() {
             )
             .to_string();
             let generate_pg_types_write_fmt_found =
-                generate_pg_types_shape_output.contains("std :: fmt :: Write :: write_fmt");
+                generate_pg_types_shape_output.contains(STD_FMT_WRITE_CALL);
             let generate_pg_types_with_capacity_found =
-                generate_pg_types_shape_output.contains("String :: with_capacity");
+                generate_pg_types_shape_output.contains(STRING_WITH_CAPACITY_CALL);
             let generate_pg_types_old_format_absent =
-                !generate_pg_types_shape_output.contains("QueryPartFragment :: try_from (format !");
+                !generate_pg_types_shape_output.contains(FORMAT_QUERY_PART_FRAGMENT);
             println!(
                 "measurement=generate_pg_types_generated_query_part_shape write_fmt_found={generate_pg_types_write_fmt_found} with_capacity_found={generate_pg_types_with_capacity_found} old_format_absent={generate_pg_types_old_format_absent}"
             );
@@ -1354,11 +1358,11 @@ fn main() {
                 )
                 .to_string();
             let generate_where_filters_write_fmt_found =
-                generate_where_filters_shape_output.contains("std :: fmt :: Write :: write_fmt");
+                generate_where_filters_shape_output.contains(STD_FMT_WRITE_CALL);
             let generate_where_filters_with_capacity_found =
-                generate_where_filters_shape_output.contains("String :: with_capacity");
-            let generate_where_filters_old_format_absent = !generate_where_filters_shape_output
-                .contains("QueryPartFragment :: try_from (format !");
+                generate_where_filters_shape_output.contains(STRING_WITH_CAPACITY_CALL);
+            let generate_where_filters_old_format_absent =
+                !generate_where_filters_shape_output.contains(FORMAT_QUERY_PART_FRAGMENT);
             println!(
                 "measurement=generate_where_filters_generated_query_part_shape write_fmt_found={generate_where_filters_write_fmt_found} with_capacity_found={generate_where_filters_with_capacity_found} old_format_absent={generate_where_filters_old_format_absent}"
             );

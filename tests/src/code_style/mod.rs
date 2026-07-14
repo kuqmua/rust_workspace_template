@@ -516,6 +516,46 @@ impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
         syn::visit::visit_expr_lit(self, i);
     }
 }
+struct ProductionStringLiteralVisitor {
+    values: types::SourceTextList,
+}
+impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
+    fn visit_expr_lit(&mut self, i: &'ast syn::ExprLit) {
+        if let syn::Lit::Str(literal_string) = &i.lit {
+            self.values.push(literal_string.value());
+        }
+        syn::visit::visit_expr_lit(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.attrs.iter().any(|attribute| {
+            attribute
+                .path()
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "test")
+        }) {
+            return;
+        }
+        syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        if i.attrs.iter().any(|attribute| {
+            matches!(
+                &attribute.meta,
+                syn::Meta::List(list)
+                    if list.path.is_ident("cfg")
+                        && list
+                            .tokens
+                            .to_string()
+                            .split(|symbol: char| !symbol.is_ascii_alphanumeric() && symbol != '_')
+                            .any(|condition| condition == "test")
+            )
+        }) {
+            return;
+        }
+        syn::visit::visit_item_mod(self, i);
+    }
+}
 struct StringWrapperNameVisitor {
     names: types::StdSourceTextSet,
 }
