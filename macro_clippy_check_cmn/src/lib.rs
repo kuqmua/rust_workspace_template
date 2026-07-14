@@ -1,26 +1,79 @@
 #[cfg(feature = "test-utils")]
 const CARGO_FMT_ARGS: [&str; 1] = ["fmt"];
 #[cfg(feature = "test-utils")]
-const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 6] = [
+const CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 3] =
+    ["check", "--all-targets", "--all-features"];
+#[cfg(feature = "test-utils")]
+// Generated fixtures intentionally preserve public wire/error shapes and mechanically emitted assertions; the narrow legacy allowlist keeps those contracts stable while every other warning remains denied.
+const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = [
     "clippy",
     "--all-targets",
     "--all-features",
     "--",
-    "-A",
+    "-D",
     "warnings",
+    "-A",
+    "clippy::bool_assert_comparison",
+    "-A",
+    "clippy::clone_on_copy",
+    "-A",
+    "clippy::collapsible_if",
+    "-A",
+    "clippy::let_and_return",
+    "-A",
+    "clippy::result_large_err",
+    "-A",
+    "clippy::single_call_fn",
+    "-A",
+    "clippy::useless_borrows_in_formatting",
+    "-A",
+    "clippy::write_literal",
 ];
 #[cfg(feature = "test-utils")]
 const CARGO_TEST_LIB_ARGS: [&str; 2] = ["test", "--lib"];
 #[cfg(feature = "test-utils")]
-const CARGO_CHECK_STEPS: [(&[&str], &str, &str); 3] = [
-    (&CARGO_FMT_ARGS, "8dc4f045", "2a1deb01"),
-    (
-        &CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
-        "cd48b869",
-        "2c037283",
-    ),
-    (&CARGO_TEST_LIB_ARGS, "4ef60f4d", "8b3eb4d4"),
+const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
+    GeneratedCrateStep {
+        args: &CARGO_FMT_ARGS,
+        phase: GeneratedCratePhase::Formatting,
+    },
+    GeneratedCrateStep {
+        args: &CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
+        phase: GeneratedCratePhase::Compilation,
+    },
+    GeneratedCrateStep {
+        args: &CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
+        phase: GeneratedCratePhase::Clippy,
+    },
+    GeneratedCrateStep {
+        args: &CARGO_TEST_LIB_ARGS,
+        phase: GeneratedCratePhase::Test,
+    },
 ];
+#[cfg(feature = "test-utils")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum GeneratedCratePhase {
+    Clippy,
+    Compilation,
+    Formatting,
+    Test,
+}
+#[cfg(feature = "test-utils")]
+impl std::fmt::Display for GeneratedCratePhase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Clippy => f.write_str("clippy"),
+            Self::Compilation => f.write_str("compilation"),
+            Self::Formatting => f.write_str("formatting"),
+            Self::Test => f.write_str("test"),
+        }
+    }
+}
+#[cfg(feature = "test-utils")]
+struct GeneratedCrateStep {
+    args: &'static [&'static str],
+    phase: GeneratedCratePhase,
+}
 #[cfg(feature = "test-utils")]
 struct RemoveDirOnDrop {
     path: std::path::PathBuf,
@@ -166,16 +219,25 @@ categories = ["category"]
     drop(cargo_toml_extra);
     std::fs::write(path_cargo_toml, cargo_toml_full).unwrap_or_else(|er| panic!("3757da9b: {er}"));
     std::fs::write(path_lib_rs, content_to_gen).unwrap_or_else(|er| panic!("55124f90: {er}"));
-    CARGO_CHECK_STEPS
-        .iter()
-        .fold((), |(), (args, cmd_spawn_er_id, failed_id)| {
-            let status = std::process::Command::new("cargo")
-                .current_dir(&crate_path)
-                .args(*args)
-                .status()
-                .unwrap_or_else(|er| panic!("{cmd_spawn_er_id}: {er}"));
-            assert!(status.success(), "{failed_id}: {status}");
-        });
+    GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
+        let status = std::process::Command::new("cargo")
+            .current_dir(&crate_path)
+            .args(step.args)
+            .status()
+            .unwrap_or_else(|er| {
+                panic!(
+                    "cd48b869: generated crate {} phase failed to start at {}: {er}",
+                    step.phase,
+                    crate_path.display()
+                )
+            });
+        assert!(
+            status.success(),
+            "2c037283: generated crate {} phase failed at {}: {status}",
+            step.phase,
+            crate_path.display()
+        );
+    });
 }
 #[cfg(test)]
 #[cfg(feature = "test-utils")]
@@ -221,5 +283,18 @@ mod tests {
         let path = dir.path().join("missing_dir");
         super::remove_dir_all_if_exists(&path, "f39c05aa");
         assert!(!path.exists());
+    }
+    #[test]
+    fn generated_crate_phases_have_stable_diagnostics() {
+        let phases = [
+            super::GeneratedCratePhase::Compilation,
+            super::GeneratedCratePhase::Clippy,
+            super::GeneratedCratePhase::Formatting,
+            super::GeneratedCratePhase::Test,
+        ];
+        assert_eq!(
+            phases.map(|phase| phase.to_string()),
+            ["compilation", "clippy", "formatting", "test"]
+        );
     }
 }

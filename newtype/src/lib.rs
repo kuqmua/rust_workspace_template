@@ -11,14 +11,14 @@ fn dependency_markers<Value>(
 }
 #[derive(Debug, Default)]
 struct NewtypeAttrs {
-    options: std::collections::BTreeSet<NewtypeOption>,
+    options: workspace_macro_helpers::StdUniqueOptionSet<NewtypeOption>,
     to_err_string_mode: Option<ToErrStringMode>,
 }
 struct BoundedStringAttrs {
     description: Option<SynExpr>,
     max: Option<SynExpr>,
     min: Option<SynExpr>,
-    options: std::collections::BTreeSet<BoundedStringOption>,
+    options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum BoundedStringOption {
@@ -205,10 +205,7 @@ impl AsRef<syn::Type> for SynTypeRef<'_> {
 }
 impl NewtypeAttrs {
     fn contains(&self, option: NewtypeOption) -> NewtypeBool {
-        NewtypeBool(self.options.contains(&option))
-    }
-    fn insert(&mut self, option: NewtypeOption) {
-        let _: bool = self.options.insert(option);
+        NewtypeBool(self.options.contains(option).get())
     }
     fn set_to_err_string_mode(
         &mut self,
@@ -221,6 +218,14 @@ impl NewtypeAttrs {
                 .error("only one to_err_string mode can be selected"));
         }
         Ok(())
+    }
+    fn try_insert(
+        &mut self,
+        option: NewtypeOption,
+        meta: SynParseNestedMetaRef<'_>,
+    ) -> syn::Result<()> {
+        self.options
+            .try_insert_with(option, || meta.as_ref().error("duplicate newtype option"))
     }
 }
 #[proc_macro_derive(Newtype, attributes(newtype))]
@@ -267,8 +272,7 @@ fn gen_newtype_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2Generat
     let ident = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
     let debug_transparent_ts = attrs
-        .contains(NewtypeOption::DebugTransparent)
-        .get()
+        .contains(NewtypeOption::DebugTransparent).get()
         .then(|| {
         let mut debug_generics = input_ref.generics.clone();
         debug_generics
@@ -536,11 +540,11 @@ fn gen_bounded_string_ts(input: SynDeriveInputRef<'_>) -> syn::Result<ProcMacro2
             "BoundedString requires #[bounded_string(max = ...)]",
         )
     })?;
-    let chars = options.contains(&BoundedStringOption::Chars);
-    let nul_free = options.contains(&BoundedStringOption::NulFree);
-    let serde = options.contains(&BoundedStringOption::Serde);
-    let trim = options.contains(&BoundedStringOption::Trim);
-    let utoipa = options.contains(&BoundedStringOption::Utoipa);
+    let chars = options.contains(BoundedStringOption::Chars).get();
+    let nul_free = options.contains(BoundedStringOption::NulFree).get();
+    let serde = options.contains(BoundedStringOption::Serde).get();
+    let trim = options.contains(BoundedStringOption::Trim).get();
+    let utoipa = options.contains(BoundedStringOption::Utoipa).get();
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
@@ -729,7 +733,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                 description: None,
                 max: None,
                 min: None,
-                options: std::collections::BTreeSet::new(),
+                options: workspace_macro_helpers::StdUniqueOptionSet::default(),
             },
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
@@ -747,24 +751,39 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                         return Ok(());
                     }
                     if meta.path.is_ident("chars") {
-                        let _inserted = parsed.options.insert(BoundedStringOption::Chars);
-                        return Ok(());
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::Chars, || {
+                                meta.error("duplicate bounded_string option")
+                            });
                     }
                     if meta.path.is_ident("nul_free") {
-                        let _inserted = parsed.options.insert(BoundedStringOption::NulFree);
-                        return Ok(());
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::NulFree, || {
+                                meta.error("duplicate bounded_string option")
+                            });
                     }
                     if meta.path.is_ident("serde") {
-                        let _inserted = parsed.options.insert(BoundedStringOption::Serde);
-                        return Ok(());
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::Serde, || {
+                                meta.error("duplicate bounded_string option")
+                            });
                     }
                     if meta.path.is_ident("trim") {
-                        let _inserted = parsed.options.insert(BoundedStringOption::Trim);
-                        return Ok(());
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::Trim, || {
+                                meta.error("duplicate bounded_string option")
+                            });
                     }
                     if meta.path.is_ident("utoipa") {
-                        let _inserted = parsed.options.insert(BoundedStringOption::Utoipa);
-                        return Ok(());
+                        return parsed
+                            .options
+                            .try_insert_with(BoundedStringOption::Utoipa, || {
+                                meta.error("duplicate bounded_string option")
+                            });
                     }
                     Err(meta.error("unknown bounded_string option"))
                 })?;
@@ -788,80 +807,97 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
         .try_fold(NewtypeAttrs::default(), |mut acc, attr| {
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("as_ref_str") {
-                    acc.insert(NewtypeOption::AsRefStr);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::AsRefStr, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("as_ref") {
-                    acc.insert(NewtypeOption::AsRef);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::AsRef, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("as_ref_inner") {
-                    acc.insert(NewtypeOption::AsRefInner);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::AsRefInner,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("as_ref_owned") {
-                    acc.insert(NewtypeOption::AsRefOwned);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::AsRefOwned,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("as_ref_target") {
-                    acc.insert(NewtypeOption::AsRefTarget);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::AsRefTarget,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("as_slice") {
-                    acc.insert(NewtypeOption::AsSlice);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::AsSlice, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("deref") || meta.path.is_ident("deref_target") {
-                    acc.insert(NewtypeOption::DerefTarget);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::DerefTarget,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("deref_inner") {
-                    acc.insert(NewtypeOption::DerefInner);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::DerefInner,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("deref_mut_inner") {
-                    acc.insert(NewtypeOption::DerefMutInner);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::DerefMutInner,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("deref_mut_target") {
-                    acc.insert(NewtypeOption::DerefMutTarget);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::DerefMutTarget,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("debug_transparent") {
-                    acc.insert(NewtypeOption::DebugTransparent);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::DebugTransparent,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("display") {
-                    acc.insert(NewtypeOption::Display);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::Display, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("from") || meta.path.is_ident("from_inner") {
-                    acc.insert(NewtypeOption::From);
-                    return Ok(());
+                    return acc.try_insert(NewtypeOption::From, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("getter") {
-                    acc.insert(NewtypeOption::Getter);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::Getter, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("into_inner") {
-                    acc.insert(NewtypeOption::IntoInner);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::IntoInner, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("into_inner_from") {
-                    acc.insert(NewtypeOption::IntoInnerFrom);
-                    return Ok(());
+                    return acc.try_insert(
+                        NewtypeOption::IntoInnerFrom,
+                        SynParseNestedMetaRef::from(&meta),
+                    );
                 }
                 if meta.path.is_ident("into_vec") {
-                    acc.insert(NewtypeOption::IntoVec);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::IntoVec, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("secret") {
-                    acc.insert(NewtypeOption::Secret);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::Secret, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("to_tokens") {
-                    acc.insert(NewtypeOption::ToTokens);
-                    return Ok(());
+                    return acc
+                        .try_insert(NewtypeOption::ToTokens, SynParseNestedMetaRef::from(&meta));
                 }
                 if meta.path.is_ident("to_err_string")
                     || meta.path.is_ident("to_err_string_display")
@@ -890,7 +926,7 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
 }
 #[allow(clippy::single_call_fn)] // validation stays named so proc-macro diagnostics are not mixed into generation
 fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) -> syn::Result<()> {
-    if attrs.options.is_empty() && attrs.to_err_string_mode.is_none() {
+    if attrs.options.is_empty().get() && attrs.to_err_string_mode.is_none() {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
             "Newtype requires at least one #[newtype(...)] option",
@@ -972,18 +1008,14 @@ fn validate_newtype_inner_ty_attrs(
 #[allow(clippy::single_call_fn)] // tuple field extraction is separate to keep derive input validation explicit
 fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTypeRef<'_>> {
     let input_ref = input.0;
-    let data_struct = match &input_ref.data {
-        syn::Data::Struct(v) => v,
-        syn::Data::Enum(_) | syn::Data::Union(_) => {
-            return Err(syn::Error::new_spanned(
-                input_ref,
-                "Newtype supports only tuple structs",
-            ));
-        }
-    };
-    let unnamed = match &data_struct.fields {
-        syn::Fields::Unnamed(v) => &v.unnamed,
-        syn::Fields::Named(_) | syn::Fields::Unit => {
+    let shape =
+        workspace_macro_helpers::SynStructShapeRef::try_from(input_ref).map_err(|_error| {
+            syn::Error::new_spanned(input_ref, "Newtype supports only tuple structs")
+        })?;
+    let unnamed = match shape {
+        workspace_macro_helpers::SynStructShapeRef::Tuple(v) => &v.get().unnamed,
+        workspace_macro_helpers::SynStructShapeRef::Named(_)
+        | workspace_macro_helpers::SynStructShapeRef::Unit => {
             return Err(syn::Error::new_spanned(
                 input_ref,
                 "Newtype supports only tuple structs",
@@ -1100,6 +1132,32 @@ mod tests {
                 er.to_string(),
                 "BoundedString utoipa requires chars so OpenAPI length semantics match runtime"
             );
+        }
+    }
+    #[test]
+    fn duplicate_options_preserve_attribute_diagnostic() {
+        let bounded_input = syn::parse_quote! {
+            #[derive(BoundedString)]
+            #[bounded_string(max = 4, trim, trim)]
+            struct BoundedValue(String);
+        };
+        let bounded_result =
+            super::gen_bounded_string_ts(super::SynDeriveInputRef::from(&bounded_input));
+        if let Err(er) = bounded_result {
+            assert_eq!(er.to_string(), "duplicate bounded_string option");
+        } else {
+            panic!("d03ced5c");
+        }
+        let newtype_input = syn::parse_quote! {
+            #[derive(Newtype)]
+            #[newtype(display, display)]
+            struct Value(String);
+        };
+        let newtype_result = super::gen_newtype_ts(super::SynDeriveInputRef::from(&newtype_input));
+        if let Err(er) = newtype_result {
+            assert_eq!(er.to_string(), "duplicate newtype option");
+        } else {
+            panic!("bb438633");
         }
     }
     #[test]

@@ -1,3 +1,6 @@
+mod discovery;
+mod execution;
+mod reporting;
 const CARGO_FMT_CHECK_ARGS: [&str; 2] = ["fmt", "--check"];
 const CARGO_CLIPPY_ARGS: [&str; 7] = [
     "clippy",
@@ -551,30 +554,14 @@ fn run_alloc_workload_wh_flts_qp() -> Result<(), ()> {
     Ok(())
 }
 fn main() {
-    let mode = std::env::args().nth(1);
-    let run_commands: fn(&[(&str, &[&str])]) -> Result<(), ()> = |commands| {
-        commands.iter().try_fold(
-            (),
-            |(), (program, args)| match std::process::Command::new(program).args(*args).status() {
-                Ok(status) if status.success() => Ok(()),
-                Ok(status) => {
-                    eprintln!("command failed: {program} {args:?}: {status}");
-                    Err(())
-                }
-                Err(error) => {
-                    eprintln!("failed to spawn command: {program} {args:?}: {error}");
-                    Err(())
-                }
-            },
-        )
-    };
+    let mode = discovery::mode();
     let result = match mode.as_deref() {
-        None | Some("static") => run_commands(&STATIC_COMMANDS),
+        None | Some("static") => execution::run_commands(&STATIC_COMMANDS),
         Some("database") => match std::env::var("DATABASE_URL") {
             Ok(database_url) => match macros_helpers::test_database::validate_test_database_url(
                 macros_helpers::test_database::UrlRef::from(database_url.as_str()),
             ) {
-                Ok(_target) => run_commands(&[("cargo", &CARGO_TEST_DATABASE_ARGS)]),
+                Ok(_target) => execution::run_commands(&[("cargo", &CARGO_TEST_DATABASE_ARGS)]),
                 Err(error) => {
                     eprintln!("database test guard rejected DATABASE_URL: {error}");
                     Err(())
@@ -603,12 +590,10 @@ fn main() {
         Some("measure") => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 ALLOCATION_TOOLS.iter().try_fold((), |(), tool| {
-                    let available = std::path::Path::new(tool.path.get()).exists();
+                    let available = discovery::tool_available(tool.path.get());
                     let name = tool.name.get();
                     let path = tool.path.get();
-                    println!(
-                        "measurement=allocation_tool_available tool={name} path={path} available={available}"
-                    );
+                    reporting::allocation_tool(name, path, available);
                     Ok(())
                 });
             match allocation_tools_printed {
@@ -1385,7 +1370,7 @@ fn main() {
                 }
             }
         }
-        Some("all") => run_commands(&STATIC_COMMANDS).and_then(|()| {
+        Some("all") => execution::run_commands(&STATIC_COMMANDS).and_then(|()| {
             MACRO_GENERATION_MEASUREMENTS
                 .iter()
                 .try_fold((), |(), (measurement_name, args)| {

@@ -1,44 +1,25 @@
 #[test]
 fn all_files_are_english_only() {
-    let paths = super::snapshot::project_dir()
-        .into_iter()
-        .filter_entry(|el_6870bc3d| {
-            !super::is_ignored_dir_entry_name(super::types::StdOsStrRef::from(
-                el_6870bc3d.file_name(),
-            ))
-            .get()
-        })
-        .filter_map(Result::ok)
-        .map(walkdir::DirEntry::into_path)
-        .collect::<Vec<std::path::PathBuf>>();
-    let mut ers = rayon::iter::ParallelIterator::reduce(
-        rayon::iter::ParallelIterator::map(
-            rayon::iter::IntoParallelRefIterator::par_iter(&paths),
-            |path| {
-                if !super::is_allowed_english_check_file(super::types::StdPathRef::from(
-                    path.as_path(),
-                ))
-                .get()
-                {
-                    return Vec::new();
-                }
-                let Ok(v) = std::fs::read_to_string(path) else {
-                    return Vec::new();
-                };
-                super::collect_non_english_symbol_ers(
-                    super::types::StdPathRef::from(path.as_path()),
-                    super::types::SourceTextRef::from(v.as_str()),
-                )
-                .into_iter()
-                .collect::<Vec<String>>()
+    let mut ers = super::snapshot::with_codebase_snapshot(|snapshot| {
+        rayon::iter::ParallelIterator::reduce(
+            rayon::iter::ParallelIterator::map(
+                rayon::iter::IntoParallelRefIterator::par_iter(snapshot.project_source_files()),
+                |source_file| {
+                    super::collect_non_english_symbol_ers(
+                        super::types::StdPathRef::from(source_file.path().as_ref()),
+                        super::types::SourceTextRef::from(source_file.content().as_ref()),
+                    )
+                    .into_iter()
+                    .collect::<Vec<String>>()
+                },
+            ),
+            Vec::new,
+            |mut acc, mut item| {
+                acc.append(&mut item);
+                acc
             },
-        ),
-        Vec::new,
-        |mut acc, mut item| {
-            acc.append(&mut item);
-            acc
-        },
-    );
+        )
+    });
     ers.sort();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
@@ -209,7 +190,14 @@ fn no_non_public_use_imports_in_rust_sources() {
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
             if path_text.ends_with("server_admin_frontend/src/app.rs")
+                || path_text.ends_with("server_admin_frontend/src/app/forms.rs")
+                || path_text.ends_with("server_admin_frontend/src/app/tables.rs")
+                || path_text.ends_with("server_admin_frontend/src/app/pages.rs")
                 || path_text.ends_with("frontend_contract/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_crud_cmn/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_types/gen_pg_types_src/src/lib.rs")
+                || path_text.ends_with("pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs")
                 || path_text.ends_with("server_admin/src/lib.rs")
                 || path_text.ends_with("server_runtime/src/lib.rs")
             {

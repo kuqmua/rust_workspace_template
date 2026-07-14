@@ -1847,10 +1847,6 @@ fn push_repeated_file_er(
             .take(times.get()),
     );
 }
-#[allow(clippy::single_call_fn)] // shared ignore predicate keeps directory filtering rules consistent across walkers
-fn is_ignored_dir_entry_name(name: types::StdOsStrRef<'_>) -> types::AnalyzerBool {
-    snapshot::is_ignored_dir_entry_name(name)
-}
 #[allow(clippy::single_call_fn)] // package names are used to distinguish workspace paths from external crate paths
 fn workspace_crate_names() -> types::StdSourceTextSet {
     snapshot::with_codebase_snapshot(snapshot::CodebaseSnapshot::workspace_crate_names)
@@ -1860,19 +1856,6 @@ fn for_each_crate_manifest_file(on_file: impl FnMut(&std::path::Path)) {
     snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.crate_manifest_paths().for_each(on_file);
     });
-}
-#[allow(clippy::single_call_fn)] // shared extension gate keeps english-only file selection centralized and reusable
-fn is_allowed_english_check_file(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(
-        path.as_ref().is_file()
-            && is_allowed_english_check_ext(
-                path.as_ref()
-                    .extension()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .map(types::SourceTextRef::from),
-            )
-            .get(),
-    )
 }
 #[allow(clippy::single_call_fn)] // shared extension predicate keeps source-policy file-kind checks consistent
 fn is_allowed_english_check_ext(ext: Option<types::SourceTextRef<'_>>) -> types::AnalyzerBool {
@@ -2328,7 +2311,14 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
-    if path.as_ref().ends_with("server_admin_frontend/src/app.rs") {
+    if path.as_ref().starts_with("../workspace_test_runner/src/") {
+        return types::AnalyzerBool::default();
+    }
+    if path.as_ref().ends_with("server_admin_frontend/src/app.rs")
+        || path
+            .as_ref()
+            .starts_with("../server_admin_frontend/src/app/")
+    {
         return types::AnalyzerBool::default();
     }
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {

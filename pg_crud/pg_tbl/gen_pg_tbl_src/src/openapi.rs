@@ -1,0 +1,27 @@
+#![allow(
+    clippy::single_call_fn,
+    reason = "OpenAPI emission has a private physical boundary from route metadata"
+)]
+pub(super) const fn http_method<Capability, HttpMethod, Op, OpKind, PermissionAction, StatusCode>(
+    dsc: &crate::model::OpDsc<Capability, HttpMethod, Op, OpKind, PermissionAction, StatusCode>,
+) -> HttpMethod
+where
+    HttpMethod: Copy,
+{
+    crate::route::http_method(dsc)
+}
+pub(super) const fn success_status<
+    Capability,
+    HttpMethod,
+    Op,
+    OpKind,
+    PermissionAction,
+    StatusCode,
+>(
+    dsc: &crate::model::OpDsc<Capability, HttpMethod, Op, OpKind, PermissionAction, StatusCode>,
+) -> StatusCode
+where
+    StatusCode: Copy,
+{
+    crate::route::success_status(dsc)
+}

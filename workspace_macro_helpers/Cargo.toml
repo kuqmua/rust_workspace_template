@@ -13,6 +13,5 @@ edition = "2024"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
-newtype = { workspace = true }
 [lints]
 workspace = true

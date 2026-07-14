@@ -3,6 +3,10 @@ pub(super) struct RsSourceFile {
     content: super::types::SourceText,
     path: super::types::StdPathBuf,
 }
+pub(super) struct ProjectSourceFile {
+    content: super::types::SourceText,
+    path: super::types::StdPathBuf,
+}
 struct CargoTomlSourceFile {
     content: super::types::SourceText,
     parsed: super::types::TomlTable,
@@ -12,8 +16,17 @@ pub(super) struct CodebaseSnapshot {
     cargo_toml_by_path:
         std::collections::BTreeMap<super::types::StdPathBuf, super::types::CargoTomlFileIdx>,
     cargo_toml_files: Vec<CargoTomlSourceFile>,
+    project_source_files: Vec<ProjectSourceFile>,
     rs_files: Vec<RsSourceFile>,
     workspace_crate_names: super::types::StdSourceTextSet,
+}
+impl ProjectSourceFile {
+    pub(super) fn content(&self) -> &super::types::SourceText {
+        &self.content
+    }
+    pub(super) fn path(&self) -> &super::types::StdPathBuf {
+        &self.path
+    }
 }
 impl RsSourceFile {
     pub(super) fn ast(&self) -> &super::types::SynFile {
@@ -69,21 +82,30 @@ impl CodebaseSnapshot {
                     super::types::StdPathBuf,
                     super::types::CargoTomlFileIdx,
                 >>();
-        let rs_files = rs_project_files_uncached()
-            .filter_map(|entry| {
-                let path = entry.into_path();
-                let content = std::fs::read_to_string(&path).ok()?;
-                let ast = syn::parse_file(&content).expect("5e7a83eb");
-                Some(RsSourceFile {
+        let project_source_files = project_source_files_uncached().collect::<Vec<_>>();
+        let rs_files = project_source_files
+            .iter()
+            .filter(|source_file| {
+                source_file
+                    .path
+                    .as_ref()
+                    .extension()
+                    .and_then(std::ffi::OsStr::to_str)
+                    == Some("rs")
+            })
+            .map(|source_file| {
+                let ast = syn::parse_file(source_file.content.as_ref()).expect("5e7a83eb");
+                RsSourceFile {
                     ast: super::types::SynFile::from(ast),
-                    content: super::types::SourceText::try_from(content).expect("b0c39e18"),
-                    path: super::types::StdPathBuf::from(path),
-                })
+                    content: source_file.content.clone(),
+                    path: source_file.path.clone(),
+                }
             })
             .collect();
         Self {
             cargo_toml_by_path,
             cargo_toml_files,
+            project_source_files,
             rs_files,
             workspace_crate_names: super::types::StdSourceTextSet::from(workspace_crate_names),
         }
@@ -104,6 +126,9 @@ impl CodebaseSnapshot {
         self.cargo_toml_files
             .iter()
             .map(|cargo_toml| cargo_toml.path.as_ref())
+    }
+    pub(super) fn project_source_files(&self) -> &[ProjectSourceFile] {
+        &self.project_source_files
     }
     pub(super) fn read_toml_table(
         &self,
@@ -126,19 +151,11 @@ impl CodebaseSnapshot {
         self.workspace_crate_names.clone()
     }
 }
-pub(super) fn project_dir() -> super::types::WalkdirWalkDir {
-    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new("../"))
-}
 pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) -> R {
     std::thread_local! {
         static SNAPSHOT: std::cell::OnceCell<CodebaseSnapshot> = const { std::cell::OnceCell::new() };
     }
     SNAPSHOT.with(|snapshot| f(snapshot.get_or_init(CodebaseSnapshot::build)))
-}
-pub(super) fn is_ignored_dir_entry_name(
-    name: super::types::StdOsStrRef<'_>,
-) -> super::types::AnalyzerBool {
-    super::types::AnalyzerBool::from(name.as_ref() == "target" || name.as_ref() == ".git")
 }
 #[allow(clippy::single_call_fn)] // isolates cargo_metadata command setup from snapshot construction
 fn workspace_metadata_uncached() -> super::types::CargoMetadata {
@@ -162,19 +179,29 @@ fn workspace_member_ids(
     )
 }
 #[allow(clippy::single_call_fn)] // keeps filesystem walker rules separate from snapshot materialization
-fn rs_project_files_uncached() -> impl Iterator<Item = walkdir::DirEntry> {
-    project_dir()
+fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
+    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new("../"))
         .into_iter()
         .filter_entry(|el| {
-            !is_ignored_dir_entry_name(super::types::StdOsStrRef::from(el.file_name())).get()
+            el.file_name() != "target"
+                && el.file_name() != ".git"
                 && (el.file_type().is_dir()
-                    || is_rs_file_path(super::types::StdPathRef::from(el.path())).get())
+                    || super::is_allowed_english_check_ext(
+                        el.path()
+                            .extension()
+                            .and_then(std::ffi::OsStr::to_str)
+                            .map(super::types::SourceTextRef::from),
+                    )
+                    .get())
         })
         .filter_map(Result::ok)
-        .filter(|el| is_rs_file_path(super::types::StdPathRef::from(el.path())).get())
-}
-fn is_rs_file_path(path: super::types::StdPathRef<'_>) -> super::types::AnalyzerBool {
-    super::types::AnalyzerBool::from(
-        path.as_ref().extension().and_then(std::ffi::OsStr::to_str) == Some("rs"),
-    )
+        .filter(|entry| !entry.file_type().is_dir())
+        .filter_map(|entry| {
+            let path = entry.into_path();
+            let content = std::fs::read_to_string(&path).ok()?;
+            Some(ProjectSourceFile {
+                content: super::types::SourceText::try_from(content).ok()?,
+                path: super::types::StdPathBuf::from(path),
+            })
+        })
 }

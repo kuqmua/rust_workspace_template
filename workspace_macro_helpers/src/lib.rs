@@ -1,4 +1,67 @@
 const FIRST_IDENT_MAX_LEN: usize = 1_048_576;
+#[derive(Debug, Clone, Copy)]
+pub struct SynDeriveInputRef<'input_lt>(&'input_lt syn::DeriveInput);
+impl<'input_lt> From<&'input_lt syn::DeriveInput> for SynDeriveInputRef<'input_lt> {
+    fn from(value: &'input_lt syn::DeriveInput) -> Self {
+        Self(value)
+    }
+}
+impl<'input_lt> SynDeriveInputRef<'input_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'input_lt syn::DeriveInput {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub enum SynStructShapeRef<'shape_lt> {
+    Named(SynFieldsNamedRef<'shape_lt>),
+    Tuple(SynFieldsUnnamedRef<'shape_lt>),
+    Unit,
+}
+#[derive(Debug, Clone, Copy)]
+pub struct SynFieldsNamedRef<'fields_lt>(&'fields_lt syn::FieldsNamed);
+impl<'fields_lt> SynFieldsNamedRef<'fields_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'fields_lt syn::FieldsNamed {
+        self.0
+    }
+}
+impl std::ops::Deref for SynFieldsNamedRef<'_> {
+    type Target = syn::FieldsNamed;
+    fn deref(&self) -> &Self::Target {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct SynFieldsUnnamedRef<'fields_lt>(&'fields_lt syn::FieldsUnnamed);
+impl<'fields_lt> SynFieldsUnnamedRef<'fields_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'fields_lt syn::FieldsUnnamed {
+        self.0
+    }
+}
+impl std::ops::Deref for SynFieldsUnnamedRef<'_> {
+    type Target = syn::FieldsUnnamed;
+    fn deref(&self) -> &Self::Target {
+        self.0
+    }
+}
+impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shape_lt> {
+    type Error = syn::Error;
+    fn try_from(value: &'shape_lt syn::DeriveInput) -> Result<Self, Self::Error> {
+        let syn::Data::Struct(data) = &value.data else {
+            return Err(syn::Error::new_spanned(
+                value,
+                "5c79ab10: expected a struct",
+            ));
+        };
+        Ok(match &data.fields {
+            syn::Fields::Named(fields) => Self::Named(SynFieldsNamedRef(fields)),
+            syn::Fields::Unnamed(fields) => Self::Tuple(SynFieldsUnnamedRef(fields)),
+            syn::Fields::Unit => Self::Unit,
+        })
+    }
+}
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
@@ -65,9 +128,19 @@ impl syn::parse::Parse for ProcMacro2MacroTokens {
     }
 }
 #[must_use]
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(deref_inner, deref_mut_inner)]
+#[derive(Debug, Clone)]
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
+impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
+    type Target = Vec<proc_macro2::TokenStream>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for ProcMacro2TopLevelCommaParts {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 impl IntoIterator for ProcMacro2TopLevelCommaParts {
     type IntoIter = std::vec::IntoIter<proc_macro2::TokenStream>;
     type Item = proc_macro2::TokenStream;
@@ -124,10 +197,87 @@ impl syn::parse::Parse for TopLevelCommaPart {
     }
 }
 #[must_use]
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(max = FIRST_IDENT_MAX_LEN)]
-#[newtype(display)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FirstIdent(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FirstIdentTryFromStringEr(usize);
+impl From<FirstIdentTryFromStringEr> for FirstIdent {
+    fn from(value: FirstIdentTryFromStringEr) -> Self {
+        Self(value.to_string())
+    }
+}
+impl TryFrom<String> for FirstIdent {
+    type Error = FirstIdentTryFromStringEr;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > FIRST_IDENT_MAX_LEN {
+            return Err(FirstIdentTryFromStringEr(value.len()));
+        }
+        Ok(Self(value))
+    }
+}
+impl std::fmt::Display for FirstIdent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::fmt::Display for FirstIdentTryFromStringEr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "first ident length {} exceeds maximum {FIRST_IDENT_MAX_LEN}",
+            self.0
+        )
+    }
+}
+#[derive(Debug, Clone)]
+pub struct StdUniqueOptionSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdUniqueOptionSetContains(bool);
+impl StdUniqueOptionSetContains {
+    #[must_use]
+    pub const fn get(self) -> bool {
+        self.0
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StdUniqueOptionSetIsEmpty(bool);
+impl StdUniqueOptionSetIsEmpty {
+    #[must_use]
+    pub const fn get(self) -> bool {
+        self.0
+    }
+}
+impl<OptionValue> Default for StdUniqueOptionSet<OptionValue> {
+    fn default() -> Self {
+        Self(std::collections::BTreeSet::new())
+    }
+}
+impl<OptionValue> StdUniqueOptionSet<OptionValue>
+where
+    OptionValue: Copy + Ord,
+{
+    #[must_use]
+    pub fn contains(&self, value: OptionValue) -> StdUniqueOptionSetContains {
+        StdUniqueOptionSetContains(self.0.contains(&value))
+    }
+    #[must_use]
+    pub fn is_empty(&self) -> StdUniqueOptionSetIsEmpty {
+        StdUniqueOptionSetIsEmpty(self.0.is_empty())
+    }
+    pub fn try_insert_with<DuplicateEr>(
+        &mut self,
+        value: OptionValue,
+        duplicate_er: DuplicateEr,
+    ) -> syn::Result<()>
+    where
+        DuplicateEr: FnOnce() -> syn::Error,
+    {
+        if !self.0.insert(value) {
+            return Err(duplicate_er());
+        }
+        Ok(())
+    }
+}
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstCommaStripped(bool);
@@ -261,6 +411,32 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
+    fn struct_shape_preserves_named_tuple_and_unit_forms() {
+        let named = syn::parse_quote!(
+            struct Named {
+                value: u8,
+            }
+        );
+        let tuple = syn::parse_quote!(
+            struct Tuple(u8);
+        );
+        let unit = syn::parse_quote!(
+            struct Unit;
+        );
+        assert!(matches!(
+            super::SynStructShapeRef::try_from(&named),
+            Ok(super::SynStructShapeRef::Named(_))
+        ));
+        assert!(matches!(
+            super::SynStructShapeRef::try_from(&tuple),
+            Ok(super::SynStructShapeRef::Tuple(_))
+        ));
+        assert!(matches!(
+            super::SynStructShapeRef::try_from(&unit),
+            Ok(super::SynStructShapeRef::Unit)
+        ));
+    }
+    #[test]
     fn split_top_level_commas_keeps_generic_type_commas_inside_part() {
         let parts = super::split_top_level_commas(quote::quote! {
             Vec<Result<A, B>>,
@@ -301,5 +477,21 @@ mod tests {
             quote::quote! {#tokens}.to_string(),
             "Result < Vec < A > , B >"
         );
+    }
+    #[test]
+    fn unique_option_set_preserves_first_span_aware_error() {
+        let mut values = super::StdUniqueOptionSet::default();
+        values
+            .try_insert_with(1u8, || {
+                syn::Error::new(proc_macro2::Span::call_site(), "first")
+            })
+            .expect("12817d29");
+        let er = values
+            .try_insert_with(1u8, || {
+                syn::Error::new(proc_macro2::Span::call_site(), "duplicate")
+            })
+            .expect_err("ce4826f4");
+        assert_eq!(er.to_string(), "duplicate");
+        assert!(values.contains(1u8).get());
     }
 }

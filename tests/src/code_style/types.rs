@@ -58,9 +58,6 @@ pub(super) struct StdCargoPackageIdRefSet<'metadata_lt>(
 );
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(as_ref_inner, from_inner)]
-pub(super) struct StdOsStrRef<'os_lt>(&'os_lt std::ffi::OsStr);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
 pub(super) struct StdProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(from_inner)]

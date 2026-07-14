@@ -1,88 +1,20 @@
+mod bind_index;
 pub mod bounded_vec;
-pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
-const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    schemars::JsonSchema,
-    optml::Optml,
-    newtype::Newtype,
-)]
-#[newtype(display, from, to_err_string)]
-pub struct PgnLimit(i64);
-impl PgnLimit {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
-impl From<i32> for PgnLimit {
-    fn from(value: i32) -> Self {
-        Self(value.into())
-    }
-}
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    schemars::JsonSchema,
-    optml::Optml,
-    newtype::Newtype,
-)]
-#[newtype(display, from, to_err_string)]
-pub struct PgnOffset(i64);
-impl PgnOffset {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
-impl From<i32> for PgnOffset {
-    fn from(value: i32) -> Self {
-        Self(value.into())
-    }
-}
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml)]
-pub struct PgnStart(i64);
-impl From<i64> for PgnStart {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
-impl PgnStart {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, optml::Optml)]
-pub struct PgnEnd(i64);
-impl From<i64> for PgnEnd {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
-impl PgnEnd {
-    #[must_use]
-    pub const fn get(self) -> i64 {
-        self.0
-    }
-}
+mod cardinality;
+mod errors;
+mod pagination;
+mod query_fragment;
+pub use bind_index::{QpIncr, QpIncrMut, incr_checked_add_one_returning_incr};
+pub use cardinality::{
+    DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash, take_fst_dup,
+    take_fst_dup_by_hash,
+};
+pub use errors::{
+    PgCrudStringWrapperTryFromStringEr, QpEr, QpErWithSerde, SqlxPostgresQueryBindEr,
+};
+pub use pagination::{DEFAULT_PAGINATION_LIMIT, PgnEnd, PgnLimit, PgnOffset, PgnStart};
+pub use query_fragment::{QpFragment, SqlColRef};
+pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait AllEnumVrtsArrDfltSomeOneEl: Sized {
     fn all_vrts_dflt_some_one_el() -> Vec<Self>;
 }
@@ -418,144 +350,12 @@ impl std::fmt::Debug for SqlxPostgresQuery<'_> {
         f.debug_tuple("SqlxPostgresQuery").finish()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display)]
-pub struct SqlxPostgresQueryBindEr(String);
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    thiserror::Error,
-    utoipa::ToSchema,
-)]
-pub enum PgCrudStringWrapperTryFromStringEr {
-    #[error("string wrapper length {len} exceeds maximum {max}")]
-    TooLong { len: usize, max: usize },
-}
-impl to_err_string::ToErrString for PgCrudStringWrapperTryFromStringEr {
-    fn to_err_string(&self) -> to_err_string::ToErrStringValue {
-        to_err_string::ToErrStringValue::try_from(self.to_string())
-            .unwrap_or_else(to_err_string::ToErrStringValue::from)
-    }
-}
-impl From<PgCrudStringWrapperTryFromStringEr> for SqlxPostgresQueryBindEr {
-    fn from(value: PgCrudStringWrapperTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl SqlxPostgresQueryBindEr {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
-impl TryFrom<String> for SqlxPostgresQueryBindEr {
-    type Error = PgCrudStringWrapperTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: PG_CRUD_STRING_WRAPPER_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::Newtype)]
-#[newtype(display)]
-pub struct QpIncr(u64);
-impl From<u64> for QpIncr {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-impl QpIncr {
-    #[must_use]
-    pub const fn get(self) -> u64 {
-        self.0
-    }
-}
-pub trait QpIncrMut {
-    fn checked_add_one(&mut self) -> Option<QpIncr>;
-}
-impl QpIncrMut for QpIncr {
-    fn checked_add_one(&mut self) -> Option<QpIncr> {
-        self.0.checked_add(1).map(|v| {
-            *self = Self::from(v);
-            Self::from(v)
-        })
-    }
-}
-impl QpIncrMut for u64 {
-    fn checked_add_one(&mut self) -> Option<QpIncr> {
-        self.checked_add(1).map(|v| {
-            *self = v;
-            QpIncr::from(v)
-        })
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
 #[newtype(from_inner, into_inner_from)]
 pub struct AddOprtr(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
 #[newtype(from_inner, into_inner_from)]
 pub struct IsPk(bool);
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str, deref_target, display)]
-pub struct QpFragment(String);
-impl QpFragment {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
-impl From<PgCrudStringWrapperTryFromStringEr> for QpFragment {
-    fn from(value: PgCrudStringWrapperTryFromStringEr) -> Self {
-        Self(value.to_string())
-    }
-}
-impl TryFrom<String> for QpFragment {
-    type Error = PgCrudStringWrapperTryFromStringEr;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: PG_CRUD_STRING_WRAPPER_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
-impl std::fmt::Write for QpFragment {
-    fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        self.0.push_str(s);
-        Ok(())
-    }
-}
-#[derive(Clone, Copy)]
-pub struct SqlColRef<'col_lt>(&'col_lt dyn std::fmt::Display);
-impl<'col_lt, T> From<&'col_lt T> for SqlColRef<'col_lt>
-where
-    T: std::fmt::Display,
-{
-    fn from(value: &'col_lt T) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Debug for SqlColRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("SqlColRef").finish()
-    }
-}
-impl std::fmt::Display for SqlColRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 pub trait PgTypeWhFlt<'query_lt> {
     fn qb(
         self,
@@ -672,39 +472,6 @@ where
 {
     fn all_vrts_dflt_some_one_el() -> Vec<Self> {
         vec![Self(Some(DfltSomeOneEl::dflt_some_one_el()))]
-    }
-}
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    thiserror::Error,
-    location::Location,
-    optml::Optml,
-)]
-#[location_to_schema]
-pub enum QpEr {
-    CheckedAdd {
-        loc: loc_lib::loc::Loc,
-    },
-    StringWrapperTryFromString {
-        loc: loc_lib::loc::Loc,
-        #[eo_to_err_string_serde]
-        er: PgCrudStringWrapperTryFromStringEr,
-    },
-    WriteIntoBuffer {
-        loc: loc_lib::loc::Loc,
-    },
-}
-impl From<PgCrudStringWrapperTryFromStringEr> for QpEr {
-    fn from(er: PgCrudStringWrapperTryFromStringEr) -> Self {
-        Self::StringWrapperTryFromString {
-            loc: loc_macros::loc!(),
-            er,
-        }
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -1892,19 +1659,6 @@ pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUnqVec<T>),
     Single(T),
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml)]
-pub struct DuplicateIdx(usize);
-impl From<usize> for DuplicateIdx {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl DuplicateIdx {
-    #[must_use]
-    pub const fn get(self) -> usize {
-        self.0
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 pub struct UuidUuidTestCases([uuid::Uuid; 1]);
 impl From<[uuid::Uuid; 1]> for UuidUuidTestCases {
@@ -1918,19 +1672,6 @@ impl IntoIterator for UuidUuidTestCases {
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
-}
-pub fn incr_checked_add_one_returning_incr<IncrTy>(incr: &mut IncrTy) -> Result<QpIncr, QpEr>
-where
-    IncrTy: QpIncrMut + ?Sized,
-{
-    incr.checked_add_one().map_or_else(
-        || {
-            Err(QpEr::CheckedAdd {
-                loc: loc_macros::loc!(),
-            })
-        },
-        Ok,
-    )
 }
 #[cfg(feature = "test-utils")]
 #[must_use]
@@ -2046,49 +1787,4 @@ pub fn string_test_cases_vec() -> [String; 12] {
 #[must_use]
 pub fn uuid_uuid_test_cases_vec() -> UuidUuidTestCases {
     UuidUuidTestCases::from([uuid::Uuid::new_v4()])
-}
-#[must_use]
-pub fn first_duplicate_idx<T>(values: &[T]) -> Option<DuplicateIdx>
-where
-    T: PartialEq,
-{
-    if values.len() < 2 {
-        return None;
-    }
-    values
-        .iter()
-        .enumerate()
-        .find(|(idx, current)| values.iter().take(*idx).any(|prev| prev == *current))
-        .map(|(idx, _)| DuplicateIdx::from(idx))
-}
-#[must_use]
-pub fn take_fst_dup<T>(values: &mut Vec<T>) -> Option<T>
-where
-    T: PartialEq,
-{
-    let duplicate_idx = first_duplicate_idx(values.as_slice())?;
-    Some(values.swap_remove(duplicate_idx.get()))
-}
-#[must_use]
-pub fn first_duplicate_idx_by_hash<T>(values: &[T]) -> Option<DuplicateIdx>
-where
-    T: Eq + std::hash::Hash,
-{
-    if values.len() < 2 {
-        return None;
-    }
-    let mut seen = std::collections::HashSet::with_capacity(values.len());
-    values
-        .iter()
-        .enumerate()
-        .find(|(_, current)| !seen.insert(*current))
-        .map(|(idx, _)| DuplicateIdx::from(idx))
-}
-#[must_use]
-pub fn take_fst_dup_by_hash<T>(values: &mut Vec<T>) -> Option<T>
-where
-    T: Eq + std::hash::Hash,
-{
-    let duplicate_idx = first_duplicate_idx_by_hash(values.as_slice())?;
-    Some(values.swap_remove(duplicate_idx.get()))
 }

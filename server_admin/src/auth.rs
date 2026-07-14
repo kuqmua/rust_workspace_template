@@ -383,6 +383,11 @@ pub enum AdminApiEr {
     #[error("administrator response header is invalid: {0:?}")]
     Header(HttpAdminHeaderValueEr),
 }
+impl From<sqlx::Error> for AdminApiEr {
+    fn from(value: sqlx::Error) -> Self {
+        Self::Pg(super::SqlxAdminEr::from(value))
+    }
+}
 #[derive(Debug, newtype::Newtype)]
 #[newtype(into_inner_from)]
 pub struct AxumAdminResponse(axum::response::Response);

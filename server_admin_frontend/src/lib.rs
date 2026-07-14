@@ -94,6 +94,9 @@ mod tests {
     fn leptos_client_uses_typed_operational_api_contracts() {
         let script = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app.rs"))
             .expect("fe89c42a");
+        let pages =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app/pages.rs"))
+                .expect("89a2c4de");
         let transport =
             std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/transport.rs"))
                 .expect("320c7d1e");
@@ -111,7 +114,7 @@ mod tests {
         .into_iter()
         .for_each(|contract| {
             assert!(
-                script.contains(contract),
+                script.contains(contract) || pages.contains(contract),
                 "missing SPA contract: {contract}"
             );
         });
@@ -119,6 +122,8 @@ mod tests {
         assert!(transport.contains("RequestCredentials::Include"));
         assert!(transport.contains("X-CSRF-Token"));
         assert!(!script.contains("/api/v1/admin/users"));
+        assert!(!pages.contains("/api/v1/admin/users"));
         assert!(!script.contains("serde_json::json!"));
+        assert!(!pages.contains("serde_json::json!"));
     }
 }
