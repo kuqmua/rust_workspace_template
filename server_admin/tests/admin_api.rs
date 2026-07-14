@@ -172,9 +172,6 @@ async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
 }
 #[tokio::test]
 async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
-    #[cfg(feature = "test-utils")]
-    let database_url = std::env::var("DATABASE_URL").expect("63f028ae");
-    #[cfg(not(feature = "test-utils"))]
     let Ok(database_url) = std::env::var("DATABASE_URL") else {
         return;
     };
@@ -733,9 +730,6 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
 }
 #[tokio::test]
 async fn postgresql_generated_mutation_idempotency_contract() {
-    #[cfg(feature = "test-utils")]
-    let database_url = std::env::var("DATABASE_URL").expect("31c46f77");
-    #[cfg(not(feature = "test-utils"))]
     let Ok(database_url) = std::env::var("DATABASE_URL") else {
         return;
     };
@@ -942,9 +936,6 @@ async fn postgresql_generated_mutation_idempotency_contract() {
 }
 #[tokio::test]
 async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
-    #[cfg(feature = "test-utils")]
-    let database_url = std::env::var("DATABASE_URL").expect("52556424");
-    #[cfg(not(feature = "test-utils"))]
     let Ok(database_url) = std::env::var("DATABASE_URL") else {
         return;
     };
@@ -1006,9 +997,6 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
 }
 #[tokio::test]
 async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
-    #[cfg(feature = "test-utils")]
-    let database_url = std::env::var("DATABASE_URL").expect("0cc78f70");
-    #[cfg(not(feature = "test-utils"))]
     let Ok(database_url) = std::env::var("DATABASE_URL") else {
         return;
     };
@@ -1066,9 +1054,6 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
 }
 #[tokio::test]
 async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
-    #[cfg(feature = "test-utils")]
-    let database_url = std::env::var("DATABASE_URL").expect("20d00aef");
-    #[cfg(not(feature = "test-utils"))]
     let Ok(database_url) = std::env::var("DATABASE_URL") else {
         return;
     };
