@@ -31,6 +31,22 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test('sign-in renders without starting authenticated resources', async ({ page }) => {
+  const authenticatedRequests = [];
+  const pageErrors = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/admin/auth/me')) authenticatedRequests.push(request.url());
+  });
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await page.goto('/admin/sign-in');
+  await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+  await page.waitForTimeout(100);
+  expect(authenticatedRequests).toEqual([]);
+  expect(pageErrors).toEqual([]);
+});
+
 test('OpenAPI page is rendered by the Leptos SPA', async ({ page }) => {
   await page.goto('/admin/swagger-ui');
   await expect(page.getByRole('heading', { name: 'OpenAPI document' })).toBeVisible();

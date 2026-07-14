@@ -364,6 +364,9 @@ where
 #[component]
 pub fn App() -> impl IntoView {
     let client = AdminApiClient::new();
+    if path() == "/admin/sign-in" {
+        return view! { <forms::SignIn client /> }.into_any();
+    }
     let auth = LocalResource::new({
         let client = client.clone();
         move || {
@@ -371,9 +374,6 @@ pub fn App() -> impl IntoView {
             async move { client.me().await }
         }
     });
-    if path() == "/admin/sign-in" {
-        return view! { <forms::SignIn client /> }.into_any();
-    }
     let client_for_auth = client.clone();
     view! { <Suspense fallback=move || view! { <main><p>"Loading..."</p></main> }>{move || { let client = client_for_auth.clone(); Suspend::new(async move { match auth.await { Ok(value) => view! { <pages::Shell auth=value client=client.clone() /> }.into_any(), Err(_) => { redirect("/admin/sign-in"); view! { <main></main> }.into_any() } } }) }}</Suspense> }.into_any()
 }
