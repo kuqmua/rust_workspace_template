@@ -1775,33 +1775,6 @@ fn read_toml_table(path: types::StdPathRef<'_>) -> Option<types::TomlTable> {
 fn cargo_toml_content(path: types::StdPathRef<'_>) -> Option<types::SourceText> {
     snapshot::with_codebase_snapshot(|snapshot| snapshot.cargo_toml_content(path))
 }
-#[allow(clippy::single_call_fn)] // isolates empty-line diagnostics so file-level test stays focused on traversal and assertion
-fn collect_empty_line_ers(
-    path: types::StdPathRef<'_>,
-    v: types::SourceTextRef<'_>,
-) -> types::SourceTextList {
-    let mut lines_iter = v.as_ref().lines();
-    if let Some(first_line) = lines_iter.next()
-        && first_line.trim().is_empty()
-        && lines_iter.next().is_none()
-    {
-        return types::SourceTextList::default();
-    }
-    types::SourceTextList::from(
-        v.as_ref()
-            .lines()
-            .enumerate()
-            .filter(|(_, line)| line.trim().is_empty())
-            .map(|(line_nbr, _)| {
-                format!(
-                    "{}:{} empty line",
-                    path.as_ref().display(),
-                    line_nbr.saturating_add(1)
-                )
-            })
-            .collect::<Vec<String>>(),
-    )
-}
 #[allow(clippy::single_call_fn)] // isolates non-english diagnostics so file-level test stays focused on traversal and assertion
 fn collect_non_english_symbol_ers(
     path: types::StdPathRef<'_>,

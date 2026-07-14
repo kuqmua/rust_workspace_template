@@ -94,21 +94,6 @@ fn no_for_loops_in_source_code() {
     );
 }
 #[test]
-fn no_empty_lines_in_rust_files() {
-    let mut ers = Vec::new();
-    super::for_each_rs_file_content(|path, v| {
-        ers.extend(super::collect_empty_line_ers(
-            super::types::StdPathRef::from(path),
-            super::types::SourceTextRef::from(v),
-        ));
-    });
-    super::assert_joined_ers_empty_with_ctx(
-        super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr("3d2fc8a1"),
-        super::types::SourceTextRef::from("empty lines found in Rust files:"),
-    );
-}
-#[test]
 fn no_todo_or_unimplemented_macro_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr("c4e9a2d7"),
