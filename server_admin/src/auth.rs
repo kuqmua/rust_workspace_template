@@ -604,36 +604,58 @@ impl AsMut<sqlx::PgConnection> for SqlxAdminPgConnectionRef<'_> {
         self.0
     }
 }
+enum AdminAuthDbRef<'connection_lt, 'pool_lt> {
+    Connection(SqlxAdminPgConnectionRef<'connection_lt>),
+    Pool(app_state::SqlxPgPoolRef<'pool_lt>),
+}
 async fn load_authenticated_admin(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    let user = sqlx::query_as::<_, (String, String)>(
+    let mut db = AdminAuthDbRef::Pool(app_state::SqlxPgPoolRef::from(state.pool.as_ref()));
+    load_authenticated_admin_from_db(&mut db, user_id, session_id).await
+}
+async fn load_authenticated_admin_from_db(
+    db: &mut AdminAuthDbRef<'_, '_>,
+    user_id: super::AdminUserId,
+    session_id: super::AdminSessionId,
+) -> Result<AuthenticatedAdmin, AdminApiError> {
+    let user_query = sqlx::query_as::<_, (String, String)>(
         "SELECT login, display_name FROM admin_users WHERE id = $1 AND is_banned = FALSE",
     )
-    .bind(user_id.0)
-    .fetch_optional(state.pool.as_ref())
-    .await
+    .bind(user_id.0);
+    let user = match db {
+        AdminAuthDbRef::Connection(connection) => {
+            user_query.fetch_optional(connection.as_mut()).await
+        }
+        AdminAuthDbRef::Pool(pool) => user_query.fetch_optional(pool.as_ref()).await,
+    }
     .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .ok_or(AdminApiError::Authentication)?;
-    let roles = sqlx::query_scalar::<_, String>(
+    let roles_query = sqlx::query_scalar::<_, String>(
         "SELECT role.name FROM admin_roles role JOIN admin_user_roles link ON link.role_id = role.id WHERE link.user_id = $1 ORDER BY role.name",
     )
-    .bind(user_id.0)
-    .fetch_all(state.pool.as_ref())
-    .await
+    .bind(user_id.0);
+    let roles = match db {
+        AdminAuthDbRef::Connection(connection) => roles_query.fetch_all(connection.as_mut()).await,
+        AdminAuthDbRef::Pool(pool) => roles_query.fetch_all(pool.as_ref()).await,
+    }
     .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .into_iter()
     .map(super::AdminRoleName::try_from)
     .collect::<Result<Vec<super::AdminRoleName>, _>>()
     .map_err(|_error| AdminApiError::Authentication)?;
-    let permissions = sqlx::query_scalar::<_, String>(
+    let permissions_query = sqlx::query_scalar::<_, String>(
         "SELECT DISTINCT permission.name FROM admin_permissions permission JOIN admin_role_permissions role_permission ON role_permission.permission_id = permission.id JOIN admin_user_roles user_role ON user_role.role_id = role_permission.role_id WHERE user_role.user_id = $1 ORDER BY permission.name",
     )
-    .bind(user_id.0)
-    .fetch_all(state.pool.as_ref())
-    .await
+    .bind(user_id.0);
+    let permissions = match db {
+        AdminAuthDbRef::Connection(connection) => {
+            permissions_query.fetch_all(connection.as_mut()).await
+        }
+        AdminAuthDbRef::Pool(pool) => permissions_query.fetch_all(pool.as_ref()).await,
+    }
     .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .into_iter()
     .map(|permission| super::AdminPermission::try_from(permission.as_str()))
@@ -650,7 +672,30 @@ async fn load_authenticated_admin(
         session_id,
     })
 }
+#[allow(clippy::single_call_fn)] // sign-in alone creates the long-lived refresh cookie
 fn append_session_cookies(
+    response: &mut AxumAdminResponse,
+    state: &AdminAuthSvcState,
+    session: &AdminSessionBundle,
+) -> Result<(), AdminApiError> {
+    append_access_session_cookies(response, state, session)?;
+    let refresh = super::build_admin_cookie(
+        super::AdminCookieKind::Refresh,
+        session.refresh_token.expose(),
+        super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.0),
+        state.cookie_secure,
+    );
+    http::HeaderValue::from_str(refresh.as_ref())
+        .map(|header| {
+            response
+                .0
+                .headers_mut()
+                .append(http::header::SET_COOKIE, header)
+        })
+        .map(drop)
+        .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
+}
+fn append_access_session_cookies(
     response: &mut AxumAdminResponse,
     state: &AdminAuthSvcState,
     session: &AdminSessionBundle,
@@ -661,12 +706,6 @@ fn append_session_cookies(
         super::AdminCookieMaxAgeSeconds::from(state.access_ttl.0),
         state.cookie_secure,
     );
-    let refresh = super::build_admin_cookie(
-        super::AdminCookieKind::Refresh,
-        session.refresh_token.expose(),
-        super::AdminCookieMaxAgeSeconds::from(state.refresh_ttl.0),
-        state.cookie_secure,
-    );
     let csrf = super::build_admin_cookie(
         super::AdminCookieKind::Csrf,
         super::StdAdminStrRef::from(
@@ -675,7 +714,7 @@ fn append_session_cookies(
         super::AdminCookieMaxAgeSeconds::from(state.access_ttl.0),
         state.cookie_secure,
     );
-    [access, refresh, csrf].into_iter().try_for_each(|cookie| {
+    [access, csrf].into_iter().try_for_each(|cookie| {
         http::HeaderValue::from_str(cookie.as_ref())
             .map(|header| {
                 response
@@ -1009,6 +1048,7 @@ pub enum AdminSessionError {
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
+#[allow(clippy::single_call_fn)] // facade keeps session persistence private to the session module
 async fn create_session_in_connection(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
@@ -1016,6 +1056,23 @@ async fn create_session_in_connection(
     connection: SqlxAdminPgConnectionRef<'_>,
 ) -> Result<AdminSessionBundle, AdminSessionError> {
     session::create_session_in_connection(state, user_id, context_hash, connection).await
+}
+#[allow(clippy::single_call_fn)] // facade keeps refreshed-session persistence private to the session module
+async fn create_refreshed_session_in_connection(
+    state: &AdminAuthSvcState,
+    user_id: super::AdminUserId,
+    context_hash: &super::AdminTokenHash,
+    refresh_token: super::AdminRefreshToken,
+    connection: SqlxAdminPgConnectionRef<'_>,
+) -> Result<AdminSessionBundle, AdminSessionError> {
+    session::create_refreshed_session_in_connection(
+        state,
+        user_id,
+        context_hash,
+        refresh_token,
+        connection,
+    )
+    .await
 }
 #[cfg(test)]
 mod tests {

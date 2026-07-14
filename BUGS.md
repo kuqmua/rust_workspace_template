@@ -1,87 +1,68 @@
-# Confirmed Bug Review
+# Resolved Bug Review
 
-Review date: 2026-07-14
+Resolution date: 2026-07-14
 
-Scope: runtime server composition, administrator authentication, administrator Leptos frontend, browser transport, and shutdown behavior. Findings below are based on reachable code paths in the current worktree. Passing tests are not treated as proof when they do not exercise the relevant interaction.
+All findings from the 2026-07-14 review are resolved in the current worktree. This document records the original locations, implemented corrections, and regression evidence.
 
-## 1. Critical: concurrent authentication refresh deadlocks the WASM thread
+## 1. Resolved: concurrent authentication refresh deadlock
 
-- Location: `server_admin_frontend/src/app.rs:149-164`
-- Trigger: two API calls receive `401` while one refresh is already in progress.
-- Behavior: the `RwLockWriteGuard` created in the `match` scrutinee remains alive for the entire `match`. The `Join` arm calls `write()` on the same `std::sync::RwLock` again. Because browser WASM runs on one thread, the second acquisition blocks that thread permanently instead of waiting asynchronously.
-- Impact: the administrator UI freezes on `Loading...` and cannot complete the active refresh request.
-- Evidence gap in tests: `auth_keep_alive::tests::simultaneous_callers_join_one_refresh` tests only `AuthRefreshState`; it does not exercise `AdminApiClient::refresh_session` or the nested lock acquisition.
-- Suggested correction: acquire the coordinator once in a separate scope, call `begin`, register a waiter using the same guard, and drop the guard before any await or branch return.
+- Original location: `server_admin_frontend/src/app.rs`, `AdminApiClient::refresh_session`.
+- Correction: refresh state inspection and waiter registration now use one scoped write guard. The guard is dropped before any await. The `Join` branch no longer attempts to acquire the same `RwLock` recursively.
+- Regression evidence: Playwright starts two protected requests that receive `401` concurrently, verifies one refresh request, two successful retries, and a responsive UI.
 
-## 2. High: out-of-order page responses overwrite the currently selected page
+## 2. Resolved: stale page responses overwrote the selected page
 
-- Location: `server_admin_frontend/src/app.rs:335-373`, initiated from `server_admin_frontend/src/app/pages.rs:31`
-- Trigger: select page A and then page B before page A's API request completes.
-- Behavior: every `load` call starts an independent `spawn_local`. There is no request generation, cancellation, or selected-path check before `page.set`. If A completes after B, A overwrites B's content even though the URL and active navigation item point to B.
-- Impact: the header can show one section while the main area displays another section's data. Slow audit, metrics, or database requests make this reproducible.
-- Suggested correction: attach a monotonically increasing load generation to the page state, or cancel the previous task, and accept a response only when its path/generation is still current.
+- Original location: `server_admin_frontend/src/app.rs`, `load`.
+- Correction: `PageLoader` assigns a monotonic generation to every navigation. A response updates page state only if its generation is still current.
+- Regression evidence: Playwright delays the permissions response, navigates to audit, and verifies that the late permissions response cannot replace audit content.
 
-## 3. High: browser Back and Forward desynchronize URL and page content
+## 3. Resolved: browser history desynchronized URL and content
 
-- Location: `server_admin_frontend/src/app.rs:308-313`, `server_admin_frontend/src/app/pages.rs:14-31`
-- Trigger: navigate through two administrator sections, then use the browser Back or Forward button.
-- Behavior: internal navigation writes history entries with `pushState`, but no `popstate` listener updates `current_path` or calls `load`.
-- Impact: the address bar changes while the active navigation item and displayed data remain on the previous section. Reloading then shows a different page from the one visible immediately before reload.
-- Suggested correction: own a `popstate` listener for the lifetime of `Shell`, update the path signal, and run the same page-loading path used by link clicks.
+- Original location: `server_admin_frontend/src/app/pages.rs`, `Shell`.
+- Correction: `Shell` owns a `popstate` callback that updates the current-path signal and loads the matching page through `PageLoader`.
+- Regression evidence: Playwright navigates across users, permissions, and audit, then verifies Back and Forward update the URL, active layout, and content without rechecking the session.
 
-## 4. High: refresh rotation can consume the only valid token without delivering its replacement
+## 4. Resolved: refresh could consume a token before delivering a replacement
 
-- Location: `server_admin/src/auth/handlers.rs:215-267`
-- Trigger: refresh-token rotation succeeds in PostgreSQL, but `load_authenticated_admin`, contract conversion, or response-header construction fails after the transaction commit.
-- Behavior: the old refresh token is revoked at lines 215-221 and the replacement is committed at line 258. The new cookies are not appended until line 267. Any error between commit and the response leaves the browser holding only the revoked token.
-- Impact: a transient database or serialization/header failure permanently signs the user out even though the server created a new inaccessible session.
-- Suggested correction: prepare all fallible response data before commit where possible. If post-commit response construction can still fail, use a rotation protocol that permits recovery without accepting unlimited replay.
+- Original location: `server_admin/src/auth/handlers.rs`, `refresh`.
+- Correction: refresh validation now locks and reads the bounded refresh session without revoking it. The new access session, authenticated view, response contract, and access/CSRF cookies are prepared before the transaction commits.
+- Regression evidence: the administrator API flow verifies refresh success while retaining the original bounded refresh token and issuing new access/CSRF cookies only.
 
-## 5. High: refresh-token rotation is not safe across browser tabs
+## 5. Resolved: refresh was unsafe across browser tabs
 
-- Location: `server_admin/src/auth/handlers.rs:215-225`; frontend coordination is process-local at `server_admin_frontend/src/app.rs:38-45`
-- Trigger: two tabs share the same cookies and attempt refresh after the access token expires.
-- Behavior: the first request atomically revokes the refresh token. The second request uses the same old cookie, receives `401`, and its frontend redirects to sign-in. The in-memory coordinator cannot coordinate separate tabs or windows.
-- Impact: normal multi-tab use can appear to randomly lose authentication during token expiry.
-- Suggested correction: coordinate refresh across tabs with a browser-wide lock/broadcast protocol, or implement a bounded server-side rotation grace/reuse model with explicit replay handling.
+- Original location: `server_admin/src/auth/handlers.rs`, refresh-token rotation.
+- Correction: a refresh token now represents a persistent, server-revocable session bounded by its original database and cookie expiry. Concurrent tabs serialize validation with `FOR UPDATE` and can independently obtain new access sessions without invalidating each other.
+- Security invariant: sign-out, password/security actions, session limits, explicit revocation, and expiry still revoke or reject the refresh session.
 
-## 6. High: the global API rate limit is shared by every user behind one reverse proxy
+## 6. Resolved: reverse-proxy users shared one rate-limit key
 
-- Location: `server/src/main.rs:341-355`
-- Trigger: deploy behind a reverse proxy or ingress where all connections have the proxy's peer address.
-- Behavior: `GovernorConfigBuilder::default()` uses `PeerIpKeyExtractor`. The configured rate is only two requests per second with burst ten, and the layer wraps every `/api/v1` route. Forwarded client-address resolution is not connected to this limiter.
-- Impact: unrelated users consume one shared bucket and receive `429`. Health/version/operational requests can also be throttled by ordinary application traffic, depending on their placement inside `api_routes`.
-- Suggested correction: use the repository's trusted-proxy client-IP resolution for a reviewed key extractor, separate public/health and authenticated limits, and make limits configurable.
+- Original location: `server/src/main.rs`, global governor construction.
+- Correction: `ClientIpRateLimitKeyExtractor` resolves forwarded addresses only when the direct peer belongs to configured `TRUSTED_PROXY_RANGES_TEXT`. Untrusted peers cannot spoof forwarded headers. Operational common routes are outside the application governor.
+- Configuration: development defaults trust only `127.0.0.1/32` and `::1/128`; deployments must list their actual proxy CIDRs.
+- Regression evidence: a server unit test verifies that a forwarded client is used through a trusted proxy.
 
-## 7. Medium: configured cross-origin browser clients fail CORS preflight
+## 7. Resolved: cross-origin frontend headers failed preflight
 
-- Location: outbound headers in `server_admin_frontend/src/transport.rs:30-44`; allowed request headers in `server/src/main.rs:370-383`
-- Trigger: serve the frontend from a configured allowed origin that differs from the API origin.
-- Behavior: every request adds the custom `commit` header, and some requests add `Idempotency-Key` or `If-Match`. The CORS layer allows only `Content-Type` and `X-CSRF-Token`.
-- Impact: the browser rejects preflight before the API request reaches a handler, even though the origin is explicitly listed in `CORS_ALLOW_ORIGIN`.
-- Suggested correction: add every contract-supported request header to the CORS allow-list and add a preflight integration test using the real frontend header set.
+- Original location: `server/src/main.rs`, CORS layer.
+- Correction: the allow-list now includes `commit`, `Idempotency-Key`, and `If-Match` in addition to `Content-Type` and `X-CSRF-Token`, matching the browser transport contract.
 
-## 8. Medium: administrator HTML clears the cache for the entire origin on every load
+## 8. Resolved: admin HTML cleared the entire origin cache
 
-- Location: `server_admin_frontend/src/lib.rs:50-57`
-- Trigger: load or reload any administrator page.
-- Behavior: every admin HTML response contains `Clear-Site-Data: "cache"`. This directive applies to the origin, not only `/admin` or obsolete frontend assets.
-- Impact: unrelated applications hosted on the same origin lose cached resources, and immutable hashed assets are repeatedly evicted after full-page administrator navigation. It can materially increase bandwidth and startup latency.
-- Suggested correction: remove the permanent origin-wide directive after the stale-build migration, or use a versioned one-time migration mechanism scoped by a small marker rather than every HTML response.
+- Original location: `server_admin_frontend/src/lib.rs`, admin HTML response layers.
+- Correction: the permanent `Clear-Site-Data: "cache"` response header was removed. Hashed immutable assets and non-cacheable HTML now provide version consistency without evicting unrelated origin data.
 
-## 9. Medium: SIGTERM bypasses graceful shutdown
+## 9. Resolved: SIGTERM bypassed graceful shutdown
 
-- Location: `server/src/main.rs:390-407`
-- Trigger: stop the service using SIGTERM, which is the normal termination signal for containers and many service managers.
-- Behavior: graceful shutdown waits only for `tokio::signal::ctrl_c()` (SIGINT). There is no Unix SIGTERM listener.
-- Impact: in-flight requests and the cleanup task can be terminated without the shutdown timeout and task join path.
-- Suggested correction: on Unix, wait for either Ctrl-C or SIGTERM; retain a portable Ctrl-C-only branch for non-Unix targets.
+- Original location: `server/src/main.rs`, shutdown future.
+- Correction: Unix builds wait for either Ctrl-C or SIGTERM. Non-Unix builds retain Ctrl-C handling. Both paths continue through request draining and cleanup-task shutdown.
 
-## Review priorities
+## Verification gates
 
-1. Fix finding 1 before adding more concurrent administrator requests; it can freeze the entire frontend.
-2. Fix findings 4 and 5 together as one refresh-rotation design change.
-3. Fix findings 2 and 3 together in a single navigation owner that handles cancellation and browser history.
-4. Fix finding 6 before deploying behind an ingress or serving multiple users.
-5. Address findings 7-9 as deployment and operational hardening.
+- `cargo fmt`
+- `cargo clippy --all-targets --all-features -- -D warnings`
+- `cargo test -p tests code_style`
+- `cargo test -p server_admin`
+- `cargo test -p server_admin_frontend`
+- `trunk build --release`
+- Playwright administrator navigation, history, stale-response, refresh, and layout tests
 

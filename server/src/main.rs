@@ -77,6 +77,29 @@ struct ServerPrepPgError(#[from] server_table_example::TableExamplePrepPgError);
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
 struct AxumApiRoutes(axum::Router);
+#[derive(Clone, Debug)]
+struct ClientIpRateLimitKeyExtractor {
+    trusted_proxy_ranges: server_runtime::TrustedProxyRanges,
+}
+impl tower_governor::key_extractor::KeyExtractor for ClientIpRateLimitKeyExtractor {
+    type Key = std::net::IpAddr;
+    fn extract<Body>(
+        &self,
+        req: &axum::http::Request<Body>,
+    ) -> Result<Self::Key, tower_governor::errors::GovernorError> {
+        let peer = req
+            .extensions()
+            .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
+            .map(|value| value.0)
+            .ok_or(tower_governor::errors::GovernorError::UnableToExtractKey)?;
+        Ok(*server_runtime::resolve_client_ip(
+            server_runtime::HttpHeaderMapRef::from(req.headers()),
+            server_runtime::StdSocketAddr::from(peer),
+            &self.trusted_proxy_ranges,
+        )
+        .as_ref())
+    }
+}
 struct TokioServerRuntime(tokio::runtime::Runtime);
 struct StdServerExitCode(std::process::ExitCode);
 impl std::process::Termination for StdServerExitCode {
@@ -114,6 +137,8 @@ enum RunServerError {
     RuntimeTimeout(ServerRuntimeRequestTimeoutError),
     #[error("server failed: {0}")]
     Serve(ServerRuntimeServeError),
+    #[error("invalid trusted proxy range: {0}")]
+    TrustedProxyRange(server_runtime::TrustedProxyRangeParseError),
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
 fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
@@ -185,11 +210,6 @@ fn mk_api_routes(
         ));
     AxumApiRoutes(
         axum::Router::new()
-            .merge(axum::Router::from(common_routes::common_routes(
-                common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
-                    server_app_state::ServerAppState<'static>,
-                >::clone(app_state)),
-            )))
             .merge(server_table_example::TableExample::routes(
                 std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
             ))
@@ -330,6 +350,16 @@ async fn run_server() -> Result<(), RunServerError> {
             })?,
         ));
     let swagger_enabled = *config.admin_swagger_enabled;
+    let trusted_proxy_ranges = config
+        .trusted_proxy_ranges_text
+        .0
+        .split(',')
+        .map(str::trim)
+        .map(str::to_owned)
+        .map(server_runtime::TrustedProxyRange::try_from)
+        .collect::<Result<Vec<server_runtime::TrustedProxyRange>, _>>()
+        .map(server_runtime::TrustedProxyRanges::from)
+        .map_err(RunServerError::TrustedProxyRange)?;
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -338,8 +368,16 @@ async fn run_server() -> Result<(), RunServerError> {
             RunServerError::MetricsRecorder(MetricsExporterPrometheusBuildError(error))
         })?;
     let api_routes = mk_api_routes(&app_state, admin_auth_state, metrics_handle);
+    let operational_routes = axum::Router::from(common_routes::common_routes(
+        common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
+            server_app_state::ServerAppState<'static>,
+        >::clone(&app_state)),
+    ));
     let governor_conf = std::sync::Arc::new(
         tower_governor::governor::GovernorConfigBuilder::default()
+            .key_extractor(ClientIpRateLimitKeyExtractor {
+                trusted_proxy_ranges,
+            })
             .per_second(2)
             .burst_size(10)
             .finish()
@@ -359,7 +397,7 @@ async fn run_server() -> Result<(), RunServerError> {
                 server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
                     server_runtime::AxumRouter::from(
                         axum::Router::new()
-                            .nest("/api/v1", rate_limited_api_routes)
+                            .nest("/api/v1", operational_routes.merge(rate_limited_api_routes))
                             .merge(axum::Router::from(if swagger_enabled {
                                 server_admin_frontend::routes()
                             } else {
@@ -372,6 +410,9 @@ async fn run_server() -> Result<(), RunServerError> {
                                         .allow_credentials(true)
                                         .allow_headers([
                                             axum::http::header::CONTENT_TYPE,
+                                            axum::http::HeaderName::from_static("commit"),
+                                            axum::http::HeaderName::from_static("idempotency-key"),
+                                            axum::http::HeaderName::from_static("if-match"),
                                             axum::http::HeaderName::from_static("x-csrf-token"),
                                         ])
                                         .allow_methods([
@@ -390,11 +431,7 @@ async fn run_server() -> Result<(), RunServerError> {
     let serve_result = server_runtime::serve_with_graceful_shutdown(
         server_runtime::TokioTcpListener::from(tcp_listener),
         router,
-        async {
-            if let Err(error) = tokio::signal::ctrl_c().await {
-                eprintln!("failed to wait for ctrl-c signal: {error}");
-            }
-        },
+        shutdown_signal(),
         request_timeout,
     )
     .await;
@@ -406,6 +443,40 @@ async fn run_server() -> Result<(), RunServerError> {
         })?;
     serve_result.map_err(|error| RunServerError::Serve(ServerRuntimeServeError(error)))?;
     Ok(())
+}
+#[cfg(not(unix))]
+#[allow(clippy::single_call_fn)] // shutdown signal ownership stays isolated from server assembly
+async fn shutdown_signal() {
+    if let Err(error) = tokio::signal::ctrl_c().await {
+        tracing::error!(error = %error, "failed to wait for shutdown signal");
+    }
+}
+#[cfg(unix)]
+#[allow(
+    clippy::integer_division_remainder_used,
+    clippy::single_call_fn,
+    reason = "tokio::select macro internals trigger the remainder lint; shutdown signal ownership stays isolated"
+)]
+async fn shutdown_signal() {
+    let terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate());
+    match terminate {
+        Ok(mut signal) => {
+            tokio::select! {
+                ctrl_c = tokio::signal::ctrl_c() => {
+                    if let Err(error) = ctrl_c {
+                        tracing::error!(error = %error, "failed to wait for ctrl-c signal");
+                    }
+                }
+                _signal = signal.recv() => {}
+            }
+        }
+        Err(error) => {
+            tracing::error!(error = %error, "failed to install SIGTERM handler");
+            if let Err(ctrl_c_error) = tokio::signal::ctrl_c().await {
+                tracing::error!(error = %ctrl_c_error, "failed to wait for ctrl-c signal");
+            }
+        }
+    }
 }
 fn main() -> StdServerExitCode {
     initialization_tracing();
@@ -419,6 +490,27 @@ fn main() -> StdServerExitCode {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
+        let extractor = super::ClientIpRateLimitKeyExtractor {
+            trusted_proxy_ranges: server_runtime::TrustedProxyRanges::from(vec![
+                server_runtime::TrustedProxyRange::try_from("127.0.0.1/32".to_owned())
+                    .expect("5c81d907"),
+            ]),
+        };
+        let mut request = axum::http::Request::builder()
+            .header("x-forwarded-for", "203.0.113.9")
+            .body(())
+            .expect("b2604d91");
+        let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
+            std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, 4_321u16)),
+        ));
+        assert_eq!(
+            tower_governor::key_extractor::KeyExtractor::extract(&extractor, &request)
+                .expect("a97e5b21"),
+            std::net::IpAddr::V4(std::net::Ipv4Addr::new(203u8, 0u8, 113u8, 9u8))
+        );
+    }
     #[test]
     fn tracing_default_filter_is_stable() {
         assert_eq!(super::TRACING_DFLT_FILTER, "info");

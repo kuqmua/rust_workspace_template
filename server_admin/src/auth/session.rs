@@ -16,21 +16,64 @@ pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,
     user_id: super::super::AdminUserId,
     context_hash: &super::super::AdminTokenHash,
+    connection: super::SqlxAdminPgConnectionRef<'_>,
+) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
+    create_session_with_refresh_in_connection(
+        state,
+        user_id,
+        context_hash,
+        SessionRefresh::New,
+        connection,
+    )
+    .await
+}
+pub(super) async fn create_refreshed_session_in_connection(
+    state: &super::AdminAuthSvcState,
+    user_id: super::super::AdminUserId,
+    context_hash: &super::super::AdminTokenHash,
+    refresh_token: super::super::AdminRefreshToken,
+    connection: super::SqlxAdminPgConnectionRef<'_>,
+) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
+    create_session_with_refresh_in_connection(
+        state,
+        user_id,
+        context_hash,
+        SessionRefresh::Existing(refresh_token),
+        connection,
+    )
+    .await
+}
+enum SessionRefresh {
+    Existing(super::super::AdminRefreshToken),
+    New,
+}
+async fn create_session_with_refresh_in_connection(
+    state: &super::AdminAuthSvcState,
+    user_id: super::super::AdminUserId,
+    context_hash: &super::super::AdminTokenHash,
+    refresh: SessionRefresh,
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
 ) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
     let now = unix_now()?;
     let session_uuid = uuid::Uuid::new_v4();
     let session_id =
         super::super::AdminSessionId::from(super::super::UuidAdminValue::from(session_uuid));
-    let refresh_id = uuid::Uuid::new_v4();
-    let refresh_generated = super::super::AdminGeneratedToken::generate();
-    let refresh_hash =
-        super::hash_refresh_token_with_context(refresh_generated.token(), context_hash);
-    let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
-        super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
-            secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref()).to_owned(),
-        ))),
-    ));
+    let (refresh_token, refresh_record) = match refresh {
+        SessionRefresh::Existing(refresh_token) => (refresh_token, None),
+        SessionRefresh::New => {
+            let refresh_generated = super::super::AdminGeneratedToken::generate();
+            let refresh_hash =
+                super::hash_refresh_token_with_context(refresh_generated.token(), context_hash);
+            let refresh_token =
+                super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
+                    super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
+                        secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref())
+                            .to_owned(),
+                    ))),
+                ));
+            (refresh_token, Some((uuid::Uuid::new_v4(), refresh_hash)))
+        }
+    };
     let csrf_generated = super::super::AdminGeneratedToken::generate();
     let token_identifier_hash = super::super::hash_opaque_token(&opaque_token_from_uuid(
         super::super::UuidAdminValue::from(session_uuid),
@@ -64,12 +107,14 @@ pub(super) async fn create_session_in_connection(
         .execute(connection.as_mut())
         .await
         .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    let _expired_refresh = sqlx::query("UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)")
-        .bind(user_id.0)
-        .bind(session_offset)
-        .execute(connection.as_mut())
-        .await
-        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    if refresh_record.is_some() {
+        let _expired_refresh = sqlx::query("UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)")
+            .bind(user_id.0)
+            .bind(session_offset)
+            .execute(connection.as_mut())
+            .await
+            .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    }
     let _access_result = sqlx::query(
         "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, token_context_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, $5, NOW() + ($6 * INTERVAL '1 second'))",
     )
@@ -82,16 +127,18 @@ pub(super) async fn create_session_in_connection(
     .execute(connection.as_mut())
     .await
     .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    let _refresh_result = sqlx::query(
-        "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 second'))",
-    )
-    .bind(refresh_id)
-    .bind(user_id.0)
-    .bind(secrecy::ExposeSecret::expose_secret(refresh_hash.0.as_ref()))
-    .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
-    .execute(connection.as_mut())
-    .await
-    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    if let Some((refresh_id, refresh_hash)) = refresh_record {
+        let _refresh_result = sqlx::query(
+            "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 second'))",
+        )
+        .bind(refresh_id)
+        .bind(user_id.0)
+        .bind(secrecy::ExposeSecret::expose_secret(refresh_hash.0.as_ref()))
+        .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
+        .execute(connection.as_mut())
+        .await
+        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    }
     Ok(super::AdminSessionBundle {
         access_token,
         csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(

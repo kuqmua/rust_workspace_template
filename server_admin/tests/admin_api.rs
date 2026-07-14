@@ -479,16 +479,20 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         HttpAdminApiTestResponseRef(&refresh_response),
         StdAdminApiTestStrRef("admin_access_token="),
     );
-    let refreshed_refresh = cookie_value(
-        HttpAdminApiTestResponseRef(&refresh_response),
-        StdAdminApiTestStrRef("admin_refresh_token="),
+    assert!(
+        !refresh_response
+            .headers()
+            .get_all(http::header::SET_COOKIE)
+            .iter()
+            .filter_map(|value| value.to_str().ok())
+            .any(|value| value.starts_with("admin_refresh_token="))
     );
     let refreshed_csrf = cookie_value(
         HttpAdminApiTestResponseRef(&refresh_response),
         StdAdminApiTestStrRef("admin_csrf_token="),
     );
     let active_cookie = format!(
-        "admin_access_token={refreshed_access}; admin_refresh_token={refreshed_refresh}; admin_csrf_token={refreshed_csrf}"
+        "admin_access_token={refreshed_access}; admin_refresh_token={refresh}; admin_csrf_token={refreshed_csrf}"
     );
     let reused_refresh_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
@@ -503,10 +507,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     )
     .await
     .expect("b8c71e43");
-    assert_eq!(
-        reused_refresh_response.status(),
-        http::StatusCode::UNAUTHORIZED
-    );
+    assert_eq!(reused_refresh_response.status(), http::StatusCode::OK);
     let first_lockout_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

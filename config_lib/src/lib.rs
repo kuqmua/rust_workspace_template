@@ -380,6 +380,10 @@ config_lib_macros::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError
 );
+config_lib_macros::impl_try_from_non_empty_string!(
+    TrustedProxyRangesText,
+    TryFromStdEnvVarOkTrustedProxyRangesTextError
+);
 config_lib_macros::impl_try_from_secret_url!(DatabaseUrl, TryFromStdEnvVarOkDatabaseUrlError);
 config_lib_macros::impl_try_from_parse!(
     EnableApiGitCommitCheck,

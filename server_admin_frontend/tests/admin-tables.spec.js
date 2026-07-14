@@ -172,6 +172,61 @@ test('users permissions and audit keep one header layout and session', async ({ 
   await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
   await expect(page.locator('header.topbar')).toBeVisible();
   await expect(page.locator('header.sidebar')).toHaveCount(0);
+
+  await page.goBack();
+  await expect(page).toHaveURL('/admin/permissions');
+  await expect(page.getByRole('heading', { name: 'Permissions' })).toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL('/admin/audit-log');
+  await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
   expect(meRequests).toBe(1);
-  expect(apiRequests).toBe(4);
+  expect(apiRequests).toBe(6);
+});
+
+test('a stale page response cannot replace the latest navigation', async ({ page }) => {
+  await page.unroute('**/api/v1/admin/permissions');
+  await page.route('**/api/v1/admin/permissions', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+
+  await page.goto('/admin/users');
+  await page.getByRole('link', { name: 'Permissions' }).click();
+  await page.getByRole('link', { name: 'Audit log' }).click();
+  await expect(page).toHaveURL('/admin/audit-log');
+  await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
+  await page.waitForTimeout(400);
+  await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
+});
+
+test('concurrent unauthorized requests join one refresh without freezing', async ({ page }) => {
+  await page.unroute('**/api/v1/admin/users');
+  await page.unroute('**/api/v1/admin/permissions');
+  let userRequests = 0;
+  let permissionRequests = 0;
+  let refreshRequests = 0;
+  await page.route('**/api/v1/admin/users', async (route) => {
+    userRequests += 1;
+    await route.fulfill(userRequests === 1
+      ? { status: 401, contentType: 'application/problem+json', body: '{}' }
+      : { contentType: 'application/json', body: JSON.stringify(users) });
+  });
+  await page.route('**/api/v1/admin/permissions', async (route) => {
+    permissionRequests += 1;
+    await route.fulfill(permissionRequests === 1
+      ? { status: 401, contentType: 'application/problem+json', body: '{}' }
+      : { contentType: 'application/json', body: '[]' });
+  });
+  await page.route('**/api/v1/admin/auth/refresh', async (route) => {
+    refreshRequests += 1;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await route.fulfill({ contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/admin/users');
+  await page.getByRole('link', { name: 'Permissions' }).click();
+  await expect(page.getByRole('heading', { name: 'Permissions' })).toBeVisible();
+  expect(userRequests).toBe(2);
+  expect(permissionRequests).toBe(2);
+  expect(refreshRequests).toBe(1);
 });

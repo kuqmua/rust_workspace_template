@@ -213,7 +213,7 @@ pub(super) async fn refresh(
         .await
         .map_err(super::AdminApiError::from)?;
     let optional_user_id = sqlx::query_scalar::<_, i64>(
-        "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW() RETURNING user_id",
+        "SELECT user_id FROM admin_refresh_tokens WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW() FOR UPDATE",
     )
     .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
     .fetch_optional(&mut *tx)
@@ -225,10 +225,11 @@ pub(super) async fn refresh(
         return Err(super::AdminApiError::Authentication);
     };
     let admin_user_id = super::super::AdminUserId::from(user_id);
-    let session = super::create_session_in_connection(
+    let session = super::create_refreshed_session_in_connection(
         state.as_ref(),
         admin_user_id,
         &context_hash,
+        super::super::AdminRefreshToken::new(token),
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
@@ -255,16 +256,19 @@ pub(super) async fn refresh(
         },
     )
     .await?;
-    tx.commit().await.map_err(super::AdminApiError::from)?;
-    let authenticated =
-        super::load_authenticated_admin(state.as_ref(), admin_user_id, session.session_id())
-            .await?;
+    let authenticated = super::load_authenticated_admin_from_db(
+        &mut super::AdminAuthDbRef::Connection(super::SqlxAdminPgConnectionRef::from(&mut *tx)),
+        admin_user_id,
+        session.session_id(),
+    )
+    .await?;
     let authenticated_contract = super::authenticated_admin_contract(&authenticated)?;
     let mut response =
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             server_admin_contract::AdminSignInRes::new(authenticated_contract),
         )));
-    super::append_session_cookies(&mut response, state.as_ref(), &session)?;
+    super::append_access_session_cookies(&mut response, state.as_ref(), &session)?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
     Ok(response)
 }
 async fn apply_refresh_failure_delay() {

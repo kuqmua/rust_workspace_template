@@ -47,6 +47,25 @@ enum AuthRefreshWork {
     Start,
     Join(futures::channel::oneshot::Receiver<Result<(), ApiError>>),
 }
+#[derive(Clone, Copy)]
+struct PageLoader {
+    generation: RwSignal<u64>,
+    page: RwSignal<Page>,
+}
+impl PageLoader {
+    fn new() -> Self {
+        Self {
+            generation: RwSignal::new(0u64),
+            page: RwSignal::new(Page::Loading),
+        }
+    }
+    fn page(self) -> RwSignal<Page> {
+        self.page
+    }
+    fn set(self, value: Page) {
+        self.page.set(value);
+    }
+}
 fn auth_refresh_state_error() -> ApiError {
     ApiError::Request(Text::from(
         "authentication refresh state is unavailable".to_owned(),
@@ -146,34 +165,30 @@ impl AdminApiClient {
     }
     async fn refresh_session(&self) -> Result<(), ApiError> {
         let now = crate::auth_keep_alive::StdAuthRefreshInstant::now();
-        let work = match self
-            .auth_refresh
-            .write()
-            .map_err(|_error| auth_refresh_state_error())?
-            .state
-            .begin(now)
-        {
-            crate::auth_keep_alive::AuthRefreshBegin::Start => AuthRefreshWork::Start,
-            crate::auth_keep_alive::AuthRefreshBegin::Join => {
-                let (sender, receiver) = futures::channel::oneshot::channel();
-                self.auth_refresh
-                    .write()
-                    .map_err(|_error| auth_refresh_state_error())?
-                    .waiters
-                    .push(sender);
-                AuthRefreshWork::Join(receiver)
-            }
-            crate::auth_keep_alive::AuthRefreshBegin::Rejected => {
-                redirect("/admin/sign-in");
-                return Err(ApiError::Status(
-                    401u16,
-                    Text::from("authentication refresh rejected".to_owned()),
-                ));
-            }
-            crate::auth_keep_alive::AuthRefreshBegin::Wait => {
-                return Err(ApiError::Request(Text::from(
-                    "authentication refresh retry is delayed".to_owned(),
-                )));
+        let work = {
+            let mut coordinator = self
+                .auth_refresh
+                .write()
+                .map_err(|_error| auth_refresh_state_error())?;
+            match coordinator.state.begin(now) {
+                crate::auth_keep_alive::AuthRefreshBegin::Start => AuthRefreshWork::Start,
+                crate::auth_keep_alive::AuthRefreshBegin::Join => {
+                    let (sender, receiver) = futures::channel::oneshot::channel();
+                    coordinator.waiters.push(sender);
+                    AuthRefreshWork::Join(receiver)
+                }
+                crate::auth_keep_alive::AuthRefreshBegin::Rejected => {
+                    redirect("/admin/sign-in");
+                    return Err(ApiError::Status(
+                        401u16,
+                        Text::from("authentication refresh rejected".to_owned()),
+                    ));
+                }
+                crate::auth_keep_alive::AuthRefreshBegin::Wait => {
+                    return Err(ApiError::Request(Text::from(
+                        "authentication refresh retry is delayed".to_owned(),
+                    )));
+                }
             }
         };
         if let AuthRefreshWork::Join(receiver) = work {
@@ -332,8 +347,10 @@ fn prompt(label: &str, current: &str) -> Option<Text> {
         })
         .map(Text::from)
 }
-fn load(client: AdminApiClient, page: RwSignal<Page>) {
-    page.set(Page::Loading);
+fn load(client: AdminApiClient, loader: PageLoader) {
+    let generation = loader.generation.get_untracked().saturating_add(1u64);
+    loader.generation.set(generation);
+    loader.set(Page::Loading);
     leptos::task::spawn_local(async move {
         let current_path = path();
         let current_page = server_admin_contract::AdminPage::from_path(
@@ -369,17 +386,19 @@ fn load(client: AdminApiClient, page: RwSignal<Page>) {
                 return;
             }
         };
-        page.set(result.unwrap_or_else(|error| Page::Error(Text::from(error.to_string()))));
+        if loader.generation.get_untracked() == generation {
+            loader.set(result.unwrap_or_else(|error| Page::Error(Text::from(error.to_string()))));
+        }
     });
 }
-fn run_action<FutureValue>(future: FutureValue, client: AdminApiClient, page: RwSignal<Page>)
+fn run_action<FutureValue>(future: FutureValue, client: AdminApiClient, loader: PageLoader)
 where
     FutureValue: Future<Output = Result<(), ApiError>> + 'static,
 {
     leptos::task::spawn_local(async move {
         match future.await {
-            Ok(()) => load(client, page),
-            Err(error) => page.set(Page::Error(Text::from(error.to_string()))),
+            Ok(()) => load(client, loader),
+            Err(error) => loader.set(Page::Error(Text::from(error.to_string()))),
         }
     });
 }

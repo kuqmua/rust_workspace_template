@@ -157,6 +157,9 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             .expect("e3e42aa5"),
             src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
             tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+            trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
+                "127.0.0.1/32,::1/128".to_owned(),
+            ),
             enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(false),
             admin_cookie_secure: test_env(
                 config_lib::StdEnvVarOk::try_from("false".to_owned()).expect("dbe97ef3"),
@@ -225,6 +228,9 @@ mod tests {
                 .expect("e8714250"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+                trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
+                    "127.0.0.1/32,::1/128".to_owned(),
+                ),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
                 admin_cookie_secure: env("false"),
             },

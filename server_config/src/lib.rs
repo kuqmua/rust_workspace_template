@@ -7,6 +7,7 @@ pub struct Config {
     pub admin_jwt_secret: config_lib::AdminJwtSecret,
     pub admin_token_audience: config_lib::AdminTokenAudience,
     pub admin_token_issuer: config_lib::AdminTokenIssuer,
+    pub trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText,
     pub admin_access_token_ttl_seconds: config_lib::AdminAccessTokenTtlSeconds,
     pub admin_password_hash_concurrency: config_lib::AdminPasswordHashConcurrency,
     pub admin_refresh_token_ttl_seconds: config_lib::AdminRefreshTokenTtlSeconds,
@@ -224,6 +225,9 @@ mod tests {
                 .expect("50e91ec9"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+                trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
+                    "127.0.0.1/32,::1/128".to_owned(),
+                ),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
                 admin_cookie_secure: env("false"),
             };
