@@ -54,6 +54,7 @@ pub struct TableExample {
     clippy::while_let_loop
 )] // generated HTTP matrix and compact recursive JSON assertions stay grouped by the contract they verify
 mod tests {
+    const OPEN_API_PATH_PREFIX: &str = "/paths/~1table_example~1";
     #[tokio::test]
     async fn generated_negative_http_contracts_reject_before_database_io() {
         let app_state = std::sync::Arc::new(server_app_state::mk_test_server_app_state());
@@ -267,7 +268,7 @@ mod tests {
         .into_iter()
         .for_each(|(operation, method)| {
             let operation_doc = doc
-                .pointer(&format!("/paths/~1tbl_example~1{operation}/{method}"))
+                .pointer(&format!("{OPEN_API_PATH_PREFIX}{operation}/{method}"))
                 .expect("8ba5f1e7");
             assert_eq!(operation_doc["operationId"], operation);
             assert!(operation_doc["responses"].get("400").is_some());
@@ -318,7 +319,7 @@ mod tests {
                 );
             }
         });
-        assert!(doc.pointer("/paths/~1tbl_example~1um").is_none());
+        assert!(doc.pointer(&format!("{OPEN_API_PATH_PREFIX}um")).is_none());
         let schemas = doc["components"]["schemas"].as_object().expect("95ec6823");
         assert_eq!(
             doc["components"]["securitySchemes"]["admin_cookie"]["in"],
