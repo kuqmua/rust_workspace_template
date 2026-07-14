@@ -39,9 +39,14 @@ test('sign-in renders without starting authenticated resources', async ({ page }
   });
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
-  await page.goto('/admin/sign-in');
+  const response = await page.goto('/admin/sign-in');
+  expect(response.headers()['cache-control']).toContain('no-cache');
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
+  await expect(page.locator('link[rel="modulepreload"]')).toHaveAttribute(
+    'href',
+    /server_admin_frontend-[a-f0-9]+\.js$/,
+  );
   await page.waitForTimeout(100);
   expect(authenticatedRequests).toEqual([]);
   expect(pageErrors).toEqual([]);

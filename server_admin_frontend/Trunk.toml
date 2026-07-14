@@ -1,7 +1,6 @@
 [build]
 dist = "dist"
 public_url = "/admin/assets/"
-filehash = false
 
 [serve]
 addresses = ["127.0.0.1"]

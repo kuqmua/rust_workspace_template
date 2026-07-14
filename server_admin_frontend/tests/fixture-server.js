@@ -23,6 +23,9 @@ http.createServer((request, response) => {
     }
     response.writeHead(200, {
       'Content-Type': contentTypes[path.extname(file)] || 'application/octet-stream',
+      'Cache-Control': relative === 'index.html'
+        ? 'no-cache, no-store, must-revalidate'
+        : 'public, max-age=31536000, immutable',
     });
     response.end(body);
   });

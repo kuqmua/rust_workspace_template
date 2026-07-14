@@ -46,7 +46,11 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
         .filter(|path| swagger_enabled.0 || *path != "/admin/swagger-ui")
         .fold(axum::Router::new(), |router, path| {
             router.route_service(path, tower_http::services::ServeFile::new(index_path))
-        });
+        })
+        .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
+            axum::http::header::CACHE_CONTROL,
+            axum::http::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
+        ));
     AxumAdminFrontendRouter(page_routes.nest_service(
         "/admin/assets",
         tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/dist")).fallback(
