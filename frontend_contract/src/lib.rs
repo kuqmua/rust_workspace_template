@@ -799,6 +799,8 @@ mod tests {
         let cases = [
             (401u16, super::ApiProblemKind::Authentication),
             (403u16, super::ApiProblemKind::Authorization),
+            (404u16, super::ApiProblemKind::NotFound),
+            (405u16, super::ApiProblemKind::MethodNotAllowed),
             (409u16, super::ApiProblemKind::Conflict),
             (412u16, super::ApiProblemKind::Precondition),
             (425u16, super::ApiProblemKind::InProgress),

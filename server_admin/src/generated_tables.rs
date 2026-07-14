@@ -291,4 +291,61 @@ mod tests {
         assert!(!paths.contains_key("/admin_system_settings/cm"));
         assert!(!paths.contains_key("/admin_system_settings/dm"));
     }
+    #[test]
+    fn generated_read_routes_expose_filter_sort_and_pagination_contract() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("8457a8ca");
+        let paths = document
+            .get("paths")
+            .and_then(serde_json::Value::as_object)
+            .expect("44d17ab0");
+        [
+            "/admin_users/rm",
+            "/admin_roles/rm",
+            "/admin_permissions/rm",
+            "/admin_role_permissions/rm",
+            "/admin_user_roles/rm",
+            "/admin_system_settings/rm",
+        ]
+        .into_iter()
+        .for_each(|path| {
+            assert!(
+                paths
+                    .get(path)
+                    .and_then(|item| item.get("post"))
+                    .and_then(|operation| operation.get("requestBody"))
+                    .is_some(),
+                "generated read route must accept a typed query body: {path}"
+            );
+        });
+        let schemas = document
+            .pointer("/components/schemas")
+            .and_then(serde_json::Value::as_object)
+            .expect("8dcf412e");
+        [
+            "AdminUsersRmPayload",
+            "AdminRolesRmPayload",
+            "AdminPermissionsRmPayload",
+            "AdminRolePermissionsRmPayload",
+            "AdminUserRolesRmPayload",
+            "AdminSystemSettingsRmPayload",
+        ]
+        .into_iter()
+        .for_each(|schema_name| {
+            let properties = schemas
+                .get(schema_name)
+                .and_then(|schema| schema.get("properties"))
+                .and_then(serde_json::Value::as_object)
+                .expect("5b8bbdd1");
+            ["where_many", "select", "order_by", "pagination"]
+                .into_iter()
+                .for_each(|property| {
+                    assert!(
+                        properties.contains_key(property),
+                        "{schema_name} must expose {property}"
+                    );
+                });
+        });
+    }
 }

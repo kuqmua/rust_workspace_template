@@ -79,6 +79,23 @@ fn request_with_peer(
     cookie: Option<StdAdminApiTestStrRef<'_>>,
     csrf: Option<StdAdminApiTestStrRef<'_>>,
 ) -> HttpAdminApiTestRequest {
+    request_with_peer_at(
+        method,
+        uri,
+        body,
+        cookie,
+        csrf,
+        StdAdminApiTestStrRef("127.0.0.1:43210"),
+    )
+}
+fn request_with_peer_at(
+    method: HttpAdminApiTestMethod,
+    uri: StdAdminApiTestStrRef<'_>,
+    body: StdAdminApiTestStrRef<'_>,
+    cookie: Option<StdAdminApiTestStrRef<'_>>,
+    csrf: Option<StdAdminApiTestStrRef<'_>>,
+    peer: StdAdminApiTestStrRef<'_>,
+) -> HttpAdminApiTestRequest {
     let mut builder = http::Request::builder()
         .method(method.0)
         .uri(uri.0)
@@ -94,9 +111,7 @@ fn request_with_peer(
         .body(axum::body::Body::from(body.0.to_owned()))
         .expect("7d924f8a");
     let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-        "127.0.0.1:43210"
-            .parse::<std::net::SocketAddr>()
-            .expect("d80fc31b"),
+        peer.0.parse::<std::net::SocketAddr>().expect("d80fc31b"),
     ));
     HttpAdminApiTestRequest(request)
 }
@@ -169,6 +184,117 @@ async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
     .await
     .expect("ce417390");
     assert_eq!(response.status(), http::StatusCode::NOT_FOUND);
+}
+#[tokio::test]
+async fn wrong_admin_http_method_uses_problem_details_contract() {
+    let response = tower::ServiceExt::oneshot(
+        router().0,
+        http::Request::builder()
+            .method(http::Method::GET)
+            .uri("/auth/sign-in")
+            .body(axum::body::Body::empty())
+            .expect("4eb1c098"),
+    )
+    .await
+    .expect("6764152a");
+    assert_eq!(response.status(), http::StatusCode::METHOD_NOT_ALLOWED);
+    assert_eq!(
+        response.headers().get(http::header::CONTENT_TYPE),
+        Some(&http::HeaderValue::from_static("application/problem+json")),
+    );
+}
+#[tokio::test]
+async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
+    let malformed_response = tower::ServiceExt::oneshot(
+        router().0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef("/auth/sign-in"),
+            StdAdminApiTestStrRef(r#"{"login":"#),
+            None,
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("5fb0627d");
+    assert_eq!(
+        malformed_response.status(),
+        http::StatusCode::UNPROCESSABLE_ENTITY
+    );
+    assert_eq!(
+        malformed_response.headers().get(http::header::CONTENT_TYPE),
+        Some(&http::HeaderValue::from_static("application/problem+json")),
+    );
+    let oversized_password = "x".repeat(65_537usize);
+    let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
+    let oversized_response = tower::ServiceExt::oneshot(
+        router().0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef("/auth/sign-in"),
+            StdAdminApiTestStrRef(oversized_body.as_str()),
+            None,
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("fcd3dd3f");
+    assert_eq!(
+        oversized_response.status(),
+        http::StatusCode::PAYLOAD_TOO_LARGE
+    );
+    assert_eq!(
+        oversized_response.headers().get(http::header::CONTENT_TYPE),
+        Some(&http::HeaderValue::from_static("application/problem+json")),
+    );
+}
+#[tokio::test]
+async fn sign_in_requires_trusted_origin_without_database_io() {
+    let make_request = |origin, referer| {
+        let mut builder = http::Request::builder()
+            .method(http::Method::POST)
+            .uri("/auth/sign-in")
+            .header(http::header::CONTENT_TYPE, "application/json");
+        if let Some(value) = origin {
+            builder = builder.header(http::header::ORIGIN, value);
+        }
+        if let Some(value) = referer {
+            builder = builder.header(http::header::REFERER, value);
+        }
+        let mut request = builder
+            .body(axum::body::Body::from(
+                r#"{"login":"admin","password":"password"}"#,
+            ))
+            .expect("168060a3");
+        let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
+            "127.0.0.1:43210"
+                .parse::<std::net::SocketAddr>()
+                .expect("c90cba14"),
+        ));
+        request
+    };
+    let missing_origin_response = tower::ServiceExt::oneshot(router().0, make_request(None, None))
+        .await
+        .expect("ed2f56fb");
+    assert_eq!(
+        missing_origin_response.status(),
+        http::StatusCode::UNAUTHORIZED
+    );
+    let blocked_origin_response = tower::ServiceExt::oneshot(
+        router().0,
+        make_request(
+            Some("http://blocked.example"),
+            Some("http://localhost/admin/sign-in"),
+        ),
+    )
+    .await
+    .expect("df43c793");
+    assert_eq!(
+        blocked_origin_response.status(),
+        http::StatusCode::UNAUTHORIZED
+    );
 }
 #[tokio::test]
 async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
@@ -316,6 +442,24 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("b67815ec");
     assert_eq!(me_response.status(), http::StatusCode::OK);
+    let changed_context_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer_at(
+            HttpAdminApiTestMethod(http::Method::GET),
+            StdAdminApiTestStrRef("/auth/me"),
+            StdAdminApiTestStrRef(""),
+            Some(StdAdminApiTestStrRef(cookie.as_str())),
+            None,
+            StdAdminApiTestStrRef("127.0.0.2:43210"),
+        )
+        .0,
+    )
+    .await
+    .expect("f11e0324");
+    assert_eq!(
+        changed_context_response.status(),
+        http::StatusCode::UNAUTHORIZED
+    );
     let first_refresh_cookie = format!("admin_refresh_token={refresh}");
     let refresh_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
@@ -1107,7 +1251,7 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
         .fetch_one(&base_pool)
         .await
         .expect("5c10c931");
-    assert_eq!(versions, (4i64, 4i64));
+    assert_eq!(versions, (5i64, 5i64));
     fresh_pool.close().await;
     upgrade_pool.close().await;
     let _drop_after = sqlx::raw_sql(

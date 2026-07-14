@@ -154,6 +154,7 @@ pub struct AdminAuditLogId(i64);
 #[newtype(display, from_inner, into_inner_from)]
 pub struct AdminBool(bool);
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
     login: AdminLogin,
     password: AdminPassword,
@@ -225,6 +226,7 @@ impl AdminSignInRes {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminCreateUserReq {
     display_name: AdminDisplayName,
     login: AdminLogin,
@@ -259,6 +261,7 @@ impl AdminCreateUserRes {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminUpdateUserReq {
     display_name: Option<AdminDisplayName>,
     login: Option<AdminLogin>,
@@ -277,6 +280,7 @@ impl AdminUpdateUserReq {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminSetUserPasswordReq {
     password: AdminPassword,
 }
@@ -291,6 +295,7 @@ impl AdminSetUserPasswordReq {
     }
 }
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminSetUserBanReq {
     is_banned: AdminBool,
 }
@@ -305,6 +310,7 @@ impl AdminSetUserBanReq {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminCreateRoleReq {
     name: AdminRoleName,
 }
@@ -329,6 +335,7 @@ impl AdminCreateRoleRes {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminUpdateRoleReq {
     name: AdminRoleName,
 }
@@ -343,6 +350,7 @@ impl AdminUpdateRoleReq {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminSetUserRolesReq {
     role_ids: Vec<AdminRoleId>,
 }
@@ -357,6 +365,7 @@ impl AdminSetUserRolesReq {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminSetRolePermissionsReq {
     permission_ids: Vec<AdminPermissionId>,
 }
@@ -582,6 +591,7 @@ impl AdminSettingsView {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct AdminUpdateSettingsReq {
     default_admin_route: Option<AdminSettingText>,
     main_logo: Option<AdminSettingText>,
@@ -691,6 +701,8 @@ pub enum AdminRoute {
     Metrics,
     Permissions,
     Refresh,
+    RevokeAllSessions,
+    RevokeSession,
     Roles,
     SetRolePermissions(AdminRoleId),
     SetUserBan(AdminUserId),
@@ -699,6 +711,7 @@ pub enum AdminRoute {
     Settings,
     SignIn,
     SignOut,
+    Sessions,
     UpdateRole(AdminRoleId),
     UpdateSettings,
     UpdateUser(AdminUserId),
@@ -826,6 +839,36 @@ impl AdminPage {
 }
 impl AdminRoute {
     #[must_use]
+    pub fn auth_routes() -> [Self; 23] {
+        let role_id = AdminRoleId::from(1i64);
+        let user_id = AdminUserId::from(1i64);
+        [
+            Self::SignIn,
+            Self::Refresh,
+            Self::SignOut,
+            Self::Me,
+            Self::Sessions,
+            Self::RevokeAllSessions,
+            Self::RevokeSession,
+            Self::Users,
+            Self::CreateUser,
+            Self::UpdateUser(user_id),
+            Self::DeleteUser(user_id),
+            Self::SetUserPassword(user_id),
+            Self::SetUserBan(user_id),
+            Self::Roles,
+            Self::CreateRole,
+            Self::UpdateRole(role_id),
+            Self::DeleteRole(role_id),
+            Self::SetRolePermissions(role_id),
+            Self::SetUserRoles(user_id),
+            Self::Permissions,
+            Self::Audit,
+            Self::Settings,
+            Self::UpdateSettings,
+        ]
+    }
+    #[must_use]
     pub fn contract(self) -> frontend_contract::RouteContract {
         let (authentication, method, mutation, path, status) = match self {
             Self::Audit => (
@@ -861,7 +904,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                "/roles/{id}",
+                "/roles/{role_id}",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::DeleteUser(_) => (
@@ -870,7 +913,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                "/users/{id}",
+                "/users/{user_id}",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Me => (
@@ -905,6 +948,20 @@ impl AdminRoute {
                 "/auth/refresh",
                 frontend_contract::SuccessStatus::Code200,
             ),
+            Self::RevokeAllSessions => (
+                frontend_contract::AuthenticationRequirement::Authenticated,
+                frontend_contract::HttpMethod::Delete,
+                frontend_contract::MutationKind::Mutating,
+                "/auth/sessions",
+                frontend_contract::SuccessStatus::Code204,
+            ),
+            Self::RevokeSession => (
+                frontend_contract::AuthenticationRequirement::Authenticated,
+                frontend_contract::HttpMethod::Delete,
+                frontend_contract::MutationKind::Mutating,
+                "/auth/sessions/{session_id}",
+                frontend_contract::SuccessStatus::Code204,
+            ),
             Self::Roles => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from("roles:read"),
@@ -920,16 +977,25 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                "/roles/{id}/permissions",
+                "/roles/{role_id}/permissions",
                 frontend_contract::SuccessStatus::Code204,
             ),
-            Self::SetUserBan(_) | Self::SetUserPassword(_) => (
+            Self::SetUserBan(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from("users:update"),
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                "/users/{id}/custom",
+                "/users/{user_id}/ban",
+                frontend_contract::SuccessStatus::Code204,
+            ),
+            Self::SetUserPassword(_) => (
+                frontend_contract::AuthenticationRequirement::Permission(
+                    frontend_contract::ContractStr::from("users:update"),
+                ),
+                frontend_contract::HttpMethod::Post,
+                frontend_contract::MutationKind::Mutating,
+                "/users/{user_id}/password",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserRoles(_) => (
@@ -938,7 +1004,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                "/users/{id}/roles",
+                "/users/{user_id}/roles",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Settings => (
@@ -964,13 +1030,20 @@ impl AdminRoute {
                 "/auth/sign-out",
                 frontend_contract::SuccessStatus::Code204,
             ),
+            Self::Sessions => (
+                frontend_contract::AuthenticationRequirement::Authenticated,
+                frontend_contract::HttpMethod::Get,
+                frontend_contract::MutationKind::ReadOnly,
+                "/auth/sessions",
+                frontend_contract::SuccessStatus::Code200,
+            ),
             Self::UpdateRole(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from("roles:update"),
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                "/roles/{id}",
+                "/roles/{role_id}",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::UpdateSettings => (
@@ -988,7 +1061,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                "/users/{id}",
+                "/users/{user_id}",
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Users => (
@@ -1025,6 +1098,7 @@ impl AdminRoute {
             Self::SetUserBan(id) => format!("/users/{id}/ban"),
             Self::SetUserPassword(id) => format!("/users/{id}/password"),
             Self::SetUserRoles(id) => format!("/users/{id}/roles"),
+            Self::RevokeSession => String::from("/auth/sessions/{session_id}"),
             Self::Version => String::from("/api/v1/git_info"),
             value @ (Self::Audit
             | Self::CreateRole
@@ -1033,10 +1107,12 @@ impl AdminRoute {
             | Self::Metrics
             | Self::Permissions
             | Self::Refresh
+            | Self::RevokeAllSessions
             | Self::Roles
             | Self::Settings
             | Self::SignIn
             | Self::SignOut
+            | Self::Sessions
             | Self::UpdateSettings
             | Self::Users) => value.contract().path().as_ref().to_owned(),
         };
@@ -1049,6 +1125,45 @@ impl AdminRoute {
 }
 #[cfg(test)]
 mod tests {
+    fn assert_rejects_unknown_field<Value>(json: &str)
+    where
+        Value: serde::de::DeserializeOwned,
+    {
+        assert!(serde_json::from_str::<Value>(json).is_err());
+    }
+    #[test]
+    fn request_payloads_reject_unknown_fields() {
+        assert_rejects_unknown_field::<super::AdminSignInReq>(
+            r#"{"login":"admin","password":"secret","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminCreateUserReq>(
+            r#"{"display_name":"Admin","login":"admin","password":"secret","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminUpdateUserReq>(
+            r#"{"display_name":"Admin","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminSetUserPasswordReq>(
+            r#"{"password":"secret","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminSetUserBanReq>(
+            r#"{"is_banned":true,"unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminCreateRoleReq>(
+            r#"{"name":"administrator","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminUpdateRoleReq>(
+            r#"{"name":"administrator","unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminSetUserRolesReq>(
+            r#"{"role_ids":[1],"unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminSetRolePermissionsReq>(
+            r#"{"permission_ids":[1],"unknown":true}"#,
+        );
+        assert_rejects_unknown_field::<super::AdminUpdateSettingsReq>(
+            r#"{"site_name":"Admin","unknown":true}"#,
+        );
+    }
     #[test]
     fn route_contract_keeps_custom_action_policy_and_path_together() {
         let route = super::AdminRoute::SetUserBan(super::AdminUserId::from(7));

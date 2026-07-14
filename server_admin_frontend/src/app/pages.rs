@@ -24,9 +24,9 @@ pub(super) fn Shell(
     let client_for_sign_out = client.clone();
     let current_path = super::path();
     view! {
-        <div class="app-shell"><header class="sidebar"><a class="brand" href="/admin"><span class="brand-mark">"A"</span><span><strong>"Admin"</strong><small>"Control center"</small></span></a><nav>
+        <div class="app-shell"><header class="topbar"><a class="brand" href="/admin"><span class="brand-mark">"A"</span><span><strong>"Admin"</strong><small>"Control center"</small></span></a><nav aria-label="Admin sections">
         {nav.into_iter().filter(|item| has_page_permission(&auth, *item)).map(|item| { let item_path = item.path().as_ref().to_owned(); let item_title = item.title().as_ref().to_owned(); let active = current_path == item_path; view! { <a class:active=active href=item_path><span class="nav-dot"></span>{item_title}</a> } }).collect_view()}
-        </nav><div class="profile"><div class="avatar">{auth.as_ref().and_then(|value| value.display_name().as_ref().chars().next()).unwrap_or('A').to_string()}</div><div><strong>{auth.as_ref().map(|value| value.display_name().to_string())}</strong><small>"Administrator"</small></div><button class="icon-button" title="Sign out" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(server_admin_contract::AdminRoute::SignOut).await.is_ok() { super::redirect("/admin/sign-in"); } }); }>"Exit"</button></div></header>
+        </nav><div class="profile"><div class="avatar">{auth.as_ref().and_then(|value| value.display_name().as_ref().chars().next()).unwrap_or('A').to_string()}</div><div><strong>{auth.as_ref().map(|value| value.display_name().to_string())}</strong><small>"Administrator"</small></div><button class="icon-button" title="Sign out" aria-label="Sign out" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(server_admin_contract::AdminRoute::SignOut).await.is_ok() { super::redirect("/admin/sign-in"); } }); }>"Exit"</button></div></header>
         <main class="content"><PageView page client auth /></main></div>
     }
 }
@@ -43,8 +43,8 @@ fn PageView(
         super::Page::Text(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"System"</p><h1>"Runtime information"</h1></div></div><div class="code-card"><pre>{value.to_string()}</pre></div></section> }.into_any(),
         super::Page::Users(values) => super::tables::users_view(values, client.clone(), page, &auth).into_any(),
         super::Page::Roles(values) => super::tables::roles_view(values, client.clone(), page, &auth).into_any(),
-        super::Page::Permissions(values) => view! { <section><h1>"Permissions"</h1><table><thead><tr><th>"ID"</th><th>"Name"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.id().to_string()}</td><td>{value.name().to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
-        super::Page::Audit(values) => view! { <section><h1>"Audit log"</h1><table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{values.into_iter().map(|value| view! { <tr><td>{value.created_at().to_string()}</td><td>{value.user_id().map(|id| id.to_string()).unwrap_or_default()}</td><td>{value.action().to_string()}</td><td>{value.resource().to_string()}</td><td>{value.succeeded().to_string()}</td></tr> }).collect_view()}</tbody></table></section> }.into_any(),
+        super::Page::Permissions(values) => super::tables::permissions_view(values).into_any(),
+        super::Page::Audit(values) => super::tables::audit_view(values).into_any(),
         super::Page::Settings(value) => super::forms::settings_view(value, client.clone(), page, &auth).into_any(),
     }
     }

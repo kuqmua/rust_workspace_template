@@ -15,7 +15,7 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
         .values_mut()
         .flat_map(|path| path.operations.values_mut())
         .for_each(|operation| {
-            let _response = operation
+            let response = operation
                 .responses
                 .responses
                 .entry("429".to_owned())
@@ -24,6 +24,12 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
                         "Request rate limit exceeded",
                     ))
                 });
+            if let utoipa::openapi::RefOr::T(response_value) = response {
+                let _previous_header = response_value.headers.insert(
+                    "Retry-After".to_owned(),
+                    utoipa::openapi::header::Header::default(),
+                );
+            }
         });
     if let Some(components) = document.components.as_mut() {
         components.add_security_scheme(
@@ -104,6 +110,8 @@ pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdm
                 "/system-settings",
                 axum::routing::get(super::settings).patch(super::update_settings),
             )
+            .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed)
+            .layer(axum::extract::DefaultBodyLimit::max(65_536usize))
             .with_state(state),
     )
 }

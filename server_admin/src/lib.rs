@@ -703,7 +703,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 4usize);
+        assert_eq!(migrations.len(), 5usize);
         assert!(
             migrations
                 .iter()
@@ -713,6 +713,11 @@ mod tests {
             migrations
                 .iter()
                 .any(|migration| migration.description == "admin audit cleanup")
+        );
+        assert!(
+            migrations
+                .iter()
+                .any(|migration| migration.description == "admin session context")
         );
     }
     #[tokio::test]

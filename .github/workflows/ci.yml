@@ -112,6 +112,14 @@ jobs:
       - run: cargo install trunk --version 0.21.14 --locked
       - run: trunk build --release
         working-directory: server_admin_frontend
+        env:
+          NO_COLOR: "true"
+      - run: npm ci --ignore-scripts
+        working-directory: server_admin_frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: server_admin_frontend
+      - run: npm test
+        working-directory: server_admin_frontend
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

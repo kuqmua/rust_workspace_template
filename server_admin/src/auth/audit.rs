@@ -26,6 +26,7 @@ pub(super) async fn query_log(
     let actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         super::super::AdminPermission::AuditLogRead.as_str(),
         super::super::StdAdminBool::from(false),
     )

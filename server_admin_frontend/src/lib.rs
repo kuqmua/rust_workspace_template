@@ -3,6 +3,8 @@
 pub mod app;
 #[cfg(any(target_arch = "wasm32", test))]
 mod auth_keep_alive;
+#[cfg(any(target_arch = "wasm32", test))]
+mod table_state;
 #[cfg(target_arch = "wasm32")]
 mod transport;
 #[cfg(not(target_arch = "wasm32"))]
@@ -125,5 +127,36 @@ mod tests {
         assert!(!pages.contains("/api/v1/admin/users"));
         assert!(!script.contains("serde_json::json!"));
         assert!(!pages.contains("serde_json::json!"));
+    }
+    #[test]
+    #[allow(clippy::needless_for_each)] // workspace source policy intentionally avoids for loops
+    fn header_navigation_and_table_controls_are_part_of_the_spa() {
+        let pages =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app/pages.rs"))
+                .expect("64e815ee");
+        let tables =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/app/tables.rs"))
+                .expect("962197b5");
+        let styles =
+            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/static/style.css"))
+                .expect("3cc52ac5");
+        assert!(pages.contains("<header class=\"topbar\">"));
+        assert!(pages.contains("<nav aria-label=\"Admin sections\">"));
+        assert!(!pages.contains("<header class=\"sidebar\">"));
+        assert_eq!(tables.matches("<TableTools state").count(), 4usize);
+        assert_eq!(tables.matches("<TablePager state total").count(), 4usize);
+        [
+            "aria-label=\"Filter rows\"",
+            "aria-label=\"Sort field\"",
+            "aria-label=\"Toggle sort direction\"",
+            "aria-label=\"Rows per page\"",
+            "aria-label=\"Previous page\"",
+            "aria-label=\"Next page\"",
+        ]
+        .into_iter()
+        .for_each(|control| assert!(tables.contains(control), "missing table control: {control}"));
+        assert!(styles.contains(".topbar nav"));
+        assert!(styles.contains(".table-tools"));
+        assert!(styles.contains(".table-footer"));
     }
 }

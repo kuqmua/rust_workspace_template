@@ -20,6 +20,14 @@ pub(super) async fn sign_in(
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let state = auth.state;
     let headers = auth.headers;
+    if !super::origin_is_present_and_allowed(
+        state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+    )
+    .0
+    {
+        return Err(super::AdminApiError::Authentication);
+    }
     let request = request_json.0;
     let (contract_login, contract_password) = request.into_parts();
     let login = super::super::AdminLogin::try_from(contract_login.into_inner())
@@ -51,14 +59,6 @@ pub(super) async fn sign_in(
         super::rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
     )
     .await?;
-    if !super::origin_is_allowed(
-        state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
-    )
-    .0
-    {
-        return Err(super::AdminApiError::Authentication);
-    }
     let recent_failures = sqlx::query_scalar::<_, i64>(
         "SELECT COUNT(*) FROM admin_login_attempts WHERE login = $1 AND succeeded = FALSE AND attempted_at > NOW() - INTERVAL '15 minutes'",
     )
@@ -123,6 +123,10 @@ pub(super) async fn sign_in(
     )
     .await?;
     let admin_user_id = super::super::AdminUserId::from(user_id);
+    let context_hash = super::session_context_hash(
+        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+        peer,
+    );
     let mut tx = state
         .as_ref()
         .pool
@@ -133,6 +137,7 @@ pub(super) async fn sign_in(
     let session = super::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
+        &context_hash,
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
@@ -166,6 +171,15 @@ pub(super) async fn refresh(
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let state = auth.state;
     let headers = auth.headers;
+    if !super::origin_is_present_and_allowed(
+        state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+    )
+    .0
+    {
+        apply_refresh_failure_delay().await;
+        return Err(super::AdminApiError::Authentication);
+    }
     let peer_subject = super::super::StdAdminString::try_from(peer.0.as_ref().ip().to_string())
         .map_err(|_error| super::AdminApiError::Validation)?;
     super::rate_limit::enforce_rate_limit(
@@ -176,23 +190,21 @@ pub(super) async fn refresh(
         super::rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
     )
     .await?;
-    if !super::origin_is_allowed(
-        state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
-    )
-    .0
-    {
-        return Err(super::AdminApiError::Authentication);
-    }
-    let raw_token = super::super::find_admin_cookie(
+    let Some(raw_token) = super::super::find_admin_cookie(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         super::super::AdminCookieKind::Refresh,
-    )
-    .ok_or(super::AdminApiError::Authentication)?;
+    ) else {
+        apply_refresh_failure_delay().await;
+        return Err(super::AdminApiError::Authentication);
+    };
     let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
         secrecy::SecretBox::new(Box::new(raw_token.as_ref().to_owned())),
     ));
-    let token_hash = super::super::hash_opaque_token(&token);
+    let context_hash = super::session_context_hash(
+        super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+        peer,
+    );
+    let token_hash = super::hash_refresh_token_with_context(&token, &context_hash);
     let mut tx = state
         .as_ref()
         .pool
@@ -200,18 +212,23 @@ pub(super) async fn refresh(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let user_id = sqlx::query_scalar::<_, i64>(
+    let optional_user_id = sqlx::query_scalar::<_, i64>(
         "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW() RETURNING user_id",
     )
     .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
     .fetch_optional(&mut *tx)
     .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Authentication)?;
+    .map_err(super::AdminApiError::from)?;
+    let Some(user_id) = optional_user_id else {
+        tx.commit().await.map_err(super::AdminApiError::from)?;
+        apply_refresh_failure_delay().await;
+        return Err(super::AdminApiError::Authentication);
+    };
     let admin_user_id = super::super::AdminUserId::from(user_id);
     let session = super::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
+        &context_hash,
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
     )
     .await
@@ -250,14 +267,19 @@ pub(super) async fn refresh(
     super::append_session_cookies(&mut response, state.as_ref(), &session)?;
     Ok(response)
 }
+async fn apply_refresh_failure_delay() {
+    tokio::time::sleep(tokio::time::Duration::from_millis(200u64)).await;
+}
 pub(super) async fn sign_out(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let peer = auth.peer;
     let state = auth.state;
     let headers = auth.headers;
     let authenticated = super::authenticate(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+        peer,
     )
     .await?;
     super::validate_csrf(
@@ -288,7 +310,11 @@ pub(super) async fn sign_out(
         let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
             secrecy::SecretBox::new(Box::new(raw_refresh.as_ref().to_owned())),
         ));
-        let refresh_hash = super::super::hash_opaque_token(&refresh);
+        let context_hash = super::session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
+            peer,
+        );
+        let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash);
         let _refresh_result = sqlx::query(
             "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND user_id = $2 AND revoked_at IS NULL",
         )
@@ -322,6 +348,7 @@ pub(super) async fn me(
     super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
     )
     .await
     .and_then(|authenticated| super::authenticated_admin_contract(&authenticated))
@@ -337,6 +364,7 @@ pub(super) async fn sessions(
     let authenticated = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
     )
     .await?;
     sqlx::query_as::<_, (uuid::Uuid, String, String)>(
@@ -370,6 +398,7 @@ pub(super) async fn revoke_session(
     let authenticated = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
     )
     .await?;
     let mut tx = auth
@@ -416,6 +445,7 @@ pub(super) async fn revoke_all_sessions(
     let authenticated = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
     )
     .await?;
     super::validate_csrf(
@@ -1184,6 +1214,7 @@ pub(super) async fn list_users(
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         super::super::AdminPermission::UsersRead.as_str(),
         super::super::StdAdminBool::from(false),
     )
@@ -1217,6 +1248,7 @@ pub(super) async fn list_roles(
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         super::super::AdminPermission::RolesRead.as_str(),
         super::super::StdAdminBool::from(false),
     )
@@ -1248,6 +1280,7 @@ pub(super) async fn list_permissions(
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         super::super::AdminPermission::PermissionsRead.as_str(),
         super::super::StdAdminBool::from(false),
     )
@@ -1278,6 +1311,7 @@ pub(super) async fn settings(
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         super::super::AdminPermission::SystemSettingsRead.as_str(),
         super::super::StdAdminBool::from(false),
     )

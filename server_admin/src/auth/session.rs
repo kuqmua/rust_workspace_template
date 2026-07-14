@@ -15,6 +15,7 @@ fn opaque_token_from_uuid(value: super::super::UuidAdminValue) -> super::super::
 pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,
     user_id: super::super::AdminUserId,
+    context_hash: &super::super::AdminTokenHash,
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
 ) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
     let now = unix_now()?;
@@ -23,6 +24,8 @@ pub(super) async fn create_session_in_connection(
         super::super::AdminSessionId::from(super::super::UuidAdminValue::from(session_uuid));
     let refresh_id = uuid::Uuid::new_v4();
     let refresh_generated = super::super::AdminGeneratedToken::generate();
+    let refresh_hash =
+        super::hash_refresh_token_with_context(refresh_generated.token(), context_hash);
     let refresh_token = super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
         super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
             secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref()).to_owned(),
@@ -68,11 +71,12 @@ pub(super) async fn create_session_in_connection(
         .await
         .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     let _access_result = sqlx::query(
-        "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, NOW() + ($5 * INTERVAL '1 second'))",
+        "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, token_context_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, $5, NOW() + ($6 * INTERVAL '1 second'))",
     )
     .bind(session_uuid)
     .bind(user_id.0)
     .bind(secrecy::ExposeSecret::expose_secret(token_identifier_hash.0.as_ref()))
+    .bind(secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref()))
     .bind(secrecy::ExposeSecret::expose_secret(csrf_generated.hash().0.as_ref()))
     .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
     .execute(connection.as_mut())
@@ -83,7 +87,7 @@ pub(super) async fn create_session_in_connection(
     )
     .bind(refresh_id)
     .bind(user_id.0)
-    .bind(secrecy::ExposeSecret::expose_secret(refresh_generated.hash().0.as_ref()))
+    .bind(secrecy::ExposeSecret::expose_secret(refresh_hash.0.as_ref()))
     .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
     .execute(connection.as_mut())
     .await
@@ -98,23 +102,4 @@ pub(super) async fn create_session_in_connection(
         refresh_token,
         session_id,
     })
-}
-pub(super) async fn create_session(
-    state: &super::AdminAuthSvcState,
-    user_id: super::super::AdminUserId,
-) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
-    let mut tx =
-        state.pool.as_ref().begin().await.map_err(|error| {
-            super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error))
-        })?;
-    let session = create_session_in_connection(
-        state,
-        user_id,
-        super::SqlxAdminPgConnectionRef::from(&mut *tx),
-    )
-    .await?;
-    tx.commit()
-        .await
-        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    Ok(session)
 }

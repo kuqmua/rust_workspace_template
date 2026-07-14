@@ -109,10 +109,16 @@ pub struct HttpAdminHeaderMap(http::HeaderMap);
 #[derive(Debug)]
 pub struct AdminAuthReq {
     headers: HttpAdminHeaderMap,
+    peer: AdminPeerAddr,
     state: StdSharedAdminAuthSvcState,
 }
 #[derive(Debug, Clone, Copy)]
 pub struct AdminPeerAddr(super::StdAdminSocketAddr);
+impl From<super::StdAdminSocketAddr> for AdminPeerAddr {
+    fn from(value: super::StdAdminSocketAddr) -> Self {
+        Self(value)
+    }
+}
 impl<State> axum::extract::FromRequestParts<State> for AdminPeerAddr
 where
     State: Send + Sync,
@@ -155,26 +161,40 @@ where
     }
 }
 impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminAuthReq {
-    type Rejection = std::convert::Infallible;
+    type Rejection = AdminApiError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
         state: &StdSharedAdminAuthSvcState,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
-        std::future::ready(Ok(Self {
-            headers: HttpAdminHeaderMap(parts.headers.clone()),
-            state: state.clone(),
-        }))
+        std::future::ready(
+            parts
+                .extensions
+                .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
+                .map(|peer| Self {
+                    headers: HttpAdminHeaderMap(parts.headers.clone()),
+                    peer: AdminPeerAddr(super::StdAdminSocketAddr::from(peer.0)),
+                    state: state.clone(),
+                })
+                .ok_or(AdminApiError::Authentication),
+        )
     }
 }
 impl<S> axum::extract::FromRequest<S> for AdminSignInJson
 where
     S: Send + Sync,
 {
-    type Rejection = axum::extract::rejection::JsonRejection;
+    type Rejection = AdminApiError;
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         axum::Json::<server_admin_contract::AdminSignInReq>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
+            .map_err(|error| {
+                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
+                    AdminApiError::PayloadTooLarge
+                } else {
+                    AdminApiError::Validation
+                }
+            })
     }
 }
 impl<S, Value> axum::extract::FromRequest<S> for AxumAdminJson<Value>
@@ -182,11 +202,18 @@ where
     S: Send + Sync,
     Value: serde::de::DeserializeOwned + Send,
 {
-    type Rejection = axum::extract::rejection::JsonRejection;
+    type Rejection = AdminApiError;
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         axum::Json::<Value>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
+            .map_err(|error| {
+                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
+                    AdminApiError::PayloadTooLarge
+                } else {
+                    AdminApiError::Validation
+                }
+            })
     }
 }
 impl<S, Value> axum::extract::FromRequestParts<S> for AxumAdminPath<Value>
@@ -194,7 +221,7 @@ where
     S: Send + Sync,
     Value: serde::de::DeserializeOwned + Send,
 {
-    type Rejection = axum::extract::rejection::PathRejection;
+    type Rejection = AdminApiError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
         state: &S,
@@ -202,6 +229,7 @@ where
         axum::extract::Path::<Value>::from_request_parts(parts, state)
             .await
             .map(|axum::extract::Path(value)| Self(value))
+            .map_err(|_error| AdminApiError::Validation)
     }
 }
 impl<S, Value> axum::extract::FromRequestParts<S> for AxumAdminQuery<Value>
@@ -209,7 +237,7 @@ where
     S: Send + Sync,
     Value: serde::de::DeserializeOwned + Send,
 {
-    type Rejection = axum::extract::rejection::QueryRejection;
+    type Rejection = AdminApiError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
         state: &S,
@@ -217,10 +245,11 @@ where
         axum::extract::Query::<Value>::from_request_parts(parts, state)
             .await
             .map(|axum::extract::Query(value)| Self(value))
+            .map_err(|_error| AdminApiError::Validation)
     }
 }
 impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessionPath {
-    type Rejection = axum::extract::rejection::PathRejection;
+    type Rejection = AdminApiError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
         state: &StdSharedAdminAuthSvcState,
@@ -232,47 +261,125 @@ impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessio
                     value,
                 )))
             })
+            .map_err(|_error| AdminApiError::Validation)
     }
 }
-fn origin_is_allowed(
-    state: &AdminAuthSvcState,
-    headers: super::HttpAdminHeaderMapRef<'_>,
+fn origin_authority(
+    value: super::StdAdminStrRef<'_>,
+    allow_suffix: super::StdAdminBool,
+) -> Option<(super::StdAdminStrRef<'_>, super::StdAdminStrRef<'_>)> {
+    let (scheme, remainder) = value.0.split_once("://")?;
+    if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
+        return None;
+    }
+    let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
+    let authority = remainder.get(..authority_end)?;
+    if authority.is_empty() || (!allow_suffix.0 && authority_end != remainder.len()) {
+        None
+    } else {
+        Some((
+            super::StdAdminStrRef::from(scheme),
+            super::StdAdminStrRef::from(authority),
+        ))
+    }
+}
+fn origin_value_is_allowed(
+    value: super::StdAdminStrRef<'_>,
+    allow_suffix: super::StdAdminBool,
+    allowed_origins: &[super::StdAdminString],
 ) -> super::StdAdminBool {
-    let allowed = headers
+    let Some((scheme, authority)) =
+        origin_authority(super::StdAdminStrRef::from(value.0.trim()), allow_suffix)
+    else {
+        return super::StdAdminBool::from(false);
+    };
+    super::StdAdminBool::from(allowed_origins.iter().any(|allowed_origin| {
+        origin_authority(
+            super::StdAdminStrRef::from(allowed_origin.as_ref().as_str()),
+            super::StdAdminBool::from(false),
+        )
+        .is_some_and(|(allowed_scheme, allowed_authority)| {
+            allowed_scheme.0.eq_ignore_ascii_case(scheme.0)
+                && allowed_authority.0.eq_ignore_ascii_case(authority.0)
+        })
+    }))
+}
+fn session_context_hash(
+    headers: super::HttpAdminHeaderMapRef<'_>,
+    peer: AdminPeerAddr,
+) -> super::AdminTokenHash {
+    let mut context = String::with_capacity(352usize);
+    context.push_str("client-address=");
+    let client_address = peer.0.as_ref().ip().to_string();
+    context.extend(client_address.chars().take(256usize));
+    context.push_str("|user-agent=");
+    let user_agent = headers
         .0
-        .get(http::header::ORIGIN)
+        .get(http::header::USER_AGENT)
         .and_then(|value| value.to_str().ok())
-        .is_none_or(|origin| {
-            state
-                .allowed_origins
-                .0
-                .iter()
-                .any(|allowed_origin| allowed_origin.as_ref() == origin)
-        });
-    super::StdAdminBool::from(allowed)
+        .map(str::trim)
+        .filter(|candidate| !candidate.is_empty() && candidate.len() <= 8_192usize);
+    match user_agent {
+        Some(normalized_user_agent) => {
+            context.extend(normalized_user_agent.chars().take(256usize));
+        }
+        None => context.push_str("unknown-user-agent"),
+    }
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(
+        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(context))),
+    ))
+}
+fn hash_refresh_token_with_context(
+    token: &super::AdminOpaqueToken,
+    context_hash: &super::AdminTokenHash,
+) -> super::AdminTokenHash {
+    let token_text = secrecy::ExposeSecret::expose_secret(token.0.as_ref());
+    let context_hash_text = secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref());
+    let mut token_with_context =
+        String::with_capacity(token_text.len().saturating_add(context_hash_text.len()));
+    token_with_context.push_str(token_text);
+    token_with_context.push_str(context_hash_text);
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(
+        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(token_with_context))),
+    ))
 }
 #[allow(clippy::single_call_fn)] // CSRF origin validation stays isolated from token validation
 fn origin_is_present_and_allowed(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
 ) -> super::StdAdminBool {
-    super::StdAdminBool::from(
-        headers
-            .0
-            .get(http::header::ORIGIN)
-            .and_then(|value| value.to_str().ok())
-            .is_some_and(|origin| {
-                state
-                    .allowed_origins
+    let allowed = headers.0.get(http::header::ORIGIN).map_or_else(
+        || {
+            headers
+                .0
+                .get(http::header::REFERER)
+                .and_then(|value| value.to_str().ok())
+                .is_some_and(|referer| {
+                    origin_value_is_allowed(
+                        super::StdAdminStrRef::from(referer),
+                        super::StdAdminBool::from(true),
+                        &state.allowed_origins.0,
+                    )
                     .0
-                    .iter()
-                    .any(|allowed_origin| allowed_origin.as_ref() == origin)
-            }),
-    )
+                })
+        },
+        |origin_header| {
+            origin_header.to_str().is_ok_and(|origin_value| {
+                origin_value_is_allowed(
+                    super::StdAdminStrRef::from(origin_value),
+                    super::StdAdminBool::from(false),
+                    &state.allowed_origins.0,
+                )
+                .0
+            })
+        },
+    );
+    super::StdAdminBool::from(allowed)
 }
 async fn authenticate(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
+    peer: AdminPeerAddr,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
     let token = super::find_admin_cookie(headers, super::AdminCookieKind::Access)
         .ok_or(AdminApiError::Authentication)?;
@@ -286,11 +393,13 @@ async fn authenticate(
     )
     .map(|data| data.claims)
     .map_err(|_error| AdminApiError::Authentication)?;
+    let context_hash = session_context_hash(headers, peer);
     let active = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.revoked_at IS NULL AND session.expires_at > NOW() AND users.is_banned = FALSE)",
+        "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.token_context_hash = $3 AND session.revoked_at IS NULL AND session.expires_at > NOW() AND users.is_banned = FALSE)",
     )
     .bind(claims.session_id().0.0)
     .bind(claims.user_id().0)
+    .bind(secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref()))
     .fetch_one(state.pool.as_ref())
     .await
     .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
@@ -333,10 +442,11 @@ async fn validate_csrf(
 pub async fn authorize_generated_request(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
+    peer: AdminPeerAddr,
     permission: super::StdAdminStrRef<'_>,
     mutates: super::StdAdminBool,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    let authenticated = authenticate(state, headers).await?;
+    let authenticated = authenticate(state, headers, peer).await?;
     let required_permission = super::AdminPermission::try_from(permission.as_ref())
         .map_err(|_error| AdminApiError::Authorization)?;
     if !authenticated.permissions.contains(&required_permission) {
@@ -378,6 +488,10 @@ pub enum AdminApiError {
     Pg(super::SqlxAdminError),
     #[error("administrator password hashing failed: {0}")]
     PasswordHash(super::AdminPasswordHashError),
+    #[error("administrator request body is too large")]
+    PayloadTooLarge,
+    #[error("administrator route does not support this HTTP method")]
+    MethodNotAllowed,
     #[error("administrator session operation failed: {0}")]
     Session(AdminSessionError),
     #[error("administrator response header is invalid: {0:?}")]
@@ -393,10 +507,13 @@ impl From<sqlx::Error> for AdminApiError {
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
+        let rate_limited = matches!(&self, Self::RateLimited);
         let status = match self {
             Self::Authentication => http::StatusCode::UNAUTHORIZED,
             Self::Authorization | Self::Csrf => http::StatusCode::FORBIDDEN,
             Self::Conflict => http::StatusCode::CONFLICT,
+            Self::MethodNotAllowed => http::StatusCode::METHOD_NOT_ALLOWED,
+            Self::PayloadTooLarge => http::StatusCode::PAYLOAD_TOO_LARGE,
             Self::RateLimited => http::StatusCode::TOO_MANY_REQUESTS,
             Self::Validation => http::StatusCode::UNPROCESSABLE_ENTITY,
             Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
@@ -413,6 +530,12 @@ impl axum::response::IntoResponse for AdminApiError {
             http::header::CONTENT_TYPE,
             http::HeaderValue::from_static("application/problem+json"),
         );
+        if rate_limited {
+            let _previous_retry_after = response.headers_mut().insert(
+                http::header::RETRY_AFTER,
+                http::HeaderValue::from_static("60"),
+            );
+        }
         response
     }
 }
@@ -654,6 +777,7 @@ async fn authorize_custom(
     authorize_generated_request(
         auth.state.as_ref(),
         super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
         permission.as_str(),
         super::StdAdminBool::from(true),
     )
@@ -888,15 +1012,10 @@ pub enum AdminSessionError {
 async fn create_session_in_connection(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
+    context_hash: &super::AdminTokenHash,
     connection: SqlxAdminPgConnectionRef<'_>,
 ) -> Result<AdminSessionBundle, AdminSessionError> {
-    session::create_session_in_connection(state, user_id, connection).await
-}
-pub async fn create_session(
-    state: &AdminAuthSvcState,
-    user_id: super::AdminUserId,
-) -> Result<AdminSessionBundle, AdminSessionError> {
-    session::create_session(state, user_id).await
+    session::create_session_in_connection(state, user_id, context_hash, connection).await
 }
 #[cfg(test)]
 mod tests {
@@ -912,6 +1031,109 @@ mod tests {
         .map(super::rate_limit::AdminRateLimitScope::as_str);
         let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
         assert_eq!(unique.len(), 5usize);
+    }
+    #[test]
+    fn rate_limited_error_includes_retry_after_header() {
+        let response =
+            axum::response::IntoResponse::into_response(super::AdminApiError::RateLimited);
+        assert_eq!(response.status(), http::StatusCode::TOO_MANY_REQUESTS);
+        assert_eq!(
+            response.headers().get(http::header::RETRY_AFTER),
+            Some(&http::HeaderValue::from_static("60")),
+        );
+    }
+    #[test]
+    fn origin_policy_accepts_referer_suffix_and_rejects_origin_suffix() {
+        let allowed_origins =
+            [
+                crate::StdAdminString::try_from("https://admin.example.com".to_owned())
+                    .expect("7c9e8046"),
+            ];
+        assert!(
+            super::origin_value_is_allowed(
+                crate::StdAdminStrRef::from(
+                    "HTTPS://ADMIN.EXAMPLE.COM/settings?tab=security#roles"
+                ),
+                crate::StdAdminBool::from(true),
+                &allowed_origins,
+            )
+            .0
+        );
+        assert!(
+            !super::origin_value_is_allowed(
+                crate::StdAdminStrRef::from("https://admin.example.com/settings"),
+                crate::StdAdminBool::from(false),
+                &allowed_origins,
+            )
+            .0
+        );
+        assert!(
+            !super::origin_value_is_allowed(
+                crate::StdAdminStrRef::from("https://blocked.example.com"),
+                crate::StdAdminBool::from(false),
+                &allowed_origins,
+            )
+            .0
+        );
+        assert!(
+            !super::origin_value_is_allowed(
+                crate::StdAdminStrRef::from("javascript://admin.example.com"),
+                crate::StdAdminBool::from(false),
+                &allowed_origins,
+            )
+            .0
+        );
+    }
+    #[test]
+    fn session_context_hash_is_bound_to_peer_and_user_agent() {
+        let mut first_headers = http::HeaderMap::new();
+        let _previous_user_agent = first_headers.insert(
+            http::header::USER_AGENT,
+            http::HeaderValue::from_static("admin-client/1"),
+        );
+        let first_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
+            "192.0.2.10:443"
+                .parse::<std::net::SocketAddr>()
+                .expect("f133a4ca"),
+        ));
+        let same_context_hash = super::session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+            first_peer,
+        );
+        let repeated_context_hash = super::session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+            first_peer,
+        );
+        assert_eq!(
+            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
+            secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
+        );
+        let other_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
+            "192.0.2.11:443"
+                .parse::<std::net::SocketAddr>()
+                .expect("5a831a2f"),
+        ));
+        let other_peer_hash = super::session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(&first_headers),
+            other_peer,
+        );
+        assert_ne!(
+            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
+            secrecy::ExposeSecret::expose_secret(other_peer_hash.0.as_ref()),
+        );
+        let mut other_headers = http::HeaderMap::new();
+        let _previous_other_user_agent = other_headers.insert(
+            http::header::USER_AGENT,
+            http::HeaderValue::from_static("admin-client/2"),
+        );
+        let other_user_agent_hash = super::session_context_hash(
+            super::super::HttpAdminHeaderMapRef::from(&other_headers),
+            first_peer,
+        );
+        assert_ne!(
+            secrecy::ExposeSecret::expose_secret(same_context_hash.0.as_ref()),
+            secrecy::ExposeSecret::expose_secret(other_user_agent_hash.0.as_ref()),
+        );
     }
     #[test]
     fn audit_resource_identifier_uses_target_identifier() {
@@ -941,6 +1163,31 @@ mod tests {
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
         assert_eq!(paths.len(), 17usize);
+        let documented_method_paths = paths
+            .iter()
+            .flat_map(|(path, path_item)| {
+                path_item
+                    .as_object()
+                    .into_iter()
+                    .flat_map(|operation_map| operation_map.keys())
+                    .map(move |method| (method.to_owned(), path.to_owned()))
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let contracted_method_paths = server_admin_contract::AdminRoute::auth_routes()
+            .into_iter()
+            .map(|route| {
+                let contract = route.contract();
+                let method = match contract.method() {
+                    frontend_contract::HttpMethod::Delete => "delete",
+                    frontend_contract::HttpMethod::Get => "get",
+                    frontend_contract::HttpMethod::Patch => "patch",
+                    frontend_contract::HttpMethod::Post => "post",
+                    frontend_contract::HttpMethod::Put => "put",
+                };
+                (method.to_owned(), contract.path().as_ref().to_owned())
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(documented_method_paths, contracted_method_paths);
         assert!(paths.contains_key("/auth/sign-in"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));
         assert!(paths.contains_key("/users/{user_id}/password"));
@@ -951,9 +1198,11 @@ mod tests {
         assert!(
             paths
                 .values()
-                .all(|path| path.as_object().is_some_and(|operations| operations
-                    .values()
-                    .all(|operation| operation.pointer("/responses/429").is_some())))
+                .all(|path| path
+                    .as_object()
+                    .is_some_and(|operations| operations.values().all(|operation| operation
+                        .pointer("/responses/429/headers/Retry-After")
+                        .is_some())))
         );
         assert!(
             document

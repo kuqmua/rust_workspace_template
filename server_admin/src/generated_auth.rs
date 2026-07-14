@@ -41,44 +41,114 @@ where
         let state = self.state.clone();
         Box::pin(async move {
             let path = req.uri().path();
-            let contract = crate::generated_tables::AdminRolesRouteContract::for_path(path)
-                .map(|contract| (contract.permission(), contract.mutates()))
-                .or_else(|| {
-                    crate::generated_tables::AdminRolePermissionsRouteContract::for_path(path)
-                        .map(|contract| (contract.permission(), contract.mutates()))
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminPermissionsRouteContract::for_path(path)
-                        .map(|contract| (contract.permission(), contract.mutates()))
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminSystemSettingsRouteContract::for_path(path)
-                        .map(|contract| (contract.permission(), contract.mutates()))
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminUserRolesRouteContract::for_path(path)
-                        .map(|contract| (contract.permission(), contract.mutates()))
-                })
-                .or_else(|| {
-                    crate::generated_tables::AdminUsersRouteContract::for_path(path)
-                        .map(|contract| (contract.permission(), contract.mutates()))
-                })
-                .or_else(|| {
-                    path.ends_with("/admin/openapi.json")
-                        .then_some((Some("openapi:read"), false))
-                })
-                .or_else(|| {
-                    path.ends_with("/admin/metrics")
-                        .then_some((Some("metrics:read"), false))
-                });
-            let Some((Some(permission), mutates)) = contract else {
+            let contract =
+                crate::generated_tables::AdminRolesRouteContract::for_path(path)
+                    .map(|contract| {
+                        (
+                            contract.permission(),
+                            contract.mutates(),
+                            contract.frontend_contract().method(),
+                        )
+                    })
+                    .or_else(|| {
+                        crate::generated_tables::AdminRolePermissionsRouteContract::for_path(path)
+                            .map(|contract| {
+                                (
+                                    contract.permission(),
+                                    contract.mutates(),
+                                    contract.frontend_contract().method(),
+                                )
+                            })
+                    })
+                    .or_else(|| {
+                        crate::generated_tables::AdminPermissionsRouteContract::for_path(path).map(
+                            |contract| {
+                                (
+                                    contract.permission(),
+                                    contract.mutates(),
+                                    contract.frontend_contract().method(),
+                                )
+                            },
+                        )
+                    })
+                    .or_else(|| {
+                        crate::generated_tables::AdminSystemSettingsRouteContract::for_path(path)
+                            .map(|contract| {
+                                (
+                                    contract.permission(),
+                                    contract.mutates(),
+                                    contract.frontend_contract().method(),
+                                )
+                            })
+                    })
+                    .or_else(|| {
+                        crate::generated_tables::AdminUserRolesRouteContract::for_path(path).map(
+                            |contract| {
+                                (
+                                    contract.permission(),
+                                    contract.mutates(),
+                                    contract.frontend_contract().method(),
+                                )
+                            },
+                        )
+                    })
+                    .or_else(|| {
+                        crate::generated_tables::AdminUsersRouteContract::for_path(path).map(
+                            |contract| {
+                                (
+                                    contract.permission(),
+                                    contract.mutates(),
+                                    contract.frontend_contract().method(),
+                                )
+                            },
+                        )
+                    })
+                    .or_else(|| {
+                        path.ends_with("/admin/openapi.json").then_some((
+                            Some("openapi:read"),
+                            false,
+                            frontend_contract::HttpMethod::Get,
+                        ))
+                    })
+                    .or_else(|| {
+                        path.ends_with("/admin/metrics").then_some((
+                            Some("metrics:read"),
+                            false,
+                            frontend_contract::HttpMethod::Get,
+                        ))
+                    });
+            let Some((Some(permission), mutates, method)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(
                     crate::auth::AdminApiError::Authorization,
+                ));
+            };
+            if !matches!(
+                (req.method(), method),
+                (&http::Method::DELETE, frontend_contract::HttpMethod::Delete)
+                    | (&http::Method::GET, frontend_contract::HttpMethod::Get)
+                    | (&http::Method::PATCH, frontend_contract::HttpMethod::Patch)
+                    | (&http::Method::POST, frontend_contract::HttpMethod::Post)
+                    | (&http::Method::PUT, frontend_contract::HttpMethod::Put)
+            ) {
+                return Ok(axum::response::IntoResponse::into_response(
+                    crate::auth::AdminApiError::MethodNotAllowed,
+                ));
+            }
+            let Some(peer) = req
+                .extensions()
+                .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
+                .map(|peer| {
+                    crate::auth::AdminPeerAddr::from(crate::StdAdminSocketAddr::from(peer.0))
+                })
+            else {
+                return Ok(axum::response::IntoResponse::into_response(
+                    crate::auth::AdminApiError::Authentication,
                 ));
             };
             let authenticated = match crate::auth::authorize_generated_request(
                 state.as_ref(),
                 crate::HttpAdminHeaderMapRef::from(req.headers()),
+                peer,
                 crate::StdAdminStrRef::from(permission),
                 crate::StdAdminBool::from(mutates),
             )
