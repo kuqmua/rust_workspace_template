@@ -25,6 +25,10 @@
 
 ## 1. Контроль владения `spawn`-задачами
 
+Статус: **выполнено**.
+
+Реализован AST-тест `spawned_tasks_must_retain_an_owner`: прямой отброшенный результат `tokio::spawn`, `tokio::task::spawn_blocking` или `std::thread::spawn` запрещён. Существующие runtime-вызовы сохраняют handles в `BackgroundTask` либо явно ожидают их.
+
 ### Источник
 
 - `mapcam_rust/tests/src/tests/code_style.rs`, тест `enforces_spawn_ownership_inventory`.
@@ -50,6 +54,10 @@
 
 ## 2. Инвентаризация прямого доступа к окружению и файловой системе
 
+Статус: **выполнено**.
+
+AST-тест `direct_environment_and_filesystem_access_stays_at_owned_boundaries` ограничивает прямой доступ configuration, tooling, persistence и test-fixture границами. Новое обращение из бизнес-логики приводит к ошибке code-style suite.
+
 ### Источник
 
 - `mapcam_rust/tests/src/tests/code_style.rs`, тест `enforces_direct_environment_and_filesystem_access_inventory`.
@@ -74,6 +82,10 @@
 - `.env` и `.env.example` продолжают проверяться существующим тестом на одинаковые ключи.
 
 ## 3. Запрет аварийного завершения и обхода системы типов
+
+Статус: **выполнено**.
+
+AST-тест запрещает `transmute` и фиксирует два оставшихся compile-time/generated-default исключения `abort` точными путями. Безусловный `abort` из создания idempotency key удалён; рост baseline запрещён.
 
 ### Источник
 
@@ -106,6 +118,10 @@
 
 ## 4. Доверенная обработка IP клиента за reverse proxy
 
+Статус: **выполнено**.
+
+В `server_runtime::client_ip` добавлены typed CIDR ranges и resolver. Заголовки принимаются только от trusted peer, `X-Forwarded-For` обходится справа налево, а multiple, malformed, oversized и смешанные IPv4/IPv6 случаи покрыты тестами.
+
 ### Источник
 
 - `mapcam_rust/shared/src/client_ip.rs`, функции `classify_trusted_proxy_membership` и `resolve_client_ip_address_string_with_trusted_proxy_ranges`.
@@ -126,6 +142,10 @@
 - публичная ошибка и логи не отражают произвольный заголовок целиком.
 
 ## 5. Единый запуск внешних процессов
+
+Статус: **выполнено**.
+
+Все прямые `std::process::Command::new` перенесены в `macros_helpers::tool_command`; отдельный AST-тест запрещает обход helper. Аргументы скрыты из `Debug`, а generator tooling, lint sync и runner используют один typed builder.
 
 ### Источник
 
@@ -153,6 +173,10 @@
 - generator tooling сохраняет текущую семантику вызова `rustfmt`.
 
 ## 6. Артефакты и сводки `workspace_test_runner`
+
+Статус: **выполнено**.
+
+Static/database команды создают уникальный run directory, отдельный raw log и ANSI-free `summary.txt` со статусом, длительностью и именами упавших тестов. Парсер Cargo/nextest и partial logs покрыт unit tests.
 
 ### Источник
 
@@ -189,6 +213,10 @@ test_results/workspace_test_runner/<run-id>/
 
 ## 7. Политика детерминированных тестов
 
+Статус: **выполнено**.
+
+AST-тест инвентаризирует test-only wall clock, sleeps и entropy-based UUID. Два существующих детерминированных применения зафиксированы точными путями: paused-time timeout test и уникальный UUID fixture, не участвующий в assertion.
+
 ### Источник
 
 - `mapcam_rust/tests/src/tests/code_style.rs`, тест `enforces_deterministic_test_patterns`.
@@ -213,6 +241,10 @@ test_results/workspace_test_runner/<run-id>/
 - инвентарь не запрещает криптографическую случайность в production-коде.
 
 ## 8. Конфиги `typos`, Taplo и Clippy MSRV
+
+Статус: **выполнено**.
+
+Добавлены `.typos.toml`, `taplo.toml` и закреплённые CI jobs для `typos`, `taplo fmt --check` и `taplo lint`. `clippy.toml` намеренно не создан: workspace поддерживает latest nightly и не объявляет MSRV.
 
 ### Источник
 
@@ -239,6 +271,10 @@ test_results/workspace_test_runner/<run-id>/
 - версии CI tools и actions закреплены в соответствии с существующей release policy.
 
 ## 9. Опциональный контейнерный эталон запуска
+
+Статус: **выполнено**.
+
+Добавлены multi-stage `Dockerfile`, `.dockerignore` и минимальный `docker-compose.yml` с PostgreSQL healthcheck, readiness server, non-root user, read-only root filesystem, tmpfs и loopback-only published ports. Пароль обязателен через environment и не имеет встроенного default.
 
 ### Источник
 

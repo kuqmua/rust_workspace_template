@@ -268,11 +268,19 @@ fn measure_memusage_command(
         );
         return Ok(());
     }
-    let command_output = std::process::Command::new(program.get())
-        .args(args.get())
-        .env("LD_PRELOAD", MEMUSAGE_PATH)
-        .env("MEMUSAGE_PROG_NAME", memusage_prog_name.get())
-        .output();
+    let command_output = macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from(program.get()),
+    )
+    .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
+    .env(
+        macros_helpers::tool_command::ToolEnvKeyRef::from("LD_PRELOAD"),
+        macros_helpers::tool_command::ToolEnvValueRef::from(MEMUSAGE_PATH),
+    )
+    .env(
+        macros_helpers::tool_command::ToolEnvKeyRef::from("MEMUSAGE_PROG_NAME"),
+        macros_helpers::tool_command::ToolEnvValueRef::from(memusage_prog_name.get()),
+    )
+    .output();
     match command_output {
         Ok(output) if output.status.success() => {
             let stdout = String::from_utf8_lossy(output.stdout.as_slice());
@@ -345,14 +353,18 @@ fn measure_memusage_command(
 fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
     let started = std::time::Instant::now();
-    let command_output = std::process::Command::new("/usr/bin/time")
-        .arg("-f")
-        .arg(format!(
-            "{PEAK_RSS_PREFIX}%M\n{MINOR_PAGE_FAULTS_PREFIX}%R\n{MAJOR_PAGE_FAULTS_PREFIX}%F"
-        ))
-        .arg("cargo")
-        .args(args.get())
-        .output();
+    let measurement_format =
+        format!("{PEAK_RSS_PREFIX}%M\n{MINOR_PAGE_FAULTS_PREFIX}%R\n{MAJOR_PAGE_FAULTS_PREFIX}%F");
+    let command_output = macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from("/usr/bin/time"),
+    )
+    .arg(macros_helpers::tool_command::ToolArgRef::from("-f"))
+    .arg(macros_helpers::tool_command::ToolArgRef::from(
+        measurement_format.as_str(),
+    ))
+    .arg(macros_helpers::tool_command::ToolArgRef::from("cargo"))
+    .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
+    .output();
     let duration = started.elapsed();
     match command_output {
         Ok(output) if output.status.success() => {

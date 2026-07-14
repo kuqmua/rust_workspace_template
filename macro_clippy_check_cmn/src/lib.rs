@@ -220,17 +220,21 @@ categories = ["category"]
     std::fs::write(path_cargo_toml, cargo_toml_full).unwrap_or_else(|er| panic!("3757da9b: {er}"));
     std::fs::write(path_lib_rs, content_to_gen).unwrap_or_else(|er| panic!("55124f90: {er}"));
     GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
-        let status = std::process::Command::new("cargo")
-            .current_dir(&crate_path)
-            .args(step.args)
-            .status()
-            .unwrap_or_else(|er| {
-                panic!(
-                    "cd48b869: generated crate {} phase failed to start at {}: {er}",
-                    step.phase,
-                    crate_path.display()
-                )
-            });
+        let status = macros_helpers::tool_command::ToolCommand::new(
+            macros_helpers::tool_command::ToolProgramRef::from("cargo"),
+        )
+        .current_dir(macros_helpers::tool_command::StdPathRef::from(
+            crate_path.as_path(),
+        ))
+        .args(macros_helpers::tool_command::ToolArgsRef::from(step.args))
+        .status()
+        .unwrap_or_else(|er| {
+            panic!(
+                "cd48b869: generated crate {} phase failed to start at {}: {er}",
+                step.phase,
+                crate_path.display()
+            )
+        });
         assert!(
             status.success(),
             "2c037283: generated crate {} phase failed at {}: {status}",

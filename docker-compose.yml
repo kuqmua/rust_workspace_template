@@ -1,0 +1,48 @@
+services:
+  database:
+    image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema:latest
+    environment:
+      POSTGRES_DB: rust_workspace_template
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}"
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rust_workspace_template"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - application
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - server/.env
+    environment:
+      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@database:5432/rust_workspace_template"
+      SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - application
+    ports:
+      - "127.0.0.1:8080:8080"
+    read_only: true
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+networks:
+  application:
+volumes:
+  postgres_data:

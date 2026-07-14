@@ -29,6 +29,27 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - run: cargo fmt --all -- --check
+  repository-format:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
+        with:
+          tool: taplo
+      - run: taplo fmt --check
+      - run: taplo lint
+  typos:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: taiki-e/install-action@dc6aaebcb47625f80d5dada4c7fbf1dc3e7e257a
+        with:
+          tool: typos-cli
+      - run: typos
   admin-frontend:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

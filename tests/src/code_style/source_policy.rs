@@ -94,6 +94,156 @@ fn no_for_loops_in_source_code() {
     );
 }
 #[test]
+fn spawned_tasks_must_retain_an_owner() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("5d0d5bf0"),
+        super::types::SourceTextRef::from("spawned task handles are discarded:"),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::LostSpawnVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|er| format!("{}: {er}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("321360d4"),
+        super::types::SourceTextRef::from(
+            "direct environment or filesystem access exists outside approved configuration, tooling, test, and persistence boundaries:",
+        ),
+        |path, ast, ers| {
+            let path_text = path.to_string_lossy();
+            if path_text.contains("/config_lib/")
+                || path_text.contains("/macro_clippy_check_cmn/")
+                || path_text.contains("/macros_helpers/")
+                || path_text.contains("/tests/")
+                || path_text.contains("/workspace_test_runner/")
+                || path_text.ends_with("server_admin_frontend/src/lib.rs")
+            {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::DirectPathCallVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(visitor.calls.into_iter().filter_map(|call| {
+                (call.starts_with("std::env::")
+                    || call.starts_with("std::fs::")
+                    || call.starts_with("tokio::fs::"))
+                .then(|| format!("{}: direct `{call}`", path.display()))
+            }));
+        },
+    );
+}
+#[test]
+fn direct_process_command_creation_stays_in_shared_tooling() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("f170aa14"),
+        super::types::SourceTextRef::from(
+            "direct Command::new usage exists outside macros_helpers::tool_command:",
+        ),
+        |path, ast, ers| {
+            if path.ends_with("macros_helpers/src/tool_command.rs") {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::DirectPathCallVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .calls
+                    .into_iter()
+                    .filter(|call| call == "std::process::Command::new")
+                    .map(|call| format!("{}: direct `{call}`", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn abort_and_transmute_calls_match_reviewed_baseline() {
+    let mut observed_abort_paths = Vec::new();
+    let mut ers = Vec::new();
+    super::for_each_rs_syn_file(|path, ast| {
+        let visitor = super::visit_syn_file(
+            super::types::SynFileRef::from(ast),
+            super::DirectPathCallVisitor {
+                calls: super::types::DiagnosticMsgs::default(),
+            },
+        );
+        visitor.calls.into_iter().for_each(|call| {
+            if call == "std::process::abort" {
+                observed_abort_paths.push(path.to_string_lossy().to_string());
+            }
+            if call.ends_with("::transmute") {
+                ers.push(format!("{}: forbidden `{call}`", path.display()));
+            }
+        });
+    });
+    observed_abort_paths.sort();
+    let expected_abort_suffixes = [
+        "macros_helpers/src/panic_if_err.rs",
+        "pg_crud/wh_flts/src/lib.rs",
+    ];
+    let baseline_matches = observed_abort_paths.len() == expected_abort_suffixes.len()
+        && expected_abort_suffixes.iter().all(|suffix| {
+            observed_abort_paths
+                .iter()
+                .any(|path| path.ends_with(suffix))
+        });
+    if !baseline_matches {
+        ers.push(format!(
+            "abort inventory changed; reviewed suffixes={expected_abort_suffixes:?}, observed={observed_abort_paths:?}"
+        ));
+    }
+    super::assert_joined_ers_empty_with_ctx(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr("f87f82b6"),
+        super::types::SourceTextRef::from("abort/transmute policy violations:"),
+    );
+}
+#[test]
+fn unit_tests_use_deterministic_time_and_randomness_patterns() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("821d4a76"),
+        super::types::SourceTextRef::from(
+            "unit tests use nondeterministic time, sleep, or randomness without a reviewed owner:",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::TestNondeterminismVisitor {
+                    calls: super::types::DiagnosticMsgs::default(),
+                    test_depth: super::types::AnalyzerCount::default(),
+                },
+            );
+            visitor.calls.into_iter().for_each(|call| {
+                let reviewed = path.ends_with("server_runtime/src/health.rs")
+                    && call == "tokio::time::sleep"
+                    || path.ends_with("pg_crud/pg_crud_cmn/src/lib.rs")
+                        && call == "uuid::Uuid::new_v4";
+                if !reviewed {
+                    ers.push(format!("{}: nondeterministic `{call}`", path.display()));
+                }
+            });
+        },
+    );
+}
+#[test]
 fn no_todo_or_unimplemented_macro_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr("c4e9a2d7"),

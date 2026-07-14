@@ -3,6 +3,7 @@
 /dist/
 /server_admin_frontend/dist/
 /target/
+/test_results/
 
 /scripts/target/
 /scripts/Cargo.lock

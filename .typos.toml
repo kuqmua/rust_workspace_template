@@ -1,0 +1,38 @@
+[files]
+extend-exclude = [
+  "Cargo.lock",
+  "server_admin_frontend/dist",
+  "server_admin_frontend/test-results",
+  "target",
+  "test_results",
+]
+
+[default]
+extend-ignore-re = ["\\b[0-9a-f]{8}\\b"]
+
+[default.extend-words]
+additonal = "additonal"
+afftected = "afftected"
+aray = "aray"
+ba = "ba"
+buscheb = "buscheb"
+daa = "daa"
+diffrent = "diffrent"
+ede = "ede"
+flate = "flate"
+happend = "happend"
+inialization = "inialization"
+intialization = "intialization"
+macroses = "macroses"
+momment = "momment"
+optml = "optml"
+ser = "ser"
+standart = "standart"
+Suported = "Suported"
+undescore = "undescore"
+unwraped = "unwraped"
+utoipa = "utoipa"
+usefull = "usefull"
+wh = "wh"
+wheres = "wheres"
+wraped = "wraped"

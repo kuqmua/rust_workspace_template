@@ -28,6 +28,7 @@ pub mod panic_if_err;
 pub mod pgn_start_end_init_ts;
 pub mod rs_file_path;
 pub mod status_code;
+pub mod tool_command;
 // Deterministic generated-source writing and formatting.
 #[path = "write_string_into_file.rs"]
 pub mod string_writer;

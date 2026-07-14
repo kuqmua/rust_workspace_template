@@ -1,3 +1,4 @@
+mod client_ip;
 mod cors;
 mod health;
 mod history;
@@ -5,6 +6,10 @@ mod lifecycle;
 mod limits;
 mod request_id;
 mod resource_budget;
+pub use client_ip::{
+    HttpHeaderMapRef, StdAddrParseEr, StdParseIntEr, StdResolvedClientIp, StdSocketAddr,
+    TrustedProxyRange, TrustedProxyRangeParseEr, TrustedProxyRanges, resolve_client_ip,
+};
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
 };

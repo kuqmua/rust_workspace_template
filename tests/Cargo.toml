@@ -21,6 +21,7 @@ walkdir = { workspace = true }
 optml = { workspace = true }
 rayon = { workspace = true }
 cargo_metadata = { workspace = true }
+macros_helpers = { workspace = true }
 newtype = { workspace = true }
 [lints]
 workspace = true

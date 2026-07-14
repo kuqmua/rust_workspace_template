@@ -17,7 +17,12 @@ struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
 struct ShouldWriteTsFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
-    let status = std::process::Command::new("rustfmt").arg(path.0).status()?;
+    let mut command =
+        crate::tool_command::ToolCommand::new(crate::tool_command::ToolProgramRef::from("rustfmt"));
+    let path_text = path.0.to_string_lossy();
+    let status = command
+        .arg(crate::tool_command::ToolArgRef::from(path_text.as_ref()))
+        .status()?;
     if status.success() {
         Ok(())
     } else {

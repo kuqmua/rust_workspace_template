@@ -11,9 +11,10 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
+macros_helpers = { workspace = true, optional = true }
 
 [features]
-test-utils = []
+test-utils = ["dep:macros_helpers"]
 
 [lints]
 workspace = true

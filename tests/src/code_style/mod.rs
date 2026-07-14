@@ -315,6 +315,85 @@ impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
         syn::visit::visit_macro(self, i);
     }
 }
+struct DirectPathCallVisitor {
+    calls: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if let Some(path) = expr_call_path(types::SynExprCallRef::from(i)) {
+            self.calls.push(path_to_string(path).as_ref().to_owned());
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+}
+struct LostSpawnVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
+    fn visit_stmt(&mut self, i: &'ast syn::Stmt) {
+        if let syn::Stmt::Expr(syn::Expr::Call(call), _) = i
+            && expr_call_path(types::SynExprCallRef::from(call)).is_some_and(|path| {
+                let text = path_to_string(path);
+                matches!(
+                    text.as_ref(),
+                    "tokio::spawn" | "tokio::task::spawn_blocking" | "std::thread::spawn"
+                )
+            })
+        {
+            self.ers
+                .push("spawn result is discarded; retain and supervise its handle".to_owned());
+        }
+        syn::visit::visit_stmt(self, i);
+    }
+}
+struct TestNondeterminismVisitor {
+    calls: types::DiagnosticMsgs,
+    test_depth: types::AnalyzerCount,
+}
+impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if self.test_depth.get() != 0
+            && let Some(path) = expr_call_path(types::SynExprCallRef::from(i))
+        {
+            let text = path_to_string(path);
+            if matches!(
+                text.as_ref(),
+                "rand::thread_rng"
+                    | "std::thread::sleep"
+                    | "std::time::SystemTime::now"
+                    | "tokio::time::sleep"
+                    | "uuid::Uuid::new_v4"
+            ) || text.as_ref().ends_with("::Utc::now")
+            {
+                self.calls.push(text.as_ref().to_owned());
+            }
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let is_test = item_fn_is_unit_test(types::SynItemFnRef::from(i)).get();
+        if is_test {
+            self.test_depth.saturating_inc();
+        }
+        syn::visit::visit_item_fn(self, i);
+        if is_test {
+            self.test_depth.saturating_dec();
+        }
+    }
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        let is_test = i
+            .attrs
+            .iter()
+            .any(|attr| attr_is_test_only_cfg(types::SynAttributeRef::from(attr)).get());
+        if is_test {
+            self.test_depth.saturating_inc();
+        }
+        syn::visit::visit_item_mod(self, i);
+        if is_test {
+            self.test_depth.saturating_dec();
+        }
+    }
+}
 struct UseImportVisitor {
     found_non_public_use_import: types::AnalyzerBool,
     found_use_rename: types::AnalyzerBool,
@@ -1356,13 +1435,16 @@ fn lints_from_help_cmd(
     parse_only_clippy: types::AnalyzerBool,
     exp_id: types::StaticStr,
 ) -> types::SourceTextList {
-    let output = std::process::Command::new(tool.get())
-        .args(["-W", "help"])
-        .stdout(std::process::Stdio::piped())
-        .output()
-        .unwrap_or_else(|_| panic!("{}", exp_id.get()));
+    let output = macros_helpers::tool_command::ToolCommand::new(
+        macros_helpers::tool_command::ToolProgramRef::from(tool.get()),
+    )
+    .args(macros_helpers::tool_command::ToolArgsRef::from(
+        ["-W", "help"].as_slice(),
+    ))
+    .output()
+    .unwrap_or_else(|_| panic!("{}", exp_id.get()));
     assert_cmd_output_ok(
-        types::StdProcessOutputRef::from(&output),
+        types::StdProcessOutputRef::from(output.as_ref()),
         types::StaticStr("95d4595a"),
         types::StaticStr("cc4670a2"),
     );

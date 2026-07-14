@@ -45,4 +45,8 @@ to_err_string = { workspace = true }
 workspace = true
 
 [features]
-test-utils = ["pg_tbl/test-utils", "pg_types_numeric/test-utils", "pg_types_text_misc/test-utils"]
+test-utils = [
+  "pg_tbl/test-utils",
+  "pg_types_numeric/test-utils",
+  "pg_types_text_misc/test-utils",
+]

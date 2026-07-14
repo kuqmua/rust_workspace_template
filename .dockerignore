@@ -1,0 +1,6 @@
+.git
+.github
+server/.env
+server_admin_frontend/test-results
+target
+test_results

@@ -199,10 +199,7 @@ impl AsRef<str> for PgTblIdempotencyKey {
 }
 #[must_use]
 pub fn new_pg_tbl_idempotency_key() -> PgTblIdempotencyKey {
-    match PgTblIdempotencyKey::try_from(uuid::Uuid::new_v4().to_string()) {
-        Ok(value) => value,
-        Err(_error) => std::process::abort(),
-    }
+    PgTblIdempotencyKey(uuid::Uuid::new_v4().to_string())
 }
 impl TryFrom<String> for PgTblIdempotencyMethod {
     type Error = PgTblIdempotencyTextEr;
