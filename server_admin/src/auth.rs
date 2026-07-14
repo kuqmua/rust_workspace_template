@@ -35,7 +35,7 @@ pub struct AdminAuthSvcState {
 #[newtype(as_ref_owned, from_inner)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
 #[derive(Clone, Copy, Debug, thiserror::Error)]
-pub enum AdminAuthSvcStateBuildEr {
+pub enum AdminAuthSvcStateBuildError {
     #[error("administrator token audience is invalid")]
     Audience,
     #[error("administrator token issuer is invalid")]
@@ -65,7 +65,7 @@ impl AuthenticatedAdmin {
 }
 fn authenticated_admin_contract(
     value: &AuthenticatedAdmin,
-) -> Result<server_admin_contract::AuthenticatedAdmin, AdminApiEr> {
+) -> Result<server_admin_contract::AuthenticatedAdmin, AdminApiError> {
     let permissions = value
         .permissions
         .iter()
@@ -73,23 +73,23 @@ fn authenticated_admin_contract(
             server_admin_contract::AdminPermissionValue::try_from(
                 permission.as_str().as_ref().to_owned(),
             )
-            .map_err(|_error| AdminApiEr::Validation)
+            .map_err(|_error| AdminApiError::Validation)
         })
-        .collect::<Result<Vec<_>, AdminApiEr>>()?;
+        .collect::<Result<Vec<_>, AdminApiError>>()?;
     let roles = value
         .roles
         .iter()
         .map(|role| {
             server_admin_contract::AdminRoleName::try_from(role.as_ref().to_owned())
-                .map_err(|_error| AdminApiEr::Validation)
+                .map_err(|_error| AdminApiError::Validation)
         })
-        .collect::<Result<Vec<_>, AdminApiEr>>()?;
+        .collect::<Result<Vec<_>, AdminApiError>>()?;
     Ok(server_admin_contract::AuthenticatedAdmin::new(
         server_admin_contract::AdminDisplayName::try_from(value.display_name.as_ref().to_owned())
-            .map_err(|_error| AdminApiEr::Validation)?,
+            .map_err(|_error| AdminApiError::Validation)?,
         server_admin_contract::AdminUserId::from(value.id.0),
         server_admin_contract::AdminLogin::try_from(value.login.as_ref().to_owned())
-            .map_err(|_error| AdminApiEr::Validation)?,
+            .map_err(|_error| AdminApiError::Validation)?,
         permissions,
         roles,
     ))
@@ -117,7 +117,7 @@ impl<State> axum::extract::FromRequestParts<State> for AdminPeerAddr
 where
     State: Send + Sync,
 {
-    type Rejection = AdminApiEr;
+    type Rejection = AdminApiError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
         _state: &State,
@@ -127,7 +127,7 @@ where
                 .extensions
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
                 .map(|value| Self(super::StdAdminSocketAddr::from(value.0)))
-                .ok_or(AdminApiEr::Authentication),
+                .ok_or(AdminApiError::Authentication),
         )
     }
 }
@@ -273,9 +273,9 @@ fn origin_is_present_and_allowed(
 async fn authenticate(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
-) -> Result<AuthenticatedAdmin, AdminApiEr> {
+) -> Result<AuthenticatedAdmin, AdminApiError> {
     let token = super::find_admin_cookie(headers, super::AdminCookieKind::Access)
-        .ok_or(AdminApiEr::Authentication)?;
+        .ok_or(AdminApiError::Authentication)?;
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_issuer(&[state.issuer.as_ref()]);
     validation.set_audience(&[state.audience.as_ref()]);
@@ -285,7 +285,7 @@ async fn authenticate(
         &validation,
     )
     .map(|data| data.claims)
-    .map_err(|_er| AdminApiEr::Authentication)?;
+    .map_err(|_error| AdminApiError::Authentication)?;
     let active = sqlx::query_scalar::<_, bool>(
         "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.revoked_at IS NULL AND session.expires_at > NOW() AND users.is_banned = FALSE)",
     )
@@ -293,9 +293,9 @@ async fn authenticate(
     .bind(claims.user_id().0)
     .fetch_one(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
     if !active {
-        return Err(AdminApiEr::Authentication);
+        return Err(AdminApiError::Authentication);
     }
     load_authenticated_admin(state, claims.user_id(), claims.session_id()).await
 }
@@ -303,15 +303,15 @@ async fn validate_csrf(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
     authenticated: &AuthenticatedAdmin,
-) -> Result<(), AdminApiEr> {
+) -> Result<(), AdminApiError> {
     if !origin_is_present_and_allowed(state, headers).0 {
-        return Err(AdminApiEr::Csrf);
+        return Err(AdminApiError::Csrf);
     }
     let provided = headers
         .0
         .get(http::HeaderName::from_static("x-csrf-token"))
         .and_then(|value| value.to_str().ok())
-        .ok_or(AdminApiEr::Csrf)?;
+        .ok_or(AdminApiError::Csrf)?;
     let provided_token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
         secrecy::SecretBox::new(Box::new(provided.to_owned())),
     ));
@@ -323,10 +323,10 @@ async fn validate_csrf(
     .bind(authenticated.id.0)
     .fetch_optional(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
-    .ok_or(AdminApiEr::Csrf)?;
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
+    .ok_or(AdminApiError::Csrf)?;
     if secrecy::ExposeSecret::expose_secret(provided_hash.0.as_ref()) != &expected {
-        return Err(AdminApiEr::Csrf);
+        return Err(AdminApiError::Csrf);
     }
     Ok(())
 }
@@ -335,16 +335,16 @@ pub async fn authorize_generated_request(
     headers: super::HttpAdminHeaderMapRef<'_>,
     permission: super::StdAdminStrRef<'_>,
     mutates: super::StdAdminBool,
-) -> Result<AuthenticatedAdmin, AdminApiEr> {
+) -> Result<AuthenticatedAdmin, AdminApiError> {
     let authenticated = authenticate(state, headers).await?;
     let required_permission = super::AdminPermission::try_from(permission.as_ref())
-        .map_err(|_er| AdminApiEr::Authorization)?;
+        .map_err(|_error| AdminApiError::Authorization)?;
     if !authenticated.permissions.contains(&required_permission) {
-        return Err(AdminApiEr::Authorization);
+        return Err(AdminApiError::Authorization);
     }
     if mutates.0 {
         let subject = super::StdAdminString::try_from(authenticated.id.0.to_string())
-            .map_err(|_er| AdminApiEr::Validation)?;
+            .map_err(|_error| AdminApiError::Validation)?;
         rate_limit::enforce_rate_limit(
             state,
             rate_limit::AdminRateLimitScope::Mutation,
@@ -359,9 +359,9 @@ pub async fn authorize_generated_request(
 }
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct HttpAdminHeaderValueEr(http::header::InvalidHeaderValue);
+pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
 #[derive(Debug, thiserror::Error)]
-pub enum AdminApiEr {
+pub enum AdminApiError {
     #[error("administrator authentication failed")]
     Authentication,
     #[error("administrator authorization failed")]
@@ -375,23 +375,23 @@ pub enum AdminApiEr {
     #[error("administrator request validation failed")]
     Validation,
     #[error("administrator API database operation failed: {0:?}")]
-    Pg(super::SqlxAdminEr),
+    Pg(super::SqlxAdminError),
     #[error("administrator password hashing failed: {0}")]
-    PasswordHash(super::AdminPasswordHashEr),
+    PasswordHash(super::AdminPasswordHashError),
     #[error("administrator session operation failed: {0}")]
-    Session(AdminSessionEr),
+    Session(AdminSessionError),
     #[error("administrator response header is invalid: {0:?}")]
-    Header(HttpAdminHeaderValueEr),
+    Header(HttpAdminHeaderValueError),
 }
-impl From<sqlx::Error> for AdminApiEr {
+impl From<sqlx::Error> for AdminApiError {
     fn from(value: sqlx::Error) -> Self {
-        Self::Pg(super::SqlxAdminEr::from(value))
+        Self::Pg(super::SqlxAdminError::from(value))
     }
 }
 #[derive(Debug, newtype::Newtype)]
 #[newtype(into_inner_from)]
 pub struct AxumAdminResponse(axum::response::Response);
-impl axum::response::IntoResponse for AdminApiEr {
+impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
         let status = match self {
             Self::Authentication => http::StatusCode::UNAUTHORIZED,
@@ -426,7 +426,7 @@ async fn record_login_attempt(
     login: &super::AdminLogin,
     peer: AdminPeerAddr,
     succeeded: super::StdAdminBool,
-) -> Result<(), AdminApiEr> {
+) -> Result<(), AdminApiError> {
     let _result = sqlx::query("WITH attempt AS (INSERT INTO admin_login_attempts (login, ip_address, succeeded) VALUES ($1, $2, $3)) INSERT INTO admin_audit_log (user_login, action, resource, resource_id, request_id, succeeded, details) SELECT $1, 'sign_in', 'session', $1, $4, FALSE, jsonb_build_object('ip_address', $2::INET::TEXT) WHERE $3 = FALSE")
     .bind(login.as_ref())
     .bind(peer.0.0.ip())
@@ -434,7 +434,7 @@ async fn record_login_attempt(
     .bind(uuid::Uuid::new_v4())
     .execute(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
     Ok(())
 }
 #[derive(Debug, Clone, Copy)]
@@ -465,7 +465,7 @@ impl AdminAuditResourceId {
 async fn record_audit_success_in_connection(
     connection: SqlxAdminPgConnectionRef<'_>,
     event: AdminAuditSuccessRef<'_>,
-) -> Result<(), AdminApiEr> {
+) -> Result<(), AdminApiError> {
     audit::record_success_in_connection(connection, event).await
 }
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
@@ -485,42 +485,43 @@ async fn load_authenticated_admin(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
-) -> Result<AuthenticatedAdmin, AdminApiEr> {
+) -> Result<AuthenticatedAdmin, AdminApiError> {
     let user = sqlx::query_as::<_, (String, String)>(
         "SELECT login, display_name FROM admin_users WHERE id = $1 AND is_banned = FALSE",
     )
     .bind(user_id.0)
     .fetch_optional(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
-    .ok_or(AdminApiEr::Authentication)?;
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
+    .ok_or(AdminApiError::Authentication)?;
     let roles = sqlx::query_scalar::<_, String>(
         "SELECT role.name FROM admin_roles role JOIN admin_user_roles link ON link.role_id = role.id WHERE link.user_id = $1 ORDER BY role.name",
     )
     .bind(user_id.0)
     .fetch_all(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .into_iter()
     .map(super::AdminRoleName::try_from)
     .collect::<Result<Vec<super::AdminRoleName>, _>>()
-    .map_err(|_er| AdminApiEr::Authentication)?;
+    .map_err(|_error| AdminApiError::Authentication)?;
     let permissions = sqlx::query_scalar::<_, String>(
         "SELECT DISTINCT permission.name FROM admin_permissions permission JOIN admin_role_permissions role_permission ON role_permission.permission_id = permission.id JOIN admin_user_roles user_role ON user_role.role_id = role_permission.role_id WHERE user_role.user_id = $1 ORDER BY permission.name",
     )
     .bind(user_id.0)
     .fetch_all(state.pool.as_ref())
     .await
-    .map_err(|er| AdminApiEr::Pg(super::SqlxAdminEr::from(er)))?
+    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .into_iter()
     .map(|permission| super::AdminPermission::try_from(permission.as_str()))
     .collect::<Result<Vec<super::AdminPermission>, _>>()
-    .map_err(|_er| AdminApiEr::Authentication)?;
+    .map_err(|_error| AdminApiError::Authentication)?;
     Ok(AuthenticatedAdmin {
         display_name: super::AdminDisplayName::try_from(user.1)
-            .map_err(|_er| AdminApiEr::Authentication)?,
+            .map_err(|_error| AdminApiError::Authentication)?,
         id: user_id,
-        login: super::AdminLogin::try_from(user.0).map_err(|_er| AdminApiEr::Authentication)?,
+        login: super::AdminLogin::try_from(user.0)
+            .map_err(|_error| AdminApiError::Authentication)?,
         permissions,
         roles,
         session_id,
@@ -530,7 +531,7 @@ fn append_session_cookies(
     response: &mut AxumAdminResponse,
     state: &AdminAuthSvcState,
     session: &AdminSessionBundle,
-) -> Result<(), AdminApiEr> {
+) -> Result<(), AdminApiError> {
     let access = super::build_admin_cookie(
         super::AdminCookieKind::Access,
         super::StdAdminStrRef::from(session.access_token.as_ref().as_str()),
@@ -560,13 +561,13 @@ fn append_session_cookies(
                     .append(http::header::SET_COOKIE, header)
             })
             .map(drop)
-            .map_err(|er| AdminApiEr::Header(HttpAdminHeaderValueEr::from(er)))
+            .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
     })
 }
 fn append_cleared_session_cookies(
     response: &mut AxumAdminResponse,
     state: &AdminAuthSvcState,
-) -> Result<(), AdminApiEr> {
+) -> Result<(), AdminApiError> {
     [
         super::AdminCookieKind::Access,
         super::AdminCookieKind::Refresh,
@@ -583,7 +584,7 @@ fn append_cleared_session_cookies(
                     .append(http::header::SET_COOKIE, header)
             })
             .map(drop)
-            .map_err(|er| AdminApiEr::Header(HttpAdminHeaderValueEr::from(er)))
+            .map_err(|error| AdminApiError::Header(HttpAdminHeaderValueError::from(error)))
     })
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -592,22 +593,25 @@ async fn sign_in(
     auth: AdminAuthReq,
     peer: AdminPeerAddr,
     request_json: AdminSignInJson,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::sign_in(auth, peer, request_json).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/auth/me", responses((status = 200, body = server_admin_contract::AuthenticatedAdmin), (status = 401, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_auth")]
-async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn me(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::me(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(post, path = "/auth/refresh", responses((status = 200, body = server_admin_contract::AdminSignInRes), (status = 401, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), tag = "admin_auth")]
-async fn refresh(auth: AdminAuthReq, peer: AdminPeerAddr) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn refresh(
+    auth: AdminAuthReq,
+    peer: AdminPeerAddr,
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::refresh(auth, peer).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(post, path = "/auth/sign-out", responses((status = 204), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
-async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::sign_out(auth).await
 }
 #[derive(Debug, Clone, serde::Serialize, newtype::BoundedString, newtype::Newtype)]
@@ -627,7 +631,7 @@ pub struct AdminSessionView {
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/auth/sessions", responses((status = 200, body = [AdminSessionView]), (status = 401, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_auth")]
-async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::sessions(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -635,18 +639,18 @@ async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
 async fn revoke_session(
     auth: AdminAuthReq,
     session: AdminSessionPath,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::revoke_session(auth, session).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(delete, path = "/auth/sessions", responses((status = 204), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = []), ("admin_csrf" = [])), tag = "admin_auth")]
-async fn revoke_all_sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn revoke_all_sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::revoke_all_sessions(auth).await
 }
 async fn authorize_custom(
     auth: &AdminAuthReq,
     permission: super::AdminPermission,
-) -> Result<AuthenticatedAdmin, AdminApiEr> {
+) -> Result<AuthenticatedAdmin, AdminApiError> {
     authorize_generated_request(
         auth.state.as_ref(),
         super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -660,7 +664,7 @@ async fn authorize_custom(
 async fn create_user(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateUserReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::create_user(auth, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -669,7 +673,7 @@ async fn update_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminUpdateUserReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::update_user(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -678,7 +682,7 @@ async fn set_user_password(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::set_user_password(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -687,7 +691,7 @@ async fn set_user_ban(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserBanReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::set_user_ban(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -695,7 +699,7 @@ async fn set_user_ban(
 async fn delete_user(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::delete_user(auth, path).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -703,7 +707,7 @@ async fn delete_user(
 async fn create_role(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminCreateRoleReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::create_role(auth, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -712,7 +716,7 @@ async fn update_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
     request: AxumAdminJson<server_admin_contract::AdminUpdateRoleReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::update_role(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -720,7 +724,7 @@ async fn update_role(
 async fn delete_role(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::delete_role(auth, path).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -729,7 +733,7 @@ async fn set_role_permissions(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminRoleId>,
     request: AxumAdminJson<server_admin_contract::AdminSetRolePermissionsReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::set_role_permissions(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -738,7 +742,7 @@ async fn set_user_roles(
     auth: AdminAuthReq,
     path: AxumAdminPath<super::AdminUserId>,
     request: AxumAdminJson<server_admin_contract::AdminSetUserRolesReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::set_user_roles(auth, path, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -746,7 +750,7 @@ async fn set_user_roles(
 async fn audit_log(
     auth: AdminAuthReq,
     query: AxumAdminQuery<AdminAuditQuery>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     audit::query_log(auth, query).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -754,27 +758,27 @@ async fn audit_log(
 async fn update_settings(
     auth: AdminAuthReq,
     request: AxumAdminJson<server_admin_contract::AdminUpdateSettingsReq>,
-) -> Result<AxumAdminResponse, AdminApiEr> {
+) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::update_settings(auth, request).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/users", responses((status = 200, body = [server_admin_contract::AdminUserSummary]), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_users")]
-async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn list_users(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::list_users(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/roles", responses((status = 200, body = [server_admin_contract::AdminRoleSummary]), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_roles")]
-async fn list_roles(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn list_roles(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::list_roles(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/permissions", responses((status = 200, body = [server_admin_contract::AdminPermissionSummary]), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_roles")]
-async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::list_permissions(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[utoipa::path(get, path = "/system-settings", responses((status = 200, body = server_admin_contract::AdminSettingsView), (status = 401, body = frontend_contract::ApiProblem), (status = 403, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_settings")]
-async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr> {
+async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::settings(auth).await
 }
 #[derive(Debug, Clone, newtype::Newtype)]
@@ -809,7 +813,7 @@ impl AdminAuthSvcState {
         issuer: &config_lib::AdminTokenIssuer,
         audience: &config_lib::AdminTokenAudience,
         allowed_origins: &config_lib::CorsAllowOrigin,
-    ) -> Result<Self, AdminAuthSvcStateBuildEr> {
+    ) -> Result<Self, AdminAuthSvcStateBuildError> {
         let secret = secrecy::ExposeSecret::expose_secret(jwt_secret.as_ref().as_ref());
         let parsed_origins = allowed_origins
             .0
@@ -822,7 +826,7 @@ impl AdminAuthSvcState {
             access_ttl: StdAdminAccessTtlSeconds::from(access_ttl.get()),
             allowed_origins: StdAdminAllowedOrigins(parsed_origins),
             audience: super::AdminTokenAudience::try_from(audience.as_ref().clone())
-                .map_err(|_er| AdminAuthSvcStateBuildEr::Audience)?,
+                .map_err(|_error| AdminAuthSvcStateBuildError::Audience)?,
             cookie_secure: super::AdminCookieSecure::from(**cookie_secure),
             decoding_key: JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey::from_secret(
                 secret.as_bytes(),
@@ -831,11 +835,11 @@ impl AdminAuthSvcState {
                 secret.as_bytes(),
             )),
             issuer: super::AdminTokenIssuer::try_from(issuer.as_ref().clone())
-                .map_err(|_er| AdminAuthSvcStateBuildEr::Issuer)?,
+                .map_err(|_error| AdminAuthSvcStateBuildError::Issuer)?,
             password_hasher: super::AdminPasswordHasher::new(
                 super::AdminPasswordHashConcurrency::from(super::StdAdminNonZeroUsize::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
-                        .ok_or(AdminAuthSvcStateBuildEr::Issuer)?,
+                        .ok_or(AdminAuthSvcStateBuildError::Issuer)?,
                 )),
             ),
             pool,
@@ -873,11 +877,11 @@ impl AdminSessionBundle {
     }
 }
 #[derive(Debug, thiserror::Error)]
-pub enum AdminSessionEr {
+pub enum AdminSessionError {
     #[error("administrator access token creation failed: {0:?}")]
-    AccessToken(super::AdminAccessTokenEr),
+    AccessToken(super::AdminAccessTokenError),
     #[error("administrator session database operation failed: {0:?}")]
-    Pg(super::SqlxAdminEr),
+    Pg(super::SqlxAdminError),
     #[error("system clock is before the Unix epoch")]
     SystemClock,
 }
@@ -885,13 +889,13 @@ async fn create_session_in_connection(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
     connection: SqlxAdminPgConnectionRef<'_>,
-) -> Result<AdminSessionBundle, AdminSessionEr> {
+) -> Result<AdminSessionBundle, AdminSessionError> {
     session::create_session_in_connection(state, user_id, connection).await
 }
 pub async fn create_session(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
-) -> Result<AdminSessionBundle, AdminSessionEr> {
+) -> Result<AdminSessionBundle, AdminSessionError> {
     session::create_session(state, user_id).await
 }
 #[cfg(test)]

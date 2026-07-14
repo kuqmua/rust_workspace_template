@@ -18,8 +18,8 @@ serde = { workspace = true }
 http-body = { workspace = true }
 bytes = { workspace = true }
 git_info = { workspace = true }
-loc_lib = { workspace = true }
-loc_macros = { workspace = true }
+location_lib = { workspace = true }
+location_macros = { workspace = true }
 location = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }

@@ -25,21 +25,21 @@ impl<RunReport> Clone for AsyncRunHistory<RunReport> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAsyncRunHistoryMaximumLen(std::num::NonZeroUsize);
 impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
-    type Error = StdAsyncRunHistoryMaximumLenTryFromUsizeEr;
+    type Error = StdAsyncRunHistoryMaximumLenTryFromUsizeError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         std::num::NonZeroUsize::new(value)
             .map(Self)
-            .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeEr)
+            .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeError)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeEr;
-impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeEr {
+pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
+impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("run history maximum length must be greater than zero")
     }
 }
-impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeEr {}
+impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeError {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAsyncRunHistoryReportCount(usize);
 #[derive(Clone, Debug, Eq, PartialEq)]

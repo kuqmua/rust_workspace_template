@@ -17,14 +17,14 @@ impl frontend_contract::Transport for GlooTransport {
             dyn Future<
                     Output = Result<
                         frontend_contract::TransportResponse,
-                        frontend_contract::TransportEr,
+                        frontend_contract::TransportError,
                     >,
                 > + '_,
         >,
     > {
         Box::pin(async move {
             let body = String::from_utf8(request.body().as_ref().to_vec()).map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+                frontend_contract::TransportError::try_from(error.to_string()).unwrap_or_default()
             })?;
             let route = request.route();
             let mut builder = gloo_net::http::RequestBuilder::new(request.path().as_ref())
@@ -49,10 +49,10 @@ impl frontend_contract::Transport for GlooTransport {
                 builder.body(body)
             }
             .map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+                frontend_contract::TransportError::try_from(error.to_string()).unwrap_or_default()
             })?;
             let response = outbound.send().await.map_err(|error| {
-                frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+                frontend_contract::TransportError::try_from(error.to_string()).unwrap_or_default()
             })?;
             let status = frontend_contract::TransportStatus::from(response.status());
             response
@@ -61,7 +61,8 @@ impl frontend_contract::Transport for GlooTransport {
                 .map(frontend_contract::TransportBody::from)
                 .map(|body| frontend_contract::TransportResponse::new(body, status))
                 .map_err(|error| {
-                    frontend_contract::TransportEr::try_from(error.to_string()).unwrap_or_default()
+                    frontend_contract::TransportError::try_from(error.to_string())
+                        .unwrap_or_default()
                 })
         })
     }

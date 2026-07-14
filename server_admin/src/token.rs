@@ -18,7 +18,7 @@ pub(super) fn hash_opaque_token(token: &super::AdminOpaqueToken) -> super::Admin
 pub(super) fn encode_access_token(
     claims: &super::AdminAccessClaims,
     secret: &super::AdminJwtSecret,
-) -> Result<super::StdAdminAccessToken, super::AdminAccessTokenEr> {
+) -> Result<super::StdAdminAccessToken, super::AdminAccessTokenError> {
     jsonwebtoken::encode(
         &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
         claims,
@@ -27,14 +27,14 @@ pub(super) fn encode_access_token(
         ),
     )
     .map(super::StdAdminAccessToken)
-    .map_err(|er| super::AdminAccessTokenEr(super::JsonwebtokenAdminEr::from(er)))
+    .map_err(|error| super::AdminAccessTokenError(super::JsonwebtokenAdminError::from(error)))
 }
 pub(super) fn decode_access_token(
     token: &super::StdAdminAccessToken,
     secret: &super::AdminJwtSecret,
     issuer: &super::AdminTokenIssuer,
     audience: &super::AdminTokenAudience,
-) -> Result<super::AdminAccessClaims, super::AdminAccessTokenEr> {
+) -> Result<super::AdminAccessClaims, super::AdminAccessTokenError> {
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_issuer(&[issuer.as_ref()]);
     validation.set_audience(&[audience.as_ref()]);
@@ -46,5 +46,5 @@ pub(super) fn decode_access_token(
         &validation,
     )
     .map(|data| data.claims)
-    .map_err(|er| super::AdminAccessTokenEr(super::JsonwebtokenAdminEr::from(er)))
+    .map_err(|error| super::AdminAccessTokenError(super::JsonwebtokenAdminError::from(error)))
 }

@@ -1,7 +1,7 @@
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, try_from_env::TryFromEnv, optml::Optml)]
 pub struct Config {
-    //todo mb auto gen .env and docker-compose environment variables. and mb write in directly into files
+    //todo maybe auto generate .env and docker-compose environment variables. and maybe write in directly into files
     pub cors_allow_origin: config_lib::CorsAllowOrigin,
     pub database_url: config_lib::DatabaseUrl,
     pub admin_jwt_secret: config_lib::AdminJwtSecret,

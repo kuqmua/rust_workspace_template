@@ -20,8 +20,8 @@ fn all_crates_have_workspace_lints() {
             .get("lints")
             .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
         {
-            Some(lints_tbl) => {
-                if lints_tbl.get("workspace") != Some(&toml::Value::Boolean(true)) {
+            Some(lints_table) => {
+                if lints_table.get("workspace") != Some(&toml::Value::Boolean(true)) {
                     ers.push(format!(
                         "{}: [lints] missing `workspace = true`",
                         path.display()
@@ -51,8 +51,8 @@ fn all_crates_use_edition_2024() {
 }
 #[test]
 fn check_workspace_dependencies_having_exact_version() {
-    let workspace = super::workspace_tbl_from_cargo_toml();
-    super::toml_val_as_tbl_ref(
+    let workspace = super::workspace_table_from_cargo_toml();
+    super::toml_val_as_table_ref(
         super::types::TomlValueRef::from(workspace.as_ref().get("dependencies").expect("2376f58e")),
         super::types::StaticStr("e117fa5a"),
     )
@@ -97,13 +97,13 @@ fn workspace_crates_must_use_workspace_dependencies() {
 }
 #[test]
 fn workspace_dependencies_use_inline_table_style() {
-    let rgx =
+    let regex =
         regex::Regex::new(r"(?m)^\s*[A-Za-z0-9_-]+\.workspace\s*=\s*true\s*$").expect("ac15d6b9");
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
         let v = super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
-        ers.extend(rgx.find_iter(v.as_ref()).map(|mtch| {
-            let line_nbr = v
+        ers.extend(regex.find_iter(v.as_ref()).map(|mtch| {
+            let line_number = v
                 .as_ref()
                 .bytes()
                     .take(mtch.start())
@@ -111,7 +111,7 @@ fn workspace_dependencies_use_inline_table_style() {
                     .count()
                     .saturating_add(1);
                 format!(
-                    "{}:{line_nbr} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
+                    "{}:{line_number} use `dep = {{ workspace = true }}` instead of dotted workspace dependency style",
                     path.display()
                 )
             }));
@@ -124,7 +124,7 @@ fn workspace_dependencies_use_inline_table_style() {
 }
 #[test]
 fn workspace_members_exist_on_disk() {
-    let workspace = super::workspace_tbl_from_cargo_toml();
+    let workspace = super::workspace_table_from_cargo_toml();
     let members = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
         super::types::StaticStr("7f3a1c4e"),
@@ -139,7 +139,7 @@ fn workspace_members_exist_on_disk() {
 }
 #[test]
 fn workspace_members_sorted_alphabetically() {
-    let workspace = super::workspace_tbl_from_cargo_toml();
+    let workspace = super::workspace_table_from_cargo_toml();
     let members_vec = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
         super::types::StaticStr("c1d4f7a2"),

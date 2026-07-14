@@ -4,95 +4,97 @@ const COMMIT_NOT_EQ_MSG: &str =
     "different project commit provided, services must work only with eq project commits";
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(to_err_string_as_ref_str)]
-pub struct CommitNotEqMsg(&'static str);
+pub struct CommitNotEqMessage(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(to_err_string_as_ref_str)]
 pub struct CommitToUse(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(to_err_string_as_ref_str)]
-pub struct NoCommitHeaderMsg(&'static str);
+pub struct NoCommitHeaderMessage(&'static str);
 #[derive(Debug, newtype::Newtype)]
 #[newtype(to_err_string)]
-pub struct AxumCommitToStrConversionEr(axum::http::header::ToStrError);
+pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(from)]
 pub struct EnableApiGitCommitCheck(bool);
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
-pub enum CommitEr {
+pub enum CommitError {
     CommitNotEq {
         #[eo_to_err_string]
-        commit_not_eq: CommitNotEqMsg,
+        commit_not_eq: CommitNotEqMessage,
         #[eo_to_err_string]
         commit_to_use: CommitToUse,
-        loc: loc_lib::loc::Loc,
+        location: location_lib::location::Location,
     },
     CommitToStrConversion {
-        loc: loc_lib::loc::Loc,
+        location: location_lib::location::Location,
         #[eo_to_err_string]
-        commit_to_str_conversion: AxumCommitToStrConversionEr,
+        commit_to_str_conversion: AxumCommitToStrConversionError,
     },
     NoCommitHeader {
         #[eo_to_err_string]
-        no_commit_header: NoCommitHeaderMsg,
-        loc: loc_lib::loc::Loc,
+        no_commit_header: NoCommitHeaderMessage,
+        location: location_lib::location::Location,
     },
 }
-impl crate::GetAxumHttpStatusCode for CommitEr {
+impl crate::GetAxumHttpStatusCode for CommitError {
     const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode = crate::AxumHttpStatusCode::BAD_REQUEST;
 }
-impl CommitEr {
+impl CommitError {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
     fn commit_not_eq(commit_to_use: CommitToUse) -> Self {
         Self::CommitNotEq {
-            commit_not_eq: CommitNotEqMsg(COMMIT_NOT_EQ_MSG),
+            commit_not_eq: CommitNotEqMessage(COMMIT_NOT_EQ_MSG),
             commit_to_use,
-            loc: loc_macros::loc!(),
+            location: location_macros::location!(),
         }
     }
     #[allow(clippy::single_call_fn)] // keeps header to-str conversion error construction reusable
-    fn commit_to_str_conversion(commit_to_str_conversion: AxumCommitToStrConversionEr) -> Self {
+    fn commit_to_str_conversion(commit_to_str_conversion: AxumCommitToStrConversionError) -> Self {
         Self::CommitToStrConversion {
             commit_to_str_conversion,
-            loc: loc_macros::loc!(),
+            location: location_macros::location!(),
         }
     }
     #[allow(clippy::single_call_fn)] // keeps missing-commit-header error construction reusable
     fn no_commit_header() -> Self {
         Self::NoCommitHeader {
-            no_commit_header: NoCommitHeaderMsg(NO_COMMIT_HEADER_MSG),
-            loc: loc_macros::loc!(),
+            no_commit_header: NoCommitHeaderMessage(NO_COMMIT_HEADER_MSG),
+            location: location_macros::location!(),
         }
     }
 }
 #[allow(clippy::single_call_fn)] // separates commit-value validation from header parsing for reuse and focused tests
-fn validate_commit_header_value(commit: crate::hdr_val::HeaderStrRef<'_>) -> Result<(), CommitEr> {
+fn validate_commit_header_value(
+    commit: crate::hdr_val::HeaderStrRef<'_>,
+) -> Result<(), CommitError> {
     git_info::validate_project_commit(commit.0)
-        .map_err(|er| {
+        .map_err(|error| {
             CommitToUse(<&'static str>::from(
-                git_info::ProjectGitCommitLinkRef::from(er),
+                git_info::ProjectGitCommitLinkRef::from(error),
             ))
         })
-        .map_err(CommitEr::commit_not_eq)
+        .map_err(CommitError::commit_not_eq)
 }
 #[allow(clippy::single_call_fn)] // shared extractor keeps commit-header parsing reusable across commit-check entry points
 fn read_commit_header_str(
     headers: crate::hdr_val::AxumHeadersRef<'_>,
-) -> Result<crate::hdr_val::HeaderStrRef<'_>, CommitEr> {
+) -> Result<crate::hdr_val::HeaderStrRef<'_>, CommitError> {
     crate::hdr_val::get_required_header_str(
         headers,
         COMMIT_HEADER_NAME,
-        CommitEr::no_commit_header,
-        |er| CommitEr::commit_to_str_conversion(AxumCommitToStrConversionEr(er)),
+        CommitError::no_commit_header,
+        |error| CommitError::commit_to_str_conversion(AxumCommitToStrConversionError(error)),
     )
 }
 #[allow(clippy::single_call_fn)] // reusable validator keeps check_commit focused on feature-toggle behavior
-fn validate_commit_header(headers: crate::hdr_val::AxumHeadersRef<'_>) -> Result<(), CommitEr> {
+fn validate_commit_header(headers: crate::hdr_val::AxumHeadersRef<'_>) -> Result<(), CommitError> {
     validate_commit_header_value(read_commit_header_str(headers)?)
 }
 pub fn check_commit(
     enable_api_git_commit_check: EnableApiGitCommitCheck,
     headers: crate::hdr_val::AxumHeadersRef<'_>,
-) -> Result<(), CommitEr> {
+) -> Result<(), CommitError> {
     if !enable_api_git_commit_check.0 {
         return Ok(());
     }
@@ -101,7 +103,7 @@ pub fn check_commit(
 #[cfg(test)]
 mod tests {
     const WRONG_COMMIT: &str = "deadbeef";
-    fn check_commit_enabled(headers: &axum::http::HeaderMap) -> Result<(), super::CommitEr> {
+    fn check_commit_enabled(headers: &axum::http::HeaderMap) -> Result<(), super::CommitError> {
         super::check_commit(true.into(), crate::hdr_val::AxumHeadersRef::from(headers))
     }
     fn mk_headers_with_commit_header_value<ValueTy>(
@@ -150,39 +152,40 @@ mod tests {
         );
     }
     #[allow(clippy::single_call_fn)] // shared extractor keeps NoCommitHeader variant matching reusable across tests
-    fn no_commit_header_msg(v: &super::CommitEr) -> Option<&'static str> {
+    fn no_commit_header_message(v: &super::CommitError) -> Option<&'static str> {
         match v {
-            super::CommitEr::NoCommitHeader {
+            super::CommitError::NoCommitHeader {
                 no_commit_header, ..
             } => Some(no_commit_header.0),
-            super::CommitEr::CommitNotEq { .. } | super::CommitEr::CommitToStrConversion { .. } => {
+            super::CommitError::CommitNotEq { .. }
+            | super::CommitError::CommitToStrConversion { .. } => None,
+        }
+    }
+    #[allow(clippy::single_call_fn)] // shared extractor keeps CommitToStrConversion checks concise across tests
+    fn is_commit_to_str_conversion(v: &super::CommitError) -> Option<()> {
+        match v {
+            super::CommitError::CommitToStrConversion { .. } => Some(()),
+            super::CommitError::CommitNotEq { .. } | super::CommitError::NoCommitHeader { .. } => {
                 None
             }
         }
     }
-    #[allow(clippy::single_call_fn)] // shared extractor keeps CommitToStrConversion checks concise across tests
-    fn is_commit_to_str_conversion(v: &super::CommitEr) -> Option<()> {
-        match v {
-            super::CommitEr::CommitToStrConversion { .. } => Some(()),
-            super::CommitEr::CommitNotEq { .. } | super::CommitEr::NoCommitHeader { .. } => None,
-        }
-    }
     #[allow(clippy::single_call_fn)] // shared extractor centralizes CommitNotEq fields used by multiple assertions
-    fn commit_not_eq_fields(v: &super::CommitEr) -> Option<(&'static str, &'static str)> {
+    fn commit_not_eq_fields(v: &super::CommitError) -> Option<(&'static str, &'static str)> {
         match v {
-            super::CommitEr::CommitNotEq {
+            super::CommitError::CommitNotEq {
                 commit_not_eq,
                 commit_to_use,
                 ..
             } => Some((commit_not_eq.0, commit_to_use.0)),
-            super::CommitEr::CommitToStrConversion { .. }
-            | super::CommitEr::NoCommitHeader { .. } => None,
+            super::CommitError::CommitToStrConversion { .. }
+            | super::CommitError::NoCommitHeader { .. } => None,
         }
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps NoCommitHeader message checks coupled with variant extraction across tests
     fn assert_no_commit_header_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
         let no_commit_header =
-            expect_check_commit_err_variant(headers, exp_id, no_commit_header_msg);
+            expect_check_commit_err_variant(headers, exp_id, no_commit_header_message);
         assert_eq!(no_commit_header, super::NO_COMMIT_HEADER_MSG);
     }
     fn expect_commit_to_str_conversion_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
@@ -215,7 +218,7 @@ mod tests {
     fn expect_check_commit_err_variant<R>(
         headers: &axum::http::HeaderMap,
         exp_id: &'static str,
-        map: impl FnOnce(&super::CommitEr) -> Option<R>,
+        map: impl FnOnce(&super::CommitError) -> Option<R>,
     ) -> R {
         crate::test_hlp::expect_err_variant_ref_with_status(
             check_commit_enabled(headers),
@@ -228,7 +231,7 @@ mod tests {
     fn expect_get_commit_header_str_err_variant<R>(
         headers: &axum::http::HeaderMap,
         exp_id: &'static str,
-        map: impl FnOnce(&super::CommitEr) -> Option<R>,
+        map: impl FnOnce(&super::CommitError) -> Option<R>,
     ) -> R {
         crate::test_hlp::expect_err_variant_ref_with_status(
             super::read_commit_header_str(crate::hdr_val::AxumHeadersRef::from(headers)),
@@ -270,10 +273,10 @@ mod tests {
     #[test]
     fn validate_commit_header_returns_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
-        let no_commit_header = crate::test_hlp::expect_er_variant_ref(
+        let no_commit_header = crate::test_hlp::expect_error_variant_ref(
             super::validate_commit_header(crate::hdr_val::AxumHeadersRef::from(&headers)),
             "31ea9a57",
-            no_commit_header_msg,
+            no_commit_header_message,
         );
         assert_eq!(no_commit_header, super::NO_COMMIT_HEADER_MSG);
     }
@@ -288,8 +291,11 @@ mod tests {
     #[test]
     fn get_commit_header_str_returns_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
-        let no_commit_header =
-            expect_get_commit_header_str_err_variant(&headers, "72e4a18d", no_commit_header_msg);
+        let no_commit_header = expect_get_commit_header_str_err_variant(
+            &headers,
+            "72e4a18d",
+            no_commit_header_message,
+        );
         assert_eq!(no_commit_header, super::NO_COMMIT_HEADER_MSG);
     }
     #[test]
@@ -304,7 +310,7 @@ mod tests {
     }
     #[test]
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
-        let fields = crate::test_hlp::expect_er_variant_ref(
+        let fields = crate::test_hlp::expect_error_variant_ref(
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(WRONG_COMMIT)),
             "6804382f",
             commit_not_eq_fields,
@@ -323,7 +329,7 @@ mod tests {
     #[test]
     fn check_commit_returns_expected_commit_link_for_wrong_commit() {
         let headers = mk_headers_with_wrong_commit();
-        let fields = crate::test_hlp::expect_er_variant_ref(
+        let fields = crate::test_hlp::expect_error_variant_ref(
             check_commit_enabled(&headers),
             "3db98d20",
             commit_not_eq_fields,

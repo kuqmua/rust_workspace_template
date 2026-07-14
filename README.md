@@ -42,15 +42,15 @@ This is a Rust workspace project with the following main components:
 - `location_lib`: Advanced er handling with context
 - `from_sqlx_postgres_er`: SQLx PostgreSQL er conversion
 - `from_str`: String parsing utilities
-- `gen_quotes`: Quote generation utilities
+- `generate_quotes`: Quote generation utilities
 - `macros_helpers`: Helper macros for code generation
 - And many more utility crates...
 
 ### Architecture and shared logic ownership
 
 - `newtype` generates mechanical implementations for owned, borrowed, slice, and secret-aware domain wrappers. Validation and redaction policies remain with each domain type.
-- `gen_pg_tbl_src` owns the CRUD operation descriptor used by generated routes, clients, handlers, OpenAPI metadata, permissions, and negative tests.
-- `gen_pg_types_src` owns PostgreSQL type capabilities through its private `PgTypeSpec` pipeline. `gen_wh_flts_src` similarly owns filter SQL, bind counts, and value shapes through private `FilterSpec` values.
+- `generate_pg_table_src` owns the CRUD operation descriptor used by generated routes, clients, handlers, OpenAPI metadata, permissions, and negative tests.
+- `generate_pg_types_src` owns PostgreSQL type capabilities through its private `PgTypeSpec` pipeline. `generate_where_filters_src` similarly owns filter SQL, bind counts, and value shapes through private `FilterSpec` values.
 - `frontend_contract` owns transport-independent success and problem decoding. Native, generated, and browser clients consume that contract without introducing SQLx, Axum, Leptos, or Gloo dependencies into it.
 - `server_runtime` owns lifecycle, limits, CORS, health probing, and request metadata. The `server` executable remains the composition root.
 - `server_admin` keeps its public facade stable while private modules own domain wrappers, RBAC, password and token handling, migrations, cleanup, generated authentication, routing, sessions, rate limiting, audit persistence, and handlers.
@@ -163,7 +163,7 @@ Utilities for converting SQLx PostgreSQL errors to application-specific errors.
 ### from_str
 Safe string parsing with detailed error context.
 
-### gen_quotes
+### generate_quotes
 Utilities for generating quotes and text content.
 
 ### macros_helpers

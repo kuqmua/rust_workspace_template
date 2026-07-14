@@ -2,17 +2,17 @@ const TRACING_DFLT_FILTER: &str = "info";
 const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct StdServerIoEr(std::io::Error);
+struct StdServerIoError(std::io::Error);
 #[derive(Debug)]
-struct ServerRuntimeServeEr(server_runtime::ServeWithGracefulShutdownEr);
+struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
 #[derive(Debug)]
-struct MetricsExporterPrometheusBuildEr(metrics_exporter_prometheus::BuildError);
-impl std::fmt::Display for MetricsExporterPrometheusBuildEr {
+struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
+impl std::fmt::Display for MetricsExporterPrometheusBuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for MetricsExporterPrometheusBuildEr {
+impl std::error::Error for MetricsExporterPrometheusBuildError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
@@ -20,62 +20,62 @@ impl std::error::Error for MetricsExporterPrometheusBuildEr {
 #[derive(Clone, Debug)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 #[derive(Debug)]
-struct ServerRuntimeRequestTimeoutEr(server_runtime::StdRequestTimeoutTryFromDurationEr);
+struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
 #[derive(Debug)]
-struct ServerRuntimeRunIntervalEr(server_runtime::StdRunIntervalTryFromDurationEr);
+struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
 #[derive(Debug)]
-struct ServerRuntimeBackgroundTaskShutdownEr(server_runtime::BackgroundTaskShutdownEr);
+struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
 #[derive(Debug)]
-struct ServerAdminCleanupCfgEr(server_admin::AdminCleanupCfgEr);
-impl std::fmt::Display for ServerRuntimeRequestTimeoutEr {
+struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
+impl std::fmt::Display for ServerRuntimeRequestTimeoutError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ServerRuntimeRequestTimeoutEr {}
-impl std::fmt::Display for ServerRuntimeRunIntervalEr {
+impl std::error::Error for ServerRuntimeRequestTimeoutError {}
+impl std::fmt::Display for ServerRuntimeRunIntervalError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ServerRuntimeRunIntervalEr {}
-impl std::fmt::Display for ServerRuntimeBackgroundTaskShutdownEr {
+impl std::error::Error for ServerRuntimeRunIntervalError {}
+impl std::fmt::Display for ServerRuntimeBackgroundTaskShutdownError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ServerRuntimeBackgroundTaskShutdownEr {}
-impl std::fmt::Display for ServerAdminCleanupCfgEr {
+impl std::error::Error for ServerRuntimeBackgroundTaskShutdownError {}
+impl std::fmt::Display for ServerAdminCleanupCfgError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ServerAdminCleanupCfgEr {}
-impl std::fmt::Display for ServerRuntimeServeEr {
+impl std::error::Error for ServerAdminCleanupCfgError {}
+impl std::fmt::Display for ServerRuntimeServeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ServerRuntimeServeEr {
+impl std::error::Error for ServerRuntimeServeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerConfigEr(server_config::ConfigTryFromEnvEr);
+struct ServerConfigError(server_config::ConfigTryFromEnvError);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct SqlxServerPgConnectEr(sqlx::Error);
+struct SqlxServerPgConnectError(sqlx::Error);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerAdminMigrateEr(server_admin::AdminMigrateEr);
+struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerPrepPgEr(#[from] server_tbl_example::TblExamplePrepPgEr);
+struct ServerPrepPgError(#[from] server_table_example::TableExamplePrepPgError);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerAdminAuthSvcStateBuildEr(server_admin::auth::AdminAuthSvcStateBuildEr);
+struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
 struct AxumApiRoutes(axum::Router);
 struct TokioServerRuntime(tokio::runtime::Runtime);
 struct StdServerExitCode(std::process::ExitCode);
@@ -85,43 +85,43 @@ impl std::process::Termination for StdServerExitCode {
     }
 }
 #[derive(Debug, thiserror::Error)]
-enum RunServerEr {
+enum RunServerError {
     #[error("failed to build administrator authentication state: {0}")]
-    AdminAuthState(ServerAdminAuthSvcStateBuildEr),
+    AdminAuthState(ServerAdminAuthSvcStateBuildError),
     #[error("invalid administrator cleanup configuration: {0}")]
-    AdminCleanupConfig(ServerAdminCleanupCfgEr),
+    AdminCleanupConfig(ServerAdminCleanupCfgError),
     #[error("administrator cleanup task shutdown failed: {0}")]
-    AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownEr),
+    AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError),
     #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(StdServerIoEr),
+    BindServiceSocket(StdServerIoError),
     #[error("failed to build tokio runtime: {0}")]
-    BuildRuntime(StdServerIoEr),
+    BuildRuntime(StdServerIoError),
     #[error("failed to read configuration from environment: {0}")]
-    Config(ServerConfigEr),
+    Config(ServerConfigError),
     #[error("failed to build governor config")]
     GovernorConfig,
     #[error("failed to install metrics recorder: {0}")]
-    MetricsRecorder(MetricsExporterPrometheusBuildEr),
+    MetricsRecorder(MetricsExporterPrometheusBuildError),
     #[error("failed to connect to postgres: {0}")]
-    PgConnect(SqlxServerPgConnectEr),
+    PgConnect(SqlxServerPgConnectError),
     #[error("failed to prepare administrator schema: {0}")]
-    PrepAdminPg(ServerAdminMigrateEr),
+    PrepAdminPg(ServerAdminMigrateError),
     #[error("failed to prepare postgres schema: {0}")]
-    PrepPg(ServerPrepPgEr),
+    PrepPg(ServerPrepPgError),
     #[error("invalid server runtime interval: {0}")]
-    RuntimeInterval(ServerRuntimeRunIntervalEr),
+    RuntimeInterval(ServerRuntimeRunIntervalError),
     #[error("invalid server runtime timeout: {0}")]
-    RuntimeTimeout(ServerRuntimeRequestTimeoutEr),
+    RuntimeTimeout(ServerRuntimeRequestTimeoutError),
     #[error("server failed: {0}")]
-    Serve(ServerRuntimeServeEr),
+    Serve(ServerRuntimeServeError),
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
-fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerEr> {
+fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
     let batch_size = server_admin::AdminCleanupBatchSize::try_from(1_000i64)
-        .map_err(|error| RunServerEr::AdminCleanupConfig(ServerAdminCleanupCfgEr(error)))?;
+        .map_err(|error| RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError(error)))?;
     let retention = |seconds| {
         server_admin::AdminCleanupRetentionSeconds::try_from(seconds)
-            .map_err(|error| RunServerEr::AdminCleanupConfig(ServerAdminCleanupCfgEr(error)))
+            .map_err(|error| RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError(error)))
     };
     Ok(server_admin::AdminCleanupCfg::new(
         batch_size,
@@ -184,16 +184,14 @@ fn mk_api_routes(
         ));
     AxumApiRoutes(
         axum::Router::new()
-            .merge(axum::Router::from(cmn_routes::cmn_routes(
-                cmn_routes::StdArcCmnRoutesAppState::from(std::sync::Arc::<
+            .merge(axum::Router::from(common_routes::common_routes(
+                common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
                     server_app_state::ServerAppState<'static>,
                 >::clone(app_state)),
             )))
-            .merge(server_tbl_example::TblExample::routes(std::sync::Arc::<
-                server_app_state::ServerAppState<'static>,
-            >::clone(
-                app_state
-            )))
+            .merge(server_table_example::TableExample::routes(
+                std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+            ))
             .nest(
                 "/admin",
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
@@ -224,7 +222,7 @@ fn mk_app_state(
     })
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
-fn init_tracing() {
+fn initialization_tracing() {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_subscriber::EnvFilter::try_from_default_env()
@@ -237,16 +235,18 @@ fn init_tracing() {
     tracing_subscriber::util::SubscriberInitExt::init(subscriber_with_fmt);
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
-fn mk_runtime() -> Result<TokioServerRuntime, RunServerEr> {
+fn mk_runtime() -> Result<TokioServerRuntime, RunServerError> {
     tokio::runtime::Builder::new_multi_thread()
         .worker_threads(num_cpus::get())
         .enable_all()
         .build()
         .map(TokioServerRuntime)
-        .map_err(|er| RunServerEr::BuildRuntime(StdServerIoEr(er)))
+        .map_err(|error| RunServerError::BuildRuntime(StdServerIoError(error)))
 }
 #[allow(clippy::single_call_fn)] // isolated pool builder keeps startup flow linear and reuses config getters in one place
-async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::SqlxPgPool, RunServerEr> {
+async fn mk_pg_pool(
+    config: &server_config::Config,
+) -> Result<app_state::SqlxPgPool, RunServerError> {
     sqlx::postgres::PgPoolOptions::new()
         .max_connections(*config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
         .connect(secrecy::ExposeSecret::expose_secret(
@@ -254,24 +254,24 @@ async fn mk_pg_pool(config: &server_config::Config) -> Result<app_state::SqlxPgP
         ))
         .await
         .map(app_state::SqlxPgPool::from)
-        .map_err(|er| RunServerEr::PgConnect(SqlxServerPgConnectEr(er)))
+        .map_err(|error| RunServerError::PgConnect(SqlxServerPgConnectError(error)))
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
-async fn run_server() -> Result<(), RunServerEr> {
+async fn run_server() -> Result<(), RunServerError> {
     let config = server_config::Config::try_from_env()
-        .map_err(|er| RunServerEr::Config(ServerConfigEr(er)))?;
+        .map_err(|error| RunServerError::Config(ServerConfigError(error)))?;
     let pg_pool = mk_pg_pool(&config).await?;
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
         .await
-        .map_err(|er| RunServerEr::PrepAdminPg(ServerAdminMigrateEr(er)))?;
-    server_tbl_example::TblExample::prep_pg(pg_pool.as_ref())
+        .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError(error)))?;
+    server_table_example::TableExample::prep_pg(pg_pool.as_ref())
         .await
-        .map_err(|er| RunServerEr::PrepPg(ServerPrepPgEr::from(er)))?;
+        .map_err(|error| RunServerError::PrepPg(ServerPrepPgError::from(error)))?;
     let cleanup_cfg = mk_admin_cleanup_cfg()?;
     let cleanup_interval = server_runtime::StdRunInterval::try_from(
         std::time::Duration::from_secs(ADMIN_CLEANUP_INTERVAL_SECONDS),
     )
-    .map_err(|error| RunServerEr::RuntimeInterval(ServerRuntimeRunIntervalEr(error)))?;
+    .map_err(|error| RunServerError::RuntimeInterval(ServerRuntimeRunIntervalError(error)))?;
     let cleanup_pool = pg_pool.clone();
     let Some(cleanup_task) = server_runtime::spawn_interval_task(
         Some(cleanup_interval),
@@ -295,15 +295,15 @@ async fn run_server() -> Result<(), RunServerEr> {
             }
         },
     ) else {
-        return Err(RunServerEr::RuntimeInterval(ServerRuntimeRunIntervalEr(
-            server_runtime::StdRunIntervalTryFromDurationEr,
-        )));
+        return Err(RunServerError::RuntimeInterval(
+            ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError),
+        ));
     };
     let tcp_listener = tokio::net::TcpListener::bind(
         config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
     )
     .await
-    .map_err(|er| RunServerEr::BindServiceSocket(StdServerIoEr(er)))?;
+    .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError(error)))?;
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
         server_runtime::parse_cors_allow_origin(server_runtime::HttpCorsAllowOriginTextRef::from(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
@@ -324,25 +324,31 @@ async fn run_server() -> Result<(), RunServerEr> {
                 &config.admin_token_audience,
                 &config.cors_allow_origin,
             )
-            .map_err(|er| RunServerEr::AdminAuthState(ServerAdminAuthSvcStateBuildEr(er)))?,
+            .map_err(|error| {
+                RunServerError::AdminAuthState(ServerAdminAuthSvcStateBuildError(error))
+            })?,
         ));
     let swagger_enabled = *config.admin_swagger_enabled;
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
         .map(MetricsExporterPrometheusHandle)
-        .map_err(|er| RunServerEr::MetricsRecorder(MetricsExporterPrometheusBuildEr(er)))?;
+        .map_err(|error| {
+            RunServerError::MetricsRecorder(MetricsExporterPrometheusBuildError(error))
+        })?;
     let api_routes = mk_api_routes(&app_state, admin_auth_state, metrics_handle);
     let governor_conf = std::sync::Arc::new(
         tower_governor::governor::GovernorConfigBuilder::default()
             .per_second(2)
             .burst_size(10)
             .finish()
-            .ok_or(RunServerEr::GovernorConfig)?,
+            .ok_or(RunServerError::GovernorConfig)?,
     );
     let request_timeout =
         server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
-            .map_err(|er| RunServerEr::RuntimeTimeout(ServerRuntimeRequestTimeoutEr(er)))?;
+            .map_err(|error| {
+                RunServerError::RuntimeTimeout(ServerRuntimeRequestTimeoutError(error))
+            })?;
     let rate_limited_api_routes = api_routes
         .0
         .layer(tower_governor::GovernorLayer::new(governor_conf));
@@ -384,8 +390,8 @@ async fn run_server() -> Result<(), RunServerEr> {
         server_runtime::TokioTcpListener::from(tcp_listener),
         router,
         async {
-            if let Err(er) = tokio::signal::ctrl_c().await {
-                eprintln!("failed to wait for ctrl-c signal: {er}");
+            if let Err(error) = tokio::signal::ctrl_c().await {
+                eprintln!("failed to wait for ctrl-c signal: {error}");
             }
         },
         request_timeout,
@@ -395,17 +401,17 @@ async fn run_server() -> Result<(), RunServerEr> {
         .shutdown(request_timeout)
         .await
         .map_err(|error| {
-            RunServerEr::AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownEr(error))
+            RunServerError::AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError(error))
         })?;
-    serve_result.map_err(|er| RunServerEr::Serve(ServerRuntimeServeEr(er)))?;
+    serve_result.map_err(|error| RunServerError::Serve(ServerRuntimeServeError(error)))?;
     Ok(())
 }
 fn main() -> StdServerExitCode {
-    init_tracing();
+    initialization_tracing();
     match mk_runtime().and_then(|runtime| runtime.0.block_on(run_server())) {
         Ok(()) => StdServerExitCode(std::process::ExitCode::SUCCESS),
-        Err(er) => {
-            eprintln!("{er}");
+        Err(error) => {
+            eprintln!("{error}");
             StdServerExitCode(std::process::ExitCode::FAILURE)
         }
     }

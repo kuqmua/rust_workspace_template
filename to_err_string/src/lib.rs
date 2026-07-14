@@ -68,7 +68,7 @@ where
 }
 to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
 to_err_string_macros::impl_to_err_string_const!(
-    tracing::dispatcher::SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultEr",
+    tracing::dispatcher::SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultError",
     tracing::log::SetLoggerError => "tracing::log::tracing::log::SetLoggerError",
 );
 #[derive(Debug, Clone, Copy)]
@@ -121,6 +121,6 @@ mod tests {
     #[test]
     fn to_err_string_for_result_values() {
         assert_to_err_string(Result::<u8, u16>::Ok(5), "Ok(5)");
-        assert_to_err_string(Result::<u8, &'static str>::Err("er"), "Err(\"er\")");
+        assert_to_err_string(Result::<u8, &'static str>::Err("error"), "Err(\"error\")");
     }
 }

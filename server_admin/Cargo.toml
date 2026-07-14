@@ -21,18 +21,18 @@ axum = { workspace = true }
 config_lib = { workspace = true }
 futures = { workspace = true }
 frontend_contract = { workspace = true }
-gen_pg_tbl = { workspace = true }
+generate_pg_table = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
-loc_lib = { workspace = true }
-loc_macros = { workspace = true }
+location_lib = { workspace = true }
+location_macros = { workspace = true }
 location = { workspace = true }
 metrics = { workspace = true }
 newtype = { workspace = true }
 optml = { workspace = true }
-pg_crud_cmn = { workspace = true, features = ["test-utils"] }
-pg_tbl = { workspace = true, features = ["test-utils"] }
+pg_crud_common = { workspace = true, features = ["test-utils"] }
+pg_table = { workspace = true, features = ["test-utils"] }
 pg_types_chrono_net = { workspace = true, features = ["test-utils"] }
 pg_types_numeric = { workspace = true, features = ["test-utils"] }
 pg_types_text_misc = { workspace = true, features = ["test-utils"] }
@@ -52,7 +52,7 @@ tower = { workspace = true }
 tracing = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
-wh_flts = { workspace = true }
+where_filters = { workspace = true }
 
 [lints]
 workspace = true

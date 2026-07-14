@@ -14,9 +14,9 @@ edition = "2024"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
-gen_quotes = { workspace = true }
+generate_quotes = { workspace = true }
 naming_macros = { workspace = true }
-naming_cmn = { workspace = true }
+naming_common = { workspace = true }
 newtype = { workspace = true }
 optml = { workspace = true }
 [lints]

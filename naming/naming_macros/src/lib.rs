@@ -1,16 +1,16 @@
 const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
 #[derive(newtype::Newtype)]
 #[newtype(to_tokens)]
-struct ProcMacro2GeneratedNamingTs(proc_macro2::TokenStream);
+struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
 #[derive(Clone, Copy)]
-struct SynEnumIdentRef<'ident_lt>(&'ident_lt syn::Ident);
+struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 #[derive(Clone, Copy)]
-struct ProcMacro2VrtMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
-fn gen_impl_to_tokens_ts(
+struct ProcMacro2VariantMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
+fn generate_impl_to_tokens_token_stream(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,
-) -> ProcMacro2GeneratedNamingTs {
-    ProcMacro2GeneratedNamingTs(quote::quote! {
+) -> ProcMacro2GeneratedNamingTokenStream {
+    ProcMacro2GeneratedNamingTokenStream(quote::quote! {
         impl quote::ToTokens for #ts0 {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #ts1
@@ -19,108 +19,110 @@ fn gen_impl_to_tokens_ts(
     })
 }
 #[proc_macro]
-pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    panic_loc::panic_loc();
-    let rgx = regex::Regex::new(REGEX_VALUE).expect("20948d87");
-    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_ts.to_string())
+pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
+    input_token_stream: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    panic_location::panic_location();
+    let regex = regex::Regex::new(REGEX_VALUE).expect("20948d87");
+    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string())
         .expect("90e5793b")
         .into_iter()
-        .map(|el| {
-            assert!(el.iter().all(|el0| rgx.is_match(el0)), "faadba8a");
-            let parts_len = el.iter().map(String::len).sum::<usize>();
-            let phrase_part_ucc_str = el.iter().fold(
+        .map(|element| {
+            assert!(element.iter().all(|el0| regex.is_match(el0)), "faadba8a");
+            let parts_len = element.iter().map(String::len).sum::<usize>();
+            let phrase_part_upper_camel_case_str = element.iter().fold(
                 String::with_capacity(parts_len),
-                |mut acc, el0| {
-                    acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
-                    acc
+                |mut accumulator, el0| {
+                    accumulator.push_str(&naming_common::AsRefStrToUpperCamelCaseStr::case(el0));
+                    accumulator
                 },
             );
-            let phrase_part_sc_str = el.iter().enumerate().fold(
-                String::with_capacity(parts_len.saturating_add(el.len().saturating_sub(1usize))),
-                |mut acc, (i, el0)| {
-                        let el_sc_str = naming_cmn::AsRefStrToScStr::case(el0);
+            let phrase_part_snake_case_str = element.iter().enumerate().fold(
+                String::with_capacity(parts_len.saturating_add(element.len().saturating_sub(1usize))),
+                |mut accumulator, (i, el0)| {
+                        let element_snake_case_str = naming_common::AsRefStrToSnakeCaseStr::case(el0);
                         if i == 0 {
-                            acc.push_str(&el_sc_str);
+                            accumulator.push_str(&element_snake_case_str);
                         } else {
                             assert!(
-                                std::fmt::Write::write_fmt(&mut acc, format_args!("_{el_sc_str}"))
+                                std::fmt::Write::write_fmt(&mut accumulator, format_args!("_{element_snake_case_str}"))
                                     .is_ok(),
                                 "ef718915"
                             );
                         }
-                        acc
+                        accumulator
                 },
             );
-            let phrase_part_ucc_ucc_ts = format!("{phrase_part_ucc_str}Ucc")
+            let phrase_part_upper_camel_case_upper_camel_case_token_stream = format!("{phrase_part_upper_camel_case_str}UpperCamelCase")
                 .parse::<proc_macro2::TokenStream>()
                 .expect("4ab6a54c");
-            let phrase_part_sc_ucc_ts = format!("{phrase_part_ucc_str}Sc")
+            let phrase_part_snake_case_upper_camel_case_token_stream = format!("{phrase_part_upper_camel_case_str}SnakeCase")
                 .parse::<proc_macro2::TokenStream>()
                 .expect("0cc47b2e");
-            let (ucc_struct_dcl_ts, sc_struct_dcl_ts) = {
-                let gen_ts = |ts: &dyn quote::ToTokens| {
+            let (ucc_struct_declaration_token_stream, sc_struct_declaration_token_stream) = {
+                let generate_token_stream = |ts: &dyn quote::ToTokens| {
                     quote::quote! {
                         #[derive(Debug, optml::Optml)]
                         pub struct #ts;
                     }
                 };
                 (
-                    gen_ts(&phrase_part_ucc_ucc_ts),
-                    gen_ts(&phrase_part_sc_ucc_ts),
+                    generate_token_stream(&phrase_part_upper_camel_case_upper_camel_case_token_stream),
+                    generate_token_stream(&phrase_part_snake_case_upper_camel_case_token_stream),
                 )
             };
-            let (impl_display_ucc_ts, impl_display_sc_ts) = {
-                let gen_ts = |struct_name_ts: &dyn quote::ToTokens,
-                              write_ts: &dyn quote::ToTokens| {
+            let (impl_display_upper_camel_case_token_stream, impl_display_snake_case_token_stream) = {
+                let generate_token_stream = |struct_name_token_stream: &dyn quote::ToTokens,
+                              write_token_stream: &dyn quote::ToTokens| {
                     quote::quote! {
-                        impl std::fmt::Display for #struct_name_ts {
+                        impl std::fmt::Display for #struct_name_token_stream {
                             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                                write!(f, #write_ts)
+                                write!(f, #write_token_stream)
                             }
                         }
                     }
                 };
                 (
-                    gen_ts(
-                        &phrase_part_ucc_ucc_ts,
-                        &gen_quotes::dq_ts(&phrase_part_ucc_str),
+                    generate_token_stream(
+                        &phrase_part_upper_camel_case_upper_camel_case_token_stream,
+                        &generate_quotes::dq_token_stream(&phrase_part_upper_camel_case_str),
                     ),
-                    gen_ts(
-                        &phrase_part_sc_ucc_ts,
-                        &gen_quotes::dq_ts(&phrase_part_sc_str),
+                    generate_token_stream(
+                        &phrase_part_snake_case_upper_camel_case_token_stream,
+                        &generate_quotes::dq_token_stream(&phrase_part_snake_case_str),
                     ),
                 )
             };
-            let (impl_to_tokens_ucc_ts, impl_to_tokens_snake_ts) = {
-                let gen_ts = |struct_name_ts: &dyn quote::ToTokens,
-                              quote_ts: &dyn quote::ToTokens| {
-                    gen_impl_to_tokens_ts(
-                        struct_name_ts,
-                        &quote::quote! {quote::ToTokens::to_tokens(&quote::quote! {#quote_ts}, tokens);},
+            let (impl_to_tokens_upper_camel_case_token_stream, impl_to_tokens_snake_token_stream) = {
+                let generate_token_stream = |struct_name_token_stream: &dyn quote::ToTokens,
+                              quote_token_stream: &dyn quote::ToTokens| {
+                    generate_impl_to_tokens_token_stream(
+                        struct_name_token_stream,
+                        &quote::quote! {quote::ToTokens::to_tokens(&quote::quote! {#quote_token_stream}, tokens);},
                     )
                 };
                 (
-                    gen_ts(
-                        &phrase_part_ucc_ucc_ts,
-                        &phrase_part_ucc_str
+                    generate_token_stream(
+                        &phrase_part_upper_camel_case_upper_camel_case_token_stream,
+                        &phrase_part_upper_camel_case_str
                             .parse::<proc_macro2::TokenStream>()
                             .expect("7cf3ffc0"),
                     ),
-                    gen_ts(
-                        &phrase_part_sc_ucc_ts,
-                        &phrase_part_sc_str
+                    generate_token_stream(
+                        &phrase_part_snake_case_upper_camel_case_token_stream,
+                        &phrase_part_snake_case_str
                             .parse::<proc_macro2::TokenStream>()
                             .expect("114a573a"),
                     ),
                 )
             };
             quote::quote! {
-                #ucc_struct_dcl_ts
-                #impl_display_ucc_ts
-                #impl_to_tokens_ucc_ts
-                #sc_struct_dcl_ts
-                #impl_display_sc_ts
-                #impl_to_tokens_snake_ts
+                #ucc_struct_declaration_token_stream
+                #impl_display_upper_camel_case_token_stream
+                #impl_to_tokens_upper_camel_case_token_stream
+                #sc_struct_declaration_token_stream
+                #impl_display_snake_case_token_stream
+                #impl_to_tokens_snake_token_stream
             }
         });
     let generated = quote::quote! {#(#ts)*};
@@ -128,97 +130,97 @@ pub fn gen_ucc_and_sc_str_and_ts(input_ts: proc_macro::TokenStream) -> proc_macr
     generated.into()
 }
 #[proc_macro]
-pub fn gen_self_ucc_and_sc_str_and_ts(
-    input_ts: proc_macro::TokenStream,
+pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
+    input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    panic_loc::panic_loc();
-    let rgx = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
-    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_ts.to_string()).expect("9d6a20af").into_iter().map(|el| {
-        assert!(el.iter().all(|el0| rgx.is_match(el0)), "4a12d90f");
+    panic_location::panic_location();
+    let regex = regex::Regex::new(REGEX_VALUE).expect("cba1b5fb");
+    let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string()).expect("9d6a20af").into_iter().map(|element| {
+        assert!(element.iter().all(|el0| regex.is_match(el0)), "4a12d90f");
         let self_match_name = "self";
         {
-            let is_self_exists_and_only_one = el.iter().any(|el0| el0 == self_match_name);
+            let is_self_exists_and_only_one = element.iter().any(|el0| el0 == self_match_name);
             assert!(is_self_exists_and_only_one, "5680dd63");
         };
-        let (els_concat_v_ucc_dq_ts, els_concat_v_sc_dq_ts, struct_ucc_ucc_ts, struct_sc_token_ucc_ts, trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {
-            let ucc_ucc_str = "Ucc";
-            let sc_ucc_str = "Sc";
-            let parts_len = el.iter().map(String::len).sum::<usize>();
-            let els_concat_ucc_str = el.iter().fold(String::with_capacity(parts_len), |mut acc, el0| {
-                acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
-                acc
+        let (els_concat_v_upper_camel_case_double_quoted_token_stream, els_concat_v_snake_case_double_quoted_token_stream, struct_upper_camel_case_upper_camel_case_token_stream, struct_snake_case_token_upper_camel_case_token_stream, trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
+            let ucc_upper_camel_case_str = "UpperCamelCase";
+            let sc_upper_camel_case_str = "SnakeCase";
+            let parts_len = element.iter().map(String::len).sum::<usize>();
+            let els_concat_upper_camel_case_str = element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
+                accumulator.push_str(&naming_common::AsRefStrToUpperCamelCaseStr::case(el0));
+                accumulator
             });
-            let els_concat_v_ucc_dq_ts = gen_quotes::dq_ts(&el.iter().fold(String::with_capacity(parts_len), |mut acc, el0| {
+            let els_concat_v_upper_camel_case_double_quoted_token_stream = generate_quotes::dq_token_stream(&element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
                 if el0 == "self" {
-                    acc.push_str("{v}");
+                    accumulator.push_str("{v}");
                 } else {
-                    acc.push_str(&naming_cmn::AsRefStrToUccStr::case(el0));
+                    accumulator.push_str(&naming_common::AsRefStrToUpperCamelCaseStr::case(el0));
                 }
-                acc
+                accumulator
             }));
-            let els_concat_v_sc_dq_ts = gen_quotes::dq_ts(&{
-                let mut acc = el.iter().fold(String::with_capacity(parts_len.saturating_add(el.len())), |mut acc, el0| {
+            let els_concat_v_snake_case_double_quoted_token_stream = generate_quotes::dq_token_stream(&{
+                let mut accumulator = element.iter().fold(String::with_capacity(parts_len.saturating_add(element.len())), |mut accumulator, el0| {
                     let symbol = '_';
                     if el0 == "self" {
-                        assert!(std::fmt::Write::write_fmt(&mut acc, format_args!("{{v}}{symbol}")).is_ok(), "6a02a2ff");
+                        assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{{v}}{symbol}")).is_ok(), "6a02a2ff");
                     } else {
-                        assert!(std::fmt::Write::write_fmt(&mut acc, format_args!("{}{symbol}", naming_cmn::AsRefStrToScStr::case(el0))).is_ok(), "d915980a");
+                        assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{}{symbol}", naming_common::AsRefStrToSnakeCaseStr::case(el0))).is_ok(), "d915980a");
                     }
-                    acc
+                    accumulator
                 });
-                let _: Option<char> = acc.pop();
-                acc
+                let _: Option<char> = accumulator.pop();
+                accumulator
             });
-            let struct_ucc_ucc_ts = format!("{els_concat_ucc_str}{ucc_ucc_str}").parse::<proc_macro2::TokenStream>().expect("82f4ac08");
-            let struct_sc_token_ucc_ts = format!("{els_concat_ucc_str}{sc_ucc_str}").parse::<proc_macro2::TokenStream>().expect("21044eba");
-            let (trait_ucc_ucc_ts, trait_sc_token_ucc_ts) = {
-                let trait_ucc_str = "Trait";
-                let trait_ucc_ucc_ts = format!("{els_concat_ucc_str}{ucc_ucc_str}{trait_ucc_str}").parse::<proc_macro2::TokenStream>().expect("1066857a");
-                let trait_sc_token_ucc_ts = format!("{els_concat_ucc_str}{sc_ucc_str}{trait_ucc_str}").parse::<proc_macro2::TokenStream>().expect("8db74cfd");
-                (trait_ucc_ucc_ts, trait_sc_token_ucc_ts)
+            let struct_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("82f4ac08");
+            let struct_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("21044eba");
+            let (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
+                let trait_upper_camel_case_str = "Trait";
+                let trait_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("1066857a");
+                let trait_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("8db74cfd");
+                (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream)
             };
             (
-                els_concat_v_ucc_dq_ts,
-                els_concat_v_sc_dq_ts,
-                struct_ucc_ucc_ts,
-                struct_sc_token_ucc_ts,
-                trait_ucc_ucc_ts,
-                trait_sc_token_ucc_ts,
+                els_concat_v_upper_camel_case_double_quoted_token_stream,
+                els_concat_v_snake_case_double_quoted_token_stream,
+                struct_upper_camel_case_upper_camel_case_token_stream,
+                struct_snake_case_token_upper_camel_case_token_stream,
+                trait_upper_camel_case_upper_camel_case_token_stream,
+                trait_snake_case_token_upper_camel_case_token_stream,
             )
         };
-        let gen_struct_ts = |els_concat_v_case_dq_ts: &dyn quote::ToTokens, is_ucc: bool, trait_ident_ts: &dyn quote::ToTokens| {
-            let struct_ident_ts = if is_ucc {
-                quote::quote! {#struct_ucc_ucc_ts}
+        let generate_struct_token_stream = |els_concat_v_case_double_quoted_token_stream: &dyn quote::ToTokens, is_upper_camel_case: bool, trait_identifier_token_stream: &dyn quote::ToTokens| {
+            let struct_identifier_token_stream = if is_upper_camel_case {
+                quote::quote! {#struct_upper_camel_case_upper_camel_case_token_stream}
             } else {
-                quote::quote! {#struct_sc_token_ucc_ts}
+                quote::quote! {#struct_snake_case_token_upper_camel_case_token_stream}
             };
-            let casing_ts = {
-                let ts = if is_ucc {
-                    quote::quote! {AsRefStrToUccStr::case}
+            let casing_token_stream = {
+                let ts = if is_upper_camel_case {
+                    quote::quote! {AsRefStrToUpperCamelCaseStr::case}
                 } else {
-                    quote::quote! {AsRefStrToScStr::case}
+                    quote::quote! {AsRefStrToSnakeCaseStr::case}
                 };
-                quote::quote! {naming_cmn::#ts}
+                quote::quote! {naming_common::#ts}
             };
-            let impl_to_tokens_ts = gen_impl_to_tokens_ts(
-                &struct_ident_ts,
+            let impl_to_tokens_token_stream = generate_impl_to_tokens_token_stream(
+                &struct_identifier_token_stream,
                 &quote::quote! {quote::ToTokens::to_tokens(&self.to_string().parse::<proc_macro2::TokenStream>().expect("71c8d26b"), tokens);}
             );
             quote::quote! {
                 #[derive(Debug, optml::Optml)]
-                pub struct #struct_ident_ts(String);
-                impl #struct_ident_ts {
+                pub struct #struct_identifier_token_stream(String);
+                impl #struct_identifier_token_stream {
                     fn wrap(v: &dyn std::fmt::Display) -> Self {
                         Self(Self::format(v))
                     }
                     fn format(v: &dyn std::fmt::Display) -> String {
-                        format!(#els_concat_v_case_dq_ts)
+                        format!(#els_concat_v_case_double_quoted_token_stream)
                     }
                     pub fn from_display(v: &dyn std::fmt::Display) -> Self {
-                        Self::wrap(&#casing_ts(&v.to_string()))
+                        Self::wrap(&#casing_token_stream(&v.to_string()))
                     }
                     pub fn from_tokens(v: &dyn quote::ToTokens) -> Self {
-                        Self::wrap(&#casing_ts(&{
+                        Self::wrap(&#casing_token_stream(&{
                             let mut tokens = proc_macro2::TokenStream::new();
                             quote::ToTokens::to_tokens(&v, &mut tokens);
                             tokens
@@ -229,85 +231,85 @@ pub fn gen_self_ucc_and_sc_str_and_ts(
                             let path_before_len = type_path.path.segments.len().checked_sub(1).expect("e1f5a332");
                             let path_before_capacity = path_before_len.saturating_mul(16usize);
                             let path_before_str = type_path.path.segments.iter().take(path_before_len)
-                            .fold(String::with_capacity(path_before_capacity), |mut acc, el| {
+                            .fold(String::with_capacity(path_before_capacity), |mut accumulator, element| {
                                 assert!(
                                     std::fmt::Write::write_fmt(
-                                        &mut acc,
-                                        format_args!("{}::", el.ident),
+                                        &mut accumulator,
+                                        format_args!("{}::", element.ident),
                                     ).is_ok(),
                                     "67c90ce9"
                                 );
-                                acc
+                                accumulator
                             });
                             let last = type_path.path.segments.iter().last().expect("19f6e1a6");
-                            Self(format!("{path_before_str}{}", Self::format(&#casing_ts(&last.ident.to_string()))))
+                            Self(format!("{path_before_str}{}", Self::format(&#casing_token_stream(&last.ident.to_string()))))
                         }
                         else {
                             panic!("518933f8");
                         }
                     }
                 }
-                impl std::fmt::Display for #struct_ident_ts {
+                impl std::fmt::Display for #struct_identifier_token_stream {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                         write!(f, "{}", self.0)
                     }
                 }
-                #impl_to_tokens_ts
-                pub trait #trait_ident_ts: std::fmt::Display + quote::ToTokens {}
-                impl #trait_ident_ts for #struct_ident_ts {}
+                #impl_to_tokens_token_stream
+                pub trait #trait_identifier_token_stream: std::fmt::Display + quote::ToTokens {}
+                impl #trait_identifier_token_stream for #struct_identifier_token_stream {}
             }
         };
-        let pub_struct_ucc_ts = gen_struct_ts(&els_concat_v_ucc_dq_ts, true, &trait_ucc_ucc_ts);
-        let pub_struct_sc_ts = gen_struct_ts(&els_concat_v_sc_dq_ts, false, &trait_sc_token_ucc_ts);
+        let pub_struct_upper_camel_case_token_stream = generate_struct_token_stream(&els_concat_v_upper_camel_case_double_quoted_token_stream, true, &trait_upper_camel_case_upper_camel_case_token_stream);
+        let pub_struct_snake_case_token_stream = generate_struct_token_stream(&els_concat_v_snake_case_double_quoted_token_stream, false, &trait_snake_case_token_upper_camel_case_token_stream);
         quote::quote! {
-            #pub_struct_ucc_ts
-            #pub_struct_sc_ts
+            #pub_struct_upper_camel_case_token_stream
+            #pub_struct_snake_case_token_stream
         }
     });
     let generated = quote::quote! {#(#ts)*};
     // println!("{generated}");
     generated.into()
 }
-fn gen_impl_trait_for_ident_ts(
-    name_ts: &dyn quote::ToTokens,
-    ident: SynEnumIdentRef<'_>,
-    vrts_matching_ts: ProcMacro2VrtMatchingTokensRef<'_>,
-) -> ProcMacro2GeneratedNamingTs {
-    let string_ts = token_patterns::StringTs;
-    let ident_ref = ident.0;
-    let vrt_tokens = vrts_matching_ts.0;
-    ProcMacro2GeneratedNamingTs(quote::quote! {
-        impl naming_cmn::#name_ts for #ident_ref {
-            fn case(&self) -> #string_ts {//todo mb write duplicate Trait with &str instead of String
-                match self {#(#vrt_tokens),*}
+fn generate_impl_trait_for_identifier_token_stream(
+    name_token_stream: &dyn quote::ToTokens,
+    identifier: SynEnumIdentifierRef<'_>,
+    vrts_matching_token_stream: ProcMacro2VariantMatchingTokensRef<'_>,
+) -> ProcMacro2GeneratedNamingTokenStream {
+    let string_token_stream = token_patterns::StringTokenStream;
+    let identifier_ref = identifier.0;
+    let variant_tokens = vrts_matching_token_stream.0;
+    ProcMacro2GeneratedNamingTokenStream(quote::quote! {
+        impl naming_common::#name_token_stream for #identifier_ref {
+            fn case(&self) -> #string_token_stream {//todo maybe write duplicate Trait with &str instead of String
+                match self {#(#variant_tokens),*}
             }
         }
     })
 }
-#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUccStr)]
-pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(
-    input_ts: proc_macro::TokenStream,
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
+    input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    panic_loc::panic_loc();
-    let di: syn::DeriveInput = syn::parse(input_ts).expect("a8f22481");
-    let ident = &di.ident;
+    panic_location::panic_location();
+    let di: syn::DeriveInput = syn::parse(input_token_stream).expect("a8f22481");
+    let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         panic!("d26bf85e")
     };
-    let string_ts = token_patterns::StringTs;
-    let generated = gen_impl_trait_for_ident_ts(
-        &quote::quote! {AsRefStrToUccStr},
-        SynEnumIdentRef(ident),
-        ProcMacro2VrtMatchingTokensRef(
+    let string_token_stream = token_patterns::StringTokenStream;
+    let generated = generate_impl_trait_for_identifier_token_stream(
+        &quote::quote! {AsRefStrToUpperCamelCaseStr},
+        SynEnumIdentifierRef(identifier),
+        ProcMacro2VariantMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()
-                .map(|el| match el.fields {
+                .map(|element| match element.fields {
                     syn::Fields::Unit => {
-                        let el_ident = &el.ident;
-                        let el_ident_ucc_dq_ts =
-                            gen_quotes::dq_ts(&naming_cmn::ToTokensToUccStr::case(&el_ident));
-                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_ucc_dq_ts)}
+                        let element_identifier = &element.ident;
+                        let element_identifier_upper_camel_case_double_quoted_token_stream =
+                            generate_quotes::dq_token_stream(&naming_common::ToTokensToUpperCamelCaseStr::case(&element_identifier));
+                        quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_upper_camel_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
                         panic!("4955c50d")
@@ -319,30 +321,30 @@ pub fn as_ref_str_enum_with_unit_fields_to_ucc_str(
     // println!("{generated}");
     generated.0.into()
 }
-#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToScStr)]
-pub fn as_ref_str_enum_with_unit_fields_to_sc_str(
-    input_ts: proc_macro::TokenStream,
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToSnakeCaseStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
+    input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    panic_loc::panic_loc();
-    let di: syn::DeriveInput = syn::parse(input_ts).expect("dea5cbcf");
-    let ident = &di.ident;
+    panic_location::panic_location();
+    let di: syn::DeriveInput = syn::parse(input_token_stream).expect("dea5cbcf");
+    let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         panic!("ed6efe2e");
     };
-    let string_ts = token_patterns::StringTs;
-    let generated = gen_impl_trait_for_ident_ts(
-        &quote::quote! {AsRefStrToScStr},
-        SynEnumIdentRef(ident),
-        ProcMacro2VrtMatchingTokensRef(
+    let string_token_stream = token_patterns::StringTokenStream;
+    let generated = generate_impl_trait_for_identifier_token_stream(
+        &quote::quote! {AsRefStrToSnakeCaseStr},
+        SynEnumIdentifierRef(identifier),
+        ProcMacro2VariantMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()
-                .map(|el| match el.fields {
+                .map(|element| match element.fields {
                     syn::Fields::Unit => {
-                        let el_ident = &el.ident;
-                        let el_ident_sc_dq_ts =
-                            gen_quotes::dq_ts(&naming_cmn::ToTokensToScStr::case(&el_ident));
-                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
+                        let element_identifier = &element.ident;
+                        let element_identifier_snake_case_double_quoted_token_stream =
+                            generate_quotes::dq_token_stream(&naming_common::ToTokensToSnakeCaseStr::case(&element_identifier));
+                        quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_snake_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => {
                         panic!("b3ef2657")
@@ -354,30 +356,30 @@ pub fn as_ref_str_enum_with_unit_fields_to_sc_str(
     // println!("{generated}");
     generated.0.into()
 }
-#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperScStr)]
-pub fn as_ref_str_enum_with_unit_fields_to_upper_sc_str(
-    input_ts: proc_macro::TokenStream,
+#[proc_macro_derive(AsRefStrEnumWithUnitFieldsToUpperSnakeCaseStr)]
+pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
+    input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    panic_loc::panic_loc();
-    let di: syn::DeriveInput = syn::parse(input_ts).expect("edabbc24");
-    let ident = &di.ident;
+    panic_location::panic_location();
+    let di: syn::DeriveInput = syn::parse(input_token_stream).expect("edabbc24");
+    let identifier = &di.ident;
     let syn::Data::Enum(data_enum) = di.data else {
         panic!("b2263e7e");
     };
-    let string_ts = token_patterns::StringTs;
-    let generated = gen_impl_trait_for_ident_ts(
-        &quote::quote! {AsRefStrToUpperScStr},
-        SynEnumIdentRef(ident),
-        ProcMacro2VrtMatchingTokensRef(
+    let string_token_stream = token_patterns::StringTokenStream;
+    let generated = generate_impl_trait_for_identifier_token_stream(
+        &quote::quote! {AsRefStrToUpperSnakeCaseStr},
+        SynEnumIdentifierRef(identifier),
+        ProcMacro2VariantMatchingTokensRef(
             &data_enum
                 .variants
                 .iter()
-                .map(|el| match el.fields {
+                .map(|element| match element.fields {
                     syn::Fields::Unit => {
-                        let el_ident = &el.ident;
-                        let el_ident_sc_dq_ts =
-                            gen_quotes::dq_ts(&naming_cmn::ToTokensToUpperScStr::case(&el_ident));
-                        quote::quote! {Self::#el_ident => #string_ts::from(#el_ident_sc_dq_ts)}
+                        let element_identifier = &element.ident;
+                        let element_identifier_snake_case_double_quoted_token_stream =
+                            generate_quotes::dq_token_stream(&naming_common::ToTokensToUpperSnakeCaseStr::case(&element_identifier));
+                        quote::quote! {Self::#element_identifier => #string_token_stream::from(#element_identifier_snake_case_double_quoted_token_stream)}
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => panic!("b6fedcff"),
                 })

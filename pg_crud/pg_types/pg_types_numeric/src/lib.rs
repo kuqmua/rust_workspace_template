@@ -1,16 +1,16 @@
-gen_pg_types::gen_pg_types!({
-    "pg_tbl_cols_write_into_file": "False",
+generate_pg_types::generate_pg_types!({
+    "pg_table_cols_write_into_file": "False",
     "whole_write_into_file": "False",
-    "vrt": {
+    "variant": {
         "Subset": [
             "I16AsInt2",
             "I32AsInt4",
             "I64AsInt8",
             "F32AsFloat4",
             "F64AsFloat8",
-            "I16AsSmallSerialInitByPg",
-            "I32AsSerialInitByPg",
-            "I64AsBigSerialInitByPg",
+            "I16AsSmallSerialInitializationByPg",
+            "I32AsSerialInitializationByPg",
+            "I64AsBigSerialInitializationByPg",
             "SqlxPgTypesPgMoneyAsMoney",
             "BoolAsBool",
             "SqlxPgTypesPgRangeI32AsInt4Range",

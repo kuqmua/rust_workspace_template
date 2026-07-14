@@ -1,37 +1,37 @@
-pub mod prm;
+pub mod parameter;
 pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
-naming_macros::gen_ucc_and_sc_str_and_ts!([
-    ["pk"],
+naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
+    ["primary", "key"],
     ["serde"],
     ["with", "serde"],
-    ["loc"],
+    ["location"],
     ["failed", "to", "get", "res", "text"],
     ["de", "res"],
     ["status", "code"],
     ["res", "text"],
     ["order", "by"],
-    ["not", "unq", "pk"],
+    ["not", "unique", "primary", "key"],
     ["into", "serde", "version"],
     ["app", "state"],
-    ["qp", "er"],
+    ["query", "part", "error"],
     ["serde", "json", "to", "string"],
-    ["endpoint", "loc"],
+    ["endpoint", "location"],
     ["query", "string"],
     ["binded", "query"],
-    ["not", "unq", "field"],
+    ["not", "unique", "field"],
     ["body", "bytes"],
     ["check", "body", "size"],
     ["expected", "res"],
     ["pg", "crud"],
-    ["cm", "er", "vrts"],
-    ["co", "er", "vrts"],
-    ["rm", "er", "vrts"],
-    ["ro", "er", "vrts"],
-    ["um", "er", "vrts"],
-    ["uo", "er", "vrts"],
-    ["dm", "er", "vrts"],
-    ["dlo", "er", "vrts"],
-    ["cmn", "er", "vrts"],
+    ["cm", "error", "variants"],
+    ["co", "error", "variants"],
+    ["rm", "error", "variants"],
+    ["ro", "error", "variants"],
+    ["um", "error", "variants"],
+    ["uo", "error", "variants"],
+    ["dm", "error", "variants"],
+    ["dlo", "error", "variants"],
+    ["common", "error", "variants"],
     ["cm", "logic"],
     ["co", "logic"],
     ["rm", "logic"],
@@ -40,26 +40,26 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["uo", "logic"],
     ["dm", "logic"],
     ["dlo", "logic"],
-    ["cmn", "logic"],
+    ["common", "logic"],
     ["row", "and", "rollback"],
     ["serde", "json"],
     ["pool", "connection"],
     ["in"],
     ["as"],
-    ["wh"],
-    ["er"],
+    ["where"],
+    ["error"],
     ["string"],
-    ["prms"],
+    ["parameters"],
     ["payload"],
-    ["el"],
+    ["element"],
     ["value"],
     ["req"],
     ["res"],
     ["config"],
     ["is"],
     ["to"],
-    ["col"],
-    ["sel"],
+    ["column"],
+    ["select"],
     ["order"],
     ["by"],
     ["not"],
@@ -69,8 +69,8 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["commit"],
     ["begin"],
     ["query"],
-    ["upd"],
-    ["del"],
+    ["update"],
+    ["delete"],
     ["and"],
     ["row"],
     ["pool"],
@@ -79,12 +79,12 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["or"],
     ["asc"],
     ["desc"],
-    ["opt"],
-    ["rd"],
-    ["rd", "inn"],
+    ["optional"],
+    ["read"],
+    ["read", "inner"],
     ["body"],
     ["pg"],
-    ["incr"],
+    ["increment"],
     ["url"],
     ["future"],
     ["end"],
@@ -92,42 +92,42 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["executor"],
     ["prefix"],
     ["id"],
-    ["pgn"],
-    ["std", "opt", "opt", "obj", "acc"],
-    ["not", "unq", "id", "in", "json", "del", "arr"],
+    ["pagination"],
+    ["std", "optional", "optional", "obj", "accumulator"],
+    ["not", "unique", "id", "in", "json", "delete", "array"],
     [
-        "not", "unq", "id", "in", "json", "upd", "and", "del", "arrs"
+        "not", "unique", "id", "in", "json", "update", "and", "delete", "arrs"
     ],
     ["all", "fields", "are", "none"],
     ["self"],
-    ["cr", "qp"],
-    ["cr", "qb"],
-    ["sel", "qp"],
-    ["col", "field"],
-    ["col", "field", "for", "er", "msg"],
-    ["fi"],
-    ["cr"],
+    ["create", "query", "part"],
+    ["create", "query", "bind"],
+    ["select", "query", "part"],
+    ["column", "field"],
+    ["column", "field", "for", "error", "message"],
+    ["field"],
+    ["create"],
     ["dotenv"],
-    ["std", "env", "var", "er"],
+    ["std", "env", "var", "error"],
     ["env", "var", "name"],
     ["try", "from", "std", "env", "var", "ok"],
-    ["tbl", "name"],
-    ["dflt", "some", "one", "el"],
-    ["all", "vrts", "dflt", "some", "one", "el"],
-    ["loc", "lib"],
+    ["table", "name"],
+    ["default", "some", "one", "element"],
+    ["all", "variants", "default", "some", "one", "element"],
+    ["location", "lib"],
     ["pub"],
-    ["self", "cr"],
-    ["self", "sel"],
-    ["self", "rd"],
+    ["self", "create"],
+    ["self", "select"],
+    ["self", "read"],
     ["pg", "type"],
     ["true"],
     ["false"],
-    ["upd", "qp"],
-    ["upd", "qb"],
-    ["qp"],
-    ["qb"],
-    ["btwn"],
-    ["add", "oprtr"],
+    ["update", "query", "part"],
+    ["update", "query", "bind"],
+    ["query", "part"],
+    ["query", "bind"],
+    ["between"],
+    ["add", "operator"],
     ["eq"],
     ["greater", "than"],
     ["eq", "to", "encoded", "string", "representation"],
@@ -146,94 +146,123 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["adjacent", "with", "range"],
     ["range", "len"],
     ["before"],
-    ["crnt", "date"],
-    ["crnt", "time"],
-    ["greater", "than", "crnt", "date"],
-    ["greater", "than", "crnt", "time"],
-    ["crnt", "timestamp"],
-    ["greater", "than", "crnt", "timestamp"],
-    ["self", "wh"],
-    ["dim", "one", "contains", "all", "els", "of", "arr"],
-    ["dim", "two", "contains", "all", "els", "of", "arr"],
-    ["dim", "three", "contains", "all", "els", "of", "arr"],
-    ["dim", "four", "contains", "all", "els", "of", "arr"],
-    ["dim", "one", "overlaps", "with", "arr"],
-    ["dim", "two", "overlaps", "with", "arr"],
-    ["dim", "three", "overlaps", "with", "arr"],
-    ["dim", "four", "overlaps", "with", "arr"],
-    ["dim", "one", "len", "eq"],
-    ["dim", "two", "len", "eq"],
-    ["dim", "three", "len", "eq"],
-    ["dim", "four", "len", "eq"],
-    ["dim", "one", "len", "greater", "than"],
-    ["dim", "two", "len", "greater", "than"],
-    ["dim", "three", "len", "greater", "than"],
-    ["dim", "four", "len", "greater", "than"],
-    ["dim", "one", "all", "els", "eq"],
-    ["dim", "two", "all", "els", "eq"],
-    ["dim", "three", "all", "els", "eq"],
-    ["dim", "four", "all", "els", "eq"],
-    ["dim", "one", "contains", "el", "greater", "than"],
-    ["dim", "two", "contains", "el", "greater", "than"],
-    ["dim", "three", "contains", "el", "greater", "than"],
-    ["dim", "four", "contains", "el", "greater", "than"],
-    ["dim", "one", "all", "els", "greater", "than"],
-    ["dim", "two", "all", "els", "greater", "than"],
-    ["dim", "three", "all", "els", "greater", "than"],
-    ["dim", "four", "all", "els", "greater", "than"],
+    ["current", "date"],
+    ["current", "time"],
+    ["greater", "than", "current", "date"],
+    ["greater", "than", "current", "time"],
+    ["current", "timestamp"],
+    ["greater", "than", "current", "timestamp"],
+    ["self", "where"],
+    ["dimension", "one", "contains", "all", "els", "of", "array"],
+    ["dimension", "two", "contains", "all", "els", "of", "array"],
+    [
+        "dimension",
+        "three",
+        "contains",
+        "all",
+        "els",
+        "of",
+        "array"
+    ],
+    ["dimension", "four", "contains", "all", "els", "of", "array"],
+    ["dimension", "one", "overlaps", "with", "array"],
+    ["dimension", "two", "overlaps", "with", "array"],
+    ["dimension", "three", "overlaps", "with", "array"],
+    ["dimension", "four", "overlaps", "with", "array"],
+    ["dimension", "one", "len", "eq"],
+    ["dimension", "two", "len", "eq"],
+    ["dimension", "three", "len", "eq"],
+    ["dimension", "four", "len", "eq"],
+    ["dimension", "one", "len", "greater", "than"],
+    ["dimension", "two", "len", "greater", "than"],
+    ["dimension", "three", "len", "greater", "than"],
+    ["dimension", "four", "len", "greater", "than"],
+    ["dimension", "one", "all", "els", "eq"],
+    ["dimension", "two", "all", "els", "eq"],
+    ["dimension", "three", "all", "els", "eq"],
+    ["dimension", "four", "all", "els", "eq"],
+    ["dimension", "one", "contains", "element", "greater", "than"],
+    ["dimension", "two", "contains", "element", "greater", "than"],
+    [
+        "dimension",
+        "three",
+        "contains",
+        "element",
+        "greater",
+        "than"
+    ],
+    [
+        "dimension",
+        "four",
+        "contains",
+        "element",
+        "greater",
+        "than"
+    ],
+    ["dimension", "one", "all", "els", "greater", "than"],
+    ["dimension", "two", "all", "els", "greater", "than"],
+    ["dimension", "three", "all", "els", "greater", "than"],
+    ["dimension", "four", "all", "els", "greater", "than"],
     ["months"],
     ["days"],
     ["microseconds"],
     ["date"],
     ["time"],
-    ["pg", "type", "wh", "flt"],
-    ["is", "pk"],
-    ["cr", "tbl", "col", "qp"],
-    ["tt"],
+    ["pg", "type", "where", "filter"],
+    ["is", "primary", "key"],
+    ["create", "table", "column", "query", "part"],
+    ["table", "type"],
     ["mut"],
     ["boolean"],
-    ["nbr"],
+    ["number"],
     ["vec", "of"],
-    ["arr", "of"],
+    ["array", "of"],
     ["with", "id"],
-    ["rgx"],
-    ["dim", "one", "rgx"],
-    ["dim", "two", "rgx"],
-    ["dim", "three", "rgx"],
-    ["dim", "four", "rgx"],
-    ["dim", "one", "contains", "el", "rgx"],
-    ["dim", "two", "contains", "el", "rgx"],
-    ["dim", "three", "contains", "el", "rgx"],
-    ["dim", "four", "contains", "el", "rgx"],
-    ["dim", "one", "all", "els", "rgx"],
-    ["dim", "two", "all", "els", "rgx"],
-    ["dim", "three", "all", "els", "rgx"],
-    ["dim", "four", "all", "els", "rgx"],
-    ["dim", "one", "eq"],
-    ["dim", "two", "eq"],
-    ["dim", "three", "eq"],
-    ["dim", "four", "eq"],
-    ["dim", "one", "greater", "than"],
-    ["dim", "two", "greater", "than"],
-    ["dim", "three", "greater", "than"],
-    ["dim", "four", "greater", "than"],
-    ["dim", "one", "in"],
-    ["dim", "two", "in"],
-    ["dim", "three", "in"],
-    ["dim", "four", "in"],
-    ["dim", "one", "btwn"],
-    ["dim", "two", "btwn"],
-    ["dim", "three", "btwn"],
-    ["dim", "four", "btwn"],
-    ["dim", "one", "before"],
-    ["dim", "one", "crnt", "date"],
-    ["dim", "one", "greater", "than", "crnt", "date"],
-    ["dim", "one", "crnt", "timestamp"],
-    ["dim", "one", "greater", "than", "crnt", "timestamp"],
-    ["dim", "one", "crnt", "time"],
-    ["dim", "one", "greater", "than", "crnt", "time"],
+    ["regex"],
+    ["dimension", "one", "regex"],
+    ["dimension", "two", "regex"],
+    ["dimension", "three", "regex"],
+    ["dimension", "four", "regex"],
+    ["dimension", "one", "contains", "element", "regex"],
+    ["dimension", "two", "contains", "element", "regex"],
+    ["dimension", "three", "contains", "element", "regex"],
+    ["dimension", "four", "contains", "element", "regex"],
+    ["dimension", "one", "all", "els", "regex"],
+    ["dimension", "two", "all", "els", "regex"],
+    ["dimension", "three", "all", "els", "regex"],
+    ["dimension", "four", "all", "els", "regex"],
+    ["dimension", "one", "eq"],
+    ["dimension", "two", "eq"],
+    ["dimension", "three", "eq"],
+    ["dimension", "four", "eq"],
+    ["dimension", "one", "greater", "than"],
+    ["dimension", "two", "greater", "than"],
+    ["dimension", "three", "greater", "than"],
+    ["dimension", "four", "greater", "than"],
+    ["dimension", "one", "in"],
+    ["dimension", "two", "in"],
+    ["dimension", "three", "in"],
+    ["dimension", "four", "in"],
+    ["dimension", "one", "between"],
+    ["dimension", "two", "between"],
+    ["dimension", "three", "between"],
+    ["dimension", "four", "between"],
+    ["dimension", "one", "before"],
+    ["dimension", "one", "current", "date"],
+    ["dimension", "one", "greater", "than", "current", "date"],
+    ["dimension", "one", "current", "timestamp"],
     [
-        "dim",
+        "dimension",
+        "one",
+        "greater",
+        "than",
+        "current",
+        "timestamp"
+    ],
+    ["dimension", "one", "current", "time"],
+    ["dimension", "one", "greater", "than", "current", "time"],
+    [
+        "dimension",
         "one",
         "eq",
         "to",
@@ -241,47 +270,80 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
         "string",
         "representation"
     ],
-    ["dim", "one", "find", "ranges", "within", "given", "range"],
     [
-        "dim", "one", "find", "ranges", "that", "fully", "contain", "the", "given", "range"
-    ],
-    ["dim", "one", "strictly", "to", "left", "of", "range"],
-    ["dim", "one", "strictly", "to", "right", "of", "range"],
-    ["dim", "one", "included", "lower", "bound"],
-    ["dim", "one", "excluded", "upper", "bound"],
-    [
-        "dim", "one", "greater", "than", "included", "lower", "bound"
+        "dimension",
+        "one",
+        "find",
+        "ranges",
+        "within",
+        "given",
+        "range"
     ],
     [
-        "dim", "one", "greater", "than", "excluded", "upper", "bound"
+        "dimension",
+        "one",
+        "find",
+        "ranges",
+        "that",
+        "fully",
+        "contain",
+        "the",
+        "given",
+        "range"
     ],
-    ["dim", "one", "overlap", "with", "range"],
-    ["dim", "one", "adjacent", "with", "range"],
-    ["dim", "one", "range", "len"],
-    ["dims"],
-    ["dims", "ies"],
+    ["dimension", "one", "strictly", "to", "left", "of", "range"],
+    ["dimension", "one", "strictly", "to", "right", "of", "range"],
+    ["dimension", "one", "included", "lower", "bound"],
+    ["dimension", "one", "excluded", "upper", "bound"],
+    [
+        "dimension",
+        "one",
+        "greater",
+        "than",
+        "included",
+        "lower",
+        "bound"
+    ],
+    [
+        "dimension",
+        "one",
+        "greater",
+        "than",
+        "excluded",
+        "upper",
+        "bound"
+    ],
+    ["dimension", "one", "overlap", "with", "range"],
+    ["dimension", "one", "adjacent", "with", "range"],
+    ["dimension", "one", "range", "len"],
+    ["dimensions"],
+    ["dimensions", "ies"],
     ["len", "eq"],
     ["len", "greater", "than"],
-    ["contains", "all", "els", "of", "arr"],
-    ["overlaps", "with", "arr"],
-    ["contains", "el", "rgx"],
-    ["all", "els", "rgx"],
+    ["contains", "all", "els", "of", "array"],
+    ["overlaps", "with", "array"],
+    ["contains", "element", "regex"],
+    ["all", "els", "regex"],
     ["all", "els", "eq"],
-    ["contains", "el", "greater", "than"],
+    ["contains", "element", "greater", "than"],
     ["all", "els", "greater", "than"],
-    ["cr", "extension", "if", "not", "exists", "uuid", "ossp"],
+    ["create", "extension", "if", "not", "exists", "uuid", "ossp"],
     ["prep", "pg"],
-    ["prep", "pg", "tbl"],
+    ["prep", "pg", "table"],
     ["header", "content", "type", "app", "json", "not", "found"],
-    ["wh", "many"],
+    ["where", "many"],
     ["no", "fields", "provided"],
-    ["extra", "prms"],
-    ["gen", "sel", "qp"],
-    ["upd", "qp", "pk"],
-    ["gen", "col", "queals", "v", "comma", "uo", "qp"],
-    ["pk", "qp"],
+    ["extra", "parameters"],
+    ["generate", "select", "query", "part"],
+    ["update", "query", "part", "primary", "key"],
+    [
+        "generate", "column", "queals", "v", "comma", "uo", "query", "part"
+    ],
+    ["primary", "key", "query", "part"],
     ["cols"],
-    ["gen", "when", "col", "id", "then", "v", "um", "qp"],
+    [
+        "generate", "when", "column", "id", "then", "v", "um", "query", "part"
+    ],
     ["contains", "null", "byte"],
     ["pg", "type", "test", "cases"],
     ["included", "start", "greater", "than", "included", "end"],
@@ -319,77 +381,93 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
     ["try", "new"],
     ["pg", "pool"],
     ["pg", "pool", "for", "tokio", "spawn", "sync", "move"],
-    ["ident", "cr", "dflt"],
-    ["sel", "pk"],
-    ["sel", "qp", "pg", "type"],
-    ["rd", "ids"],
-    ["sel", "only", "ids", "qp"],
-    ["sel", "only", "updd", "ids", "qp"],
-    ["cr", "upd", "del", "are", "empty"],
-    ["upd", "to", "rd", "ids"],
-    ["self", "rd", "ids", "h"],
-    ["cmn", "rd", "ids", "from", "co"],
-    ["gen", "pg", "tbl", "pk"],
+    ["identifier", "create", "default"],
+    ["select", "primary", "key"],
+    ["select", "query", "part", "pg", "type"],
+    ["read", "ids"],
+    ["select", "only", "ids", "query", "part"],
+    ["select", "only", "updated", "ids", "query", "part"],
+    ["create", "update", "delete", "are", "empty"],
+    ["update", "to", "read", "ids"],
+    ["self", "read", "ids", "h"],
+    ["common", "read", "ids", "from", "co"],
+    ["generate", "pg", "table", "primary", "key"],
     ["try", "bind"],
-    ["sel", "only", "updd", "ids", "qb"],
-    ["cr", "for", "query"],
+    ["select", "only", "updated", "ids", "query", "bind"],
+    ["create", "for", "query"],
     [
-        "rd", "ids", "to", "opt", "v", "rd", "dflt", "some", "one", "el"
+        "read", "ids", "to", "optional", "v", "read", "default", "some", "one", "element"
     ],
-    ["opt", "upd"],
-    ["sel", "only", "crd", "ids", "qp"],
-    ["sel", "only", "crd", "ids", "qb"],
-    ["upd", "for", "query"],
-    ["upd", "for", "query", "vec"],
-    ["rd", "ids", "and", "cr", "into", "opt", "v", "rd"],
-    ["dflt", "some", "one", "el", "max", "page", "size"],
+    ["optional", "update"],
+    ["select", "only", "created", "ids", "query", "part"],
+    ["select", "only", "created", "ids", "query", "bind"],
+    ["update", "for", "query"],
+    ["update", "for", "query", "vec"],
     [
-        "all", "vrts", "dflt", "some", "one", "el", "max", "page", "size"
+        "read", "ids", "and", "create", "into", "optional", "v", "read"
     ],
-    ["ids", "are", "not", "unq"],
-    ["pg", "type", "pk"],
-    ["pg", "type", "not", "pk"],
-    ["rd", "ids", "and", "cr", "into", "wh", "eq"],
-    ["rd", "ids", "and", "cr", "into", "rd"],
-    ["rd", "ids", "and", "cr", "into", "tt"],
+    ["default", "some", "one", "element", "max", "page", "size"],
     [
-        "rd", "inn", "into", "rd", "with", "new", "or", "try", "new", "unwraped"
+        "all", "variants", "default", "some", "one", "element", "max", "page", "size"
     ],
+    ["ids", "are", "not", "unique"],
+    ["pg", "type", "primary", "key"],
+    ["pg", "type", "not", "primary", "key"],
+    ["read", "ids", "and", "create", "into", "where", "eq"],
+    ["read", "ids", "and", "create", "into", "read"],
+    ["read", "ids", "and", "create", "into", "table", "type"],
     [
-        "rd", "inn", "into", "upd", "with", "new", "or", "try", "new", "unwraped"
-    ],
-    ["rd", "ids", "into", "opt", "v", "rd", "inn"],
-    ["previous", "rd", "and", "opt", "upd", "into", "rd"],
-    [
-        "rd", "ids", "and", "cr", "into", "vec", "wh", "eq", "using", "fields"
-    ],
-    ["eq", "oprtr"],
-    ["pg", "type", "eq", "oprtr"],
-    ["rd", "ids", "into", "tt"],
-    ["rd", "ids", "into", "rd"],
-    ["rd", "ids", "into", "upd"],
-    ["rd", "into", "tt"],
-    ["opt", "vec", "cr"],
-    ["rd", "ids", "to2", "dims", "vec", "rd", "inn"],
-    [
-        "rd", "ids", "and", "cr", "into", "opt", "vec", "wh", "eq", "to", "field"
+        "read", "inner", "into", "read", "with", "new", "or", "try", "new", "unwraped"
     ],
     [
-        "cr", "into", "pg", "type", "opt", "vec", "wh", "dim", "one", "eq"
+        "read", "inner", "into", "update", "with", "new", "or", "try", "new", "unwraped"
+    ],
+    ["read", "ids", "into", "optional", "v", "read", "inner"],
+    [
+        "previous", "read", "and", "optional", "update", "into", "read"
     ],
     [
-        "rd", "ids", "and", "tt", "into", "pg", "type", "opt", "wh", "greater", "than"
+        "read", "ids", "and", "create", "into", "vec", "where", "eq", "using", "fields"
     ],
-    ["pg", "type", "opt", "vec", "wh", "greater", "than", "test"],
+    ["eq", "operator"],
+    ["pg", "type", "eq", "operator"],
+    ["read", "ids", "into", "table", "type"],
+    ["read", "ids", "into", "read"],
+    ["read", "ids", "into", "update"],
+    ["read", "into", "table", "type"],
+    ["optional", "vec", "create"],
+    ["read", "ids", "to2", "dimensions", "vec", "read", "inner"],
+    [
+        "read", "ids", "and", "create", "into", "optional", "vec", "where", "eq", "to", "field"
+    ],
+    [
+        "create",
+        "into",
+        "pg",
+        "type",
+        "optional",
+        "vec",
+        "where",
+        "dimension",
+        "one",
+        "eq"
+    ],
+    [
+        "read", "ids", "and", "table", "type", "into", "pg", "type", "optional", "where",
+        "greater", "than"
+    ],
+    [
+        "pg", "type", "optional", "vec", "where", "greater", "than", "test"
+    ],
     ["prep", "extensions"],
-    ["tbl"],
+    ["table"],
     ["routes"],
     ["routes", "h"],
     ["from", "h"],
     ["executor", "acquire"],
-    ["gen", "pg", "types", "mod"],
+    ["generate", "pg", "types", "mod"],
     ["to", "err", "string"],
-    ["body", "size", "er"],
+    ["body", "size", "error"],
     ["max"],
     ["near", "zero"],
     ["negative", "less", "typical"],
@@ -402,25 +480,25 @@ naming_macros::gen_ucc_and_sc_str_and_ts!([
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub struct HashMap;
 #[derive(Debug, Clone, Copy, optml::Optml)]
-pub struct HashMapUcc;
-impl std::fmt::Display for HashMapUcc {
+pub struct HashMapUpperCamelCase;
+impl std::fmt::Display for HashMapUpperCamelCase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "HashMap")
     }
 }
-impl quote::ToTokens for HashMapUcc {
+impl quote::ToTokens for HashMapUpperCamelCase {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         quote::quote! {HashMap}.to_tokens(tokens);
     }
 }
 #[derive(Debug, Clone, Copy, optml::Optml)]
-pub struct HashMapSc;
-impl std::fmt::Display for HashMapSc {
+pub struct HashMapSnakeCase;
+impl std::fmt::Display for HashMapSnakeCase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "hashmap")
     }
 }
-impl quote::ToTokens for HashMapSc {
+impl quote::ToTokens for HashMapSnakeCase {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         quote::quote! {hashmap}.to_tokens(tokens);
     }
@@ -432,10 +510,12 @@ impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {
 pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
 #[derive(Debug, Clone, newtype::Newtype)]
 #[newtype(as_ref_str, from_inner)]
-pub struct SwaggerUrlPathSelfQuotesStrValue(gen_quotes::QuotedLiteral);
+pub struct SwaggerUrlPathSelfQuotesStrValue(generate_quotes::QuotedLiteral);
 #[derive(Debug, Clone, newtype::Newtype)]
 #[newtype(from_inner, to_tokens)]
-pub struct SwaggerUrlPathSelfQuotesTs(gen_quotes::ProcMacro2QuotedLiteralTs);
+pub struct SwaggerUrlPathSelfQuotesTokenStreamValue(
+    generate_quotes::ProcMacro2QuotedLiteralTokenStream,
+);
 pub trait SwaggerUrlPathSelfQuotesStr {
     fn swagger_url_path_self_quotes_str(
         &self,
@@ -444,13 +524,13 @@ pub trait SwaggerUrlPathSelfQuotesStr {
 }
 impl<T> SwaggerUrlPathSelfQuotesStr for T
 where
-    T: naming_cmn::AsRefStrToScStr,
+    T: naming_common::AsRefStrToSnakeCaseStr,
 {
     fn swagger_url_path_self_quotes_str(
         &self,
         v: SwaggerUrlPathPrefix<'_>,
     ) -> SwaggerUrlPathSelfQuotesStrValue {
-        SwaggerUrlPathSelfQuotesStrValue::from(gen_quotes::dq_str(&format!(
+        SwaggerUrlPathSelfQuotesStrValue::from(generate_quotes::dq_str(&format!(
             "/{}/{}",
             v.as_ref(),
             self.case(),
@@ -458,32 +538,34 @@ where
     }
 }
 pub trait SwaggerUrlPathSelfQuotesTokenStream {
-    fn swagger_url_path_self_quotes_ts(
+    fn swagger_url_path_self_quotes_token_stream(
         &self,
         v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesTs;
+    ) -> SwaggerUrlPathSelfQuotesTokenStreamValue;
 }
 impl<T> SwaggerUrlPathSelfQuotesTokenStream for T
 where
     T: SwaggerUrlPathSelfQuotesStr,
 {
-    fn swagger_url_path_self_quotes_ts(
+    fn swagger_url_path_self_quotes_token_stream(
         &self,
         v: SwaggerUrlPathPrefix<'_>,
-    ) -> SwaggerUrlPathSelfQuotesTs {
+    ) -> SwaggerUrlPathSelfQuotesTokenStreamValue {
         match self
             .swagger_url_path_self_quotes_str(v)
             .as_ref()
             .parse::<proc_macro2::TokenStream>()
         {
-            Ok(parsed_ts) => SwaggerUrlPathSelfQuotesTs::from(
-                gen_quotes::ProcMacro2QuotedLiteralTs::from(parsed_ts),
+            Ok(parsed_token_stream) => SwaggerUrlPathSelfQuotesTokenStreamValue::from(
+                generate_quotes::ProcMacro2QuotedLiteralTokenStream::from(parsed_token_stream),
             ),
-            Err(er) => {
-                let msg = er.to_string();
-                SwaggerUrlPathSelfQuotesTs::from(gen_quotes::ProcMacro2QuotedLiteralTs::from(
-                    quote::quote! {compile_error!(#msg);},
-                ))
+            Err(error) => {
+                let message = error.to_string();
+                SwaggerUrlPathSelfQuotesTokenStreamValue::from(
+                    generate_quotes::ProcMacro2QuotedLiteralTokenStream::from(
+                        quote::quote! {compile_error!(#message);},
+                    ),
+                )
             }
         }
     }

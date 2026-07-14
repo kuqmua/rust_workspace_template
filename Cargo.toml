@@ -2,50 +2,50 @@
 resolver = "2"
 members = [
   "app_state",
-  "cmn_routes",
+  "common_routes",
   "config_lib",
   "config_lib/config_lib_macros",
-  "config_lib/gen_getter_traits_for_struct_fields",
+  "config_lib/generate_getter_traits_for_struct_fields",
   "config_lib/try_from_env",
   "contract_constants",
   "frontend_contract",
-  "gen_quotes",
+  "generate_quotes",
   "git_info",
   "initialize_environment_files",
-  "loc_lib",
-  "loc_lib/loc_macros",
-  "loc_lib/loc_test",
-  "macro_clippy_check_cmn",
+  "location_lib",
+  "location_lib/location_macros",
+  "location_lib/location_test",
+  "macro_clippy_check_common",
   "macros_helpers",
-  "macros_helpers/gen_derive_ts_builder",
+  "macros_helpers/generate_derive_token_stream_builder",
   "naming",
-  "naming/naming_cmn",
-  "naming/naming_cmn_macros",
+  "naming/naming_common",
+  "naming/naming_common_macros",
   "naming/naming_macros",
   "newtype",
   "optml",
-  "panic_loc",
+  "panic_location",
   "pg_crud",
-  "pg_crud/pg_crud_cmn",
-  "pg_crud/pg_crud_cmn_macros",
-  "pg_crud/pg_crud_macros_cmn",
-  "pg_crud/pg_crud_macros_cmn_macros",
-  "pg_crud/pg_tbl",
-  "pg_crud/pg_tbl/gen_pg_tbl",
-  "pg_crud/pg_tbl/gen_pg_tbl_src",
-  "pg_crud/pg_tbl/gen_pg_tbl_test",
+  "pg_crud/pg_crud_common",
+  "pg_crud/pg_crud_common_macros",
+  "pg_crud/pg_crud_macros_common",
+  "pg_crud/pg_crud_macros_common_macros",
+  "pg_crud/pg_table",
+  "pg_crud/pg_table/generate_pg_table",
+  "pg_crud/pg_table/generate_pg_table_src",
+  "pg_crud/pg_table/generate_pg_table_test",
   "pg_crud/pg_types",
-  "pg_crud/pg_types/gen_pg_types",
-  "pg_crud/pg_types/gen_pg_types_src",
-  "pg_crud/pg_types/gen_pg_types_test",
+  "pg_crud/pg_types/generate_pg_types",
+  "pg_crud/pg_types/generate_pg_types_src",
+  "pg_crud/pg_types/generate_pg_types_test",
   "pg_crud/pg_types/pg_types_chrono_net",
-  "pg_crud/pg_types/pg_types_cmn",
+  "pg_crud/pg_types/pg_types_common",
   "pg_crud/pg_types/pg_types_numeric",
   "pg_crud/pg_types/pg_types_text_misc",
-  "pg_crud/wh_flts",
-  "pg_crud/wh_flts/gen_wh_flts",
-  "pg_crud/wh_flts/gen_wh_flts_src",
-  "pg_crud/wh_flts/gen_wh_flts_test",
+  "pg_crud/where_filters",
+  "pg_crud/where_filters/generate_where_filters",
+  "pg_crud/where_filters/generate_where_filters_src",
+  "pg_crud/where_filters/generate_where_filters_test",
   "route_validators",
   "server",
   "server_admin",
@@ -55,7 +55,7 @@ members = [
   "server_app_state/server_app_state_macros",
   "server_config",
   "server_runtime",
-  "server_tbl_example",
+  "server_table_example",
   "tests",
   "to_err_string",
   "to_err_string/to_err_string_macros",
@@ -248,43 +248,43 @@ itertools = { version = "=0.14.0", default-features = false, features = [
   "use_std",
 ] }
 app_state = { path = "./app_state", version = "0.1.0" }
-cmn_routes = { path = "./cmn_routes", version = "0.1.0" }
+common_routes = { path = "./common_routes", version = "0.1.0" }
 config_lib = { path = "./config_lib", version = "0.1.0" }
 config_lib_macros = { path = "./config_lib/config_lib_macros", version = "0.1.0" }
 contract_constants = { path = "./contract_constants", version = "0.1.0" }
 frontend_contract = { path = "./frontend_contract", version = "0.1.0" }
-gen_derive_ts_builder = { path = "./macros_helpers/gen_derive_ts_builder", version = "0.1.0" }
-gen_getter_traits_for_struct_fields = { path = "./config_lib/gen_getter_traits_for_struct_fields", version = "0.1.0" }
-gen_pg_tbl = { path = "./pg_crud/pg_tbl/gen_pg_tbl", version = "0.1.0" }
-gen_pg_tbl_src = { path = "./pg_crud/pg_tbl/gen_pg_tbl_src", version = "0.1.0", default-features = false }
-gen_pg_types = { path = "./pg_crud/pg_types/gen_pg_types", version = "0.1.0" }
-gen_pg_types_src = { path = "./pg_crud/pg_types/gen_pg_types_src", version = "0.1.0", default-features = false }
-gen_quotes = { path = "./gen_quotes", version = "0.1.0" }
-gen_wh_flts = { path = "./pg_crud/wh_flts/gen_wh_flts", version = "0.1.0" }
-gen_wh_flts_src = { path = "./pg_crud/wh_flts/gen_wh_flts_src", version = "0.1.0", default-features = false }
+generate_derive_token_stream_builder = { path = "./macros_helpers/generate_derive_token_stream_builder", version = "0.1.0" }
+generate_getter_traits_for_struct_fields = { path = "./config_lib/generate_getter_traits_for_struct_fields", version = "0.1.0" }
+generate_pg_table = { path = "./pg_crud/pg_table/generate_pg_table", version = "0.1.0" }
+generate_pg_table_src = { path = "./pg_crud/pg_table/generate_pg_table_src", version = "0.1.0", default-features = false }
+generate_pg_types = { path = "./pg_crud/pg_types/generate_pg_types", version = "0.1.0" }
+generate_pg_types_src = { path = "./pg_crud/pg_types/generate_pg_types_src", version = "0.1.0", default-features = false }
+generate_quotes = { path = "./generate_quotes", version = "0.1.0" }
+generate_where_filters = { path = "./pg_crud/where_filters/generate_where_filters", version = "0.1.0" }
+generate_where_filters_src = { path = "./pg_crud/where_filters/generate_where_filters_src", version = "0.1.0", default-features = false }
 git_info = { path = "./git_info", version = "0.1.0" }
 initialize_environment_files = { path = "./initialize_environment_files", version = "0.1.0" }
-loc_lib = { path = "./loc_lib", version = "0.1.0" }
-loc_macros = { path = "./loc_lib/loc_macros", version = "0.1.0" }
-location = { path = "./loc_lib/location", version = "0.1.0" }
-macro_clippy_check_cmn = { path = "./macro_clippy_check_cmn", version = "0.1.0", default-features = false }
+location_lib = { path = "./location_lib", version = "0.1.0" }
+location_macros = { path = "./location_lib/location_macros", version = "0.1.0" }
+location = { path = "./location_lib/location", version = "0.1.0" }
+macro_clippy_check_common = { path = "./macro_clippy_check_common", version = "0.1.0", default-features = false }
 macros_helpers = { path = "./macros_helpers", version = "0.1.0" }
 naming = { path = "./naming", version = "0.1.0" }
-naming_cmn = { path = "./naming/naming_cmn", version = "0.1.0" }
-naming_cmn_macros = { path = "./naming/naming_cmn_macros", version = "0.1.0" }
+naming_common = { path = "./naming/naming_common", version = "0.1.0" }
+naming_common_macros = { path = "./naming/naming_common_macros", version = "0.1.0" }
 naming_macros = { path = "./naming/naming_macros", version = "0.1.0" }
 newtype = { path = "./newtype", version = "0.1.0" }
 optml = { path = "./optml", version = "0.1.0" }
-panic_loc = { path = "./panic_loc", version = "0.1.0" }
+panic_location = { path = "./panic_location", version = "0.1.0" }
 pg_crud = { path = "./pg_crud", version = "0.1.0" }
-pg_crud_cmn = { path = "./pg_crud/pg_crud_cmn", version = "0.1.0" }
-pg_crud_cmn_macros = { path = "./pg_crud/pg_crud_cmn_macros", version = "0.1.0" }
-pg_crud_macros_cmn = { path = "./pg_crud/pg_crud_macros_cmn", version = "0.1.0" }
-pg_crud_macros_cmn_macros = { path = "./pg_crud/pg_crud_macros_cmn_macros", version = "0.1.0" }
-pg_tbl = { path = "./pg_crud/pg_tbl", version = "0.1.0" }
+pg_crud_common = { path = "./pg_crud/pg_crud_common", version = "0.1.0" }
+pg_crud_common_macros = { path = "./pg_crud/pg_crud_common_macros", version = "0.1.0" }
+pg_crud_macros_common = { path = "./pg_crud/pg_crud_macros_common", version = "0.1.0" }
+pg_crud_macros_common_macros = { path = "./pg_crud/pg_crud_macros_common_macros", version = "0.1.0" }
+pg_table = { path = "./pg_crud/pg_table", version = "0.1.0" }
 pg_types = { path = "./pg_crud/pg_types", version = "0.1.0" }
 pg_types_chrono_net = { path = "./pg_crud/pg_types/pg_types_chrono_net", version = "0.1.0" }
-pg_types_cmn = { path = "./pg_crud/pg_types/pg_types_cmn", version = "0.1.0" }
+pg_types_common = { path = "./pg_crud/pg_types/pg_types_common", version = "0.1.0" }
 pg_types_numeric = { path = "./pg_crud/pg_types/pg_types_numeric", version = "0.1.0" }
 pg_types_text_misc = { path = "./pg_crud/pg_types/pg_types_text_misc", version = "0.1.0" }
 route_validators = { path = "./route_validators", version = "0.1.0" }
@@ -295,13 +295,13 @@ server_app_state = { path = "./server_app_state", version = "0.1.0" }
 server_app_state_macros = { path = "./server_app_state/server_app_state_macros", version = "0.1.0" }
 server_config = { path = "./server_config", version = "0.1.0" }
 server_runtime = { path = "./server_runtime", version = "0.1.0" }
-server_tbl_example = { path = "./server_tbl_example", version = "0.1.0" }
+server_table_example = { path = "./server_table_example", version = "0.1.0" }
 to_err_string = { path = "./to_err_string", version = "0.1.0" }
 to_err_string_macros = { path = "./to_err_string/to_err_string_macros", version = "0.1.0" }
 token_patterns = { path = "./token_patterns", version = "0.1.0", default-features = false }
 token_patterns_macros = { path = "./token_patterns/token_patterns_macros", version = "0.1.0" }
 try_from_env = { path = "./config_lib/try_from_env", version = "0.1.0" }
-wh_flts = { path = "./pg_crud/wh_flts", version = "0.1.0" }
+where_filters = { path = "./pg_crud/where_filters", version = "0.1.0" }
 workspace_macro_helpers = { path = "./workspace_macro_helpers", version = "0.1.0" }
 workspace_test_runner = { path = "./workspace_test_runner", version = "0.1.0" }
 [workspace.lints.rust]

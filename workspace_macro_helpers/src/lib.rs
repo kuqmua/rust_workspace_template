@@ -198,33 +198,33 @@ impl syn::parse::Parse for TopLevelCommaPart {
 }
 #[must_use]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FirstIdent(String);
+pub struct FirstIdentifier(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct FirstIdentTryFromStringEr(usize);
-impl From<FirstIdentTryFromStringEr> for FirstIdent {
-    fn from(value: FirstIdentTryFromStringEr) -> Self {
+pub struct FirstIdentifierifierTryFromStringError(usize);
+impl From<FirstIdentifierifierTryFromStringError> for FirstIdentifier {
+    fn from(value: FirstIdentifierifierTryFromStringError) -> Self {
         Self(value.to_string())
     }
 }
-impl TryFrom<String> for FirstIdent {
-    type Error = FirstIdentTryFromStringEr;
+impl TryFrom<String> for FirstIdentifier {
+    type Error = FirstIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > FIRST_IDENT_MAX_LEN {
-            return Err(FirstIdentTryFromStringEr(value.len()));
+            return Err(FirstIdentifierifierTryFromStringError(value.len()));
         }
         Ok(Self(value))
     }
 }
-impl std::fmt::Display for FirstIdent {
+impl std::fmt::Display for FirstIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::fmt::Display for FirstIdentTryFromStringEr {
+impl std::fmt::Display for FirstIdentifierifierTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "first ident length {} exceeds maximum {FIRST_IDENT_MAX_LEN}",
+            "first identifier length {} exceeds maximum {FIRST_IDENT_MAX_LEN}",
             self.0
         )
     }
@@ -264,16 +264,16 @@ where
     pub fn is_empty(&self) -> StdUniqueOptionSetIsEmpty {
         StdUniqueOptionSetIsEmpty(self.0.is_empty())
     }
-    pub fn try_insert_with<DuplicateEr>(
+    pub fn try_insert_with<DuplicateError>(
         &mut self,
         value: OptionValue,
-        duplicate_er: DuplicateEr,
+        duplicate_error: DuplicateError,
     ) -> syn::Result<()>
     where
-        DuplicateEr: FnOnce() -> syn::Error,
+        DuplicateError: FnOnce() -> syn::Error,
     {
         if !self.0.insert(value) {
-            return Err(duplicate_er());
+            return Err(duplicate_error());
         }
         Ok(())
     }
@@ -295,12 +295,12 @@ impl From<usize> for PartIndex {
         Self(value)
     }
 }
-pub fn compile_error_ts<S>(msg: S) -> ProcMacro2MacroTokens
+pub fn compile_error_token_stream<S>(message: S) -> ProcMacro2MacroTokens
 where
     S: AsRef<str>,
 {
-    let compile_msg = msg.as_ref().to_owned();
-    quote::quote! {compile_error!(#compile_msg);}.into()
+    let compile_message = message.as_ref().to_owned();
+    quote::quote! {compile_error!(#compile_message);}.into()
 }
 pub fn split_top_level_commas<T>(input: T) -> ProcMacro2TopLevelCommaParts
 where
@@ -309,18 +309,18 @@ where
     syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().into_inner())
         .unwrap_or_else(|_| ProcMacro2TopLevelCommaParts(Vec::new()))
 }
-pub fn first_ident<I>(input: &mut I) -> Option<FirstIdent>
+pub fn first_identifier<I>(input: &mut I) -> Option<FirstIdentifier>
 where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
     match input.next()? {
-        proc_macro2::TokenTree::Ident(ident) => {
-            Some(FirstIdent::try_from(ident.to_string()).unwrap_or_else(FirstIdent::from))
-        }
+        proc_macro2::TokenTree::Ident(identifier) => Some(
+            FirstIdentifier::try_from(identifier.to_string()).unwrap_or_else(FirstIdentifier::from),
+        ),
         proc_macro2::TokenTree::Group(group)
             if group.delimiter() == proc_macro2::Delimiter::None =>
         {
-            first_ident(&mut group.stream().into_iter())
+            first_identifier(&mut group.stream().into_iter())
         }
         proc_macro2::TokenTree::Group(_)
         | proc_macro2::TokenTree::Punct(_)
@@ -346,11 +346,14 @@ where
         .map(ProcMacro2MacroTokens::from)
 }
 #[must_use]
-pub fn first_ident_at<I>(parts: &ProcMacro2TopLevelCommaParts, idx: I) -> Option<FirstIdent>
+pub fn first_identifier_at<I>(
+    parts: &ProcMacro2TopLevelCommaParts,
+    idx: I,
+) -> Option<FirstIdentifier>
 where
     I: Into<PartIndex>,
 {
-    first_ident(&mut part_at(parts, idx)?.into_iter())
+    first_identifier(&mut part_at(parts, idx)?.into_iter())
 }
 #[must_use]
 pub fn split_fat_arrow<T>(input: T) -> Option<(ProcMacro2MacroTokens, ProcMacro2MacroTokens)>
@@ -385,26 +388,27 @@ where
 }
 #[allow(clippy::single_call_fn)] // this keeps the closure parser isolated from proc-macro expansion bodies
 #[must_use]
-pub fn closure_ident_and_body<T>(input: T) -> Option<(FirstIdent, ProcMacro2MacroTokens)>
+pub fn closure_identifier_and_body<T>(input: T) -> Option<(FirstIdentifier, ProcMacro2MacroTokens)>
 where
     T: Into<ProcMacro2MacroTokens>,
 {
-    struct ClosureIdentAndBody {
+    struct ClosureIdentifierAndBody {
         body: ProcMacro2MacroTokens,
-        ident: syn::Ident,
+        identifier: syn::Ident,
     }
-    impl syn::parse::Parse for ClosureIdentAndBody {
+    impl syn::parse::Parse for ClosureIdentifierAndBody {
         fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
             let _: syn::Token![|] = input.parse()?;
-            let ident = input.parse::<syn::Ident>()?;
+            let identifier = input.parse::<syn::Ident>()?;
             let _: syn::Token![|] = input.parse()?;
             let body = input.parse::<ProcMacro2MacroTokens>()?;
-            Ok(Self { body, ident })
+            Ok(Self { body, identifier })
         }
     }
-    let parsed = syn::parse2::<ClosureIdentAndBody>(input.into().into_inner()).ok()?;
+    let parsed = syn::parse2::<ClosureIdentifierAndBody>(input.into().into_inner()).ok()?;
     Some((
-        FirstIdent::try_from(parsed.ident.to_string()).unwrap_or_else(FirstIdent::from),
+        FirstIdentifier::try_from(parsed.identifier.to_string())
+            .unwrap_or_else(FirstIdentifier::from),
         parsed.body,
     ))
 }
@@ -486,12 +490,12 @@ mod tests {
                 syn::Error::new(proc_macro2::Span::call_site(), "first")
             })
             .expect("12817d29");
-        let er = values
+        let error = values
             .try_insert_with(1u8, || {
                 syn::Error::new(proc_macro2::Span::call_site(), "duplicate")
             })
             .expect_err("ce4826f4");
-        assert_eq!(er.to_string(), "duplicate");
+        assert_eq!(error.to_string(), "duplicate");
         assert!(values.contains(1u8).get());
     }
 }

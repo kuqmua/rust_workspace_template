@@ -14,9 +14,9 @@ fn all_files_are_english_only() {
                 },
             ),
             Vec::new,
-            |mut acc, mut item| {
-                acc.append(&mut item);
-                acc
+            |mut accumulator, mut item| {
+                accumulator.append(&mut item);
+                accumulator
             },
         )
     });
@@ -28,23 +28,23 @@ fn all_files_are_english_only() {
     );
 }
 #[test]
-fn check_expect_contains_only_unq_uuid_v4() {
-    super::check_expect_or_panic_contains_only_unq_uuid_v4(super::ExpectOrPanic::Expect);
+fn check_expect_contains_only_unique_uuid_v4() {
+    super::check_expect_or_panic_contains_only_unique_uuid_v4(super::ExpectOrPanic::Expect);
 }
 #[test]
-fn check_panic_contains_only_unq_uuid_v4() {
-    super::check_expect_or_panic_contains_only_unq_uuid_v4(super::ExpectOrPanic::Panic);
+fn check_panic_contains_only_unique_uuid_v4() {
+    super::check_expect_or_panic_contains_only_unique_uuid_v4(super::ExpectOrPanic::Panic);
 }
 #[test]
-fn check_rs_files_contains_only_unq_uuid_v4() {
-    let rgx = regex::Regex::new(
+fn check_rs_files_contains_only_unique_uuid_v4() {
+    let regex = regex::Regex::new(
         r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b",
     )
     .expect("e098a1ff");
     let mut seen = std::collections::HashSet::new();
     super::for_each_rs_file_content(|_, v| {
-        rgx.find_iter(v).for_each(|el_714b3d9c| {
-            let uuid = uuid::Uuid::parse_str(el_714b3d9c.as_str()).expect("c9711efd");
+        regex.find_iter(v).for_each(|element_714b3d9c| {
+            let uuid = uuid::Uuid::parse_str(element_714b3d9c.as_str()).expect("c9711efd");
             assert!(uuid.get_version_num() == 4, "49b49b21");
             assert!(seen.insert(uuid), "4cf9d239");
         });
@@ -82,7 +82,7 @@ fn no_for_loops_in_source_code() {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );
-            super::push_repeated_file_er(
+            super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
                 super::types::SourceTextRef::from(
@@ -109,7 +109,7 @@ fn spawned_tasks_must_retain_an_owner() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -124,7 +124,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
             if path_text.contains("/config_lib/")
-                || path_text.contains("/macro_clippy_check_cmn/")
+                || path_text.contains("/macro_clippy_check_common/")
                 || path_text.contains("/macros_helpers/")
                 || path_text.contains("/tests/")
                 || path_text.contains("/workspace_test_runner/")
@@ -160,7 +160,7 @@ fn runtime_data_reads_are_bounded() {
             let path_text = path.to_string_lossy();
             if path_text.contains("/tests/")
                 || path_text.contains("/macros_helpers/")
-                || path_text.contains("/macro_clippy_check_cmn/")
+                || path_text.contains("/macro_clippy_check_common/")
                 || path_text.contains("/workspace_test_runner/")
                 || path_text.contains("/initialize_environment_files/")
                 || path_text.ends_with("server_runtime/src/bounded_read.rs")
@@ -189,7 +189,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     super::for_each_rs_file_content(|path, content| {
         let path_text = path.to_string_lossy();
         if path_text.contains("/tests/")
-            || path_text.ends_with("pg_crud/pg_crud_cmn/src/sql_identifier.rs")
+            || path_text.ends_with("pg_crud/pg_crud_common/src/sql_identifier.rs")
         {
             return;
         }
@@ -210,7 +210,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([
-        ("../pg_crud/pg_tbl/src/lib.rs".to_owned(), 7usize),
+        ("../pg_crud/pg_table/src/lib.rs".to_owned(), 7usize),
         ("../server_admin/src/auth.rs".to_owned(), 7usize),
         ("../server_admin/src/auth/audit.rs".to_owned(), 2usize),
         ("../server_admin/src/auth/handlers.rs".to_owned(), 46usize),
@@ -271,7 +271,7 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
     observed_abort_paths.sort();
     let expected_abort_suffixes = [
         "macros_helpers/src/panic_if_err.rs",
-        "pg_crud/wh_flts/src/lib.rs",
+        "pg_crud/where_filters/src/lib.rs",
     ];
     let baseline_matches = observed_abort_paths.len() == expected_abort_suffixes.len()
         && expected_abort_suffixes.iter().all(|suffix| {
@@ -308,7 +308,7 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
             visitor.calls.into_iter().for_each(|call| {
                 let reviewed = path.ends_with("server_runtime/src/health.rs")
                     && call == "tokio::time::sleep"
-                    || path.ends_with("pg_crud/pg_crud_cmn/src/lib.rs")
+                    || path.ends_with("pg_crud/pg_crud_common/src/lib.rs")
                         && call == "uuid::Uuid::new_v4";
                 if !reviewed {
                     ers.push(format!("{}: nondeterministic `{call}`", path.display()));
@@ -330,13 +330,13 @@ fn no_todo_or_unimplemented_macro_in_source_code() {
                     unimplemented_found: super::types::AnalyzerCount::default(),
                 },
             );
-            super::push_repeated_file_er(
+            super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
                 super::types::SourceTextRef::from("contains todo!()"),
                 visitor.todo_found,
             );
-            super::push_repeated_file_er(
+            super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
                 super::types::SourceTextRef::from("contains unimplemented!()"),
@@ -384,7 +384,7 @@ fn no_include_asset_macros_outside_allowlist() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -403,10 +403,11 @@ fn no_non_public_use_imports_in_rust_sources() {
                 || path_text.ends_with("server_admin_frontend/src/app/tables.rs")
                 || path_text.ends_with("server_admin_frontend/src/app/pages.rs")
                 || path_text.ends_with("frontend_contract/src/lib.rs")
-                || path_text.ends_with("pg_crud/pg_crud_cmn/src/lib.rs")
-                || path_text.ends_with("pg_crud/pg_tbl/gen_pg_tbl_src/src/lib.rs")
-                || path_text.ends_with("pg_crud/pg_types/gen_pg_types_src/src/lib.rs")
-                || path_text.ends_with("pg_crud/wh_flts/gen_wh_flts_src/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_crud_common/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_table/generate_pg_table_src/src/lib.rs")
+                || path_text.ends_with("pg_crud/pg_types/generate_pg_types_src/src/lib.rs")
+                || path_text
+                    .ends_with("pg_crud/where_filters/generate_where_filters_src/src/lib.rs")
                 || path_text.ends_with("server_admin/src/lib.rs")
                 || path_text.ends_with("server_runtime/src/lib.rs")
             {
@@ -462,7 +463,7 @@ fn no_type_aliases_in_rust_sources() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -485,7 +486,7 @@ fn no_simple_constant_aliases_in_rust_sources() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -545,7 +546,7 @@ fn no_unwrap_in_source_code() {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );
-            super::push_repeated_file_er(
+            super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
                 super::types::SourceTextRef::from("unwrap() call"),

@@ -32,13 +32,13 @@ utoipa = { workspace = true }
 git_info = { workspace = true }
 app_state = { workspace = true }
 config_lib = { workspace = true }
-cmn_routes = { workspace = true }
+common_routes = { workspace = true }
 server_app_state = { workspace = true }
 server_admin = { workspace = true }
 server_admin_frontend = { workspace = true }
 server_config = { workspace = true }
 server_runtime = { workspace = true }
-server_tbl_example = { workspace = true }
+server_table_example = { workspace = true }
 thiserror = { workspace = true }
 [dev-dependencies]
 tokio = { workspace = true }

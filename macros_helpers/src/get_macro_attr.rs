@@ -3,11 +3,11 @@
 pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(deref_target, from_inner, to_tokens)]
-pub struct ProcMacro2MacroAttrMetaListTsRef<'lt>(&'lt proc_macro2::TokenStream);
+pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AttrPathMatches(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum MacroAttrEr {
+pub enum MacroAttrError {
     #[error("attr_not_list")]
     AttrNotList,
     #[error("no_attr")]
@@ -23,7 +23,7 @@ where
         .as_ref()
         .split("::")
         .map(str::trim)
-        .filter(|el| !el.is_empty());
+        .filter(|element| !element.is_empty());
     loop {
         match (attr_segments.next(), expected_segments.next()) {
             (Some(attr_segment), Some(expected_segment)) => {
@@ -54,26 +54,26 @@ where
 pub fn try_get_macro_attr<'lt, A, S>(
     attrs: A,
     attr_path: S,
-) -> Result<SynMacroAttrRef<'lt>, MacroAttrEr>
+) -> Result<SynMacroAttrRef<'lt>, MacroAttrError>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    find_macro_attr(attrs, attr_path).ok_or(MacroAttrEr::NoAttr)
+    find_macro_attr(attrs, attr_path).ok_or(MacroAttrError::NoAttr)
 }
-pub fn try_get_macro_attr_meta_list_ts<'lt, A, S>(
+pub fn try_get_macro_attr_meta_list_token_stream<'lt, A, S>(
     attrs: A,
     attr_path: S,
-) -> Result<ProcMacro2MacroAttrMetaListTsRef<'lt>, MacroAttrEr>
+) -> Result<ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>, MacroAttrError>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
     let attr = try_get_macro_attr(attrs, attr_path)?;
     if let syn::Meta::List(v) = &attr.0.meta {
-        Ok(ProcMacro2MacroAttrMetaListTsRef::from(&v.tokens))
+        Ok(ProcMacro2MacroAttrMetaListTokenStreamRef::from(&v.tokens))
     } else {
-        Err(MacroAttrEr::AttrNotList)
+        Err(MacroAttrError::AttrNotList)
     }
 }
 #[must_use]
@@ -82,22 +82,23 @@ where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    crate::panic_if_err::panic_if_err(try_get_macro_attr(attrs, attr_path), |er| {
-        format!("68acaa15:{er}:{}", attr_path.as_ref())
+    crate::panic_if_err::panic_if_err(try_get_macro_attr(attrs, attr_path), |error| {
+        format!("68acaa15:{error}:{}", attr_path.as_ref())
     })
 }
 #[must_use]
-pub fn get_macro_attr_meta_list_ts<'lt, A, S>(
+pub fn get_macro_attr_meta_list_token_stream<'lt, A, S>(
     attrs: A,
     attr_path: S,
-) -> ProcMacro2MacroAttrMetaListTsRef<'lt>
+) -> ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>
 where
     A: IntoIterator<Item = &'lt syn::Attribute>,
     S: AsRef<str> + Copy,
 {
-    crate::panic_if_err::panic_if_err(try_get_macro_attr_meta_list_ts(attrs, attr_path), |er| {
-        format!("9d057161:{er}:{}", attr_path.as_ref())
-    })
+    crate::panic_if_err::panic_if_err(
+        try_get_macro_attr_meta_list_token_stream(attrs, attr_path),
+        |error| format!("9d057161:{error}:{}", attr_path.as_ref()),
+    )
 }
 #[cfg(test)]
 mod tests {
@@ -118,9 +119,9 @@ mod tests {
         );
     }
     #[test]
-    fn get_macro_attr_meta_list_ts_returns_list_tokens() {
+    fn get_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
-        let ts = super::get_macro_attr_meta_list_ts(&attrs, "serde");
+        let ts = super::get_macro_attr_meta_list_token_stream(&attrs, "serde");
         assert_eq!(ts.to_string(), "default");
     }
     #[test]
@@ -133,15 +134,15 @@ mod tests {
         let attrs = attrs();
         assert_eq!(
             super::try_get_macro_attr(&attrs, "missing::attr"),
-            Err(super::MacroAttrEr::NoAttr)
+            Err(super::MacroAttrError::NoAttr)
         );
     }
     #[test]
-    fn try_get_macro_attr_meta_list_ts_returns_error_for_non_list_attr() {
+    fn try_get_macro_attr_meta_list_token_stream_returns_error_for_non_list_attr() {
         let attrs = vec![syn::parse_quote!(#[allow])];
         assert!(matches!(
-            super::try_get_macro_attr_meta_list_ts(&attrs, "allow"),
-            Err(super::MacroAttrEr::AttrNotList)
+            super::try_get_macro_attr_meta_list_token_stream(&attrs, "allow"),
+            Err(super::MacroAttrError::AttrNotList)
         ));
     }
     #[test]

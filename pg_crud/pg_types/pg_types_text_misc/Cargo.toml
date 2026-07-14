@@ -16,14 +16,14 @@ uuid = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-gen_pg_types = { workspace = true }
+generate_pg_types = { workspace = true }
 frontend_contract = { workspace = true }
-pg_types_cmn = { workspace = true }
-pg_crud_cmn = { workspace = true }
-loc_lib = { workspace = true }
-loc_macros = { workspace = true }
+pg_types_common = { workspace = true }
+pg_crud_common = { workspace = true }
+location_lib = { workspace = true }
+location_macros = { workspace = true }
 location = { workspace = true }
-wh_flts = { workspace = true }
+where_filters = { workspace = true }
 optml = { workspace = true }
 to_err_string = { workspace = true }
 utoipa = { workspace = true }
@@ -31,4 +31,4 @@ utoipa = { workspace = true }
 workspace = true
 
 [features]
-test-utils = ["pg_crud_cmn/test-utils"]
+test-utils = ["pg_crud_common/test-utils"]

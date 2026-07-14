@@ -217,28 +217,28 @@ impl AsRef<str> for FormValueRef<'_> {
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
 #[bounded_string(max = 65536usize)]
-pub struct FormValueEr(String);
-impl std::fmt::Display for FormValueEr {
+pub struct FormValueError(String);
+impl std::fmt::Display for FormValueError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 pub trait FormValueContract: Sized {
-    fn format_form_value(&self) -> Result<FormValue, FormValueEr>;
-    fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueEr>;
+    fn format_form_value(&self) -> Result<FormValue, FormValueError>;
+    fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueError>;
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FormFieldEr {
-    error: FormValueEr,
+pub struct FormFieldError {
+    error: FormValueError,
     field: ContractStr,
 }
-impl FormFieldEr {
+impl FormFieldError {
     #[must_use]
-    pub const fn new(error: FormValueEr, field: ContractStr) -> Self {
+    pub const fn new(error: FormValueError, field: ContractStr) -> Self {
         Self { error, field }
     }
     #[must_use]
-    pub const fn error(&self) -> &FormValueEr {
+    pub const fn error(&self) -> &FormValueError {
         &self.error
     }
     #[must_use]
@@ -695,16 +695,16 @@ impl TransportResponse {
     pub const fn status(&self) -> TransportStatus {
         self.status
     }
-    pub fn success_body(&self, expected: TransportStatus) -> Result<&TransportBody, ClientEr> {
+    pub fn success_body(&self, expected: TransportStatus) -> Result<&TransportBody, ClientError> {
         if self.status == expected {
             Ok(&self.body)
         } else {
             Err(decode_api_problem(&self.body).map_or(
-                ClientEr::Status {
+                ClientError::Status {
                     actual: self.status,
                     expected,
                 },
-                ClientEr::Problem,
+                ClientError::Problem,
             ))
         }
     }
@@ -715,8 +715,8 @@ pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
 #[bounded_string(max = 65536usize)]
-pub struct TransportEr(String);
-impl std::fmt::Display for TransportEr {
+pub struct TransportError(String);
+impl std::fmt::Display for TransportError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -725,21 +725,21 @@ pub trait Transport {
     fn send(
         &self,
         request: TransportRequest,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<TransportResponse, TransportEr>> + '_>>;
+    ) -> std::pin::Pin<Box<dyn Future<Output = Result<TransportResponse, TransportError>> + '_>>;
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum ClientEr {
-    Decode(FormValueEr),
-    Encode(FormValueEr),
+pub enum ClientError {
+    Decode(FormValueError),
+    Encode(FormValueError),
     Problem(ApiProblem),
     Status {
         actual: TransportStatus,
         expected: TransportStatus,
     },
-    Transport(TransportEr),
+    Transport(TransportError),
     UnexpectedResponse,
 }
-impl std::fmt::Display for ClientEr {
+impl std::fmt::Display for ClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Decode(value) => write!(f, "failed to decode response: {value}"),
@@ -859,7 +859,7 @@ mod tests {
             .expect_err("5eea7f90");
         assert!(matches!(
             error,
-            super::ClientEr::Problem(value)
+            super::ClientError::Problem(value)
                 if value.kind() == super::ApiProblemKind::Authentication
         ));
         assert_eq!(

@@ -20,7 +20,7 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -42,7 +42,7 @@ fn runtime_code_does_not_use_mutex() {
                     found_count: super::types::AnalyzerCount::default(),
                 },
             );
-            super::push_repeated_file_er(
+            super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
                 super::types::SourceTextRef::from("Mutex type usage"),
@@ -77,7 +77,7 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -102,7 +102,7 @@ fn async_functions_do_not_make_blocking_executor_calls() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -126,7 +126,7 @@ fn unit_tests_do_not_create_external_service_clients() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );

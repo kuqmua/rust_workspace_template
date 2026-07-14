@@ -1,0 +1,17 @@
+generate_derive_token_stream_builder::generate_derive_token_stream_builder!([
+    "Debug",
+    "Default",
+    "Clone",
+    "Copy",
+    "PartialEq",
+    "Eq",
+    "std::hash::Hash",
+    "PartialOrd",
+    "Ord",
+    "serde::Serialize",
+    "serde::Deserialize",
+    "utoipa::ToSchema",
+    "schemars::JsonSchema",
+    "thiserror::Error",
+    "location::Location"
+]);

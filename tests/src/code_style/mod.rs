@@ -34,14 +34,14 @@ const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
 ];
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
     ExternalLeafWrapperNameException {
-        ident: types::StaticStr("GeneratedRustTs"),
+        identifier: types::StaticStr("GeneratedRustTokenStream"),
         reason: types::StaticStr(
             "public macro-helper API name describes generated Rust tokens and is already used across generator crates",
         ),
     },
 ];
 struct ExternalLeafWrapperNameException {
-    ident: types::StaticStr,
+    identifier: types::StaticStr,
     reason: types::StaticStr,
 }
 #[derive(Debug, Clone, Copy, optml::Optml)]
@@ -386,7 +386,7 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
             let text = path_to_string(path);
             if matches!(
                 text.as_ref(),
-                "rand::thread_rng"
+                "rand::thread_range"
                     | "std::thread::sleep"
                     | "std::time::SystemTime::now"
                     | "tokio::time::sleep"
@@ -547,19 +547,19 @@ impl StringWrapperFromVisitor<'_> {
             attr_has_bounded_string_max_bound(types::SynAttributeRef::from(attr)).get()
         });
         if has_derive && has_max_bound {
-            let ident = item_ref.ident.to_string();
-            let _: bool = self.try_from_string_names.insert(ident.clone());
-            let _: bool = self.try_from_string_len_checked_names.insert(ident);
+            let identifier = item_ref.ident.to_string();
+            let _: bool = self.try_from_string_names.insert(identifier.clone());
+            let _: bool = self.try_from_string_len_checked_names.insert(identifier);
         }
     }
     fn check_from_impl(&mut self, item: types::SynItemImplRef<'_>) {
         if !item_impl_is_from_string(item).get() {
             return;
         }
-        let ident = item_impl_self_ty_ident(item)
+        let identifier = item_impl_self_ty_identifier(item)
             .map_or_else(|| String::from("<non-path target>"), String::from);
         self.ers.push(format!(
-            "`{ident}` implements `From<String>`; implement `TryFrom<String>` instead"
+            "`{identifier}` implements `From<String>`; implement `TryFrom<String>` instead"
         ));
     }
     fn check_newtype_attr(&mut self, item: types::SynItemStructRef<'_>) {
@@ -582,19 +582,19 @@ impl StringWrapperFromVisitor<'_> {
         if !item_impl_is_try_from_string(item).get() {
             return;
         }
-        let Some(ident) = item_impl_self_ty_ident(item) else {
+        let Some(identifier) = item_impl_self_ty_identifier(item) else {
             return;
         };
-        if !self.string_wrapper_names.contains(ident.as_ref()) {
+        if !self.string_wrapper_names.contains(identifier.as_ref()) {
             return;
         }
         let _: bool = self
             .try_from_string_names
-            .insert(String::from(ident.clone()));
+            .insert(String::from(identifier.clone()));
         if item_impl_contains_len_call(item).get() {
             let _: bool = self
                 .try_from_string_len_checked_names
-                .insert(String::from(ident));
+                .insert(String::from(identifier));
         }
     }
 }
@@ -667,17 +667,17 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         if path_ends_with(
             types::SynPathRef::from(&i.path),
-            types::StaticStrSliceRef::from(["gen_pg_types", "gen_pg_types"].as_slice()),
+            types::StaticStrSliceRef::from(["generate_pg_types", "generate_pg_types"].as_slice()),
         )
         .get()
         {
-            collect_gen_pg_types_domain_names(
+            collect_generate_pg_types_domain_names(
                 types::SourceTextRef::from(i.tokens.to_string().as_str()),
                 &mut self.names,
             );
         }
         if config_lib_domain_type_macro_path(types::SynPathRef::from(&i.path)).get() {
-            collect_first_macro_ident_domain_name(
+            collect_first_macro_identifier_domain_name(
                 types::SourceTextRef::from(i.tokens.to_string().as_str()),
                 &mut self.names,
             );
@@ -688,7 +688,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         )
         .get()
         {
-            collect_first_macro_ident_domain_name(
+            collect_first_macro_identifier_domain_name(
                 types::SourceTextRef::from(i.tokens.to_string().as_str()),
                 &mut self.names,
             );
@@ -696,12 +696,16 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         if path_ends_with(
             types::SynPathRef::from(&i.path),
             types::StaticStrSliceRef::from(
-                ["gen_derive_ts_builder", "gen_derive_ts_builder"].as_slice(),
+                [
+                    "generate_derive_token_stream_builder",
+                    "generate_derive_token_stream_builder",
+                ]
+                .as_slice(),
             ),
         )
         .get()
         {
-            let _: bool = self.names.insert(String::from("DTsBuilder"));
+            let _: bool = self.names.insert(String::from("DTokenStreamBuilder"));
         }
         syn::visit::visit_macro(self, i);
     }
@@ -853,24 +857,24 @@ impl DomainTypePolicyVisitor<'_> {
         let Some(segment) = ty_path_ref.path.segments.last() else {
             return;
         };
-        let ident = segment.ident.to_string();
+        let identifier = segment.ident.to_string();
         if path_first_segment_is_self(types::SynPathRef::from(&ty_path_ref.path)).get() {
             self.check_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments), ctx);
             return;
         }
-        if is_structural_generic_container(types::SourceTextRef::from(ident.as_str())).get() {
+        if is_structural_generic_container(types::SourceTextRef::from(identifier.as_str())).get() {
             self.check_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments), ctx);
             return;
         }
         if self
-            .is_allowed_type_ident(types::SourceTextRef::from(ident.as_str()))
+            .is_allowed_type_identifier(types::SourceTextRef::from(identifier.as_str()))
             .get()
         {
             self.check_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments), ctx);
             return;
         }
         if self
-            .path_starts_with_allowed_type_ident(types::SynPathRef::from(&ty_path_ref.path))
+            .path_starts_with_allowed_type_identifier(types::SynPathRef::from(&ty_path_ref.path))
             .get()
         {
             ty_path_ref.path.segments.iter().for_each(|path_segment| {
@@ -915,19 +919,22 @@ impl DomainTypePolicyVisitor<'_> {
     fn closure_body_scan_is_active(&self) -> types::AnalyzerBool {
         types::AnalyzerBool::from(self.closure_body_scan_depth.get() > 0)
     }
-    fn is_allowed_type_ident(&self, ident: types::SourceTextRef<'_>) -> types::AnalyzerBool {
-        let ident_ref = ident.as_ref();
+    fn is_allowed_type_identifier(
+        &self,
+        identifier: types::SourceTextRef<'_>,
+    ) -> types::AnalyzerBool {
+        let identifier_ref = identifier.as_ref();
         types::AnalyzerBool::from(
-            ident_ref == "Self"
-                || self.repo_types.as_ref().contains(ident_ref)
+            identifier_ref == "Self"
+                || self.repo_types.as_ref().contains(identifier_ref)
                 || self
                     .generic_scopes
                     .iter()
                     .rev()
-                    .any(|scope| scope.contains(ident_ref)),
+                    .any(|scope| scope.contains(identifier_ref)),
         )
     }
-    fn path_starts_with_allowed_type_ident(
+    fn path_starts_with_allowed_type_identifier(
         &self,
         path: types::SynPathRef<'_>,
     ) -> types::AnalyzerBool {
@@ -935,7 +942,7 @@ impl DomainTypePolicyVisitor<'_> {
         types::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
-                    self.is_allowed_type_ident(types::SourceTextRef::from(
+                    self.is_allowed_type_identifier(types::SourceTextRef::from(
                         segment.ident.to_string().as_str(),
                     ))
                     .get()
@@ -947,13 +954,15 @@ impl DomainTypePolicyVisitor<'_> {
         types::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
-                    let ident = segment.ident.to_string();
-                    ident != "crate"
-                        && ident != "self"
-                        && ident != "super"
-                        && !self.repo_crates.as_ref().contains(&ident)
+                    let identifier = segment.ident.to_string();
+                    identifier != "crate"
+                        && identifier != "self"
+                        && identifier != "super"
+                        && !self.repo_crates.as_ref().contains(&identifier)
                         && !self
-                            .is_allowed_type_ident(types::SourceTextRef::from(ident.as_str()))
+                            .is_allowed_type_identifier(types::SourceTextRef::from(
+                                identifier.as_str(),
+                            ))
                             .get()
                 }),
         )
@@ -963,8 +972,8 @@ impl DomainTypePolicyVisitor<'_> {
         types::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
-                    let ident = segment.ident.to_string();
-                    self.repo_crates.as_ref().contains(&ident)
+                    let identifier = segment.ident.to_string();
+                    self.repo_crates.as_ref().contains(&identifier)
                 }),
         )
     }
@@ -1015,7 +1024,9 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         syn::visit::visit_item(self, i);
     }
     fn visit_item_enum(&mut self, i: &'ast syn::ItemEnum) {
-        if ident_is_diagnostic_try_from_string_error(types::SynIdentRef::from(&i.ident)).get() {
+        if identifier_is_diagnostic_try_from_string_error(types::SynIdentifierRef::from(&i.ident))
+            .get()
+        {
             return;
         }
         self.push_generics(types::SynGenericsRef::from(&i.generics));
@@ -1052,7 +1063,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                     ))
                     .get() =>
                 {
-                    if method_is_explicit_wrapper_accessor(types::SynIdentRef::from(
+                    if method_is_explicit_wrapper_accessor(types::SynIdentifierRef::from(
                         &item_fn.sig.ident,
                     ))
                     .get()
@@ -1200,7 +1211,7 @@ impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
             .iter()
             .filter_map(|item| match item {
                 syn::ImplItem::Fn(item_fn)
-                    if !method_is_explicit_wrapper_accessor(types::SynIdentRef::from(
+                    if !method_is_explicit_wrapper_accessor(types::SynIdentifierRef::from(
                         &item_fn.sig.ident,
                     ))
                     .get() =>
@@ -1256,14 +1267,16 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         };
         let first_segment_ref = first_segment.get();
         let item_ref = item.as_ref();
-        let expected_prefix =
-            ident_to_upper_camel_fragment(types::SynIdentRef::from(&first_segment_ref.ident));
-        let ident = item_ref.ident.to_string();
-        if is_external_leaf_wrapper_name_exception(types::SourceTextRef::from(ident.as_str())).get()
+        let expected_prefix = identifier_to_upper_camel_fragment(types::SynIdentifierRef::from(
+            &first_segment_ref.ident,
+        ));
+        let identifier = item_ref.ident.to_string();
+        if is_external_leaf_wrapper_name_exception(types::SourceTextRef::from(identifier.as_str()))
+            .get()
         {
             return;
         }
-        if ident.starts_with(expected_prefix.as_ref()) {
+        if identifier.starts_with(expected_prefix.as_ref()) {
             return;
         }
         self.ers.push(format!(
@@ -1351,11 +1364,11 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             return self.external_root_segment(types::SynTypeRef::from(&*qself.ty));
         }
         let first_segment = ty_path_ref.path.segments.first()?;
-        let first_ident = first_segment.ident.to_string();
-        if first_ident == "crate"
-            || first_ident == "self"
-            || first_ident == "super"
-            || self.repo_crates.as_ref().contains(&first_ident)
+        let first_identifier = first_segment.ident.to_string();
+        if first_identifier == "crate"
+            || first_identifier == "self"
+            || first_identifier == "super"
+            || self.repo_crates.as_ref().contains(&first_identifier)
         {
             return ty_path_ref.path.segments.iter().find_map(|segment| {
                 self.external_root_segment_from_arguments(types::SynPathArgumentsRef::from(
@@ -1374,17 +1387,19 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
 }
 #[allow(clippy::single_call_fn)] // validates every external wrapper naming exception has an explicit reason before matching idents
-fn is_external_leaf_wrapper_name_exception(ident: types::SourceTextRef<'_>) -> types::AnalyzerBool {
+fn is_external_leaf_wrapper_name_exception(
+    identifier: types::SourceTextRef<'_>,
+) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS
             .iter()
             .any(|exception| {
                 assert!(!exception.reason.get().is_empty(), "c7ab0f62");
-                exception.ident.get() == ident.as_ref()
+                exception.identifier.get() == identifier.as_ref()
             }),
     )
 }
-fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPanic) {
+fn check_expect_or_panic_contains_only_unique_uuid_v4(expect_or_panic: ExpectOrPanic) {
     struct ExpectVisitor {
         ers: types::DiagnosticMsgs,
         method_name: types::StaticStr,
@@ -1431,7 +1446,7 @@ fn check_expect_or_panic_contains_only_unq_uuid_v4(expect_or_panic: ExpectOrPani
             visitor
                 .ers
                 .into_iter()
-                .map(|el_2b9891bd| format!("{path:?}: {el_2b9891bd}")),
+                .map(|element_2b9891bd| format!("{path:?}: {element_2b9891bd}")),
         );
     });
     let duplicates = find_duplicate_strings(types::SourceTextListRef::from(all_uuids.as_slice()));
@@ -1486,9 +1501,9 @@ fn lints_from_help_cmd(
     };
     regex
         .captures_iter(&stdout)
-        .map(|el_70833f93| {
+        .map(|element_70833f93| {
             String::from(normalize_lint_name(types::SourceTextRef::from(
-                &el_70833f93[1],
+                &element_70833f93[1],
             )))
         })
         .collect::<Vec<String>>()
@@ -1510,15 +1525,15 @@ fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
-    let v_tbl = toml_val_as_tbl_ref(v, types::StaticStr("cb693a3f"));
-    if let Some(path_v) = v_tbl.get().get("path") {
+    let v_table = toml_val_as_table_ref(v, types::StaticStr("cb693a3f"));
+    if let Some(path_v) = v_table.get().get("path") {
         match path_v {
             toml::Value::String(_) => {
-                validate_workspace_path_dep_version(v_tbl);
-                match v_tbl.get().len() {
+                validate_workspace_path_dep_version(v_table);
+                match v_table.get().len() {
                     2 => (),
-                    3 => validate_workspace_dep_default_features(v_tbl),
-                    _ => panic!("f6a3b9d1 {v_tbl:#?}"),
+                    3 => validate_workspace_dep_default_features(v_table),
+                    _ => panic!("f6a3b9d1 {v_table:#?}"),
                 }
                 return;
             }
@@ -1530,13 +1545,13 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
             | toml::Value::Array(_) => panic!("6ca03a1f"),
         }
     }
-    validate_workspace_dep_version(v_tbl);
-    match v_tbl.get().len() {
+    validate_workspace_dep_version(v_table);
+    match v_table.get().len() {
         1 => {}
-        2 => validate_workspace_dep_features_or_default_features(v_tbl),
+        2 => validate_workspace_dep_features_or_default_features(v_table),
         3 => {
-            validate_workspace_dep_features(v_tbl);
-            match v_tbl.get().get("default-features").expect("847a138f") {
+            validate_workspace_dep_features(v_table);
+            match v_table.get().get("default-features").expect("847a138f") {
                 &toml::Value::Boolean(_) => (),
                 &toml::Value::String(_)
                 | &toml::Value::Table(_)
@@ -1546,12 +1561,12 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
                 | &toml::Value::Array(_) => panic!("b320164b"),
             }
         }
-        _ => panic!("f1139378 {v_tbl:#?}"),
+        _ => panic!("f1139378 {v_table:#?}"),
     }
 }
 #[allow(clippy::single_call_fn)] // path workspace deps must keep concrete package versions for external tooling policy checks
-fn validate_workspace_path_dep_version(v_tbl: types::TomlTableRef<'_>) {
-    match v_tbl.get().get("version").expect("bf2e4a7c") {
+fn validate_workspace_path_dep_version(v_table: types::TomlTableRef<'_>) {
+    match v_table.get().get("version").expect("bf2e4a7c") {
         toml::Value::String(version_string) => {
             assert_eq!(version_string, "0.1.0", "8c3d5f91");
         }
@@ -1564,16 +1579,16 @@ fn validate_workspace_path_dep_version(v_tbl: types::TomlTableRef<'_>) {
     }
 }
 #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
-fn validate_workspace_dep_features_or_default_features(v_tbl: types::TomlTableRef<'_>) {
-    if v_tbl.get().contains_key("features") {
-        validate_workspace_dep_features(v_tbl);
+fn validate_workspace_dep_features_or_default_features(v_table: types::TomlTableRef<'_>) {
+    if v_table.get().contains_key("features") {
+        validate_workspace_dep_features(v_table);
     } else {
-        validate_workspace_dep_default_features(v_tbl);
+        validate_workspace_dep_default_features(v_table);
     }
 }
 #[allow(clippy::single_call_fn)] // shared shape check for dependency tables that explicitly opt out of default features
-fn validate_workspace_dep_default_features(v_tbl: types::TomlTableRef<'_>) {
-    match v_tbl.get().get("default-features").expect("d2a8c4e1") {
+fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
+    match v_table.get().get("default-features").expect("d2a8c4e1") {
         &toml::Value::Boolean(_) => (),
         &toml::Value::String(_)
         | &toml::Value::Table(_)
@@ -1584,8 +1599,8 @@ fn validate_workspace_dep_default_features(v_tbl: types::TomlTableRef<'_>) {
     }
 }
 #[allow(clippy::single_call_fn)] // separates version shape assertion from dependency-table flow and keeps IDs stable
-fn validate_workspace_dep_version(v_tbl: types::TomlTableRef<'_>) {
-    match v_tbl.get().get("version").expect("d5b2b269") {
+fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
+    match v_table.get().get("version").expect("d5b2b269") {
         toml::Value::String(version_string) => {
             assert!(
                 is_exact_three_part_version(types::SourceTextRef::from(version_string.as_str()))
@@ -1602,8 +1617,8 @@ fn validate_workspace_dep_version(v_tbl: types::TomlTableRef<'_>) {
     }
 }
 #[allow(clippy::single_call_fn)] // extracted to avoid repeated feature-type checks for dependency tables
-fn validate_workspace_dep_features(v_tbl: types::TomlTableRef<'_>) {
-    match v_tbl.get().get("features").expect("473577d5") {
+fn validate_workspace_dep_features(v_table: types::TomlTableRef<'_>) {
+    match v_table.get().get("features").expect("473577d5") {
         &toml::Value::Array(_) => (),
         &toml::Value::String(_)
         | &toml::Value::Table(_)
@@ -1647,15 +1662,15 @@ fn compare_lints_vecs(
         types::StdSourceTextRefSet::from(lints_from_cargo_set.as_ref()),
         types::StdSourceTextRefSet::from(&lints_exceptions_set),
     );
-    let missing_by_exception_msg = lints_missing_by_exception
+    let missing_by_exception_message = lints_missing_by_exception
         .into_iter()
         .map(|lint| {
             format!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997")
         })
         .collect::<Vec<String>>()
         .join("\n");
-    if !missing_by_exception_msg.is_empty() {
-        println!("{missing_by_exception_msg}");
+    if !missing_by_exception_message.is_empty() {
+        println!("{missing_by_exception_message}");
     }
     assert!(
         lints_not_in_cargo_toml.is_empty(),
@@ -1740,12 +1755,12 @@ fn split_lints_missing_from_cargo(
 }
 #[allow(clippy::single_call_fn)] // helper intentionally stays extracted so workspace-lints table parsing remains separate from test driver wiring
 fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::SourceTextList {
-    let workspace = workspace_tbl_from_cargo_toml();
-    let lints = toml_val_as_tbl_ref(
+    let workspace = workspace_table_from_cargo_toml();
+    let lints = toml_val_as_table_ref(
         types::TomlValueRef::from(workspace.as_ref().get("lints").expect("82eaea37")),
         types::StaticStr("cae226cd"),
     );
-    let toml_v_tbl = toml_val_as_tbl_ref(
+    let toml_v_table = toml_val_as_table_ref(
         types::TomlValueRef::from(
             lints
                 .as_ref()
@@ -1754,7 +1769,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
         ),
         types::StaticStr("6f4580ce"),
     );
-    toml_v_tbl
+    toml_v_table
         .as_ref()
         .keys()
         .cloned()
@@ -1843,7 +1858,7 @@ fn find_duplicate_strings(v: types::SourceTextListRef<'_>) -> types::SourceTextL
     types::SourceTextList::from(
         v.get()
             .iter()
-            .filter(|el_45f4b8bc| !seen.insert(el_45f4b8bc.as_str()))
+            .filter(|element_45f4b8bc| !seen.insert(element_45f4b8bc.as_str()))
             .cloned()
             .collect::<Vec<String>>(),
     )
@@ -1919,14 +1934,14 @@ fn is_allowed_english_char(ch: types::AnalyzerChar) -> types::AnalyzerBool {
     )
 }
 #[allow(clippy::single_call_fn)] // shared repeated-file error helper keeps AST visitor diagnostics consistent
-fn push_repeated_file_er(
+fn push_repeated_file_error(
     mut ers: types::DiagnosticMsgsMutRef<'_>,
     path: types::StdPathRef<'_>,
-    msg: types::SourceTextRef<'_>,
+    message: types::SourceTextRef<'_>,
     times: types::AnalyzerCount,
 ) {
     ers.extend(
-        std::iter::repeat_with(|| format!("{}: {}", path.as_ref().display(), msg.as_ref()))
+        std::iter::repeat_with(|| format!("{}: {}", path.as_ref().display(), message.as_ref()))
             .take(times.get()),
     );
 }
@@ -1955,7 +1970,7 @@ fn path_has_segment(
         path.as_ref()
             .segments
             .iter()
-            .any(|el| el.ident == segment.as_ref()),
+            .any(|element| element.ident == segment.as_ref()),
     )
 }
 #[allow(clippy::single_call_fn)] // names the From<String> trait-shape check for the string-wrapper policy visitor
@@ -1989,7 +2004,7 @@ fn item_impl_contains_len_call(item: types::SynItemImplRef<'_>) -> types::Analyz
     visitor.found
 }
 #[allow(clippy::single_call_fn)] // extracts impl target type name for string-wrapper diagnostics
-fn item_impl_self_ty_ident(item: types::SynItemImplRef<'_>) -> Option<types::SourceText> {
+fn item_impl_self_ty_identifier(item: types::SynItemImplRef<'_>) -> Option<types::SourceText> {
     match item.as_ref().self_ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path.path.segments.last().map(|segment| {
             types::SourceText::try_from(segment.ident.to_string()).expect("6a9f03d2")
@@ -2017,7 +2032,7 @@ fn from_trait_arg_is_string(path: types::SynPathRef<'_>) -> types::AnalyzerBool 
                 match &segment.arguments {
                     syn::PathArguments::AngleBracketed(args) => {
                         args.args.iter().any(|arg| {
-                            matches!(arg, syn::GenericArgument::Type(ty) if type_path_ends_with_ident(types::SynTypeRef::from(ty), types::SourceTextRef::from("String")).get())
+                            matches!(arg, syn::GenericArgument::Type(ty) if type_path_ends_with_identifier(types::SynTypeRef::from(ty), types::SourceTextRef::from("String")).get())
                         })
                     }
                     syn::PathArguments::Parenthesized(_) | syn::PathArguments::None => false,
@@ -2028,7 +2043,7 @@ fn item_struct_is_single_string_wrapper(item: types::SynItemStructRef<'_>) -> ty
     types::AnalyzerBool::from(match &item.as_ref().fields {
         syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
             fields.unnamed.first().is_some_and(|field| {
-                type_path_ends_with_ident(
+                type_path_ends_with_identifier(
                     types::SynTypeRef::from(&field.ty),
                     types::SourceTextRef::from("String"),
                 )
@@ -2061,26 +2076,35 @@ fn item_struct_single_field_is_public(item: types::SynItemStructRef<'_>) -> type
     })
 }
 #[allow(clippy::single_call_fn)] // diagnostic conversion errors intentionally carry raw length metadata
-fn ident_is_diagnostic_try_from_string_error(ident: types::SynIdentRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(ident.as_ref().to_string().ends_with("TryFromStringEr"))
+fn identifier_is_diagnostic_try_from_string_error(
+    identifier: types::SynIdentifierRef<'_>,
+) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(
+        identifier
+            .as_ref()
+            .to_string()
+            .ends_with("TryFromStringError"),
+    )
 }
 #[allow(clippy::single_call_fn)] // explicit wrapper escape hatches are allowed to expose their inner representation
-fn method_is_explicit_wrapper_accessor(ident: types::SynIdentRef<'_>) -> types::AnalyzerBool {
+fn method_is_explicit_wrapper_accessor(
+    identifier: types::SynIdentifierRef<'_>,
+) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
-        ident.as_ref().to_string().as_str(),
+        identifier.as_ref().to_string().as_str(),
         "get" | "into_inner"
     ))
 }
-fn type_path_ends_with_ident(
+fn type_path_ends_with_identifier(
     ty: types::SynTypeRef<'_>,
-    ident: types::SourceTextRef<'_>,
+    identifier: types::SourceTextRef<'_>,
 ) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match ty.as_ref() {
         syn::Type::Path(ty_path) => ty_path
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == ident.as_ref()),
+            .is_some_and(|segment| segment.ident == identifier.as_ref()),
         syn::Type::Array(_)
         | syn::Type::BareFn(_)
         | syn::Type::Group(_)
@@ -2213,19 +2237,19 @@ fn expr_call_path(call: types::SynExprCallRef<'_>) -> Option<types::SynPathRef<'
     }
 }
 #[allow(clippy::single_call_fn)] // extracts repo macro domain type discovery from the visitor traversal
-fn collect_gen_pg_types_domain_names(
+fn collect_generate_pg_types_domain_names(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
 ) {
     let re = regex::Regex::new("\"([A-Za-z0-9]+As[A-Za-z0-9]+)\"").expect("f4e61b29");
     re.captures_iter(tokens.as_ref())
         .filter_map(|captures| {
-            let base = captures.get(1).map(|el| el.as_str())?;
+            let base = captures.get(1).map(|element| element.as_str())?;
             base.split_once("As")
         })
         .for_each(|(prefix, suffix)| {
-            let _: bool = names.insert(format!("{prefix}AsNn{suffix}"));
-            let _: bool = names.insert(format!("Opt{prefix}AsNl{suffix}"));
+            let _: bool = names.insert(format!("{prefix}AsNonNull{suffix}"));
+            let _: bool = names.insert(format!("Optional{prefix}AsNullable{suffix}"));
         });
 }
 #[allow(clippy::single_call_fn)] // config_lib helper macros declare domain wrapper structs from their first argument
@@ -2255,14 +2279,14 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
             || path_ends_with(
                 path,
                 types::StaticStrSliceRef::from(
-                    ["config_lib_macros", "impl_try_from_parse_string_er"].as_slice(),
+                    ["config_lib_macros", "impl_try_from_parse_string_error"].as_slice(),
                 ),
             )
             .get(),
     )
 }
-#[allow(clippy::single_call_fn)] // macro-generated domain wrapper names are the first ident in these macro inputs
-fn collect_first_macro_ident_domain_name(
+#[allow(clippy::single_call_fn)] // macro-generated domain wrapper names are the first identifier in these macro inputs
+fn collect_first_macro_identifier_domain_name(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
 ) {
@@ -2424,9 +2448,9 @@ fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types:
     types::AnalyzerBool::from(path.as_ref().starts_with("../tests/src/code_style"))
 }
 #[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
-fn is_structural_generic_container(ident: types::SourceTextRef<'_>) -> types::AnalyzerBool {
+fn is_structural_generic_container(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
-        ident.as_ref(),
+        identifier.as_ref(),
         "Option"
             | "Result"
             | "Vec"
@@ -2504,8 +2528,8 @@ fn raw_text_return_ty_path(
 ) -> Option<(types::StaticStr, types::StaticStr)> {
     let ty_path_ref = ty_path.get();
     let segment = ty_path_ref.path.segments.last()?;
-    let ident = segment.ident.to_string();
-    match ident.as_str() {
+    let identifier = segment.ident.to_string();
+    match identifier.as_str() {
         "String" => Some((
             types::StaticStr("String"),
             types::StaticStr("types::SourceText"),
@@ -2566,8 +2590,8 @@ fn analyzer_state_raw_container_ty_path(
 ) -> Option<(types::StaticStr, types::StaticStr)> {
     let ty_path_ref = ty_path.get();
     let segment = ty_path_ref.path.segments.last()?;
-    let ident = segment.ident.to_string();
-    match ident.as_str() {
+    let identifier = segment.ident.to_string();
+    match identifier.as_str() {
         "Vec"
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
@@ -2755,8 +2779,10 @@ fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
     .expect("50c1e4a8")
 }
 #[allow(clippy::single_call_fn)] // keeps external-wrapper naming suggestion generation readable at the call site
-fn ident_to_upper_camel_fragment(ident: types::SynIdentRef<'_>) -> types::SourceText {
-    let (out, _) = ident.as_ref().to_string().chars().fold(
+fn identifier_to_upper_camel_fragment(
+    identifier: types::SynIdentifierRef<'_>,
+) -> types::SourceText {
+    let (out, _) = identifier.as_ref().to_string().chars().fold(
         (String::new(), true),
         |(mut out, mut next_upper), ch| {
             if ch == '_' {
@@ -2942,18 +2968,18 @@ fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
             .for_each(|file| on_file(file.path().as_ref(), file.ast().as_ref()));
     });
 }
-fn workspace_tbl_from_cargo_toml() -> types::TomlTable {
-    let mut tbl = std::fs::read_to_string(WORKSPACE_MANIFEST_PATH)
+fn workspace_table_from_cargo_toml() -> types::TomlTable {
+    let mut table = std::fs::read_to_string(WORKSPACE_MANIFEST_PATH)
         .expect("39a0d238")
         .parse::<toml::Table>()
         .expect("beb11586");
-    toml_val_as_tbl(
-        types::TomlValue::from(tbl.remove("workspace").expect("f728192d")),
+    toml_val_as_table(
+        types::TomlValue::from(table.remove("workspace").expect("f728192d")),
         types::StaticStr("2bfb0b62"),
     )
 }
 #[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required
-fn toml_val_as_tbl(v: types::TomlValue, uuid: types::StaticStr) -> types::TomlTable {
+fn toml_val_as_table(v: types::TomlValue, uuid: types::StaticStr) -> types::TomlTable {
     match v.into_inner() {
         toml::Value::Table(t) => types::TomlTable::from(t),
         toml::Value::String(_)
@@ -2964,7 +2990,7 @@ fn toml_val_as_tbl(v: types::TomlValue, uuid: types::StaticStr) -> types::TomlTa
         | toml::Value::Array(_) => panic!("{}", uuid.get()),
     }
 }
-fn toml_val_as_tbl_ref(
+fn toml_val_as_table_ref(
     v: types::TomlValueRef<'_>,
     uuid: types::StaticStr,
 ) -> types::TomlTableRef<'_> {
@@ -3000,7 +3026,7 @@ fn collect_non_workspace_dep_ers(
                         !workspace_dep_entry_is_valid(types::TomlValueRef::from(*dep_value)).get()
                     })
                     .map(move |(dep_name, _)| {
-                        String::from(workspace_dep_entry_er(
+                        String::from(workspace_dep_entry_error(
                             path,
                             types::SourceTextRef::from(dep_name.as_str()),
                             types::SourceTextRef::from(dep_section),
@@ -3012,9 +3038,9 @@ fn collect_non_workspace_dep_ers(
 #[allow(clippy::single_call_fn)] // keeps dependency-policy validation centralized for dependencies/dev-dependencies/build-dependencies checks
 fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match dep_value.as_ref() {
-        toml::Value::Table(dep_tbl) => {
-            dep_tbl.contains_key("path")
-                || dep_tbl.get("workspace") == Some(&toml::Value::Boolean(true))
+        toml::Value::Table(dep_table) => {
+            dep_table.contains_key("path")
+                || dep_table.get("workspace") == Some(&toml::Value::Boolean(true))
         }
         toml::Value::String(_)
         | toml::Value::Integer(_)
@@ -3025,7 +3051,7 @@ fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::An
     })
 }
 #[allow(clippy::single_call_fn)] // shared message builder keeps dependency-policy errors identical across call sites
-fn workspace_dep_entry_er(
+fn workspace_dep_entry_error(
     path: types::StdPathRef<'_>,
     dep_name: types::SourceTextRef<'_>,
     dep_section: types::SourceTextRef<'_>,

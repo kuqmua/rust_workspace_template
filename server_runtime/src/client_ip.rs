@@ -55,42 +55,42 @@ impl From<u8> for StdTrustedProxyPrefixBits {
     }
 }
 #[derive(Debug)]
-pub struct StdAddrParseEr(std::net::AddrParseError);
-impl std::fmt::Display for StdAddrParseEr {
+pub struct StdAddrParseError(std::net::AddrParseError);
+impl std::fmt::Display for StdAddrParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&self.0, f)
     }
 }
-impl std::error::Error for StdAddrParseEr {}
-impl From<std::net::AddrParseError> for StdAddrParseEr {
+impl std::error::Error for StdAddrParseError {}
+impl From<std::net::AddrParseError> for StdAddrParseError {
     fn from(value: std::net::AddrParseError) -> Self {
         Self(value)
     }
 }
 #[derive(Debug)]
-pub struct StdParseIntEr(std::num::ParseIntError);
-impl std::fmt::Display for StdParseIntEr {
+pub struct StdParseIntError(std::num::ParseIntError);
+impl std::fmt::Display for StdParseIntError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&self.0, f)
     }
 }
-impl std::error::Error for StdParseIntEr {}
-impl From<std::num::ParseIntError> for StdParseIntEr {
+impl std::error::Error for StdParseIntError {}
+impl From<std::num::ParseIntError> for StdParseIntError {
     fn from(value: std::num::ParseIntError) -> Self {
         Self(value)
     }
 }
 #[derive(Debug, thiserror::Error)]
-pub enum TrustedProxyRangeParseEr {
+pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy address is invalid")]
     InvalidAddress {
         #[source]
-        source: StdAddrParseEr,
+        source: StdAddrParseError,
     },
     #[error("trusted proxy prefix is invalid")]
     InvalidPrefix {
         #[source]
-        source: StdParseIntEr,
+        source: StdParseIntError,
     },
     #[error("trusted proxy range must use address/prefix notation")]
     MissingPrefix,
@@ -98,19 +98,19 @@ pub enum TrustedProxyRangeParseEr {
     PrefixExceedsAddressWidth,
 }
 impl TryFrom<String> for TrustedProxyRange {
-    type Error = TrustedProxyRangeParseEr;
+    type Error = TrustedProxyRangeParseError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let Some((address_text, prefix_text)) = value.split_once('/') else {
-            return Err(TrustedProxyRangeParseEr::MissingPrefix);
+            return Err(TrustedProxyRangeParseError::MissingPrefix);
         };
         let network = address_text.parse::<std::net::IpAddr>().map_err(|source| {
-            TrustedProxyRangeParseEr::InvalidAddress {
-                source: StdAddrParseEr::from(source),
+            TrustedProxyRangeParseError::InvalidAddress {
+                source: StdAddrParseError::from(source),
             }
         })?;
         let prefix_bits = prefix_text.parse::<u8>().map_err(|source| {
-            TrustedProxyRangeParseEr::InvalidPrefix {
-                source: StdParseIntEr::from(source),
+            TrustedProxyRangeParseError::InvalidPrefix {
+                source: StdParseIntError::from(source),
             }
         })?;
         let address_width = match network {
@@ -118,7 +118,7 @@ impl TryFrom<String> for TrustedProxyRange {
             std::net::IpAddr::V6(_) => 128u8,
         };
         if prefix_bits > address_width {
-            return Err(TrustedProxyRangeParseEr::PrefixExceedsAddressWidth);
+            return Err(TrustedProxyRangeParseError::PrefixExceedsAddressWidth);
         }
         Ok(Self {
             network: StdIpAddr::from(network),
@@ -323,11 +323,11 @@ mod tests {
     fn prefixes_are_validated() {
         assert!(matches!(
             super::TrustedProxyRange::try_from("127.0.0.1/33".to_owned()),
-            Err(super::TrustedProxyRangeParseEr::PrefixExceedsAddressWidth)
+            Err(super::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)
         ));
         assert!(matches!(
             super::TrustedProxyRange::try_from("::1/129".to_owned()),
-            Err(super::TrustedProxyRangeParseEr::PrefixExceedsAddressWidth)
+            Err(super::TrustedProxyRangeParseError::PrefixExceedsAddressWidth)
         ));
     }
 }

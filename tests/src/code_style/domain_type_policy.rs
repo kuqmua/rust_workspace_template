@@ -46,7 +46,7 @@ fn string_wrappers_do_not_use_from_string() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -78,7 +78,7 @@ impl From<String> for SourceText {
     assert_eq!(ers.len(), 1, "a06d3c4f {ers:#?}");
     assert!(
         ers.iter()
-            .any(|er| er.contains("`SourceText` implements `From<String>`")),
+            .any(|error| error.contains("`SourceText` implements `From<String>`")),
         "b19e40c8 {ers:#?}"
     );
 }
@@ -133,7 +133,7 @@ fn public_tuple_wrappers_do_not_expose_inner_field() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -167,7 +167,7 @@ fn domain_boundaries_use_repository_declared_types() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -202,12 +202,12 @@ fn demo() {
     assert_eq!(ers.len(), 2, "0f6d3a91 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|er| er.contains("closure parameter uses `std::path::PathBuf`")),
+            .any(|error| error.contains("closure parameter uses `std::path::PathBuf`")),
         "d4b2f8a0 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("closure parameter uses `syn::Type`")),
+            .any(|error| error.contains("closure parameter uses `syn::Type`")),
         "60b8ae2d {ers:#?}"
     );
 }
@@ -234,7 +234,7 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -263,17 +263,17 @@ struct SourceTextList(Vec<String>);
     assert_eq!(ers.len(), 3, "2c0b7e91 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|er| er.contains("field `names` uses `Vec<String>`")),
+            .any(|error| error.contains("field `names` uses `Vec<String>`")),
         "74e18b2d {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("field `seen` uses `BTreeSet<String>`")),
+            .any(|error| error.contains("field `seen` uses `BTreeSet<String>`")),
         "4a0df351 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("field `refs` uses `HashSet<&str>`")),
+            .any(|error| error.contains("field `refs` uses `HashSet<&str>`")),
         "81c6a2ef {ers:#?}"
     );
 }
@@ -300,7 +300,7 @@ fn helper_return_types_use_repository_declared_text_wrappers() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );
@@ -345,22 +345,22 @@ impl AsRef<str> for Helper {
     assert_eq!(ers.len(), 4, "7b2e41a0 {ers:#?}");
     assert!(
         ers.iter()
-            .any(|er| er.contains("function `direct` return type uses `String`")),
+            .any(|error| error.contains("function `direct` return type uses `String`")),
         "08d4b6ea {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("function `list` return type uses `Vec<String>`")),
+            .any(|error| error.contains("function `list` return type uses `Vec<String>`")),
         "ae71c3f4 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("function `optional` return type uses `Option<&str>`")),
+            .any(|error| error.contains("function `optional` return type uses `Option<&str>`")),
         "59f0bca8 {ers:#?}"
     );
     assert!(
         ers.iter()
-            .any(|er| er.contains("method `nested` return type uses `String`")),
+            .any(|error| error.contains("method `nested` return type uses `String`")),
         "c46d8e10 {ers:#?}"
     );
 }
@@ -389,7 +389,7 @@ fn external_leaf_tuple_wrappers_include_crate_name() {
                 visitor
                     .ers
                     .into_iter()
-                    .map(|er| format!("{}: {er}", path.display())),
+                    .map(|error| format!("{}: {error}", path.display())),
             );
         },
     );

@@ -1,31 +1,31 @@
 // AST inspection and attribute parsing.
-pub mod attr_ident_str;
+pub mod attr_identifier_str;
 #[path = "get_macro_attr.rs"]
 pub mod attr_reader;
-pub mod derive_ts_builder;
+pub mod derive_token_stream_builder;
 #[path = "syn_field.rs"]
 pub mod field_data;
 // Typed token construction.
-pub mod gen_field_loc_new_ts;
-pub mod gen_if_write_is_err_ts;
-pub mod gen_impl_dflt_ts;
-pub mod gen_impl_display_ts;
-pub mod gen_impl_from_ts;
-pub mod gen_impl_to_err_string_ts;
-pub mod gen_impl_try_from_ts;
-pub mod gen_new_or_try_new;
-pub mod gen_pub_type_al_ts;
-pub mod gen_simple_syn_punct;
-pub mod generated_rust_ts;
+pub mod generate_field_location_new_token_stream;
+pub mod generate_if_write_is_err_token_stream;
+pub mod generate_impl_default_token_stream;
+pub mod generate_impl_display_token_stream;
+pub mod generate_impl_from_token_stream;
+pub mod generate_impl_to_err_string_token_stream;
+pub mod generate_impl_try_from_token_stream;
+pub mod generate_new_or_try_new;
+pub mod generate_pub_type_alias_token_stream;
+pub mod generate_simple_syn_punct;
+pub mod generated_rust_token_stream;
 // Test-only contract fixtures.
 #[cfg(feature = "test-utils")]
 pub mod json_contract;
 // Location and source-model support.
-#[path = "loc.rs"]
-pub mod loc_data;
-pub mod loc_syn_field;
+#[path = "location.rs"]
+pub mod location_data;
+pub mod location_syn_field;
+pub mod pagination_start_end_initialization_token_stream;
 pub mod panic_if_err;
-pub mod pgn_start_end_init_ts;
 pub mod rs_file_path;
 pub mod status_code;
 pub mod tool_command;
@@ -36,7 +36,7 @@ pub mod string_writer;
 pub mod test_database;
 #[cfg(test)]
 mod test_hlp;
-#[path = "write_ts_into_file.rs"]
+#[path = "write_token_stream_into_file.rs"]
 pub mod ts_writer;
 // Derive assembly.
 pub mod wrap_derive;

@@ -1,0 +1,23 @@
+[package]
+edition = "2024"
+name = "generate_getter_traits_for_struct_fields"
+version = "0.1.0"
+publish = false
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+syn = { workspace = true }
+panic_location = { workspace = true }
+naming = { workspace = true }
+naming_common = { workspace = true }
+[lints]
+workspace = true

@@ -58,10 +58,10 @@ pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::StdRsFil
     )))
 }
 pub(crate) fn cleanup_test_file(path: impl AsRef<std::path::Path>) {
-    if let Err(er) = std::fs::remove_file(path.as_ref())
-        && er.kind() != std::io::ErrorKind::NotFound
+    if let Err(error) = std::fs::remove_file(path.as_ref())
+        && error.kind() != std::io::ErrorKind::NotFound
     {
-        panic!("33ea4ea2: {er}");
+        panic!("33ea4ea2: {error}");
     }
 }
 pub(crate) fn assert_file_content(path: StdAssertFilePath<'_>, exp: ExpectedFileContent<'_>) {

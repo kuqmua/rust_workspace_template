@@ -1,24 +1,25 @@
-struct ProcMacro2GenTpInput(proc_macro2::TokenStream);
-struct ProcMacro2GenTpOutput(proc_macro2::TokenStream);
-fn gen_tp(input: ProcMacro2GenTpInput) -> ProcMacro2GenTpOutput {
+struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
+struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
+fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     let mut iter = input.0.into_iter();
-    let Some(name) = workspace_macro_helpers::first_ident(&mut iter) else {
-        return ProcMacro2GenTpOutput(
-            workspace_macro_helpers::compile_error_ts("tp expects type name").into_inner(),
+    let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
+        return ProcMacro2GenerateTpOutput(
+            workspace_macro_helpers::compile_error_token_stream("tp expects type name")
+                .into_inner(),
         );
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
-        return ProcMacro2GenTpOutput(
-            workspace_macro_helpers::compile_error_ts("tp expects comma after type name")
+        return ProcMacro2GenerateTpOutput(
+            workspace_macro_helpers::compile_error_token_stream("tp expects comma after type name")
                 .into_inner(),
         );
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
-    let name_ident = quote::format_ident!("{name}");
-    ProcMacro2GenTpOutput(quote::quote! {
+    let name_identifier = quote::format_ident!("{name}");
+    ProcMacro2GenerateTpOutput(quote::quote! {
         #[derive(Debug, Clone, Copy, optml::Optml)]
-        pub struct #name_ident;
-        impl quote::ToTokens for #name_ident {
+        pub struct #name_identifier;
+        impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 append_tokens(&mut ProcMacro2TokensMut(tokens), quote::quote! {#body});
             }
@@ -27,7 +28,9 @@ fn gen_tp(input: ProcMacro2GenTpInput) -> ProcMacro2GenTpOutput {
 }
 #[proc_macro]
 pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    gen_tp(ProcMacro2GenTpInput(input.into())).0.into()
+    generate_tp(ProcMacro2GenerateTpInput(input.into()))
+        .0
+        .into()
 }
 #[proc_macro]
 pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -35,24 +38,24 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         workspace_macro_helpers::ProcMacro2MacroTokens::from_into(input),
     );
     if parts.len() < 2 {
-        return workspace_macro_helpers::compile_error_ts(
+        return workspace_macro_helpers::compile_error_token_stream(
             "tp_parts expects type name and at least one part",
         )
         .into_inner()
         .into();
     }
     let mut name_iter = parts.remove(0).into_iter();
-    let Some(name) = workspace_macro_helpers::first_ident(&mut name_iter) else {
-        return workspace_macro_helpers::compile_error_ts("tp_parts expects type name")
+    let Some(name) = workspace_macro_helpers::first_identifier(&mut name_iter) else {
+        return workspace_macro_helpers::compile_error_token_stream("tp_parts expects type name")
             .into_inner()
             .into();
     };
-    let name_ident = quote::format_ident!("{name}");
+    let name_identifier = quote::format_ident!("{name}");
     let part_streams = parts.into_iter().collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #[derive(Debug, Clone, Copy, optml::Optml)]
-        pub struct #name_ident;
-        impl quote::ToTokens for #name_ident {
+        pub struct #name_identifier;
+        impl quote::ToTokens for #name_identifier {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #(append_tokens(&mut ProcMacro2TokensMut(tokens), #part_streams);)*
             }
@@ -63,22 +66,24 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro]
 pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
-    let Some(name) = workspace_macro_helpers::first_ident(&mut iter) else {
-        return workspace_macro_helpers::compile_error_ts("ts_path_fn expects function name")
-            .into_inner()
-            .into();
+    let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
+        return workspace_macro_helpers::compile_error_token_stream(
+            "ts_path_fn expects function name",
+        )
+        .into_inner()
+        .into();
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
-        return workspace_macro_helpers::compile_error_ts(
+        return workspace_macro_helpers::compile_error_token_stream(
             "ts_path_fn expects comma after function name",
         )
         .into_inner()
         .into();
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
-    let name_ident = quote::format_ident!("{name}");
+    let name_identifier = quote::format_ident!("{name}");
     quote::quote! {
-        fn #name_ident() -> proc_macro2::TokenStream {
+        fn #name_identifier() -> proc_macro2::TokenStream {
             quote::quote! {#body}
         }
     }
@@ -92,7 +97,7 @@ pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             proc_macro2::TokenTree::Group(group)
                 if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
             {
-                Some(gen_tp(ProcMacro2GenTpInput(group.stream())).0)
+                Some(generate_tp(ProcMacro2GenerateTpInput(group.stream())).0)
             }
             proc_macro2::TokenTree::Group(_)
             | proc_macro2::TokenTree::Ident(_)

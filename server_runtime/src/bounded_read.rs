@@ -39,10 +39,10 @@ impl AsRef<str> for BoundedText {
     }
 }
 impl TryFrom<String> for BoundedText {
-    type Error = BoundedReadEr;
+    type Error = BoundedReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > 16_777_216usize {
-            return Err(BoundedReadEr::ExceedsMaximum {
+            return Err(BoundedReadError::ExceedsMaximum {
                 maximum_bytes: BoundedReadMaximumBytes(16_777_216usize),
             });
         }
@@ -50,10 +50,10 @@ impl TryFrom<String> for BoundedText {
     }
 }
 impl TryFrom<BoundedBytes> for BoundedText {
-    type Error = BoundedReadEr;
+    type Error = BoundedReadError;
     fn try_from(value: BoundedBytes) -> Result<Self, Self::Error> {
-        let text = String::from_utf8(value.0).map_err(|source| BoundedReadEr::Utf8 {
-            source: StdFromUtf8Er(source),
+        let text = String::from_utf8(value.0).map_err(|source| BoundedReadError::Utf8 {
+            source: StdFromUtf8Error(source),
         })?;
         Self::try_from(text)
     }
@@ -76,37 +76,37 @@ impl StdBoundedReadConcurrency {
     }
 }
 #[derive(Debug)]
-pub struct StdIoEr(std::io::Error);
-impl std::fmt::Display for StdIoEr {
+pub struct StdIoError(std::io::Error);
+impl std::fmt::Display for StdIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for StdIoEr {
+impl std::error::Error for StdIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug)]
-pub struct ReqwestEr(reqwest::Error);
-impl std::fmt::Display for ReqwestEr {
+pub struct ReqwestError(reqwest::Error);
+impl std::fmt::Display for ReqwestError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for ReqwestEr {
+impl std::error::Error for ReqwestError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug)]
-pub struct StdFromUtf8Er(std::string::FromUtf8Error);
-impl std::fmt::Display for StdFromUtf8Er {
+pub struct StdFromUtf8Error(std::string::FromUtf8Error);
+impl std::fmt::Display for StdFromUtf8Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for StdFromUtf8Er {
+impl std::error::Error for StdFromUtf8Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
@@ -119,7 +119,7 @@ impl From<reqwest::Response> for ReqwestResponse {
     }
 }
 #[derive(Debug, thiserror::Error)]
-pub enum BoundedReadEr {
+pub enum BoundedReadError {
     #[error("content exceeds maximum size of {maximum_bytes} bytes")]
     ExceedsMaximum {
         maximum_bytes: BoundedReadMaximumBytes,
@@ -127,19 +127,19 @@ pub enum BoundedReadEr {
     #[error("HTTP response body read failed")]
     Http {
         #[source]
-        source: ReqwestEr,
+        source: ReqwestError,
     },
     #[error("file read failed")]
     Io {
         #[source]
-        source: StdIoEr,
+        source: StdIoError,
     },
     #[error("bounded read concurrency limiter is closed")]
     LimiterClosed,
     #[error("text content must be valid UTF-8")]
     Utf8 {
         #[source]
-        source: StdFromUtf8Er,
+        source: StdFromUtf8Error,
     },
 }
 #[derive(Clone, Copy, Debug)]
@@ -147,9 +147,9 @@ struct BoundedReadObservedBytes(usize);
 const fn ensure_size_within_limit(
     size: BoundedReadObservedBytes,
     maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<(), BoundedReadEr> {
+) -> Result<(), BoundedReadError> {
     if size.0 > maximum_bytes.0 {
-        Err(BoundedReadEr::ExceedsMaximum { maximum_bytes })
+        Err(BoundedReadError::ExceedsMaximum { maximum_bytes })
     } else {
         Ok(())
     }
@@ -163,16 +163,16 @@ fn read_bounded_file_with_after_metadata(
     path: StdPathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
     after_metadata: impl FnOnce(),
-) -> Result<BoundedBytes, BoundedReadEr> {
-    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadEr::Io {
-        source: StdIoEr(source),
+) -> Result<BoundedBytes, BoundedReadError> {
+    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
+        source: StdIoError(source),
     })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadEr::ExceedsMaximum { maximum_bytes });
+        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     after_metadata();
-    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadEr::Io {
-        source: StdIoEr(source),
+    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
+        source: StdIoError(source),
     })?;
     ensure_size_within_limit(BoundedReadObservedBytes(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes(bytes))
@@ -180,15 +180,15 @@ fn read_bounded_file_with_after_metadata(
 pub fn read_bounded_file(
     path: StdPathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<BoundedBytes, BoundedReadEr> {
-    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadEr::Io {
-        source: StdIoEr(source),
+) -> Result<BoundedBytes, BoundedReadError> {
+    let metadata = std::fs::metadata(path.0).map_err(|source| BoundedReadError::Io {
+        source: StdIoError(source),
     })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadEr::ExceedsMaximum { maximum_bytes });
+        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
-    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadEr::Io {
-        source: StdIoEr(source),
+    let bytes = std::fs::read(path.0).map_err(|source| BoundedReadError::Io {
+        source: StdIoError(source),
     })?;
     ensure_size_within_limit(BoundedReadObservedBytes(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes(bytes))
@@ -196,19 +196,19 @@ pub fn read_bounded_file(
 pub async fn read_bounded_file_async(
     path: StdPathRef<'_>,
     maximum_bytes: BoundedReadMaximumBytes,
-) -> Result<BoundedBytes, BoundedReadEr> {
+) -> Result<BoundedBytes, BoundedReadError> {
     let metadata = tokio::fs::metadata(path.0)
         .await
-        .map_err(|source| BoundedReadEr::Io {
-            source: StdIoEr(source),
+        .map_err(|source| BoundedReadError::Io {
+            source: StdIoError(source),
         })?;
     if metadata.len() > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX) {
-        return Err(BoundedReadEr::ExceedsMaximum { maximum_bytes });
+        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     let bytes = tokio::fs::read(path.0)
         .await
-        .map_err(|source| BoundedReadEr::Io {
-            source: StdIoEr(source),
+        .map_err(|source| BoundedReadError::Io {
+            source: StdIoError(source),
         })?;
     ensure_size_within_limit(BoundedReadObservedBytes(bytes.len()), maximum_bytes)?;
     Ok(BoundedBytes(bytes))
@@ -217,25 +217,26 @@ pub async fn read_bounded_http_response(
     response: ReqwestResponse,
     maximum_bytes: BoundedReadMaximumBytes,
     concurrency: StdBoundedReadConcurrency,
-) -> Result<BoundedBytes, BoundedReadEr> {
+) -> Result<BoundedBytes, BoundedReadError> {
     let _permit = concurrency
         .0
         .acquire_owned()
         .await
-        .map_err(|_error| BoundedReadEr::LimiterClosed)?;
+        .map_err(|_error| BoundedReadError::LimiterClosed)?;
     let mut inner_response = response.0;
     if let Some(content_length) = inner_response.content_length()
         && content_length > u64::try_from(maximum_bytes.0).unwrap_or(u64::MAX)
     {
-        return Err(BoundedReadEr::ExceedsMaximum { maximum_bytes });
+        return Err(BoundedReadError::ExceedsMaximum { maximum_bytes });
     }
     let mut bytes = Vec::new();
-    while let Some(chunk) = inner_response
-        .chunk()
-        .await
-        .map_err(|source| BoundedReadEr::Http {
-            source: ReqwestEr(source),
-        })?
+    while let Some(chunk) =
+        inner_response
+            .chunk()
+            .await
+            .map_err(|source| BoundedReadError::Http {
+                source: ReqwestError(source),
+            })?
     {
         let next_len = bytes.len().saturating_add(chunk.len());
         ensure_size_within_limit(BoundedReadObservedBytes(next_len), maximum_bytes)?;
@@ -267,7 +268,7 @@ mod tests {
         );
         assert!(matches!(
             over,
-            Err(super::BoundedReadEr::ExceedsMaximum {
+            Err(super::BoundedReadError::ExceedsMaximum {
                 maximum_bytes: super::BoundedReadMaximumBytes(3usize)
             })
         ));
@@ -284,7 +285,7 @@ mod tests {
         );
         assert!(matches!(
             result,
-            Err(super::BoundedReadEr::ExceedsMaximum {
+            Err(super::BoundedReadError::ExceedsMaximum {
                 maximum_bytes: super::BoundedReadMaximumBytes(1usize)
             })
         ));
@@ -293,7 +294,7 @@ mod tests {
     #[test]
     fn invalid_utf8_is_not_lossily_converted() {
         let result = super::BoundedText::try_from(super::BoundedBytes(vec![0xffu8]));
-        assert!(matches!(result, Err(super::BoundedReadEr::Utf8 { .. })));
+        assert!(matches!(result, Err(super::BoundedReadError::Utf8 { .. })));
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {

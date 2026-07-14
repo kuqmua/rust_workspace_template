@@ -6,42 +6,44 @@ impl<'fixture_lt> From<&'fixture_lt str> for JsonFixtureRef<'fixture_lt> {
     }
 }
 #[derive(Debug)]
-pub struct SerdeJsonEr(serde_json::Error);
-impl std::fmt::Display for SerdeJsonEr {
+pub struct SerdeJsonError(serde_json::Error);
+impl std::fmt::Display for SerdeJsonError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for SerdeJsonEr {
+impl std::error::Error for SerdeJsonError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug, thiserror::Error)]
-pub enum ContractEr {
+pub enum ContractError {
     #[error("fixture JSON deserialization failed: {0}")]
-    DeserializeFixture(SerdeJsonEr),
+    DeserializeFixture(SerdeJsonError),
     #[error("round-trip JSON deserialization failed: {0}")]
-    DeserializeRoundTrip(SerdeJsonEr),
+    DeserializeRoundTrip(SerdeJsonError),
     #[error("JSON serialization failed: {0}")]
-    Serialize(SerdeJsonEr),
+    Serialize(SerdeJsonError),
     #[error("round-trip value differs from fixture value")]
     ValueMismatch,
 }
-pub fn ensure_json_contract_round_trip<Value>(fixture: JsonFixtureRef<'_>) -> Result<(), ContractEr>
+pub fn ensure_json_contract_round_trip<Value>(
+    fixture: JsonFixtureRef<'_>,
+) -> Result<(), ContractError>
 where
     Value: Eq + serde::Serialize + serde::de::DeserializeOwned,
 {
     let fixture_value = serde_json::from_str::<Value>(fixture.0)
-        .map_err(|error| ContractEr::DeserializeFixture(SerdeJsonEr(error)))?;
+        .map_err(|error| ContractError::DeserializeFixture(SerdeJsonError(error)))?;
     let serialized = serde_json::to_string(&fixture_value)
-        .map_err(|error| ContractEr::Serialize(SerdeJsonEr(error)))?;
+        .map_err(|error| ContractError::Serialize(SerdeJsonError(error)))?;
     let round_trip_value = serde_json::from_str::<Value>(serialized.as_str())
-        .map_err(|error| ContractEr::DeserializeRoundTrip(SerdeJsonEr(error)))?;
+        .map_err(|error| ContractError::DeserializeRoundTrip(SerdeJsonError(error)))?;
     if fixture_value == round_trip_value {
         Ok(())
     } else {
-        Err(ContractEr::ValueMismatch)
+        Err(ContractError::ValueMismatch)
     }
 }
 #[cfg(test)]
@@ -103,7 +105,7 @@ mod tests {
         .expect("7557a4b4");
         assert!(matches!(
             super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from("{")),
-            Err(super::ContractEr::DeserializeFixture(_))
+            Err(super::ContractError::DeserializeFixture(_))
         ));
     }
     #[test]
@@ -112,7 +114,7 @@ mod tests {
             super::ensure_json_contract_round_trip::<SerializeFails>(super::JsonFixtureRef::from(
                 "null"
             )),
-            Err(super::ContractEr::Serialize(_))
+            Err(super::ContractError::Serialize(_))
         ));
     }
     #[test]
@@ -121,7 +123,7 @@ mod tests {
             super::ensure_json_contract_round_trip::<ReparseFails>(super::JsonFixtureRef::from(
                 "1"
             )),
-            Err(super::ContractEr::DeserializeRoundTrip(_))
+            Err(super::ContractError::DeserializeRoundTrip(_))
         ));
     }
 }

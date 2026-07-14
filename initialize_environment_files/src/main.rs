@@ -18,7 +18,7 @@ struct InitializationEntry {
     status: InitializationStatus,
 }
 #[derive(Debug, thiserror::Error)]
-enum InitializeEr {
+enum InitializeError {
     #[error("workspace member path is invalid: {member}")]
     InvalidMember { member: String },
     #[error("failed to parse workspace manifest")]
@@ -103,16 +103,16 @@ fn merge_missing_assignments(current: &str, example: &str) -> Option<String> {
     clippy::single_call_fn,
     reason = "separates manifest validation from filesystem mutation"
 )]
-fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeEr> {
+fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeError> {
     let manifest = std::fs::read_to_string(root.join("Cargo.toml"))
-        .map_err(|source| InitializeEr::ReadManifest { source })?;
+        .map_err(|source| InitializeError::ReadManifest { source })?;
     let value = toml::from_str::<toml::Value>(&manifest)
-        .map_err(|source| InitializeEr::ManifestParse { source })?;
+        .map_err(|source| InitializeError::ManifestParse { source })?;
     let members = value
         .get("workspace")
         .and_then(|workspace| workspace.get("members"))
         .and_then(toml::Value::as_array)
-        .ok_or(InitializeEr::MembersMissing)?;
+        .ok_or(InitializeError::MembersMissing)?;
     members
         .iter()
         .filter_map(toml::Value::as_str)
@@ -120,7 +120,7 @@ fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeEr
             if member_is_safe(member) {
                 Ok(member.to_owned())
             } else {
-                Err(InitializeEr::InvalidMember {
+                Err(InitializeError::InvalidMember {
                     member: member.to_owned(),
                 })
             }
@@ -134,26 +134,26 @@ fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeEr
 fn initialize(
     root: &std::path::Path,
     mode: RunMode,
-) -> Result<Vec<InitializationEntry>, InitializeEr> {
+) -> Result<Vec<InitializationEntry>, InitializeError> {
     workspace_members(root)?.into_iter().try_fold(
         Vec::new(),
-        |mut entries, member| -> Result<Vec<InitializationEntry>, InitializeEr> {
+        |mut entries, member| -> Result<Vec<InitializationEntry>, InitializeError> {
             let example_path = root.join(member.as_str()).join(".env.example");
             if !example_path.exists() {
                 return Ok(entries);
             }
             let content = std::fs::read_to_string(example_path)
-                .map_err(|source| InitializeEr::ReadExample { source })?;
+                .map_err(|source| InitializeError::ReadExample { source })?;
             let environment_path = root.join(member.as_str()).join(".env");
             let status = if environment_path.exists() {
                 let current = std::fs::read_to_string(environment_path.as_path())
-                    .map_err(|source| InitializeEr::ReadExample { source })?;
+                    .map_err(|source| InitializeError::ReadExample { source })?;
                 match merge_missing_assignments(current.as_str(), content.as_str()) {
                     None => InitializationStatus::SkippedExisting,
                     Some(_merged) if mode == RunMode::DryRun => InitializationStatus::WouldUpdate,
                     Some(merged) => {
                         std::fs::write(environment_path, merged.as_bytes())
-                            .map_err(|source| InitializeEr::WriteEnvironment { source })?;
+                            .map_err(|source| InitializeError::WriteEnvironment { source })?;
                         InitializationStatus::Updated
                     }
                 }
@@ -161,7 +161,7 @@ fn initialize(
                 InitializationStatus::WouldCreate
             } else {
                 std::fs::write(environment_path, content.as_bytes())
-                    .map_err(|source| InitializeEr::WriteEnvironment { source })?;
+                    .map_err(|source| InitializeError::WriteEnvironment { source })?;
                 InitializationStatus::Created
             };
             entries.push(InitializationEntry {
@@ -173,7 +173,7 @@ fn initialize(
         },
     )
 }
-fn main() -> Result<(), InitializeEr> {
+fn main() -> Result<(), InitializeError> {
     let mode = if std::env::args().any(|argument| argument == "--dry-run") {
         RunMode::DryRun
     } else {
@@ -181,7 +181,7 @@ fn main() -> Result<(), InitializeEr> {
     };
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .ok_or(InitializeEr::MembersMissing)?;
+        .ok_or(InitializeError::MembersMissing)?;
     initialize(root, mode)?.into_iter().for_each(|entry| {
         println!(
             "member={} status={:?} keys={}",
@@ -252,7 +252,7 @@ mod tests {
         .expect("350646f2");
         assert!(matches!(
             super::initialize(root.as_path(), super::RunMode::DryRun),
-            Err(super::InitializeEr::InvalidMember { .. })
+            Err(super::InitializeError::InvalidMember { .. })
         ));
         std::fs::remove_dir_all(root).expect("d9154402");
     }

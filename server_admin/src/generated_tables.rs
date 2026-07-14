@@ -5,44 +5,44 @@
     clippy::partial_pub_fields
 )]
 // generated declarations follow PostgreSQL order while the source table fields stay private to protect password hashes
-#[derive(Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["password_hash", "created_at", "updated_at"],
     "read_exclude_fields": ["password_hash"],
     "permission_prefix": "users",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 #[allow(dead_code)] // private descriptor fields are consumed by proc-macro expansion and keep password hashes out of the public API
 pub struct AdminUsers {
-    #[gen_pg_tbl_pk]
-    id: pg_types_numeric::I64AsNnBigSerialInitByPg,
-    login: pg_types_text_misc::StringAsNnText,
-    display_name: pg_types_text_misc::StringAsNnText,
-    password_hash: pg_types_text_misc::StringAsNnText,
-    is_banned: pg_types_numeric::BoolAsNnBool,
-    created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
-    updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
+    login: pg_types_text_misc::StringAsNonNullText,
+    display_name: pg_types_text_misc::StringAsNonNullText,
+    password_hash: pg_types_text_misc::StringAsNonNullText,
+    is_banned: pg_types_numeric::BoolAsNonNullBool,
+    created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -58,185 +58,191 @@ impl std::fmt::Debug for AdminUsers {
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
     "permission_prefix": "user_roles",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 pub struct AdminUserRoles {
-    #[gen_pg_tbl_pk]
-    pub id: pg_types_numeric::I64AsNnBigSerialInitByPg,
-    pub user_id: pg_types_numeric::I64AsNnInt8,
-    pub role_id: pg_types_numeric::I64AsNnInt8,
-    pub created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
+    pub user_id: pg_types_numeric::I64AsNonNullInt8,
+    pub role_id: pg_types_numeric::I64AsNonNullInt8,
+    pub created_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
     "permission_prefix": "role_permissions",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 pub struct AdminRolePermissions {
-    #[gen_pg_tbl_pk]
-    pub id: pg_types_numeric::I64AsNnBigSerialInitByPg,
-    pub role_id: pg_types_numeric::I64AsNnInt8,
-    pub permission_id: pg_types_numeric::I64AsNnInt8,
-    pub created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
+    pub role_id: pg_types_numeric::I64AsNonNullInt8,
+    pub permission_id: pg_types_numeric::I64AsNonNullInt8,
+    pub created_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at", "updated_at"],
     "permission_prefix": "roles",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 pub struct AdminRoles {
-    #[gen_pg_tbl_pk]
-    pub id: pg_types_numeric::I64AsNnBigSerialInitByPg,
-    pub name: pg_types_text_misc::StringAsNnText,
-    pub is_system: pg_types_numeric::BoolAsNnBool,
-    pub created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
-    pub updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
+    pub name: pg_types_text_misc::StringAsNonNullText,
+    pub is_system: pg_types_numeric::BoolAsNonNullBool,
+    pub created_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    pub updated_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
     "permission_prefix": "permissions",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 pub struct AdminPermissions {
-    #[gen_pg_tbl_pk]
-    pub id: pg_types_numeric::I64AsNnBigSerialInitByPg,
-    pub name: pg_types_text_misc::StringAsNnText,
-    pub created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
+    pub name: pg_types_text_misc::StringAsNonNullText,
+    pub created_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::arbitrary_source_item_ordering, clippy::needless_for_each)] // generated declarations follow the PostgreSQL column order
-#[derive(Debug, Clone, Copy, gen_pg_tbl::GenPgTbl, optml::Optml)]
-#[gen_pg_tbl::gen_pg_tbl_config{{
+#[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
+#[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["updated_at"],
     "permission_prefix": "system_settings",
     "tests_write_into_file": "False",
-    "cmn_write_into_file": "False",
+    "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[gen_pg_tbl::cm_er_vrts{enum CmErVrts{}}]
-#[gen_pg_tbl::co_er_vrts{enum CoErVrts{}}]
-#[gen_pg_tbl::rm_er_vrts{enum RmErVrts{}}]
-#[gen_pg_tbl::ro_er_vrts{enum RoErVrts{}}]
-#[gen_pg_tbl::um_er_vrts{enum UmErVrts{}}]
-#[gen_pg_tbl::uo_er_vrts{enum UoErVrts{}}]
-#[gen_pg_tbl::dm_er_vrts{enum DmErVrts{}}]
-#[gen_pg_tbl::dlo_er_vrts{enum DloErVrts{}}]
-#[gen_pg_tbl::cmn_er_vrts{enum CmnErVrts{}}]
-#[gen_pg_tbl::cm_logic{}]
-#[gen_pg_tbl::co_logic{}]
-#[gen_pg_tbl::rm_logic{}]
-#[gen_pg_tbl::ro_logic{}]
-#[gen_pg_tbl::um_logic{}]
-#[gen_pg_tbl::uo_logic{}]
-#[gen_pg_tbl::dm_logic{}]
-#[gen_pg_tbl::dlo_logic{}]
-#[gen_pg_tbl::cmn_logic{}]
+#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
+#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
+#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
+#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
+#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
+#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
+#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
+#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
+#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
+#[generate_pg_table::cm_logic{}]
+#[generate_pg_table::co_logic{}]
+#[generate_pg_table::rm_logic{}]
+#[generate_pg_table::ro_logic{}]
+#[generate_pg_table::um_logic{}]
+#[generate_pg_table::uo_logic{}]
+#[generate_pg_table::dm_logic{}]
+#[generate_pg_table::dlo_logic{}]
+#[generate_pg_table::common_logic{}]
 pub struct AdminSystemSettings {
-    #[gen_pg_tbl_pk]
-    pub id: pg_types_numeric::I16AsNnSmallSerialInitByPg,
-    pub site_name: pg_types_text_misc::StringAsNnText,
-    pub tab_title: pg_types_text_misc::OptStringAsNlText,
-    pub main_logo: pg_types_text_misc::OptStringAsNlText,
-    pub primary_color: pg_types_text_misc::OptStringAsNlText,
-    pub default_admin_route: pg_types_text_misc::StringAsNnText,
-    pub organization_name: pg_types_text_misc::OptStringAsNlText,
-    pub organization_contacts: pg_types_text_misc::OptStringAsNlText,
-    pub support_url: pg_types_text_misc::OptStringAsNlText,
-    pub updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNnTimestampTz,
+    #[generate_pg_table_primary_key]
+    pub id: pg_types_numeric::I16AsNonNullSmallSerialInitializationByPg,
+    pub site_name: pg_types_text_misc::StringAsNonNullText,
+    pub tab_title: pg_types_text_misc::OptionalStringAsNullableText,
+    pub main_logo: pg_types_text_misc::OptionalStringAsNullableText,
+    pub primary_color: pg_types_text_misc::OptionalStringAsNullableText,
+    pub default_admin_route: pg_types_text_misc::StringAsNonNullText,
+    pub organization_name: pg_types_text_misc::OptionalStringAsNullableText,
+    pub organization_contacts: pg_types_text_misc::OptionalStringAsNullableText,
+    pub support_url: pg_types_text_misc::OptionalStringAsNullableText,
+    pub updated_at:
+        pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[derive(Clone, newtype::Newtype)]
 #[newtype(into_inner_from)]

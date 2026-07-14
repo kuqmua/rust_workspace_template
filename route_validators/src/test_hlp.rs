@@ -55,7 +55,7 @@ const fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLi
     TestPollLimitReached(poll_count.0 >= MAX_BLOCK_ON_POLLS)
 }
 #[allow(clippy::single_call_fn)] // keeps poll-count mutation centralized so block_on loop stays focused on state transitions
-fn incr_block_on_poll_count(poll_count: &mut TestPollCount) {
+fn increment_block_on_poll_count(poll_count: &mut TestPollCount) {
     poll_count.0 = poll_count.0.saturating_add(1);
 }
 pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
@@ -73,7 +73,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
                     !is_block_on_poll_limit_reached(poll_count),
                     "{BLOCK_ON_POLL_LIMIT_ER_ID} super::block_on exceeded poll limit"
                 );
-                incr_block_on_poll_count(&mut poll_count);
+                increment_block_on_poll_count(&mut poll_count);
                 std::thread::yield_now();
             }
         }
@@ -109,16 +109,16 @@ pub(crate) fn expect_variant_ref<T, R>(
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared panic formatting keeps expectation failures consistent across helpers
 fn panic_unexpected_result(
-    er_id: impl Into<TestPanicText>,
+    error_id: impl Into<TestPanicText>,
     fn_name: impl Into<TestPanicText>,
     expected: impl Into<TestPanicText>,
     exp_id: impl Into<TestExpId>,
 ) -> ! {
-    let er_id = er_id.into();
+    let error_id = error_id.into();
     let fn_name = fn_name.into();
     let expected = expected.into();
     let exp_id = exp_id.into();
-    panic!("{er_id} unexpected {expected} for {fn_name}, id={exp_id}");
+    panic!("{error_id} unexpected {expected} for {fn_name}, id={exp_id}");
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared panic builder keeps explicit UUID-tagged panic path reusable for header-replace preconditions
@@ -139,12 +139,12 @@ where
     assert_eq!(&expect_ok(v, exp_id), expected);
 }
 #[track_caller]
-pub(crate) fn expect_er<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
+pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
     v.err()
-        .unwrap_or_else(|| panic_unexpected_result(EXPECT_ER_ER_ID, "expect_er", "Ok", exp_id))
+        .unwrap_or_else(|| panic_unexpected_result(EXPECT_ER_ER_ID, "expect_error", "Ok", exp_id))
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared helper centralizes error extraction and post-check mapping so higher-level helpers avoid repeating expect_er plumbing
+#[allow(clippy::single_call_fn)] // shared helper centralizes error extraction and post-check mapping so higher-level helpers avoid repeating expect_error plumbing
 fn map_err<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
@@ -152,13 +152,13 @@ fn map_err<T, E, R>(
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
     let exp_id = exp_id.into();
-    let er = expect_er(v, exp_id.0);
-    check(&er);
-    map(er, exp_id.0)
+    let error = expect_error(v, exp_id.0);
+    check(&error);
+    map(error, exp_id.0)
 }
 #[track_caller]
-#[allow(clippy::single_call_fn)] // shared mapper avoids repeating expect_er + variant extraction boilerplate in tests
-pub(crate) fn expect_er_mapped<T, E, R>(
+#[allow(clippy::single_call_fn)] // shared mapper avoids repeating expect_error + variant extraction boilerplate in tests
+pub(crate) fn expect_error_mapped<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
     map: impl FnOnce(E, &'static str) -> R,
@@ -167,24 +167,24 @@ pub(crate) fn expect_er_mapped<T, E, R>(
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper composes result extraction with variant mapping for concise validator tests
-pub(crate) fn expect_er_variant<T, E, R>(
+pub(crate) fn expect_error_variant<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
     map: impl FnOnce(E) -> Option<R>,
 ) -> R {
-    expect_er_mapped(v, exp_id, |er, mapped_exp_id| {
-        expect_variant(er, map, mapped_exp_id)
+    expect_error_mapped(v, exp_id, |error, mapped_exp_id| {
+        expect_variant(error, map, mapped_exp_id)
     })
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper supports variant extraction without moving the error value in tests
-pub(crate) fn expect_er_variant_ref<T, E, R>(
+pub(crate) fn expect_error_variant_ref<T, E, R>(
     v: Result<T, E>,
     exp_id: impl Into<TestExpId>,
     map: impl FnOnce(&E) -> Option<R>,
 ) -> R {
-    expect_er_mapped(v, exp_id, |er, mapped_exp_id| {
-        expect_variant_ref(&er, map, mapped_exp_id)
+    expect_error_mapped(v, exp_id, |error, mapped_exp_id| {
+        expect_variant_ref(&error, map, mapped_exp_id)
     })
 }
 #[track_caller]
@@ -201,8 +201,8 @@ where
     map_err(
         v,
         exp_id,
-        |er| {
-            assert_eq!(er.get_axum_http_status_code(), expected);
+        |error| {
+            assert_eq!(error.get_axum_http_status_code(), expected);
         },
         map,
     )
@@ -216,7 +216,7 @@ pub(crate) fn assert_err_status_code<T, E>(
 where
     E: crate::GetAxumHttpStatusCode,
 {
-    map_err_after_status_check(v, exp_id, expected, |er, _| er)
+    map_err_after_status_check(v, exp_id, expected, |error, _| error)
 }
 #[track_caller]
 pub(crate) fn assert_err_status_code_only<T, E>(
@@ -239,8 +239,8 @@ pub(crate) fn assert_err_status_code_variant<T, E, R>(
 where
     E: crate::GetAxumHttpStatusCode,
 {
-    map_err_after_status_check(v, exp_id, expected, |er, mapped_exp_id| {
-        expect_variant(er, map, mapped_exp_id)
+    map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
+        expect_variant(error, map, mapped_exp_id)
     })
 }
 #[track_caller]
@@ -254,8 +254,8 @@ pub(crate) fn assert_err_status_code_variant_ref<T, E, R>(
 where
     E: crate::GetAxumHttpStatusCode,
 {
-    map_err_after_status_check(v, exp_id, expected, |er, mapped_exp_id| {
-        expect_variant_ref(&er, map, mapped_exp_id)
+    map_err_after_status_check(v, exp_id, expected, |error, mapped_exp_id| {
+        expect_variant_ref(&error, map, mapped_exp_id)
     })
 }
 #[track_caller]
@@ -272,7 +272,7 @@ where
     let exp_id = exp_id.into();
     match expected {
         Some(status_code) => assert_err_status_code_variant_ref(v, exp_id.0, status_code, map),
-        None => expect_er_variant_ref(v, exp_id.0, map),
+        None => expect_error_variant_ref(v, exp_id.0, map),
     }
 }
 pub(crate) fn mk_headers_with_entry<ValueTy>(
@@ -337,7 +337,7 @@ mod tests {
     #[test]
     fn poll_count_increment_helper_increments_once() {
         let mut poll_count = super::TestPollCount(0usize);
-        super::incr_block_on_poll_count(&mut poll_count);
+        super::increment_block_on_poll_count(&mut poll_count);
         assert_eq!(poll_count.0, 1usize);
     }
     #[test]
@@ -350,16 +350,16 @@ mod tests {
         super::assert_ok_eq::<u8, u16>(Ok(7), "9665f80a", &7);
     }
     #[test]
-    fn expect_er_returns_inner_error() {
-        let v = super::expect_er::<u8, u16>(Err(9), "5cd39e4b");
+    fn expect_error_returns_inner_error() {
+        let v = super::expect_error::<u8, u16>(Err(9), "5cd39e4b");
         assert_eq!(v, 9);
     }
     #[test]
-    fn expect_er_mapped_passes_error_and_exp_id_to_mapper() {
-        let v = super::expect_er_mapped::<u8, u16, (u16, &'static str)>(
+    fn expect_error_mapped_passes_error_and_exp_id_to_mapper() {
+        let v = super::expect_error_mapped::<u8, u16, (u16, &'static str)>(
             Err(9),
             "8ce7a316",
-            |er, exp_id| (er, exp_id),
+            |error, exp_id| (error, exp_id),
         );
         assert_eq!(v, (9, "8ce7a316"));
     }
@@ -388,70 +388,70 @@ mod tests {
         );
     }
     #[test]
-    fn expect_er_variant_maps_matching_error_variant() {
+    fn expect_error_variant_maps_matching_error_variant() {
         #[derive(std::fmt::Debug)]
-        enum TestEr {
+        enum TestError {
             A(u8),
         }
-        let v =
-            super::expect_er_variant::<(), TestEr, u8>(
-                Err(TestEr::A(3)),
-                "9bf4ce17",
-                |er| match er {
-                    TestEr::A(v) => Some(v),
-                },
-            );
+        let v = super::expect_error_variant::<(), TestError, u8>(
+            Err(TestError::A(3)),
+            "9bf4ce17",
+            |error| match error {
+                TestError::A(v) => Some(v),
+            },
+        );
         assert_eq!(v, 3);
     }
     #[test]
-    fn expect_er_variant_ref_maps_matching_error_variant_without_move() {
+    fn expect_error_variant_ref_maps_matching_error_variant_without_move() {
         #[derive(std::fmt::Debug)]
-        enum TestEr {
+        enum TestError {
             A(u8),
         }
-        let v =
-            super::expect_er_variant_ref::<(), TestEr, u8>(Err(TestEr::A(3)), "8dfc4389", |er| {
-                match er {
-                    TestEr::A(v) => Some(*v),
-                }
-            });
+        let v = super::expect_error_variant_ref::<(), TestError, u8>(
+            Err(TestError::A(3)),
+            "8dfc4389",
+            |error| match error {
+                TestError::A(v) => Some(*v),
+            },
+        );
         assert_eq!(v, 3);
     }
     #[test]
     fn assert_err_status_code_variant_checks_status_and_extracts_variant() {
         #[derive(std::fmt::Debug)]
-        enum TestEr {
+        enum TestError {
             A,
         }
-        impl crate::GetAxumHttpStatusCode for TestEr {
+        impl crate::GetAxumHttpStatusCode for TestError {
             const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
                 crate::AxumHttpStatusCode::BAD_REQUEST;
         }
-        let _: () = super::assert_err_status_code_variant::<(), TestEr, ()>(
-            Err(TestEr::A),
+        let _: () = super::assert_err_status_code_variant::<(), TestError, ()>(
+            Err(TestError::A),
             "c1d74a8e",
             crate::AxumHttpStatusCode::BAD_REQUEST,
-            |er| match er {
-                TestEr::A => Some(()),
+            |error| match error {
+                TestError::A => Some(()),
             },
         );
     }
     #[test]
     fn assert_err_status_code_variant_ref_checks_status_and_extracts_variant_without_move() {
         #[derive(std::fmt::Debug)]
-        enum TestEr {
+        enum TestError {
             A(u8),
         }
-        impl crate::GetAxumHttpStatusCode for TestEr {
+        impl crate::GetAxumHttpStatusCode for TestError {
             const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
                 crate::AxumHttpStatusCode::BAD_REQUEST;
         }
-        let v = super::assert_err_status_code_variant_ref::<(), TestEr, u8>(
-            Err(TestEr::A(7)),
+        let v = super::assert_err_status_code_variant_ref::<(), TestError, u8>(
+            Err(TestError::A(7)),
             "8afb4ffd",
             crate::AxumHttpStatusCode::BAD_REQUEST,
-            |er| match er {
-                TestEr::A(v) => Some(*v),
+            |error| match error {
+                TestError::A(v) => Some(*v),
             },
         );
         assert_eq!(v, 7);

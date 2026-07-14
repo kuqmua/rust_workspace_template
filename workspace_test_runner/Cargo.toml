@@ -10,16 +10,16 @@ keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
 [dependencies]
-gen_pg_tbl_src = { workspace = true }
-gen_pg_types_src = { workspace = true }
-gen_wh_flts_src = { workspace = true }
+generate_pg_table_src = { workspace = true }
+generate_pg_types_src = { workspace = true }
+generate_where_filters_src = { workspace = true }
 macros_helpers = { workspace = true, features = ["test-utils"] }
 newtype = { workspace = true }
-pg_crud_cmn = { workspace = true }
+pg_crud_common = { workspace = true }
 quote = { workspace = true }
 serde_json = { workspace = true }
 syn = { workspace = true }
 token_patterns = { workspace = true }
-wh_flts = { workspace = true }
+where_filters = { workspace = true }
 [lints]
 workspace = true

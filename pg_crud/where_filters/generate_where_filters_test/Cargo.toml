@@ -1,0 +1,25 @@
+[package]
+name = "generate_where_filters_test"
+version = "0.1.0"
+publish = false
+description = "description"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["keyword"]
+categories = ["category"]
+edition = "2024"
+
+[dev-dependencies]
+generate_where_filters_src = { workspace = true }
+macro_clippy_check_common = { workspace = true, features = ["test-utils"] }
+quote = { workspace = true }
+macros_helpers = { workspace = true, features = ["test-utils"] }
+serde = { workspace = true }
+pg_crud_common = { workspace = true }
+where_filters = { workspace = true }
+[lints]
+workspace = true
+
+[features]
+test-utils = ["macro_clippy_check_common/test-utils"]

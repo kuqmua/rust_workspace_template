@@ -7,8 +7,8 @@
     Clone,
     Copy,
     Hash,
-    naming_macros::AsRefStrEnumWithUnitFieldsToUccStr,
-    naming_macros::AsRefStrEnumWithUnitFieldsToScStr,
+    naming_macros::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
+    naming_macros::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
     optml::Optml,
 )]
 pub enum StatusCode {
@@ -16,7 +16,7 @@ pub enum StatusCode {
     SwitchingProtocols101,
     Processing102,
     Ok200,
-    Crd201,
+    Created201,
     Accepted202,
     NonAuthoritativeInformation203,
     NoContent204,
@@ -61,13 +61,13 @@ pub enum StatusCode {
     TooManyReqs429,
     ReqHeaderFieldsTooLarge431,
     UnavailableForLegalReasons451,
-    InternalServerEr500,
+    InternalServerError500,
     NotImplemented501,
     BadGateway502,
     ServiceUnavailable503,
     GatewayTimeout504,
     HttpVersionNotSupported505,
-    VrtAlsoNegotiates506,
+    VariantAlsoNegotiates506,
     InsufficientStorage507,
     LoopDetected508,
     NotExtended510,
@@ -75,13 +75,15 @@ pub enum StatusCode {
 }
 impl StatusCode {
     #[must_use]
-    pub fn to_http_status_code_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
+    pub fn to_http_status_code_token_stream(
+        &self,
+    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
         let ts = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
             Self::Processing102 => quote::quote! {PROCESSING},
             Self::Ok200 => quote::quote! {OK},
-            Self::Crd201 => quote::quote! {CREATED},
+            Self::Created201 => quote::quote! {CREATED},
             Self::Accepted202 => quote::quote! {ACCEPTED},
             Self::NonAuthoritativeInformation203 => quote::quote! {NON_AUTHORITATIVE_INFORMATION},
             Self::NoContent204 => quote::quote! {NO_CONTENT},
@@ -126,13 +128,13 @@ impl StatusCode {
             Self::TooManyReqs429 => quote::quote! {TOO_MANY_REQUESTS},
             Self::ReqHeaderFieldsTooLarge431 => quote::quote! {REQUEST_HEADER_FIELDS_TOO_LARGE},
             Self::UnavailableForLegalReasons451 => quote::quote! {UNAVAILABLE_FOR_LEGAL_REASONS},
-            Self::InternalServerEr500 => quote::quote! {INTERNAL_SERVER_ERROR},
+            Self::InternalServerError500 => quote::quote! {INTERNAL_SERVER_ERROR},
             Self::NotImplemented501 => quote::quote! {NOT_IMPLEMENTED},
             Self::BadGateway502 => quote::quote! {BAD_GATEWAY},
             Self::ServiceUnavailable503 => quote::quote! {SERVICE_UNAVAILABLE},
             Self::GatewayTimeout504 => quote::quote! {GATEWAY_TIMEOUT},
             Self::HttpVersionNotSupported505 => quote::quote! {HTTP_VERSION_NOT_SUPPORTED},
-            Self::VrtAlsoNegotiates506 => quote::quote! {VARIANT_ALSO_NEGOTIATES},
+            Self::VariantAlsoNegotiates506 => quote::quote! {VARIANT_ALSO_NEGOTIATES},
             Self::InsufficientStorage507 => quote::quote! {INSUFFICIENT_STORAGE},
             Self::LoopDetected508 => quote::quote! {LOOP_DETECTED},
             Self::NotExtended510 => quote::quote! {NOT_EXTENDED},
@@ -140,28 +142,34 @@ impl StatusCode {
                 quote::quote! {NETWORK_AUTHENTICATION_REQUIRED}
             }
         };
-        crate::generated_rust_ts::GeneratedRustTs::from(quote::quote! {http::StatusCode::#ts})
+        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            quote::quote! {http::StatusCode::#ts},
+        )
     }
     #[must_use]
-    pub fn to_proc_macro_attr_view_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
+    pub fn to_proc_macro_attr_view_token_stream(
+        &self,
+    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
         match format!("#[{self}]").parse::<proc_macro2::TokenStream>() {
-            Ok(v) => crate::generated_rust_ts::GeneratedRustTs::from(v),
-            Err(er) => {
-                let msg = er.to_string();
-                crate::generated_rust_ts::GeneratedRustTs::from(
-                    quote::quote! {compile_error!(#msg);},
+            Ok(v) => crate::generated_rust_token_stream::GeneratedRustTokenStream::from(v),
+            Err(error) => {
+                let message = error.to_string();
+                crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                    quote::quote! {compile_error!(#message);},
                 )
             }
         }
     }
     #[must_use]
-    pub fn to_status_code_description_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
-        crate::generated_rust_ts::GeneratedRustTs::from(match *self {
+    pub fn to_status_code_description_token_stream(
+        &self,
+    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(match *self {
             Self::Continue100 => quote::quote! {"continue"},
             Self::SwitchingProtocols101 => quote::quote! {"switching protocols"},
             Self::Processing102 => quote::quote! {"processing"},
             Self::Ok200 => quote::quote! {"ok"},
-            Self::Crd201 => quote::quote! {"crd"},
+            Self::Created201 => quote::quote! {"created"},
             Self::Accepted202 => quote::quote! {"accepted"},
             Self::NonAuthoritativeInformation203 => {
                 quote::quote! {"non authoritative information"}
@@ -214,7 +222,7 @@ impl StatusCode {
             Self::UnavailableForLegalReasons451 => {
                 quote::quote! {"unavailable for legal reasons"}
             }
-            Self::InternalServerEr500 => quote::quote! {"internal server er"},
+            Self::InternalServerError500 => quote::quote! {"internal server error"},
             Self::NotImplemented501 => quote::quote! {"not implemented"},
             Self::BadGateway502 => quote::quote! {"bad gateway"},
             Self::ServiceUnavailable503 => quote::quote! {"service unavailable"},
@@ -222,7 +230,7 @@ impl StatusCode {
             Self::HttpVersionNotSupported505 => {
                 quote::quote! {"http version not supported"}
             }
-            Self::VrtAlsoNegotiates506 => quote::quote! {"vrt also negotiates"},
+            Self::VariantAlsoNegotiates506 => quote::quote! {"variant also negotiates"},
             Self::InsufficientStorage507 => quote::quote! {"insufficient storage"},
             Self::LoopDetected508 => quote::quote! {"loop detected"},
             Self::NotExtended510 => quote::quote! {"not extended"},
@@ -232,13 +240,15 @@ impl StatusCode {
         })
     }
     #[must_use]
-    pub fn to_status_code_ts(&self) -> crate::generated_rust_ts::GeneratedRustTs {
-        crate::generated_rust_ts::GeneratedRustTs::from(match *self {
+    pub fn to_status_code_token_stream(
+        &self,
+    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(match *self {
             Self::Continue100 => quote::quote! {100},
             Self::SwitchingProtocols101 => quote::quote! {101},
             Self::Processing102 => quote::quote! {102},
             Self::Ok200 => quote::quote! {200},
-            Self::Crd201 => quote::quote! {201},
+            Self::Created201 => quote::quote! {201},
             Self::Accepted202 => quote::quote! {202},
             Self::NonAuthoritativeInformation203 => quote::quote! {203},
             Self::NoContent204 => quote::quote! {204},
@@ -283,13 +293,13 @@ impl StatusCode {
             Self::TooManyReqs429 => quote::quote! {429},
             Self::ReqHeaderFieldsTooLarge431 => quote::quote! {431},
             Self::UnavailableForLegalReasons451 => quote::quote! {451},
-            Self::InternalServerEr500 => quote::quote! {500},
+            Self::InternalServerError500 => quote::quote! {500},
             Self::NotImplemented501 => quote::quote! {501},
             Self::BadGateway502 => quote::quote! {502},
             Self::ServiceUnavailable503 => quote::quote! {503},
             Self::GatewayTimeout504 => quote::quote! {504},
             Self::HttpVersionNotSupported505 => quote::quote! {505},
-            Self::VrtAlsoNegotiates506 => quote::quote! {506},
+            Self::VariantAlsoNegotiates506 => quote::quote! {506},
             Self::InsufficientStorage507 => quote::quote! {507},
             Self::LoopDetected508 => quote::quote! {508},
             Self::NotExtended510 => quote::quote! {510},
@@ -308,8 +318,8 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::Processing102)
         } else if v == "200_ok" {
             Ok(Self::Ok200)
-        } else if v == "crd_201" {
-            Ok(Self::Crd201)
+        } else if v == "created_201" {
+            Ok(Self::Created201)
         } else if v == "accepted_202" {
             Ok(Self::Accepted202)
         } else if v == "non_authoritative_information_203" {
@@ -398,8 +408,8 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::ReqHeaderFieldsTooLarge431)
         } else if v == "unavailable_for_legal_reasons_451" {
             Ok(Self::UnavailableForLegalReasons451)
-        } else if v == "internal_server_er_500" {
-            Ok(Self::InternalServerEr500)
+        } else if v == "internal_server_error_500" {
+            Ok(Self::InternalServerError500)
         } else if v == "not_implemented_501" {
             Ok(Self::NotImplemented501)
         } else if v == "bad_gateway_502" {
@@ -410,8 +420,8 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::GatewayTimeout504)
         } else if v == "http_version_not_supported_505" {
             Ok(Self::HttpVersionNotSupported505)
-        } else if v == "vrt_also_negotiates_506" {
-            Ok(Self::VrtAlsoNegotiates506)
+        } else if v == "variant_also_negotiates_506" {
+            Ok(Self::VariantAlsoNegotiates506)
         } else if v == "insufficient_storage_507" {
             Ok(Self::InsufficientStorage507)
         } else if v == "loop_detected_508" {
@@ -426,7 +436,7 @@ impl TryFrom<&String> for StatusCode {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-pub enum GetOnlyOneStatusCodeEr {
+pub enum GetOnlyOneStatusCodeError {
     #[error("07286cf0: two or more supported status code attrs")]
     MoreThanOne,
     #[error("19fc6512: supported status code attr not found")]
@@ -436,9 +446,9 @@ pub enum GetOnlyOneStatusCodeEr {
 #[newtype(from_inner)]
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 pub fn get_only_one(
-    vrt: SynStatusCodeVariantRef<'_>,
-) -> Result<StatusCode, GetOnlyOneStatusCodeEr> {
-    let variant = vrt.0;
+    variant_ref: SynStatusCodeVariantRef<'_>,
+) -> Result<StatusCode, GetOnlyOneStatusCodeError> {
+    let variant = variant_ref.0;
     let mut supported_attrs = variant.attrs.iter().filter_map(|attr| {
         if attr.path().segments.len() != 1 {
             return None;
@@ -446,9 +456,9 @@ pub fn get_only_one(
         let segment = attr.path().segments.first()?;
         StatusCode::try_from(&segment.ident.to_string()).ok()
     });
-    let opt_self = supported_attrs.next();
+    let optional_self = supported_attrs.next();
     if supported_attrs.next().is_some() {
-        return Err(GetOnlyOneStatusCodeEr::MoreThanOne);
+        return Err(GetOnlyOneStatusCodeError::MoreThanOne);
     }
-    opt_self.ok_or(GetOnlyOneStatusCodeEr::NotFound)
+    optional_self.ok_or(GetOnlyOneStatusCodeError::NotFound)
 }

@@ -27,7 +27,7 @@ use self::state::{GitInfo, Page, Text};
 pub use leptos::prelude::*;
 pub use wasm_bindgen::JsCast;
 #[derive(Clone, Debug, thiserror::Error)]
-enum ApiEr {
+enum ApiError {
     #[error("request failed: {0}")]
     Request(Text),
     #[error("server returned HTTP {0}: {1}")]
@@ -41,14 +41,14 @@ struct AdminApiClient {
 #[derive(Default)]
 struct AuthRefreshCoordinator {
     state: crate::auth_keep_alive::AuthRefreshState,
-    waiters: Vec<futures::channel::oneshot::Sender<Result<(), ApiEr>>>,
+    waiters: Vec<futures::channel::oneshot::Sender<Result<(), ApiError>>>,
 }
 enum AuthRefreshWork {
     Start,
-    Join(futures::channel::oneshot::Receiver<Result<(), ApiEr>>),
+    Join(futures::channel::oneshot::Receiver<Result<(), ApiError>>),
 }
-fn auth_refresh_state_er() -> ApiEr {
-    ApiEr::Request(Text::from(
+fn auth_refresh_state_error() -> ApiError {
+    ApiError::Request(Text::from(
         "authentication refresh state is unavailable".to_owned(),
     ))
 }
@@ -61,28 +61,31 @@ impl AdminApiClient {
             transport: crate::transport::GlooTransport,
         }
     }
-    async fn get<Output>(&self, route: server_admin_contract::AdminRoute) -> Result<Output, ApiEr>
+    async fn get<Output>(
+        &self,
+        route: server_admin_contract::AdminRoute,
+    ) -> Result<Output, ApiError>
     where
         Output: serde::de::DeserializeOwned,
     {
         let response = self.transport_response(route, Vec::new()).await?;
         serde_json::from_slice(response.body().as_ref())
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))
     }
     async fn send_json<Input>(
         self,
         route: server_admin_contract::AdminRoute,
         input: Input,
-    ) -> Result<(), ApiEr>
+    ) -> Result<(), ApiError>
     where
         Input: serde::Serialize,
     {
         let body = serde_json::to_vec(&input)
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))?;
         let _response = self.transport_response(route, body).await?;
         Ok(())
     }
-    async fn send(self, route: server_admin_contract::AdminRoute) -> Result<(), ApiEr> {
+    async fn send(self, route: server_admin_contract::AdminRoute) -> Result<(), ApiError> {
         let _response = self.transport_response(route, Vec::new()).await?;
         Ok(())
     }
@@ -90,7 +93,7 @@ impl AdminApiClient {
         &self,
         route: server_admin_contract::AdminRoute,
         body: Vec<u8>,
-    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+    ) -> Result<frontend_contract::TransportResponse, ApiError> {
         let response = self.transport_response_once(route, body.as_slice()).await?;
         if u16::from(response.status()) == 401u16
             && !matches!(
@@ -108,13 +111,13 @@ impl AdminApiClient {
                     if retried.status() == expected {
                         Ok(retried)
                     } else {
-                        Err(response_er(retried.status(), retried.body()))
+                        Err(response_error(retried.status(), retried.body()))
                     }
                 });
         }
         let expected = route.contract().success_status().transport_status();
         if response.status() != expected {
-            return Err(response_er(response.status(), response.body()));
+            return Err(response_error(response.status(), response.body()));
         }
         Ok(response)
     }
@@ -122,31 +125,31 @@ impl AdminApiClient {
         &self,
         route: server_admin_contract::AdminRoute,
         body: &[u8],
-    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+    ) -> Result<frontend_contract::TransportResponse, ApiError> {
         Self::send_once(self.transport, route, body).await
     }
     async fn send_once(
         transport: crate::transport::GlooTransport,
         route: server_admin_contract::AdminRoute,
         body: &[u8],
-    ) -> Result<frontend_contract::TransportResponse, ApiEr> {
+    ) -> Result<frontend_contract::TransportResponse, ApiError> {
         let path = route.path();
         let request = frontend_contract::TransportRequest::new(
             frontend_contract::TransportBody::from(body.to_vec()),
             frontend_contract::TransportPath::try_from(path.as_ref().to_owned())
-                .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?,
+                .map_err(|error| ApiError::Request(Text::from(error.to_string())))?,
             route.contract(),
         );
         frontend_contract::Transport::send(&transport, request)
             .await
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))
     }
-    async fn refresh_session(&self) -> Result<(), ApiEr> {
+    async fn refresh_session(&self) -> Result<(), ApiError> {
         let now = crate::auth_keep_alive::StdAuthRefreshInstant::now();
         let work = match self
             .auth_refresh
             .write()
-            .map_err(|_error| auth_refresh_state_er())?
+            .map_err(|_error| auth_refresh_state_error())?
             .state
             .begin(now)
         {
@@ -155,26 +158,28 @@ impl AdminApiClient {
                 let (sender, receiver) = futures::channel::oneshot::channel();
                 self.auth_refresh
                     .write()
-                    .map_err(|_error| auth_refresh_state_er())?
+                    .map_err(|_error| auth_refresh_state_error())?
                     .waiters
                     .push(sender);
                 AuthRefreshWork::Join(receiver)
             }
             crate::auth_keep_alive::AuthRefreshBegin::Rejected => {
                 redirect("/admin/sign-in");
-                return Err(ApiEr::Status(
+                return Err(ApiError::Status(
                     401u16,
                     Text::from("authentication refresh rejected".to_owned()),
                 ));
             }
             crate::auth_keep_alive::AuthRefreshBegin::Wait => {
-                return Err(ApiEr::Request(Text::from(
+                return Err(ApiError::Request(Text::from(
                     "authentication refresh retry is delayed".to_owned(),
                 )));
             }
         };
         if let AuthRefreshWork::Join(receiver) = work {
-            return receiver.await.map_err(|_error| auth_refresh_state_er())?;
+            return receiver
+                .await
+                .map_err(|_error| auth_refresh_state_error())?;
         }
         let response = Self::send_once(
             self.transport,
@@ -190,15 +195,15 @@ impl AdminApiClient {
             if value.status() == expected {
                 Ok(())
             } else {
-                Err(response_er(value.status(), value.body()))
+                Err(response_error(value.status(), value.body()))
             }
         });
         let outcome = match &result {
             Ok(()) => crate::auth_keep_alive::AuthRefreshOutcome::Refreshed,
-            Err(ApiEr::Status(401u16 | 403u16, _detail)) => {
+            Err(ApiError::Status(401u16 | 403u16, _detail)) => {
                 crate::auth_keep_alive::AuthRefreshOutcome::Rejected
             }
-            Err(ApiEr::Request(_) | ApiEr::Status(_, _)) => {
+            Err(ApiError::Request(_) | ApiError::Status(_, _)) => {
                 crate::auth_keep_alive::AuthRefreshOutcome::TemporaryFailure
             }
         };
@@ -206,7 +211,7 @@ impl AdminApiClient {
             let mut coordinator = self
                 .auth_refresh
                 .write()
-                .map_err(|_error| auth_refresh_state_er())?;
+                .map_err(|_error| auth_refresh_state_error())?;
             coordinator.state.finish(outcome, now);
             std::mem::take(&mut coordinator.waiters)
         };
@@ -221,58 +226,58 @@ impl AdminApiClient {
         }
         result
     }
-    async fn audit(&self) -> Result<Vec<server_admin_contract::AdminAuditView>, ApiEr> {
+    async fn audit(&self) -> Result<Vec<server_admin_contract::AdminAuditView>, ApiError> {
         self.get(server_admin_contract::AdminRoute::Audit).await
     }
-    async fn me(&self) -> Result<server_admin_contract::AuthenticatedAdmin, ApiEr> {
+    async fn me(&self) -> Result<server_admin_contract::AuthenticatedAdmin, ApiError> {
         self.get(server_admin_contract::AdminRoute::Me).await
     }
     async fn permissions(
         &self,
-    ) -> Result<Vec<server_admin_contract::AdminPermissionSummary>, ApiEr> {
+    ) -> Result<Vec<server_admin_contract::AdminPermissionSummary>, ApiError> {
         self.get(server_admin_contract::AdminRoute::Permissions)
             .await
     }
-    async fn roles(&self) -> Result<Vec<server_admin_contract::AdminRoleSummary>, ApiEr> {
+    async fn roles(&self) -> Result<Vec<server_admin_contract::AdminRoleSummary>, ApiError> {
         self.get(server_admin_contract::AdminRoute::Roles).await
     }
-    async fn settings(&self) -> Result<server_admin_contract::AdminSettingsView, ApiEr> {
+    async fn settings(&self) -> Result<server_admin_contract::AdminSettingsView, ApiError> {
         self.get(server_admin_contract::AdminRoute::Settings).await
     }
-    async fn users(&self) -> Result<Vec<server_admin_contract::AdminUserSummary>, ApiEr> {
+    async fn users(&self) -> Result<Vec<server_admin_contract::AdminUserSummary>, ApiError> {
         self.get(server_admin_contract::AdminRoute::Users).await
     }
-    async fn metrics(&self) -> Result<Text, ApiEr> {
+    async fn metrics(&self) -> Result<Text, ApiError> {
         let route = server_admin_contract::AdminRoute::Metrics;
         let response = self.transport_response(route, Vec::new()).await?;
         String::from_utf8(response.body().as_ref().to_vec())
             .map(Text::from)
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))
     }
-    async fn version(&self) -> Result<GitInfo, ApiEr> {
+    async fn version(&self) -> Result<GitInfo, ApiError> {
         self.get(server_admin_contract::AdminRoute::Version).await
     }
     async fn sign_in(
         &self,
         input: server_admin_contract::AdminSignInReq,
-    ) -> Result<server_admin_contract::AdminSignInRes, ApiEr> {
+    ) -> Result<server_admin_contract::AdminSignInRes, ApiError> {
         let route = server_admin_contract::AdminRoute::SignIn;
         let body = serde_json::to_vec(&input)
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))?;
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))?;
         let response = self.transport_response(route, body).await?;
         serde_json::from_slice(response.body().as_ref())
-            .map_err(|error| ApiEr::Request(Text::from(error.to_string())))
+            .map_err(|error| ApiError::Request(Text::from(error.to_string())))
     }
 }
-fn response_er(
+fn response_error(
     status: frontend_contract::TransportStatus,
     body: &frontend_contract::TransportBody,
-) -> ApiEr {
+) -> ApiError {
     let detail = frontend_contract::decode_api_problem(body).map_or_else(
         || Text::from("request failed".to_owned()),
         |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
-    ApiEr::Status(u16::from(status), detail)
+    ApiError::Status(u16::from(status), detail)
 }
 fn browser_window() -> Option<web_sys::Window> {
     web_sys::window()
@@ -336,7 +341,7 @@ fn load(client: AdminApiClient, page: RwSignal<Page>) {
 }
 fn run_action<FutureValue>(future: FutureValue, client: AdminApiClient, page: RwSignal<Page>)
 where
-    FutureValue: Future<Output = Result<(), ApiEr>> + 'static,
+    FutureValue: Future<Output = Result<(), ApiError>> + 'static,
 {
     leptos::task::spawn_local(async move {
         match future.await {

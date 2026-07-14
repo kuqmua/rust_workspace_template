@@ -4,7 +4,7 @@ token_patterns_macros::tp!(
     axum::extract::rejection::JsonRejection
 );
 token_patterns_macros::tp!(AxumResIntoRes, axum::response::IntoResponse);
-token_patterns_macros::tp!(ReqwestEr, reqwest::Error);
+token_patterns_macros::tp!(ReqwestError, reqwest::Error);
 token_patterns_macros::tp!(ReqwestHeaderHeaderMap, reqwest::header::HeaderMap);
 token_patterns_macros::tp!(HttpStatusCode, http::StatusCode);
 token_patterns_macros::tp!(SqlxRow, sqlx::Row);
@@ -12,36 +12,39 @@ token_patterns_macros::tp!(SerdeSerialize, serde::Serialize);
 token_patterns_macros::tp!(SerdeDeserialize, serde::Deserialize);
 token_patterns_macros::tp!(UtoipaToSchema, utoipa::ToSchema);
 token_patterns_macros::tp!(SchemarsJsonSchema, schemars::JsonSchema);
-token_patterns_macros::tp!(LocLibLoc, location::Location);
+token_patterns_macros::tp!(LocationLibLocation, location::Location);
 token_patterns_macros::tp!(ThiserrorError, thiserror::Error);
 token_patterns_macros::tp!(Char, char);
 token_patterns_macros::tp!(RefStr, &str);
-token_patterns_macros::tp!(StringTs, String);
+token_patterns_macros::tp!(StringTokenStream, String);
 token_patterns_macros::tp!(DeriveDebug, #[derive(Debug, Optml)]);
-token_patterns_macros::tp!(DeriveDebugThiserrorLoc, #[derive(Debug, thiserror::Error, location::Location, Optml)]);
+token_patterns_macros::tp!(DeriveDebugThiserrorLocation, #[derive(Debug, thiserror::Error, location::Location, Optml)]);
 token_patterns_macros::tp!(DeriveDebugUtoipaToSchema, #[derive(Debug, utoipa::ToSchema, Optml)]);
 token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserialize, #[derive(Debug, serde::Serialize, serde::Deserialize, Optml)]);
 token_patterns_macros::tp!(DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema, #[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, Optml)]);
 token_patterns_macros::tp!(DeriveDebugCloneCopy, #[derive(Debug, Clone, Copy, Optml)]);
-token_patterns_macros::tp!(StrSqlxColIndex, &'lt str: sqlx::ColumnIndex<R>,);
+token_patterns_macros::tp!(StrSqlxColumnIndex, &'lt str: sqlx::ColumnIndex<R>,);
 token_patterns_macros::tp!(
     SqlxDecodeDecodeDatabase,
     sqlx::decode::Decode<'lt, R::Database>
 );
 token_patterns_macros::tp!(SqlxTypesTypeDatabase, sqlx::types::Type<R::Database>);
-token_patterns_macros::tp!(LocLibLocLoc, loc_lib::loc::Loc);
-token_patterns_macros::tp!(LocScDoubleDotSpaceLocLibLocLoc, loc: loc_lib::loc::Loc);
+token_patterns_macros::tp!(
+    LocationLibLocationLocation,
+    location_lib::location::Location
+);
+token_patterns_macros::tp!(LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation, location: location_lib::location::Location);
 token_patterns_macros::tp!(CoreDefault, ::core::default::Default::default());
 token_patterns_macros::tp!(SqlxTypesTimeTimeMidnight, sqlx::types::time::Time::MIDNIGHT);
 token_patterns_macros::tp!(
     SqlxTypesTimeOffsetDateTimeUnixEpoch,
     sqlx::types::time::OffsetDateTime::UNIX_EPOCH
 );
-token_patterns_macros::tp!(Er0, er_0);
-token_patterns_macros::tp!(Er1, er_1);
-token_patterns_macros::tp!(Er2, er_2);
-token_patterns_macros::tp!(Er3, er_3);
-token_patterns_macros::tp!(FieldAttrSerdeSkipSerializingIfOptIsNone, #[serde(skip_serializing_if = "Option::is_none")]);
+token_patterns_macros::tp!(Error0, error_0);
+token_patterns_macros::tp!(Error1, error_1);
+token_patterns_macros::tp!(Error2, error_2);
+token_patterns_macros::tp!(Error3, error_3);
+token_patterns_macros::tp!(FieldAttrSerdeSkipSerializingIfOptionalIsNone, #[serde(skip_serializing_if = "Option::is_none")]);
 token_patterns_macros::tp_batch!(
     (Bool, bool),
     (U8, u8),
@@ -57,108 +60,124 @@ token_patterns_macros::tp_batch!(
     (UuidUuid, uuid::Uuid),
     (StdFmtDisplay, std::fmt::Display)
 );
-token_patterns_macros::tp_parts!(CrateDfltSomeOneEl, crate_path_ts(), dflt_some_one_el_ucc());
 token_patterns_macros::tp_parts!(
-    CrateDfltSomeOneElCall,
-    crate_path_ts(),
-    dflt_some_one_el_ucc(),
-    path_dflt_some_one_el_call()
+    CrateDefaultSomeOneElement,
+    crate_path_token_stream(),
+    default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnDfltSomeOneEl,
-    pg_crud_cmn(),
-    dflt_some_one_el_ucc()
+    CrateDefaultSomeOneElementCall,
+    crate_path_token_stream(),
+    default_some_one_element_upper_camel_case(),
+    path_default_some_one_element_call()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnDfltSomeOneElCall,
-    PgCrudCmnDfltSomeOneEl,
-    path_dflt_some_one_el_call()
+    PgCrudCommonDefaultSomeOneElement,
+    pg_crud_common(),
+    default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    CrateAllEnumVrtsArrDfltSomeOneEl,
-    crate_path_ts(),
-    all_vrts_dflt_some_one_el_ucc()
+    PgCrudCommonDefaultSomeOneElementCall,
+    PgCrudCommonDefaultSomeOneElement,
+    path_default_some_one_element_call()
 );
 token_patterns_macros::tp_parts!(
-    CrateAllEnumVrtsArrDfltSomeOneElCall,
-    CrateAllEnumVrtsArrDfltSomeOneEl,
-    path_all_vrts_dflt_some_one_el_call()
+    CrateAllEnumVariantsArrayDefaultSomeOneElement,
+    crate_path_token_stream(),
+    all_variants_default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
-    pg_crud_cmn(),
-    all_vrts_dflt_some_one_el_ucc()
+    CrateAllEnumVariantsArrayDefaultSomeOneElementCall,
+    CrateAllEnumVariantsArrayDefaultSomeOneElement,
+    path_all_variants_default_some_one_element_call()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneElCall,
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneEl,
-    path_all_vrts_dflt_some_one_el_call()
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElement,
+    pg_crud_common(),
+    all_variants_default_some_one_element_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    CrateDfltSomeOneElMaxPageSize,
-    crate_path_ts(),
-    dflt_some_one_el_max_page_size_ucc()
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementCall,
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElement,
+    path_all_variants_default_some_one_element_call()
 );
 token_patterns_macros::tp_parts!(
-    CrateDfltSomeOneElMaxPageSizeCall,
-    crate_path_ts(),
-    dflt_some_one_el_max_page_size_ucc(),
-    path_dflt_some_one_el_max_page_size_call()
+    CrateDefaultSomeOneElementMaxPageSize,
+    crate_path_token_stream(),
+    default_some_one_element_max_page_size_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnDfltSomeOneElMaxPageSize,
-    pg_crud_cmn(),
-    dflt_some_one_el_max_page_size_ucc()
+    CrateDefaultSomeOneElementMaxPageSizeCall,
+    crate_path_token_stream(),
+    default_some_one_element_max_page_size_upper_camel_case(),
+    path_default_some_one_element_max_page_size_call()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnDfltSomeOneElMaxPageSizeCall,
-    PgCrudCmnDfltSomeOneElMaxPageSize,
-    path_dflt_some_one_el_max_page_size_call()
+    PgCrudCommonDefaultSomeOneElementMaxPageSize,
+    pg_crud_common(),
+    default_some_one_element_max_page_size_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    crate_path_ts(),
-    all_vrts_dflt_some_one_el_max_page_size_ucc()
+    PgCrudCommonDefaultSomeOneElementMaxPageSizeCall,
+    PgCrudCommonDefaultSomeOneElementMaxPageSize,
+    path_default_some_one_element_max_page_size_call()
 );
 token_patterns_macros::tp_parts!(
-    CrateAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
-    CrateAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    path_all_vrts_dflt_some_one_el_max_page_size_call()
+    CrateAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+    crate_path_token_stream(),
+    all_variants_default_some_one_element_max_page_size_upper_camel_case()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    pg_crud_cmn(),
-    all_vrts_dflt_some_one_el_max_page_size_ucc()
+    CrateAllEnumVariantsArrayDefaultSomeOneElementCallWithMaxPageSize,
+    CrateAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+    path_all_variants_default_some_one_element_max_page_size_call()
 );
 token_patterns_macros::tp_parts!(
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneElCallWithMaxPageSize,
-    PgCrudCmnAllEnumVrtsArrDfltSomeOneElMaxPageSize,
-    path_all_vrts_dflt_some_one_el_max_page_size_call()
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+    pg_crud_common(),
+    all_variants_default_some_one_element_max_page_size_upper_camel_case()
+);
+token_patterns_macros::tp_parts!(
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementCallWithMaxPageSize,
+    PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+    path_all_variants_default_some_one_element_max_page_size_call()
 );
 token_patterns_macros::tp!(MustUse, #[must_use]);
 token_patterns_macros::tp!(AllowClippyArbitrarySrcItemOrdering, #[allow(clippy::arbitrary_source_item_ordering)]);
-token_patterns_macros::tp!(NoneTs, None);
+token_patterns_macros::tp!(NoneTokenStream, None);
 token_patterns_macros::ts_path_fn!(
-    path_all_vrts_dflt_some_one_el_max_page_size_call,
-    ::all_vrts_dflt_some_one_el_max_page_size()
-);
-token_patterns_macros::ts_path_fn!(dflt_some_one_el_max_page_size_ucc, DfltSomeOneElMaxPageSize);
-token_patterns_macros::ts_path_fn!(crate_path_ts, crate::);
-token_patterns_macros::ts_path_fn!(pg_crud_cmn, pg_crud_cmn::);
-token_patterns_macros::ts_path_fn!(dflt_some_one_el_ucc, DfltSomeOneEl);
-token_patterns_macros::ts_path_fn!(all_vrts_dflt_some_one_el_ucc, AllEnumVrtsArrDfltSomeOneEl);
-token_patterns_macros::ts_path_fn!(path_dflt_some_one_el_call, ::dflt_some_one_el());
-token_patterns_macros::ts_path_fn!(
-    path_dflt_some_one_el_max_page_size_call,
-    ::dflt_some_one_el_max_page_size()
+    path_all_variants_default_some_one_element_max_page_size_call,
+    ::all_variants_default_some_one_element_max_page_size()
 );
 token_patterns_macros::ts_path_fn!(
-    all_vrts_dflt_some_one_el_max_page_size_ucc,
-    AllEnumVrtsArrDfltSomeOneElMaxPageSize
+    default_some_one_element_max_page_size_upper_camel_case,
+    DefaultSomeOneElementMaxPageSize
+);
+token_patterns_macros::ts_path_fn!(crate_path_token_stream, crate::);
+token_patterns_macros::ts_path_fn!(pg_crud_common, pg_crud_common::);
+token_patterns_macros::ts_path_fn!(
+    default_some_one_element_upper_camel_case,
+    DefaultSomeOneElement
 );
 token_patterns_macros::ts_path_fn!(
-    path_all_vrts_dflt_some_one_el_call,
-    ::all_vrts_dflt_some_one_el()
+    all_variants_default_some_one_element_upper_camel_case,
+    AllEnumVariantsArrayDefaultSomeOneElement
+);
+token_patterns_macros::ts_path_fn!(
+    path_default_some_one_element_call,
+    ::default_some_one_element()
+);
+token_patterns_macros::ts_path_fn!(
+    path_default_some_one_element_max_page_size_call,
+    ::default_some_one_element_max_page_size()
+);
+token_patterns_macros::ts_path_fn!(
+    all_variants_default_some_one_element_max_page_size_upper_camel_case,
+    AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize
+);
+token_patterns_macros::ts_path_fn!(
+    path_all_variants_default_some_one_element_call,
+    ::all_variants_default_some_one_element()
 );
 struct ProcMacro2TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
 fn append_tokens(tokens: &mut ProcMacro2TokensMut<'_>, part: impl quote::ToTokens) {
@@ -183,12 +202,12 @@ mod tests {
     #[test]
     fn tp_parts_struct_outputs_expected_tokens() {
         assert_tokens_eq(
-            super::CrateDfltSomeOneEl,
-            quote::quote! {crate::DfltSomeOneEl},
+            super::CrateDefaultSomeOneElement,
+            quote::quote! {crate::DefaultSomeOneElement},
         );
         assert_tokens_eq(
-            super::CrateDfltSomeOneElCall,
-            quote::quote! {crate::DfltSomeOneEl::dflt_some_one_el()},
+            super::CrateDefaultSomeOneElementCall,
+            quote::quote! {crate::DefaultSomeOneElement::default_some_one_element()},
         );
     }
     #[test]
@@ -197,13 +216,13 @@ mod tests {
     }
     #[test]
     fn ts_path_fn_outputs_expected_tokens() {
-        assert_tokens_eq(super::pg_crud_cmn(), quote::quote! {pg_crud_cmn::});
+        assert_tokens_eq(super::pg_crud_common(), quote::quote! {pg_crud_common::});
     }
     #[test]
     fn path_helper_outputs_expected_tokens() {
         assert_tokens_eq(
-            super::path_dflt_some_one_el_call(),
-            quote::quote! {::dflt_some_one_el()},
+            super::path_default_some_one_element_call(),
+            quote::quote! {::default_some_one_element()},
         );
     }
 }

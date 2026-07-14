@@ -1,8 +1,11 @@
-pub(crate) fn panic_if_err<T, E>(res: Result<T, E>, mk_panic_msg: impl FnOnce(E) -> String) -> T {
+pub(crate) fn panic_if_err<T, E>(
+    res: Result<T, E>,
+    mk_panic_message: impl FnOnce(E) -> String,
+) -> T {
     match res {
         Ok(ok_v) => ok_v,
-        Err(er) => {
-            eprintln!("{}", mk_panic_msg(er));
+        Err(error) => {
+            eprintln!("{}", mk_panic_message(error));
             std::process::abort();
         }
     }

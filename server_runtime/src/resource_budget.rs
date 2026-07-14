@@ -12,10 +12,10 @@ struct StdAtomicUsize(std::sync::atomic::AtomicUsize);
 #[derive(Clone, Debug)]
 struct StdSharedAtomicUsize(std::sync::Arc<StdAtomicUsize>);
 impl TryFrom<usize> for ResourceBudgetMaximum {
-    type Error = ResourceBudgetConfigEr;
+    type Error = ResourceBudgetConfigError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
         if value == 0usize {
-            Err(ResourceBudgetConfigEr)
+            Err(ResourceBudgetConfigError)
         } else {
             Ok(Self(value))
         }
@@ -27,13 +27,13 @@ impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ResourceBudgetConfigEr;
-impl std::fmt::Display for ResourceBudgetConfigEr {
+pub struct ResourceBudgetConfigError;
+impl std::fmt::Display for ResourceBudgetConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("resource budget maximum must be greater than zero")
     }
 }
-impl std::error::Error for ResourceBudgetConfigEr {}
+impl std::error::Error for ResourceBudgetConfigError {}
 #[derive(Clone, Debug)]
 pub struct ResourceBudget {
     maximum: ResourceBudgetMaximum,
@@ -46,11 +46,11 @@ pub trait GetIdempotencyResponseResourceBudget {
     fn get_idempotency_response_resource_budget(&self) -> &ResourceBudget;
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ResourceBudgetReserveEr {
+pub enum ResourceBudgetReserveError {
     Exhausted,
     Overflow,
 }
-impl std::fmt::Display for ResourceBudgetReserveEr {
+impl std::fmt::Display for ResourceBudgetReserveError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Exhausted => f.write_str("resource budget exhausted"),
@@ -58,7 +58,7 @@ impl std::fmt::Display for ResourceBudgetReserveEr {
         }
     }
 }
-impl std::error::Error for ResourceBudgetReserveEr {}
+impl std::error::Error for ResourceBudgetReserveError {}
 #[derive(Debug)]
 #[must_use]
 pub struct ResourceBudgetReservation {
@@ -78,7 +78,7 @@ impl ResourceBudget {
     pub fn reserve(
         &self,
         amount: ResourceBudgetAmount,
-    ) -> Result<ResourceBudgetReservation, ResourceBudgetReserveEr> {
+    ) -> Result<ResourceBudgetReservation, ResourceBudgetReserveError> {
         let result = self.reserved.0.0.try_update(
             std::sync::atomic::Ordering::AcqRel,
             std::sync::atomic::Ordering::Acquire,
@@ -94,9 +94,9 @@ impl ResourceBudget {
                 reserved: self.reserved.clone(),
             }),
             Err(current) if current.checked_add(amount.0).is_none() => {
-                Err(ResourceBudgetReserveEr::Overflow)
+                Err(ResourceBudgetReserveError::Overflow)
             }
-            Err(_current) => Err(ResourceBudgetReserveEr::Exhausted),
+            Err(_current) => Err(ResourceBudgetReserveError::Exhausted),
         }
     }
     #[must_use]

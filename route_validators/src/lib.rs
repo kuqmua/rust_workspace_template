@@ -28,16 +28,16 @@ pub trait GetAxumHttpStatusCode {
 }
 #[cfg(test)]
 mod tests {
-    struct TestEr;
-    impl super::GetAxumHttpStatusCode for TestEr {
+    struct TestError;
+    impl super::GetAxumHttpStatusCode for TestError {
         const AXUM_HTTP_STATUS_CODE: super::AxumHttpStatusCode =
             super::AxumHttpStatusCode::IM_A_TEAPOT;
     }
     #[test]
     fn get_axum_http_status_code_default_method_returns_associated_const() {
-        let er = TestEr;
+        let error = TestError;
         assert_eq!(
-            super::GetAxumHttpStatusCode::get_axum_http_status_code(&er).get(),
+            super::GetAxumHttpStatusCode::get_axum_http_status_code(&error).get(),
             axum::http::StatusCode::IM_A_TEAPOT
         );
     }

@@ -4,23 +4,23 @@ mod tests {
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub(crate) struct ToErrStringValue(String);
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        pub(crate) enum ToErrStringValueTryFromStringEr {
+        pub(crate) enum ToErrStringValueTryFromStringError {
             TooLong,
         }
-        impl std::fmt::Display for ToErrStringValueTryFromStringEr {
+        impl std::fmt::Display for ToErrStringValueTryFromStringError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
                     Self::TooLong => f.write_str("too long"),
                 }
             }
         }
-        impl From<ToErrStringValueTryFromStringEr> for ToErrStringValue {
-            fn from(value: ToErrStringValueTryFromStringEr) -> Self {
+        impl From<ToErrStringValueTryFromStringError> for ToErrStringValue {
+            fn from(value: ToErrStringValueTryFromStringError) -> Self {
                 Self(value.to_string())
             }
         }
         impl TryFrom<String> for ToErrStringValue {
-            type Error = ToErrStringValueTryFromStringEr;
+            type Error = ToErrStringValueTryFromStringError;
             fn try_from(value: String) -> Result<Self, Self::Error> {
                 if value.len() > 1024 {
                     return Err(Self::Error::TooLong);
@@ -96,7 +96,7 @@ mod tests {
     fn dependency_markers(
         _: Option<proc_macro2::TokenStream>,
         _: Option<syn::Path>,
-        _: Option<workspace_macro_helpers::FirstIdent>,
+        _: Option<workspace_macro_helpers::FirstIdentifier>,
     ) -> proc_macro2::TokenStream {
         quote::quote! {}
     }
@@ -157,8 +157,11 @@ mod tests {
     }
     #[test]
     fn bounded_string_description_is_configurable() {
-        let er = DescribedValue::try_from(String::from("abc")).expect_err("3dfca278");
-        assert_eq!(er.to_string(), "described value length 3 exceeds maximum 2");
+        let error = DescribedValue::try_from(String::from("abc")).expect_err("3dfca278");
+        assert_eq!(
+            error.to_string(),
+            "described value length 3 exceeds maximum 2"
+        );
     }
     #[test]
     fn bounded_string_rich_policies_share_runtime_and_serde_validation() {
@@ -168,15 +171,15 @@ mod tests {
         );
         assert!(matches!(
             RichValue::try_from(String::from("   ")),
-            Err(RichValueTryFromStringEr::TooShort { len: 0, min: 1 })
+            Err(RichValueTryFromStringError::TooShort { len: 0, min: 1 })
         ));
         assert!(matches!(
             RichValue::try_from(String::from("abcd")),
-            Err(RichValueTryFromStringEr::TooLong { len: 4, max: 3 })
+            Err(RichValueTryFromStringError::TooLong { len: 4, max: 3 })
         ));
         assert!(matches!(
             RichValue::try_from(String::from("a\0b")),
-            Err(RichValueTryFromStringEr::ContainsNul)
+            Err(RichValueTryFromStringError::ContainsNul)
         ));
         assert_eq!(
             serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1"),
@@ -258,9 +261,9 @@ mod tests {
     }
     #[test]
     fn enum_from_str_error_mentions_allowed_values() {
-        let er = <SampleEnum as std::str::FromStr>::from_str("bad").expect_err("42d13f7a");
+        let error = <SampleEnum as std::str::FromStr>::from_str("bad").expect_err("42d13f7a");
         assert_eq!(
-            er,
+            error,
             "Unknown value: bad. Allowed values: first_value, second"
         );
     }

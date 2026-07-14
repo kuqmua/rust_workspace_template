@@ -16,7 +16,7 @@ pub struct AxumBody(axum::body::Body);
 pub struct BodySizeLimitBytes(usize);
 #[derive(Debug, newtype::Newtype)]
 #[newtype(to_err_string)]
-pub struct AxumBodySizeEr(axum::Error);
+pub struct AxumBodySizeError(axum::Error);
 #[derive(Debug)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
@@ -33,42 +33,42 @@ impl AsRef<[u8]> for BytesBodyBytes {
         self.0.as_ref()
     }
 }
-#[location::errors_with_loc]
+#[location::errors_with_location]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 #[location_to_schema]
-pub enum BodySizeEr {
+pub enum BodySizeError {
     ReachedMaximumSizeOfBody {
         #[eo_to_err_string]
-        er: AxumBodySizeEr,
+        error: AxumBodySizeError,
         #[eo_to_err_string_serde]
         maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
         #[eo_to_err_string]
         size_hint: HttpBodySizeHint,
     },
 }
-impl crate::GetAxumHttpStatusCode for BodySizeEr {
+impl crate::GetAxumHttpStatusCode for BodySizeError {
     const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
         crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE;
 }
-impl BodySizeEr {
+impl BodySizeError {
     #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
     fn reached_maximum_size_of_body(
-        er: AxumBodySizeEr,
+        error: AxumBodySizeError,
         maximum_size_of_body_limit_in_bytes: BodySizeLimitBytes,
         size_hint: HttpBodySizeHint,
     ) -> Self {
         Self::ReachedMaximumSizeOfBody {
-            er,
+            error,
             maximum_size_of_body_limit_in_bytes,
             size_hint,
-            loc: loc_macros::loc!(),
+            location: location_macros::location!(),
         }
     }
 }
 pub async fn check_body_size<BodyTy, LimitTy>(
     body: BodyTy,
     limit: LimitTy,
-) -> Result<BytesBodyBytes, BodySizeEr>
+) -> Result<BytesBodyBytes, BodySizeError>
 where
     BodyTy: Into<AxumBody>,
     LimitTy: Into<BodySizeLimitBytes>,
@@ -79,9 +79,9 @@ where
     axum::body::to_bytes(body_value.0, limit_value.0)
         .await
         .map(BytesBodyBytes)
-        .map_err(|er| {
-            BodySizeEr::reached_maximum_size_of_body(
-                AxumBodySizeEr(er),
+        .map_err(|error| {
+            BodySizeError::reached_maximum_size_of_body(
+                AxumBodySizeError(error),
                 limit_value,
                 HttpBodySizeHint(size_hint),
             )
@@ -102,9 +102,9 @@ mod tests {
         )
     }
     #[allow(clippy::single_call_fn)] // shared extractor keeps reached-max-size assertions reusable across tests
-    fn reached_max_size_fields(v: &super::BodySizeEr) -> (usize, Option<u64>) {
+    fn reached_max_size_fields(v: &super::BodySizeError) -> (usize, Option<u64>) {
         match v {
-            super::BodySizeEr::ReachedMaximumSizeOfBody {
+            super::BodySizeError::ReachedMaximumSizeOfBody {
                 maximum_size_of_body_limit_in_bytes,
                 size_hint,
                 ..

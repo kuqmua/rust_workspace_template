@@ -1,0 +1,11 @@
+mod client;
+mod contract_tests;
+mod frontend;
+mod handler;
+mod model;
+mod openapi;
+mod parse;
+mod route;
+mod source;
+mod sql;
+pub use source::generate_pg_table;

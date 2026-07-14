@@ -31,7 +31,7 @@ pub(super) async fn enforce_rate_limit(
     subject: &super::super::StdAdminString,
     limit: StdAdminRateLimitCount,
     window_seconds: StdAdminRateLimitWindowSeconds,
-) -> Result<(), super::AdminApiEr> {
+) -> Result<(), super::AdminApiError> {
     let allowed = sqlx::query_scalar::<_, bool>("INSERT INTO admin_rate_limits (scope, subject, window_started_at, request_count) VALUES ($1, $2, NOW(), 1) ON CONFLICT (scope, subject) DO UPDATE SET window_started_at = CASE WHEN admin_rate_limits.window_started_at <= NOW() - make_interval(secs => $4) THEN NOW() ELSE admin_rate_limits.window_started_at END, request_count = CASE WHEN admin_rate_limits.window_started_at <= NOW() - make_interval(secs => $4) THEN 1 ELSE admin_rate_limits.request_count + 1 END RETURNING request_count <= $3")
         .bind(scope.as_str().as_ref())
         .bind(subject.as_ref())
@@ -39,10 +39,10 @@ pub(super) async fn enforce_rate_limit(
         .bind(window_seconds.0)
         .fetch_one(state.pool.as_ref())
         .await
-        .map_err(|er| super::AdminApiEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
     if allowed {
         Ok(())
     } else {
-        Err(super::AdminApiEr::RateLimited)
+        Err(super::AdminApiError::RateLimited)
     }
 }

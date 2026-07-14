@@ -1,10 +1,10 @@
 #![allow(clippy::single_call_fn)] // public facade preserves session API while this module owns persistence and rotation
 #[allow(clippy::single_call_fn)] // clock failure mapping remains isolated from session persistence
-fn unix_now() -> Result<super::super::AdminUnixTs, super::AdminSessionEr> {
+fn unix_now() -> Result<super::super::AdminUnixTokenStream, super::AdminSessionError> {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|duration| super::super::AdminUnixTs::from(duration.as_secs()))
-        .map_err(|_er| super::AdminSessionEr::SystemClock)
+        .map(|duration| super::super::AdminUnixTokenStream::from(duration.as_secs()))
+        .map_err(|_error| super::AdminSessionError::SystemClock)
 }
 #[allow(clippy::single_call_fn)] // token identifier conversion keeps secret construction explicit
 fn opaque_token_from_uuid(value: super::super::UuidAdminValue) -> super::super::AdminOpaqueToken {
@@ -16,7 +16,7 @@ pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,
     user_id: super::super::AdminUserId,
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
-) -> Result<super::AdminSessionBundle, super::AdminSessionEr> {
+) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
     let now = unix_now()?;
     let session_uuid = uuid::Uuid::new_v4();
     let session_id =
@@ -32,7 +32,8 @@ pub(super) async fn create_session_in_connection(
     let token_identifier_hash = super::super::hash_opaque_token(&opaque_token_from_uuid(
         super::super::UuidAdminValue::from(session_uuid),
     ));
-    let expires_at = super::super::AdminUnixTs::from(now.0.saturating_add(state.access_ttl.0));
+    let expires_at =
+        super::super::AdminUnixTokenStream::from(now.0.saturating_add(state.access_ttl.0));
     let claims = super::super::AdminAccessClaims::new(
         user_id,
         session_id,
@@ -47,9 +48,9 @@ pub(super) async fn create_session_in_connection(
         &state.encoding_key.0,
     )
     .map(super::super::StdAdminAccessToken)
-    .map_err(|er| {
-        super::AdminSessionEr::AccessToken(super::super::AdminAccessTokenEr(
-            super::super::JsonwebtokenAdminEr::from(er),
+    .map_err(|error| {
+        super::AdminSessionError::AccessToken(super::super::AdminAccessTokenError(
+            super::super::JsonwebtokenAdminError::from(error),
         ))
     })?;
     let session_offset =
@@ -59,13 +60,13 @@ pub(super) async fn create_session_in_connection(
         .bind(session_offset)
         .execute(connection.as_mut())
         .await
-        .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     let _expired_refresh = sqlx::query("UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)")
         .bind(user_id.0)
         .bind(session_offset)
         .execute(connection.as_mut())
         .await
-        .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     let _access_result = sqlx::query(
         "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, NOW() + ($5 * INTERVAL '1 second'))",
     )
@@ -76,7 +77,7 @@ pub(super) async fn create_session_in_connection(
     .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
     .execute(connection.as_mut())
     .await
-    .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     let _refresh_result = sqlx::query(
         "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 second'))",
     )
@@ -86,7 +87,7 @@ pub(super) async fn create_session_in_connection(
     .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
     .execute(connection.as_mut())
     .await
-    .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     Ok(super::AdminSessionBundle {
         access_token,
         csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
@@ -101,13 +102,11 @@ pub(super) async fn create_session_in_connection(
 pub(super) async fn create_session(
     state: &super::AdminAuthSvcState,
     user_id: super::super::AdminUserId,
-) -> Result<super::AdminSessionBundle, super::AdminSessionEr> {
-    let mut tx = state
-        .pool
-        .as_ref()
-        .begin()
-        .await
-        .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+) -> Result<super::AdminSessionBundle, super::AdminSessionError> {
+    let mut tx =
+        state.pool.as_ref().begin().await.map_err(|error| {
+            super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error))
+        })?;
     let session = create_session_in_connection(
         state,
         user_id,
@@ -116,6 +115,6 @@ pub(super) async fn create_session(
     .await?;
     tx.commit()
         .await
-        .map_err(|er| super::AdminSessionEr::Pg(super::super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     Ok(session)
 }

@@ -60,8 +60,9 @@ fn should_write_string_into_file(
     let string_cnt_ref = string_cnt.as_ref();
     match std::fs::metadata(path_ref) {
         Ok(v) => {
-            let new_len_u64 = u64::try_from(string_cnt_ref.len())
-                .map_err(|_er| std::io::Error::other("2f4d7a8c failed converting string length"))?;
+            let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
+                std::io::Error::other("2f4d7a8c failed converting string length")
+            })?;
             if v.len() != new_len_u64 {
                 return Ok(ShouldWriteString::from(true));
             }
@@ -96,8 +97,10 @@ fn should_write_string_into_file(
                 offset = end;
             }
         }
-        Err(er) if er.kind() == std::io::ErrorKind::NotFound => Ok(ShouldWriteString::from(true)),
-        Err(er) => Err(er),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            Ok(ShouldWriteString::from(true))
+        }
+        Err(error) => Err(error),
     }
 }
 #[allow(clippy::single_call_fn)]
@@ -198,7 +201,7 @@ where
 {
     let _pth = crate::panic_if_err::panic_if_err(
         try_write_string_into_file(file_name, string_cnt),
-        |er| format!("4f3094e1:{er}"),
+        |error| format!("4f3094e1:{error}"),
     );
 }
 #[cfg(test)]

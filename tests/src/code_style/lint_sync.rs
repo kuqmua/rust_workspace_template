@@ -20,7 +20,7 @@ fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() 
         "supertrait_item_shadowing_definition",
         "supertrait_item_shadowing_usage",
         "aarch_64_softfloat_neon",
-        "dflt_overrides_dflt_fields",
+        "default_overrides_default_fields",
         "test_unstable_lint",
         "resolving_to_items_shadowing_supertrait_items",
         "shadowing_supertrait_items",

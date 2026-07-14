@@ -6,41 +6,41 @@ impl std::fmt::Display for RequestId {
     }
 }
 impl TryFrom<String> for RequestId {
-    type Error = RequestIdTryFromStringEr;
+    type Error = RequestIdTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.is_empty() || value.len() > 128usize || !value.is_ascii() {
-            Err(RequestIdTryFromStringEr)
+            Err(RequestIdTryFromStringError)
         } else {
             Ok(Self(value))
         }
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RequestIdTryFromStringEr;
-impl std::fmt::Display for RequestIdTryFromStringEr {
+pub struct RequestIdTryFromStringError;
+impl std::fmt::Display for RequestIdTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str("request id must be non-empty ASCII up to 128 bytes")
     }
 }
-impl std::error::Error for RequestIdTryFromStringEr {}
+impl std::error::Error for RequestIdTryFromStringError {}
 #[derive(Debug)]
-pub struct HttpHeaderToStrEr(http::header::ToStrError);
-impl std::fmt::Display for HttpHeaderToStrEr {
+pub struct HttpHeaderToStrError(http::header::ToStrError);
+impl std::fmt::Display for HttpHeaderToStrError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for HttpHeaderToStrEr {
+impl std::error::Error for HttpHeaderToStrError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug)]
-pub enum RequestIdTryFromHttpHeaderValueEr {
-    Invalid(RequestIdTryFromStringEr),
-    ToStr(HttpHeaderToStrEr),
+pub enum RequestIdTryFromHttpHeaderValueError {
+    Invalid(RequestIdTryFromStringError),
+    ToStr(HttpHeaderToStrError),
 }
-impl std::fmt::Display for RequestIdTryFromHttpHeaderValueEr {
+impl std::fmt::Display for RequestIdTryFromHttpHeaderValueError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Invalid(error) => error.fmt(f),
@@ -48,7 +48,7 @@ impl std::fmt::Display for RequestIdTryFromHttpHeaderValueEr {
         }
     }
 }
-impl std::error::Error for RequestIdTryFromHttpHeaderValueEr {
+impl std::error::Error for RequestIdTryFromHttpHeaderValueError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Invalid(error) => Some(error),
@@ -57,12 +57,12 @@ impl std::error::Error for RequestIdTryFromHttpHeaderValueEr {
     }
 }
 impl TryFrom<&http::HeaderValue> for RequestId {
-    type Error = RequestIdTryFromHttpHeaderValueEr;
+    type Error = RequestIdTryFromHttpHeaderValueError;
     fn try_from(value: &http::HeaderValue) -> Result<Self, Self::Error> {
-        let value_text = value
-            .to_str()
-            .map_err(|error| RequestIdTryFromHttpHeaderValueEr::ToStr(HttpHeaderToStrEr(error)))?;
-        Self::try_from(value_text.to_owned()).map_err(RequestIdTryFromHttpHeaderValueEr::Invalid)
+        let value_text = value.to_str().map_err(|error| {
+            RequestIdTryFromHttpHeaderValueError::ToStr(HttpHeaderToStrError(error))
+        })?;
+        Self::try_from(value_text.to_owned()).map_err(RequestIdTryFromHttpHeaderValueError::Invalid)
     }
 }
 impl TryFrom<&RequestId> for http::HeaderValue {

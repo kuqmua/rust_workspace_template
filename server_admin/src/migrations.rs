@@ -6,11 +6,11 @@ pub(super) const fn migrator() -> &'static sqlx::migrate::Migrator {
 }
 pub(super) async fn prep_pg(
     pool: app_state::SqlxPgPoolRef<'_>,
-) -> Result<(), super::AdminMigrateEr> {
+) -> Result<(), super::AdminMigrateError> {
     ADMIN_MIGRATOR
         .run(pool.as_ref())
         .await
-        .map_err(|er| super::AdminMigrateEr(super::SqlxAdminMigrateEr::from(er)))
+        .map_err(|error| super::AdminMigrateError(super::SqlxAdminMigrateError::from(error)))
 }
 #[allow(clippy::single_call_fn)] // shared validator keeps bootstrap behavior directly unit-testable and aligned with the database constraint
 pub(super) fn admin_login_has_valid_format(login: &super::AdminLogin) -> super::StdAdminBool {
@@ -30,32 +30,32 @@ pub(super) async fn bootstrap_admin(
     display_name: super::AdminDisplayName,
     password: super::AdminPassword,
     password_hasher: &super::AdminPasswordHasher,
-) -> Result<super::AdminUserId, super::AdminBootstrapEr> {
+) -> Result<super::AdminUserId, super::AdminBootstrapError> {
     if !admin_login_has_valid_format(&login).0 {
-        return Err(super::AdminBootstrapEr::InvalidLogin);
+        return Err(super::AdminBootstrapError::InvalidLogin);
     }
     if display_name.as_ref().trim().is_empty() {
-        return Err(super::AdminBootstrapEr::EmptyDisplayName);
+        return Err(super::AdminBootstrapError::EmptyDisplayName);
     }
     let password_hash = password_hasher
         .hash(password)
         .await
-        .map_err(super::AdminBootstrapEr::PasswordHash)?;
+        .map_err(super::AdminBootstrapError::PasswordHash)?;
     let mut tx = pool
         .as_ref()
         .begin()
         .await
-        .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     let _lock_result = sqlx::query("LOCK TABLE admin_users IN EXCLUSIVE MODE")
         .execute(&mut *tx)
         .await
-        .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     let user_exists = sqlx::query_scalar::<_, bool>("SELECT EXISTS (SELECT 1 FROM admin_users)")
         .fetch_one(&mut *tx)
         .await
-        .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     if user_exists {
-        return Err(super::AdminBootstrapEr::AlreadyInitialized);
+        return Err(super::AdminBootstrapError::AlreadyInitialized);
     }
     let user_id = sqlx::query_scalar::<_, i64>(
         "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id",
@@ -65,16 +65,16 @@ pub(super) async fn bootstrap_admin(
     .bind(password_hash.0.as_ref())
     .fetch_one(&mut *tx)
     .await
-    .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     let _role_link_result = sqlx::query(
         "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, id FROM admin_roles WHERE name = 'admin'",
     )
     .bind(user_id)
     .execute(&mut *tx)
     .await
-    .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+    .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     tx.commit()
         .await
-        .map_err(|er| super::AdminBootstrapEr::Pg(super::SqlxAdminEr::from(er)))?;
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     Ok(super::AdminUserId::from(user_id))
 }

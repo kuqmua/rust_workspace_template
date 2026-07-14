@@ -73,7 +73,7 @@ where
                 });
             let Some((Some(permission), mutates)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(
-                    crate::auth::AdminApiEr::Authorization,
+                    crate::auth::AdminApiError::Authorization,
                 ));
             };
             let authenticated = match crate::auth::authorize_generated_request(
@@ -90,7 +90,7 @@ where
                 }
             };
             let actor =
-                match pg_tbl::PgTblIdempotencyActor::try_from(authenticated.id().to_string()) {
+                match pg_table::PgTableIdempotencyActor::try_from(authenticated.id().to_string()) {
                     Ok(value) => value,
                     Err(_error) => {
                         return Ok(axum::response::IntoResponse::into_response(

@@ -12,8 +12,8 @@ impl ServerAppState<'_> {
         &self.config
     }
 }
-impl cmn_routes::CmnRoutesPrms for ServerAppState<'_> {}
-impl pg_tbl::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
+impl common_routes::CommonRoutesParameters for ServerAppState<'_> {}
+impl pg_table::CombinationOfAppStateLogicTraits for ServerAppState<'_> {}
 impl server_runtime::GetBulkItemResourceBudget for ServerAppState<'_> {
     fn get_bulk_item_resource_budget(&self) -> &server_runtime::ResourceBudget {
         &self.bulk_item_budget
@@ -191,7 +191,7 @@ mod tests {
         )
         .expect("3879e38d")
     }
-    fn mk_st<'state_lt>(
+    fn mk_structure<'state_lt>(
         project_git_info: &'state_lt git_info::ProjectGitInfo<'state_lt>,
     ) -> super::ServerAppState<'state_lt> {
         super::ServerAppState {
@@ -241,38 +241,41 @@ mod tests {
     #[tokio::test]
     async fn cfg_getters_forward_to_inner_config() {
         let git_info = mk_git_info();
-        let st = mk_st(&git_info);
+        let structure = mk_structure(&git_info);
         assert_eq!(
-            config_lib::GetSrcPlaceType::get_src_place_type(&st),
+            config_lib::GetSrcPlaceType::get_src_place_type(&structure),
             &config_lib::types::SrcPlaceType::Github
         );
         assert_eq!(
-            config_lib::GetChronoTimezone::get_chrono_timezone(&st).local_minus_utc(),
+            config_lib::GetChronoTimezone::get_chrono_timezone(&structure).local_minus_utc(),
             3i32 * 3_600i32
         );
         assert_eq!(
             config_lib::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
-                &st
+                &structure
             ),
             &16_384
         );
-        assert!(config_lib::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(&st));
+        assert!(
+            config_lib::GetEnableApiGitCommitCheck::get_enable_api_git_commit_check(&structure)
+        );
     }
     #[tokio::test]
     async fn get_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
-        let st = mk_st(&git_info);
-        let lhs = std::ptr::from_ref(app_state::GetSqlxPgPool::get_sqlx_pg_pool(&st).as_ref());
-        let rhs = std::ptr::from_ref(st.pg_pool.as_ref());
+        let structure = mk_structure(&git_info);
+        let lhs =
+            std::ptr::from_ref(app_state::GetSqlxPgPool::get_sqlx_pg_pool(&structure).as_ref());
+        let rhs = std::ptr::from_ref(structure.pg_pool.as_ref());
         assert_eq!(lhs, rhs);
     }
     #[tokio::test]
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
-        let st = mk_st(&git_info);
-        assert_eq!(st.as_ref(), TEST_COMMIT);
+        let structure = mk_structure(&git_info);
+        assert_eq!(structure.as_ref(), TEST_COMMIT);
         assert_eq!(
-            git_info::GetGitCommitLink::get_git_commit_link(&st),
+            git_info::GetGitCommitLink::get_git_commit_link(&structure),
             git_info::git_commit_link(TEST_COMMIT)
         );
     }

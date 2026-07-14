@@ -115,21 +115,21 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs
 #[newtype(as_ref_str)]
 pub(super) struct SourceText(Box<str>);
 #[derive(Debug, Clone, Copy)]
-pub(super) struct SourceTextTryFromStringEr {
+pub(super) struct SourceTextTryFromStringError {
     len: AnalyzerCount,
 }
 impl TryFrom<String> for SourceText {
-    type Error = SourceTextTryFromStringEr;
+    type Error = SourceTextTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > SOURCE_TEXT_MAX_LEN {
-            return Err(SourceTextTryFromStringEr {
+            return Err(SourceTextTryFromStringError {
                 len: AnalyzerCount::from(value.len()),
             });
         }
         Ok(Self(value.into_boxed_str()))
     }
 }
-impl std::fmt::Display for SourceTextTryFromStringEr {
+impl std::fmt::Display for SourceTextTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -139,7 +139,7 @@ impl std::fmt::Display for SourceTextTryFromStringEr {
         )
     }
 }
-impl std::error::Error for SourceTextTryFromStringEr {}
+impl std::error::Error for SourceTextTryFromStringError {}
 impl From<SourceText> for String {
     fn from(value: SourceText) -> Self {
         value.0.into_string()
@@ -268,7 +268,7 @@ pub(super) struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
 pub(super) struct SynUseTreeRef<'syn_lt>(&'syn_lt syn::UseTree);
 #[derive(Debug, Clone, Copy, newtype::Newtype)]
 #[newtype(as_ref_inner, from_inner)]
-pub(super) struct SynIdentRef<'syn_lt>(&'syn_lt syn::Ident);
+pub(super) struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
 impl<'syn_lt> SynTypeRef<'syn_lt> {
     pub(super) const fn get(self) -> &'syn_lt syn::Type {
         self.0

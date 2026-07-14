@@ -15,7 +15,7 @@ impl std::fmt::Display for SanitizedDatabaseTarget {
     }
 }
 #[derive(Clone, Debug, Eq, PartialEq, thiserror::Error)]
-pub enum UrlEr {
+pub enum UrlError {
     #[error("database name is not explicitly test-only: {target}")]
     AmbiguousDatabase { target: SanitizedDatabaseTarget },
     #[error("test database URL is malformed")]
@@ -23,25 +23,25 @@ pub enum UrlEr {
     #[error("test database host is not loopback: {target}")]
     NonLoopback { target: SanitizedDatabaseTarget },
 }
-pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTarget, UrlEr> {
+pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTarget, UrlError> {
     let Some((scheme, after_scheme)) = url.0.split_once("://") else {
-        return Err(UrlEr::Malformed);
+        return Err(UrlError::Malformed);
     };
     if !matches!(scheme, "postgres" | "postgresql") {
-        return Err(UrlEr::Malformed);
+        return Err(UrlError::Malformed);
     }
     let Some((authority, path_and_suffix)) = after_scheme.split_once('/') else {
-        return Err(UrlEr::Malformed);
+        return Err(UrlError::Malformed);
     };
     let host_port = authority
         .rsplit_once('@')
         .map_or(authority, |(_, value)| value);
     let host = if let Some(without_opening_bracket) = host_port.strip_prefix('[') {
         let Some((value, suffix)) = without_opening_bracket.split_once(']') else {
-            return Err(UrlEr::Malformed);
+            return Err(UrlError::Malformed);
         };
         if !suffix.is_empty() && !suffix.starts_with(':') {
-            return Err(UrlEr::Malformed);
+            return Err(UrlError::Malformed);
         }
         value
     } else {
@@ -53,14 +53,14 @@ pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTa
         .split(['?', '#'])
         .next()
         .filter(|value| !value.is_empty())
-        .ok_or(UrlEr::Malformed)?;
+        .ok_or(UrlError::Malformed)?;
     let target = SanitizedDatabaseTarget::try_from(format!("{scheme}://{host}/{database}"))
-        .map_err(|_error| UrlEr::Malformed)?;
+        .map_err(|_error| UrlError::Malformed)?;
     if !matches!(host, "localhost" | "127.0.0.1" | "::1") {
-        return Err(UrlEr::NonLoopback { target });
+        return Err(UrlError::NonLoopback { target });
     }
     if database != "test" && !database.starts_with("test_") && !database.ends_with("_test") {
-        return Err(UrlEr::AmbiguousDatabase { target });
+        return Err(UrlError::AmbiguousDatabase { target });
     }
     Ok(target)
 }

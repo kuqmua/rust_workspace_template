@@ -1,0 +1,10 @@
+mod catalog;
+mod contract_tests;
+mod filter;
+mod model;
+mod rust_type;
+mod schema;
+mod serde;
+mod source;
+mod sqlx;
+pub use source::generate_pg_types;

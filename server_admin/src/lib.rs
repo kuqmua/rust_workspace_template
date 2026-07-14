@@ -19,16 +19,16 @@ pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct TokioAdminJoinEr(tokio::task::JoinError);
+pub struct TokioAdminJoinError(tokio::task::JoinError);
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct TokioAdminAcquireEr(tokio::sync::AcquireError);
+pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 #[derive(Clone, Copy, newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct Argon2AdminPasswordHashEr(argon2::password_hash::Error);
+pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct SqlxAdminEr(sqlx::Error);
+pub struct SqlxAdminError(sqlx::Error);
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
@@ -77,10 +77,10 @@ impl std::fmt::Debug for AdminPassword {
         f.debug_tuple("AdminPassword").field(&"[REDACTED]").finish()
     }
 }
-pub struct AdminPasswordHash(pg_types_text_misc::StringAsNnTextSecret);
+pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
-    pub const fn new(value: pg_types_text_misc::StringAsNnTextSecret) -> Self {
+    pub const fn new(value: pg_types_text_misc::StringAsNonNullTextSecret) -> Self {
         Self(value)
     }
 }
@@ -259,7 +259,7 @@ pub struct AdminPasswordHashConcurrency(StdAdminNonZeroUsize);
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
 )]
 #[newtype(from_inner)]
-pub struct AdminUnixTs(u64);
+pub struct AdminUnixTokenStream(u64);
 #[derive(
     Debug,
     Clone,
@@ -302,8 +302,8 @@ pub struct AdminTokenAudience(String);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AdminAccessClaims {
     aud: AdminTokenAudience,
-    exp: AdminUnixTs,
-    iat: AdminUnixTs,
+    exp: AdminUnixTokenStream,
+    iat: AdminUnixTokenStream,
     iss: AdminTokenIssuer,
     jti: AdminSessionId,
     sub: AdminUserId,
@@ -313,8 +313,8 @@ impl AdminAccessClaims {
     pub const fn new(
         user_id: AdminUserId,
         session_id: AdminSessionId,
-        issued_at: AdminUnixTs,
-        expires_at: AdminUnixTs,
+        issued_at: AdminUnixTokenStream,
+        expires_at: AdminUnixTokenStream,
         issuer: AdminTokenIssuer,
         audience: AdminTokenAudience,
     ) -> Self {
@@ -337,13 +337,13 @@ impl AdminAccessClaims {
     }
 }
 #[derive(Debug, thiserror::Error)]
-pub enum AdminPasswordHashEr {
+pub enum AdminPasswordHashError {
     #[error("administrator password hashing task failed: {0:?}")]
-    Join(TokioAdminJoinEr),
+    Join(TokioAdminJoinError),
     #[error("administrator password hashing failed: {0:?}")]
-    PasswordHash(Argon2AdminPasswordHashEr),
+    PasswordHash(Argon2AdminPasswordHashError),
     #[error("administrator password hashing concurrency limiter was closed: {0:?}")]
-    SemaphoreClosed(TokioAdminAcquireEr),
+    SemaphoreClosed(TokioAdminAcquireError),
 }
 #[derive(Clone, Debug)]
 pub struct AdminPasswordHasher {
@@ -351,10 +351,10 @@ pub struct AdminPasswordHasher {
 }
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct JsonwebtokenAdminEr(jsonwebtoken::errors::Error);
+pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
 #[derive(Debug, thiserror::Error)]
 #[error("administrator access token operation failed: {0:?}")]
-pub struct AdminAccessTokenEr(JsonwebtokenAdminEr);
+pub struct AdminAccessTokenError(JsonwebtokenAdminError);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
 #[bounded_string(max = 8192, description = "administrator access token")]
 #[newtype(as_ref_owned, into_inner)]
@@ -362,7 +362,7 @@ pub struct StdAdminAccessToken(String);
 pub fn encode_access_token(
     claims: &AdminAccessClaims,
     secret: &AdminJwtSecret,
-) -> Result<StdAdminAccessToken, AdminAccessTokenEr> {
+) -> Result<StdAdminAccessToken, AdminAccessTokenError> {
     token::encode_access_token(claims, secret)
 }
 pub fn decode_access_token(
@@ -370,7 +370,7 @@ pub fn decode_access_token(
     secret: &AdminJwtSecret,
     issuer: &AdminTokenIssuer,
     audience: &AdminTokenAudience,
-) -> Result<AdminAccessClaims, AdminAccessTokenEr> {
+) -> Result<AdminAccessClaims, AdminAccessTokenError> {
     token::decode_access_token(token, secret, issuer, audience)
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, utoipa::ToSchema, optml::Optml)]
@@ -440,16 +440,16 @@ pub enum AdminAuditResource {
 }
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[error("unknown administrator permission: {value:?}")]
-pub struct AdminPermissionTryFromStrEr {
+pub struct AdminPermissionTryFromStrError {
     value: StdAdminString,
 }
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent, from_inner)]
-pub struct SqlxAdminMigrateEr(sqlx::migrate::MigrateError);
+pub struct SqlxAdminMigrateError(sqlx::migrate::MigrateError);
 #[derive(Debug, thiserror::Error)]
 #[error("failed to migrate administrator schema: {0:?}")]
-pub struct AdminMigrateEr(SqlxAdminMigrateEr);
-pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateEr> {
+pub struct AdminMigrateError(SqlxAdminMigrateError);
+pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateError> {
     migrations::prep_pg(pool).await
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -498,11 +498,11 @@ impl std::fmt::Display for AdminCleanupRows {
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum AdminCleanupCfgEr {
+pub enum AdminCleanupCfgError {
     BatchSizeOutOfRange,
     RetentionMustBePositive,
 }
-impl std::fmt::Display for AdminCleanupCfgEr {
+impl std::fmt::Display for AdminCleanupCfgError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::BatchSizeOutOfRange => {
@@ -514,13 +514,13 @@ impl std::fmt::Display for AdminCleanupCfgEr {
         }
     }
 }
-impl std::error::Error for AdminCleanupCfgEr {}
+impl std::error::Error for AdminCleanupCfgError {}
 #[derive(Debug)]
-pub enum AdminCleanupEr {
-    Idempotency(pg_tbl::SqlxPgTblIdempotencyEr),
-    Pg(SqlxAdminEr),
+pub enum AdminCleanupError {
+    Idempotency(pg_table::SqlxPgTableIdempotencyError),
+    Pg(SqlxAdminError),
 }
-impl std::fmt::Display for AdminCleanupEr {
+impl std::fmt::Display for AdminCleanupError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Idempotency(error) => write!(f, "idempotency cleanup failed: {error}"),
@@ -528,7 +528,7 @@ impl std::fmt::Display for AdminCleanupEr {
         }
     }
 }
-impl std::error::Error for AdminCleanupEr {
+impl std::error::Error for AdminCleanupError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Idempotency(error) => Some(error),
@@ -537,22 +537,22 @@ impl std::error::Error for AdminCleanupEr {
     }
 }
 impl TryFrom<i64> for AdminCleanupBatchSize {
-    type Error = AdminCleanupCfgEr;
+    type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if (1i64..=10_000i64).contains(&value) {
             Ok(Self(value))
         } else {
-            Err(AdminCleanupCfgEr::BatchSizeOutOfRange)
+            Err(AdminCleanupCfgError::BatchSizeOutOfRange)
         }
     }
 }
 impl TryFrom<i64> for AdminCleanupRetentionSeconds {
-    type Error = AdminCleanupCfgEr;
+    type Error = AdminCleanupCfgError;
     fn try_from(value: i64) -> Result<Self, Self::Error> {
         if value > 0i64 {
             Ok(Self(value))
         } else {
-            Err(AdminCleanupCfgEr::RetentionMustBePositive)
+            Err(AdminCleanupCfgError::RetentionMustBePositive)
         }
     }
 }
@@ -590,11 +590,11 @@ impl AdminCleanupReport {
 pub async fn cleanup_admin_tables(
     pool: app_state::SqlxPgPoolRef<'_>,
     cfg: AdminCleanupCfg,
-) -> Result<AdminCleanupReport, AdminCleanupEr> {
+) -> Result<AdminCleanupReport, AdminCleanupError> {
     cleanup::cleanup_admin_tables(pool, cfg).await
 }
 #[derive(Debug, thiserror::Error)]
-pub enum AdminBootstrapEr {
+pub enum AdminBootstrapError {
     #[error("administrator bootstrap display name is empty")]
     EmptyDisplayName,
     #[error("administrator bootstrap login has an invalid format")]
@@ -602,9 +602,9 @@ pub enum AdminBootstrapEr {
     #[error("administrator bootstrap has already been completed")]
     AlreadyInitialized,
     #[error("administrator bootstrap password hashing failed: {0}")]
-    PasswordHash(AdminPasswordHashEr),
+    PasswordHash(AdminPasswordHashError),
     #[error("administrator bootstrap database operation failed: {0:?}")]
-    Pg(SqlxAdminEr),
+    Pg(SqlxAdminError),
 }
 pub async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
@@ -612,7 +612,7 @@ pub async fn bootstrap_admin(
     display_name: AdminDisplayName,
     password: AdminPassword,
     password_hasher: &AdminPasswordHasher,
-) -> Result<AdminUserId, AdminBootstrapEr> {
+) -> Result<AdminUserId, AdminBootstrapError> {
     migrations::bootstrap_admin(pool, login, display_name, password, password_hasher).await
 }
 #[cfg(test)]
@@ -622,15 +622,15 @@ mod tests {
     fn cleanup_configuration_enforces_positive_bounded_values() {
         assert_eq!(
             super::AdminCleanupBatchSize::try_from(0i64),
-            Err(super::AdminCleanupCfgEr::BatchSizeOutOfRange)
+            Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
             super::AdminCleanupBatchSize::try_from(10_001i64),
-            Err(super::AdminCleanupCfgEr::BatchSizeOutOfRange)
+            Err(super::AdminCleanupCfgError::BatchSizeOutOfRange)
         );
         assert_eq!(
             super::AdminCleanupRetentionSeconds::try_from(0i64),
-            Err(super::AdminCleanupCfgEr::RetentionMustBePositive)
+            Err(super::AdminCleanupCfgError::RetentionMustBePositive)
         );
         assert_eq!(
             super::AdminCleanupBatchSize::try_from(1_000i64),
@@ -812,8 +812,8 @@ mod tests {
             super::AdminSessionId::from(super::UuidAdminValue::from(
                 uuid::Uuid::parse_str("b871bd8f-7810-4d4b-94a1-5458d3016907").expect("05562da0"),
             )),
-            super::AdminUnixTs::from(1),
-            super::AdminUnixTs::from(4_102_444_800),
+            super::AdminUnixTokenStream::from(1),
+            super::AdminUnixTokenStream::from(4_102_444_800),
             super::AdminTokenIssuer::try_from("test-issuer".to_owned()).expect("fd6a65b0"),
             super::AdminTokenAudience::try_from("test-audience".to_owned()).expect("6e423e16"),
         );

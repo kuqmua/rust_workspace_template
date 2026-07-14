@@ -182,12 +182,13 @@ fn workspace_member_ids(
 fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
     super::types::WalkdirWalkDir::from(walkdir::WalkDir::new("../"))
         .into_iter()
-        .filter_entry(|el| {
-            el.file_name() != "target"
-                && el.file_name() != ".git"
-                && (el.file_type().is_dir()
+        .filter_entry(|element| {
+            element.file_name() != "target"
+                && element.file_name() != ".git"
+                && (element.file_type().is_dir()
                     || super::is_allowed_english_check_ext(
-                        el.path()
+                        element
+                            .path()
                             .extension()
                             .and_then(std::ffi::OsStr::to_str)
                             .map(super::types::SourceTextRef::from),

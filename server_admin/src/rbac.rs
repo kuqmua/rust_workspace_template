@@ -65,7 +65,7 @@ impl serde::Serialize for super::AdminPermission {
     }
 }
 impl TryFrom<&str> for super::AdminPermission {
-    type Error = super::AdminPermissionTryFromStrEr;
+    type Error = super::AdminPermissionTryFromStrError;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "audit_log:read" => Ok(Self::AuditLogRead),
@@ -90,7 +90,7 @@ impl TryFrom<&str> for super::AdminPermission {
             "users:delete" => Ok(Self::UsersDelete),
             "users:read" => Ok(Self::UsersRead),
             "users:update" => Ok(Self::UsersUpdate),
-            _ => Err(super::AdminPermissionTryFromStrEr {
+            _ => Err(super::AdminPermissionTryFromStrError {
                 value: super::StdAdminString(value.to_owned()),
             }),
         }

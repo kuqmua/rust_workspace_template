@@ -644,7 +644,7 @@ impl AdminUpdateSettingsReq {
     Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
-pub enum AdminApiErCode {
+pub enum AdminApiErrorCode {
     AuthenticationFailed,
     AuthorizationFailed,
     Conflict,
@@ -653,7 +653,7 @@ pub enum AdminApiErCode {
     RateLimited,
     ValidationFailed,
 }
-impl std::fmt::Display for AdminApiErCode {
+impl std::fmt::Display for AdminApiErrorCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
             Self::AuthenticationFailed => "authentication failed",
@@ -667,16 +667,16 @@ impl std::fmt::Display for AdminApiErCode {
     }
 }
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminApiErBody {
-    code: AdminApiErCode,
+pub struct AdminApiErrorBody {
+    code: AdminApiErrorCode,
 }
-impl AdminApiErBody {
+impl AdminApiErrorBody {
     #[must_use]
-    pub const fn new(code: AdminApiErCode) -> Self {
+    pub const fn new(code: AdminApiErrorCode) -> Self {
         Self { code }
     }
     #[must_use]
-    pub const fn code(self) -> AdminApiErCode {
+    pub const fn code(self) -> AdminApiErrorCode {
         self.code
     }
 }
@@ -708,10 +708,10 @@ pub enum AdminRoute {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct AdminRoutePath(Box<str>);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AdminRoutePathEr {
+pub enum AdminRoutePathError {
     TooLong,
 }
-impl std::fmt::Display for AdminRoutePathEr {
+impl std::fmt::Display for AdminRoutePathError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::TooLong => f.write_str("administrator route path is too long"),
@@ -719,10 +719,10 @@ impl std::fmt::Display for AdminRoutePathEr {
     }
 }
 impl TryFrom<String> for AdminRoutePath {
-    type Error = AdminRoutePathEr;
+    type Error = AdminRoutePathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > 8192usize {
-            Err(AdminRoutePathEr::TooLong)
+            Err(AdminRoutePathError::TooLong)
         } else {
             Ok(Self(value.into_boxed_str()))
         }

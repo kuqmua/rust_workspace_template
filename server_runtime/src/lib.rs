@@ -8,13 +8,13 @@ mod limits;
 mod request_id;
 mod resource_budget;
 pub use bounded_read::{
-    BoundedBytes, BoundedReadEr, BoundedReadMaximumBytes, BoundedText, ReqwestEr, ReqwestResponse,
-    StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Er, StdIoEr,
-    StdPathRef, read_bounded_file, read_bounded_file_async, read_bounded_http_response,
+    BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
+    ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
+    StdIoError, StdPathRef, read_bounded_file, read_bounded_file_async, read_bounded_http_response,
 };
 pub use client_ip::{
-    HttpHeaderMapRef, StdAddrParseEr, StdParseIntEr, StdResolvedClientIp, StdSocketAddr,
-    TrustedProxyRange, TrustedProxyRangeParseEr, TrustedProxyRanges, resolve_client_ip,
+    HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
+    TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, resolve_client_ip,
 };
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
@@ -22,24 +22,25 @@ pub use cors::{
 pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
-    StdAsyncRunHistoryMaximumLenTryFromUsizeEr, StdAsyncRunHistoryReportCount,
+    StdAsyncRunHistoryMaximumLenTryFromUsizeError, StdAsyncRunHistoryReportCount,
 };
 pub use lifecycle::{
-    BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownEr, StdRequestTimeout,
-    StdRequestTimeoutTryFromDurationEr, StdRunInterval, StdRunIntervalTryFromDurationEr,
-    TokioTaskJoinEr, spawn_interval_task,
+    BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, StdRequestTimeout,
+    StdRequestTimeoutTryFromDurationError, StdRunInterval, StdRunIntervalTryFromDurationError,
+    TokioTaskJoinError, spawn_interval_task,
 };
 pub use limits::{
-    AcquirePermitEr, RetryAfterSecs, RetryAfterSecsTryFromU64Er, StdArcTokioSemaphore,
-    StdPermitWaitTimeout, TokioAcquireEr, TokioOwnedSemaphorePermit, acquire_permit,
+    AcquirePermitError, RetryAfterSecs, RetryAfterSecsTryFromU64Error, StdArcTokioSemaphore,
+    StdPermitWaitTimeout, TokioAcquireError, TokioOwnedSemaphorePermit, acquire_permit,
 };
 pub use request_id::{
-    HttpHeaderToStrEr, RequestId, RequestIdTryFromHttpHeaderValueEr, RequestIdTryFromStringEr,
+    HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,
+    RequestIdTryFromStringError,
 };
 pub use resource_budget::{
     GetBulkItemResourceBudget, GetIdempotencyResponseResourceBudget, ResourceBudget,
-    ResourceBudgetAmount, ResourceBudgetConfigEr, ResourceBudgetMaximum, ResourceBudgetReservation,
-    ResourceBudgetReserveEr,
+    ResourceBudgetAmount, ResourceBudgetConfigError, ResourceBudgetMaximum,
+    ResourceBudgetReservation, ResourceBudgetReserveError,
 };
 const REQUEST_ID_HEADER_NAME: &str = "x-request-id";
 const CORRELATION_ID_HEADER_NAME: &str = "x-correlation-id";
@@ -185,10 +186,10 @@ impl From<StdRequestTimeout> for RequestTimeoutLayer {
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[serde(transparent)]
-struct StdRequestTimeoutMsg(&'static str);
+struct StdRequestTimeoutMessage(&'static str);
 #[derive(Debug, serde::Serialize)]
 struct RequestTimeoutBody {
-    error: StdRequestTimeoutMsg,
+    error: StdRequestTimeoutMessage,
 }
 impl RequestTimeoutLayer {
     #[must_use]
@@ -235,7 +236,7 @@ where
                     let mut response = axum::response::IntoResponse::into_response((
                         http::StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(RequestTimeoutBody {
-                            error: StdRequestTimeoutMsg("request timeout"),
+                            error: StdRequestTimeoutMessage("request timeout"),
                         }),
                     ));
                     if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
@@ -360,23 +361,23 @@ where
     }
 }
 #[derive(Debug)]
-pub struct StdServeIoEr(std::io::Error);
-impl std::fmt::Display for StdServeIoEr {
+pub struct StdServeIoError(std::io::Error);
+impl std::fmt::Display for StdServeIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-impl std::error::Error for StdServeIoEr {
+impl std::error::Error for StdServeIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
 #[derive(Debug)]
-pub enum ServeWithGracefulShutdownEr {
-    Serve(StdServeIoEr),
+pub enum ServeWithGracefulShutdownError {
+    Serve(StdServeIoError),
     ShutdownTimeout,
 }
-impl std::fmt::Display for ServeWithGracefulShutdownEr {
+impl std::fmt::Display for ServeWithGracefulShutdownError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Serve(error) => write!(f, "server failed: {error}"),
@@ -384,7 +385,7 @@ impl std::fmt::Display for ServeWithGracefulShutdownEr {
         }
     }
 }
-impl std::error::Error for ServeWithGracefulShutdownEr {
+impl std::error::Error for ServeWithGracefulShutdownError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Serve(error) => Some(error),
@@ -406,7 +407,7 @@ pub async fn serve_with_graceful_shutdown<Shutdown>(
     router: AxumRouter,
     shutdown: Shutdown,
     shutdown_timeout: StdRequestTimeout,
-) -> Result<(), ServeWithGracefulShutdownEr>
+) -> Result<(), ServeWithGracefulShutdownError>
 where
     Shutdown: Future<Output = ()> + Send + 'static,
 {
@@ -425,13 +426,13 @@ where
     );
     tokio::pin!(server);
     tokio::select! {
-        result = &mut server => result.map_err(|error| ServeWithGracefulShutdownEr::Serve(StdServeIoEr(error))),
+        result = &mut server => result.map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error))),
         shutdown_result = shutdown_started_rx => {
             drop(shutdown_result);
             tokio::time::timeout(shutdown_timeout.get(), &mut server)
                 .await
-                .map_err(|_elapsed| ServeWithGracefulShutdownEr::ShutdownTimeout)?
-                .map_err(|error| ServeWithGracefulShutdownEr::Serve(StdServeIoEr(error)))
+                .map_err(|_elapsed| ServeWithGracefulShutdownError::ShutdownTimeout)?
+                .map_err(|error| ServeWithGracefulShutdownError::Serve(StdServeIoError(error)))
         }
     }
 }
@@ -450,7 +451,7 @@ mod tests {
             budget
                 .reserve(super::ResourceBudgetAmount::from(3usize))
                 .expect_err("3c31187b"),
-            super::ResourceBudgetReserveEr::Exhausted
+            super::ResourceBudgetReserveError::Exhausted
         );
         assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(3usize));
         let second = budget
@@ -474,7 +475,7 @@ mod tests {
             budget
                 .reserve(super::ResourceBudgetAmount::from(usize::MAX))
                 .expect_err("e317c775"),
-            super::ResourceBudgetReserveEr::Overflow
+            super::ResourceBudgetReserveError::Overflow
         );
         assert_eq!(budget.reserved(), super::ResourceBudgetAmount::from(1usize));
         drop(reservation);
@@ -571,7 +572,7 @@ mod tests {
             .expect("7a86a253");
         assert!(matches!(
             task.join().await,
-            Err(super::BackgroundTaskShutdownEr::Join(_))
+            Err(super::BackgroundTaskShutdownError::Join(_))
         ));
     }
     #[tokio::test(start_paused = true)]
@@ -590,7 +591,7 @@ mod tests {
         tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
         assert!(matches!(
             shutdown.await.expect("9e76a810"),
-            Err(super::BackgroundTaskShutdownEr::Timeout)
+            Err(super::BackgroundTaskShutdownError::Timeout)
         ));
     }
     #[tokio::test]
@@ -612,7 +613,7 @@ mod tests {
         .await;
         assert!(matches!(
             timeout,
-            Err(super::AcquirePermitEr::Timeout(value)) if value == retry_after
+            Err(super::AcquirePermitError::Timeout(value)) if value == retry_after
         ));
         drop(timeout);
         drop(permit);
@@ -623,7 +624,7 @@ mod tests {
             retry_after,
         )
         .await;
-        assert!(matches!(closed, Err(super::AcquirePermitEr::Closed(_))));
+        assert!(matches!(closed, Err(super::AcquirePermitError::Closed(_))));
         drop(closed);
         assert_eq!(
             http::HeaderValue::try_from(retry_after).expect("cb2a239c"),
@@ -738,12 +739,12 @@ mod tests {
         };
         assert_eq!(
             history_error,
-            super::StdAsyncRunHistoryMaximumLenTryFromUsizeEr
+            super::StdAsyncRunHistoryMaximumLenTryFromUsizeError
         );
         let Err(timeout_error) = super::StdRequestTimeout::try_from(std::time::Duration::ZERO)
         else {
             panic!("bca83cb0");
         };
-        assert_eq!(timeout_error, super::StdRequestTimeoutTryFromDurationEr);
+        assert_eq!(timeout_error, super::StdRequestTimeoutTryFromDurationError);
     }
 }

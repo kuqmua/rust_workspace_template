@@ -25,11 +25,11 @@ exceptions = []
 ignore = true
 registries = []
 [[licenses.clarify]]
-crate = "gen_pg_tbl_test_cnt"
+crate = "generate_pg_table_test_cnt"
 expression = "MIT"
 license-files = []
 [[licenses.clarify]]
-crate = "gen_pg_types_test_cnt"
+crate = "generate_pg_types_test_cnt"
 expression = "MIT"
 license-files = []
 [bans]

@@ -1,0 +1,267 @@
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, Clone, Copy, optml::Optml)]
+pub enum LocationFieldAttr {
+    EoToErrString,
+    EoToErrStringSerde,
+    EoLocation,
+    EoVecToErrString,
+    EoVecToErrStringSerde,
+    EoVecLocation,
+    EoHashMapKStringVToErrString,
+    EoHashMapKStringVToErrStringSerde,
+    EoHashMapKStringVLocation,
+}
+impl std::str::FromStr for LocationFieldAttr {
+    type Err = ();
+    fn from_str(v: &str) -> Result<Self, Self::Err> {
+        if v == "eo_to_err_string" {
+            Ok(Self::EoToErrString)
+        } else if v == "eo_to_err_string_serde" {
+            Ok(Self::EoToErrStringSerde)
+        } else if v == "eo_location" {
+            Ok(Self::EoLocation)
+        } else if v == "eo_vec_to_err_string" {
+            Ok(Self::EoVecToErrString)
+        } else if v == "eo_vec_to_err_string_serde" {
+            Ok(Self::EoVecToErrStringSerde)
+        } else if v == "eo_vec_location" {
+            Ok(Self::EoVecLocation)
+        } else if v == "eo_hashmap_k_string_v_to_err_string" {
+            Ok(Self::EoHashMapKStringVToErrString)
+        } else if v == "eo_hashmap_k_string_v_to_err_string_serde" {
+            Ok(Self::EoHashMapKStringVToErrStringSerde)
+        } else if v == "eo_hashmap_k_string_v_location" {
+            Ok(Self::EoHashMapKStringVLocation)
+        } else {
+            Err(())
+        }
+    }
+}
+impl TryFrom<&syn::Field> for LocationFieldAttr {
+    type Error = String;
+    fn try_from(syn_field: &syn::Field) -> Result<Self, Self::Error> {
+        let mut supported_attrs = syn_field.attrs.iter().filter_map(|element| {
+            if element.path().segments.len() != 1 {
+                return None;
+            }
+            let first_segment_identifier = &element.path().segments.first()?.ident;
+            std::str::FromStr::from_str(&first_segment_identifier.to_string()).ok()
+        });
+        let optional_attr = supported_attrs.next();
+        if supported_attrs.next().is_some() {
+            return Err("two or more supported attrs!".to_owned());
+        }
+        optional_attr.map_or_else(|| Err("opt attr is None".to_owned()), Ok)
+    }
+}
+impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
+    fn attr_identifier_str(&self) -> crate::attr_identifier_str::AttrIdentifierName<'_> {
+        crate::attr_identifier_str::AttrIdentifierName::from(match *self {
+            Self::EoToErrString => "eo_to_err_string",
+            Self::EoToErrStringSerde => "eo_to_err_string_serde",
+            Self::EoLocation => "eo_location",
+            Self::EoVecToErrString => "eo_vec_to_err_string",
+            Self::EoVecToErrStringSerde => "eo_vec_to_err_string_serde",
+            Self::EoVecLocation => "eo_vec_location",
+            Self::EoHashMapKStringVToErrString => "eo_hashmap_k_string_v_to_err_string",
+            Self::EoHashMapKStringVToErrStringSerde => "eo_hashmap_k_string_v_to_err_string_serde",
+            Self::EoHashMapKStringVLocation => "eo_hashmap_k_string_v_location",
+        })
+    }
+}
+impl LocationFieldAttr {
+    #[must_use]
+    pub fn to_attr_view_token_stream(
+        &self,
+    ) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+        match format!(
+            "#[{}]",
+            crate::attr_identifier_str::AttrIdentifierStr::attr_identifier_str(self).as_ref()
+        )
+        .parse::<proc_macro2::TokenStream>()
+        {
+            Ok(v) => crate::generated_rust_token_stream::GeneratedRustTokenStream::from(v),
+            Err(error) => compile_error_token_stream(CompileErrorMessage(&error.to_string())),
+        }
+    }
+}
+#[derive(Debug, Clone, Copy)]
+struct CompileErrorMessage<'message_lt>(&'message_lt str);
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(from_inner)]
+pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
+fn compile_error_token_stream(
+    message: CompileErrorMessage<'_>,
+) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+    let message_value = message.0;
+    crate::generated_rust_token_stream::GeneratedRustTokenStream::from(
+        quote::quote! {compile_error!(#message_value);},
+    )
+}
+#[must_use]
+pub fn generate_serde_version_of_named_syn_variant(
+    v: SynVariantRef<'_>,
+) -> crate::generated_rust_token_stream::GeneratedRustTokenStream {
+    let variant = v.0;
+    let hash_map_upper_camel_case = naming::HashMapUpperCamelCase;
+    let location_snake_case = naming::LocationSnakeCase;
+    let string_token_stream = token_patterns::StringTokenStream;
+    let with_serde_upper_camel_case = naming::WithSerdeUpperCamelCase;
+    let element_identifier = &variant.ident;
+    let fields = if let syn::Fields::Named(fields) = &variant.fields {
+        &fields.named
+    } else {
+        return compile_error_token_stream(CompileErrorMessage(
+            "79b0f231: expected named variant fields",
+        ));
+    };
+    let fields_with_serde_token_stream = fields.iter().map(|element| {
+        let Some(element_c25b655e_identifier) = element.ident.as_ref() else {
+            return compile_error_token_stream(CompileErrorMessage("438aa90e: expected named field identifier"));
+        };
+        let ts = if *element_c25b655e_identifier == *location_snake_case.to_string() {
+            quote::quote! {#location_snake_case: location_lib::location::Location}
+        } else {
+            let get_hashmap_args = || {
+                let segments = if let syn::Type::Path(syn_type_path) = &element.ty {
+                    &syn_type_path.path.segments
+                } else {
+                    return None;
+                };
+                let last_segment = segments.iter().next_back()?;
+                assert!(last_segment.ident == hash_map_upper_camel_case.to_string(), "5e1bc6b1");
+                let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+                    args,
+                    ..
+                }) = &last_segment.arguments
+                else {
+                    return None;
+                };
+                assert!(args.len() == 2, "47cde1b8");
+                Some((args.iter().next()?, args.iter().nth(1)?))
+            };
+            let element_type_token_stream = {
+                let element_type = &element.ty;
+                quote::quote! {#element_type}
+            };
+            let location_field_attr = match LocationFieldAttr::try_from(element) {
+                Ok(parsed_attr) => parsed_attr,
+                Err(error) => return compile_error_token_stream(CompileErrorMessage(&format!("2db209a8: {error}"))),
+            };
+            let element_type_with_serde_token_stream = match location_field_attr {
+                LocationFieldAttr::EoToErrString => quote::quote! {#string_token_stream},
+                LocationFieldAttr::EoToErrStringSerde | LocationFieldAttr::EoVecToErrStringSerde => {
+                    element_type_token_stream
+                }
+                LocationFieldAttr::EoLocation => match format!("{element_type_token_stream}{with_serde_upper_camel_case}")
+                    .parse::<proc_macro2::TokenStream>()
+                {
+                    Ok(parsed_token_stream) => parsed_token_stream,
+                    Err(error) => {
+                        return compile_error_token_stream(CompileErrorMessage(&format!("201dc0a4: {error}")));
+                    }
+                },
+                LocationFieldAttr::EoVecToErrString => {
+                    quote::quote! {
+                        Vec<#string_token_stream>
+                    }
+                }
+                LocationFieldAttr::EoVecLocation => {
+                    let segments = if let syn::Type::Path(v0) = &element.ty {
+                        &v0.path.segments
+                    } else {
+                        return compile_error_token_stream(CompileErrorMessage("8d93bf20: expected path type"));
+                    };
+                    assert!(segments.len() == 1, "0c65bbaa");
+                    let Some(first_segment) = segments.iter().next() else {
+                        return compile_error_token_stream(CompileErrorMessage(
+                            "595050cf: expected first path segment",
+                        ));
+                    };
+                    let element_vec_type_with_serde_token_stream = if let syn::PathArguments::AngleBracketed(
+                        syn::AngleBracketedGenericArguments { args, .. },
+                    ) = &first_segment.arguments
+                    {
+                        assert!(args.len() == 1, "572a9da8");
+                        match format!(
+                            "{}{}",
+                            {
+                                let Some(first_arg) = args.iter().next() else {
+                                    return compile_error_token_stream(CompileErrorMessage(
+                                        "e9b33787: expected first generic arg",
+                                    ));
+                                };
+                                quote::quote! {#first_arg}
+                            },
+                            with_serde_upper_camel_case,
+                        )
+                        .parse::<proc_macro2::TokenStream>()
+                        {
+                            Ok(parsed_token_stream) => parsed_token_stream,
+                            Err(error) => {
+                                return compile_error_token_stream(CompileErrorMessage(&format!(
+                                    "22c364b9: {error}"
+                                )));
+                            }
+                        }
+                    } else {
+                        return compile_error_token_stream(CompileErrorMessage(
+                            "07c6ab44: expected angle bracketed args",
+                        ));
+                    };
+                    quote::quote! {
+                        Vec<#element_vec_type_with_serde_token_stream>
+                    }
+                }
+                LocationFieldAttr::EoHashMapKStringVToErrString => {
+                    if get_hashmap_args().is_none() {
+                        return compile_error_token_stream(CompileErrorMessage(
+                            "c1d03b71: expected HashMap<K, T>",
+                        ));
+                    }
+                    quote::quote! {
+                        std::collections::HashMap<#string_token_stream, #string_token_stream>
+                    }
+                }
+                LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
+                    let Some((_, second_argument)) = get_hashmap_args() else {
+                        return compile_error_token_stream(CompileErrorMessage(
+                            "e9c6a7d2: expected HashMap<K, T>",
+                        ));
+                    };
+                    quote::quote! {
+                        std::collections::HashMap<#string_token_stream, #second_argument>
+                    }
+                }
+                LocationFieldAttr::EoHashMapKStringVLocation => {
+                    let Some((_, second_argument)) = get_hashmap_args() else {
+                        return compile_error_token_stream(CompileErrorMessage(
+                            "c828da34: expected HashMap<K, T>",
+                        ));
+                    };
+                    let element_hashmap_v_type_with_serde_token_stream =
+                        match format!("{}{}", quote::quote! {#second_argument}, with_serde_upper_camel_case)
+                            .parse::<proc_macro2::TokenStream>()
+                        {
+                            Ok(parsed_token_stream) => parsed_token_stream,
+                            Err(error) => {
+                                return compile_error_token_stream(CompileErrorMessage(&format!(
+                                    "86307dbc: {error}"
+                                )));
+                            }
+                        };
+                    quote::quote! {
+                        std::collections::HashMap<#string_token_stream, #element_hashmap_v_type_with_serde_token_stream>
+                    }
+                }
+            };
+            quote::quote! {#element_c25b655e_identifier: #element_type_with_serde_token_stream}
+        };
+        crate::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {#ts,})
+    });
+    crate::generated_rust_token_stream::GeneratedRustTokenStream::from(quote::quote! {
+        #element_identifier {
+            #(#fields_with_serde_token_stream)*
+        }
+    })
+}

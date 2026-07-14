@@ -34,10 +34,10 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
 #[newtype(as_ref_str)]
 pub struct GitCommitId(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GitInfoStringTryFromStringEr {
+pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
 }
-impl std::fmt::Display for GitInfoStringTryFromStringEr {
+impl std::fmt::Display for GitInfoStringTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::TooLong { len, max } => {
@@ -51,13 +51,13 @@ impl From<GitCommitIdRef<'_>> for GitCommitId {
         Self::try_from(value.0.to_owned()).unwrap_or_else(Self::from)
     }
 }
-impl From<GitInfoStringTryFromStringEr> for GitCommitId {
-    fn from(value: GitInfoStringTryFromStringEr) -> Self {
+impl From<GitInfoStringTryFromStringError> for GitCommitId {
+    fn from(value: GitInfoStringTryFromStringError) -> Self {
         Self(value.to_string())
     }
 }
 impl TryFrom<String> for GitCommitId {
-    type Error = GitInfoStringTryFromStringEr;
+    type Error = GitInfoStringTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > GIT_INFO_STRING_MAX_LEN {
             return Err(Self::Error::TooLong {
@@ -81,13 +81,13 @@ impl From<StdGitCommitLinkCow> for GitCommitLink {
         Self::try_from(value.0.into_owned()).unwrap_or_else(Self::from)
     }
 }
-impl From<GitInfoStringTryFromStringEr> for GitCommitLink {
-    fn from(value: GitInfoStringTryFromStringEr) -> Self {
+impl From<GitInfoStringTryFromStringError> for GitCommitLink {
+    fn from(value: GitInfoStringTryFromStringError) -> Self {
         Self(value.to_string())
     }
 }
 impl TryFrom<String> for GitCommitLink {
-    type Error = GitInfoStringTryFromStringEr;
+    type Error = GitInfoStringTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > GIT_INFO_STRING_MAX_LEN {
             return Err(Self::Error::TooLong {
@@ -134,7 +134,7 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
 struct GitCommitLinkOutputRefMut<'output_lt>(pub &'output_lt mut String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
 #[newtype(as_ref_owned, into_inner_from)]
-pub struct ValidateProjectCommitEr(ProjectGitCommitLinkRef);
+pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
 #[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
 pub struct ProjectGitInfo<'commit_lt> {
     pub commit: GitCommitIdRef<'commit_lt>,
@@ -218,14 +218,14 @@ where
 }
 pub fn validate_project_commit<'commit_lt, CommitIdTy>(
     commit_id: CommitIdTy,
-) -> Result<(), ValidateProjectCommitEr>
+) -> Result<(), ValidateProjectCommitError>
 where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     if is_project_commit(commit_id).0 {
         return Ok(());
     }
-    Err(ValidateProjectCommitEr(project_git_commit_link_ref()))
+    Err(ValidateProjectCommitError(project_git_commit_link_ref()))
 }
 #[must_use]
 pub fn project_git_commit_link() -> GitCommitLink {
@@ -437,16 +437,16 @@ mod tests {
     fn validate_project_commit_returns_project_link_for_non_project_commit() {
         assert_eq!(
             super::validate_project_commit("deadbeef"),
-            Err(super::ValidateProjectCommitEr(
+            Err(super::ValidateProjectCommitError(
                 super::project_git_commit_link_ref()
             ))
         );
     }
     #[test]
     fn validate_project_commit_reuses_static_project_link_ref() {
-        let er = super::validate_project_commit("deadbeef").expect_err("46bc13a9");
+        let error = super::validate_project_commit("deadbeef").expect_err("46bc13a9");
         let project_link = super::project_git_commit_link_ref();
-        assert!(std::ptr::eq(er.0.0, project_link.0));
+        assert!(std::ptr::eq(error.0.0, project_link.0));
     }
     #[test]
     fn project_git_commit_link_matches_project_commit() {

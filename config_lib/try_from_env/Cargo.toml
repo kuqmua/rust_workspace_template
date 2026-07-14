@@ -17,9 +17,9 @@ proc-macro = true
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }
-panic_loc = { workspace = true }
+panic_location = { workspace = true }
 naming = { workspace = true }
-naming_cmn = { workspace = true }
+naming_common = { workspace = true }
 macros_helpers = { workspace = true }
 [lints]
 workspace = true
