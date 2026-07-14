@@ -26,6 +26,7 @@ http.createServer((request, response) => {
       'Cache-Control': relative === 'index.html'
         ? 'no-cache, no-store, must-revalidate'
         : 'public, max-age=31536000, immutable',
+      ...(relative === 'index.html' ? { 'Clear-Site-Data': '"cache"' } : {}),
     });
     response.end(body);
   });

@@ -1,18 +1,26 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct StdAuthRefreshInstant(std::time::Instant);
+pub(crate) struct StdAuthRefreshInstant(u64);
 impl StdAuthRefreshInstant {
     #[cfg(test)]
-    pub(crate) fn after(self, delay: StdAuthRefreshRetryDelay) -> Self {
-        Self(self.0.checked_add(delay.0).unwrap_or(self.0))
+    pub(crate) const fn after(self, delay: StdAuthRefreshRetryDelay) -> Self {
+        Self(self.0.saturating_add(delay.0))
     }
+    #[cfg(target_arch = "wasm32")]
     pub(crate) fn now() -> Self {
-        Self(std::time::Instant::now())
+        let milliseconds = web_sys::window()
+            .and_then(|window| window.performance())
+            .map_or(0f64, |performance| performance.now());
+        Self((milliseconds * 1_000f64) as u64)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) const fn now() -> Self {
+        Self(0u64)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct StdAuthRefreshRetryDelay(std::time::Duration);
+pub(crate) struct StdAuthRefreshRetryDelay(u64);
 impl StdAuthRefreshRetryDelay {
-    pub(crate) const DEFAULT: Self = Self(std::time::Duration::from_secs(5u64));
+    pub(crate) const DEFAULT: Self = Self(5_000_000u64);
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum AuthRefreshBegin {
@@ -48,7 +56,7 @@ impl Default for AuthRefreshState {
     }
 }
 impl AuthRefreshState {
-    pub(crate) fn begin(&mut self, now: StdAuthRefreshInstant) -> AuthRefreshBegin {
+    pub(crate) const fn begin(&mut self, now: StdAuthRefreshInstant) -> AuthRefreshBegin {
         match self.phase {
             AuthRefreshPhase::Idle => {
                 self.phase = AuthRefreshPhase::Refreshing;
@@ -63,12 +71,12 @@ impl AuthRefreshState {
             AuthRefreshPhase::RetryAt(_) => AuthRefreshBegin::Wait,
         }
     }
-    pub(crate) fn finish(&mut self, outcome: AuthRefreshOutcome, now: StdAuthRefreshInstant) {
+    pub(crate) const fn finish(&mut self, outcome: AuthRefreshOutcome, now: StdAuthRefreshInstant) {
         self.phase = match outcome {
             AuthRefreshOutcome::Refreshed => AuthRefreshPhase::Idle,
             AuthRefreshOutcome::Rejected => AuthRefreshPhase::Rejected,
             AuthRefreshOutcome::TemporaryFailure => AuthRefreshPhase::RetryAt(
-                StdAuthRefreshInstant(now.0.checked_add(self.retry_delay.0).unwrap_or(now.0)),
+                StdAuthRefreshInstant(now.0.saturating_add(self.retry_delay.0)),
             ),
         };
     }

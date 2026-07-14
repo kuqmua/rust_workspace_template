@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
         display_name: 'Root Admin',
         id: 1,
         login: 'root',
-        permissions: ['users:read', 'openapi:read'],
+        permissions: ['users:read', 'permissions:read', 'audit_log:read', 'openapi:read'],
         roles: ['administrator'],
       }),
     });
@@ -28,6 +28,12 @@ test.beforeEach(async ({ page }) => {
       contentType: 'application/json',
       body: JSON.stringify({ openapi: '3.1.0', paths: { '/users': { get: {} } } }),
     });
+  });
+  await page.route('**/api/v1/admin/permissions', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  });
+  await page.route('**/api/v1/admin/audit-log', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: '[]' });
   });
 });
 
@@ -50,6 +56,57 @@ test('sign-in renders without starting authenticated resources', async ({ page }
   await page.waitForTimeout(100);
   expect(authenticatedRequests).toEqual([]);
   expect(pageErrors).toEqual([]);
+});
+
+test('expired access session is refreshed without returning to sign-in', async ({ page }) => {
+  await page.unroute('**/api/v1/admin/auth/me');
+  let meRequests = 0;
+  let refreshRequests = 0;
+  await page.route('**/api/v1/admin/auth/me', async (route) => {
+    meRequests += 1;
+    if (meRequests === 1) {
+      await route.fulfill({ status: 401, contentType: 'application/problem+json', body: '{}' });
+      return;
+    }
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        display_name: 'Root Admin',
+        id: 1,
+        login: 'root',
+        permissions: ['users:read'],
+        roles: ['administrator'],
+      }),
+    });
+  });
+  await page.route('**/api/v1/admin/auth/refresh', async (route) => {
+    refreshRequests += 1;
+    await route.fulfill({ contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/admin/users');
+  await expect.poll(() => refreshRequests).toBe(1);
+  await expect.poll(() => meRequests).toBe(2);
+  await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
+  expect(page.url()).toContain('/admin/users');
+  expect(meRequests).toBe(2);
+  expect(refreshRequests).toBe(1);
+});
+
+test('temporary session check failure does not discard authentication', async ({ page }) => {
+  await page.unroute('**/api/v1/admin/auth/me');
+  await page.route('**/api/v1/admin/auth/me', async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/problem+json',
+      body: JSON.stringify({ detail: 'temporary failure' }),
+    });
+  });
+
+  await page.goto('/admin/users');
+  await expect(page.getByText('Unable to verify session')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
+  expect(page.url()).toContain('/admin/users');
 });
 
 test('OpenAPI page is rendered by the Leptos SPA', async ({ page }) => {
@@ -90,4 +147,28 @@ test('header navigation and table discovery controls work in the SPA', async ({ 
   await page.getByLabel('Rows per page').selectOption('10');
   await expect(page.locator('tbody tr')).toHaveCount(10);
   await expect(page.getByText('1-10 of 25')).toBeVisible();
+});
+
+test('users permissions and audit keep one header layout and session', async ({ page }) => {
+  let meRequests = 0;
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/admin/auth/me')) meRequests += 1;
+  });
+
+  await page.goto('/admin/users');
+  await expect(page.locator('header.topbar')).toBeVisible();
+  await expect(page.locator('header.sidebar')).toHaveCount(0);
+
+  await page.getByRole('link', { name: 'Permissions' }).click();
+  await expect(page).toHaveURL('/admin/permissions');
+  await expect(page.getByRole('heading', { name: 'Permissions' })).toBeVisible();
+  await expect(page.locator('header.topbar')).toBeVisible();
+  await expect(page.locator('header.sidebar')).toHaveCount(0);
+
+  await page.getByRole('link', { name: 'Audit log' }).click();
+  await expect(page).toHaveURL('/admin/audit-log');
+  await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
+  await expect(page.locator('header.topbar')).toBeVisible();
+  await expect(page.locator('header.sidebar')).toHaveCount(0);
+  expect(meRequests).toBe(3);
 });

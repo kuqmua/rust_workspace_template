@@ -50,6 +50,10 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
         .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
             axum::http::header::CACHE_CONTROL,
             axum::http::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
+        ))
+        .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
+            axum::http::HeaderName::from_static("clear-site-data"),
+            axum::http::HeaderValue::from_static("\"cache\""),
         ));
     AxumAdminFrontendRouter(page_routes.nest_service(
         "/admin/assets",

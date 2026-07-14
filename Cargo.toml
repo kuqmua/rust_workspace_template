@@ -119,6 +119,7 @@ web-sys = { version = "=0.3.91", default-features = false, features = [
   "HtmlDocument",
   "HtmlInputElement",
   "Location",
+  "Performance",
   "RequestCredentials",
   "Window",
 ] }
