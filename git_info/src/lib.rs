@@ -1,6 +1,7 @@
 const BASE_GIT_COMMIT_LINK_LEN: usize =
     str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
+const GIT_COMMIT_HASH_LENGTH: usize = 40usize;
 pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
     commit: GitCommitIdRef(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID),
 };
@@ -27,6 +28,35 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::Newtype)]
 #[newtype(as_ref_str)]
 pub struct GitCommitId(String);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum GitCommitHashError {
+    #[error("Git commit hash must contain exactly 40 symbols")]
+    InvalidLength,
+    #[error("Git commit hash must contain lowercase ASCII hexadecimal symbols")]
+    InvalidSymbol,
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitCommitHash(String);
+impl AsRef<str> for GitCommitHash {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl TryFrom<String> for GitCommitHash {
+    type Error = GitCommitHashError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() != GIT_COMMIT_HASH_LENGTH {
+            Err(Self::Error::InvalidLength)
+        } else if value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+        {
+            Ok(Self(value))
+        } else {
+            Err(Self::Error::InvalidSymbol)
+        }
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
@@ -589,6 +619,18 @@ mod tests {
         assert_eq!(
             super::git_commit_link_capacity(""),
             str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len()
+        );
+    }
+    #[test]
+    fn git_commit_hash_requires_full_lowercase_hexadecimal_text() {
+        let value = super::GitCommitHash::try_from(str_constants::TEST_GIT_COMMIT_HASH.to_owned())
+            .expect("1a16925f");
+        assert_eq!(value.as_ref(), str_constants::TEST_GIT_COMMIT_HASH);
+        assert_eq!(
+            super::GitCommitHash::try_from(
+                str_constants::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
+            ),
+            Err(super::GitCommitHashError::InvalidSymbol)
         );
     }
 }

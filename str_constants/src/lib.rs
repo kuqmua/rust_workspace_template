@@ -3432,3 +3432,18 @@ pub const TEST_CONTENT_SECURITY_POLICY: &str =
     "default-src 'self'; object-src 'none'; frame-ancestors 'none'";
 pub const CONTENT_SECURITY_POLICY_HEADER: &str = "content-security-policy";
 pub const TEST_VALUE_30: &str = "30";
+pub const TEST_TEXT_WITH_NUL: &str = "value\0tail";
+pub const TEST_GIT_COMMIT_HASH: &str = "0123456789abcdef0123456789abcdef01234567";
+pub const TEST_UPPERCASE_GIT_COMMIT_HASH: &str = "0123456789ABCDEF0123456789abcdef01234567";
+pub const TEST_URL_TOKEN_WITH_SEPARATOR: &str = "token.value";
+pub const ASCII_UPPER_HEX_DIGITS: [u8; 16usize] = *b"0123456789ABCDEF";
+pub const CONTENT_DISPOSITION_ATTACHMENT_PREFIX: &str = "attachment; filename=\"";
+pub const CONTENT_DISPOSITION_UTF8_DELIMITER: &str = "\"; filename*=UTF-8''";
+pub const TEST_UNSAFE_UNICODE_ATTACHMENT_FILE_NAME: &str =
+    "\u{43e}\u{442}\u{447}\u{451}\u{442}/\u{43c}\u{430}\u{439}.txt";
+pub const TEST_SAFE_UNICODE_ATTACHMENT_CONTENT_DISPOSITION: &str = "attachment; filename=\"_________.txt\"; filename*=UTF-8''%D0%BE%D1%82%D1%87%D1%91%D1%82_%D0%BC%D0%B0%D0%B9.txt";
+pub const TEST_U64_MAXIMUM_TEXT: &str = "18446744073709551615";
+pub const TEST_TOKEN_VERSION: &str = "v1";
+pub const TEST_TOKEN_PAYLOAD: &str = "payload_1";
+pub const TEST_TOKEN_SIGNATURE: &str = "signature-1";
+pub const TEST_VERSIONED_URL_SAFE_WIRE_TOKEN: &str = "v1.payload_1.signature-1";

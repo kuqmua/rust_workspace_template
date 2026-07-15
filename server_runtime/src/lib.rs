@@ -4,6 +4,7 @@ mod cors;
 mod fallback;
 mod health;
 mod history;
+mod http_header_policy;
 mod http_policy;
 mod lifecycle;
 mod limits;
@@ -16,6 +17,8 @@ mod path_policy;
 mod request_id;
 mod resource_budget;
 mod retry;
+mod text_policy;
+mod wire_token;
 pub use bounded_read::{
     BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
     ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
@@ -37,6 +40,10 @@ pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
     StdAsyncRunHistoryMaximumLenTryFromUsizeError, StdAsyncRunHistoryReportCount,
+};
+pub use http_header_policy::{
+    HttpAttachmentFileNameRef, HttpContentDisposition, HttpContentDispositionError,
+    HttpContentLength, HttpContentLengthError, build_attachment_content_disposition,
 };
 pub use http_policy::{
     BearerAuthorizationResolution, CookieResolution, HttpAuthorizationHeaderTextRef,
@@ -95,6 +102,12 @@ pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,
     run_with_retries,
 };
+pub use text_policy::{
+    BoundedTextPolicyError, FixedLengthAsciiHexText, FixedLengthAsciiHexTextError,
+    NonEmptyTrimmedText, RequiredNulFreeBoundedText, UrlSafeTokenPartText,
+    UrlSafeTokenPartTextError,
+};
+pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
 #[derive(Debug)]
 pub struct AxumRouter(axum::Router);
 impl From<axum::Router> for AxumRouter {
