@@ -830,7 +830,7 @@ mod tests {
         .with_minimum(super::NumericBound::Inclusive(super::ContractI64::from(1)))
         .with_step(super::InputStep::Integer);
         let field = super::FieldContract::new(
-            super::ContractStr::from(str_constants::sql_names::ID),
+            super::ContractStr::from(str_constants::SQL_NAMES_ID),
             super::ContractStr::from(str_constants::ID),
             type_contract,
         )
@@ -844,7 +844,7 @@ mod tests {
     fn route_contract_keeps_transport_policy_together() {
         let route = super::RouteContract::new(
             super::AuthenticationRequirement::Permission(super::ContractStr::from(
-                str_constants::admin_permission_values::USERS_UPDATE,
+                str_constants::ADMIN_PERMISSION_VALUES_USERS_UPDATE,
             )),
             super::HttpMethod::Patch,
             super::MutationKind::Mutating,

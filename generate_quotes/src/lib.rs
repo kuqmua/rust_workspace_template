@@ -54,7 +54,7 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal(
-        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar('\''),
         v,
     )
@@ -65,7 +65,7 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar('\''),
         v,
         QuotePanicId(str_constants::EC1E77D5),
@@ -77,7 +77,7 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal(
-        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar('\"'),
         v,
     )
@@ -88,7 +88,7 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         QuoteChar('\"'),
         v,
         QuotePanicId(str_constants::VALUE_0391AC99),
@@ -197,19 +197,19 @@ mod tests {
     #[test]
     fn quote_helpers_handle_empty_input() {
         assert_quote_str(
-            &super::single_quotes_str(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::single_quotes_str(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::TEXT_ALT_4,
         );
         assert_quote_str(
-            &super::dq_str(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::dq_str(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::TEXT_ALT_12,
         );
         assert_quote_str(
-            &super::binary_single_quotes_str(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::binary_single_quotes_str(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::B_ALT,
         );
         assert_quote_str(
-            &super::binary_double_quoted_str(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::binary_double_quoted_str(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::B_ALT_3,
         );
         assert!(
@@ -218,7 +218,7 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::dq_token_stream(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::dq_token_stream(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::TEXT_ALT_12,
         );
         assert!(
@@ -227,7 +227,7 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            &super::binary_double_quoted_token_stream(&str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             str_constants::B_ALT_3,
         );
     }

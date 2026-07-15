@@ -32,7 +32,7 @@ impl frontend_contract::Transport for GlooTransport {
                 .credentials(web_sys::RequestCredentials::Include)
                 .header(str_constants::CONTENT_TYPE, str_constants::APPLICATION_JSON)
                 .header(
-                    str_constants::route_validators::COMMIT_HEADER_NAME,
+                    str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
                     git_info::PROJECT_GIT_INFO.commit.as_ref(),
                 );
             if let Some(idempotency_key) = request.idempotency_key() {

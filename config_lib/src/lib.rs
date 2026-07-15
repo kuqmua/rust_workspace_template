@@ -589,7 +589,7 @@ fn try_map_non_empty_env_value<T, Error>(
     map_ok: impl FnOnce(String) -> T,
 ) -> Result<T, Error> {
     if v.0.is_empty() {
-        return Err(mk_error(str_constants::config::ENV_VALUE_IS_EMPTY_MSG));
+        return Err(mk_error(str_constants::CONFIG_ENV_VALUE_IS_EMPTY_MSG));
     }
     Ok(map_ok(v.0))
 }
@@ -609,7 +609,7 @@ fn parse_east_fixed_offset(
     chrono::FixedOffset::east_opt(v.0)
         .map(ChronoEastFixedOffset)
         .ok_or(ChronoFixedOffsetError(
-            str_constants::config::TIMEZONE_NOT_EAST_MSG,
+            str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG,
         ))
 }
 #[cfg(test)]
@@ -861,7 +861,7 @@ mod tests {
         assert_eq!(
             parsed,
             Err(super::ChronoFixedOffsetError(
-                str_constants::config::TIMEZONE_NOT_EAST_MSG,
+                str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG,
             ))
         );
     }

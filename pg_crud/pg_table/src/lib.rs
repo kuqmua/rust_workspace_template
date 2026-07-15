@@ -368,7 +368,7 @@ pub async fn complete_pg_table_idempotency(
         Ok(value) => value,
         Err(_error) => return release_pg_table_idempotency(pool, request).await,
     };
-    let _query_result = sqlx::query(str_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
+    let _query_result = sqlx::query(str_constants::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -397,7 +397,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
             str_constants::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
         ))
     })?;
-    let result = sqlx::query(str_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(str_constants::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -935,7 +935,7 @@ mod tests {
     ) {
         (
             table(str_constants::USERS_ALT),
-            sql(str_constants::sql_names::ID),
+            sql(str_constants::SQL_NAMES_ID),
         )
     }
     fn assert_q(actual: &str, expected: &'static str) {
@@ -948,7 +948,7 @@ mod tests {
                 table(str_constants::USERS_ALT),
                 sql(str_constants::ID_NAME),
                 sql(str_constants::DOLLAR_1_DOLLAR_2_DOLLAR_3_DOLLAR_4),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
             ),
             str_constants::INSERT_INTO_USERS_ID_NAME_VALUES_DOLLAR_1_DOLLAR_2_DOLLAR_3,
         );
@@ -960,7 +960,7 @@ mod tests {
                 table(str_constants::USERS_ALT),
                 sql(str_constants::ID_NAME),
                 sql(str_constants::DOLLAR_1_DOLLAR_2),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
             ),
             str_constants::INSERT_INTO_USERS_ID_NAME_VALUES_DOLLAR_1_DOLLAR_2_RETURNING_ID,
         );
@@ -1001,7 +1001,7 @@ mod tests {
     fn generate_when_column_id_then_v_um_query_part_is_expected() {
         assert_q(
             &super::generate_when_column_id_then_v_um_query_part(
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_1_ALT),
                 sql(str_constants::DOLLAR_2),
             ),
@@ -1024,7 +1024,7 @@ mod tests {
             &super::generate_um_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::NAME_CASE_END),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_1_DOLLAR_2),
                 sql(str_constants::ID_NAME),
             ),
@@ -1037,7 +1037,7 @@ mod tests {
             &super::generate_uo_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::NAME_DOLLAR_2),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_1_ALT),
                 sql(str_constants::ID_NAME),
             ),
@@ -1050,7 +1050,7 @@ mod tests {
             super::generate_uo_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::NAME_DOLLAR_1_REVISION_REVISION_PLUS_1),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_2),
                 sql(str_constants::ID_REVISION),
             ),
@@ -1085,7 +1085,7 @@ mod tests {
             &super::generate_dm_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::WHERE_ID_IN_DOLLAR_1_DOLLAR_2),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
             ),
             str_constants::DELETE_FROM_USERS_WHERE_ID_IN_DOLLAR_1_DOLLAR_2_RETURNING_ID,
         );
@@ -1103,7 +1103,7 @@ mod tests {
         let v = super::generate_um_query_string(
             table(str_constants::USERS_ALT),
             sql(str_constants::NAME_CASE_END),
-            sql(str_constants::sql_names::ID),
+            sql(str_constants::SQL_NAMES_ID),
             sql(str_constants::DOLLAR_1_DOLLAR_2),
             sql(str_constants::ID_NAME),
         );
@@ -1129,7 +1129,7 @@ mod tests {
             &super::generate_update_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::NAME_DOLLAR_2),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_1_ALT),
                 sql(str_constants::ID_NAME),
                 super::UpdateSelectorFmt::Eq,
@@ -1143,7 +1143,7 @@ mod tests {
             &super::generate_update_query_string(
                 table(str_constants::USERS_ALT),
                 sql(str_constants::NAME_CASE_END),
-                sql(str_constants::sql_names::ID),
+                sql(str_constants::SQL_NAMES_ID),
                 sql(str_constants::DOLLAR_1_DOLLAR_2),
                 sql(str_constants::ID_NAME),
                 super::UpdateSelectorFmt::InList,

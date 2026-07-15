@@ -112,7 +112,7 @@ mod tests {
             let _identifier = super::SqlIdentifier::try_from(value.to_owned()).expect("326a4da9");
         });
         [
-            str_constants::pg_crud::EMPTY_SQL_SUFFIX,
+            str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             str_constants::VALUE_2TABLE,
             str_constants::TABLE_NAME,
             str_constants::NON_ASCII_U_E9,
@@ -132,7 +132,7 @@ mod tests {
                 identifier(str_constants::USERS_ALT),
             ),
             vec![
-                identifier(str_constants::sql_names::ID),
+                identifier(str_constants::SQL_NAMES_ID),
                 identifier(str_constants::LOGIN),
             ],
         )

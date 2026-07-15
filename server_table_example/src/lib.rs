@@ -281,11 +281,11 @@ mod tests {
             (str_constants::UO, str_constants::PATCH_ALT),
             (
                 str_constants::DM,
-                str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+                str_constants::PG_CRUD_DELETE_PERMISSION_ACTION,
             ),
             (
                 str_constants::DLO,
-                str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+                str_constants::PG_CRUD_DELETE_PERMISSION_ACTION,
             ),
         ]
         .into_iter()
@@ -293,7 +293,7 @@ mod tests {
             let operation_doc = doc
                 .pointer(&format!(
                     "{}{operation}/{method}",
-                    str_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
+                    str_constants::TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
                 ))
                 .expect("8ba5f1e7");
             assert_eq!(operation_doc["operationId"], operation);
@@ -349,7 +349,7 @@ mod tests {
         assert!(
             doc.pointer(&format!(
                 "{}um",
-                str_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
+                str_constants::TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
             ))
             .is_none()
         );

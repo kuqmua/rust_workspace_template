@@ -83,7 +83,7 @@ pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
 #[cfg(test)]
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
-        axum::http::HeaderName::from_static(str_constants::route_validators::TEST_HEADER_NAME);
+        axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_TEST_HEADER_NAME);
     #[derive(Debug, PartialEq, Eq)]
     enum TestError {
         NoHeader,
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn get_required_header_str_accepts_str_header_name() {
         let headers = mk_test_headers_static(str_constants::ABC_ALT_3);
-        let actual = get_header(&headers, str_constants::route_validators::TEST_HEADER_NAME);
+        let actual = get_header(&headers, str_constants::ROUTE_VALIDATORS_TEST_HEADER_NAME);
         assert_eq!(actual.map(|v| v.0), Ok("abc"));
     }
     #[test]

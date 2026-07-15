@@ -598,7 +598,7 @@ fn string_constants_are_declared_only_in_str_constants() {
 }
 #[test]
 fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
-    let ast = syn::parse_file(str_constants::code_style::STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
+    let ast = syn::parse_file(str_constants::CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE)
         .expect("87c9a142");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -610,7 +610,7 @@ fn string_constant_visitor_allows_only_reviewed_syntax_boundaries() {
 }
 #[test]
 fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
-    let ast = syn::parse_file(str_constants::code_style::STRING_GUARD_DETECTION_FIXTURE)
+    let ast = syn::parse_file(str_constants::CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE)
         .expect("bc91574f");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),

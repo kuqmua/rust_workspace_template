@@ -10,9 +10,9 @@ mod types;
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] =
     &[ExternalLeafWrapperNameException {
         identifier: types::StaticStr(
-            str_constants::code_style::GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
+            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
         ),
-        reason: types::StaticStr(str_constants::code_style::GENERATED_RUST_TOKEN_STREAM_REASON),
+        reason: types::StaticStr(str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON),
     }];
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
@@ -26,8 +26,8 @@ enum ExpectOrPanic {
 impl ExpectOrPanic {
     const fn method_name(self) -> types::StaticStr {
         match self {
-            Self::Expect => types::StaticStr(str_constants::code_style::EXPECT_METHOD_NAME),
-            Self::Panic => types::StaticStr(str_constants::code_style::PANIC_METHOD_NAME),
+            Self::Expect => types::StaticStr(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
+            Self::Panic => types::StaticStr(str_constants::CODE_STYLE_PANIC_METHOD_NAME),
         }
     }
 }
@@ -102,7 +102,7 @@ struct RuntimePanicExpectUnwrapVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::code_style::EXPECT_METHOD_NAME {
+        if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
             self.ers.push(str_constants::EXPECT_CALL.to_owned());
         }
         if i.method == str_constants::UNWRAP {
@@ -120,7 +120,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
         if i.path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == str_constants::code_style::PANIC_METHOD_NAME)
+            .is_some_and(|segment| segment.ident == str_constants::CODE_STYLE_PANIC_METHOD_NAME)
         {
             self.ers.push(str_constants::PANIC_CALL.to_owned());
         }
@@ -317,7 +317,7 @@ impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
         syn::visit::visit_expr_call(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::pg_crud::PG_TEXT {
+        if i.method == str_constants::PG_CRUD_PG_TEXT {
             self.calls.push(format!(".{}()", i.method));
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -581,7 +581,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_expr_lit(self, i);
     }
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::code_style::EXPECT_METHOD_NAME {
+        if i.method == str_constants::CODE_STYLE_EXPECT_METHOD_NAME {
             syn::visit::Visit::visit_expr(self, i.receiver.as_ref());
             return;
         }
@@ -654,7 +654,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
     }
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let is_syntax_boundary = i.path.segments.last().is_some_and(|segment| {
-            str_constants::code_style::STRING_LITERAL_MACRO_BOUNDARIES
+            str_constants::CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES
                 .contains(&segment.ident.to_string().as_str())
         });
         if !is_syntax_boundary {
@@ -880,8 +880,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             types::SynPathRef::from(&i.path),
             types::StaticStrSliceRef::from(
                 [
-                    str_constants::code_style::GENERATE_PG_TYPES_MACRO_NAME,
-                    str_constants::code_style::GENERATE_PG_TYPES_MACRO_NAME,
+                    str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
+                    str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -914,8 +914,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             types::SynPathRef::from(&i.path),
             types::StaticStrSliceRef::from(
                 [
-                    str_constants::code_style::GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
-                    str_constants::code_style::GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    str_constants::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+                    str_constants::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
                 ]
                 .as_slice(),
             ),
@@ -2060,7 +2060,7 @@ fn assert_joined_ers_empty(ers: types::SourceTextListRef<'_>, exp_id: types::Sta
     assert_joined_ers_empty_with_ctx(
         ers,
         exp_id,
-        types::SourceTextRef::from(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        types::SourceTextRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
     );
 }
 #[allow(clippy::single_call_fn)] // shared assertion with context keeps multiline diagnostics reusable without duplicating message-format glue
@@ -3351,7 +3351,7 @@ fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
     });
 }
 fn workspace_table_from_cargo_toml() -> types::TomlTable {
-    let mut table = std::fs::read_to_string(str_constants::code_style::WORKSPACE_MANIFEST_PATH)
+    let mut table = std::fs::read_to_string(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
         .expect("39a0d238")
         .parse::<toml::Table>()
         .expect("beb11586");

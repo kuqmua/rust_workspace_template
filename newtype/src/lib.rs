@@ -326,7 +326,7 @@ fn generate_newtype_token_stream(
         let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
             return Err(syn::Error::new_spanned(
                 inner_ty_ref,
-                str_constants::macro_diagnostics::AS_REF_INNER_SHARED_REF_ERROR,
+                str_constants::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
             ));
         };
         let target_ty = &inner_ref_ty.elem;
@@ -544,7 +544,7 @@ fn generate_bounded_string_token_stream(
     let max = max_option.ok_or_else(|| {
         syn::Error::new(
             proc_macro2::Span::call_site(),
-            str_constants::macro_diagnostics::BOUNDED_STRING_MAX_ERROR,
+            str_constants::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         )
     })?;
     let chars = options.contains(BoundedStringOption::Chars).get();
@@ -764,35 +764,35 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Chars, || {
-                                meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(str_constants::NUL_FREE) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::NulFree, || {
-                                meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(str_constants::SERDE) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Serde, || {
-                                meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(str_constants::TRIM) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Trim, || {
-                                meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     if meta.path.is_ident(str_constants::UTOIPA) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Utoipa, || {
-                                meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
+                                meta.error(str_constants::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
                     Err(meta.error(str_constants::UNKNOWN_BOUNDED_STRING_OPTION))
@@ -803,7 +803,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
     if parsed.max.is_none() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
-            str_constants::macro_diagnostics::BOUNDED_STRING_MAX_ERROR,
+            str_constants::MACRO_DIAGNOSTICS_BOUNDED_STRING_MAX_ERROR,
         ));
     }
     Ok(parsed)
@@ -1000,7 +1000,7 @@ fn validate_newtype_inner_ty_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            str_constants::macro_diagnostics::AS_REF_INNER_SHARED_REF_ERROR,
+            str_constants::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
         ));
     }
     if attrs.contains(NewtypeOption::AsRefOwned).get()
@@ -1028,7 +1028,7 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
         workspace_macro_helpers::SynStructShapeRef::try_from(input_ref).map_err(|_error| {
             syn::Error::new_spanned(
                 input_ref,
-                str_constants::macro_diagnostics::TUPLE_STRUCT_ERROR,
+                str_constants::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
             )
         })?;
     let unnamed = match shape {
@@ -1037,7 +1037,7 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
         | workspace_macro_helpers::SynStructShapeRef::Unit => {
             return Err(syn::Error::new_spanned(
                 input_ref,
-                str_constants::macro_diagnostics::TUPLE_STRUCT_ERROR,
+                str_constants::MACRO_DIAGNOSTICS_TUPLE_STRUCT_ERROR,
             ));
         }
     };

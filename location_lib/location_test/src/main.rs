@@ -121,17 +121,17 @@ impl to_err_string::ToErrString for SerdeStruct {
 fn main() {
     let error = ErrorOne::Variant {
         eo_display_field: DisplayStruct {
-            display: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
+            display: LocationTestText(String::from(str_constants::PG_CRUD_V_FIELD)),
             something: LocationTestFlag::from(true),
         },
         eo_serde: SerdeStruct {
-            one: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
+            one: LocationTestText(String::from(str_constants::PG_CRUD_V_FIELD)),
             two: LocationTestFlag::from(true),
             three: LocationTestCount::from(42),
         },
         eo_location_field: ErrorTwo::Variant {
             eo_display_with_serde_field: LocationTestText(String::from(
-                str_constants::pg_crud::V_FIELD,
+                str_constants::PG_CRUD_V_FIELD,
             )),
             location: location_macros::location!(),
         },
@@ -147,7 +147,7 @@ fn main() {
         ],
         eo_vec_serde: vec![
             SerdeStruct {
-                one: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
+                one: LocationTestText(String::from(str_constants::PG_CRUD_V_FIELD)),
                 two: LocationTestFlag::from(true),
                 three: LocationTestCount::from(42),
             },
@@ -160,7 +160,7 @@ fn main() {
         eo_vec_location_field: vec![
             ErrorUnnamedOne::Something(ErrorTwo::Variant {
                 eo_display_with_serde_field: LocationTestText(String::from(
-                    str_constants::pg_crud::V_FIELD,
+                    str_constants::PG_CRUD_V_FIELD,
                 )),
                 location: location_macros::location!(),
             }),

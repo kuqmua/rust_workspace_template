@@ -128,7 +128,7 @@ mod tests {
     fn to_err_string_for_result_values() {
         assert_to_err_string(Result::<u8, u16>::Ok(5), str_constants::OK_5);
         assert_to_err_string(
-            Result::<u8, &'static str>::Err(str_constants::config::TRACING_ERROR),
+            Result::<u8, &'static str>::Err(str_constants::CONFIG_TRACING_ERROR),
             str_constants::ERR_ERROR,
         );
     }

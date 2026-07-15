@@ -115,7 +115,7 @@ mod tests {
                 .as_ref(),
             "42"
         );
-        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::pg_crud::EMPTY_SQL_SUFFIX)).expect("502918c1");
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2Origin as frontend_contract::FormValueContract>::parse_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("502918c1");
         assert_eq!(
             frontend_contract::FormValueContract::format_form_value(&nullable)
                 .expect("56531064")

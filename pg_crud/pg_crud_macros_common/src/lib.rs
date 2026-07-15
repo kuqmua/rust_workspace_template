@@ -363,7 +363,7 @@ impl IsNullable {
     #[must_use]
     pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
-            Self::False => &str_constants::pg_crud::EMPTY_SQL_SUFFIX,
+            Self::False => &str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             Self::True => &naming::OptionalUpperCamelCase,
         }
     }

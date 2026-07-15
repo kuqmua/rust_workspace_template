@@ -68,7 +68,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
                 assert!(
                     !is_block_on_poll_limit_reached(poll_count),
                     "{} super::block_on exceeded poll limit",
-                    str_constants::route_validators::BLOCK_ON_POLL_LIMIT_ER_ID
+                    str_constants::ROUTE_VALIDATORS_BLOCK_ON_POLL_LIMIT_ER_ID
                 );
                 increment_block_on_poll_count(&mut poll_count);
                 std::thread::yield_now();
@@ -123,14 +123,14 @@ fn panic_replace_header_missing_src(exp_id: impl Into<TestExpId>) -> ! {
     let exp_id = exp_id.into();
     panic!(
         "{} missing source header while replacing, id={exp_id}",
-        str_constants::route_validators::REPLACE_HEADER_MISSING_SRC_ER_ID
+        str_constants::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID
     );
 }
 #[track_caller]
 pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
     v.unwrap_or_else(|_| {
         panic_unexpected_result(
-            str_constants::route_validators::EXPECT_OK_ER_ID,
+            str_constants::ROUTE_VALIDATORS_EXPECT_OK_ER_ID,
             str_constants::EXPECT_OK,
             str_constants::ERR,
             exp_id,
@@ -149,7 +149,7 @@ where
 pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
     v.err().unwrap_or_else(|| {
         panic_unexpected_result(
-            str_constants::route_validators::EXPECT_ER_ER_ID,
+            str_constants::ROUTE_VALIDATORS_EXPECT_ER_ER_ID,
             str_constants::EXPECT_ERROR,
             str_constants::OK,
             exp_id,
@@ -477,9 +477,9 @@ mod tests {
     fn mk_headers_with_entry_inserts_value_for_case_insensitive_name() {
         let headers = super::mk_headers_with_entry(
             str_constants::COMMIT,
-            axum::http::HeaderValue::from_static(str_constants::test_values::WRONG_COMMIT),
+            axum::http::HeaderValue::from_static(str_constants::TEST_VALUES_WRONG_COMMIT),
         );
-        let actual = headers.get(str_constants::route_validators::COMMIT_HEADER_NAME);
+        let actual = headers.get(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
         assert_eq!(
             actual,
             Some(&axum::http::HeaderValue::from_static("deadbeef"))
@@ -489,14 +489,12 @@ mod tests {
     fn replace_header_name_moves_value_to_new_key() {
         let mut headers = super::mk_headers_with_entry(
             str_constants::X_COMMIT,
-            axum::http::HeaderValue::from_static(str_constants::test_values::WRONG_COMMIT),
+            axum::http::HeaderValue::from_static(str_constants::TEST_VALUES_WRONG_COMMIT),
         );
         super::replace_header_name(
             &mut headers,
             str_constants::X_COMMIT,
-            axum::http::HeaderName::from_static(
-                str_constants::route_validators::COMMIT_HEADER_NAME,
-            ),
+            axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
             str_constants::VALUE_348C0E57,
         );
         assert!(headers.get("x-commit").is_none());

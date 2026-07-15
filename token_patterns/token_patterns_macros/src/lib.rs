@@ -5,7 +5,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
         return ProcMacro2GenerateTpOutput(
             workspace_macro_helpers::compile_error_token_stream(
-                str_constants::compile_error::CE_076,
+                str_constants::COMPILE_ERROR_CE_076,
             )
             .into_inner(),
         );
@@ -13,7 +13,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
         return ProcMacro2GenerateTpOutput(
             workspace_macro_helpers::compile_error_token_stream(
-                str_constants::compile_error::CE_075,
+                str_constants::COMPILE_ERROR_CE_075,
             )
             .into_inner(),
         );
@@ -43,7 +43,7 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     );
     if parts.len() < 2 {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::compile_error::CE_078,
+            str_constants::COMPILE_ERROR_CE_078,
         )
         .into_inner()
         .into();
@@ -51,7 +51,7 @@ pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut name_iter = parts.remove(0).into_iter();
     let Some(name) = workspace_macro_helpers::first_identifier(&mut name_iter) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::compile_error::CE_077,
+            str_constants::COMPILE_ERROR_CE_077,
         )
         .into_inner()
         .into();
@@ -74,14 +74,14 @@ pub fn ts_path_fn(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut iter = proc_macro2::TokenStream::from(input).into_iter();
     let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::compile_error::CE_082,
+            str_constants::COMPILE_ERROR_CE_082,
         )
         .into_inner()
         .into();
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
         return workspace_macro_helpers::compile_error_token_stream(
-            str_constants::compile_error::CE_081,
+            str_constants::COMPILE_ERROR_CE_081,
         )
         .into_inner()
         .into();

@@ -6,7 +6,7 @@ mod tests {
             can_be_nullable: true,
             can_be_primary_key: false,
             filter_kind: 7u8,
-            pg_name: str_constants::pg_crud::PG_INT4,
+            pg_name: str_constants::PG_CRUD_PG_INT4,
             wire_kind: 32u8,
         };
         assert_eq!(crate::catalog::pg_name(spec), "int4");

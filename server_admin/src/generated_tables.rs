@@ -48,7 +48,7 @@ pub struct AdminUsers {
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(str_constants::ADMINUSERS)
-            .field(str_constants::sql_names::ID, &self.id)
+            .field(str_constants::SQL_NAMES_ID, &self.id)
             .field(str_constants::LOGIN, &self.login)
             .field(str_constants::DISPLAY_NAME, &self.display_name)
             .field(str_constants::PASSWORD_HASH, &str_constants::REDACTED_ALT_3)

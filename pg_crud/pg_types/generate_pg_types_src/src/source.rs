@@ -225,33 +225,33 @@ pub fn generate_pg_types(
             WireKind,
         > {
             match self {
-                Self::I16AsInt2 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_INT2, wire_kind: WireKind::Int16 },
-                Self::I32AsInt4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_INT4, wire_kind: WireKind::Int32 },
-                Self::I64AsInt8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_INT8, wire_kind: WireKind::Int64 },
-                Self::F32AsFloat4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_FLOAT4, wire_kind: WireKind::Float32 },
-                Self::F64AsFloat8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_FLOAT8, wire_kind: WireKind::Float64 },
-                Self::I16AsSmallSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_SMALLSERIAL, wire_kind: WireKind::Int16 },
-                Self::I32AsSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_SERIAL, wire_kind: WireKind::Int32 },
-                Self::I64AsBigSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::pg_crud::PG_BIGSERIAL, wire_kind: WireKind::Int64 },
-                Self::SqlxPgTypesPgMoneyAsMoney => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Money, pg_name: str_constants::pg_crud::PG_MONEY, wire_kind: WireKind::Int64 },
-                Self::BoolAsBool => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bool, pg_name: str_constants::pg_crud::PG_BOOL, wire_kind: WireKind::Bool },
-                Self::StringAsText => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::String, pg_name: str_constants::pg_crud::PG_TEXT, wire_kind: WireKind::String },
-                Self::StdVecVecU8AsBytea => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bytes, pg_name: str_constants::pg_crud::PG_BYTEA, wire_kind: WireKind::Bytes },
-                Self::SqlxTypesChronoNaiveTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::pg_crud::PG_TIME, wire_kind: WireKind::TimeChrono },
-                Self::SqlxTypesTimeTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::pg_crud::PG_TIME, wire_kind: WireKind::TimeTime },
-                Self::SqlxPgTypesPgIntervalAsInterval => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::pg_crud::PG_INTERVAL, wire_kind: WireKind::Interval },
-                Self::SqlxTypesChronoNaiveDateAsDate => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Date, pg_name: str_constants::pg_crud::PG_DATE, wire_kind: WireKind::Date },
-                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Timestamp, pg_name: str_constants::pg_crud::PG_TIMESTAMP, wire_kind: WireKind::Timestamp },
-                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::TimestampTz, pg_name: str_constants::pg_crud::PG_TIMESTAMPTZ, wire_kind: WireKind::TimestampTz },
-                Self::SqlxTypesUuidUuidAsUuidV4InitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Uuid, pg_name: str_constants::pg_crud::PG_UUID, wire_kind: WireKind::Uuid },
-                Self::SqlxTypesUuidUuidAsUuidInitializationByClient => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Uuid, pg_name: str_constants::pg_crud::PG_UUID, wire_kind: WireKind::Uuid },
-                Self::SqlxTypesIpnetworkIpNetworkAsInet => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::pg_crud::PG_INET, wire_kind: WireKind::Inet },
-                Self::SqlxTypesMacAddressMacAddressAsMacAddr => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Mac, pg_name: str_constants::pg_crud::PG_MACADDR, wire_kind: WireKind::Mac },
-                Self::SqlxPgTypesPgRangeI32AsInt4Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::pg_crud::PG_INT4RANGE, wire_kind: WireKind::RangeInt32 },
-                Self::SqlxPgTypesPgRangeI64AsInt8Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::pg_crud::PG_INT8RANGE, wire_kind: WireKind::RangeInt64 },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::pg_crud::PG_DATERANGE, wire_kind: WireKind::RangeDate },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::pg_crud::PG_TSRANGE, wire_kind: WireKind::RangeTimestamp },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::pg_crud::PG_TSTZRANGE, wire_kind: WireKind::RangeTimestampTz },
+                Self::I16AsInt2 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT2, wire_kind: WireKind::Int16 },
+                Self::I32AsInt4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT4, wire_kind: WireKind::Int32 },
+                Self::I64AsInt8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT8, wire_kind: WireKind::Int64 },
+                Self::F32AsFloat4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_FLOAT4, wire_kind: WireKind::Float32 },
+                Self::F64AsFloat8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_FLOAT8, wire_kind: WireKind::Float64 },
+                Self::I16AsSmallSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_SMALLSERIAL, wire_kind: WireKind::Int16 },
+                Self::I32AsSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_SERIAL, wire_kind: WireKind::Int32 },
+                Self::I64AsBigSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_BIGSERIAL, wire_kind: WireKind::Int64 },
+                Self::SqlxPgTypesPgMoneyAsMoney => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Money, pg_name: str_constants::PG_CRUD_PG_MONEY, wire_kind: WireKind::Int64 },
+                Self::BoolAsBool => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bool, pg_name: str_constants::PG_CRUD_PG_BOOL, wire_kind: WireKind::Bool },
+                Self::StringAsText => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::String, pg_name: str_constants::PG_CRUD_PG_TEXT, wire_kind: WireKind::String },
+                Self::StdVecVecU8AsBytea => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bytes, pg_name: str_constants::PG_CRUD_PG_BYTEA, wire_kind: WireKind::Bytes },
+                Self::SqlxTypesChronoNaiveTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::PG_CRUD_PG_TIME, wire_kind: WireKind::TimeChrono },
+                Self::SqlxTypesTimeTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::PG_CRUD_PG_TIME, wire_kind: WireKind::TimeTime },
+                Self::SqlxPgTypesPgIntervalAsInterval => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::PG_CRUD_PG_INTERVAL, wire_kind: WireKind::Interval },
+                Self::SqlxTypesChronoNaiveDateAsDate => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Date, pg_name: str_constants::PG_CRUD_PG_DATE, wire_kind: WireKind::Date },
+                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Timestamp, pg_name: str_constants::PG_CRUD_PG_TIMESTAMP, wire_kind: WireKind::Timestamp },
+                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::TimestampTz, pg_name: str_constants::PG_CRUD_PG_TIMESTAMPTZ, wire_kind: WireKind::TimestampTz },
+                Self::SqlxTypesUuidUuidAsUuidV4InitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Uuid, pg_name: str_constants::PG_CRUD_PG_UUID, wire_kind: WireKind::Uuid },
+                Self::SqlxTypesUuidUuidAsUuidInitializationByClient => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Uuid, pg_name: str_constants::PG_CRUD_PG_UUID, wire_kind: WireKind::Uuid },
+                Self::SqlxTypesIpnetworkIpNetworkAsInet => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::PG_CRUD_PG_INET, wire_kind: WireKind::Inet },
+                Self::SqlxTypesMacAddressMacAddressAsMacAddr => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Mac, pg_name: str_constants::PG_CRUD_PG_MACADDR, wire_kind: WireKind::Mac },
+                Self::SqlxPgTypesPgRangeI32AsInt4Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_INT4RANGE, wire_kind: WireKind::RangeInt32 },
+                Self::SqlxPgTypesPgRangeI64AsInt8Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_INT8RANGE, wire_kind: WireKind::RangeInt64 },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_DATERANGE, wire_kind: WireKind::RangeDate },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_TSRANGE, wire_kind: WireKind::RangeTimestamp },
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_TSTZRANGE, wire_kind: WireKind::RangeTimestampTz },
             }
         }
     }
@@ -1037,7 +1037,7 @@ pub fn generate_pg_types(
             },
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::schema::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
+                    WireKind::Timestamp => str_constants::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
@@ -1069,7 +1069,7 @@ pub fn generate_pg_types(
                     WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
                     WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
                         let date_name = match crate::schema::wire_kind(pg_type_dsc) {
-                            WireKind::RangeTimestamp => str_constants::pg_crud::PG_DATE,
+                            WireKind::RangeTimestamp => str_constants::PG_CRUD_PG_DATE,
                             WireKind::RangeTimestampTz => str_constants::DATE_NAIVE,
                             _ => unreachable!(),
                         };
@@ -3753,31 +3753,31 @@ pub fn generate_pg_types(
                 },
                 &{
                     let pg_query_type = match &pg_type {
-                        PgType::I16AsInt2 => str_constants::pg_crud::PG_INT2,
-                        PgType::I32AsInt4 => str_constants::pg_crud::PG_INT4,
-                        PgType::I64AsInt8 => str_constants::pg_crud::PG_INT8,
-                        PgType::F32AsFloat4 => str_constants::pg_crud::PG_FLOAT4,
-                        PgType::F64AsFloat8 => str_constants::pg_crud::PG_FLOAT8,
-                        PgType::I16AsSmallSerialInitializationByPg => str_constants::pg_crud::PG_SMALLSERIAL,
-                        PgType::I32AsSerialInitializationByPg => str_constants::pg_crud::PG_SERIAL,
-                        PgType::I64AsBigSerialInitializationByPg => str_constants::pg_crud::PG_BIGSERIAL,
-                        PgType::SqlxPgTypesPgMoneyAsMoney => str_constants::pg_crud::PG_MONEY,
-                        PgType::BoolAsBool => str_constants::pg_crud::PG_BOOL,
-                        PgType::StringAsText => str_constants::pg_crud::PG_TEXT,
-                        PgType::StdVecVecU8AsBytea => str_constants::pg_crud::PG_BYTEA,
-                        PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => str_constants::pg_crud::PG_TIME,
-                        PgType::SqlxPgTypesPgIntervalAsInterval => str_constants::pg_crud::PG_INTERVAL,
-                        PgType::SqlxTypesChronoNaiveDateAsDate => str_constants::pg_crud::PG_DATE,
-                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => str_constants::pg_crud::PG_TIMESTAMP,
-                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => str_constants::pg_crud::PG_TIMESTAMPTZ,
-                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => str_constants::pg_crud::PG_UUID,
-                        PgType::SqlxTypesIpnetworkIpNetworkAsInet => str_constants::pg_crud::PG_INET,
-                        PgType::SqlxTypesMacAddressMacAddressAsMacAddr => str_constants::pg_crud::PG_MACADDR,
-                        PgType::SqlxPgTypesPgRangeI32AsInt4Range => str_constants::pg_crud::PG_INT4RANGE,
-                        PgType::SqlxPgTypesPgRangeI64AsInt8Range => str_constants::pg_crud::PG_INT8RANGE,
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => str_constants::pg_crud::PG_DATERANGE,
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => str_constants::pg_crud::PG_TSRANGE,
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => str_constants::pg_crud::PG_TSTZRANGE,
+                        PgType::I16AsInt2 => str_constants::PG_CRUD_PG_INT2,
+                        PgType::I32AsInt4 => str_constants::PG_CRUD_PG_INT4,
+                        PgType::I64AsInt8 => str_constants::PG_CRUD_PG_INT8,
+                        PgType::F32AsFloat4 => str_constants::PG_CRUD_PG_FLOAT4,
+                        PgType::F64AsFloat8 => str_constants::PG_CRUD_PG_FLOAT8,
+                        PgType::I16AsSmallSerialInitializationByPg => str_constants::PG_CRUD_PG_SMALLSERIAL,
+                        PgType::I32AsSerialInitializationByPg => str_constants::PG_CRUD_PG_SERIAL,
+                        PgType::I64AsBigSerialInitializationByPg => str_constants::PG_CRUD_PG_BIGSERIAL,
+                        PgType::SqlxPgTypesPgMoneyAsMoney => str_constants::PG_CRUD_PG_MONEY,
+                        PgType::BoolAsBool => str_constants::PG_CRUD_PG_BOOL,
+                        PgType::StringAsText => str_constants::PG_CRUD_PG_TEXT,
+                        PgType::StdVecVecU8AsBytea => str_constants::PG_CRUD_PG_BYTEA,
+                        PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => str_constants::PG_CRUD_PG_TIME,
+                        PgType::SqlxPgTypesPgIntervalAsInterval => str_constants::PG_CRUD_PG_INTERVAL,
+                        PgType::SqlxTypesChronoNaiveDateAsDate => str_constants::PG_CRUD_PG_DATE,
+                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => str_constants::PG_CRUD_PG_TIMESTAMP,
+                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => str_constants::PG_CRUD_PG_TIMESTAMPTZ,
+                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => str_constants::PG_CRUD_PG_UUID,
+                        PgType::SqlxTypesIpnetworkIpNetworkAsInet => str_constants::PG_CRUD_PG_INET,
+                        PgType::SqlxTypesMacAddressMacAddressAsMacAddr => str_constants::PG_CRUD_PG_MACADDR,
+                        PgType::SqlxPgTypesPgRangeI32AsInt4Range => str_constants::PG_CRUD_PG_INT4RANGE,
+                        PgType::SqlxPgTypesPgRangeI64AsInt8Range => str_constants::PG_CRUD_PG_INT8RANGE,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => str_constants::PG_CRUD_PG_DATERANGE,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => str_constants::PG_CRUD_PG_TSRANGE,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => str_constants::PG_CRUD_PG_TSTZRANGE,
                     };
                     let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
@@ -5052,7 +5052,7 @@ pub fn generate_pg_types(
             WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::MINUTE, str_constants::SECOND_ALT, str_constants::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
+                    WireKind::Timestamp => str_constants::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
@@ -5094,7 +5094,7 @@ pub fn generate_pg_types(
             WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::MINUTE, str_constants::SECOND_ALT, str_constants::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
+                    WireKind::Timestamp => str_constants::PG_CRUD_PG_DATE,
                     WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
@@ -5258,7 +5258,7 @@ pub fn generate_pg_types(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.whole_write_into_file,
-        str_constants::code_style::GENERATE_PG_TYPES_MACRO_NAME,
+        str_constants::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(generated.as_ref()),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );

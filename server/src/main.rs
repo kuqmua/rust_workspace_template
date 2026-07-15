@@ -213,10 +213,10 @@ fn mk_api_routes(
                 std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
             ))
             .nest(
-                str_constants::admin_page_paths::ROOT,
+                str_constants::ADMIN_PAGE_PATHS_ROOT,
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
             )
-            .nest(str_constants::admin_page_paths::ROOT, secured_admin_routes),
+            .nest(str_constants::ADMIN_PAGE_PATHS_ROOT, secured_admin_routes),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
@@ -246,7 +246,7 @@ fn initialization_tracing() {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            tracing_subscriber::EnvFilter::new(str_constants::config::TRACING_INFO)
+            tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
         }),
     );
     let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
@@ -414,7 +414,7 @@ async fn run_server() -> Result<(), RunServerError> {
                                         .allow_headers([
                                             axum::http::header::CONTENT_TYPE,
                                             axum::http::HeaderName::from_static(
-                                                str_constants::route_validators::COMMIT_HEADER_NAME,
+                                                str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
                                             ),
                                             axum::http::HeaderName::from_static(
                                                 str_constants::IDEMPOTENCY_KEY_ALT,
@@ -514,7 +514,7 @@ mod tests {
         };
         let mut request = axum::http::Request::builder()
             .header(
-                str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+                str_constants::RUNTIME_FORWARDED_FOR_HEADER_NAME,
                 str_constants::VALUE_203_0_113_9,
             )
             .body(())
@@ -530,6 +530,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(str_constants::config::TRACING_INFO, "info");
+        assert_eq!(str_constants::CONFIG_TRACING_INFO, "info");
     }
 }

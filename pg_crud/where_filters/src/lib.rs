@@ -68,12 +68,12 @@ const _: () = {
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                str_constants::pg_crud::REGEX_REGEX_SCHEMA_NAME,
+                str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
             )
         }
         fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
             schemars::_private::alloc::borrow::Cow::Borrowed(
-                str_constants::pg_crud::REGEX_REGEX_SCHEMA_ID,
+                str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_ID,
             )
         }
         fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
@@ -147,18 +147,18 @@ where
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::pg_crud::BETWEEN_SCHEMA_NAME,
+            str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME,
             utoipa::openapi::ObjectBuilder::new()
                 .property(
-                    str_constants::pg_crud::START_FIELD,
+                    str_constants::PG_CRUD_START_FIELD,
                     <T as utoipa::ToSchema>::schema().1,
                 )
                 .property(
-                    str_constants::pg_crud::END_FIELD,
+                    str_constants::PG_CRUD_END_FIELD,
                     <T as utoipa::ToSchema>::schema().1,
                 )
-                .required(str_constants::pg_crud::START_FIELD)
-                .required(str_constants::pg_crud::END_FIELD)
+                .required(str_constants::PG_CRUD_START_FIELD)
+                .required(str_constants::PG_CRUD_END_FIELD)
                 .build()
                 .into(),
         )
@@ -232,7 +232,7 @@ const _: () = {
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(
                         __f,
-                        str_constants::pg_crud::FIELD_IDENTIFIER,
+                        str_constants::PG_CRUD_FIELD_IDENTIFIER,
                     )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
@@ -250,8 +250,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        str_constants::pg_crud::START_FIELD => Ok(__Field::f0),
-                        str_constants::pg_crud::END_FIELD => Ok(__Field::f1),
+                        str_constants::PG_CRUD_START_FIELD => Ok(__Field::f0),
+                        str_constants::PG_CRUD_END_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -300,7 +300,7 @@ const _: () = {
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(
                         __f,
-                        str_constants::pg_crud::BETWEEN_STRUCT_NAME,
+                        str_constants::PG_CRUD_BETWEEN_STRUCT_NAME,
                     )
                 }
                 #[inline]
@@ -311,13 +311,13 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             1usize,
-                            &str_constants::pg_crud::BETWEEN_EXPECTING,
+                            &str_constants::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &str_constants::pg_crud::BETWEEN_EXPECTING,
+                            &str_constants::PG_CRUD_BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -338,7 +338,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::pg_crud::START_FIELD,
+                                            str_constants::PG_CRUD_START_FIELD,
                                         ),
                                     );
                                 }
@@ -348,7 +348,7 @@ const _: () = {
                                 if Option::is_some(&f1) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            str_constants::pg_crud::END_FIELD,
+                                            str_constants::PG_CRUD_END_FIELD,
                                         ),
                                     );
                                 }
@@ -365,13 +365,13 @@ const _: () = {
                     let f0_v = match f0 {
                         Some(v) => v,
                         None => _serde::__private228::de::missing_field(
-                            str_constants::pg_crud::START_FIELD,
+                            str_constants::PG_CRUD_START_FIELD,
                         )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
                         None => _serde::__private228::de::missing_field(
-                            str_constants::pg_crud::END_FIELD,
+                            str_constants::PG_CRUD_END_FIELD,
                         )?,
                     };
                     match Between::try_new(f0_v, f1_v) {
@@ -382,8 +382,8 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
-                str_constants::pg_crud::BETWEEN_SCHEMA_NAME,
-                str_constants::pg_crud::SERDE_BETWEEN_FIELDS,
+                str_constants::PG_CRUD_BETWEEN_SCHEMA_NAME,
+                str_constants::PG_CRUD_SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,
@@ -475,7 +475,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+            str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
@@ -545,7 +545,7 @@ const _: () = {
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(
                         __f,
-                        str_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                        str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -565,7 +565,7 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             0usize,
-                            &str_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+                            &str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match PgTypeNotEmptyUniqueVec::try_from(f0) {
@@ -576,7 +576,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                str_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                str_constants::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,

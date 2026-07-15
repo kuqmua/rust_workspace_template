@@ -27,7 +27,7 @@ pub fn generate_where_filters(
     impl PgTypeKind {
         const fn format_argument(&self) -> &'static str {
             match &self {
-                Self::Standard => str_constants::pg_crud::EMPTY_SQL_SUFFIX,
+                Self::Standard => str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             }
         }
     }
@@ -897,10 +897,10 @@ pub fn generate_where_filters(
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::IncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::LOWER, str_constants::pg_crud::EQUALITY_SQL_OPERATOR)
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::LOWER, str_constants::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::ExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::UPPER, str_constants::pg_crud::EQUALITY_SQL_OPERATOR)
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::UPPER, str_constants::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => {
                         generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::LOWER, str_constants::TEXT_ALT_11)
@@ -994,7 +994,7 @@ pub fn generate_where_filters(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_where_filters_config.whole_write_into_file,
-        str_constants::code_style::GENERATE_WHERE_FILTERS_MACRO_NAME,
+        str_constants::CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );

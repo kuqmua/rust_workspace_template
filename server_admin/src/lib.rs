@@ -205,7 +205,7 @@ impl AdminCookieKind {
     }
     fn name(self) -> StdAdminStrRef<'static> {
         StdAdminStrRef::from(match self {
-            Self::Access => str_constants::server_admin::ACCESS_COOKIE_NAME,
+            Self::Access => str_constants::SERVER_ADMIN_ACCESS_COOKIE_NAME,
             Self::Csrf => str_constants::ADMIN_CSRF_TOKEN,
             Self::Refresh => str_constants::ADMIN_REFRESH_TOKEN,
         })
@@ -221,12 +221,12 @@ pub fn build_admin_cookie(
     let http_only = if kind.is_http_only().0 {
         str_constants::HTTPONLY
     } else {
-        str_constants::pg_crud::EMPTY_SQL_SUFFIX
+        str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
     };
     let secure_attr = if secure.0 {
         str_constants::SECURE
     } else {
-        str_constants::pg_crud::EMPTY_SQL_SUFFIX
+        str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
     };
     StdAdminCookie(format!(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
@@ -239,7 +239,7 @@ pub fn build_admin_cookie(
 pub fn clear_admin_cookie(kind: AdminCookieKind, secure: AdminCookieSecure) -> StdAdminCookie {
     build_admin_cookie(
         kind,
-        StdAdminStrRef::from(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        StdAdminStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         AdminCookieMaxAgeSeconds::from(0),
         secure,
     )

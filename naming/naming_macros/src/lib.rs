@@ -22,7 +22,7 @@ pub fn generate_upper_camel_case_and_snake_case_str_and_token_stream(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let regex = regex::Regex::new(str_constants::naming::REGEX_VALUE).expect("20948d87");
+    let regex = regex::Regex::new(str_constants::NAMING_REGEX_VALUE).expect("20948d87");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string())
         .expect("90e5793b")
         .into_iter()
@@ -133,7 +133,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     panic_location::panic_location();
-    let regex = regex::Regex::new(str_constants::naming::REGEX_VALUE).expect("cba1b5fb");
+    let regex = regex::Regex::new(str_constants::NAMING_REGEX_VALUE).expect("cba1b5fb");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string()).expect("9d6a20af").into_iter().map(|element| {
         assert!(element.iter().all(|el0| regex.is_match(el0)), "4a12d90f");
         let self_match_name = str_constants::SELF_ALT;

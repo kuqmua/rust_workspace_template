@@ -178,7 +178,7 @@ impl AdminApiClient {
                     AuthRefreshWork::Join(receiver)
                 }
                 crate::auth_keep_alive::AuthRefreshBegin::Rejected => {
-                    redirect(str_constants::admin_page_paths::SIGN_IN);
+                    redirect(str_constants::ADMIN_PAGE_PATHS_SIGN_IN);
                     return Err(ApiError::Status(
                         401u16,
                         Text::from(str_constants::AUTHENTICATION_REFRESH_REJECTED.to_owned()),
@@ -237,7 +237,7 @@ impl AdminApiClient {
             outcome,
             crate::auth_keep_alive::AuthRefreshOutcome::Rejected
         ) {
-            redirect(str_constants::admin_page_paths::SIGN_IN);
+            redirect(str_constants::ADMIN_PAGE_PATHS_SIGN_IN);
         }
         result
     }
@@ -308,7 +308,7 @@ fn browser_window() -> Option<web_sys::Window> {
 fn path() -> String {
     browser_window()
         .and_then(|value| value.location().pathname().ok())
-        .unwrap_or_else(|| str_constants::admin_page_paths::ROOT.to_owned())
+        .unwrap_or_else(|| str_constants::ADMIN_PAGE_PATHS_ROOT.to_owned())
 }
 fn redirect(path: &str) {
     if let Some(value) = browser_window() {
@@ -326,7 +326,7 @@ fn push_path(path: &str) {
     {
         let _result = history.push_state_with_url(
             &wasm_bindgen::JsValue::NULL,
-            str_constants::pg_crud::EMPTY_SQL_SUFFIX,
+            str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             Some(path),
         );
     }
@@ -337,7 +337,7 @@ fn replace_path(path: &str) {
     {
         let _result = history.replace_state_with_url(
             &wasm_bindgen::JsValue::NULL,
-            str_constants::pg_crud::EMPTY_SQL_SUFFIX,
+            str_constants::PG_CRUD_EMPTY_SQL_SUFFIX,
             Some(path),
         );
     }
@@ -413,7 +413,7 @@ where
 #[component]
 pub fn App() -> impl IntoView {
     let client = AdminApiClient::new();
-    if path() == str_constants::admin_page_paths::SIGN_IN {
+    if path() == str_constants::ADMIN_PAGE_PATHS_SIGN_IN {
         return view! { <forms::SignIn client /> }.into_any();
     }
     let auth = LocalResource::new({
@@ -424,5 +424,5 @@ pub fn App() -> impl IntoView {
         }
     });
     let client_for_auth = client.clone();
-    view! { <Suspense fallback=move || view! { <main><p>"Loading..."</p></main> }>{move || { let client = client_for_auth.clone(); Suspend::new(async move { match auth.await { Ok(value) => view! { <pages::Shell auth=value client=client.clone() /> }.into_any(), Err(error) if authentication_is_rejected(&error) => { redirect(str_constants::admin_page_paths::SIGN_IN); view! { <main></main> }.into_any() }, Err(error) => view! { <main class="auth-page"><section class="auth-card"><div class="alert error" role="alert"><strong>"Unable to verify session"</strong><span>{error.to_string()}</span></div><button class="primary-button" type="button" on:click=move |_| reload()>"Try again"</button></section></main> }.into_any() } }) }}</Suspense> }.into_any()
+    view! { <Suspense fallback=move || view! { <main><p>"Loading..."</p></main> }>{move || { let client = client_for_auth.clone(); Suspend::new(async move { match auth.await { Ok(value) => view! { <pages::Shell auth=value client=client.clone() /> }.into_any(), Err(error) if authentication_is_rejected(&error) => { redirect(str_constants::ADMIN_PAGE_PATHS_SIGN_IN); view! { <main></main> }.into_any() }, Err(error) => view! { <main class="auth-page"><section class="auth-card"><div class="alert error" role="alert"><strong>"Unable to verify session"</strong><span>{error.to_string()}</span></div><button class="primary-button" type="button" on:click=move |_| reload()>"Try again"</button></section></main> }.into_any() } }) }}</Suspense> }.into_any()
 }

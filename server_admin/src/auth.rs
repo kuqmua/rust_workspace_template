@@ -1242,7 +1242,7 @@ mod tests {
                 let contract = route.contract();
                 let method = match contract.method() {
                     frontend_contract::HttpMethod::Delete => {
-                        str_constants::pg_crud::DELETE_PERMISSION_ACTION
+                        str_constants::PG_CRUD_DELETE_PERMISSION_ACTION
                     }
                     frontend_contract::HttpMethod::Get => str_constants::GET_ALT,
                     frontend_contract::HttpMethod::Patch => str_constants::PATCH_ALT,

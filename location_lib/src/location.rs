@@ -172,7 +172,7 @@ impl Location {
         write!(
             f.0,
             "{}/blob/{}/{}#L{}",
-            str_constants::naming::GITHUB_URL,
+            str_constants::NAMING_GITHUB_URL,
             self.commit.as_ref(),
             file.0,
             line
@@ -198,7 +198,7 @@ impl Location {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
             None => {
-                f.0.write_str(str_constants::location::INCORRECT_DATETIME_MSG)
+                f.0.write_str(str_constants::LOCATION_INCORRECT_DATETIME_MSG)
             }
         }
     }
@@ -322,7 +322,7 @@ mod tests {
             file: super::LocationFile::try_from(String::from(str_constants::SRC_LIB_RS))
                 .unwrap_or_else(super::LocationFile::from),
             commit: super::LocationCommit::try_from(String::from(
-                str_constants::test_values::COMMIT,
+                str_constants::TEST_VALUES_COMMIT,
             ))
             .unwrap_or_else(super::LocationCommit::from),
             duration: super::StdLocationDuration(duration),
@@ -374,7 +374,7 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10",
-                str_constants::naming::GITHUB_URL
+                str_constants::NAMING_GITHUB_URL
             )
         );
     }
@@ -385,8 +385,8 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/error.rs#L30)",
-                str_constants::naming::GITHUB_URL,
-                str_constants::naming::GITHUB_URL
+                str_constants::NAMING_GITHUB_URL,
+                str_constants::NAMING_GITHUB_URL
             )
         );
     }
@@ -400,7 +400,7 @@ mod tests {
                     location: &location
                 }
             ),
-            str_constants::location::INCORRECT_DATETIME_MSG
+            str_constants::LOCATION_INCORRECT_DATETIME_MSG
         );
     }
     #[test]

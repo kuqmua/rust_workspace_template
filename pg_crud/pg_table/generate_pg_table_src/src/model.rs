@@ -26,7 +26,7 @@ mod tests {
             operation: str_constants::UO,
             operation_kind: str_constants::UPDATE_ONE,
             optimistic_concurrency_capable: true,
-            permission_action: str_constants::pg_crud::UPDATE_PERMISSION_ACTION,
+            permission_action: str_constants::PG_CRUD_UPDATE_PERMISSION_ACTION,
             success_status_code: 200u16,
         };
         assert_eq!(spec.http_method, "PATCH");

@@ -312,14 +312,14 @@ pub fn generate_pg_table(
                 optimistic_concurrency_capable: operation.supports_optimistic_concurrency(),
                 permission_action: match operation {
                     Operation::Cm | Operation::Co => {
-                        str_constants::pg_crud::CREATE_PERMISSION_ACTION
+                        str_constants::PG_CRUD_CREATE_PERMISSION_ACTION
                     }
-                    Operation::Rm | Operation::Ro => str_constants::pg_crud::READ_PERMISSION_ACTION,
+                    Operation::Rm | Operation::Ro => str_constants::PG_CRUD_READ_PERMISSION_ACTION,
                     Operation::Um | Operation::Uo => {
-                        str_constants::pg_crud::UPDATE_PERMISSION_ACTION
+                        str_constants::PG_CRUD_UPDATE_PERMISSION_ACTION
                     }
                     Operation::Dm | Operation::Dlo => {
-                        str_constants::pg_crud::DELETE_PERMISSION_ACTION
+                        str_constants::PG_CRUD_DELETE_PERMISSION_ACTION
                     }
                 },
                 success_status_code: operation.desirable_status_code(),
@@ -636,14 +636,14 @@ pub fn generate_pg_table(
         let syn_field = field_ref.get();
         let Some(field_identifier) = syn_field.ident.clone() else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_026,
+                str_constants::COMPILE_ERROR_CE_026,
             )));
         };
         let field_len = field_identifier.to_string().len();
         let max_pg_column_len = 63;
         if field_len > max_pg_column_len {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_002,
+                str_constants::COMPILE_ERROR_CE_002,
             )));
         }
         let field = macros_helpers::field_data::SynField {
@@ -756,7 +756,7 @@ pub fn generate_pg_table(
     > {
         let Some(identifier) = syn_field.ident else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_030,
+                str_constants::COMPILE_ERROR_CE_030,
             )));
         };
         let parsed_location_attr = if identifier == naming::LocationSnakeCase.to_string() {
@@ -775,12 +775,12 @@ pub fn generate_pg_table(
             let location_attr = location_attrs.next();
             if location_attrs.next().is_some() {
                 return Err(compile_error_token_stream(CompileErrorMessage(
-                    str_constants::compile_error::CE_029,
+                    str_constants::COMPILE_ERROR_CE_029,
                 )));
             }
             let Some(parsed_location_attr) = location_attr else {
                 return Err(compile_error_token_stream(CompileErrorMessage(
-                    str_constants::compile_error::CE_023,
+                    str_constants::COMPILE_ERROR_CE_023,
                 )));
             };
             Some(parsed_location_attr)
@@ -800,7 +800,7 @@ pub fn generate_pg_table(
         let field = field_ref.get();
         let Some(field_identifier) = field.ident.as_ref() else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_A2_ERROR,
+                str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
             )));
         };
         if *field_identifier == naming::LocationSnakeCase.to_string() {
@@ -819,7 +819,7 @@ pub fn generate_pg_table(
         let location_attr = location_attrs.next();
         if location_attrs.next().is_some() {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_028,
+                str_constants::COMPILE_ERROR_CE_028,
             )));
         }
         Ok(location_attr)
@@ -833,7 +833,7 @@ pub fn generate_pg_table(
     > {
         let syn::Fields::Named(fields_named) = syn_variant.fields else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_004,
+                str_constants::COMPILE_ERROR_CE_004,
             )));
         };
         let fields_len = fields_named.named.len();
@@ -887,7 +887,7 @@ pub fn generate_pg_table(
                         if field_model.is_primary_key {
                             if optional_primary_key_field.is_some() {
                                 return Err(compile_error_token_stream(CompileErrorMessage(
-                                    str_constants::compile_error::CE_003,
+                                    str_constants::COMPILE_ERROR_CE_003,
                                 )));
                             }
                             optional_primary_key_field = Some(field_idx);
@@ -912,7 +912,7 @@ pub fn generate_pg_table(
                 ) = fields_accumulator?;
                 let Some(primary_key_field_idx) = optional_primary_key_field else {
                     return Err(compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_015,
+                        str_constants::COMPILE_ERROR_CE_015,
                     )));
                 };
                 Ok(GeneratePgTableFieldsModel {
@@ -926,10 +926,10 @@ pub fn generate_pg_table(
                 workspace_macro_helpers::SynStructShapeRef::Tuple(_)
                 | workspace_macro_helpers::SynStructShapeRef::Unit,
             ) => Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_018,
+                str_constants::COMPILE_ERROR_CE_018,
             ))),
             Err(_error) => Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_043,
+                str_constants::COMPILE_ERROR_CE_043,
             ))),
         }
     }
@@ -944,7 +944,7 @@ pub fn generate_pg_table(
         let config = match serde_json::from_str::<GeneratePgTableConfig>(
             &macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
                 &di.attrs,
-                str_constants::pg_crud::GENERATE_PG_TABLE_CONFIG_PATH,
+                str_constants::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
             )
             .to_string(),
         ) {
@@ -965,7 +965,7 @@ pub fn generate_pg_table(
             .any(|limit| limit.0 == 0usize)
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_013,
+                str_constants::COMPILE_ERROR_CE_013,
             )));
         }
         if config.permission_prefix.as_ref().is_some_and(|prefix| {
@@ -975,7 +975,7 @@ pub fn generate_pg_table(
                     .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
         }) {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_051,
+                str_constants::COMPILE_ERROR_CE_051,
             )));
         }
         let error_variants_by_attr = [
@@ -1005,7 +1005,7 @@ pub fn generate_pg_table(
                 };
                 if parsed_di.ident != generate_pg_table_attr_str {
                     return Err(compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_022,
+                        str_constants::COMPILE_ERROR_CE_022,
                     )));
                 }
                 if let syn::Data::Enum(data_enum) = parsed_di.data {
@@ -1065,7 +1065,7 @@ pub fn generate_pg_table(
             .is_none()
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::macro_diagnostics::PRIMARY_KEY_FIELD_INDEX_ERROR,
+                str_constants::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
             )));
         }
         if model
@@ -1074,12 +1074,12 @@ pub fn generate_pg_table(
             .any(|idx| model.fields.get(idx.get()).is_none())
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_006,
+                str_constants::COMPILE_ERROR_CE_006,
             )));
         }
         if model.fields.len() != model.frontend_fields.len() {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_021,
+                str_constants::COMPILE_ERROR_CE_021,
             )));
         }
         Ok(model)
@@ -1372,7 +1372,7 @@ pub fn generate_pg_table(
     let fields_len_without_primary_key = fields_without_primary_key_idxs.len();
     let Some(primary_key_field) = fields.get(primary_key_field_idx.get()) else {
         return compile_error_token_stream(CompileErrorMessage(
-            str_constants::macro_diagnostics::PRIMARY_KEY_FIELD_INDEX_ERROR,
+            str_constants::MACRO_DIAGNOSTICS_PRIMARY_KEY_FIELD_INDEX_ERROR,
         ));
     };
     let fields_without_primary_key_iter = || {
@@ -1391,7 +1391,7 @@ pub fn generate_pg_table(
         })
     {
         return compile_error_token_stream(CompileErrorMessage(
-            str_constants::compile_error::CE_017,
+            str_constants::COMPILE_ERROR_CE_017,
         ));
     }
     let create_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
@@ -1424,7 +1424,7 @@ pub fn generate_pg_table(
         });
     if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
         return compile_error_token_stream(CompileErrorMessage(
-            str_constants::compile_error::CE_027,
+            str_constants::COMPILE_ERROR_CE_027,
         ));
     }
     let read_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
@@ -1450,7 +1450,7 @@ pub fn generate_pg_table(
             .position(|field| field.identifier.to_string() == *revision_field_name)
         else {
             return compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_055,
+                str_constants::COMPILE_ERROR_CE_055,
             ));
         };
         let revision_type_is_valid = fields.get(field_idx).is_some_and(|field| {
@@ -1467,7 +1467,7 @@ pub fn generate_pg_table(
         });
         if field_idx == primary_key_field_idx.get() || !revision_type_is_valid {
             return compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_012,
+                str_constants::COMPILE_ERROR_CE_012,
             ));
         }
         Some(field_idx)
@@ -1518,7 +1518,7 @@ pub fn generate_pg_table(
         == frontend_field_order.len();
     if !frontend_orders_are_unique {
         return compile_error_token_stream(CompileErrorMessage(
-            str_constants::compile_error::CE_011,
+            str_constants::COMPILE_ERROR_CE_011,
         ));
     }
     let frontend_field_contracts_token_stream = frontend_field_order
@@ -2207,7 +2207,7 @@ pub fn generate_pg_table(
                 let field = &element.ident;
                 let Some(field_ref) = field.as_ref() else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_054,
+                        str_constants::COMPILE_ERROR_CE_054,
                     ))
                     .into();
                 };
@@ -2225,7 +2225,7 @@ pub fn generate_pg_table(
             })
         } else {
             return compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_001,
+                str_constants::COMPILE_ERROR_CE_001,
             ))
             .into();
         };
@@ -2249,7 +2249,7 @@ pub fn generate_pg_table(
                 Some(v) => v.to_http_status_code_token_stream(),
                 None => {
                     return compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_019,
+                        str_constants::COMPILE_ERROR_CE_019,
                     ))
                     .into();
                 }
@@ -4158,7 +4158,7 @@ pub fn generate_pg_table(
                 location_attr.get().map_or_else(
                     || {
                         compile_error_token_stream(CompileErrorMessage(
-                            str_constants::compile_error::CE_050,
+                            str_constants::COMPILE_ERROR_CE_050,
                         ))
                         .into()
                     },
@@ -4174,7 +4174,7 @@ pub fn generate_pg_table(
             GeneratePgTableVariantRef::Syn(syn_variant) => {
                 let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_008,
+                        str_constants::COMPILE_ERROR_CE_008,
                     ))
                     .into();
                 };
@@ -4182,7 +4182,7 @@ pub fn generate_pg_table(
                     fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return compile_error_token_stream(CompileErrorMessage(
-                                str_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_A2_ERROR,
+                                str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_A2_ERROR,
                             ))
                             .into();
                         };
@@ -4267,7 +4267,7 @@ pub fn generate_pg_table(
                 let element_type_token_stream = quote::quote! {#ty};
                 let Some(parsed_location_attr) = location_attr.get() else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        str_constants::compile_error::CE_042,
+                        str_constants::COMPILE_ERROR_CE_042,
                     ));
                 };
                 let element_type_with_serde_token_stream = match parsed_location_attr {
@@ -4281,9 +4281,9 @@ pub fn generate_pg_table(
                         Ok(parsed_token_stream) => parsed_token_stream,
                         Err(error) => {
                             return compile_error_token_stream(CompileErrorMessage(
-                                &str_constants::compile_error::CE_005
+                                &str_constants::COMPILE_ERROR_CE_005
                                     .replace(
-                                        str_constants::compile_error::ERROR_PLACEHOLDER,
+                                        str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                         &error.to_string(),
                                     ),
                             ));
@@ -4297,12 +4297,12 @@ pub fn generate_pg_table(
                     let segments = if let syn::Type::Path(v0) = ty {
                         &v0.path.segments
                     } else {
-                        return compile_error_token_stream(CompileErrorMessage(str_constants::compile_error::CE_024));
+                        return compile_error_token_stream(CompileErrorMessage(str_constants::COMPILE_ERROR_CE_024));
                     };
                     assert!(segments.len() == 1, "8c6c5e9d");
                     let Some(first_segment) = segments.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_FIRST_PATH_SEGMENT_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
                     let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
@@ -4311,13 +4311,13 @@ pub fn generate_pg_table(
                     }) = &first_segment.arguments
                     else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
                     assert!(args.len() == 1, "5bf19c5d");
                     let Some(first_arg) = args.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::compile_error::CE_053,
+                            str_constants::COMPILE_ERROR_CE_053,
                         ));
                     };
                     let element_vec_type_with_serde_token_stream =
@@ -4327,9 +4327,9 @@ pub fn generate_pg_table(
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
                                 return compile_error_token_stream(CompileErrorMessage(
-                                    &str_constants::compile_error::CE_007
+                                    &str_constants::COMPILE_ERROR_CE_007
                                         .replace(
-                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                             &error.to_string(),
                                         ),
                                 ));
@@ -4340,7 +4340,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_HASH_MAP_C1_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
                     quote::quote! {std::collections::HashMap<#string_token_stream, #string_token_stream>}
@@ -4348,7 +4348,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_HASH_MAP_E9_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
                     quote::quote! {std::collections::HashMap<#string_token_stream, #second_argument>}
@@ -4356,7 +4356,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_HASH_MAP_C8_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
                     let element_hashmap_v_type_with_serde_token_stream =
@@ -4366,9 +4366,9 @@ pub fn generate_pg_table(
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
                                 return compile_error_token_stream(CompileErrorMessage(
-                                    &str_constants::compile_error::CE_020
+                                    &str_constants::COMPILE_ERROR_CE_020
                                         .replace(
-                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
                                             &error.to_string(),
                                         ),
                                 ));
@@ -4390,14 +4390,14 @@ pub fn generate_pg_table(
                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            str_constants::macro_diagnostics::EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+                            str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
                         ))
                         .into();
                     };
                     let fields_with_serde_token_stream = fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return compile_error_token_stream(CompileErrorMessage(
-                                str_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_ERROR,
+                                str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
                             ));
                         };
                         let location_attr = match generate_pg_table_syn_field_location_attr_stage(
@@ -4469,7 +4469,7 @@ pub fn generate_pg_table(
     {
         let Some(source_last_segment) = type_path.path.segments.last() else {
             return compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_016,
+                str_constants::COMPILE_ERROR_CE_016,
             ));
         };
         let origin_identifier = quote::format_ident!(
@@ -4480,14 +4480,14 @@ pub fn generate_pg_table(
         let mut origin_type_path = type_path.clone();
         let Some(last_segment) = origin_type_path.path.segments.last_mut() else {
             return compile_error_token_stream(CompileErrorMessage(
-                str_constants::compile_error::CE_052,
+                str_constants::COMPILE_ERROR_CE_052,
             ));
         };
         last_segment.ident = origin_identifier;
         quote::quote! {#origin_type_path}
     } else {
         return compile_error_token_stream(CompileErrorMessage(
-            str_constants::compile_error::CE_009,
+            str_constants::COMPILE_ERROR_CE_009,
         ));
     };
     let primary_key_field_type_update_for_query_open_api_token_stream =
@@ -5017,7 +5017,7 @@ pub fn generate_pg_table(
                                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
-                                            str_constants::compile_error::CE_025,
+                                            str_constants::COMPILE_ERROR_CE_025,
                                         ))
                                         .into();
                                     };
@@ -6426,7 +6426,7 @@ pub fn generate_pg_table(
                                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
-                                            str_constants::compile_error::CE_000,
+                                            str_constants::COMPILE_ERROR_CE_000,
                                         )).into();
                                     };
                                     let fields_token_stream = fields_named.named.iter().map(|field| &field.ident);
@@ -7033,7 +7033,7 @@ pub fn generate_pg_table(
             let method = match crate::contract_tests::http_method(operation_dsc) {
                 OperationHttpMethod::Post => str_constants::POST_ALT,
                 OperationHttpMethod::Patch => str_constants::PATCH_ALT,
-                OperationHttpMethod::Delete => str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+                OperationHttpMethod::Delete => str_constants::PG_CRUD_DELETE_PERMISSION_ACTION,
             };
             let success_status = if crate::contract_tests::success_status(operation_dsc)
                 == macros_helpers::status_code::StatusCode::Created201

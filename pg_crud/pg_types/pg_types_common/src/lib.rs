@@ -165,6 +165,6 @@ where
     if bool::from(v.into()) {
         str_constants::PRIMARY_KEY
     } else {
-        str_constants::pg_crud::EMPTY_SQL_SUFFIX
+        str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
     }
 }

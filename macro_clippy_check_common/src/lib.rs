@@ -1,19 +1,19 @@
 #[cfg(feature = "test-utils")]
 const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep {
-        args: &str_constants::macro_clippy::CARGO_FMT_ARGS,
+        args: &str_constants::MACRO_CLIPPY_CARGO_FMT_ARGS,
         phase: GeneratedCratePhase::Formatting,
     },
     GeneratedCrateStep {
-        args: &str_constants::macro_clippy::CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &str_constants::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Compilation,
     },
     GeneratedCrateStep {
-        args: &str_constants::macro_clippy::CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &str_constants::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Clippy,
     },
     GeneratedCrateStep {
-        args: &str_constants::macro_clippy::CARGO_TEST_LIB_ARGS,
+        args: &str_constants::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS,
         phase: GeneratedCratePhase::Test,
     },
 ];
@@ -200,7 +200,7 @@ categories = ["category"]
     GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
         let status = macros_helpers::tool_command::ToolCommand::new(
             macros_helpers::tool_command::ToolProgramRef::from(
-                str_constants::workspace_test_runner::CARGO,
+                str_constants::WORKSPACE_TEST_RUNNER_CARGO,
             ),
         )
         .current_dir(macros_helpers::tool_command::StdPathRef::from(

@@ -52,7 +52,7 @@ mod tests {
     #[test]
     fn parser_preserves_empty_configuration_behavior() {
         let parsed = Vec::<http::HeaderValue>::from(super::parse_cors_allow_origin(
-            super::HttpCorsAllowOriginTextRef::from(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            super::HttpCorsAllowOriginTextRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
         ));
         assert_eq!(parsed, vec![http::HeaderValue::from_static("")]);
     }

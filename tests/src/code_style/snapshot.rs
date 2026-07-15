@@ -161,7 +161,7 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
 fn workspace_metadata_uncached() -> super::types::CargoMetadata {
     super::types::CargoMetadata::from(
         cargo_metadata::MetadataCommand::new()
-            .manifest_path(str_constants::code_style::WORKSPACE_MANIFEST_PATH)
+            .manifest_path(str_constants::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
             .exec()
             .expect("c84e9d1f"),
     )

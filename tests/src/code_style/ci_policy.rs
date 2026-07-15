@@ -4,7 +4,7 @@ fn workflow() -> super::types::SourceText {
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
                 .expect("c02ae58b")
-                .join(str_constants::code_style::CI_WORKFLOW_PATH),
+                .join(str_constants::CODE_STYLE_CI_WORKFLOW_PATH),
         )
         .expect("da504e54"),
     )

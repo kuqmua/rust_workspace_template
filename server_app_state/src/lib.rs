@@ -108,7 +108,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
             database_url: test_env(
                 config_lib::StdEnvVarOk::try_from(
-                    str_constants::test_values::UNREACHABLE_DATABASE_URL.to_owned(),
+                    str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
                 )
                 .expect("3e33c100"),
             ),
@@ -180,7 +180,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("799dc227"),
         ),
         pg_pool: app_state::SqlxPgPool::from(
-            sqlx::PgPool::connect_lazy(str_constants::test_values::UNREACHABLE_DATABASE_URL)
+            sqlx::PgPool::connect_lazy(str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0"),
         ),
         project_git_info: &git_info::PROJECT_GIT_INFO,
@@ -191,7 +191,7 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
         git_info::ProjectGitInfo {
-            commit: git_info::GitCommitIdRef::from(str_constants::test_values::COMMIT),
+            commit: git_info::GitCommitIdRef::from(str_constants::TEST_VALUES_COMMIT),
         }
     }
     fn env<T>(value: &str) -> T
@@ -291,10 +291,10 @@ mod tests {
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
         let structure = mk_structure(&git_info);
-        assert_eq!(structure.as_ref(), str_constants::test_values::COMMIT);
+        assert_eq!(structure.as_ref(), str_constants::TEST_VALUES_COMMIT);
         assert_eq!(
             git_info::GetGitCommitLink::get_git_commit_link(&structure),
-            git_info::git_commit_link(str_constants::test_values::COMMIT)
+            git_info::git_commit_link(str_constants::TEST_VALUES_COMMIT)
         );
     }
 }
