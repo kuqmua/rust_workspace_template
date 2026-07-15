@@ -169,7 +169,7 @@ pub fn resolve_client_ip(
     let parsed_forwarded_ip = || {
         let values = headers
             .0
-            .get_all(contract_constants::runtime::FORWARDED_FOR_HEADER_NAME);
+            .get_all(str_constants::runtime::FORWARDED_FOR_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
         if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
@@ -199,7 +199,7 @@ pub fn resolve_client_ip(
     let parsed_real_ip = || {
         let values = headers
             .0
-            .get_all(contract_constants::runtime::REAL_IP_HEADER_NAME);
+            .get_all(str_constants::runtime::REAL_IP_HEADER_NAME);
         let mut iter = values.iter();
         let value = iter.next()?;
         if iter.next().is_some() || value.as_bytes().len() > MAX_FORWARDED_HEADER_BYTES {
@@ -238,7 +238,7 @@ mod tests {
     fn untrusted_peer_cannot_spoof_forwarded_header() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.1"),
         );
         assert_eq!(
@@ -250,7 +250,7 @@ mod tests {
     fn trusted_chain_resolves_first_untrusted_address_from_right() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.7, 10.0.0.8, 10.0.0.9"),
         );
         assert_eq!(
@@ -262,7 +262,7 @@ mod tests {
     fn ipv4_range_does_not_trust_ipv6_peer() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.7"),
         );
         assert_eq!(
@@ -274,7 +274,7 @@ mod tests {
     fn malformed_and_multiple_headers_fall_back_to_peer() {
         let mut malformed_headers = http::HeaderMap::new();
         let _inserted_malformed = malformed_headers.append(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("not-an-ip"),
         );
         assert_eq!(
@@ -287,7 +287,7 @@ mod tests {
         );
         let mut mixed_headers = http::HeaderMap::new();
         let _inserted_mixed = mixed_headers.append(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.1,not-an-ip"),
         );
         assert_eq!(
@@ -296,11 +296,11 @@ mod tests {
         );
         let mut headers = http::HeaderMap::new();
         let _inserted_first = headers.append(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.1"),
         );
         let _inserted_second = headers.append(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_static("203.0.113.2"),
         );
         assert_eq!(
@@ -313,7 +313,7 @@ mod tests {
         let oversized = "1".repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(1usize));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
-            contract_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+            str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
             http::HeaderValue::from_str(oversized.as_str()).expect("6353255d"),
         );
         assert_eq!(

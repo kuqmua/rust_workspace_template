@@ -789,14 +789,14 @@ impl AdminPage {
     #[must_use]
     pub fn path(self) -> frontend_contract::ContractStr {
         frontend_contract::ContractStr::from(match self {
-            Self::Audit => contract_constants::admin_page_paths::AUDIT,
-            Self::Metrics => contract_constants::admin_page_paths::METRICS,
-            Self::OpenApi => contract_constants::admin_page_paths::OPEN_API,
-            Self::Permissions => contract_constants::admin_page_paths::PERMISSIONS,
-            Self::Roles => contract_constants::admin_page_paths::ROLES,
-            Self::Settings => contract_constants::admin_page_paths::SETTINGS,
-            Self::Users => contract_constants::admin_page_paths::USERS,
-            Self::Version => contract_constants::admin_page_paths::VERSION,
+            Self::Audit => str_constants::admin_page_paths::AUDIT,
+            Self::Metrics => str_constants::admin_page_paths::METRICS,
+            Self::OpenApi => str_constants::admin_page_paths::OPEN_API,
+            Self::Permissions => str_constants::admin_page_paths::PERMISSIONS,
+            Self::Roles => str_constants::admin_page_paths::ROLES,
+            Self::Settings => str_constants::admin_page_paths::SETTINGS,
+            Self::Users => str_constants::admin_page_paths::USERS,
+            Self::Version => str_constants::admin_page_paths::VERSION,
         })
     }
     #[must_use]
@@ -831,7 +831,7 @@ impl AdminPage {
             || {
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::OPEN_API_READ,
+                        str_constants::admin_permission_values::OPEN_API_READ,
                     ),
                 )
             },
@@ -876,69 +876,69 @@ impl AdminRoute {
             Self::Audit => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::AUDIT_LOG_READ,
+                        str_constants::admin_permission_values::AUDIT_LOG_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::AUDIT,
+                str_constants::admin_api_paths::AUDIT,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::CreateRole => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::ROLES_CREATE,
+                        str_constants::admin_permission_values::ROLES_CREATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::ROLES,
+                str_constants::admin_api_paths::ROLES,
                 frontend_contract::SuccessStatus::Code201,
             ),
             Self::CreateUser => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_CREATE,
+                        str_constants::admin_permission_values::USERS_CREATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USERS,
+                str_constants::admin_api_paths::USERS,
                 frontend_contract::SuccessStatus::Code201,
             ),
             Self::DeleteRole(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::ROLES_DELETE,
+                        str_constants::admin_permission_values::ROLES_DELETE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::ROLE,
+                str_constants::admin_api_paths::ROLE,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::DeleteUser(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_DELETE,
+                        str_constants::admin_permission_values::USERS_DELETE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USER,
+                str_constants::admin_api_paths::USER,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Me => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::AUTH_ME,
+                str_constants::admin_api_paths::AUTH_ME,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Metrics => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::METRICS_READ,
+                        str_constants::admin_permission_values::METRICS_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
@@ -949,7 +949,7 @@ impl AdminRoute {
             Self::OpenApi => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::OPEN_API_READ,
+                        str_constants::admin_permission_values::OPEN_API_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
@@ -960,164 +960,164 @@ impl AdminRoute {
             Self::Permissions => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::PERMISSIONS_READ,
+                        str_constants::admin_permission_values::PERMISSIONS_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::PERMISSIONS,
+                str_constants::admin_api_paths::PERMISSIONS,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Refresh => (
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::AUTH_REFRESH,
+                str_constants::admin_api_paths::AUTH_REFRESH,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::RevokeAllSessions => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::AUTH_SESSIONS,
+                str_constants::admin_api_paths::AUTH_SESSIONS,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::RevokeSession => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::AUTH_SESSION,
+                str_constants::admin_api_paths::AUTH_SESSION,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Roles => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::ROLES_READ,
+                        str_constants::admin_permission_values::ROLES_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::ROLES,
+                str_constants::admin_api_paths::ROLES,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SetRolePermissions(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::ROLE_PERMISSIONS_UPDATE,
+                        str_constants::admin_permission_values::ROLE_PERMISSIONS_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::ROLE_PERMISSIONS,
+                str_constants::admin_api_paths::ROLE_PERMISSIONS,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserBan(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_UPDATE,
+                        str_constants::admin_permission_values::USERS_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USER_BAN,
+                str_constants::admin_api_paths::USER_BAN,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserPassword(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_UPDATE,
+                        str_constants::admin_permission_values::USERS_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USER_PASSWORD,
+                str_constants::admin_api_paths::USER_PASSWORD,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserRoles(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USER_ROLES_UPDATE,
+                        str_constants::admin_permission_values::USER_ROLES_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USER_ROLES,
+                str_constants::admin_api_paths::USER_ROLES,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Settings => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::SYSTEM_SETTINGS_READ,
+                        str_constants::admin_permission_values::SYSTEM_SETTINGS_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::SETTINGS,
+                str_constants::admin_api_paths::SETTINGS,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SignIn => (
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::AUTH_SIGN_IN,
+                str_constants::admin_api_paths::AUTH_SIGN_IN,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SignOut => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::AUTH_SIGN_OUT,
+                str_constants::admin_api_paths::AUTH_SIGN_OUT,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Sessions => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::AUTH_SESSIONS,
+                str_constants::admin_api_paths::AUTH_SESSIONS,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::UpdateRole(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::ROLES_UPDATE,
+                        str_constants::admin_permission_values::ROLES_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::ROLE,
+                str_constants::admin_api_paths::ROLE,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::UpdateSettings => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::SYSTEM_SETTINGS_UPDATE,
+                        str_constants::admin_permission_values::SYSTEM_SETTINGS_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::SETTINGS,
+                str_constants::admin_api_paths::SETTINGS,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::UpdateUser(_) => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_UPDATE,
+                        str_constants::admin_permission_values::USERS_UPDATE,
                     ),
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                contract_constants::admin_api_paths::USER,
+                str_constants::admin_api_paths::USER,
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Users => (
                 frontend_contract::AuthenticationRequirement::Permission(
                     frontend_contract::ContractStr::from(
-                        contract_constants::admin_permission_values::USERS_READ,
+                        str_constants::admin_permission_values::USERS_READ,
                     ),
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                contract_constants::admin_api_paths::USERS,
+                str_constants::admin_api_paths::USERS,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Version => (
@@ -1140,28 +1140,24 @@ impl AdminRoute {
     pub fn path(self) -> AdminRoutePath {
         let suffix = match self {
             Self::DeleteRole(id) | Self::UpdateRole(id) => {
-                format!("{}/{id}", contract_constants::admin_api_paths::ROLES)
+                format!("{}/{id}", str_constants::admin_api_paths::ROLES)
             }
             Self::SetRolePermissions(id) => {
-                format!(
-                    "{}/{id}/permissions",
-                    contract_constants::admin_api_paths::ROLES
-                )
+                format!("{}/{id}/permissions", str_constants::admin_api_paths::ROLES)
             }
             Self::DeleteUser(id) | Self::UpdateUser(id) => {
-                format!("{}/{id}", contract_constants::admin_api_paths::USERS)
+                format!("{}/{id}", str_constants::admin_api_paths::USERS)
             }
             Self::SetUserBan(id) => {
-                format!("{}/{id}/ban", contract_constants::admin_api_paths::USERS)
+                format!("{}/{id}/ban", str_constants::admin_api_paths::USERS)
             }
-            Self::SetUserPassword(id) => format!(
-                "{}/{id}/password",
-                contract_constants::admin_api_paths::USERS
-            ),
+            Self::SetUserPassword(id) => {
+                format!("{}/{id}/password", str_constants::admin_api_paths::USERS)
+            }
             Self::SetUserRoles(id) => {
-                format!("{}/{id}/roles", contract_constants::admin_api_paths::USERS)
+                format!("{}/{id}/roles", str_constants::admin_api_paths::USERS)
             }
-            Self::RevokeSession => String::from(contract_constants::admin_api_paths::AUTH_SESSION),
+            Self::RevokeSession => String::from(str_constants::admin_api_paths::AUTH_SESSION),
             Self::Version => String::from("/api/v1/git_info"),
             value @ (Self::Audit
             | Self::CreateRole
@@ -1185,7 +1181,7 @@ impl AdminRoute {
         } else {
             AdminRoutePath::try_from(format!(
                 "{}{suffix}",
-                contract_constants::server_admin::API_PREFIX
+                str_constants::server_admin::API_PREFIX
             ))
             .unwrap_or_default()
         }
@@ -1248,7 +1244,7 @@ mod tests {
             route.contract().authentication(),
             frontend_contract::AuthenticationRequirement::Permission(
                 frontend_contract::ContractStr::from(
-                    contract_constants::admin_permission_values::USERS_UPDATE
+                    str_constants::admin_permission_values::USERS_UPDATE
                 )
             )
         );
@@ -1261,7 +1257,7 @@ mod tests {
             route.contract().authentication(),
             frontend_contract::AuthenticationRequirement::Permission(
                 frontend_contract::ContractStr::from(
-                    contract_constants::admin_permission_values::OPEN_API_READ
+                    str_constants::admin_permission_values::OPEN_API_READ
                 ),
             )
         );

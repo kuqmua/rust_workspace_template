@@ -17,7 +17,7 @@ name = "server"
 path = "src/main.rs"
 
 [dependencies]
-contract_constants = { workspace = true }
+str_constants = { workspace = true }
 axum = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }

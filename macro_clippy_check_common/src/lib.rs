@@ -1,19 +1,19 @@
 #[cfg(feature = "test-utils")]
 const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep {
-        args: &contract_constants::macro_clippy::CARGO_FMT_ARGS,
+        args: &str_constants::macro_clippy::CARGO_FMT_ARGS,
         phase: GeneratedCratePhase::Formatting,
     },
     GeneratedCrateStep {
-        args: &contract_constants::macro_clippy::CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &str_constants::macro_clippy::CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Compilation,
     },
     GeneratedCrateStep {
-        args: &contract_constants::macro_clippy::CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &str_constants::macro_clippy::CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Clippy,
     },
     GeneratedCrateStep {
-        args: &contract_constants::macro_clippy::CARGO_TEST_LIB_ARGS,
+        args: &str_constants::macro_clippy::CARGO_TEST_LIB_ARGS,
         phase: GeneratedCratePhase::Test,
     },
 ];

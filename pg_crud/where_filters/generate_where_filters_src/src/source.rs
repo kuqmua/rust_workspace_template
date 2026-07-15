@@ -27,7 +27,7 @@ pub fn generate_where_filters(
     impl PgTypeKind {
         const fn format_argument(&self) -> &'static str {
             match &self {
-                Self::Standard => "",
+                Self::Standard => str_constants::pg_crud::STANDARD_FORMAT_ARGUMENT,
             }
         }
     }

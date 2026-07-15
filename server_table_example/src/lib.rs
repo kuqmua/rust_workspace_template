@@ -269,7 +269,7 @@ mod tests {
             let operation_doc = doc
                 .pointer(&format!(
                     "{}{operation}/{method}",
-                    contract_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
+                    str_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
                 ))
                 .expect("8ba5f1e7");
             assert_eq!(operation_doc["operationId"], operation);
@@ -324,7 +324,7 @@ mod tests {
         assert!(
             doc.pointer(&format!(
                 "{}um",
-                contract_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
+                str_constants::test_values::OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
             ))
             .is_none()
         );

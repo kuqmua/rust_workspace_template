@@ -12,7 +12,7 @@ edition = "2024"
 
 
 [dependencies]
-contract_constants = { workspace = true }
+str_constants = { workspace = true }
 axum = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }

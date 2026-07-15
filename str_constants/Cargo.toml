@@ -1,5 +1,5 @@
 [package]
-name = "contract_constants"
+name = "str_constants"
 version = "0.1.0"
 publish = false
 description = "description"

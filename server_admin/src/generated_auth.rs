@@ -104,17 +104,17 @@ where
                         )
                     })
                     .or_else(|| {
-                        path.ends_with(contract_constants::admin_page_paths::OPEN_API_DOCUMENT)
+                        path.ends_with(str_constants::admin_page_paths::OPEN_API_DOCUMENT)
                             .then_some((
-                                Some(contract_constants::admin_permission_values::OPEN_API_READ),
+                                Some(str_constants::admin_permission_values::OPEN_API_READ),
                                 false,
                                 frontend_contract::HttpMethod::Get,
                             ))
                     })
                     .or_else(|| {
-                        path.ends_with(contract_constants::admin_page_paths::METRICS)
+                        path.ends_with(str_constants::admin_page_paths::METRICS)
                             .then_some((
-                                Some(contract_constants::admin_permission_values::METRICS_READ),
+                                Some(str_constants::admin_permission_values::METRICS_READ),
                                 false,
                                 frontend_contract::HttpMethod::Get,
                             ))

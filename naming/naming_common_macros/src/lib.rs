@@ -37,7 +37,7 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         workspace_macro_helpers::part_at(&parts, 3).map(|part| part.to_string())
     else {
         return workspace_macro_helpers::compile_error_token_stream(
-            contract_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR,
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR,
         )
         .into_inner()
         .into();
@@ -47,7 +47,7 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
         .and_then(|(_, rest)| rest.split_once('|'))
     else {
         return workspace_macro_helpers::compile_error_token_stream(
-            contract_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR,
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR,
         )
         .into_inner()
         .into();

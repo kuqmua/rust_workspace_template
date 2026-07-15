@@ -10,11 +10,9 @@ mod types;
 const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] =
     &[ExternalLeafWrapperNameException {
         identifier: types::StaticStr(
-            contract_constants::code_style::GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
+            str_constants::code_style::GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
         ),
-        reason: types::StaticStr(
-            contract_constants::code_style::GENERATED_RUST_TOKEN_STREAM_REASON,
-        ),
+        reason: types::StaticStr(str_constants::code_style::GENERATED_RUST_TOKEN_STREAM_REASON),
     }];
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
@@ -28,8 +26,8 @@ enum ExpectOrPanic {
 impl ExpectOrPanic {
     const fn method_name(self) -> types::StaticStr {
         match self {
-            Self::Expect => types::StaticStr("expect"),
-            Self::Panic => types::StaticStr("panic"),
+            Self::Expect => types::StaticStr(str_constants::code_style::EXPECT_METHOD_NAME),
+            Self::Panic => types::StaticStr(str_constants::code_style::PANIC_METHOD_NAME),
         }
     }
 }
@@ -549,6 +547,21 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         }
         syn::visit::visit_impl_item_const(self, i);
     }
+    fn visit_impl_item_fn(&mut self, i: &'ast syn::ImplItemFn) {
+        if i.sig.constness.is_some() {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const method `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_impl_item_fn(self, i);
+    }
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
         let mut literal_visitor = TestStringLiteralVisitor {
             values: types::SourceTextList::default(),
@@ -559,6 +572,21 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
                 .push(format!("constant `{}` contains string literals", i.ident));
         }
         syn::visit::visit_item_const(self, i);
+    }
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.sig.constness.is_some() {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, &i.block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const function `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_item_fn(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
         let mut literal_visitor = TestStringLiteralVisitor {
@@ -585,6 +613,23 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
             }
         }
         syn::visit::visit_trait_item_const(self, i);
+    }
+    fn visit_trait_item_fn(&mut self, i: &'ast syn::TraitItemFn) {
+        if i.sig.constness.is_some()
+            && let Some(block) = &i.default
+        {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_block(&mut literal_visitor, block);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "const trait method `{}` contains string literals",
+                    i.sig.ident
+                ));
+            }
+        }
+        syn::visit::visit_trait_item_fn(self, i);
     }
 }
 struct StringWrapperNameVisitor {
@@ -3040,11 +3085,10 @@ fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
     });
 }
 fn workspace_table_from_cargo_toml() -> types::TomlTable {
-    let mut table =
-        std::fs::read_to_string(contract_constants::code_style::WORKSPACE_MANIFEST_PATH)
-            .expect("39a0d238")
-            .parse::<toml::Table>()
-            .expect("beb11586");
+    let mut table = std::fs::read_to_string(str_constants::code_style::WORKSPACE_MANIFEST_PATH)
+        .expect("39a0d238")
+        .parse::<toml::Table>()
+        .expect("beb11586");
     toml_val_as_table(
         types::TomlValue::from(table.remove("workspace").expect("f728192d")),
         types::StaticStr("2bfb0b62"),

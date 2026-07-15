@@ -190,14 +190,14 @@ fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> NotFoundMessage {
 fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> NotFoundMessage {
     let cap = no_route_message_capacity(uri_suffix);
     let mut message = String::with_capacity(cap.0);
-    message.push_str(contract_constants::common_routes::NO_ROUTE_MSG_PREFIX);
+    message.push_str(str_constants::common_routes::NO_ROUTE_MSG_PREFIX);
     message.push_str(uri_suffix.0);
     NotFoundMessage::try_from(message).unwrap_or_else(NotFoundMessage::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 const fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapacity {
     NoRouteMessageCapacity(
-        contract_constants::common_routes::NO_ROUTE_MSG_PREFIX
+        str_constants::common_routes::NO_ROUTE_MSG_PREFIX
             .len()
             .saturating_add(uri_suffix.0.len()),
     )
@@ -225,9 +225,7 @@ const fn mk_not_found_payload_with_message(
     NotFoundHandle {
         commit,
         message,
-        open_api_specification: OpenApiSpecificationPath(
-            contract_constants::common_routes::SWAGGER_UI,
-        ),
+        open_api_specification: OpenApiSpecificationPath(str_constants::common_routes::SWAGGER_UI),
     }
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
@@ -264,7 +262,7 @@ const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheck
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
     let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
     let probe = async {
-        sqlx::query(contract_constants::common_routes::HEALTH_CHECK_SQL)
+        sqlx::query(str_constants::common_routes::HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
             .await
             .is_ok()
@@ -305,11 +303,11 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
     AxumCommonRoutes(
         axum::Router::new()
             .route(
-                contract_constants::common_routes::HEALTH_LIVE,
+                str_constants::common_routes::HEALTH_LIVE,
                 axum::routing::get(health_live),
             )
             .route(
-                contract_constants::common_routes::HEALTH_READY,
+                str_constants::common_routes::HEALTH_READY,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let ready_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
                     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
@@ -318,7 +316,7 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
                 }),
             )
             .route(
-                contract_constants::common_routes::HEALTH,
+                str_constants::common_routes::HEALTH,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let aggregate_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
                     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
@@ -327,14 +325,14 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
                 }),
             )
             .route(
-                contract_constants::common_routes::HEALTH_CHECK,
+                str_constants::common_routes::HEALTH_CHECK,
                 axum::routing::get(async |axum::extract::State(app_state_hc_raw)| {
                     let app_state_hc: std::sync::Arc<dyn CommonRoutesParameters> = app_state_hc_raw;
                     map_health_check_status(database_is_ready(app_state_hc.as_ref()).await).0
                 }),
             )
             .route(
-                contract_constants::common_routes::GIT_INFO,
+                str_constants::common_routes::GIT_INFO,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let app_state_76fb2013: std::sync::Arc<dyn CommonRoutesParameters> =
                         app_state_raw;
@@ -395,11 +393,11 @@ mod tests {
     impl super::CommonRoutesParameters for TestState {}
     fn test_state() -> std::sync::Arc<dyn super::CommonRoutesParameters> {
         std::sync::Arc::new(TestState {
-            commit: contract_constants::test_values::COMMIT,
+            commit: str_constants::test_values::COMMIT,
         })
     }
     fn test_commit_link() -> String {
-        git_info::git_commit_link(contract_constants::test_values::COMMIT)
+        git_info::git_commit_link(str_constants::test_values::COMMIT)
             .as_ref()
             .to_owned()
     }
@@ -425,7 +423,7 @@ mod tests {
         assert_no_route_message(&payload.message, exp_uri_suffix);
         assert_eq!(
             payload.open_api_specification.0,
-            contract_constants::common_routes::SWAGGER_UI
+            str_constants::common_routes::SWAGGER_UI
         );
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps not-found commit and payload checks coupled across tests
@@ -531,7 +529,7 @@ mod tests {
     #[test]
     fn no_route_prefix_stays_stable() {
         assert_eq!(
-            contract_constants::common_routes::NO_ROUTE_MSG_PREFIX,
+            str_constants::common_routes::NO_ROUTE_MSG_PREFIX,
             "No route for "
         );
     }
@@ -568,10 +566,10 @@ mod tests {
     fn mk_json_res_wraps_payload_with_status() {
         let response = super::mk_json_res(
             super::AxumHealthCheckStatus(axum::http::StatusCode::CREATED),
-            super::mk_git_info_payload(b_cow(contract_constants::test_values::COMMIT)),
+            super::mk_git_info_payload(b_cow(str_constants::test_values::COMMIT)),
         );
         assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
-        assert_git_info_commit(&response.payload.0, contract_constants::test_values::COMMIT);
+        assert_git_info_commit(&response.payload.0, str_constants::test_values::COMMIT);
     }
     #[test]
     fn mk_state_payload_passes_commit_link_to_mapper() {

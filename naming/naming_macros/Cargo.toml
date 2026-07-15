@@ -14,7 +14,7 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-contract_constants = { workspace = true }
+str_constants = { workspace = true }
 regex = { workspace = true }
 serde_json = { workspace = true }
 proc-macro2 = { workspace = true }

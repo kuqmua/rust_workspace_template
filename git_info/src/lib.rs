@@ -1,8 +1,8 @@
 const BASE_GIT_COMMIT_LINK_LEN: usize =
-    contract_constants::naming::GITHUB_URL.len() + contract_constants::git_info::TREE_SEGMENT.len();
+    str_constants::naming::GITHUB_URL.len() + str_constants::git_info::TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
 pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
-    commit: GitCommitIdRef(contract_constants::git_info::PROJECT_GIT_COMMIT_ID),
+    commit: GitCommitIdRef(str_constants::git_info::PROJECT_GIT_COMMIT_ID),
 };
 const PROJECT_GIT_COMMIT_ID: GitCommitIdRef<'_> = PROJECT_GIT_INFO.commit;
 #[derive(
@@ -227,7 +227,7 @@ pub fn project_git_commit_link() -> GitCommitLink {
 }
 #[must_use]
 pub const fn project_git_commit_link_ref() -> ProjectGitCommitLinkRef {
-    ProjectGitCommitLinkRef(contract_constants::git_info::PROJECT_GIT_COMMIT_LINK)
+    ProjectGitCommitLinkRef(str_constants::git_info::PROJECT_GIT_COMMIT_LINK)
 }
 #[must_use]
 pub fn git_commit_link<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> GitCommitLink
@@ -259,10 +259,8 @@ fn write_git_commit_link<'commit_lt, CommitIdTy>(
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    output.0.push_str(contract_constants::naming::GITHUB_URL);
-    output
-        .0
-        .push_str(contract_constants::git_info::TREE_SEGMENT);
+    output.0.push_str(str_constants::naming::GITHUB_URL);
+    output.0.push_str(str_constants::git_info::TREE_SEGMENT);
     output.0.push_str(commit_id_ref.0);
 }
 #[must_use]
@@ -549,11 +547,7 @@ mod tests {
     #[test]
     fn base_git_commit_link_len_matches_expected_prefix_len() {
         let commit_id = "abc123";
-        let expected = format!(
-            "{}/tree/{commit_id}",
-            contract_constants::naming::GITHUB_URL
-        )
-        .len();
+        let expected = format!("{}/tree/{commit_id}", str_constants::naming::GITHUB_URL).len();
         assert_eq!(super::git_commit_link_capacity(commit_id), expected);
     }
     #[test]
@@ -586,8 +580,7 @@ mod tests {
     fn git_commit_link_capacity_handles_empty_commit() {
         assert_eq!(
             super::git_commit_link_capacity(""),
-            contract_constants::naming::GITHUB_URL.len()
-                + contract_constants::git_info::TREE_SEGMENT.len()
+            str_constants::naming::GITHUB_URL.len() + str_constants::git_info::TREE_SEGMENT.len()
         );
     }
 }

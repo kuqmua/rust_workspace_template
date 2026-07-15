@@ -22,7 +22,7 @@ dotenv = { workspace = true }
 generate_getter_traits_for_struct_fields = { workspace = true }
 optml = { workspace = true }
 config_lib_macros = { workspace = true }
-contract_constants = { workspace = true }
+str_constants = { workspace = true }
 newtype = { workspace = true }
 [lints]
 workspace = true

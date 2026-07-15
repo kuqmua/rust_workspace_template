@@ -1,5 +1,5 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
-    axum::http::HeaderName::from_static(contract_constants::route_validators::COMMIT_HEADER_NAME);
+    axum::http::HeaderName::from_static(str_constants::route_validators::COMMIT_HEADER_NAME);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(to_err_string_as_ref_str)]
 pub struct CommitNotEqMessage(&'static str);
@@ -42,9 +42,7 @@ impl CommitError {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
     fn commit_not_eq(commit_to_use: CommitToUse) -> Self {
         Self::CommitNotEq {
-            commit_not_eq: CommitNotEqMessage(
-                contract_constants::route_validators::COMMIT_NOT_EQ_MSG,
-            ),
+            commit_not_eq: CommitNotEqMessage(str_constants::route_validators::COMMIT_NOT_EQ_MSG),
             commit_to_use,
             location: location_macros::location!(),
         }
@@ -60,7 +58,7 @@ impl CommitError {
     fn no_commit_header() -> Self {
         Self::NoCommitHeader {
             no_commit_header: NoCommitHeaderMessage(
-                contract_constants::route_validators::NO_COMMIT_HEADER_MSG,
+                str_constants::route_validators::NO_COMMIT_HEADER_MSG,
             ),
             location: location_macros::location!(),
         }
@@ -121,7 +119,7 @@ mod tests {
         )
     }
     fn mk_headers_with_wrong_commit() -> crate::test_hlp::AxumTestHeaders {
-        mk_headers_with_commit(contract_constants::test_values::WRONG_COMMIT)
+        mk_headers_with_commit(str_constants::test_values::WRONG_COMMIT)
     }
     fn mk_headers_with_project_commit() -> crate::test_hlp::AxumTestHeaders {
         mk_headers_with_commit(git_info::PROJECT_GIT_INFO.commit.as_ref())
@@ -189,7 +187,7 @@ mod tests {
             expect_check_commit_err_variant(headers, exp_id, no_commit_header_message);
         assert_eq!(
             no_commit_header,
-            contract_constants::route_validators::NO_COMMIT_HEADER_MSG
+            str_constants::route_validators::NO_COMMIT_HEADER_MSG
         );
     }
     fn expect_commit_to_str_conversion_err(headers: &axum::http::HeaderMap, exp_id: &'static str) {
@@ -209,7 +207,7 @@ mod tests {
     fn assert_wrong_commit_fields(fields: (&'static str, &'static str)) {
         assert_commit_not_eq_fields(
             fields,
-            contract_constants::route_validators::COMMIT_NOT_EQ_MSG,
+            str_constants::route_validators::COMMIT_NOT_EQ_MSG,
             <&'static str>::from(git_info::project_git_commit_link_ref()),
         );
     }
@@ -284,7 +282,7 @@ mod tests {
         );
         assert_eq!(
             no_commit_header,
-            contract_constants::route_validators::NO_COMMIT_HEADER_MSG
+            str_constants::route_validators::NO_COMMIT_HEADER_MSG
         );
     }
     #[test]
@@ -305,7 +303,7 @@ mod tests {
         );
         assert_eq!(
             no_commit_header,
-            contract_constants::route_validators::NO_COMMIT_HEADER_MSG
+            str_constants::route_validators::NO_COMMIT_HEADER_MSG
         );
     }
     #[test]
@@ -322,7 +320,7 @@ mod tests {
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
         let fields = crate::test_hlp::expect_error_variant_ref(
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
-                contract_constants::test_values::WRONG_COMMIT,
+                str_constants::test_values::WRONG_COMMIT,
             )),
             "6804382f",
             commit_not_eq_fields,
@@ -378,7 +376,7 @@ mod tests {
     #[test]
     fn non_project_commit_is_rejected_by_git_info_helper() {
         assert!(!git_info::is_project_commit(
-            contract_constants::test_values::WRONG_COMMIT
+            str_constants::test_values::WRONG_COMMIT
         ));
     }
     #[test]

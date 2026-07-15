@@ -246,7 +246,7 @@ fn initialization_tracing() {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            tracing_subscriber::EnvFilter::new(contract_constants::server::TRACING_DFLT_FILTER)
+            tracing_subscriber::EnvFilter::new(str_constants::server::TRACING_DFLT_FILTER)
         }),
     );
     let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
@@ -513,6 +513,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(contract_constants::server::TRACING_DFLT_FILTER, "info");
+        assert_eq!(str_constants::server::TRACING_DFLT_FILTER, "info");
     }
 }

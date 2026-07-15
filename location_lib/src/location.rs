@@ -172,7 +172,7 @@ impl Location {
         write!(
             f.0,
             "{}/blob/{}/{}#L{}",
-            contract_constants::naming::GITHUB_URL,
+            str_constants::naming::GITHUB_URL,
             self.commit.as_ref(),
             file.0,
             line
@@ -198,7 +198,7 @@ impl Location {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
             None => {
-                f.0.write_str(contract_constants::location::INCORRECT_DATETIME_MSG)
+                f.0.write_str(str_constants::location::INCORRECT_DATETIME_MSG)
             }
         }
     }
@@ -372,7 +372,7 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10",
-                contract_constants::naming::GITHUB_URL
+                str_constants::naming::GITHUB_URL
             )
         );
     }
@@ -383,8 +383,8 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/error.rs#L30)",
-                contract_constants::naming::GITHUB_URL,
-                contract_constants::naming::GITHUB_URL
+                str_constants::naming::GITHUB_URL,
+                str_constants::naming::GITHUB_URL
             )
         );
     }
@@ -398,7 +398,7 @@ mod tests {
                     location: &location
                 }
             ),
-            contract_constants::location::INCORRECT_DATETIME_MSG
+            str_constants::location::INCORRECT_DATETIME_MSG
         );
     }
     #[test]

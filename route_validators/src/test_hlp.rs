@@ -68,7 +68,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
                 assert!(
                     !is_block_on_poll_limit_reached(poll_count),
                     "{} super::block_on exceeded poll limit",
-                    contract_constants::route_validators::BLOCK_ON_POLL_LIMIT_ER_ID
+                    str_constants::route_validators::BLOCK_ON_POLL_LIMIT_ER_ID
                 );
                 increment_block_on_poll_count(&mut poll_count);
                 std::thread::yield_now();
@@ -123,14 +123,14 @@ fn panic_replace_header_missing_src(exp_id: impl Into<TestExpId>) -> ! {
     let exp_id = exp_id.into();
     panic!(
         "{} missing source header while replacing, id={exp_id}",
-        contract_constants::route_validators::REPLACE_HEADER_MISSING_SRC_ER_ID
+        str_constants::route_validators::REPLACE_HEADER_MISSING_SRC_ER_ID
     );
 }
 #[track_caller]
 pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
     v.unwrap_or_else(|_| {
         panic_unexpected_result(
-            contract_constants::route_validators::EXPECT_OK_ER_ID,
+            str_constants::route_validators::EXPECT_OK_ER_ID,
             "expect_ok",
             "Err",
             exp_id,
@@ -149,7 +149,7 @@ where
 pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
     v.err().unwrap_or_else(|| {
         panic_unexpected_result(
-            contract_constants::route_validators::EXPECT_ER_ER_ID,
+            str_constants::route_validators::EXPECT_ER_ER_ID,
             "expect_error",
             "Ok",
             exp_id,

@@ -36,6 +36,11 @@ pub mod config {
         "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
     pub const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
     pub const TIMEZONE_NOT_EAST_MSG: &str = "not east";
+    pub const TRACING_DEBUG: &str = "debug";
+    pub const TRACING_ERROR: &str = "error";
+    pub const TRACING_INFO: &str = "info";
+    pub const TRACING_TRACE: &str = "trace";
+    pub const TRACING_WARN: &str = "warn";
 }
 pub mod git_info {
     pub const PROJECT_GIT_COMMIT_ID: &str =
@@ -116,6 +121,36 @@ pub mod pg_crud {
     pub const TEXT_SEARCH_SQL_OPERATOR: &str = "ILIKE";
     pub const TEXT_SEARCH_SQL_SUFFIX: &str = "ESCAPE '\\'";
     pub const WITHIN_SQL_OPERATOR: &str = "<@";
+    pub const CREATE_PERMISSION_ACTION: &str = "create";
+    pub const DELETE_PERMISSION_ACTION: &str = "delete";
+    pub const READ_PERMISSION_ACTION: &str = "read";
+    pub const UPDATE_PERMISSION_ACTION: &str = "update";
+    pub const STANDARD_FORMAT_ARGUMENT: &str = "";
+    pub const PG_BIGSERIAL: &str = "bigserial";
+    pub const PG_BOOL: &str = "bool";
+    pub const PG_BYTEA: &str = "bytea";
+    pub const PG_DATE: &str = "date";
+    pub const PG_DATERANGE: &str = "daterange";
+    pub const PG_FLOAT4: &str = "float4";
+    pub const PG_FLOAT8: &str = "float8";
+    pub const PG_INET: &str = "inet";
+    pub const PG_INT2: &str = "int2";
+    pub const PG_INT4: &str = "int4";
+    pub const PG_INT4RANGE: &str = "int4range";
+    pub const PG_INT8: &str = "int8";
+    pub const PG_INT8RANGE: &str = "int8range";
+    pub const PG_INTERVAL: &str = "interval";
+    pub const PG_MACADDR: &str = "macaddr";
+    pub const PG_MONEY: &str = "money";
+    pub const PG_SERIAL: &str = "serial";
+    pub const PG_SMALLSERIAL: &str = "smallserial";
+    pub const PG_TEXT: &str = "text";
+    pub const PG_TIME: &str = "time";
+    pub const PG_TIMESTAMP: &str = "timestamp";
+    pub const PG_TIMESTAMPTZ: &str = "timestamptz";
+    pub const PG_TSRANGE: &str = "tsrange";
+    pub const PG_TSTZRANGE: &str = "tstzrange";
+    pub const PG_UUID: &str = "uuid";
     pub const BETWEEN_EXPECTING: &str = "struct Between with 2 els";
     pub const BETWEEN_SCHEMA_NAME: &str = "Between";
     pub const BETWEEN_STRUCT_NAME: &str = "struct Between";
@@ -174,6 +209,11 @@ pub mod server_admin {
     pub const REVOKE_USER_ACCESS_SESSIONS_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
     pub const REVOKE_USER_REFRESH_TOKENS_SQL: &str = "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
     pub const USER_IS_ADMIN_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = 'admin')";
+    pub const RATE_LIMIT_AUDIT_READ: &str = "audit_read";
+    pub const RATE_LIMIT_MUTATION: &str = "mutation";
+    pub const RATE_LIMIT_REFRESH_IP: &str = "refresh_ip";
+    pub const RATE_LIMIT_SIGN_IN_IP: &str = "sign_in_ip";
+    pub const RATE_LIMIT_SIGN_IN_IP_LOGIN: &str = "sign_in_ip_login";
 }
 pub mod admin_api_paths {
     pub const AUDIT: &str = "/audit-log";
@@ -279,6 +319,8 @@ pub mod code_style {
     pub const WORKSPACE_MANIFEST_PATH: &str = "../Cargo.toml";
     pub const GENERATED_RUST_TOKEN_STREAM_IDENTIFIER: &str = "GeneratedRustTokenStream";
     pub const GENERATED_RUST_TOKEN_STREAM_REASON: &str = "public macro-helper API name describes generated Rust tokens and is already used across generator crates";
+    pub const EXPECT_METHOD_NAME: &str = "expect";
+    pub const PANIC_METHOD_NAME: &str = "panic";
 }
 pub mod admin_table {
     pub const USER_SORTS: [(&str, &str); 4] = [

@@ -1,4 +1,4 @@
-const _: usize = contract_constants::macro_diagnostics::TUPLE_STRUCT_ERROR.len();
+const _: usize = str_constants::macro_diagnostics::TUPLE_STRUCT_ERROR.len();
 #[cfg(test)]
 mod tests {
     mod to_err_string {

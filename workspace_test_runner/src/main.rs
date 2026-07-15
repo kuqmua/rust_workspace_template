@@ -6,87 +6,85 @@ const MEASURE_REPEAT_COUNT: usize = 1000;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
 const STATIC_COMMANDS: [(&str, &[&str]); 3] = [
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_FMT_CHECK_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_FMT_CHECK_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_CLIPPY_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_CLIPPY_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_TEST_STYLE_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_TEST_STYLE_ARGS,
     ),
 ];
 const CARGO_TEST_COMMANDS: [(&str, &[&str]); 3] = [
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_TEST_WORKSPACE_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_TEST_WORKSPACE_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_TEST_IGNORED_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_TEST_IGNORED_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_TEST_DOC_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_TEST_DOC_ARGS,
     ),
 ];
 const NEXTEST_COMMANDS: [(&str, &[&str]); 3] = [
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::NEXTEST_WORKSPACE_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::NEXTEST_WORKSPACE_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::NEXTEST_IGNORED_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::NEXTEST_IGNORED_ARGS,
     ),
     (
-        contract_constants::workspace_test_runner::CARGO,
-        &contract_constants::workspace_test_runner::CARGO_TEST_DOC_ARGS,
+        str_constants::workspace_test_runner::CARGO,
+        &str_constants::workspace_test_runner::CARGO_TEST_DOC_ARGS,
     ),
 ];
 const MACRO_GENERATION_MEASUREMENTS: [(MeasurementName, CargoArgs); 3] = [
     (
-        MeasurementName(contract_constants::workspace_test_runner::GENERATE_PG_TABLE_MEASUREMENT),
-        CargoArgs(&contract_constants::workspace_test_runner::CARGO_TEST_GEN_PG_TBL_ARGS),
+        MeasurementName(str_constants::workspace_test_runner::GENERATE_PG_TABLE_MEASUREMENT),
+        CargoArgs(&str_constants::workspace_test_runner::CARGO_TEST_GEN_PG_TBL_ARGS),
     ),
     (
-        MeasurementName(contract_constants::workspace_test_runner::GENERATE_PG_TYPES_MEASUREMENT),
-        CargoArgs(&contract_constants::workspace_test_runner::CARGO_TEST_GEN_PG_TYPES_ARGS),
+        MeasurementName(str_constants::workspace_test_runner::GENERATE_PG_TYPES_MEASUREMENT),
+        CargoArgs(&str_constants::workspace_test_runner::CARGO_TEST_GEN_PG_TYPES_ARGS),
     ),
     (
-        MeasurementName(
-            contract_constants::workspace_test_runner::GENERATE_WHERE_FILTERS_MEASUREMENT,
-        ),
-        CargoArgs(&contract_constants::workspace_test_runner::CARGO_TEST_GEN_WH_FLTS_ARGS),
+        MeasurementName(str_constants::workspace_test_runner::GENERATE_WHERE_FILTERS_MEASUREMENT),
+        CargoArgs(&str_constants::workspace_test_runner::CARGO_TEST_GEN_WH_FLTS_ARGS),
     ),
 ];
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
 const ALLOCATION_TOOLS: [AllocationTool; 6] = [
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::LIBMEMUSAGE_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::MEMUSAGE_PATH),
+        name: ToolName(str_constants::workspace_test_runner::LIBMEMUSAGE_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::MEMUSAGE_PATH),
     },
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::VALGRIND_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::VALGRIND_PATH),
+        name: ToolName(str_constants::workspace_test_runner::VALGRIND_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::VALGRIND_PATH),
     },
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::HEAPTRACK_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::HEAPTRACK_PATH),
+        name: ToolName(str_constants::workspace_test_runner::HEAPTRACK_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::HEAPTRACK_PATH),
     },
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::LTRACE_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::LTRACE_PATH),
+        name: ToolName(str_constants::workspace_test_runner::LTRACE_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::LTRACE_PATH),
     },
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::PERF_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::PERF_PATH),
+        name: ToolName(str_constants::workspace_test_runner::PERF_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::PERF_PATH),
     },
     AllocationTool {
-        name: ToolName(contract_constants::workspace_test_runner::TIME_TOOL),
-        path: ToolPath(contract_constants::workspace_test_runner::TIME_PATH),
+        name: ToolName(str_constants::workspace_test_runner::TIME_TOOL),
+        path: ToolPath(str_constants::workspace_test_runner::TIME_PATH),
     },
 ];
 #[derive(Clone, Copy)]
@@ -205,17 +203,17 @@ fn print_without_measurement_footer(stderr: StderrTextRef<'_>) {
         .filter(|line| {
             !line
                 .trim()
-                .starts_with(contract_constants::workspace_test_runner::PEAK_RSS_PREFIX)
+                .starts_with(str_constants::workspace_test_runner::PEAK_RSS_PREFIX)
         })
         .filter(|line| {
             !line
                 .trim()
-                .starts_with(contract_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX)
+                .starts_with(str_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX)
         })
         .filter(|line| {
             !line
                 .trim()
-                .starts_with(contract_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX)
+                .starts_with(str_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX)
         })
         .for_each(|line| eprintln!("{line}"));
 }
@@ -275,10 +273,10 @@ fn measure_memusage_command(
     memusage_prog_name: MemusageProgNameRef<'_>,
 ) -> Result<(), ()> {
     let measurement_name_value = measurement_name.get();
-    if !std::path::Path::new(contract_constants::workspace_test_runner::MEMUSAGE_PATH).exists() {
+    if !std::path::Path::new(str_constants::workspace_test_runner::MEMUSAGE_PATH).exists() {
         println!(
             "measurement={measurement_name_value}_allocations status=unavailable reason=libmemusage_not_found path={}",
-            contract_constants::workspace_test_runner::MEMUSAGE_PATH
+            str_constants::workspace_test_runner::MEMUSAGE_PATH
         );
         return Ok(());
     }
@@ -289,7 +287,7 @@ fn measure_memusage_command(
     .env(
         macros_helpers::tool_command::ToolEnvKeyRef::from("LD_PRELOAD"),
         macros_helpers::tool_command::ToolEnvValueRef::from(
-            contract_constants::workspace_test_runner::MEMUSAGE_PATH,
+            str_constants::workspace_test_runner::MEMUSAGE_PATH,
         ),
     )
     .env(
@@ -371,9 +369,9 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
     let started = std::time::Instant::now();
     let measurement_format = format!(
         "{}%M\n{}%R\n{}%F",
-        contract_constants::workspace_test_runner::PEAK_RSS_PREFIX,
-        contract_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX,
-        contract_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
+        str_constants::workspace_test_runner::PEAK_RSS_PREFIX,
+        str_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX,
+        str_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
     );
     let command_output = macros_helpers::tool_command::ToolCommand::new(
         macros_helpers::tool_command::ToolProgramRef::from("/usr/bin/time"),
@@ -393,14 +391,14 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                 .lines()
                 .find_map(|line| {
                     line.trim()
-                        .strip_prefix(contract_constants::workspace_test_runner::PEAK_RSS_PREFIX)
+                        .strip_prefix(str_constants::workspace_test_runner::PEAK_RSS_PREFIX)
                 })
                 .unwrap_or("unavailable");
             let minor_page_faults = stderr
                 .lines()
                 .find_map(|line| {
                     line.trim().strip_prefix(
-                        contract_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX,
+                        str_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX,
                     )
                 })
                 .unwrap_or("unavailable");
@@ -408,7 +406,7 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                 .lines()
                 .find_map(|line| {
                     line.trim().strip_prefix(
-                        contract_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
+                        str_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
                     )
                 })
                 .unwrap_or("unavailable");
@@ -645,7 +643,7 @@ fn main() {
             ) {
                 Ok(_target) => execution::run_commands(&[(
                     "cargo",
-                    &contract_constants::workspace_test_runner::CARGO_TEST_DATABASE_ARGS,
+                    &str_constants::workspace_test_runner::CARGO_TEST_DATABASE_ARGS,
                 )]),
                 Err(error) => {
                     eprintln!("database test guard rejected DATABASE_URL: {error}");
@@ -657,18 +655,18 @@ fn main() {
                 Err(())
             }
         },
-        Some(contract_constants::workspace_test_runner::GENERATE_PG_TABLE_WORKLOAD) => {
+        Some(str_constants::workspace_test_runner::GENERATE_PG_TABLE_WORKLOAD) => {
             run_alloc_workload_generate_pg_table_src();
             Ok(())
         }
-        Some(contract_constants::workspace_test_runner::GENERATE_PG_TYPES_WORKLOAD) => {
+        Some(str_constants::workspace_test_runner::GENERATE_PG_TYPES_WORKLOAD) => {
             run_alloc_workload_generate_pg_types_src();
             Ok(())
         }
-        Some(contract_constants::workspace_test_runner::PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
+        Some(str_constants::workspace_test_runner::PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
             run_alloc_workload_pg_crud_common_query_part()
         }
-        Some(contract_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
+        Some(str_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
             run_alloc_workload_where_filters_query_part()
         }
         Some("macro-generation") => MACRO_GENERATION_MEASUREMENTS
@@ -681,7 +679,7 @@ fn main() {
             if cargo_subcommand_available("nextest") {
                 execution::run_commands(&[(
                     "cargo",
-                    &contract_constants::workspace_test_runner::NEXTEST_HEAVY_ARGS,
+                    &str_constants::workspace_test_runner::NEXTEST_HEAVY_ARGS,
                 )])
             } else {
                 eprintln!("heavy-load mode requires cargo-nextest; optional tool is unavailable");
@@ -705,12 +703,10 @@ fn main() {
                 Ok(()) => {}
                 Err(error) => match error {},
             }
-            if std::path::Path::new(contract_constants::workspace_test_runner::MEMUSAGE_PATH)
-                .exists()
-            {
+            if std::path::Path::new(str_constants::workspace_test_runner::MEMUSAGE_PATH).exists() {
                 println!(
                     "measurement=exact_allocations status=available tool=libmemusage path={}",
-                    contract_constants::workspace_test_runner::MEMUSAGE_PATH
+                    str_constants::workspace_test_runner::MEMUSAGE_PATH
                 );
                 measure_memusage_command(
                     MeasurementName("code_style"),
@@ -736,19 +732,19 @@ fn main() {
                 [
                     (
                         MeasurementName("generate_pg_table_src"),
-                        contract_constants::workspace_test_runner::GENERATE_PG_TABLE_WORKLOAD,
+                        str_constants::workspace_test_runner::GENERATE_PG_TABLE_WORKLOAD,
                     ),
                     (
                         MeasurementName("generate_pg_types_src"),
-                        contract_constants::workspace_test_runner::GENERATE_PG_TYPES_WORKLOAD,
+                        str_constants::workspace_test_runner::GENERATE_PG_TYPES_WORKLOAD,
                     ),
                     (
                         MeasurementName("pg_crud_common_query_part"),
-                        contract_constants::workspace_test_runner::PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
+                        str_constants::workspace_test_runner::PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
                     ),
                     (
                         MeasurementName("where_filters_query_part"),
-                        contract_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD,
+                        str_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD,
                     ),
                 ]
                 .into_iter()
@@ -773,7 +769,7 @@ fn main() {
             .unwrap_or_else(|()| std::process::exit(1));
             measure_cargo_command(
                 MeasurementName("clippy"),
-                CargoArgs(&contract_constants::workspace_test_runner::CARGO_CLIPPY_ARGS),
+                CargoArgs(&str_constants::workspace_test_runner::CARGO_CLIPPY_ARGS),
             )
             .unwrap_or_else(|()| std::process::exit(1));
             let generate_pg_table_input_token_stream =
@@ -989,7 +985,7 @@ fn main() {
                     let config_started = std::time::Instant::now();
                     let config_attr_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
                         &parsed.attrs,
-                        contract_constants::pg_crud::GENERATE_PG_TABLE_CONFIG_PATH,
+                        str_constants::pg_crud::GENERATE_PG_TABLE_CONFIG_PATH,
                     );
                     let config_value =
                         match serde_json::from_str::<serde_json::Value>(&config_attr_token_stream.to_string())
@@ -1198,11 +1194,11 @@ fn main() {
             )
             .to_string();
             let generate_pg_types_write_fmt_found = generate_pg_types_shape_output
-                .contains(contract_constants::workspace_test_runner::STD_FMT_WRITE_CALL);
+                .contains(str_constants::workspace_test_runner::STD_FMT_WRITE_CALL);
             let generate_pg_types_with_capacity_found = generate_pg_types_shape_output
-                .contains(contract_constants::workspace_test_runner::STRING_WITH_CAPACITY_CALL);
+                .contains(str_constants::workspace_test_runner::STRING_WITH_CAPACITY_CALL);
             let generate_pg_types_old_format_absent = !generate_pg_types_shape_output
-                .contains(contract_constants::workspace_test_runner::FORMAT_QUERY_PART_FRAGMENT);
+                .contains(str_constants::workspace_test_runner::FORMAT_QUERY_PART_FRAGMENT);
             println!(
                 "measurement=generate_pg_types_generated_query_part_shape write_fmt_found={generate_pg_types_write_fmt_found} with_capacity_found={generate_pg_types_with_capacity_found} old_format_absent={generate_pg_types_old_format_absent}"
             );
@@ -1338,11 +1334,11 @@ fn main() {
                 )
                 .to_string();
             let generate_where_filters_write_fmt_found = generate_where_filters_shape_output
-                .contains(contract_constants::workspace_test_runner::STD_FMT_WRITE_CALL);
+                .contains(str_constants::workspace_test_runner::STD_FMT_WRITE_CALL);
             let generate_where_filters_with_capacity_found = generate_where_filters_shape_output
-                .contains(contract_constants::workspace_test_runner::STRING_WITH_CAPACITY_CALL);
+                .contains(str_constants::workspace_test_runner::STRING_WITH_CAPACITY_CALL);
             let generate_where_filters_old_format_absent = !generate_where_filters_shape_output
-                .contains(contract_constants::workspace_test_runner::FORMAT_QUERY_PART_FRAGMENT);
+                .contains(str_constants::workspace_test_runner::FORMAT_QUERY_PART_FRAGMENT);
             println!(
                 "measurement=generate_where_filters_generated_query_part_shape write_fmt_found={generate_where_filters_write_fmt_found} with_capacity_found={generate_where_filters_with_capacity_found} old_format_absent={generate_where_filters_old_format_absent}"
             );

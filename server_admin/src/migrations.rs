@@ -57,7 +57,7 @@ pub(super) async fn bootstrap_admin(
     if user_exists {
         return Err(super::AdminBootstrapError::AlreadyInitialized);
     }
-    let user_id = sqlx::query_scalar::<_, i64>(contract_constants::server_admin::INSERT_USER_SQL)
+    let user_id = sqlx::query_scalar::<_, i64>(str_constants::server_admin::INSERT_USER_SQL)
         .bind(login.as_ref())
         .bind(display_name.as_ref())
         .bind(password_hash.0.as_ref())

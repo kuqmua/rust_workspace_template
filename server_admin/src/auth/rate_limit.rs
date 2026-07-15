@@ -11,11 +11,21 @@ impl AdminRateLimitScope {
     #[allow(clippy::single_call_fn)] // scope serialization is shared by persistence and exhaustive contract tests
     pub(super) const fn as_str(self) -> super::super::StdAdminStrRef<'static> {
         match self {
-            Self::AuditRead => super::super::StdAdminStrRef("audit_read"),
-            Self::Mutation => super::super::StdAdminStrRef("mutation"),
-            Self::RefreshIp => super::super::StdAdminStrRef("refresh_ip"),
-            Self::SignInIp => super::super::StdAdminStrRef("sign_in_ip"),
-            Self::SignInIpLogin => super::super::StdAdminStrRef("sign_in_ip_login"),
+            Self::AuditRead => {
+                super::super::StdAdminStrRef(str_constants::server_admin::RATE_LIMIT_AUDIT_READ)
+            }
+            Self::Mutation => {
+                super::super::StdAdminStrRef(str_constants::server_admin::RATE_LIMIT_MUTATION)
+            }
+            Self::RefreshIp => {
+                super::super::StdAdminStrRef(str_constants::server_admin::RATE_LIMIT_REFRESH_IP)
+            }
+            Self::SignInIp => {
+                super::super::StdAdminStrRef(str_constants::server_admin::RATE_LIMIT_SIGN_IN_IP)
+            }
+            Self::SignInIpLogin => super::super::StdAdminStrRef(
+                str_constants::server_admin::RATE_LIMIT_SIGN_IN_IP_LOGIN,
+            ),
         }
     }
 }

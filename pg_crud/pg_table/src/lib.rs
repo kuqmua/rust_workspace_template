@@ -336,7 +336,7 @@ pub async fn complete_pg_table_idempotency(
         Ok(value) => value,
         Err(_error) => return release_pg_table_idempotency(pool, request).await,
     };
-    let _query_result = sqlx::query(contract_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
+    let _query_result = sqlx::query(str_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -365,7 +365,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
             "idempotency response status is outside SMALLINT".to_owned(),
         ))
     })?;
-    let result = sqlx::query(contract_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(str_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())

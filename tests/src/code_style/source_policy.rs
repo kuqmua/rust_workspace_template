@@ -210,7 +210,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([
-        ("../contract_constants/src/lib.rs".to_owned(), 7usize),
+        ("../str_constants/src/lib.rs".to_owned(), 7usize),
         ("../pg_crud/pg_table/src/lib.rs".to_owned(), 5usize),
         ("../server_admin/src/auth.rs".to_owned(), 7usize),
         ("../server_admin/src/auth/audit.rs".to_owned(), 2usize),
@@ -581,12 +581,12 @@ fn long_production_string_literals_are_reused() {
     );
 }
 #[test]
-fn string_constants_are_declared_only_in_contract_constants() {
+fn string_constants_are_declared_only_in_str_constants() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr("6f2c8a91"),
-        super::types::SourceTextRef::from("string constants found outside contract_constants:"),
+        super::types::SourceTextRef::from("string constants found outside str_constants:"),
         |path, ast, ers| {
-            if path.to_string_lossy().contains("/contract_constants/") {
+            if path.to_string_lossy().contains("/str_constants/") {
                 return;
             }
             let visitor = super::visit_syn_file(

@@ -203,7 +203,7 @@ impl AdminCookieKind {
     }
     fn name(self) -> StdAdminStrRef<'static> {
         StdAdminStrRef::from(match self {
-            Self::Access => contract_constants::server_admin::ACCESS_COOKIE_NAME,
+            Self::Access => str_constants::server_admin::ACCESS_COOKIE_NAME,
             Self::Csrf => "admin_csrf_token",
             Self::Refresh => "admin_refresh_token",
         })

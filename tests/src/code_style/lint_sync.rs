@@ -6,7 +6,7 @@ fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lint
         super::types::AnalyzerBool::from(true),
         super::types::StaticStr("8895ca50"),
         super::types::StaticStrSliceRef::from(
-            contract_constants::code_style::CLIPPY_LINT_EXCEPTIONS.as_slice(),
+            str_constants::code_style::CLIPPY_LINT_EXCEPTIONS.as_slice(),
         ),
     );
 }

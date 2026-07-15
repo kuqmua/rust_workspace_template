@@ -125,8 +125,8 @@ where
     type Response = axum::response::Response;
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
         let request_id_and_header_value = [
-            contract_constants::runtime::REQUEST_ID_HEADER_NAME,
-            contract_constants::runtime::CORRELATION_ID_HEADER_NAME,
+            str_constants::runtime::REQUEST_ID_HEADER_NAME,
+            str_constants::runtime::CORRELATION_ID_HEADER_NAME,
         ]
         .into_iter()
         .find_map(|header_name| {
@@ -159,14 +159,12 @@ where
                     "http request completed"
                 );
                 let _previous_header_request_id = response.headers_mut().insert(
-                    http::HeaderName::from_static(
-                        contract_constants::runtime::REQUEST_ID_HEADER_NAME,
-                    ),
+                    http::HeaderName::from_static(str_constants::runtime::REQUEST_ID_HEADER_NAME),
                     request_id_and_header_value.1.clone(),
                 );
                 let _previous_correlation_id = response.headers_mut().insert(
                     http::HeaderName::from_static(
-                        contract_constants::runtime::CORRELATION_ID_HEADER_NAME,
+                        str_constants::runtime::CORRELATION_ID_HEADER_NAME,
                     ),
                     request_id_and_header_value.1,
                 );
@@ -649,7 +647,7 @@ mod tests {
             axum::extract::Request::builder()
                 .uri("/")
                 .header(
-                    contract_constants::runtime::REQUEST_ID_HEADER_NAME,
+                    str_constants::runtime::REQUEST_ID_HEADER_NAME,
                     existing.clone(),
                 )
                 .body(axum::body::Body::empty())
@@ -660,13 +658,13 @@ mod tests {
         assert_eq!(
             existing_response
                 .headers()
-                .get(contract_constants::runtime::REQUEST_ID_HEADER_NAME),
+                .get(str_constants::runtime::REQUEST_ID_HEADER_NAME),
             Some(&existing)
         );
         assert_eq!(
             existing_response
                 .headers()
-                .get(contract_constants::runtime::CORRELATION_ID_HEADER_NAME),
+                .get(str_constants::runtime::CORRELATION_ID_HEADER_NAME),
             Some(&existing)
         );
         let generated_response = tower::ServiceExt::oneshot(
@@ -680,13 +678,13 @@ mod tests {
         .expect("4cd32371");
         let generated = generated_response
             .headers()
-            .get(contract_constants::runtime::REQUEST_ID_HEADER_NAME)
+            .get(str_constants::runtime::REQUEST_ID_HEADER_NAME)
             .expect("12ed6f85");
         assert_eq!(generated.as_bytes().len(), 36usize);
         assert_eq!(
             generated_response
                 .headers()
-                .get(contract_constants::runtime::CORRELATION_ID_HEADER_NAME),
+                .get(str_constants::runtime::CORRELATION_ID_HEADER_NAME),
             Some(generated)
         );
     }

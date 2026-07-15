@@ -60,7 +60,7 @@ fn create_run_dir() -> Result<RunDir, std::io::Error> {
         .unwrap_or_default()
         .as_nanos();
     let path =
-        std::path::Path::new(contract_constants::workspace_test_runner::RESULT_ROOT).join(format!(
+        std::path::Path::new(str_constants::workspace_test_runner::RESULT_ROOT).join(format!(
             "{timestamp}-{}-{}",
             std::process::id(),
             RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)

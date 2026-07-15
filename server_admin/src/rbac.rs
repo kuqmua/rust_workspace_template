@@ -52,40 +52,40 @@ impl super::AdminPermission {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::AuditLogRead => contract_constants::admin_permission_values::AUDIT_LOG_READ,
-            Self::MetricsRead => contract_constants::admin_permission_values::METRICS_READ,
-            Self::OpenApiRead => contract_constants::admin_permission_values::OPEN_API_READ,
-            Self::PermissionsRead => contract_constants::admin_permission_values::PERMISSIONS_READ,
+            Self::AuditLogRead => str_constants::admin_permission_values::AUDIT_LOG_READ,
+            Self::MetricsRead => str_constants::admin_permission_values::METRICS_READ,
+            Self::OpenApiRead => str_constants::admin_permission_values::OPEN_API_READ,
+            Self::PermissionsRead => str_constants::admin_permission_values::PERMISSIONS_READ,
             Self::RolePermissionsCreate => {
-                contract_constants::admin_permission_values::ROLE_PERMISSIONS_CREATE
+                str_constants::admin_permission_values::ROLE_PERMISSIONS_CREATE
             }
             Self::RolePermissionsDelete => {
-                contract_constants::admin_permission_values::ROLE_PERMISSIONS_DELETE
+                str_constants::admin_permission_values::ROLE_PERMISSIONS_DELETE
             }
             Self::RolePermissionsRead => {
-                contract_constants::admin_permission_values::ROLE_PERMISSIONS_READ
+                str_constants::admin_permission_values::ROLE_PERMISSIONS_READ
             }
             Self::RolePermissionsUpdate => {
-                contract_constants::admin_permission_values::ROLE_PERMISSIONS_UPDATE
+                str_constants::admin_permission_values::ROLE_PERMISSIONS_UPDATE
             }
-            Self::RolesCreate => contract_constants::admin_permission_values::ROLES_CREATE,
-            Self::RolesDelete => contract_constants::admin_permission_values::ROLES_DELETE,
-            Self::RolesRead => contract_constants::admin_permission_values::ROLES_READ,
-            Self::RolesUpdate => contract_constants::admin_permission_values::ROLES_UPDATE,
+            Self::RolesCreate => str_constants::admin_permission_values::ROLES_CREATE,
+            Self::RolesDelete => str_constants::admin_permission_values::ROLES_DELETE,
+            Self::RolesRead => str_constants::admin_permission_values::ROLES_READ,
+            Self::RolesUpdate => str_constants::admin_permission_values::ROLES_UPDATE,
             Self::SystemSettingsRead => {
-                contract_constants::admin_permission_values::SYSTEM_SETTINGS_READ
+                str_constants::admin_permission_values::SYSTEM_SETTINGS_READ
             }
             Self::SystemSettingsUpdate => {
-                contract_constants::admin_permission_values::SYSTEM_SETTINGS_UPDATE
+                str_constants::admin_permission_values::SYSTEM_SETTINGS_UPDATE
             }
-            Self::UserRolesCreate => contract_constants::admin_permission_values::USER_ROLES_CREATE,
-            Self::UserRolesDelete => contract_constants::admin_permission_values::USER_ROLES_DELETE,
-            Self::UserRolesRead => contract_constants::admin_permission_values::USER_ROLES_READ,
-            Self::UserRolesUpdate => contract_constants::admin_permission_values::USER_ROLES_UPDATE,
-            Self::UsersCreate => contract_constants::admin_permission_values::USERS_CREATE,
-            Self::UsersDelete => contract_constants::admin_permission_values::USERS_DELETE,
-            Self::UsersRead => contract_constants::admin_permission_values::USERS_READ,
-            Self::UsersUpdate => contract_constants::admin_permission_values::USERS_UPDATE,
+            Self::UserRolesCreate => str_constants::admin_permission_values::USER_ROLES_CREATE,
+            Self::UserRolesDelete => str_constants::admin_permission_values::USER_ROLES_DELETE,
+            Self::UserRolesRead => str_constants::admin_permission_values::USER_ROLES_READ,
+            Self::UserRolesUpdate => str_constants::admin_permission_values::USER_ROLES_UPDATE,
+            Self::UsersCreate => str_constants::admin_permission_values::USERS_CREATE,
+            Self::UsersDelete => str_constants::admin_permission_values::USERS_DELETE,
+            Self::UsersRead => str_constants::admin_permission_values::USERS_READ,
+            Self::UsersUpdate => str_constants::admin_permission_values::USERS_UPDATE,
         })
     }
 }

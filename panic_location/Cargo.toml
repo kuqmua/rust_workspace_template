@@ -11,7 +11,7 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
-contract_constants = { workspace = true }
+str_constants = { workspace = true }
 newtype = { workspace = true }
 
 [lints]
