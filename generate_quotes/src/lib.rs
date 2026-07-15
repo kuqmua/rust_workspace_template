@@ -53,7 +53,7 @@ pub fn single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(""), QuoteChar('\''), v)
+    quote_literal(QuotePrefix(str_constants::expr::S_0021), QuoteChar('\''), v)
 }
 #[must_use]
 pub fn single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -61,10 +61,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(""),
+        QuotePrefix(str_constants::expr::S_0021),
         QuoteChar('\''),
         v,
-        QuotePanicId("ec1e77d5"),
+        QuotePanicId(str_constants::expr::S_1233),
     )
 }
 #[must_use]
@@ -72,7 +72,7 @@ pub fn dq_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(""), QuoteChar('\"'), v)
+    quote_literal(QuotePrefix(str_constants::expr::S_0021), QuoteChar('\"'), v)
 }
 #[must_use]
 pub fn dq_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -80,10 +80,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(""),
+        QuotePrefix(str_constants::expr::S_0021),
         QuoteChar('\"'),
         v,
-        QuotePanicId("0391ac99"),
+        QuotePanicId(str_constants::expr::S_0143),
     )
 }
 #[must_use]
@@ -91,7 +91,7 @@ pub fn binary_single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix("b"), QuoteChar('\''), v)
+    quote_literal(QuotePrefix(str_constants::expr::S_0977), QuoteChar('\''), v)
 }
 #[must_use]
 pub fn binary_single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -99,10 +99,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix("b"),
+        QuotePrefix(str_constants::expr::S_0977),
         QuoteChar('\''),
         v,
-        QuotePanicId("8bce26e7"),
+        QuotePanicId(str_constants::expr::S_0504),
     )
 }
 #[must_use]
@@ -110,7 +110,7 @@ pub fn binary_double_quoted_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix("b"), QuoteChar('\"'), v)
+    quote_literal(QuotePrefix(str_constants::expr::S_0977), QuoteChar('\"'), v)
 }
 #[must_use]
 pub fn binary_double_quoted_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -118,10 +118,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix("b"),
+        QuotePrefix(str_constants::expr::S_0977),
         QuoteChar('\"'),
         v,
-        QuotePanicId("5dc6f142"),
+        QuotePanicId(str_constants::expr::S_0379),
     )
 }
 #[cfg(test)]
@@ -137,45 +137,90 @@ mod tests {
     }
     #[test]
     fn quote_str_helpers_return_expected_literals() {
-        assert_quote_str(&super::single_quotes_str("abc"), "'abc'");
-        assert_quote_str(&super::dq_str(&"abc"), "\"abc\"");
-        assert_quote_str(&super::binary_single_quotes_str("abc"), "b'abc'");
-        assert_quote_str(&super::binary_double_quoted_str(&"abc"), "b\"abc\"");
+        assert_quote_str(
+            &super::single_quotes_str(str_constants::expr::S_0905),
+            str_constants::expr::S_0036,
+        );
+        assert_quote_str(
+            &super::dq_str(&str_constants::expr::S_0905),
+            str_constants::expr::S_0851,
+        );
+        assert_quote_str(
+            &super::binary_single_quotes_str(str_constants::expr::S_0905),
+            str_constants::expr::S_0980,
+        );
+        assert_quote_str(
+            &super::binary_double_quoted_str(&str_constants::expr::S_0905),
+            str_constants::expr::S_1004,
+        );
     }
     #[test]
     fn quote_token_stream_helpers_return_expected_tokens() {
-        assert_quote_token_stream(&super::single_quotes_token_stream("a"), "'a'");
-        assert_quote_token_stream(&super::dq_token_stream(&"abc"), "\"abc\"");
-        assert_quote_token_stream(&super::binary_single_quotes_token_stream("a"), "b'a'");
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&"abc"),
-            "b\"abc\"",
+            &super::single_quotes_token_stream(str_constants::expr::S_0868),
+            str_constants::expr::S_0035,
+        );
+        assert_quote_token_stream(
+            &super::dq_token_stream(&str_constants::expr::S_0905),
+            str_constants::expr::S_0851,
+        );
+        assert_quote_token_stream(
+            &super::binary_single_quotes_token_stream(str_constants::expr::S_0868),
+            str_constants::expr::S_0979,
+        );
+        assert_quote_token_stream(
+            &super::binary_double_quoted_token_stream(&str_constants::expr::S_0905),
+            str_constants::expr::S_1004,
         );
     }
     #[test]
     fn quote_helpers_support_non_string_display_inputs() {
-        assert_quote_str(&super::dq_str(&42i32), "\"42\"");
-        assert_quote_str(&super::binary_double_quoted_str(&42i32), "b\"42\"");
-        assert_quote_token_stream(&super::dq_token_stream(&42i32), "\"42\"");
-        assert_quote_token_stream(&super::binary_double_quoted_token_stream(&42i32), "b\"42\"");
+        assert_quote_str(&super::dq_str(&42i32), str_constants::expr::S_0849);
+        assert_quote_str(
+            &super::binary_double_quoted_str(&42i32),
+            str_constants::expr::S_1002,
+        );
+        assert_quote_token_stream(&super::dq_token_stream(&42i32), str_constants::expr::S_0849);
+        assert_quote_token_stream(
+            &super::binary_double_quoted_token_stream(&42i32),
+            str_constants::expr::S_1002,
+        );
     }
     #[test]
     fn quote_helpers_handle_empty_input() {
-        assert_quote_str(&super::single_quotes_str(""), "''");
-        assert_quote_str(&super::dq_str(&""), "\"\"");
-        assert_quote_str(&super::binary_single_quotes_str(""), "b''");
-        assert_quote_str(&super::binary_double_quoted_str(&""), "b\"\"");
+        assert_quote_str(
+            &super::single_quotes_str(str_constants::expr::S_0021),
+            str_constants::expr::S_0034,
+        );
+        assert_quote_str(
+            &super::dq_str(&str_constants::expr::S_0021),
+            str_constants::expr::S_0850,
+        );
+        assert_quote_str(
+            &super::binary_single_quotes_str(str_constants::expr::S_0021),
+            str_constants::expr::S_0978,
+        );
+        assert_quote_str(
+            &super::binary_double_quoted_str(&str_constants::expr::S_0021),
+            str_constants::expr::S_1003,
+        );
         assert!(
             super::single_quotes_token_stream("")
                 .to_string()
                 .contains("compile_error !")
         );
-        assert_quote_token_stream(&super::dq_token_stream(&""), "\"\"");
+        assert_quote_token_stream(
+            &super::dq_token_stream(&str_constants::expr::S_0021),
+            str_constants::expr::S_0850,
+        );
         assert!(
             super::binary_single_quotes_token_stream("")
                 .to_string()
                 .contains("compile_error !")
         );
-        assert_quote_token_stream(&super::binary_double_quoted_token_stream(&""), "b\"\"");
+        assert_quote_token_stream(
+            &super::binary_double_quoted_token_stream(&str_constants::expr::S_0021),
+            str_constants::expr::S_1003,
+        );
     }
 }

@@ -31,13 +31,21 @@ where
 }
 #[must_use]
 pub fn string_syn_punct() -> SynPathSegments {
-    generate_simple_syn_punct(["std", "string", "String"])
+    generate_simple_syn_punct([
+        str_constants::expr::S_1759,
+        str_constants::expr::S_1768,
+        str_constants::expr::S_0794,
+    ])
 }
 #[cfg(test)]
 mod tests {
     #[test]
     fn generate_simple_syn_punct_builds_three_segment_path() {
-        let punct = super::generate_simple_syn_punct(["std", "string", "String"]);
+        let punct = super::generate_simple_syn_punct([
+            str_constants::expr::S_1759,
+            str_constants::expr::S_1768,
+            str_constants::expr::S_0794,
+        ]);
         assert_eq!(
             quote::quote! {#punct}.to_string(),
             "std :: string :: String"
@@ -45,7 +53,7 @@ mod tests {
     }
     #[test]
     fn generate_simple_syn_punct_builds_single_segment_path() {
-        let punct = super::generate_simple_syn_punct(["Only"]);
+        let punct = super::generate_simple_syn_punct([str_constants::expr::S_0714]);
         assert_eq!(quote::quote! {#punct}.to_string(), "Only");
     }
     #[test]

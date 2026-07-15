@@ -71,11 +71,11 @@ impl Operator {
     pub fn to_query_part(&self, add_operator: AddOperator) -> QueryPartFragment {
         let fragment = match (bool::from(add_operator), *self) {
             (false, Self::And | Self::Or) => return QueryPartFragment(String::new()),
-            (false, Self::AndNot | Self::OrNot) => "not ",
-            (true, Self::And) => "and ",
-            (true, Self::AndNot) => "and not ",
-            (true, Self::Or) => "or ",
-            (true, Self::OrNot) => "or not ",
+            (false, Self::AndNot | Self::OrNot) => str_constants::expr::S_1557,
+            (true, Self::And) => str_constants::expr::S_0949,
+            (true, Self::AndNot) => str_constants::expr::S_0950,
+            (true, Self::Or) => str_constants::expr::S_1573,
+            (true, Self::OrNot) => str_constants::expr::S_1574,
         };
         match QueryPartFragment::try_from(String::from(fragment)) {
             Ok(v) => v,
@@ -398,7 +398,7 @@ impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgr
 }
 impl std::fmt::Debug for SqlxPostgresQuery<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("SqlxPostgresQuery").finish()
+        f.debug_tuple(str_constants::expr::S_0790).finish()
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
@@ -545,12 +545,18 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> f
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "PgTypeWhere",
+            str_constants::expr::S_0727,
             utoipa::openapi::ObjectBuilder::new()
-                .property("v", <NotEmptyUniqueVec<T> as utoipa::ToSchema>::schema().1)
-                .property("operator", <Operator as utoipa::ToSchema>::schema().1)
-                .required("v")
-                .required("operator")
+                .property(
+                    str_constants::expr::S_1888,
+                    <NotEmptyUniqueVec<T> as utoipa::ToSchema>::schema().1,
+                )
+                .property(
+                    str_constants::expr::S_1571,
+                    <Operator as utoipa::ToSchema>::schema().1,
+                )
+                .required(str_constants::expr::S_1888)
+                .required(str_constants::expr::S_1571)
                 .build()
                 .into(),
         )
@@ -916,11 +922,17 @@ impl<'schema_lt, ColumnGeneric: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "OrderBy",
+            str_constants::expr::S_0719,
             utoipa::openapi::ObjectBuilder::new()
-                .property("column", <ColumnGeneric as utoipa::ToSchema>::schema().1)
-                .property("order", <Order as utoipa::ToSchema>::schema().1)
-                .required("column")
+                .property(
+                    str_constants::expr::S_1096,
+                    <ColumnGeneric as utoipa::ToSchema>::schema().1,
+                )
+                .property(
+                    str_constants::expr::S_1576,
+                    <Order as utoipa::ToSchema>::schema().1,
+                )
+                .required(str_constants::expr::S_1096)
                 .build()
                 .into(),
         )
@@ -1158,10 +1170,13 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> f
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "V",
+            str_constants::expr::S_0828,
             utoipa::openapi::ObjectBuilder::new()
-                .property("v", <T as utoipa::ToSchema>::schema().1)
-                .required("v")
+                .property(
+                    str_constants::expr::S_1888,
+                    <T as utoipa::ToSchema>::schema().1,
+                )
+                .required(str_constants::expr::S_1888)
                 .build()
                 .into(),
         )
@@ -1366,7 +1381,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error = super::NotEmptyUniqueVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
-            .expect_err("adf2b8c1");
+            .expect_err(str_constants::expr::S_0921);
         match error {
             super::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => assert_eq!(v, NonClone(1)),
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. } => panic!("9f5e2a34"),
@@ -1374,7 +1389,8 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
-        let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new()).expect_err("3b41de7f");
+        let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new())
+            .expect_err(str_constants::expr::S_0290);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
@@ -1434,8 +1450,8 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
-        let error =
-            super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8]).expect_err("59c80912");
+        let error = super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8])
+            .expect_err(str_constants::expr::S_0365);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::NotUnique { v: 1u8, .. }
@@ -1497,10 +1513,13 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "NonPrimaryKeyPgTypeReadIds",
+            str_constants::expr::S_0709,
             utoipa::openapi::ObjectBuilder::new()
-                .property("v", utoipa::openapi::ObjectBuilder::new().nullable(true))
-                .required("v")
+                .property(
+                    str_constants::expr::S_1888,
+                    utoipa::openapi::ObjectBuilder::new().nullable(true),
+                )
+                .required(str_constants::expr::S_1888)
                 .build()
                 .into(),
         )
@@ -1538,8 +1557,8 @@ impl EqOperator {
     #[must_use]
     pub fn to_query_str(&self) -> EqOperatorQueryStr {
         match &self {
-            Self::Eq => EqOperatorQueryStr::from("="),
-            Self::IsNull => EqOperatorQueryStr::from("is null"),
+            Self::Eq => EqOperatorQueryStr::from(str_constants::expr::S_0583),
+            Self::IsNull => EqOperatorQueryStr::from(str_constants::expr::S_1440),
         }
     }
 }
@@ -1870,17 +1889,17 @@ pub const fn bool_test_cases_vec() -> [bool; 2] {
 pub fn string_test_cases_vec() -> [String; 12] {
     [
         String::new(),
-        "a".to_owned(),
-        "Hello, world!".to_owned(),
-        "   ".to_owned(),
-        "\n\r\t".to_owned(),
-        "1234567890".to_owned(),
-        "\u{1F600}".to_owned(),
-        "\u{3053}\u{3093}\u{306B}\u{3061}\u{306F}".to_owned(),
-        "\u{1F30D}\u{1F680}\u{2728} Rust \u{1F496}\u{1F980}".to_owned(),
-        "a".repeat(1024),
-        "line1\nline2\nline3".to_owned(),
-        "\u{1F496}".to_owned(),
+        str_constants::expr::S_0868.to_owned(),
+        str_constants::expr::S_0677.to_owned(),
+        str_constants::expr::S_0001.to_owned(),
+        str_constants::expr::S_0858.to_owned(),
+        str_constants::expr::S_0176.to_owned(),
+        str_constants::expr::S_1963.to_owned(),
+        str_constants::expr::S_1960.to_owned(),
+        str_constants::expr::S_1961.to_owned(),
+        str_constants::expr::S_0868.repeat(1024),
+        str_constants::expr::S_1458.to_owned(),
+        str_constants::expr::S_1962.to_owned(),
     ]
 }
 #[must_use]

@@ -59,23 +59,19 @@ pub(super) async fn sign_in(
         super::rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
     )
     .await?;
-    let recent_failures = sqlx::query_scalar::<_, i64>(
-        "SELECT COUNT(*) FROM admin_login_attempts WHERE login = $1 AND succeeded = FALSE AND attempted_at > NOW() - INTERVAL '15 minutes'",
-    )
-    .bind(login.as_ref())
-    .fetch_one(state.as_ref().pool.as_ref())
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let recent_failures = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0745)
+        .bind(login.as_ref())
+        .fetch_one(state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?;
     if recent_failures >= 10i64 {
         return Err(super::AdminApiError::RateLimited);
     }
-    let user = sqlx::query_as::<_, (i64, String, bool)>(
-        "SELECT id, password_hash, is_banned FROM admin_users WHERE lower(login) = lower($1)",
-    )
-    .bind(login.as_ref())
-    .fetch_optional(state.as_ref().pool.as_ref())
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let user = sqlx::query_as::<_, (i64, String, bool)>(str_constants::expr::S_0769)
+        .bind(login.as_ref())
+        .fetch_optional(state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?;
     let Some((user_id, password_hash, is_banned)) = user else {
         drop(
             state
@@ -212,13 +208,11 @@ pub(super) async fn refresh(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let optional_user_id = sqlx::query_scalar::<_, i64>(
-        "SELECT user_id FROM admin_refresh_tokens WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW() FOR UPDATE",
-    )
-    .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let optional_user_id = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0779)
+        .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     let Some(user_id) = optional_user_id else {
         tx.commit().await.map_err(super::AdminApiError::from)?;
         apply_refresh_failure_delay().await;
@@ -234,17 +228,16 @@ pub(super) async fn refresh(
     )
     .await
     .map_err(super::AdminApiError::Session)?;
-    let login = sqlx::query_scalar::<_, String>(
-        "SELECT login FROM admin_users WHERE id = $1 AND is_banned = FALSE",
-    )
-    .bind(admin_user_id.0)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Authentication)
-    .and_then(|value| {
-        super::super::AdminLogin::try_from(value).map_err(|_error| super::AdminApiError::Validation)
-    })?;
+    let login = sqlx::query_scalar::<_, String>(str_constants::expr::S_0772)
+        .bind(admin_user_id.0)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Authentication)
+        .and_then(|value| {
+            super::super::AdminLogin::try_from(value)
+                .map_err(|_error| super::AdminApiError::Validation)
+        })?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -317,14 +310,14 @@ pub(super) async fn sign_out(
             peer,
         );
         let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash);
-        let _refresh_result = sqlx::query(
-            "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1 AND user_id = $2 AND revoked_at IS NULL",
-        )
-        .bind(secrecy::ExposeSecret::expose_secret(refresh_hash.0.as_ref()))
-        .bind(authenticated.id.0)
-        .execute(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
+        let _refresh_result = sqlx::query(str_constants::expr::S_0810)
+            .bind(secrecy::ExposeSecret::expose_secret(
+                refresh_hash.0.as_ref(),
+            ))
+            .bind(authenticated.id.0)
+            .execute(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
     }
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
@@ -369,29 +362,27 @@ pub(super) async fn sessions(
         auth.peer,
     )
     .await?;
-    sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-        "SELECT id, created_at::TEXT, expires_at::TEXT FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC",
-    )
-    .bind(authenticated.id.0)
-    .fetch_all(auth.state.as_ref().pool.as_ref())
-    .await
-    .map_err(super::AdminApiError::from)?
-    .into_iter()
-    .map(|row| {
-        Ok(super::AdminSessionView {
-            created_at: super::AdminSessionTimestamp::try_from(row.1)
-                .map_err(|_error| super::AdminApiError::Authentication)?,
-            expires_at: super::AdminSessionTimestamp::try_from(row.2)
-                .map_err(|_error| super::AdminApiError::Authentication)?,
-            id: super::super::AdminSessionId::from(super::super::UuidAdminValue::from(row.0)),
+    sqlx::query_as::<_, (uuid::Uuid, String, String)>(str_constants::expr::S_0765)
+        .bind(authenticated.id.0)
+        .fetch_all(auth.state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?
+        .into_iter()
+        .map(|row| {
+            Ok(super::AdminSessionView {
+                created_at: super::AdminSessionTimestamp::try_from(row.1)
+                    .map_err(|_error| super::AdminApiError::Authentication)?,
+                expires_at: super::AdminSessionTimestamp::try_from(row.2)
+                    .map_err(|_error| super::AdminApiError::Authentication)?,
+                id: super::super::AdminSessionId::from(super::super::UuidAdminValue::from(row.0)),
+            })
         })
-    })
-    .collect::<Result<Vec<super::AdminSessionView>, super::AdminApiError>>()
-    .map(|sessions| {
-        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
-            sessions,
-        )))
-    })
+        .collect::<Result<Vec<super::AdminSessionView>, super::AdminApiError>>()
+        .map(|sessions| {
+            super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+                sessions,
+            )))
+        })
 }
 pub(super) async fn revoke_session(
     auth: super::AdminAuthReq,
@@ -523,7 +514,7 @@ pub(super) async fn update_settings(
         .is_none_or(|value| !value.as_ref().trim().is_empty());
     let route_is_valid = default_admin_route
         .as_ref()
-        .is_none_or(|value| value.as_ref().starts_with("/admin"));
+        .is_none_or(|value| value.as_ref().starts_with(str_constants::expr::S_0084));
     if !has_field || !site_name_is_valid || !route_is_valid {
         return Err(super::AdminApiError::Validation);
     }
@@ -535,22 +526,32 @@ pub(super) async fn update_settings(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        "UPDATE admin_system_settings SET site_name = COALESCE($1, site_name), tab_title = COALESCE($2, tab_title), main_logo = COALESCE($3, main_logo), primary_color = COALESCE($4, primary_color), default_admin_route = COALESCE($5, default_admin_route), organization_name = COALESCE($6, organization_name), organization_contacts = COALESCE($7, organization_contacts), support_url = COALESCE($8, support_url) WHERE id = 1 RETURNING TRUE",
-    )
-    .bind(site_name.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(tab_title.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(main_logo.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(primary_color.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(default_admin_route.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(organization_name.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(organization_contacts.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(support_url.as_ref().map(|value| value.as_ref().as_str()))
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0813)
+        .bind(site_name.as_ref().map(|value| value.as_ref().as_str()))
+        .bind(tab_title.as_ref().map(|value| value.as_ref().as_str()))
+        .bind(main_logo.as_ref().map(|value| value.as_ref().as_str()))
+        .bind(primary_color.as_ref().map(|value| value.as_ref().as_str()))
+        .bind(
+            default_admin_route
+                .as_ref()
+                .map(|value| value.as_ref().as_str()),
+        )
+        .bind(
+            organization_name
+                .as_ref()
+                .map(|value| value.as_ref().as_str()),
+        )
+        .bind(
+            organization_contacts
+                .as_ref()
+                .map(|value| value.as_ref().as_str()),
+        )
+        .bind(support_url.as_ref().map(|value| value.as_ref().as_str()))
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -649,17 +650,15 @@ pub(super) async fn update_user(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        "UPDATE admin_users SET login = COALESCE($2, login), display_name = COALESCE($3, display_name) WHERE id = $1 RETURNING TRUE",
-    )
-    .bind(path.0.0)
-    .bind(login.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(map_unique_violation)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0815)
+        .bind(path.0.0)
+        .bind(login.as_ref().map(|value| value.as_ref().as_str()))
+        .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(map_unique_violation)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -698,16 +697,14 @@ pub(super) async fn set_user_password(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        "UPDATE admin_users SET password_hash = $2 WHERE id = $1 RETURNING TRUE",
-    )
-    .bind(path.0.0)
-    .bind(password_hash.0.as_ref())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0816)
+        .bind(path.0.0)
+        .bind(password_hash.0.as_ref())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     let _access = sqlx::query(str_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
@@ -772,16 +769,14 @@ pub(super) async fn set_user_ban(
             return Err(super::AdminApiError::Conflict);
         }
     }
-    sqlx::query_scalar::<_, bool>(
-        "UPDATE admin_users SET is_banned = $2 WHERE id = $1 RETURNING TRUE",
-    )
-    .bind(path.0.0)
-    .bind(is_banned)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0814)
+        .bind(path.0.0)
+        .bind(is_banned)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     if is_banned {
         let _access = sqlx::query(str_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
             .bind(path.0.0)
@@ -844,7 +839,7 @@ pub(super) async fn delete_user(
     if target_is_admin && active_admin_count <= 1i64 {
         return Err(super::AdminApiError::Conflict);
     }
-    sqlx::query_scalar::<_, bool>("DELETE FROM admin_users WHERE id = $1 RETURNING TRUE")
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0654)
         .bind(path.0.0)
         .fetch_optional(&mut *tx)
         .await
@@ -882,13 +877,11 @@ pub(super) async fn create_role(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let role_id = sqlx::query_scalar::<_, i64>(
-        "INSERT INTO admin_roles (name, is_system) VALUES ($1, FALSE) RETURNING id",
-    )
-    .bind(name.as_ref())
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(map_unique_violation)?;
+    let role_id = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0689)
+        .bind(name.as_ref())
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(map_unique_violation)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -928,16 +921,14 @@ pub(super) async fn update_role(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        "UPDATE admin_roles SET name = $2 WHERE id = $1 AND is_system = FALSE RETURNING TRUE",
-    )
-    .bind(path.0.0)
-    .bind(name.as_ref())
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(map_unique_violation)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0812)
+        .bind(path.0.0)
+        .bind(name.as_ref())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(map_unique_violation)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -967,15 +958,13 @@ pub(super) async fn delete_role(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(
-        "DELETE FROM admin_roles WHERE id = $1 AND is_system = FALSE RETURNING TRUE",
-    )
-    .bind(path.0.0)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Conflict)
-    .map(drop)?;
+    sqlx::query_scalar::<_, bool>(str_constants::expr::S_0652)
+        .bind(path.0.0)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)
+        .map(drop)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -1021,38 +1010,34 @@ pub(super) async fn set_role_permissions(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let role_is_system =
-        sqlx::query_scalar::<_, bool>("SELECT is_system FROM admin_roles WHERE id = $1 FOR UPDATE")
-            .bind(path.0.0)
-            .fetch_optional(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?
-            .ok_or(super::AdminApiError::Conflict)?;
+    let role_is_system = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0771)
+        .bind(path.0.0)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)?;
     if role_is_system {
         return Err(super::AdminApiError::Conflict);
     }
-    let existing_permissions =
-        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM admin_permissions WHERE id = ANY($1)")
-            .bind(&permission_ids)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+    let existing_permissions = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0746)
+        .bind(&permission_ids)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     if usize::try_from(existing_permissions).ok() != Some(permission_ids.len()) {
         return Err(super::AdminApiError::Validation);
     }
-    let _deleted = sqlx::query("DELETE FROM admin_role_permissions WHERE role_id = $1")
+    let _deleted = sqlx::query(str_constants::expr::S_0651)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let _inserted = sqlx::query(
-        "INSERT INTO admin_role_permissions (role_id, permission_id) SELECT $1, permission_id FROM UNNEST($2::BIGINT[]) AS permission_id",
-    )
-    .bind(path.0.0)
-    .bind(&permission_ids)
-    .execute(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let _inserted = sqlx::query(str_constants::expr::S_0688)
+        .bind(path.0.0)
+        .bind(&permission_ids)
+        .execute(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -1101,62 +1086,51 @@ pub(super) async fn set_user_roles(
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let target_is_active = sqlx::query_scalar::<_, bool>(
-        "SELECT NOT is_banned FROM admin_users WHERE id = $1 FOR UPDATE",
-    )
-    .bind(path.0.0)
-    .fetch_optional(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?
-    .ok_or(super::AdminApiError::Conflict)?;
-    let existing_roles =
-        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM admin_roles WHERE id = ANY($1)")
-            .bind(&role_ids)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+    let target_is_active = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0759)
+        .bind(path.0.0)
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?
+        .ok_or(super::AdminApiError::Conflict)?;
+    let existing_roles = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0748)
+        .bind(&role_ids)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     if usize::try_from(existing_roles).ok() != Some(role_ids.len()) {
         return Err(super::AdminApiError::Validation);
     }
-    let admin_role_id = sqlx::query_scalar::<_, i64>(
-        "SELECT id FROM admin_roles WHERE name = 'admin' AND is_system = TRUE",
-    )
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?;
-    let target_was_admin = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS (SELECT 1 FROM admin_user_roles WHERE user_id = $1 AND role_id = $2)",
-    )
-    .bind(path.0.0)
-    .bind(admin_role_id)
-    .fetch_one(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?;
-    if target_is_active && target_was_admin && !role_ids.contains(&admin_role_id) {
-        let active_admin_count = sqlx::query_scalar::<_, i64>(
-            "SELECT COUNT(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id WHERE user_role.role_id = $1 AND users.is_banned = FALSE",
-        )
+    let admin_role_id = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0761)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
+    let target_was_admin = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0756)
+        .bind(path.0.0)
         .bind(admin_role_id)
         .fetch_one(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
+    if target_is_active && target_was_admin && !role_ids.contains(&admin_role_id) {
+        let active_admin_count = sqlx::query_scalar::<_, i64>(str_constants::expr::S_0753)
+            .bind(admin_role_id)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
         if active_admin_count <= 1i64 {
             return Err(super::AdminApiError::Conflict);
         }
     }
-    let _deleted = sqlx::query("DELETE FROM admin_user_roles WHERE user_id = $1")
+    let _deleted = sqlx::query(str_constants::expr::S_0653)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let _inserted = sqlx::query(
-        "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, role_id FROM UNNEST($2::BIGINT[]) AS role_id",
-    )
-    .bind(path.0.0)
-    .bind(&role_ids)
-    .execute(&mut *tx)
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let _inserted = sqlx::query(str_constants::expr::S_0691)
+        .bind(path.0.0)
+        .bind(&role_ids)
+        .execute(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     let _access = sqlx::query(str_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
@@ -1194,12 +1168,10 @@ pub(super) async fn list_users(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let rows = sqlx::query_as::<_, (i64, String, String, bool)>(
-        "SELECT id, login, display_name, is_banned FROM admin_users ORDER BY login LIMIT 500",
-    )
-    .fetch_all(auth.state.as_ref().pool.as_ref())
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let rows = sqlx::query_as::<_, (i64, String, String, bool)>(str_constants::expr::S_0766)
+        .fetch_all(auth.state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?;
     let users = rows
         .into_iter()
         .map(|row| {
@@ -1228,12 +1200,10 @@ pub(super) async fn list_roles(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let rows = sqlx::query_as::<_, (i64, String, bool)>(
-        "SELECT id, name, is_system FROM admin_roles ORDER BY name",
-    )
-    .fetch_all(auth.state.as_ref().pool.as_ref())
-    .await
-    .map_err(super::AdminApiError::from)?;
+    let rows = sqlx::query_as::<_, (i64, String, bool)>(str_constants::expr::S_0768)
+        .fetch_all(auth.state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?;
     let roles = rows
         .into_iter()
         .map(|row| {
@@ -1260,11 +1230,10 @@ pub(super) async fn list_permissions(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let rows =
-        sqlx::query_as::<_, (i64, String)>("SELECT id, name FROM admin_permissions ORDER BY name")
-            .fetch_all(auth.state.as_ref().pool.as_ref())
-            .await
-            .map_err(super::AdminApiError::from)?;
+    let rows = sqlx::query_as::<_, (i64, String)>(str_constants::expr::S_0767)
+        .fetch_all(auth.state.as_ref().pool.as_ref())
+        .await
+        .map_err(super::AdminApiError::from)?;
     let permissions = rows
         .into_iter()
         .map(|row| {
@@ -1303,9 +1272,7 @@ pub(super) async fn settings(
             Option<String>,
             Option<String>,
         ),
-    >(
-        "SELECT site_name, tab_title, main_logo, primary_color, default_admin_route, organization_name, organization_contacts, support_url FROM admin_system_settings WHERE id = 1",
-    )
+    >(str_constants::expr::S_0777)
     .fetch_one(auth.state.as_ref().pool.as_ref())
     .await
     .map_err(super::AdminApiError::from)?;

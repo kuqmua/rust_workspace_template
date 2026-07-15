@@ -73,8 +73,8 @@ mod tests {
                 http::Request::builder()
                     .method(method)
                     .uri(contract.path())
-                    .header(http::header::CONTENT_TYPE, "text/plain")
-                    .body(axum::body::Body::from("{}"))
+                    .header(http::header::CONTENT_TYPE, str_constants::expr::S_1813)
+                    .body(axum::body::Body::from(str_constants::expr::S_1955))
                     .expect("dc39ba13"),
             )
             .await
@@ -98,8 +98,8 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri("/table_example/cm")
-                .header(http::header::CONTENT_TYPE, "application/json")
+                .uri(str_constants::expr::S_0124)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
                 .body(axum::body::Body::from(valid_body.clone()))
                 .expect("d02ba9f0"),
         )
@@ -110,9 +110,9 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri("/table_example/cm")
-                .header(http::header::CONTENT_TYPE, "text/plain")
-                .header("idempotency-key", "negative-content-type")
+                .uri(str_constants::expr::S_0124)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_1813)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1538)
                 .body(axum::body::Body::from(valid_body.clone()))
                 .expect("2f6ee062"),
         )
@@ -123,10 +123,10 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri("/table_example/cm")
-                .header(http::header::CONTENT_TYPE, "application/json")
-                .header("idempotency-key", "negative-malformed")
-                .body(axum::body::Body::from("{"))
+                .uri(str_constants::expr::S_0124)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1539)
+                .body(axum::body::Body::from(str_constants::expr::S_1928))
                 .expect("21af9e85"),
         )
         .await
@@ -150,10 +150,10 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri("/table_example/cm")
-                .header(http::header::CONTENT_TYPE, "application/json")
-                .header("idempotency-key", "duplicate-a")
-                .header("idempotency-key", "duplicate-b")
+                .uri(str_constants::expr::S_0124)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1200)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1201)
                 .body(axum::body::Body::from(valid_body))
                 .expect("aa9ff040"),
         )
@@ -164,10 +164,10 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::PATCH)
-                .uri("/table_example/uo")
-                .header(http::header::CONTENT_TYPE, "application/json")
-                .header("idempotency-key", "missing-revision")
-                .body(axum::body::Body::from("{}"))
+                .uri(str_constants::expr::S_0125)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1523)
+                .body(axum::body::Body::from(str_constants::expr::S_1955))
                 .expect("19855efd"),
         )
         .await
@@ -180,10 +180,12 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri("/table_example/cm")
-                .header(http::header::CONTENT_TYPE, "application/json")
-                .header("idempotency-key", "negative-oversized")
-                .body(axum::body::Body::from("x".repeat(2_048usize)))
+                .uri(str_constants::expr::S_0124)
+                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
+                .header(str_constants::expr::S_1406, str_constants::expr::S_1540)
+                .body(axum::body::Body::from(
+                    str_constants::expr::S_1919.repeat(2_048usize),
+                ))
                 .expect("aed15d30"),
         )
         .await
@@ -193,7 +195,7 @@ mod tests {
             router,
             http::Request::builder()
                 .method(http::Method::GET)
-                .uri("/table_example/cm")
+                .uri(str_constants::expr::S_0124)
                 .body(axum::body::Body::empty())
                 .expect("76f6f737"),
         )
@@ -237,10 +239,10 @@ mod tests {
                 .iter()
                 .for_each(|value| collect_component_refs(value, refs)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, value)| {
-                if key == "$ref"
+                if key == str_constants::expr::S_0030
                     && let Some(name) = value
                         .as_str()
-                        .and_then(|value| value.strip_prefix("#/components/schemas/"))
+                        .and_then(|value| value.strip_prefix(str_constants::expr::S_0022))
                 {
                     let _inserted = refs.insert(name.to_owned());
                 }
@@ -256,13 +258,13 @@ mod tests {
     fn generated_open_api_contains_all_crud_paths() {
         let doc = serde_json::to_value(super::TableExampleOpenApi::open_api()).expect("3176b0d5");
         [
-            ("cm", "post"),
-            ("co", "post"),
-            ("rm", "post"),
-            ("ro", "post"),
-            ("uo", "patch"),
-            ("dm", "delete"),
-            ("dlo", "delete"),
+            (str_constants::expr::S_1093, str_constants::expr::S_1614),
+            (str_constants::expr::S_1094, str_constants::expr::S_1614),
+            (str_constants::expr::S_1682, str_constants::expr::S_1614),
+            (str_constants::expr::S_1683, str_constants::expr::S_1614),
+            (str_constants::expr::S_1867, str_constants::expr::S_1589),
+            (str_constants::expr::S_1196, str_constants::expr::S_1174),
+            (str_constants::expr::S_1195, str_constants::expr::S_1174),
         ]
         .into_iter()
         .for_each(|(operation, method)| {
@@ -290,13 +292,15 @@ mod tests {
                 serde_json::json!([])
             );
             assert!(operation_doc["responses"].get("default").is_none());
-            let success_status = if operation == "cm" || operation == "co" {
-                "201"
+            let success_status = if operation == str_constants::expr::S_1093
+                || operation == str_constants::expr::S_1094
+            {
+                str_constants::expr::S_0218
             } else {
-                "200"
+                str_constants::expr::S_0216
             };
             assert!(operation_doc["responses"].get(success_status).is_some());
-            operation_doc["responses"]
+            operation_doc[str_constants::expr::S_1675]
                 .as_object()
                 .expect("7c9b7f2b")
                 .iter()
@@ -309,7 +313,7 @@ mod tests {
                         ))
                     );
                 });
-            if operation == "uo" {
+            if operation == str_constants::expr::S_1867 {
                 assert!(operation_doc["responses"].get("412").is_some());
                 assert!(operation_doc["responses"].get("428").is_some());
                 assert!(
@@ -328,7 +332,9 @@ mod tests {
             ))
             .is_none()
         );
-        let schemas = doc["components"]["schemas"].as_object().expect("95ec6823");
+        let schemas = doc[str_constants::expr::S_1101][str_constants::expr::S_1701]
+            .as_object()
+            .expect("95ec6823");
         assert_eq!(
             doc["components"]["securitySchemes"]["admin_cookie"]["in"],
             "cookie"
@@ -353,10 +359,10 @@ mod tests {
                 .get("primary_key_column")
                 .is_none()
         );
-        ["TableExampleRead", "TableExampleUpdate"]
+        [str_constants::expr::S_0800, str_constants::expr::S_0801]
             .into_iter()
             .for_each(|schema_name| {
-                let nullable_projection_or_patch = &schemas[schema_name]["properties"]["column_1"];
+                let nullable_projection_or_patch = &schemas[schema_name][str_constants::expr::S_1638][str_constants::expr::S_1097];
                 assert_ne!(nullable_projection_or_patch["nullable"], true);
                 assert!(
                     nullable_projection_or_patch.pointer("/properties/v").is_some()
@@ -370,12 +376,12 @@ mod tests {
                     .is_some_and(|required| required.iter().any(|field| field == "column_1")));
             });
         [
-            "pg_crud_common.PgType.Read",
-            "pg_crud_common.PgType.Select",
-            "where_filters.PgTypeWhereEq",
-            "where_filters.PgTypeWhereBetween",
-            "where_filters.PgTypeWhereGreaterThan",
-            "where_filters.PgTypeWhereIn",
+            str_constants::expr::S_1609,
+            str_constants::expr::S_1610,
+            str_constants::expr::S_1906,
+            str_constants::expr::S_1905,
+            str_constants::expr::S_1907,
+            str_constants::expr::S_1908,
         ]
         .into_iter()
         .for_each(|schema_name| {
@@ -393,16 +399,16 @@ mod tests {
             .for_each(|contract| {
                 let expected = match contract.operation() {
                     super::TableExampleOperation::Cm | super::TableExampleOperation::Co => {
-                        "table_example:create"
+                        str_constants::expr::S_1790
                     }
                     super::TableExampleOperation::Rm | super::TableExampleOperation::Ro => {
-                        "table_example:read"
+                        str_constants::expr::S_1792
                     }
                     super::TableExampleOperation::Um | super::TableExampleOperation::Uo => {
-                        "table_example:update"
+                        str_constants::expr::S_1793
                     }
                     super::TableExampleOperation::Dlo | super::TableExampleOperation::Dm => {
-                        "table_example:delete"
+                        str_constants::expr::S_1791
                     }
                 };
                 assert_eq!(
@@ -509,26 +515,38 @@ mod tests {
     #[test]
     fn generated_frontend_forms_parse_typed_payloads_and_report_field() {
         let create = super::TableExampleCreate::try_from(super::TableExampleCreateForm {
-            column_0: frontend_contract::FormValue::try_from("12".to_owned()).expect("8f6b2f31"),
+            column_0: frontend_contract::FormValue::try_from(
+                str_constants::expr::S_0174.to_owned(),
+            )
+            .expect("8f6b2f31"),
             column_1: frontend_contract::FormValue::try_from(String::new()).expect("274d2e0c"),
-            column_2: frontend_contract::FormValue::try_from("34".to_owned()).expect("98c9cd5e"),
+            column_2: frontend_contract::FormValue::try_from(
+                str_constants::expr::S_0276.to_owned(),
+            )
+            .expect("98c9cd5e"),
         });
         let _create = create.expect("af5a7ec4");
         let error = super::TableExampleCreate::try_from(super::TableExampleCreateForm {
-            column_0: frontend_contract::FormValue::try_from("not-a-number".to_owned())
-                .expect("a6413c9d"),
+            column_0: frontend_contract::FormValue::try_from(
+                str_constants::expr::S_1558.to_owned(),
+            )
+            .expect("a6413c9d"),
             column_1: frontend_contract::FormValue::try_from(String::new()).expect("1970fd5b"),
-            column_2: frontend_contract::FormValue::try_from("34".to_owned()).expect("fd5e40c9"),
+            column_2: frontend_contract::FormValue::try_from(
+                str_constants::expr::S_0276.to_owned(),
+            )
+            .expect("fd5e40c9"),
         })
-        .expect_err("c563853a");
+        .expect_err(str_constants::expr::S_1045);
         assert_eq!(error.field().as_ref(), "column_0");
         let update = super::TableExampleUpdate::try_from(super::TableExampleUpdateForm {
             primary_key_column: frontend_contract::FormValue::try_from(
-                "550e8400-e29b-41d4-a716-446655440000".to_owned(),
+                str_constants::expr::S_0359.to_owned(),
             )
             .expect("5b8439c1"),
             column_0: Some(
-                frontend_contract::FormValue::try_from("13".to_owned()).expect("4bd3fc27"),
+                frontend_contract::FormValue::try_from(str_constants::expr::S_0187.to_owned())
+                    .expect("4bd3fc27"),
             ),
             column_1: None,
             column_2: None,

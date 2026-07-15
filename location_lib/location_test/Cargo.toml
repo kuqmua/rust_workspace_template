@@ -11,6 +11,7 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
+str_constants = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 location_lib = { workspace = true }

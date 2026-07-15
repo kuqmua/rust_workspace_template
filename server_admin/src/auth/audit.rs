@@ -4,19 +4,17 @@ pub(super) async fn record_success_in_connection(
     event: super::AdminAuditSuccessRef<'_>,
 ) -> Result<(), super::AdminApiError> {
     let details = serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() });
-    let _result = sqlx::query(
-        "INSERT INTO admin_audit_log (user_id, user_login, action, resource, resource_id, request_id, succeeded, details) VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)",
-    )
-    .bind(event.user_id.0)
-    .bind(event.login.as_ref())
-    .bind(event.action.as_str().as_ref())
-    .bind(event.resource.as_str().as_ref())
-    .bind(event.resource_id.value().as_ref())
-    .bind(uuid::Uuid::new_v4())
-    .bind(details)
-    .execute(connection.as_mut())
-    .await
-    .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
+    let _result = sqlx::query(str_constants::expr::S_0683)
+        .bind(event.user_id.0)
+        .bind(event.login.as_ref())
+        .bind(event.action.as_str().as_ref())
+        .bind(event.resource.as_str().as_ref())
+        .bind(event.resource_id.value().as_ref())
+        .bind(uuid::Uuid::new_v4())
+        .bind(details)
+        .execute(connection.as_mut())
+        .await
+        .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
     Ok(())
 }
 pub(super) async fn query_log(
@@ -59,14 +57,24 @@ pub(super) async fn query_log(
             Option<serde_json::Value>,
             String,
         ),
-    >(
-        "SELECT id, user_id, user_login, action, resource, resource_id, succeeded, details, created_at::TEXT FROM admin_audit_log WHERE ($1::BIGINT IS NULL OR user_id = $1) AND ($2::TEXT IS NULL OR action = $2) AND ($3::TEXT IS NULL OR resource = $3) AND ($4::TIMESTAMPTZ IS NULL OR created_at >= $4::TIMESTAMPTZ) AND ($5::TIMESTAMPTZ IS NULL OR created_at <= $5::TIMESTAMPTZ) ORDER BY created_at DESC LIMIT 200",
-    )
+    >(str_constants::expr::S_0770)
     .bind(query.0.user_id.map(|user_id| user_id.0))
     .bind(action.map(|value| value.as_ref().to_owned()))
     .bind(resource.map(|value| value.as_ref().to_owned()))
-    .bind(query.0.created_after.as_ref().map(|value| value.as_ref().as_str()))
-    .bind(query.0.created_before.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(
+        query
+            .0
+            .created_after
+            .as_ref()
+            .map(|value| value.as_ref().as_str()),
+    )
+    .bind(
+        query
+            .0
+            .created_before
+            .as_ref()
+            .map(|value| value.as_ref().as_str()),
+    )
     .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
     .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;

@@ -35,23 +35,23 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
         });
         let optional_attr = supported_attrs.next();
         if supported_attrs.next().is_some() {
-            return Err("two or more supported attrs!".to_owned());
+            return Err(str_constants::expr::S_1839.to_owned());
         }
-        optional_attr.map_or_else(|| Err("opt attr is None".to_owned()), Ok)
+        optional_attr.map_or_else(|| Err(str_constants::expr::S_1572.to_owned()), Ok)
     }
 }
 impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
     fn attr_identifier_str(&self) -> crate::attr_identifier_str::AttrIdentifierName<'_> {
         crate::attr_identifier_str::AttrIdentifierName::from(match *self {
-            Self::EoToErrString => "eo_to_err_string",
-            Self::EoToErrStringSerde => "eo_to_err_string_serde",
-            Self::EoLocation => "eo_location",
-            Self::EoVecToErrString => "eo_vec_to_err_string",
-            Self::EoVecToErrStringSerde => "eo_vec_to_err_string_serde",
-            Self::EoVecLocation => "eo_vec_location",
-            Self::EoHashMapKStringVToErrString => "eo_hashmap_k_string_v_to_err_string",
-            Self::EoHashMapKStringVToErrStringSerde => "eo_hashmap_k_string_v_to_err_string_serde",
-            Self::EoHashMapKStringVLocation => "eo_hashmap_k_string_v_location",
+            Self::EoToErrString => str_constants::expr::S_1248,
+            Self::EoToErrStringSerde => str_constants::expr::S_1249,
+            Self::EoLocation => str_constants::expr::S_1247,
+            Self::EoVecToErrString => str_constants::expr::S_1251,
+            Self::EoVecToErrStringSerde => str_constants::expr::S_1252,
+            Self::EoVecLocation => str_constants::expr::S_1250,
+            Self::EoHashMapKStringVToErrString => str_constants::expr::S_1245,
+            Self::EoHashMapKStringVToErrStringSerde => str_constants::expr::S_1246,
+            Self::EoHashMapKStringVLocation => str_constants::expr::S_1244,
         })
     }
 }
@@ -145,7 +145,12 @@ pub fn generate_serde_version_of_named_syn_variant(
             };
             let location_field_attr = match LocationFieldAttr::try_from(element) {
                 Ok(parsed_attr) => parsed_attr,
-                Err(error) => return compile_error_token_stream(CompileErrorMessage(&format!("2db209a8: {error}"))),
+                Err(error) => return compile_error_token_stream(CompileErrorMessage(
+                    &str_constants::compile_error::CE_010.replace(
+                        str_constants::compile_error::ERROR_PLACEHOLDER,
+                        &error,
+                    ),
+                )),
             };
             let element_type_with_serde_token_stream = match location_field_attr {
                 LocationFieldAttr::EoToErrString => quote::quote! {#string_token_stream},
@@ -157,7 +162,13 @@ pub fn generate_serde_version_of_named_syn_variant(
                 {
                     Ok(parsed_token_stream) => parsed_token_stream,
                     Err(error) => {
-                        return compile_error_token_stream(CompileErrorMessage(&format!("201dc0a4: {error}")));
+                        return compile_error_token_stream(CompileErrorMessage(
+                            &str_constants::compile_error::CE_005
+                                .replace(
+                                    str_constants::compile_error::ERROR_PLACEHOLDER,
+                                    &error.to_string(),
+                                ),
+                        ));
                     }
                 },
                 LocationFieldAttr::EoVecToErrString => {
@@ -169,7 +180,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                     let segments = if let syn::Type::Path(v0) = &element.ty {
                         &v0.path.segments
                     } else {
-                        return compile_error_token_stream(CompileErrorMessage("8d93bf20: expected path type"));
+                        return compile_error_token_stream(CompileErrorMessage(str_constants::compile_error::CE_024));
                     };
                     assert!(segments.len() == 1, "0c65bbaa");
                     let Some(first_segment) = segments.iter().next() else {
@@ -187,7 +198,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                             {
                                 let Some(first_arg) = args.iter().next() else {
                                     return compile_error_token_stream(CompileErrorMessage(
-                                        "e9b33787: expected first generic arg",
+                                        str_constants::compile_error::CE_053,
                                     ));
                                 };
                                 quote::quote! {#first_arg}
@@ -198,9 +209,13 @@ pub fn generate_serde_version_of_named_syn_variant(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(&format!(
-                                    "22c364b9: {error}"
-                                )));
+                                return compile_error_token_stream(CompileErrorMessage(
+                                    &str_constants::compile_error::CE_007
+                                        .replace(
+                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            &error.to_string(),
+                                        ),
+                                ));
                             }
                         }
                     } else {
@@ -244,9 +259,13 @@ pub fn generate_serde_version_of_named_syn_variant(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(&format!(
-                                    "86307dbc: {error}"
-                                )));
+                                return compile_error_token_stream(CompileErrorMessage(
+                                    &str_constants::compile_error::CE_020
+                                        .replace(
+                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            &error.to_string(),
+                                        ),
+                                ));
                             }
                         };
                     quote::quote! {

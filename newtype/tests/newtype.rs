@@ -11,7 +11,7 @@ mod tests {
         impl std::fmt::Display for ToErrStringValueTryFromStringError {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 match self {
-                    Self::TooLong => f.write_str("too long"),
+                    Self::TooLong => f.write_str(str_constants::expr::S_1830),
                 }
             }
         }
@@ -103,7 +103,7 @@ mod tests {
     }
     #[test]
     fn string_newtype_impls_are_generated() {
-        let v = StringValue(String::from("abc"));
+        let v = StringValue(String::from(str_constants::expr::S_0905));
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
@@ -158,7 +158,8 @@ mod tests {
     }
     #[test]
     fn bounded_string_description_is_configurable() {
-        let error = DescribedValue::try_from(String::from("abc")).expect_err("3dfca278");
+        let error = DescribedValue::try_from(String::from(str_constants::expr::S_0905))
+            .expect_err(str_constants::expr::S_0298);
         assert_eq!(
             error.to_string(),
             "described value length 3 exceeds maximum 2"
@@ -186,7 +187,8 @@ mod tests {
             serde_json::from_str::<RichValue>("\"  \\u0430\\u0431  \"").expect("1d3222b1"),
             RichValue(String::from("\u{430}\u{431}"))
         );
-        let _error = serde_json::from_str::<RichValue>(r#""abcd""#).expect_err("c0e03c6d");
+        let _error = serde_json::from_str::<RichValue>(str_constants::expr::S_0852)
+            .expect_err(str_constants::expr::S_1035);
     }
     #[test]
     fn bounded_string_openapi_limits_match_runtime_limits() {
@@ -228,7 +230,7 @@ mod tests {
     }
     #[test]
     fn reference_inner_impls_are_generated() {
-        let inner = ReferentValue("left", "right");
+        let inner = ReferentValue(str_constants::expr::S_1453, str_constants::expr::S_1681);
         let v = ReferentValueRef::from(&inner);
         assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
     }
@@ -262,7 +264,8 @@ mod tests {
     }
     #[test]
     fn enum_from_str_error_mentions_allowed_values() {
-        let error = <SampleEnum as std::str::FromStr>::from_str("bad").expect_err("42d13f7a");
+        let error = <SampleEnum as std::str::FromStr>::from_str(str_constants::expr::S_1006)
+            .expect_err(str_constants::expr::S_0308);
         assert_eq!(
             error,
             "Unknown value: bad. Allowed values: first_value, second"

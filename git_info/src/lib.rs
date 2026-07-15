@@ -383,13 +383,13 @@ mod tests {
     }
     #[test]
     fn git_commit_link_builds_expected_url() {
-        let link = super::git_commit_link("abc123");
-        assert_expected_git_commit_link(&link, "abc123");
+        let link = super::git_commit_link(str_constants::expr::S_0906);
+        assert_expected_git_commit_link(&link, str_constants::expr::S_0906);
     }
     #[test]
     fn git_commit_link_handles_empty_commit() {
-        let link = super::git_commit_link("");
-        assert_expected_git_commit_link(&link, "");
+        let link = super::git_commit_link(str_constants::expr::S_0021);
+        assert_expected_git_commit_link(&link, str_constants::expr::S_0021);
     }
     #[test]
     fn git_commit_link_cow_borrows_static_project_link_for_project_commit() {
@@ -407,7 +407,7 @@ mod tests {
     }
     #[test]
     fn git_commit_link_cow_owns_link_for_non_project_commit() {
-        let actual = super::git_commit_link_cow("deadbeef");
+        let actual = super::git_commit_link_cow(str_constants::expr::S_1166);
         assert!(
             matches!(actual.0, std::borrow::Cow::Owned(v) if v == expected_git_commit_link("deadbeef"))
         );
@@ -438,7 +438,8 @@ mod tests {
     }
     #[test]
     fn validate_project_commit_reuses_static_project_link_ref() {
-        let error = super::validate_project_commit("deadbeef").expect_err("46bc13a9");
+        let error = super::validate_project_commit(str_constants::expr::S_1166)
+            .expect_err(str_constants::expr::S_0314);
         let project_link = super::project_git_commit_link_ref();
         assert!(std::ptr::eq(error.0.0, project_link.0));
     }
@@ -459,19 +460,19 @@ mod tests {
     #[test]
     fn project_git_info_returns_commit_link() {
         let git_info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef("deadbeef"),
+            commit: super::GitCommitIdRef(str_constants::expr::S_1166),
         };
         let link = super::GetGitCommitLink::get_git_commit_link(&git_info);
-        assert_expected_git_commit_link(&link, "deadbeef");
+        assert_expected_git_commit_link(&link, str_constants::expr::S_1166);
     }
     #[test]
     fn get_git_commit_link_uses_trait_based_commit_id() {
-        let test_git_commit = mk_owned_test_git_commit("f00dbabe");
-        assert_commit_link_and_fallback_calls(&test_git_commit, "f00dbabe", 1);
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1264);
+        assert_commit_link_and_fallback_calls(&test_git_commit, str_constants::expr::S_1264, 1);
     }
     #[test]
     fn get_git_commit_link_calls_allocating_fallback_once_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit("f00dbabe");
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1264);
         drop(super::GetGitCommitLink::get_git_commit_link(
             &test_git_commit,
         ));
@@ -479,7 +480,7 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_or_else_computes_fallback_once() {
-        let test_git_commit = mk_owned_test_git_commit("f00dbabe");
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1264);
         let mut fallback = super::GitCommitIdFallback(None);
         let first =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
@@ -491,7 +492,7 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
-        let test_git_commit = mk_borrowed_test_git_commit("cafebabe");
+        let test_git_commit = mk_borrowed_test_git_commit(str_constants::expr::S_1067);
         let mut fallback = super::GitCommitIdFallback(None);
         let commit =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
@@ -501,13 +502,18 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_cow_returns_owned_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit("cafebabe");
-        assert_commit_id_cow_and_fallback_calls(&test_git_commit, "cafebabe", false, 1);
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1067);
+        assert_commit_id_cow_and_fallback_calls(
+            &test_git_commit,
+            str_constants::expr::S_1067,
+            false,
+            1,
+        );
     }
     #[test]
     fn get_git_commit_link_prefers_borrowed_commit_id() {
-        let test_git_commit = mk_borrowed_test_git_commit("cafebabe");
-        assert_commit_link_and_fallback_calls(&test_git_commit, "cafebabe", 0);
+        let test_git_commit = mk_borrowed_test_git_commit(str_constants::expr::S_1067);
+        assert_commit_link_and_fallback_calls(&test_git_commit, str_constants::expr::S_1067, 0);
     }
     #[test]
     fn get_git_commit_link_cow_borrows_project_link_for_project_commit() {
@@ -521,58 +527,71 @@ mod tests {
     }
     #[test]
     fn get_git_commit_id_cow_returns_borrowed_when_ref_is_available() {
-        let test_git_commit = mk_borrowed_test_git_commit("cafebabe");
-        assert_commit_id_cow_and_fallback_calls(&test_git_commit, "cafebabe", true, 0);
+        let test_git_commit = mk_borrowed_test_git_commit(str_constants::expr::S_1067);
+        assert_commit_id_cow_and_fallback_calls(
+            &test_git_commit,
+            str_constants::expr::S_1067,
+            true,
+            0,
+        );
     }
     #[test]
     fn with_git_commit_id_uses_allocating_fallback_once_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit("cafebabe");
-        assert_commit_len_and_fallback_calls(&test_git_commit, "cafebabe".len(), 1);
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1067);
+        assert_commit_len_and_fallback_calls(
+            &test_git_commit,
+            str_constants::expr::S_1067.len(),
+            1,
+        );
     }
     #[test]
     fn with_git_commit_id_prefers_borrowed_ref_when_available() {
-        let test_git_commit = mk_borrowed_test_git_commit("cafebabe");
-        assert_commit_len_and_fallback_calls(&test_git_commit, "cafebabe".len(), 0);
+        let test_git_commit = mk_borrowed_test_git_commit(str_constants::expr::S_1067);
+        assert_commit_len_and_fallback_calls(
+            &test_git_commit,
+            str_constants::expr::S_1067.len(),
+            0,
+        );
     }
     #[test]
     fn with_git_commit_id_ref_or_prefers_borrowed_ref_when_available() {
-        let test_git_commit = mk_borrowed_test_git_commit("cafebabe");
-        assert_with_git_commit_id_ref_or(&test_git_commit, "cafebabe".len(), 0);
+        let test_git_commit = mk_borrowed_test_git_commit(str_constants::expr::S_1067);
+        assert_with_git_commit_id_ref_or(&test_git_commit, str_constants::expr::S_1067.len(), 0);
     }
     #[test]
     fn with_git_commit_id_ref_or_uses_fallback_without_ref() {
-        let test_git_commit = mk_owned_test_git_commit("cafebabe");
-        assert_with_git_commit_id_ref_or(&test_git_commit, "cafebabe".len(), 1);
+        let test_git_commit = mk_owned_test_git_commit(str_constants::expr::S_1067);
+        assert_with_git_commit_id_ref_or(&test_git_commit, str_constants::expr::S_1067.len(), 1);
     }
     #[test]
     fn base_git_commit_link_len_matches_expected_prefix_len() {
-        let commit_id = "abc123";
+        let commit_id = str_constants::expr::S_0906;
         let expected = format!("{}/tree/{commit_id}", str_constants::naming::GITHUB_URL).len();
         assert_eq!(super::git_commit_link_capacity(commit_id), expected);
     }
     #[test]
     fn get_git_commit_link_works_for_str_and_string() {
-        let str_link = super::GetGitCommitLink::get_git_commit_link("abc123");
-        assert_expected_git_commit_link(&str_link, "abc123");
-        let string = String::from("abc123");
+        let str_link = super::GetGitCommitLink::get_git_commit_link(str_constants::expr::S_0906);
+        assert_expected_git_commit_link(&str_link, str_constants::expr::S_0906);
+        let string = String::from(str_constants::expr::S_0906);
         let string_link = super::GetGitCommitLink::get_git_commit_link(&string);
-        assert_expected_git_commit_link(&string_link, "abc123");
+        assert_expected_git_commit_link(&string_link, str_constants::expr::S_0906);
     }
     #[test]
     fn get_git_commit_link_works_for_cow_str() {
-        let borrowed = std::borrow::Cow::Borrowed("abc123");
+        let borrowed = std::borrow::Cow::Borrowed(str_constants::expr::S_0906);
         let borrowed_link = super::GetGitCommitLink::get_git_commit_link(&borrowed);
-        assert_expected_git_commit_link(&borrowed_link, "abc123");
-        let owned = std::borrow::Cow::<'_, str>::Owned("abc123".to_owned());
+        assert_expected_git_commit_link(&borrowed_link, str_constants::expr::S_0906);
+        let owned = std::borrow::Cow::<'_, str>::Owned(str_constants::expr::S_0906.to_owned());
         assert_expected_git_commit_link(
             super::GetGitCommitLink::get_git_commit_link(&owned),
-            "abc123",
+            str_constants::expr::S_0906,
         );
     }
     #[test]
     fn project_git_info_as_ref_returns_commit() {
         let info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef("abc123"),
+            commit: super::GitCommitIdRef(str_constants::expr::S_0906),
         };
         assert_eq!(info.as_ref(), "abc123");
     }

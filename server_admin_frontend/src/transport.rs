@@ -30,18 +30,21 @@ impl frontend_contract::Transport for GlooTransport {
             let mut builder = gloo_net::http::RequestBuilder::new(request.path().as_ref())
                 .method(gloo_net::http::Method::from(http_method(route.method())))
                 .credentials(web_sys::RequestCredentials::Include)
-                .header("Content-Type", "application/json")
-                .header("commit", git_info::PROJECT_GIT_INFO.commit.as_ref());
+                .header(str_constants::expr::S_0647, str_constants::expr::S_0951)
+                .header(
+                    str_constants::expr::S_1098,
+                    git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                );
             if let Some(idempotency_key) = request.idempotency_key() {
-                builder = builder.header("Idempotency-Key", idempotency_key.as_ref());
+                builder = builder.header(str_constants::expr::S_0695, idempotency_key.as_ref());
             }
             if let Some(if_match) = request.if_match() {
-                builder = builder.header("If-Match", if_match.as_ref());
+                builder = builder.header(str_constants::expr::S_0696, if_match.as_ref());
             }
             if route.mutation() == frontend_contract::MutationKind::Mutating
                 && let Some(token) = csrf_token()
             {
-                builder = builder.header("X-CSRF-Token", token.as_ref());
+                builder = builder.header(str_constants::expr::S_0839, token.as_ref());
             }
             let outbound = if route.method() == frontend_contract::HttpMethod::Get {
                 builder.build()
@@ -83,7 +86,7 @@ fn csrf_token() -> Option<BrowserCsrfToken> {
     let cookies = document.cookie().ok()?;
     cookies.split(';').map(str::trim).find_map(|cookie| {
         cookie
-            .strip_prefix("admin_csrf_token=")
+            .strip_prefix(str_constants::expr::S_0931)
             .and_then(|value| BrowserCsrfToken::try_from(value.to_owned()).ok())
     })
 }

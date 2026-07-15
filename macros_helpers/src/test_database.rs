@@ -24,10 +24,13 @@ pub enum UrlError {
     NonLoopback { target: SanitizedDatabaseTarget },
 }
 pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTarget, UrlError> {
-    let Some((scheme, after_scheme)) = url.0.split_once("://") else {
+    let Some((scheme, after_scheme)) = url.0.split_once(str_constants::expr::S_0571) else {
         return Err(UrlError::Malformed);
     };
-    if !matches!(scheme, "postgres" | "postgresql") {
+    if !matches!(
+        scheme,
+        str_constants::expr::S_1968 | str_constants::expr::S_1969
+    ) {
         return Err(UrlError::Malformed);
     }
     let Some((authority, path_and_suffix)) = after_scheme.split_once('/') else {
@@ -56,10 +59,16 @@ pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTa
         .ok_or(UrlError::Malformed)?;
     let target = SanitizedDatabaseTarget::try_from(format!("{scheme}://{host}/{database}"))
         .map_err(|_error| UrlError::Malformed)?;
-    if !matches!(host, "localhost" | "127.0.0.1" | "::1") {
+    if !matches!(
+        host,
+        str_constants::expr::S_1970 | str_constants::expr::S_0178 | str_constants::expr::S_1971
+    ) {
         return Err(UrlError::NonLoopback { target });
     }
-    if database != "test" && !database.starts_with("test_") && !database.ends_with("_test") {
+    if database != str_constants::expr::S_1802
+        && !database.starts_with(str_constants::expr::S_1808)
+        && !database.ends_with(str_constants::expr::S_0867)
+    {
         return Err(UrlError::AmbiguousDatabase { target });
     }
     Ok(target)
@@ -69,9 +78,9 @@ mod tests {
     #[test]
     fn accepts_explicit_loopback_test_databases() {
         let all_accepted = [
-            "postgres://user:secret@localhost/test",
-            "postgresql://user:secret@127.0.0.1:5432/app_test?sslmode=disable",
-            "postgres://user:secret@[::1]/test_ci#fragment",
+            str_constants::expr::S_1622,
+            str_constants::expr::S_1626,
+            str_constants::expr::S_1621,
         ]
         .into_iter()
         .all(|url| super::validate_test_database_url(super::UrlRef::from(url)).is_ok());
@@ -80,16 +89,17 @@ mod tests {
     #[test]
     fn rejects_ambiguous_and_non_loopback_targets_without_leaking_credentials() {
         let all_rejected_without_credentials = [
-            "postgres://admin:production-secret@db.example.com/app_test",
-            "postgres://admin:production-secret@localhost/postgres",
-            "postgres://admin:production-secret@localhost/production",
-            "not-a-url",
+            str_constants::expr::S_1616,
+            str_constants::expr::S_1617,
+            str_constants::expr::S_1618,
+            str_constants::expr::S_1559,
         ]
         .into_iter()
         .all(|url| {
             super::validate_test_database_url(super::UrlRef::from(url)).is_err_and(|error| {
                 let message = error.to_string();
-                !message.contains("admin") && !message.contains("production-secret")
+                !message.contains(str_constants::expr::S_0922)
+                    && !message.contains(str_constants::expr::S_1636)
             })
         });
         assert!(all_rejected_without_credentials);

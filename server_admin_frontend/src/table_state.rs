@@ -113,21 +113,25 @@ mod tests {
     #[test]
     fn search_and_sort_reset_paging_and_sort_toggles_direction() {
         let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from("login".to_owned()).expect("3f98f927"),
+            super::AdminFrontendTableText::try_from(str_constants::expr::S_1468.to_owned())
+                .expect("3f98f927"),
         );
         state.next(super::AdminFrontendTableIndex::from(50usize));
         assert_eq!(state.page_number().0, 2usize);
         state.apply_search(
-            super::AdminFrontendTableText::try_from("root".to_owned()).expect("5e68820e"),
+            super::AdminFrontendTableText::try_from(str_constants::expr::S_1685.to_owned())
+                .expect("5e68820e"),
         );
         assert_eq!(state.page_number().0, 1usize);
         assert_eq!(state.search().0, "root");
         state.apply_sort(
-            super::AdminFrontendTableText::try_from("login".to_owned()).expect("7c2035b3"),
+            super::AdminFrontendTableText::try_from(str_constants::expr::S_1468.to_owned())
+                .expect("7c2035b3"),
         );
         assert_eq!(state.sort_dir(), super::SortDir::Desc);
         state.apply_sort(
-            super::AdminFrontendTableText::try_from("display_name".to_owned()).expect("8215b5f6"),
+            super::AdminFrontendTableText::try_from(str_constants::expr::S_1194.to_owned())
+                .expect("8215b5f6"),
         );
         assert_eq!(state.sort().0, "display_name");
         assert_eq!(state.sort_dir(), super::SortDir::Asc);
@@ -136,7 +140,8 @@ mod tests {
     #[test]
     fn paging_is_bounded_and_page_size_is_validated() {
         let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from("name".to_owned()).expect("fe54b186"),
+            super::AdminFrontendTableText::try_from(str_constants::expr::S_1536.to_owned())
+                .expect("fe54b186"),
         );
         state.apply_page_size(super::AdminFrontendTableIndex::from(1usize));
         assert_eq!(

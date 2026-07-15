@@ -2,12 +2,12 @@ impl super::AdminAuditAction {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::Create => "create",
-            Self::Delete => "delete",
-            Self::Refresh => "refresh",
-            Self::SignIn => "sign_in",
-            Self::SignOut => "sign_out",
-            Self::Update => "update",
+            Self::Create => str_constants::expr::S_1113,
+            Self::Delete => str_constants::expr::S_1174,
+            Self::Refresh => str_constants::expr::S_1653,
+            Self::SignIn => str_constants::expr::S_1738,
+            Self::SignOut => str_constants::expr::S_1739,
+            Self::Update => str_constants::expr::S_1872,
         })
     }
 }
@@ -15,12 +15,12 @@ impl super::AdminAuditResource {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::AuditLog => "audit_log",
-            Self::Permission => "permission",
-            Self::Role => "role",
-            Self::Session => "session",
-            Self::SystemSettings => "system_settings",
-            Self::User => "user",
+            Self::AuditLog => str_constants::expr::S_0970,
+            Self::Permission => str_constants::expr::S_1600,
+            Self::Role => str_constants::expr::S_1684,
+            Self::Session => str_constants::expr::S_1736,
+            Self::SystemSettings => str_constants::expr::S_1785,
+            Self::User => str_constants::expr::S_1880,
         })
     }
 }

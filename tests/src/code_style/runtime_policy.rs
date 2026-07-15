@@ -1,11 +1,8 @@
 #[test]
 fn runtime_code_does_not_use_expect_unwrap_or_panic() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("c71f2a8d"),
-        super::types::SourceTextRef::from(
-            "runtime code contains forbidden expect/unwrap/panic calls; use Result with a \
-             thiserror-like error enum instead:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1052),
+        super::types::SourceTextRef::from(str_constants::expr::S_1694),
         |path, ast, ers| {
             if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
@@ -28,10 +25,8 @@ fn runtime_code_does_not_use_expect_unwrap_or_panic() {
 #[test]
 fn runtime_code_does_not_use_mutex() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("e3f8a1c5"),
-        super::types::SourceTextRef::from(
-            "runtime code contains Mutex; use it only for justified interior mutability:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1216),
+        super::types::SourceTextRef::from(str_constants::expr::S_1693),
         |path, ast, ers| {
             if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
@@ -45,7 +40,7 @@ fn runtime_code_does_not_use_mutex() {
             super::push_repeated_file_error(
                 super::types::DiagnosticMsgsMutRef::from(&mut *ers),
                 super::types::StdPathRef::from(path),
-                super::types::SourceTextRef::from("Mutex type usage"),
+                super::types::SourceTextRef::from(str_constants::expr::S_0703),
                 visitor.found_count,
             );
         },
@@ -54,10 +49,8 @@ fn runtime_code_does_not_use_mutex() {
 #[test]
 fn runtime_arc_usage_is_limited_to_cross_thread_state() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("f9c2d4a8"),
-        super::types::SourceTextRef::from(
-            "runtime Arc usage must be limited to explicit cross-thread shared state:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1306),
+        super::types::SourceTextRef::from(str_constants::expr::S_1692),
         |path, ast, ers| {
             if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
@@ -66,9 +59,9 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                 super::types::SynFileRef::from(ast),
                 super::RuntimeArcVisitor {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
-                        path.ends_with("server/src/main.rs")
-                            || path.ends_with("server_admin/src/password.rs")
-                            || path.ends_with("server_runtime/src/bounded_read.rs"),
+                        path.ends_with(str_constants::expr::S_1721)
+                            || path.ends_with(str_constants::expr::S_1723)
+                            || path.ends_with(str_constants::expr::S_1729),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },
@@ -85,8 +78,8 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
 #[test]
 fn async_functions_do_not_make_blocking_executor_calls() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("a8e1c6f3"),
-        super::types::SourceTextRef::from("async functions contain blocking executor calls:"),
+        super::types::StaticStr(str_constants::expr::S_0894),
+        super::types::SourceTextRef::from(str_constants::expr::S_0968),
         |path, ast, ers| {
             if !super::is_runtime_policy_source_path(super::types::StdPathRef::from(path)).get() {
                 return;
@@ -110,10 +103,8 @@ fn async_functions_do_not_make_blocking_executor_calls() {
 #[test]
 fn unit_tests_do_not_create_external_service_clients() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("d1f5b9c7"),
-        super::types::SourceTextRef::from(
-            "unit tests contain external-service clients; use deterministic local fakes instead:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1119),
+        super::types::SourceTextRef::from(str_constants::expr::S_1852),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),

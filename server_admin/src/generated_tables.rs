@@ -44,16 +44,17 @@ pub struct AdminUsers {
     created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
     updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
+#[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
 impl std::fmt::Debug for AdminUsers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AdminUsers")
-            .field("id", &self.id)
-            .field("login", &self.login)
-            .field("display_name", &self.display_name)
-            .field("password_hash", &"[REDACTED]")
-            .field("is_banned", &self.is_banned)
-            .field("created_at", &self.created_at)
-            .field("updated_at", &self.updated_at)
+        f.debug_struct(str_constants::expr::S_0611)
+            .field(str_constants::expr::S_1397, &self.id)
+            .field(str_constants::expr::S_1468, &self.login)
+            .field(str_constants::expr::S_1194, &self.display_name)
+            .field(str_constants::expr::S_1588, &str_constants::expr::S_0840)
+            .field(str_constants::expr::S_1441, &self.is_banned)
+            .field(str_constants::expr::S_1115, &self.created_at)
+            .field(str_constants::expr::S_1874, &self.updated_at)
             .finish()
     }
 }
@@ -249,7 +250,7 @@ pub struct AdminSystemSettings {
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("UtoipaAdminOpenApi")
+        f.write_str(str_constants::expr::S_0826)
     }
 }
 #[must_use]
@@ -271,7 +272,7 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("87b2e8fb");
         let paths = document
-            .get("paths")
+            .get(str_constants::expr::S_1593)
             .and_then(serde_json::Value::as_object)
             .expect("274479a7");
         assert_eq!(paths.len(), 29usize);
@@ -297,16 +298,16 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("8457a8ca");
         let paths = document
-            .get("paths")
+            .get(str_constants::expr::S_1593)
             .and_then(serde_json::Value::as_object)
             .expect("44d17ab0");
         [
-            "/admin_users/rm",
-            "/admin_roles/rm",
-            "/admin_permissions/rm",
-            "/admin_role_permissions/rm",
-            "/admin_user_roles/rm",
-            "/admin_system_settings/rm",
+            str_constants::expr::S_0090,
+            str_constants::expr::S_0087,
+            str_constants::expr::S_0085,
+            str_constants::expr::S_0086,
+            str_constants::expr::S_0089,
+            str_constants::expr::S_0088,
         ]
         .into_iter()
         .for_each(|path| {
@@ -320,32 +321,37 @@ mod tests {
             );
         });
         let schemas = document
-            .pointer("/components/schemas")
+            .pointer(str_constants::expr::S_0101)
             .and_then(serde_json::Value::as_object)
             .expect("8dcf412e");
         [
-            "AdminUsersRmPayload",
-            "AdminRolesRmPayload",
-            "AdminPermissionsRmPayload",
-            "AdminRolePermissionsRmPayload",
-            "AdminUserRolesRmPayload",
-            "AdminSystemSettingsRmPayload",
+            str_constants::expr::S_0612,
+            str_constants::expr::S_0597,
+            str_constants::expr::S_0594,
+            str_constants::expr::S_0596,
+            str_constants::expr::S_0610,
+            str_constants::expr::S_0608,
         ]
         .into_iter()
         .for_each(|schema_name| {
             let properties = schemas
                 .get(schema_name)
-                .and_then(|schema| schema.get("properties"))
+                .and_then(|schema| schema.get(str_constants::expr::S_1638))
                 .and_then(serde_json::Value::as_object)
                 .expect("5b8bbdd1");
-            ["where_many", "select", "order_by", "pagination"]
-                .into_iter()
-                .for_each(|property| {
-                    assert!(
-                        properties.contains_key(property),
-                        "{schema_name} must expose {property}"
-                    );
-                });
+            [
+                str_constants::expr::S_1910,
+                str_constants::expr::S_1713,
+                str_constants::expr::S_1577,
+                str_constants::expr::S_1581,
+            ]
+            .into_iter()
+            .for_each(|property| {
+                assert!(
+                    properties.contains_key(property),
+                    "{schema_name} must expose {property}"
+                );
+            });
         });
     }
 }

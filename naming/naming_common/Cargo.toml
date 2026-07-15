@@ -16,5 +16,8 @@ quote = { workspace = true }
 convert_case = { workspace = true }
 naming_common_macros = { workspace = true }
 newtype = { workspace = true }
+
+[dev-dependencies]
+str_constants = { workspace = true }
 [lints]
 workspace = true

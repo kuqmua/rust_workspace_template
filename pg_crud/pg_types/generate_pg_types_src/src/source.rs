@@ -381,7 +381,7 @@ pub fn generate_pg_types(
     impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         type Error = String;
         fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
-            let cant_supp_nullable_variants_message = "cant support nullable variants: ";
+            let cant_supp_nullable_variants_message = str_constants::expr::S_1069;
             match &v.pg_type.can_be_nullable() {
                 CanBeNullable::False => {
                     if matches!(&v.is_nullable, pg_crud_macros_common::IsNullable::True) {
@@ -683,7 +683,7 @@ pub fn generate_pg_types(
             let mut check_accumulator = std::collections::HashSet::with_capacity(pg_type_records.len());
             let duplicate_found = pg_type_records.iter().any(|element| !check_accumulator.insert(*element));
             if duplicate_found {
-                let message_value = "536036f9: duplicate pg type config entry";
+                let message_value = str_constants::expr::S_0354;
                 return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
                     quote::quote! {compile_error!(#message_value);},
                 );
@@ -997,8 +997,8 @@ pub fn generate_pg_types(
             }
             WireKind::TimeChrono | WireKind::TimeTime => {
                 let (minute_name, second_name, microsecond_name) = match crate::schema::wire_kind(pg_type_dsc) {
-                    WireKind::TimeChrono => ("min", "sec", "micro"),
-                    WireKind::TimeTime => ("minute", "second", "microsecond"),
+                    WireKind::TimeChrono => (str_constants::expr::S_1519, str_constants::expr::S_1703, str_constants::expr::S_1517),
+                    WireKind::TimeTime => (str_constants::expr::S_1521, str_constants::expr::S_1704, str_constants::expr::S_1518),
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -1037,8 +1037,8 @@ pub fn generate_pg_types(
             },
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::schema::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => "date",
-                    WireKind::TimestampTz => "date_naive",
+                    WireKind::Timestamp => str_constants::expr::S_1149,
+                    WireKind::TimestampTz => str_constants::expr::S_1150,
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -1069,8 +1069,8 @@ pub fn generate_pg_types(
                     WireKind::RangeDate => quote::quote! {utoipa::openapi::ObjectBuilder::new().schema_type(utoipa::openapi::SchemaType::String).format(Some(utoipa::openapi::SchemaFormat::KnownFormat(utoipa::openapi::KnownFormat::Date)))},
                     WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
                         let date_name = match crate::schema::wire_kind(pg_type_dsc) {
-                            WireKind::RangeTimestamp => "date",
-                            WireKind::RangeTimestampTz => "date_naive",
+                            WireKind::RangeTimestamp => str_constants::expr::S_1149,
+                            WireKind::RangeTimestampTz => str_constants::expr::S_1150,
                             _ => unreachable!(),
                         };
                         quote::quote! {
@@ -3732,7 +3732,7 @@ pub fn generate_pg_types(
             };
             let select_only_ids_and_select_only_updated_ids_query_common_token_stream = {
                 let format_token_stream = generate_quotes::dq_token_stream(&{
-                    let column_comma = "{column},";
+                    let column_comma = str_constants::expr::S_1953;
                     column_comma.to_owned()
                 });
                 quote::quote! {
@@ -3753,36 +3753,36 @@ pub fn generate_pg_types(
                 },
                 &{
                     let pg_query_type = match &pg_type {
-                        PgType::I16AsInt2 => "int2",
-                        PgType::I32AsInt4 => "int4",
-                        PgType::I64AsInt8 => "int8",
-                        PgType::F32AsFloat4 => "float4",
-                        PgType::F64AsFloat8 => "float8",
-                        PgType::I16AsSmallSerialInitializationByPg => "smallserial",
-                        PgType::I32AsSerialInitializationByPg => "serial",
-                        PgType::I64AsBigSerialInitializationByPg => "bigserial",
-                        PgType::SqlxPgTypesPgMoneyAsMoney => "money",
-                        PgType::BoolAsBool => "bool",
-                        PgType::StringAsText => "text",
-                        PgType::StdVecVecU8AsBytea => "bytea",
-                        PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => "time",
-                        PgType::SqlxPgTypesPgIntervalAsInterval => "interval",
-                        PgType::SqlxTypesChronoNaiveDateAsDate => "date",
-                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => "timestamp",
-                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => "timestamptz",
-                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => "uuid",
-                        PgType::SqlxTypesIpnetworkIpNetworkAsInet => "inet",
-                        PgType::SqlxTypesMacAddressMacAddressAsMacAddr => "macaddr",
-                        PgType::SqlxPgTypesPgRangeI32AsInt4Range => "int4range",
-                        PgType::SqlxPgTypesPgRangeI64AsInt8Range => "int8range",
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => "daterange",
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => "tsrange",
-                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => "tstzrange",
+                        PgType::I16AsInt2 => str_constants::expr::S_1423,
+                        PgType::I32AsInt4 => str_constants::expr::S_1424,
+                        PgType::I64AsInt8 => str_constants::expr::S_1426,
+                        PgType::F32AsFloat4 => str_constants::expr::S_1331,
+                        PgType::F64AsFloat8 => str_constants::expr::S_1332,
+                        PgType::I16AsSmallSerialInitializationByPg => str_constants::expr::S_1742,
+                        PgType::I32AsSerialInitializationByPg => str_constants::expr::S_1718,
+                        PgType::I64AsBigSerialInitializationByPg => str_constants::expr::S_1021,
+                        PgType::SqlxPgTypesPgMoneyAsMoney => str_constants::expr::S_1525,
+                        PgType::BoolAsBool => str_constants::expr::S_1027,
+                        PgType::StringAsText => str_constants::expr::S_1812,
+                        PgType::StdVecVecU8AsBytea => str_constants::expr::S_1032,
+                        PgType::SqlxTypesChronoNaiveTimeAsTime | PgType::SqlxTypesTimeTimeAsTime => str_constants::expr::S_1815,
+                        PgType::SqlxPgTypesPgIntervalAsInterval => str_constants::expr::S_1435,
+                        PgType::SqlxTypesChronoNaiveDateAsDate => str_constants::expr::S_1149,
+                        PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp => str_constants::expr::S_1817,
+                        PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => str_constants::expr::S_1818,
+                        PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient => str_constants::expr::S_1886,
+                        PgType::SqlxTypesIpnetworkIpNetworkAsInet => str_constants::expr::S_1418,
+                        PgType::SqlxTypesMacAddressMacAddressAsMacAddr => str_constants::expr::S_1473,
+                        PgType::SqlxPgTypesPgRangeI32AsInt4Range => str_constants::expr::S_1425,
+                        PgType::SqlxPgTypesPgRangeI64AsInt8Range => str_constants::expr::S_1427,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => str_constants::expr::S_1151,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => str_constants::expr::S_1836,
+                        PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => str_constants::expr::S_1837,
                     };
                     let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
                     let column_pg_query_type_non_null = format!("{{column}} {pg_query_type} not null");
-                    let space_extra_parameter = " {}";
+                    let space_extra_parameter = str_constants::expr::S_0020;
                     match (&is_nullable, &can_be_primary_key) {
                         (pg_crud_macros_common::IsNullable::False, CanBePrimaryKey::False) => {
                             let format_token_stream = generate_quotes::dq_token_stream(&column_pg_query_type_non_null);
@@ -4003,11 +4003,11 @@ pub fn generate_pg_types(
                                                     &sqlx_pg_types_pg_range_included_unbounded_token_stream,
                                                     &generate_if_start_end_eq_token_stream(
                                                         &sqlx_pg_types_pg_range_unbounded_unbounded_token_stream,
-                                                        &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&"98a0357b-d21a-4949-a101-c641528d2376"), &generate_excluded_end_succ_opt_token_stream(&"fe53a6b9-2d7e-4605-9f5a-7f5c21cc01e6")),
+                                                        &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::expr::S_0548), &generate_excluded_end_succ_opt_token_stream(&str_constants::expr::S_1321)),
                                                     ),
-                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&"d8a26635-c478-4a2a-acf4-bf1765702889"), &excluded_end_token_stream)),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&"9811c7c7-d7f5-4fb7-9d25-affb0bd4f5fb"), &unbounded_upper_camel_case),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &generate_excluded_end_succ_opt_token_stream(&"d6288f19-0a24-42ad-9e69-36036d9f2c1d")),
+                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::expr::S_1142), &excluded_end_token_stream)),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::expr::S_0545), &unbounded_upper_camel_case),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &generate_excluded_end_succ_opt_token_stream(&str_constants::expr::S_1132)),
                                                     &sqlx_pg_types_pg_range_unbounded_excluded_token_stream,
                                                 )
                                             }
@@ -5048,15 +5048,15 @@ pub fn generate_pg_types(
         };
         let frontend_parse_json_value_token_stream = match crate::rust_type::wire_kind(pg_type_dsc) {
             WireKind::Date | WireKind::Inet | WireKind::Mac | WireKind::String | WireKind::Uuid => quote::quote! {serde_json::Value::String(value.as_ref().to_owned())},
-            WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, "min", "sec", "micro"),
-            WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, "minute", "second", "microsecond"),
+            WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::expr::S_1519, str_constants::expr::S_1703, str_constants::expr::S_1517),
+            WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::expr::S_1521, str_constants::expr::S_1704, str_constants::expr::S_1518),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => "date",
-                    WireKind::TimestampTz => "date_naive",
+                    WireKind::Timestamp => str_constants::expr::S_1149,
+                    WireKind::TimestampTz => str_constants::expr::S_1150,
                     _ => unreachable!(),
                 };
-                let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, "min", "sec", "micro");
+                let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, str_constants::expr::S_1519, str_constants::expr::S_1703, str_constants::expr::S_1517);
                 quote::quote! {{
                     let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
                     let time = #time_json_token_stream;
@@ -5090,15 +5090,15 @@ pub fn generate_pg_types(
             }
         }};
         let frontend_format_value_token_stream = match crate::rust_type::wire_kind(pg_type_dsc) {
-            WireKind::TimeChrono => frontend_format_time_token_stream(&quote::quote! {value}, "min", "sec", "micro"),
-            WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, "minute", "second", "microsecond"),
+            WireKind::TimeChrono => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::expr::S_1519, str_constants::expr::S_1703, str_constants::expr::S_1517),
+            WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::expr::S_1521, str_constants::expr::S_1704, str_constants::expr::S_1518),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
-                    WireKind::Timestamp => "date",
-                    WireKind::TimestampTz => "date_naive",
+                    WireKind::Timestamp => str_constants::expr::S_1149,
+                    WireKind::TimestampTz => str_constants::expr::S_1150,
                     _ => unreachable!(),
                 };
-                let time_token_stream = frontend_format_time_token_stream(&quote::quote! {time}, "min", "sec", "micro");
+                let time_token_stream = frontend_format_time_token_stream(&quote::quote! {time}, str_constants::expr::S_1519, str_constants::expr::S_1703, str_constants::expr::S_1517);
                 quote::quote! {{
                     let object = value.as_object().ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp wire value must be an object".to_owned()).unwrap_or_default())?;
                     let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp date wire field is missing".to_owned()).unwrap_or_default())?;
@@ -5232,7 +5232,7 @@ pub fn generate_pg_types(
     let pg_table_cols_token_stream = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_common::ParseTokenStreamStrings::from(cols_token_stream),
-            pg_crud_macros_common::ParseErrorIdRef::from("79ee6381"),
+            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::expr::S_0446),
         );
         quote::quote! {
             struct PgTableColsUsingPgTypes {
@@ -5242,14 +5242,14 @@ pub fn generate_pg_types(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.pg_table_cols_write_into_file,
-        "pg_table_cols_using_pg_types",
+        str_constants::expr::S_1612,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&pg_table_cols_token_stream),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     let generated = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_common::ParseTokenStreamStrings::from(pg_type_array),
-            pg_crud_macros_common::ParseErrorIdRef::from("e0c9257d"),
+            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::expr::S_1205),
         );
         pg_crud_macros_common::token_stream_helpers::generate_mod_with_pub_use_token_stream(
             &generate_pg_types_mod_snake_case,
@@ -5258,7 +5258,7 @@ pub fn generate_pg_types(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.whole_write_into_file,
-        "generate_pg_types",
+        str_constants::code_style::GENERATE_PG_TYPES_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(generated.as_ref()),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );

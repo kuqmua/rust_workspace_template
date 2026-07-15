@@ -8,21 +8,21 @@ pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_ma
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_non_empty_string expects name, error name",
+            str_constants::compile_error::CE_065,
         )
         .into_inner()
         .into();
     }
     let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_non_empty_string expects name",
+            str_constants::compile_error::CE_064,
         )
         .into_inner()
         .into();
     };
     let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_non_empty_string expects error name",
+            str_constants::compile_error::CE_063,
         )
         .into_inner()
         .into();
@@ -53,21 +53,21 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_secret_url expects name, error name",
+            str_constants::compile_error::CE_074,
         )
         .into_inner()
         .into();
     }
     let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_secret_url expects name",
+            str_constants::compile_error::CE_073,
         )
         .into_inner()
         .into();
     };
     let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "impl_try_from_secret_url expects error name",
+            str_constants::compile_error::CE_072,
         )
         .into_inner()
         .into();
@@ -120,7 +120,7 @@ fn impl_try_from_parse_with_error_ty(
     if parts.len() < min_len {
         return ProcMacroTryFromParseTokenStream(
             workspace_macro_helpers::compile_error_token_stream(
-                "impl_try_from_parse expects name, error name, inner type and error variant",
+                str_constants::compile_error::CE_071,
             )
             .into_inner()
             .into(),
@@ -128,15 +128,17 @@ fn impl_try_from_parse_with_error_ty(
     }
     let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
         return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream("impl_try_from_parse expects name")
-                .into_inner()
-                .into(),
+            workspace_macro_helpers::compile_error_token_stream(
+                str_constants::compile_error::CE_070,
+            )
+            .into_inner()
+            .into(),
         );
     };
     let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
         return ProcMacroTryFromParseTokenStream(
             workspace_macro_helpers::compile_error_token_stream(
-                "impl_try_from_parse expects error name",
+                str_constants::compile_error::CE_067,
             )
             .into_inner()
             .into(),
@@ -145,7 +147,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(error_variant_text) = workspace_macro_helpers::first_identifier_at(&parts, 3) else {
         return ProcMacroTryFromParseTokenStream(
             workspace_macro_helpers::compile_error_token_stream(
-                "impl_try_from_parse expects error variant",
+                str_constants::compile_error::CE_068,
             )
             .into_inner()
             .into(),
@@ -154,7 +156,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(error_field_text) = workspace_macro_helpers::first_identifier_at(&parts, 4) else {
         return ProcMacroTryFromParseTokenStream(
             workspace_macro_helpers::compile_error_token_stream(
-                "impl_try_from_parse expects error field",
+                str_constants::compile_error::CE_066,
             )
             .into_inner()
             .into(),
@@ -167,7 +169,7 @@ fn impl_try_from_parse_with_error_ty(
     let Some(inner) = workspace_macro_helpers::part_at(&parts, 2) else {
         return ProcMacroTryFromParseTokenStream(
             workspace_macro_helpers::compile_error_token_stream(
-                "impl_try_from_parse expects inner type",
+                str_constants::compile_error::CE_069,
             )
             .into_inner()
             .into(),
@@ -212,28 +214,28 @@ pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::To
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_ok_matches expects type, value, pattern",
+            str_constants::compile_error::CE_040,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_ok_matches expects type",
+            str_constants::compile_error::CE_039,
         )
         .into_inner()
         .into();
     };
     let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_ok_matches expects value",
+            str_constants::compile_error::CE_041,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_ok_matches expects pattern",
+            str_constants::compile_error::CE_038,
         )
         .into_inner()
         .into();
@@ -250,28 +252,28 @@ pub fn assert_parse_err_matches(input: proc_macro::TokenStream) -> proc_macro::T
     );
     if parts.len() != 3 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_err_matches expects type, value, pattern",
+            str_constants::compile_error::CE_036,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_err_matches expects type",
+            str_constants::compile_error::CE_035,
         )
         .into_inner()
         .into();
     };
     let Some(value) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_err_matches expects value",
+            str_constants::compile_error::CE_037,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_parse_err_matches expects pattern",
+            str_constants::compile_error::CE_034,
         )
         .into_inner()
         .into();
@@ -288,21 +290,21 @@ pub fn assert_empty_parse_err_matches(input: proc_macro::TokenStream) -> proc_ma
     );
     if parts.len() != 2 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_empty_parse_err_matches expects type, pattern",
+            str_constants::compile_error::CE_033,
         )
         .into_inner()
         .into();
     }
     let Some(ty) = workspace_macro_helpers::part_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_empty_parse_err_matches expects type",
+            str_constants::compile_error::CE_032,
         )
         .into_inner()
         .into();
     };
     let Some(pattern) = workspace_macro_helpers::part_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "assert_empty_parse_err_matches expects pattern",
+            str_constants::compile_error::CE_031,
         )
         .into_inner()
         .into();

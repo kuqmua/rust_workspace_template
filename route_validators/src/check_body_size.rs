@@ -129,41 +129,74 @@ mod tests {
     }
     #[test]
     fn check_body_size_returns_bytes_when_body_fits_limit() {
-        assert_body_bytes_eq(axum::body::Body::from("ok"), 8, "2fb3e958", b"ok");
+        assert_body_bytes_eq(
+            axum::body::Body::from(str_constants::expr::S_1567),
+            8,
+            str_constants::expr::S_0264,
+            b"ok",
+        );
     }
     #[test]
     fn check_body_size_returns_bytes_when_size_eq_limit() {
-        assert_body_bytes_eq(axum::body::Body::from("ok"), 2, "1736f4db", b"ok");
+        assert_body_bytes_eq(
+            axum::body::Body::from(str_constants::expr::S_1567),
+            2,
+            str_constants::expr::S_0193,
+            b"ok",
+        );
     }
     #[test]
     fn check_body_size_returns_bytes_for_empty_body_with_zero_limit() {
-        assert_body_bytes_eq(axum::body::Body::empty(), 0, "44c8ad59", b"");
+        assert_body_bytes_eq(
+            axum::body::Body::empty(),
+            0,
+            str_constants::expr::S_0311,
+            b"",
+        );
     }
     #[test]
     fn check_body_size_returns_error_when_body_exceeds_limit() {
-        assert_reached_max_size_limit(axum::body::Body::from("oversized"), 2, "ddf0983a");
+        assert_reached_max_size_limit(
+            axum::body::Body::from(str_constants::expr::S_1579),
+            2,
+            str_constants::expr::S_1162,
+        );
     }
     #[test]
     fn check_body_size_returns_error_when_body_not_empty_and_limit_is_zero() {
-        assert_reached_max_size_limit(axum::body::Body::from("x"), 0, "7da3cae4");
+        assert_reached_max_size_limit(
+            axum::body::Body::from(str_constants::expr::S_1919),
+            0,
+            str_constants::expr::S_0459,
+        );
     }
     #[test]
     fn check_body_size_error_contains_expected_non_zero_size_hint_for_static_body() {
-        let (_, size_hint_upper) =
-            expect_reached_max_size(axum::body::Body::from("oversized"), 2, "cc0f2f3e");
+        let (_, size_hint_upper) = expect_reached_max_size(
+            axum::body::Body::from(str_constants::expr::S_1579),
+            2,
+            str_constants::expr::S_1079,
+        );
         assert_eq!(size_hint_upper, Some(9));
         assert_eq!(size_hint_upper.map(|v| v > 0), Some(true));
     }
     #[test]
     fn body_size_error_maps_to_payload_too_large() {
         crate::test_hlp::assert_err_status_code_only(
-            crate::test_hlp::block_on(super::check_body_size(axum::body::Body::from("too-big"), 1)),
-            "7ed49ba1",
+            crate::test_hlp::block_on(super::check_body_size(
+                axum::body::Body::from(str_constants::expr::S_1831),
+                1,
+            )),
+            str_constants::expr::S_0461,
             crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE,
         );
     }
     #[test]
     fn body_size_error_keeps_limit_when_limit_is_one() {
-        assert_reached_max_size_limit(axum::body::Body::from("ab"), 1, "1fe7a3b4");
+        assert_reached_max_size_limit(
+            axum::body::Body::from(str_constants::expr::S_0903),
+            1,
+            str_constants::expr::S_0212,
+        );
     }
 }

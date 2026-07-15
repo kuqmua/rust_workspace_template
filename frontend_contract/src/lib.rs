@@ -749,7 +749,7 @@ impl std::fmt::Display for ClientError {
                 write!(f, "expected HTTP {expected}, received HTTP {actual}")
             }
             Self::Transport(value) => write!(f, "transport failed: {value}"),
-            Self::UnexpectedResponse => f.write_str("server returned an error response"),
+            Self::UnexpectedResponse => f.write_str(str_constants::expr::S_1720),
         }
     }
 }
@@ -828,8 +828,8 @@ mod tests {
         .with_minimum(super::NumericBound::Inclusive(super::ContractI64::from(1)))
         .with_step(super::InputStep::Integer);
         let field = super::FieldContract::new(
-            super::ContractStr::from("id"),
-            super::ContractStr::from("ID"),
+            super::ContractStr::from(str_constants::expr::S_1397),
+            super::ContractStr::from(str_constants::expr::S_0680),
             type_contract,
         )
         .with_primary_key(super::PrimaryKeyKind::Primary)
@@ -841,10 +841,12 @@ mod tests {
     #[test]
     fn route_contract_keeps_transport_policy_together() {
         let route = super::RouteContract::new(
-            super::AuthenticationRequirement::Permission(super::ContractStr::from("users:update")),
+            super::AuthenticationRequirement::Permission(super::ContractStr::from(
+                str_constants::expr::S_1884,
+            )),
             super::HttpMethod::Patch,
             super::MutationKind::Mutating,
-            super::ContractStr::from("/users/{id}"),
+            super::ContractStr::from(str_constants::expr::S_0132),
             super::SuccessStatus::Code204,
         );
         assert_eq!(route.mutation(), super::MutationKind::Mutating);
@@ -858,7 +860,7 @@ mod tests {
         let response = super::TransportResponse::new(body, super::TransportStatus::from(401u16));
         let error = response
             .success_body(super::SuccessStatus::Code200.transport_status())
-            .expect_err("5eea7f90");
+            .expect_err(str_constants::expr::S_0383);
         assert!(matches!(
             error,
             super::ClientError::Problem(value)

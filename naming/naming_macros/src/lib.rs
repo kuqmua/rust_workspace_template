@@ -136,22 +136,22 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
     let regex = regex::Regex::new(str_constants::naming::REGEX_VALUE).expect("cba1b5fb");
     let ts = serde_json::from_str::<Vec<Vec<String>>>(&input_token_stream.to_string()).expect("9d6a20af").into_iter().map(|element| {
         assert!(element.iter().all(|el0| regex.is_match(el0)), "4a12d90f");
-        let self_match_name = "self";
+        let self_match_name = str_constants::expr::S_1714;
         {
             let is_self_exists_and_only_one = element.iter().any(|el0| el0 == self_match_name);
             assert!(is_self_exists_and_only_one, "5680dd63");
         };
         let (els_concat_v_upper_camel_case_double_quoted_token_stream, els_concat_v_snake_case_double_quoted_token_stream, struct_upper_camel_case_upper_camel_case_token_stream, struct_snake_case_token_upper_camel_case_token_stream, trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
-            let ucc_upper_camel_case_str = "UpperCamelCase";
-            let sc_upper_camel_case_str = "SnakeCase";
+            let ucc_upper_camel_case_str = str_constants::expr::S_0823;
+            let sc_upper_camel_case_str = str_constants::expr::S_0785;
             let parts_len = element.iter().map(String::len).sum::<usize>();
             let els_concat_upper_camel_case_str = element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
                 accumulator.push_str(&naming_common::AsRefStrToUpperCamelCaseStr::case(el0));
                 accumulator
             });
             let els_concat_v_upper_camel_case_double_quoted_token_stream = generate_quotes::dq_token_stream(&element.iter().fold(String::with_capacity(parts_len), |mut accumulator, el0| {
-                if el0 == "self" {
-                    accumulator.push_str("{v}");
+                if el0 == str_constants::expr::S_1714 {
+                    accumulator.push_str(str_constants::expr::S_1954);
                 } else {
                     accumulator.push_str(&naming_common::AsRefStrToUpperCamelCaseStr::case(el0));
                 }
@@ -160,7 +160,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
             let els_concat_v_snake_case_double_quoted_token_stream = generate_quotes::dq_token_stream(&{
                 let mut accumulator = element.iter().fold(String::with_capacity(parts_len.saturating_add(element.len())), |mut accumulator, el0| {
                     let symbol = '_';
-                    if el0 == "self" {
+                    if el0 == str_constants::expr::S_1714 {
                         assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{{v}}{symbol}")).is_ok(), "6a02a2ff");
                     } else {
                         assert!(std::fmt::Write::write_fmt(&mut accumulator, format_args!("{}{symbol}", naming_common::AsRefStrToSnakeCaseStr::case(el0))).is_ok(), "d915980a");
@@ -173,7 +173,7 @@ pub fn generate_self_upper_camel_case_and_snake_case_str_and_token_stream(
             let struct_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("82f4ac08");
             let struct_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("21044eba");
             let (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream) = {
-                let trait_upper_camel_case_str = "Trait";
+                let trait_upper_camel_case_str = str_constants::expr::S_0805;
                 let trait_upper_camel_case_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{ucc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("1066857a");
                 let trait_snake_case_token_upper_camel_case_token_stream = format!("{els_concat_upper_camel_case_str}{sc_upper_camel_case_str}{trait_upper_camel_case_str}").parse::<proc_macro2::TokenStream>().expect("8db74cfd");
                 (trait_upper_camel_case_upper_camel_case_token_stream, trait_snake_case_token_upper_camel_case_token_stream)

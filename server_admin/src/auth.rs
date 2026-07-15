@@ -268,8 +268,10 @@ fn origin_authority(
     value: super::StdAdminStrRef<'_>,
     allow_suffix: super::StdAdminBool,
 ) -> Option<(super::StdAdminStrRef<'_>, super::StdAdminStrRef<'_>)> {
-    let (scheme, remainder) = value.0.split_once("://")?;
-    if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
+    let (scheme, remainder) = value.0.split_once(str_constants::expr::S_0571)?;
+    if !scheme.eq_ignore_ascii_case(str_constants::expr::S_1389)
+        && !scheme.eq_ignore_ascii_case(str_constants::expr::S_1394)
+    {
         return None;
     }
     let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
@@ -309,10 +311,10 @@ fn session_context_hash(
     peer: AdminPeerAddr,
 ) -> super::AdminTokenHash {
     let mut context = String::with_capacity(352usize);
-    context.push_str("client-address=");
+    context.push_str(str_constants::expr::S_1089);
     let client_address = peer.0.as_ref().ip().to_string();
     context.extend(client_address.chars().take(256usize));
-    context.push_str("|user-agent=");
+    context.push_str(str_constants::expr::S_1956);
     let user_agent = headers
         .0
         .get(http::header::USER_AGENT)
@@ -323,7 +325,7 @@ fn session_context_hash(
         Some(normalized_user_agent) => {
             context.extend(normalized_user_agent.chars().take(256usize));
         }
-        None => context.push_str("unknown-user-agent"),
+        None => context.push_str(str_constants::expr::S_1857),
     }
     super::hash_opaque_token(&super::AdminOpaqueToken::new(
         super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(context))),
@@ -394,15 +396,15 @@ async fn authenticate(
     .map(|data| data.claims)
     .map_err(|_error| AdminApiError::Authentication)?;
     let context_hash = session_context_hash(headers, peer);
-    let active = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.token_context_hash = $3 AND session.revoked_at IS NULL AND session.expires_at > NOW() AND users.is_banned = FALSE)",
-    )
-    .bind(claims.session_id().0.0)
-    .bind(claims.user_id().0)
-    .bind(secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref()))
-    .fetch_one(state.pool.as_ref())
-    .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
+    let active = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0755)
+        .bind(claims.session_id().0.0)
+        .bind(claims.user_id().0)
+        .bind(secrecy::ExposeSecret::expose_secret(
+            context_hash.0.as_ref(),
+        ))
+        .fetch_one(state.pool.as_ref())
+        .await
+        .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
     if !active {
         return Err(AdminApiError::Authentication);
     }
@@ -418,22 +420,20 @@ async fn validate_csrf(
     }
     let provided = headers
         .0
-        .get(http::HeaderName::from_static("x-csrf-token"))
+        .get(http::HeaderName::from_static(str_constants::expr::S_1922))
         .and_then(|value| value.to_str().ok())
         .ok_or(AdminApiError::Csrf)?;
     let provided_token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
         secrecy::SecretBox::new(Box::new(provided.to_owned())),
     ));
     let provided_hash = super::hash_opaque_token(&provided_token);
-    let expected = sqlx::query_scalar::<_, String>(
-        "SELECT csrf_token_hash FROM admin_access_sessions WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL AND expires_at > NOW()",
-    )
-    .bind(authenticated.session_id.0.0)
-    .bind(authenticated.id.0)
-    .fetch_optional(state.pool.as_ref())
-    .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
-    .ok_or(AdminApiError::Csrf)?;
+    let expected = sqlx::query_scalar::<_, String>(str_constants::expr::S_0760)
+        .bind(authenticated.session_id.0.0)
+        .bind(authenticated.id.0)
+        .fetch_optional(state.pool.as_ref())
+        .await
+        .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
+        .ok_or(AdminApiError::Csrf)?;
     if secrecy::ExposeSecret::expose_secret(provided_hash.0.as_ref()) != &expected {
         return Err(AdminApiError::Csrf);
     }
@@ -528,12 +528,12 @@ impl axum::response::IntoResponse for AdminApiError {
         ));
         let _previous_content_type = response.headers_mut().insert(
             http::header::CONTENT_TYPE,
-            http::HeaderValue::from_static("application/problem+json"),
+            http::HeaderValue::from_static(str_constants::expr::S_0952),
         );
         if rate_limited {
             let _previous_retry_after = response.headers_mut().insert(
                 http::header::RETRY_AFTER,
-                http::HeaderValue::from_static("60"),
+                http::HeaderValue::from_static(str_constants::expr::S_0388),
             );
         }
         response
@@ -550,14 +550,14 @@ async fn record_login_attempt(
     peer: AdminPeerAddr,
     succeeded: super::StdAdminBool,
 ) -> Result<(), AdminApiError> {
-    let _result = sqlx::query("WITH attempt AS (INSERT INTO admin_login_attempts (login, ip_address, succeeded) VALUES ($1, $2, $3)) INSERT INTO admin_audit_log (user_login, action, resource, resource_id, request_id, succeeded, details) SELECT $1, 'sign_in', 'session', $1, $4, FALSE, jsonb_build_object('ip_address', $2::INET::TEXT) WHERE $3 = FALSE")
-    .bind(login.as_ref())
-    .bind(peer.0.0.ip())
-    .bind(succeeded.0)
-    .bind(uuid::Uuid::new_v4())
-    .execute(state.pool.as_ref())
-    .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
+    let _result = sqlx::query(str_constants::expr::S_0832)
+        .bind(login.as_ref())
+        .bind(peer.0.0.ip())
+        .bind(succeeded.0)
+        .bind(uuid::Uuid::new_v4())
+        .execute(state.pool.as_ref())
+        .await
+        .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
     Ok(())
 }
 #[derive(Debug, Clone, Copy)]
@@ -580,7 +580,7 @@ impl AdminAuditResourceId {
         match self {
             Self::Role(value) => super::StdAdminString(value.0.to_string()),
             Self::Session(value) => super::StdAdminString(value.0.0.to_string()),
-            Self::SystemSettings => super::StdAdminString("1".to_owned()),
+            Self::SystemSettings => super::StdAdminString(str_constants::expr::S_0167.to_owned()),
             Self::User(value) => super::StdAdminString(value.0.to_string()),
         }
     }
@@ -621,10 +621,8 @@ async fn load_authenticated_admin_from_db(
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    let user_query = sqlx::query_as::<_, (String, String)>(
-        "SELECT login, display_name FROM admin_users WHERE id = $1 AND is_banned = FALSE",
-    )
-    .bind(user_id.0);
+    let user_query =
+        sqlx::query_as::<_, (String, String)>(str_constants::expr::S_0773).bind(user_id.0);
     let user = match db {
         AdminAuthDbRef::Connection(connection) => {
             user_query.fetch_optional(connection.as_mut()).await
@@ -633,10 +631,7 @@ async fn load_authenticated_admin_from_db(
     }
     .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
     .ok_or(AdminApiError::Authentication)?;
-    let roles_query = sqlx::query_scalar::<_, String>(
-        "SELECT role.name FROM admin_roles role JOIN admin_user_roles link ON link.role_id = role.id WHERE link.user_id = $1 ORDER BY role.name",
-    )
-    .bind(user_id.0);
+    let roles_query = sqlx::query_scalar::<_, String>(str_constants::expr::S_0776).bind(user_id.0);
     let roles = match db {
         AdminAuthDbRef::Connection(connection) => roles_query.fetch_all(connection.as_mut()).await,
         AdminAuthDbRef::Pool(pool) => roles_query.fetch_all(pool.as_ref()).await,
@@ -646,10 +641,8 @@ async fn load_authenticated_admin_from_db(
     .map(super::AdminRoleName::try_from)
     .collect::<Result<Vec<super::AdminRoleName>, _>>()
     .map_err(|_error| AdminApiError::Authentication)?;
-    let permissions_query = sqlx::query_scalar::<_, String>(
-        "SELECT DISTINCT permission.name FROM admin_permissions permission JOIN admin_role_permissions role_permission ON role_permission.permission_id = permission.id JOIN admin_user_roles user_role ON user_role.role_id = role_permission.role_id WHERE user_role.user_id = $1 ORDER BY permission.name",
-    )
-    .bind(user_id.0);
+    let permissions_query =
+        sqlx::query_scalar::<_, String>(str_constants::expr::S_0754).bind(user_id.0);
     let permissions = match db {
         AdminAuthDbRef::Connection(connection) => {
             permissions_query.fetch_all(connection.as_mut()).await
@@ -952,7 +945,7 @@ pub struct AxumAdminAuthRouter(axum::Router);
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("UtoipaAdminAuthOpenApi")
+        f.write_str(str_constants::expr::S_0825)
     }
 }
 #[must_use]
@@ -1103,7 +1096,7 @@ mod tests {
     fn origin_policy_accepts_referer_suffix_and_rejects_origin_suffix() {
         let allowed_origins =
             [
-                crate::StdAdminString::try_from("https://admin.example.com".to_owned())
+                crate::StdAdminString::try_from(str_constants::expr::S_1395.to_owned())
                     .expect("7c9e8046"),
             ];
         assert!(
@@ -1146,10 +1139,10 @@ mod tests {
         let mut first_headers = http::HeaderMap::new();
         let _previous_user_agent = first_headers.insert(
             http::header::USER_AGENT,
-            http::HeaderValue::from_static("admin-client/1"),
+            http::HeaderValue::from_static(str_constants::expr::S_0923),
         );
         let first_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
-            "192.0.2.10:443"
+            str_constants::expr::S_0197
                 .parse::<std::net::SocketAddr>()
                 .expect("f133a4ca"),
         ));
@@ -1166,7 +1159,7 @@ mod tests {
             secrecy::ExposeSecret::expose_secret(repeated_context_hash.0.as_ref()),
         );
         let other_peer = super::AdminPeerAddr::from(super::super::StdAdminSocketAddr::from(
-            "192.0.2.11:443"
+            str_constants::expr::S_0198
                 .parse::<std::net::SocketAddr>()
                 .expect("5a831a2f"),
         ));
@@ -1181,7 +1174,7 @@ mod tests {
         let mut other_headers = http::HeaderMap::new();
         let _previous_other_user_agent = other_headers.insert(
             http::header::USER_AGENT,
-            http::HeaderValue::from_static("admin-client/2"),
+            http::HeaderValue::from_static(str_constants::expr::S_0924),
         );
         let other_user_agent_hash = super::session_context_hash(
             super::super::HttpAdminHeaderMapRef::from(&other_headers),
@@ -1216,7 +1209,7 @@ mod tests {
         let document = serde_json::to_value(utoipa::openapi::OpenApi::from(super::open_api()))
             .expect("869d28d7");
         let paths = document
-            .get("paths")
+            .get(str_constants::expr::S_1593)
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
         assert_eq!(paths.len(), 17usize);
@@ -1235,11 +1228,11 @@ mod tests {
             .map(|route| {
                 let contract = route.contract();
                 let method = match contract.method() {
-                    frontend_contract::HttpMethod::Delete => "delete",
-                    frontend_contract::HttpMethod::Get => "get",
-                    frontend_contract::HttpMethod::Patch => "patch",
-                    frontend_contract::HttpMethod::Post => "post",
-                    frontend_contract::HttpMethod::Put => "put",
+                    frontend_contract::HttpMethod::Delete => str_constants::expr::S_1174,
+                    frontend_contract::HttpMethod::Get => str_constants::expr::S_1377,
+                    frontend_contract::HttpMethod::Patch => str_constants::expr::S_1589,
+                    frontend_contract::HttpMethod::Post => str_constants::expr::S_1614,
+                    frontend_contract::HttpMethod::Put => str_constants::expr::S_1643,
                 };
                 (method.to_owned(), contract.path().as_ref().to_owned())
             })

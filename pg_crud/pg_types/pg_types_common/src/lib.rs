@@ -163,8 +163,8 @@ where
     V: Into<IsPrimaryKey>,
 {
     if bool::from(v.into()) {
-        "primary key"
+        str_constants::expr::S_1629
     } else {
-        ""
+        str_constants::expr::S_0021
     }
 }

@@ -40,7 +40,7 @@ mod tests {
     #[test]
     fn shared_json_contract_helper_round_trips_table_fixture() {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
-            macros_helpers::json_contract::JsonFixtureRef::from(r#"{"operation":"rm"}"#),
+            macros_helpers::json_contract::JsonFixtureRef::from(str_constants::expr::S_1945),
         )
         .expect("f9f9af71");
     }
@@ -86,38 +86,9 @@ mod tests {
     #[test]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
-            "generate_pg_table_test_cnt",
-            "../pg_crud/pg_table/",
-            r#"[dependencies]
-app_state = { workspace = true }
-axum = { workspace = true }
-futures = { workspace = true }
-frontend_contract = { workspace = true }
-http = { workspace = true }
-sqlx = { workspace = true }
-reqwest = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
-utoipa = { workspace = true }
-tracing = { workspace = true }
-where_filters = { workspace = true }
-git_info = { workspace = true }
-location_lib = { workspace = true }
-location_macros = { workspace = true }
-metrics = { workspace = true }
-location = { workspace = true }
-pg_crud = { workspace = true, features = ["test-utils"] }
-pg_crud_common = { workspace = true }
-pg_table = { workspace = true }
-pg_types_numeric = { workspace = true }
-pg_types_text_misc = { workspace = true }
-generate_pg_table = { workspace = true }
-optml = { workspace = true }
-route_validators = { workspace = true }
-server_runtime = { workspace = true }
-to_err_string = { workspace = true }
-"#,
+            str_constants::expr::S_1370,
+            str_constants::expr::S_0058,
+            str_constants::expr::S_0842,
             &{
                 #[derive(optml::Optml)]
                 enum AddGeneratePgTablePrimaryKey {

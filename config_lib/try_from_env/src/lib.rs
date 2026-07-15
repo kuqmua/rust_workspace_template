@@ -24,7 +24,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, "2ecb63c1");
+            let element_identifier = field_identifier(element, str_constants::expr::S_0260);
             let element_identifier_upper_camel_case_token_stream =
                 naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(
                     &element_identifier,
@@ -52,7 +52,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let display_error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, "8b79a379");
+            let element_identifier = field_identifier(element, str_constants::expr::S_0502);
             let element_identifier_upper_camel_case_token_stream = naming_common::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
                 Self::#element_identifier_upper_camel_case_token_stream { #element_identifier } => write!(f, "{}", #element_identifier)
@@ -78,7 +78,7 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     let try_from_env_token_stream = {
         let fields_initialization_token_stream = fields_named.iter().map(|element| {
-            let element_identifier = field_identifier(element, "ebf4e1b2");
+            let element_identifier = field_identifier(element, str_constants::expr::S_1232);
             let element_ty = &element.ty;
             let element_identifier_quotes_upper_snake_case_string =
                 syn::LitStr::new(&naming_common::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());

@@ -62,9 +62,7 @@ mod tests {
         where
             Serializer: serde::Serializer,
         {
-            Err(serde::ser::Error::custom(
-                "intentional serialization failure",
-            ))
+            Err(serde::ser::Error::custom(str_constants::expr::S_1431))
         }
     }
     #[derive(Debug, Eq, PartialEq)]
@@ -91,16 +89,14 @@ mod tests {
             if value == 1u8 {
                 Ok(Self)
             } else {
-                Err(serde::de::Error::custom(
-                    "only fixture value one is accepted",
-                ))
+                Err(serde::de::Error::custom(str_constants::expr::S_1569))
             }
         }
     }
     #[test]
     fn round_trip_and_fixture_error_phases_are_stable() {
         super::ensure_json_contract_round_trip::<TestValue>(super::JsonFixtureRef::from(
-            r#"{"value":1}"#,
+            str_constants::expr::S_1950,
         ))
         .expect("7557a4b4");
         assert!(matches!(

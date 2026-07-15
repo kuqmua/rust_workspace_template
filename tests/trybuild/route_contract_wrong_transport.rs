@@ -12,7 +12,7 @@ impl frontend_contract::TypedRoute for AuthenticatedRoute {
     type Request = Request;
     type Response = Response;
     type Transport = frontend_contract::AuthenticatedTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::ContractStr::from("POST"), frontend_contract::ContractStr::from("write"), frontend_contract::ContractStr::from("/write")) }
+    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::ContractStr::from(str_constants::expr::S_0722), frontend_contract::ContractStr::from(str_constants::expr::S_1915), frontend_contract::ContractStr::from(str_constants::expr::S_0135)) }
 }
 fn main() {
     require_public(frontend_contract::client_request::<AuthenticatedRoute>(Request));

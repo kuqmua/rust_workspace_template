@@ -254,7 +254,7 @@ mod tests {
     }
     #[test]
     fn exact_limit_and_one_byte_over_are_distinguished() {
-        let path = unique_path("limit");
+        let path = unique_path(str_constants::expr::S_1457);
         std::fs::write(&path, b"abcd").expect("11ddba38");
         let exact = super::read_bounded_file(
             super::StdPathRef::from(path.as_path()),
@@ -276,7 +276,7 @@ mod tests {
     }
     #[test]
     fn file_growth_after_metadata_is_rechecked() {
-        let path = unique_path("growth");
+        let path = unique_path(str_constants::expr::S_1381);
         std::fs::write(&path, b"a").expect("c0745b58");
         let result = super::read_bounded_file_with_after_metadata(
             super::StdPathRef::from(path.as_path()),
@@ -298,7 +298,7 @@ mod tests {
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {
-        let path = unique_path("async");
+        let path = unique_path(str_constants::expr::S_0969);
         tokio::fs::write(&path, b"abc").await.expect("f68e33f3");
         let bytes = super::read_bounded_file_async(
             super::StdPathRef::from(path.as_path()),
@@ -312,8 +312,8 @@ mod tests {
     #[tokio::test]
     async fn http_response_stream_obeys_limit_without_external_network() {
         let response = http::Response::builder()
-            .header(http::header::CONTENT_LENGTH, "4")
-            .body("abcd")
+            .header(http::header::CONTENT_LENGTH, str_constants::expr::S_0304)
+            .body(str_constants::expr::S_0908)
             .expect("2306b26a");
         let bytes = super::read_bounded_http_response(
             super::ReqwestResponse::from(reqwest::Response::from(response)),

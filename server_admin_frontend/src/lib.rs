@@ -36,7 +36,7 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
         })
         .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
             axum::http::header::CACHE_CONTROL,
-            axum::http::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
+            axum::http::HeaderValue::from_static(str_constants::expr::S_1547),
         ));
     AxumAdminFrontendRouter(page_routes.nest_service(
         str_constants::admin_page_paths::ASSETS,
@@ -83,16 +83,16 @@ mod tests {
             std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/transport.rs"))
                 .expect("320c7d1e");
         [
-            "AdminRoute::Users",
-            "AdminRoute::Roles",
-            "AdminRoute::Permissions",
-            "AdminRoute::Audit",
-            "AdminRoute::Settings",
-            "AdminRoute::Metrics",
-            "AdminRoute::OpenApi",
-            "AdminRoute::SignIn",
-            "AdminRoute::Refresh",
-            "AdminRoute::SignOut",
+            str_constants::expr::S_0607,
+            str_constants::expr::S_0603,
+            str_constants::expr::S_0601,
+            str_constants::expr::S_0598,
+            str_constants::expr::S_0604,
+            str_constants::expr::S_0599,
+            str_constants::expr::S_0600,
+            str_constants::expr::S_0605,
+            str_constants::expr::S_0602,
+            str_constants::expr::S_0606,
         ]
         .into_iter()
         .for_each(|contract| {
@@ -132,12 +132,12 @@ mod tests {
         assert_eq!(tables.matches("<TableTools state").count(), 4usize);
         assert_eq!(tables.matches("<TablePager state total").count(), 4usize);
         [
-            "aria-label=\"Filter rows\"",
-            "aria-label=\"Sort field\"",
-            "aria-label=\"Toggle sort direction\"",
-            "aria-label=\"Rows per page\"",
-            "aria-label=\"Previous page\"",
-            "aria-label=\"Next page\"",
+            str_constants::expr::S_0956,
+            str_constants::expr::S_0960,
+            str_constants::expr::S_0961,
+            str_constants::expr::S_0959,
+            str_constants::expr::S_0958,
+            str_constants::expr::S_0957,
         ]
         .into_iter()
         .for_each(|control| assert!(tables.contains(control), "missing table control: {control}"));

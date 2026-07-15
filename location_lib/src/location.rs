@@ -84,10 +84,10 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "StdLocationDuration",
+            str_constants::expr::S_0792,
             utoipa::openapi::ObjectBuilder::new()
                 .property(
-                    "secs",
+                    str_constants::expr::S_1708,
                     utoipa::openapi::ObjectBuilder::new()
                         .schema_type(utoipa::openapi::SchemaType::Integer)
                         .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -95,7 +95,7 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
                         ))),
                 )
                 .property(
-                    "nanos",
+                    str_constants::expr::S_1537,
                     utoipa::openapi::ObjectBuilder::new()
                         .schema_type(utoipa::openapi::SchemaType::Integer)
                         .format(Some(utoipa::openapi::SchemaFormat::KnownFormat(
@@ -104,8 +104,8 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
                         .minimum(Some(0.0))
                         .maximum(Some(999_999_999.0)),
                 )
-                .required("secs")
-                .required("nanos")
+                .required(str_constants::expr::S_1708)
+                .required(str_constants::expr::S_1537)
                 .build()
                 .into(),
         )
@@ -209,9 +209,9 @@ impl Location {
             self.line,
         )?;
         if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(" (")?;
+            f.0.write_str(str_constants::expr::S_0004)?;
             self.fmt_github_location(StdFmtRefMut(f.0), LocationFileRef(v.file.as_ref()), v.line)?;
-            f.0.write_str(")")
+            f.0.write_str(str_constants::expr::S_0042)
         } else {
             Ok(())
         }
@@ -234,14 +234,14 @@ impl Location {
             self.column,
         )?;
         if let Some(v) = self.occr.as_ref() {
-            f.0.write_str(" (")?;
+            f.0.write_str(str_constants::expr::S_0004)?;
             Self::fmt_src_location(
                 StdFmtRefMut(f.0),
                 LocationFileRef(v.file.as_ref()),
                 v.line,
                 v.column,
             )?;
-            f.0.write_str(")")
+            f.0.write_str(str_constants::expr::S_0042)
         } else {
             Ok(())
         }
@@ -292,7 +292,7 @@ impl std::fmt::Display for Location {
             config_lib::types::SrcPlaceType::from_env_or_default(),
             StdFmtRefMut(f),
         )?;
-        f.write_str(" ")?;
+        f.write_str(str_constants::expr::S_0003)?;
         self.fmt_datetime(StdFmtRefMut(f))
     }
 }
@@ -319,9 +319,9 @@ mod tests {
     }
     fn test_location(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Location {
         super::Location {
-            file: super::LocationFile::try_from(String::from("src/lib.rs"))
+            file: super::LocationFile::try_from(String::from(str_constants::expr::S_1754))
                 .unwrap_or_else(super::LocationFile::from),
-            commit: super::LocationCommit::try_from(String::from("abc123"))
+            commit: super::LocationCommit::try_from(String::from(str_constants::expr::S_0906))
                 .unwrap_or_else(super::LocationCommit::from),
             duration: super::StdLocationDuration(duration),
             occr,
@@ -331,7 +331,7 @@ mod tests {
     }
     fn test_occr() -> super::Occr {
         super::Occr {
-            file: super::LocationFile::try_from(String::from("src/error.rs"))
+            file: super::LocationFile::try_from(String::from(str_constants::expr::S_1751))
                 .unwrap_or_else(super::LocationFile::from),
             line: super::LocationLine(30),
             column: super::LocationColumn(40),

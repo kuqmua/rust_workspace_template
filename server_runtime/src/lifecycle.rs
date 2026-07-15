@@ -24,7 +24,7 @@ impl std::fmt::Display for BackgroundTaskShutdownError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Join(error) => write!(f, "background task failed: {error}"),
-            Self::Timeout => f.write_str("background task shutdown timed out"),
+            Self::Timeout => f.write_str(str_constants::expr::S_1005),
         }
     }
 }
@@ -118,7 +118,7 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
 pub struct StdRunIntervalTryFromDurationError;
 impl std::fmt::Display for StdRunIntervalTryFromDurationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("run interval must be greater than zero")
+        f.write_str(str_constants::expr::S_1691)
     }
 }
 impl std::error::Error for StdRunIntervalTryFromDurationError {}
@@ -143,7 +143,7 @@ impl TryFrom<std::time::Duration> for StdRequestTimeout {
 pub struct StdRequestTimeoutTryFromDurationError;
 impl std::fmt::Display for StdRequestTimeoutTryFromDurationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("request timeout must be greater than zero")
+        f.write_str(str_constants::expr::S_1662)
     }
 }
 impl std::error::Error for StdRequestTimeoutTryFromDurationError {}

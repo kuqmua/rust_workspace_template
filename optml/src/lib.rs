@@ -4,7 +4,7 @@ struct ReplaceLts;
 struct SynFieldTyWithStaticLts(syn::Type);
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
-        i.ident = syn::Ident::new("static", i.ident.span());
+        i.ident = syn::Ident::new(str_constants::expr::S_1757, i.ident.span());
     }
 }
 #[proc_macro_derive(Optml)]
@@ -84,7 +84,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
             match generate_assertions_token_stream(
                 fields,
                 &quote::quote! {alignments},
-                "struct",
+                str_constants::expr::S_1776,
                 None,
             ) {
                 Some(v) => v,
@@ -111,7 +111,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
                     generate_assertions_token_stream(
                         fields,
                         &generate_alignments_identifier_token_stream(i),
-                        "enum",
+                        str_constants::expr::S_1243,
                         Some(var_identifier),
                     )
                 })

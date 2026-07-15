@@ -447,7 +447,10 @@ pub fn generate_where_filters(
                             )
                         };
                     let generate_greater_than_token_stream = |pg_type_ptrn: &PgTypePtrn| {
-                        generate_operator_cmp_filter_token_stream(pg_type_ptrn, &">")
+                        generate_operator_cmp_filter_token_stream(
+                            pg_type_ptrn,
+                            &str_constants::expr::S_0587,
+                        )
                     };
                     let generate_between_token_stream = |pg_type_ptrn: &PgTypePtrn| {
                         let (
@@ -849,22 +852,22 @@ pub fn generate_where_filters(
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::CurrentDate => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"= current_date")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0580)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentDate => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"> current_date")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0584)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::CurrentTimestamp => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"= current_timestamp")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0582)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentTimestamp => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"> current_timestamp")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0586)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::CurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"= current_time")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0581)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &"> current_time")
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &str_constants::expr::S_0585)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::EqToEncodedStringRepresentation => {
                         generate_eq_to_encoded_string_representation_token_stream(&pg_type_ptrn_standard)
@@ -894,16 +897,16 @@ pub fn generate_where_filters(
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::IncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, "lower", "=")
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::expr::S_1472, str_constants::expr::S_0583)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::ExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, "upper", "=")
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::expr::S_1876, str_constants::expr::S_0583)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, "lower", ">")
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::expr::S_1472, str_constants::expr::S_0587)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, "upper", ">")
+                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, str_constants::expr::S_1876, str_constants::expr::S_0587)
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::OverlapWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
@@ -957,7 +960,7 @@ pub fn generate_where_filters(
         let gend = quote::quote! {#(#filter_array_token_stream)*};
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             generate_where_filters_config.pg_types_write_into_file,
-            "generate_where_filters_pg_types",
+            str_constants::expr::S_1375,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
@@ -991,7 +994,7 @@ pub fn generate_where_filters(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_where_filters_config.whole_write_into_file,
-        "generate_where_filters",
+        str_constants::code_style::GENERATE_WHERE_FILTERS_MACRO_NAME,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&gend),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );

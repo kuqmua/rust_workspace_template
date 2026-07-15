@@ -36,7 +36,7 @@ impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
 impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("run history maximum length must be greater than zero")
+        f.write_str(str_constants::expr::S_1690)
     }
 }
 impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeError {}

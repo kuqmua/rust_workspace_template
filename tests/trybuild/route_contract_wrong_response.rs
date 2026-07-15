@@ -7,7 +7,7 @@ impl frontend_contract::TypedRoute for Route {
     type Request = Request;
     type Response = Response;
     type Transport = frontend_contract::PublicTransport;
-    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::ContractStr::from("GET"), frontend_contract::ContractStr::from("read"), frontend_contract::ContractStr::from("/read")) }
+    fn metadata() -> frontend_contract::RouteMetadata { frontend_contract::RouteMetadata::new(frontend_contract::ContractStr::from(str_constants::expr::S_0672), frontend_contract::ContractStr::from(str_constants::expr::S_1650), frontend_contract::ContractStr::from(str_constants::expr::S_0117)) }
 }
 fn main() {
     let _response = frontend_contract::server_response::<Route>(Request);

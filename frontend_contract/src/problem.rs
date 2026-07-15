@@ -97,26 +97,26 @@ impl ApiProblem {
     #[must_use]
     pub fn from_status(status: ApiProblemStatus) -> Self {
         let (kind, detail) = match u16::from(status) {
-            400u16 => (ApiProblemKind::InvalidRequest, "invalid request"),
-            401u16 => (ApiProblemKind::Authentication, "authentication required"),
-            403u16 => (ApiProblemKind::Authorization, "authorization failed"),
-            404u16 => (ApiProblemKind::NotFound, "resource not found"),
-            405u16 => (ApiProblemKind::MethodNotAllowed, "method not allowed"),
-            409u16 => (ApiProblemKind::Conflict, "resource state conflict"),
-            412u16 => (ApiProblemKind::Precondition, "resource precondition failed"),
-            413u16 => (ApiProblemKind::PayloadTooLarge, "request body is too large"),
-            422u16 => (ApiProblemKind::Validation, "request validation failed"),
-            425u16 => (
-                ApiProblemKind::InProgress,
-                "matching request is still in progress",
+            400u16 => (ApiProblemKind::InvalidRequest, str_constants::expr::S_1439),
+            401u16 => (ApiProblemKind::Authentication, str_constants::expr::S_0975),
+            403u16 => (ApiProblemKind::Authorization, str_constants::expr::S_0976),
+            404u16 => (ApiProblemKind::NotFound, str_constants::expr::S_1671),
+            405u16 => (
+                ApiProblemKind::MethodNotAllowed,
+                str_constants::expr::S_1515,
             ),
+            409u16 => (ApiProblemKind::Conflict, str_constants::expr::S_1673),
+            412u16 => (ApiProblemKind::Precondition, str_constants::expr::S_1672),
+            413u16 => (ApiProblemKind::PayloadTooLarge, str_constants::expr::S_1657),
+            422u16 => (ApiProblemKind::Validation, str_constants::expr::S_1664),
+            425u16 => (ApiProblemKind::InProgress, str_constants::expr::S_1508),
             428u16 => (
                 ApiProblemKind::PreconditionRequired,
-                "request precondition is required",
+                str_constants::expr::S_1660,
             ),
-            429u16 => (ApiProblemKind::RateLimited, "request rate limit exceeded"),
-            500u16..=599u16 => (ApiProblemKind::Internal, "internal server error"),
-            _ => (ApiProblemKind::RequestFailed, "request failed"),
+            429u16 => (ApiProblemKind::RateLimited, str_constants::expr::S_1661),
+            500u16..=599u16 => (ApiProblemKind::Internal, str_constants::expr::S_1433),
+            _ => (ApiProblemKind::RequestFailed, str_constants::expr::S_1658),
         };
         Self {
             detail: ApiProblemDetail::try_from(detail.to_owned()).unwrap_or_default(),

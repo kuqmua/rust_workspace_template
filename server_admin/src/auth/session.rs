@@ -101,43 +101,51 @@ async fn create_session_with_refresh_in_connection(
     })?;
     let session_offset =
         i64::try_from(state.session_limit.0.saturating_sub(1usize)).unwrap_or(i64::MAX);
-    let _expired_access = sqlx::query("UPDATE admin_access_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)")
+    let _expired_access = sqlx::query(str_constants::expr::S_0809)
         .bind(user_id.0)
         .bind(session_offset)
         .execute(connection.as_mut())
         .await
         .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     if refresh_record.is_some() {
-        let _expired_refresh = sqlx::query("UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)")
+        let _expired_refresh = sqlx::query(str_constants::expr::S_0811)
             .bind(user_id.0)
             .bind(session_offset)
             .execute(connection.as_mut())
             .await
-            .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+            .map_err(|error| {
+                super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error))
+            })?;
     }
-    let _access_result = sqlx::query(
-        "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, token_context_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, $5, NOW() + ($6 * INTERVAL '1 second'))",
-    )
-    .bind(session_uuid)
-    .bind(user_id.0)
-    .bind(secrecy::ExposeSecret::expose_secret(token_identifier_hash.0.as_ref()))
-    .bind(secrecy::ExposeSecret::expose_secret(context_hash.0.as_ref()))
-    .bind(secrecy::ExposeSecret::expose_secret(csrf_generated.hash().0.as_ref()))
-    .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
-    .execute(connection.as_mut())
-    .await
-    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    if let Some((refresh_id, refresh_hash)) = refresh_record {
-        let _refresh_result = sqlx::query(
-            "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, NOW() + ($4 * INTERVAL '1 second'))",
-        )
-        .bind(refresh_id)
+    let _access_result = sqlx::query(str_constants::expr::S_0681)
+        .bind(session_uuid)
         .bind(user_id.0)
-        .bind(secrecy::ExposeSecret::expose_secret(refresh_hash.0.as_ref()))
-        .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
+        .bind(secrecy::ExposeSecret::expose_secret(
+            token_identifier_hash.0.as_ref(),
+        ))
+        .bind(secrecy::ExposeSecret::expose_secret(
+            context_hash.0.as_ref(),
+        ))
+        .bind(secrecy::ExposeSecret::expose_secret(
+            csrf_generated.hash().0.as_ref(),
+        ))
+        .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
         .execute(connection.as_mut())
         .await
         .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    if let Some((refresh_id, refresh_hash)) = refresh_record {
+        let _refresh_result = sqlx::query(str_constants::expr::S_0687)
+            .bind(refresh_id)
+            .bind(user_id.0)
+            .bind(secrecy::ExposeSecret::expose_secret(
+                refresh_hash.0.as_ref(),
+            ))
+            .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
+            .execute(connection.as_mut())
+            .await
+            .map_err(|error| {
+                super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error))
+            })?;
     }
     Ok(super::AdminSessionBundle {
         access_token,

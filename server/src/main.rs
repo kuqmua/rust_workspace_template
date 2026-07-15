@@ -188,7 +188,7 @@ fn mk_api_routes(
         ));
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
-            "/openapi.json",
+            str_constants::expr::S_0116,
             axum::routing::get(async || {
                 axum::Json(utoipa::openapi::OpenApi::from(
                     server_admin::generated_tables::generated_open_api(),
@@ -201,7 +201,7 @@ fn mk_api_routes(
     .method_not_allowed_fallback(async || server_admin::auth::AdminApiError::MethodNotAllowed);
     let secured_admin_routes = documented_admin_routes
         .route(
-            "/metrics",
+            str_constants::expr::S_0111,
             axum::routing::get(async move || metrics_handle.0.render()),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
@@ -213,10 +213,10 @@ fn mk_api_routes(
                 std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
             ))
             .nest(
-                "/admin",
+                str_constants::expr::S_0084,
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
             )
-            .nest("/admin", secured_admin_routes),
+            .nest(str_constants::expr::S_0084, secured_admin_routes),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
@@ -397,7 +397,10 @@ async fn run_server() -> Result<(), RunServerError> {
                 server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
                     server_runtime::AxumRouter::from(
                         axum::Router::new()
-                            .nest("/api/v1", operational_routes.merge(rate_limited_api_routes))
+                            .nest(
+                                str_constants::expr::S_0092,
+                                operational_routes.merge(rate_limited_api_routes),
+                            )
                             .merge(axum::Router::from(if swagger_enabled {
                                 server_admin_frontend::routes()
                             } else {
@@ -410,10 +413,18 @@ async fn run_server() -> Result<(), RunServerError> {
                                         .allow_credentials(true)
                                         .allow_headers([
                                             axum::http::header::CONTENT_TYPE,
-                                            axum::http::HeaderName::from_static("commit"),
-                                            axum::http::HeaderName::from_static("idempotency-key"),
-                                            axum::http::HeaderName::from_static("if-match"),
-                                            axum::http::HeaderName::from_static("x-csrf-token"),
+                                            axum::http::HeaderName::from_static(
+                                                str_constants::expr::S_1098,
+                                            ),
+                                            axum::http::HeaderName::from_static(
+                                                str_constants::expr::S_1406,
+                                            ),
+                                            axum::http::HeaderName::from_static(
+                                                str_constants::expr::S_1407,
+                                            ),
+                                            axum::http::HeaderName::from_static(
+                                                str_constants::expr::S_1922,
+                                            ),
                                         ])
                                         .allow_methods([
                                             axum::http::Method::GET,
@@ -492,14 +503,16 @@ fn main() -> StdServerExitCode {
 mod tests {
     #[test]
     fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
+        let trusted_proxy_range =
+            server_runtime::TrustedProxyRange::try_from(str_constants::expr::S_1973.to_owned())
+                .expect("5c81d907");
         let extractor = super::ClientIpRateLimitKeyExtractor {
             trusted_proxy_ranges: server_runtime::TrustedProxyRanges::from(vec![
-                server_runtime::TrustedProxyRange::try_from("127.0.0.1/32".to_owned())
-                    .expect("5c81d907"),
+                trusted_proxy_range,
             ]),
         };
         let mut request = axum::http::Request::builder()
-            .header("x-forwarded-for", "203.0.113.9")
+            .header(str_constants::expr::S_1923, str_constants::expr::S_0227)
             .body(())
             .expect("b2604d91");
         let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(

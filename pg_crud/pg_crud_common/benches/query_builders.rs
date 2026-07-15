@@ -13,12 +13,12 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     let columns = (0usize..128usize)
         .map(|idx| identifier(format!("column_{idx}").as_str()))
         .collect::<Vec<_>>();
-    let _criterion = criterion.bench_function("sql_select_builder_128_columns", |bencher| {
+    let _criterion = criterion.bench_function(str_constants::expr::S_1746, |bencher| {
         bencher.iter(|| {
             let query = pg_crud_common::SqlSelectBuilder::new(
                 pg_crud_common::SqlQualifiedIdentifier::new(
-                    identifier("public"),
-                    identifier("benchmark_table"),
+                    identifier(str_constants::expr::S_1641),
+                    identifier(str_constants::expr::S_1016),
                 ),
                 columns.clone(),
             )

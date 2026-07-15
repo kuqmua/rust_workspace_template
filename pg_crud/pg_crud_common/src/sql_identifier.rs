@@ -75,14 +75,14 @@ impl SqlSelectBuilder {
         let mut query =
             SqlQueryText::try_from(String::with_capacity(columns_len.saturating_add(32usize)))
                 .unwrap_or_else(|_error| SqlQueryText(String::new()));
-        query.0.push_str("SELECT ");
+        query.0.push_str(str_constants::expr::S_0742);
         self.columns.iter().enumerate().for_each(|(idx, column)| {
             if idx != 0usize {
-                query.0.push_str(", ");
+                query.0.push_str(str_constants::expr::S_0044);
             }
             query.0.push_str(column.as_ref());
         });
-        query.0.push_str(" FROM ");
+        query.0.push_str(str_constants::expr::S_0011);
         self.table.push_to(&mut query);
         crate::QueryPartFragment::try_from(query.0).unwrap_or_else(crate::QueryPartFragment::from)
     }
@@ -102,29 +102,39 @@ mod tests {
         reason = "repository source policy requires iterator methods instead of for loops"
     )]
     fn sql_identifier_uses_restricted_ascii_grammar() {
-        ["table", "_table", "table_2"]
-            .into_iter()
-            .for_each(|value| {
-                let _identifier =
-                    super::SqlIdentifier::try_from(value.to_owned()).expect("326a4da9");
-            });
         [
-            "",
-            "2table",
-            "table-name",
-            "non_ascii_\u{00e9}",
-            "table.name",
+            str_constants::expr::S_1786,
+            str_constants::expr::S_0866,
+            str_constants::expr::S_1789,
         ]
         .into_iter()
         .for_each(|value| {
-            let _error = super::SqlIdentifier::try_from(value.to_owned()).expect_err("f698fd6d");
+            let _identifier = super::SqlIdentifier::try_from(value.to_owned()).expect("326a4da9");
+        });
+        [
+            str_constants::expr::S_0021,
+            str_constants::expr::S_0265,
+            str_constants::expr::S_1787,
+            str_constants::expr::S_1552,
+            str_constants::expr::S_1788,
+        ]
+        .into_iter()
+        .for_each(|value| {
+            let _error = super::SqlIdentifier::try_from(value.to_owned())
+                .expect_err(str_constants::expr::S_1294);
         });
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
         let query = super::SqlSelectBuilder::new(
-            super::SqlQualifiedIdentifier::new(identifier("public"), identifier("users")),
-            vec![identifier("id"), identifier("login")],
+            super::SqlQualifiedIdentifier::new(
+                identifier(str_constants::expr::S_1641),
+                identifier(str_constants::expr::S_1883),
+            ),
+            vec![
+                identifier(str_constants::expr::S_1397),
+                identifier(str_constants::expr::S_1468),
+            ],
         )
         .build();
         assert_eq!(query.into_inner(), "SELECT id, login FROM public.users");

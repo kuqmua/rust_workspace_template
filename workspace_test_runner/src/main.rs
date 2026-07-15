@@ -241,7 +241,7 @@ fn print_without_memusage_footer(stderr: StderrTextRef<'_>) {
         .0
         .as_str()
         .lines()
-        .take_while(|line| !line.contains("Memory usage summary:"))
+        .take_while(|line| !line.contains(str_constants::expr::S_0701))
         .filter(|line| !line.trim().is_empty())
         .for_each(|line| eprintln!("{line}"));
 }
@@ -251,7 +251,10 @@ fn memusage_heap_value(text: &CleanAnsiText, key: MemusageKey) -> MemusageValueR
         .lines()
         .find_map(|line| line.split_once(key.get()).map(|(_, tail)| tail.trim()))
         .and_then(|tail| tail.split([',', ' ']).find(|part| !part.is_empty()))
-        .map_or(MemusageValueRef("unavailable"), MemusageValueRef)
+        .map_or(
+            MemusageValueRef(str_constants::expr::S_1849),
+            MemusageValueRef,
+        )
 }
 fn memusage_table_value(
     text: &CleanAnsiText,
@@ -264,7 +267,10 @@ fn memusage_table_value(
         .find(|line| line.contains(row_name.get()))
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(column_idx.get()))
-        .map_or(MemusageValueRef("unavailable"), MemusageValueRef)
+        .map_or(
+            MemusageValueRef(str_constants::expr::S_1849),
+            MemusageValueRef,
+        )
 }
 fn measure_memusage_command(
     measurement_name: MeasurementName,
@@ -285,13 +291,13 @@ fn measure_memusage_command(
     )
     .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
     .env(
-        macros_helpers::tool_command::ToolEnvKeyRef::from("LD_PRELOAD"),
+        macros_helpers::tool_command::ToolEnvKeyRef::from(str_constants::expr::S_0697),
         macros_helpers::tool_command::ToolEnvValueRef::from(
             str_constants::workspace_test_runner::MEMUSAGE_PATH,
         ),
     )
     .env(
-        macros_helpers::tool_command::ToolEnvKeyRef::from("MEMUSAGE_PROG_NAME"),
+        macros_helpers::tool_command::ToolEnvKeyRef::from(str_constants::expr::S_0700),
         macros_helpers::tool_command::ToolEnvValueRef::from(memusage_prog_name.get()),
     )
     .output();
@@ -304,40 +310,78 @@ fn measure_memusage_command(
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             print_without_memusage_footer(StderrTextRef::from(stderr.as_ref()));
             let clean = strip_ansi_codes(AnsiTextRef(stderr.as_ref()));
-            let heap_total = memusage_heap_value(&clean, MemusageKey("heap total:")).get();
-            let heap_peak = memusage_heap_value(&clean, MemusageKey("heap peak:")).get();
-            let stack_peak = memusage_heap_value(&clean, MemusageKey("stack peak:")).get();
-            let malloc_calls =
-                memusage_table_value(&clean, MemusageRowName("malloc|"), MemusageColumnIdx(0))
-                    .get();
-            let malloc_memory =
-                memusage_table_value(&clean, MemusageRowName("malloc|"), MemusageColumnIdx(1))
-                    .get();
-            let malloc_failed =
-                memusage_table_value(&clean, MemusageRowName("malloc|"), MemusageColumnIdx(2))
-                    .get();
-            let realloc_calls =
-                memusage_table_value(&clean, MemusageRowName("realloc|"), MemusageColumnIdx(0))
-                    .get();
-            let realloc_memory =
-                memusage_table_value(&clean, MemusageRowName("realloc|"), MemusageColumnIdx(1))
-                    .get();
-            let realloc_failed =
-                memusage_table_value(&clean, MemusageRowName("realloc|"), MemusageColumnIdx(2))
-                    .get();
-            let calloc_calls =
-                memusage_table_value(&clean, MemusageRowName("calloc|"), MemusageColumnIdx(0))
-                    .get();
-            let calloc_memory =
-                memusage_table_value(&clean, MemusageRowName("calloc|"), MemusageColumnIdx(1))
-                    .get();
-            let calloc_failed =
-                memusage_table_value(&clean, MemusageRowName("calloc|"), MemusageColumnIdx(2))
-                    .get();
-            let free_calls =
-                memusage_table_value(&clean, MemusageRowName("free|"), MemusageColumnIdx(0)).get();
-            let free_memory =
-                memusage_table_value(&clean, MemusageRowName("free|"), MemusageColumnIdx(1)).get();
+            let heap_total =
+                memusage_heap_value(&clean, MemusageKey(str_constants::expr::S_1383)).get();
+            let heap_peak =
+                memusage_heap_value(&clean, MemusageKey(str_constants::expr::S_1382)).get();
+            let stack_peak =
+                memusage_heap_value(&clean, MemusageKey(str_constants::expr::S_1755)).get();
+            let malloc_calls = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1507),
+                MemusageColumnIdx(0),
+            )
+            .get();
+            let malloc_memory = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1507),
+                MemusageColumnIdx(1),
+            )
+            .get();
+            let malloc_failed = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1507),
+                MemusageColumnIdx(2),
+            )
+            .get();
+            let realloc_calls = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1651),
+                MemusageColumnIdx(0),
+            )
+            .get();
+            let realloc_memory = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1651),
+                MemusageColumnIdx(1),
+            )
+            .get();
+            let realloc_failed = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1651),
+                MemusageColumnIdx(2),
+            )
+            .get();
+            let calloc_calls = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1068),
+                MemusageColumnIdx(0),
+            )
+            .get();
+            let calloc_memory = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1068),
+                MemusageColumnIdx(1),
+            )
+            .get();
+            let calloc_failed = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1068),
+                MemusageColumnIdx(2),
+            )
+            .get();
+            let free_calls = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1337),
+                MemusageColumnIdx(0),
+            )
+            .get();
+            let free_memory = memusage_table_value(
+                &clean,
+                MemusageRowName(str_constants::expr::S_1337),
+                MemusageColumnIdx(1),
+            )
+            .get();
             println!(
                 "measurement={measurement_name_value}_allocations status=ok tool=libmemusage heap_total_bytes={heap_total} heap_peak_bytes={heap_peak} stack_peak_bytes={stack_peak} malloc_calls={malloc_calls} malloc_bytes={malloc_memory} malloc_failed={malloc_failed} realloc_calls={realloc_calls} realloc_bytes={realloc_memory} realloc_failed={realloc_failed} calloc_calls={calloc_calls} calloc_bytes={calloc_memory} calloc_failed={calloc_failed} free_calls={free_calls} free_bytes={free_memory}"
             );
@@ -374,13 +418,17 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
         str_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
     );
     let command_output = macros_helpers::tool_command::ToolCommand::new(
-        macros_helpers::tool_command::ToolProgramRef::from("/usr/bin/time"),
+        macros_helpers::tool_command::ToolProgramRef::from(str_constants::expr::S_0133),
     )
-    .arg(macros_helpers::tool_command::ToolArgRef::from("-f"))
+    .arg(macros_helpers::tool_command::ToolArgRef::from(
+        str_constants::expr::S_0052,
+    ))
     .arg(macros_helpers::tool_command::ToolArgRef::from(
         measurement_format.as_str(),
     ))
-    .arg(macros_helpers::tool_command::ToolArgRef::from("cargo"))
+    .arg(macros_helpers::tool_command::ToolArgRef::from(
+        str_constants::expr::S_1073,
+    ))
     .args(macros_helpers::tool_command::ToolArgsRef::from(args.get()))
     .output();
     let duration = started.elapsed();
@@ -393,7 +441,7 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                     line.trim()
                         .strip_prefix(str_constants::workspace_test_runner::PEAK_RSS_PREFIX)
                 })
-                .unwrap_or("unavailable");
+                .unwrap_or(str_constants::expr::S_1849);
             let minor_page_faults = stderr
                 .lines()
                 .find_map(|line| {
@@ -401,7 +449,7 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                         str_constants::workspace_test_runner::MINOR_PAGE_FAULTS_PREFIX,
                     )
                 })
-                .unwrap_or("unavailable");
+                .unwrap_or(str_constants::expr::S_1849);
             let major_page_faults = stderr
                 .lines()
                 .find_map(|line| {
@@ -409,7 +457,7 @@ fn measure_cargo_command(measurement_name: MeasurementName, args: CargoArgs) -> 
                         str_constants::workspace_test_runner::MAJOR_PAGE_FAULTS_PREFIX,
                     )
                 })
-                .unwrap_or("unavailable");
+                .unwrap_or(str_constants::expr::S_1849);
             let stdout = String::from_utf8_lossy(output.stdout.as_slice());
             if !stdout.is_empty() {
                 print!("{stdout}");
@@ -543,7 +591,7 @@ fn run_alloc_workload_pg_crud_common_query_part() -> Result<(), ()> {
                 match pg_crud_common::PgTypeWhereFilter::query_part(
                     &pg_crud_common::PaginationBase::default(),
                     &mut increment,
-                    pg_crud_common::SqlColumnRef::from(&"column"),
+                    pg_crud_common::SqlColumnRef::from(&str_constants::expr::S_1096),
                     pg_crud_common::AddOperator::from(false),
                 ) {
                     Ok(fragment) => Ok(accumulator.saturating_add(fragment.as_ref().len())),
@@ -582,7 +630,7 @@ fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
                 let mut increment = 0u64;
                 match where_filters_bounded_vec.pg_type_query_part(
                     &mut increment,
-                    pg_crud_common::SqlColumnRef::from(&"column"),
+                    pg_crud_common::SqlColumnRef::from(&str_constants::expr::S_1096),
                     pg_crud_common::AddOperator::from(false),
                 ) {
                     Ok(fragment) => Ok(accumulator.saturating_add(fragment.as_ref().len())),
@@ -599,9 +647,9 @@ fn run_alloc_workload_where_filters_query_part() -> Result<(), ()> {
     Ok(())
 }
 fn cargo_subcommand_available(subcommand: &str) -> bool {
-    let args = [subcommand, "--version"];
+    let args = [subcommand, str_constants::expr::S_0050];
     macros_helpers::tool_command::ToolCommand::new(
-        macros_helpers::tool_command::ToolProgramRef::from("cargo"),
+        macros_helpers::tool_command::ToolProgramRef::from(str_constants::expr::S_1073),
     )
     .args(macros_helpers::tool_command::ToolArgsRef::from(
         args.as_slice(),
@@ -615,17 +663,22 @@ fn cargo_subcommand_available(subcommand: &str) -> bool {
     reason = "keeps release-tool reporting separate and repository policy forbids for loops"
 )]
 fn print_optional_release_tools() {
-    ["semver-checks", "udeps", "machete", "llvm-cov"]
-        .into_iter()
-        .for_each(|tool| {
-            println!(
-                "release_tool={tool} available={}",
-                cargo_subcommand_available(tool)
-            );
-        });
+    [
+        str_constants::expr::S_1715,
+        str_constants::expr::S_1847,
+        str_constants::expr::S_1474,
+        str_constants::expr::S_1462,
+    ]
+    .into_iter()
+    .for_each(|tool| {
+        println!(
+            "release_tool={tool} available={}",
+            cargo_subcommand_available(tool)
+        );
+    });
 }
 fn run_workspace_tests() -> Result<(), ()> {
-    if cargo_subcommand_available("nextest") {
+    if cargo_subcommand_available(str_constants::expr::S_1546) {
         println!("test_executor=nextest");
         execution::run_commands(&NEXTEST_COMMANDS)
     } else {
@@ -636,13 +689,13 @@ fn run_workspace_tests() -> Result<(), ()> {
 fn main() {
     let mode = discovery::mode();
     let result = match mode.as_deref() {
-        None | Some("static") => execution::run_commands(&STATIC_COMMANDS),
-        Some("database") => match std::env::var("DATABASE_URL") {
+        None | Some(str_constants::expr::S_1757) => execution::run_commands(&STATIC_COMMANDS),
+        Some(str_constants::expr::S_1148) => match std::env::var(str_constants::expr::S_0649) {
             Ok(database_url) => match macros_helpers::test_database::validate_test_database_url(
                 macros_helpers::test_database::UrlRef::from(database_url.as_str()),
             ) {
                 Ok(_target) => execution::run_commands(&[(
-                    "cargo",
+                    str_constants::expr::S_1073,
                     &str_constants::workspace_test_runner::CARGO_TEST_DATABASE_ARGS,
                 )]),
                 Err(error) => {
@@ -669,16 +722,16 @@ fn main() {
         Some(str_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
             run_alloc_workload_where_filters_query_part()
         }
-        Some("macro-generation") => MACRO_GENERATION_MEASUREMENTS
+        Some(str_constants::expr::S_1475) => MACRO_GENERATION_MEASUREMENTS
             .iter()
             .try_fold((), |(), (measurement_name, args)| {
                 measure_cargo_command(*measurement_name, *args)
             }),
-        Some("tests") => run_workspace_tests(),
-        Some("heavy-load") => {
-            if cargo_subcommand_available("nextest") {
+        Some(str_constants::expr::S_1811) => run_workspace_tests(),
+        Some(str_constants::expr::S_1384) => {
+            if cargo_subcommand_available(str_constants::expr::S_1546) {
                 execution::run_commands(&[(
-                    "cargo",
+                    str_constants::expr::S_1073,
                     &str_constants::workspace_test_runner::NEXTEST_HEAVY_ARGS,
                 )])
             } else {
@@ -686,11 +739,11 @@ fn main() {
                 Err(())
             }
         }
-        Some("release") => {
+        Some(str_constants::expr::S_1654) => {
             print_optional_release_tools();
             execution::run_commands(&STATIC_COMMANDS).and_then(|()| run_workspace_tests())
         }
-        Some("measure") => {
+        Some(str_constants::expr::S_1512) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 ALLOCATION_TOOLS.iter().try_fold((), |(), tool| {
                     let available = discovery::tool_available(tool.path.get());
@@ -709,10 +762,15 @@ fn main() {
                     str_constants::workspace_test_runner::MEMUSAGE_PATH
                 );
                 measure_memusage_command(
-                    MeasurementName("code_style"),
-                    ProgramPathRef("cargo"),
-                    ProgramArgsRef(&["test", "-p", "tests", "code_style"]),
-                    MemusageProgNameRef("cargo"),
+                    MeasurementName(str_constants::expr::S_1095),
+                    ProgramPathRef(str_constants::expr::S_1073),
+                    ProgramArgsRef(&[
+                        str_constants::expr::S_1802,
+                        str_constants::expr::S_0053,
+                        str_constants::expr::S_1811,
+                        str_constants::expr::S_1095,
+                    ]),
+                    MemusageProgNameRef(str_constants::expr::S_1073),
                 )
                 .unwrap_or_else(|()| std::process::exit(1));
                 let current_exe = match std::env::current_exe() {
@@ -728,22 +786,22 @@ fn main() {
                 let current_exe_prog_name = current_exe
                     .file_name()
                     .and_then(|value| value.to_str())
-                    .unwrap_or("workspace_test_runner");
+                    .unwrap_or(str_constants::expr::S_1914);
                 [
                     (
-                        MeasurementName("generate_pg_table_src"),
+                        MeasurementName(str_constants::expr::S_1369),
                         str_constants::workspace_test_runner::GENERATE_PG_TABLE_WORKLOAD,
                     ),
                     (
-                        MeasurementName("generate_pg_types_src"),
+                        MeasurementName(str_constants::expr::S_1372),
                         str_constants::workspace_test_runner::GENERATE_PG_TYPES_WORKLOAD,
                     ),
                     (
-                        MeasurementName("pg_crud_common_query_part"),
+                        MeasurementName(str_constants::expr::S_1611),
                         str_constants::workspace_test_runner::PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
                     ),
                     (
-                        MeasurementName("where_filters_query_part"),
+                        MeasurementName(str_constants::expr::S_1909),
                         str_constants::workspace_test_runner::WHERE_FILTERS_QUERY_PART_WORKLOAD,
                     ),
                 ]
@@ -763,12 +821,17 @@ fn main() {
                 );
             }
             measure_cargo_command(
-                MeasurementName("code_style"),
-                CargoArgs(&["test", "-p", "tests", "code_style"]),
+                MeasurementName(str_constants::expr::S_1095),
+                CargoArgs(&[
+                    str_constants::expr::S_1802,
+                    str_constants::expr::S_0053,
+                    str_constants::expr::S_1811,
+                    str_constants::expr::S_1095,
+                ]),
             )
             .unwrap_or_else(|()| std::process::exit(1));
             measure_cargo_command(
-                MeasurementName("clippy"),
+                MeasurementName(str_constants::expr::S_1090),
                 CargoArgs(&str_constants::workspace_test_runner::CARGO_CLIPPY_ARGS),
             )
             .unwrap_or_else(|()| std::process::exit(1));
@@ -805,7 +868,7 @@ fn main() {
                 generate_pg_table_measurement.4
             );
             let generate_pg_table_with_tests_dir =
-                std::path::Path::new("target/measure/generate_pg_table_with_tests");
+                std::path::Path::new(str_constants::expr::S_1798);
             if let Err(error) = std::fs::create_dir_all(generate_pg_table_with_tests_dir) {
                 eprintln!(
                     "measurement=generate_pg_table_src_with_tests status=create_dir_failed error={error}"
@@ -813,8 +876,8 @@ fn main() {
                 std::process::exit(1);
             }
             if let Err(error) = std::fs::write(
-                generate_pg_table_with_tests_dir.join("rustfmt.toml"),
-                "edition = \"2024\"\n",
+                generate_pg_table_with_tests_dir.join(str_constants::expr::S_1699),
+                str_constants::expr::S_1237,
             ) {
                 eprintln!(
                     "measurement=generate_pg_table_src_with_tests status=rustfmt_config_write_failed error={error}"
@@ -863,7 +926,7 @@ fn main() {
                 std::process::exit(1);
             }
             let generate_pg_table_tests_stage_output = match std::fs::read_to_string(
-                generate_pg_table_with_tests_dir.join("generate_pg_table_Tests.rs"),
+                generate_pg_table_with_tests_dir.join(str_constants::expr::S_1365),
             ) {
                 Ok(content) => (content.len(), content.lines().count()),
                 Err(error) => {
@@ -903,13 +966,12 @@ fn main() {
                     .saturating_sub(generate_pg_table_measurement.3)
             );
             let generate_pg_table_src_text =
-                std::fs::read_to_string("pg_crud/pg_table/generate_pg_table_src/src/lib.rs")
-                    .unwrap_or_default();
+                std::fs::read_to_string(str_constants::expr::S_1604).unwrap_or_default();
             let generate_pg_table_concurrency_constants_found = [
-                "CM_CHUNK_SIZE_2EE9377B",
-                "CM_CONCURRENCY_7CCFD82D",
-                "CM_CHUNK_SIZE_A13F7C92",
-                "TEST_FUTURE_CONCURRENCY_D281414B",
+                str_constants::expr::S_0629,
+                str_constants::expr::S_0631,
+                str_constants::expr::S_0630,
+                str_constants::expr::S_0795,
             ]
             .into_iter()
             .all(|pattern| generate_pg_table_src_text.contains(pattern));
@@ -917,23 +979,23 @@ fn main() {
                 "measurement=generate_pg_table_generated_test_concurrency cm_chunk_2ee9377b=25 cm_concurrency_7ccfd82d=5 cm_chunk_a13f7c92=10 test_future_concurrency_d281414b=100 source_detected={generate_pg_table_concurrency_constants_found}"
             );
             let generate_pg_table_box_future_push_sites = generate_pg_table_src_text
-                .matches("accumulator_9189f86e.push")
+                .matches(str_constants::expr::S_0914)
                 .count();
             let generate_pg_table_old_chunk_vec_from_absent =
-                !generate_pg_table_src_text.contains(".map(Vec::from)");
+                !generate_pg_table_src_text.contains(str_constants::expr::S_0081);
             let generate_pg_table_old_collect_flatten_absent =
-                !generate_pg_table_src_text.contains(".flatten().collect");
+                !generate_pg_table_src_text.contains(str_constants::expr::S_0079);
             let generate_pg_table_table_names_cloned_vec_absent =
-                !generate_pg_table_src_text.contains("table_names_cloned = table_names.iter().map");
+                !generate_pg_table_src_text.contains(str_constants::expr::S_1794);
             println!(
                 "measurement=generate_pg_table_generated_test_concurrency_shape box_future_push_sites={generate_pg_table_box_future_push_sites} old_chunk_vec_from_absent={generate_pg_table_old_chunk_vec_from_absent} old_collect_flatten_absent={generate_pg_table_old_collect_flatten_absent} table_names_cloned_vec_absent={generate_pg_table_table_names_cloned_vec_absent}"
             );
             let generate_pg_table_pipeline_stage_source_found = [
-                "parse_generate_pg_table_input_stage",
-                "build_generate_pg_table_input_model_stage",
-                "validate_generate_pg_table_fields_model_stage",
-                "emit_generate_pg_table_tests_stage",
-                "emit_generate_pg_table_final_stage",
+                str_constants::expr::S_1585,
+                str_constants::expr::S_1031,
+                str_constants::expr::S_1890,
+                str_constants::expr::S_1241,
+                str_constants::expr::S_1240,
             ]
             .into_iter()
             .all(|pattern| generate_pg_table_src_text.contains(pattern));
@@ -1004,15 +1066,15 @@ fn main() {
                     });
                     let model_started = std::time::Instant::now();
                     let error_variant_count = [
-                        ("generate_pg_table::cm_error_variants", "CmErrorVariants"),
-                        ("generate_pg_table::co_error_variants", "CoErrorVariants"),
-                        ("generate_pg_table::rm_error_variants", "RmErrorVariants"),
-                        ("generate_pg_table::ro_error_variants", "RoErrorVariants"),
-                        ("generate_pg_table::um_error_variants", "UmErrorVariants"),
-                        ("generate_pg_table::uo_error_variants", "UoErrorVariants"),
-                        ("generate_pg_table::dm_error_variants", "DmErrorVariants"),
-                        ("generate_pg_table::dlo_error_variants", "DloErrorVariants"),
-                        ("generate_pg_table::common_error_variants", "CommonErrorVariants"),
+                        (str_constants::expr::S_1346, str_constants::expr::S_0643),
+                        (str_constants::expr::S_1348, str_constants::expr::S_0644),
+                        (str_constants::expr::S_1356, str_constants::expr::S_0737),
+                        (str_constants::expr::S_1358, str_constants::expr::S_0738),
+                        (str_constants::expr::S_1360, str_constants::expr::S_0820),
+                        (str_constants::expr::S_1362, str_constants::expr::S_0822),
+                        (str_constants::expr::S_1354, str_constants::expr::S_0663),
+                        (str_constants::expr::S_1352, str_constants::expr::S_0662),
+                        (str_constants::expr::S_1350, str_constants::expr::S_0646),
                     ]
                     .into_iter()
                     .fold(0usize, |accumulator, (attr_path, expected_identifier)| {
@@ -1038,15 +1100,15 @@ fn main() {
                         }
                     });
                     let logic_attr_token_bytes = [
-                        "generate_pg_table::cm_logic",
-                        "generate_pg_table::co_logic",
-                        "generate_pg_table::rm_logic",
-                        "generate_pg_table::ro_logic",
-                        "generate_pg_table::um_logic",
-                        "generate_pg_table::uo_logic",
-                        "generate_pg_table::dm_logic",
-                        "generate_pg_table::dlo_logic",
-                        "generate_pg_table::common_logic",
+                        str_constants::expr::S_1347,
+                        str_constants::expr::S_1349,
+                        str_constants::expr::S_1357,
+                        str_constants::expr::S_1359,
+                        str_constants::expr::S_1361,
+                        str_constants::expr::S_1363,
+                        str_constants::expr::S_1355,
+                        str_constants::expr::S_1353,
+                        str_constants::expr::S_1351,
                     ]
                     .into_iter()
                     .fold(0usize, |accumulator, attr_path| {
@@ -1072,7 +1134,7 @@ fn main() {
                                                 .segments
                                                 .first()
                                                 .is_some_and(|segment| {
-                                                    segment.ident == "generate_pg_table_primary_key"
+                                                    segment.ident == str_constants::expr::S_1368
                                                 })
                                         })
                                         .count();
@@ -1253,11 +1315,11 @@ fn main() {
                         value.len()
                     });
                     let variant_is_all = config_value
-                        .get("variant")
+                        .get(str_constants::expr::S_1896)
                         .and_then(serde_json::Value::as_str)
-                        .is_some_and(|value| value == "All");
+                        .is_some_and(|value| value == str_constants::expr::S_0613);
                     let concrete_or_subset_len = config_value
-                        .get("variant")
+                        .get(str_constants::expr::S_1896)
                         .and_then(serde_json::Value::as_array)
                         .map_or(0usize, Vec::len);
                     let inspect_wall_us = inspect_started.elapsed().as_micros();
@@ -1419,7 +1481,7 @@ fn main() {
                             match pg_crud_common::PgTypeWhereFilter::query_part(
                                 &pg_crud_common::PaginationBase::default(),
                                 &mut increment,
-                                pg_crud_common::SqlColumnRef::from(&"column"),
+                                pg_crud_common::SqlColumnRef::from(&str_constants::expr::S_1096),
                                 pg_crud_common::AddOperator::from(false),
                             ) {
                                 Ok(fragment) => {
@@ -1474,7 +1536,7 @@ fn main() {
                             let mut increment = 0u64;
                             match where_filters_bounded_vec.pg_type_query_part(
                                 &mut increment,
-                                pg_crud_common::SqlColumnRef::from(&"column"),
+                                pg_crud_common::SqlColumnRef::from(&str_constants::expr::S_1096),
                                 pg_crud_common::AddOperator::from(false),
                             ) {
                                 Ok(fragment) => {
@@ -1505,7 +1567,7 @@ fn main() {
                 }
             }
         }
-        Some("all") => execution::run_commands(&STATIC_COMMANDS)
+        Some(str_constants::expr::S_0947) => execution::run_commands(&STATIC_COMMANDS)
             .and_then(|()| run_workspace_tests())
             .and_then(|()| {
                 MACRO_GENERATION_MEASUREMENTS

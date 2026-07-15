@@ -3,27 +3,52 @@ pub(super) async fn cleanup_admin_tables(
     pool: app_state::SqlxPgPoolRef<'_>,
     cfg: super::AdminCleanupCfg,
 ) -> Result<super::AdminCleanupReport, super::AdminCleanupError> {
-    let access_sessions = sqlx::query("WITH expired AS (SELECT id FROM admin_access_sessions WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_access_sessions target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?.rows_affected();
-    let refresh_tokens = sqlx::query("WITH expired AS (SELECT id FROM admin_refresh_tokens WHERE expires_at < NOW() OR (revoked_at IS NOT NULL AND revoked_at < NOW() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_refresh_tokens target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?.rows_affected();
-    let login_attempts = sqlx::query("WITH expired AS (SELECT id FROM admin_login_attempts WHERE attempted_at < NOW() - make_interval(secs => $1) ORDER BY attempted_at LIMIT $2) DELETE FROM admin_login_attempts target USING expired WHERE target.id=expired.id")
-        .bind(cfg.auth_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?.rows_affected();
+    let access_sessions = sqlx::query(str_constants::expr::S_0834)
+        .bind(cfg.auth_retention.0)
+        .bind(cfg.batch_size.0)
+        .execute(pool.as_ref())
+        .await
+        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+        .rows_affected();
+    let refresh_tokens = sqlx::query(str_constants::expr::S_0837)
+        .bind(cfg.auth_retention.0)
+        .bind(cfg.batch_size.0)
+        .execute(pool.as_ref())
+        .await
+        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+        .rows_affected();
+    let login_attempts = sqlx::query(str_constants::expr::S_0836)
+        .bind(cfg.auth_retention.0)
+        .bind(cfg.batch_size.0)
+        .execute(pool.as_ref())
+        .await
+        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+        .rows_affected();
     let mut audit_tx = sqlx::Acquire::begin(pool.as_ref())
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let _audit_cleanup_permission = sqlx::query("SET LOCAL app.admin_audit_cleanup = 'on'")
+    let _audit_cleanup_permission = sqlx::query(str_constants::expr::S_0780)
         .execute(&mut *audit_tx)
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let audit_log = sqlx::query("WITH expired AS (SELECT id FROM admin_audit_log WHERE created_at < NOW() - make_interval(secs => $1) ORDER BY created_at LIMIT $2) DELETE FROM admin_audit_log target USING expired WHERE target.id=expired.id")
-        .bind(cfg.audit_retention.0).bind(cfg.batch_size.0).execute(&mut *audit_tx).await.map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?.rows_affected();
+    let audit_log = sqlx::query(str_constants::expr::S_0835)
+        .bind(cfg.audit_retention.0)
+        .bind(cfg.batch_size.0)
+        .execute(&mut *audit_tx)
+        .await
+        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+        .rows_affected();
     audit_tx
         .commit()
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let rate_limits = sqlx::query("WITH expired AS (SELECT scope,subject FROM admin_rate_limits WHERE window_started_at < NOW() - make_interval(secs => $1) ORDER BY window_started_at LIMIT $2) DELETE FROM admin_rate_limits target USING expired WHERE target.scope=expired.scope AND target.subject=expired.subject")
-        .bind(cfg.rate_limit_retention.0).bind(cfg.batch_size.0).execute(pool.as_ref()).await.map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?.rows_affected();
+    let rate_limits = sqlx::query(str_constants::expr::S_0838)
+        .bind(cfg.rate_limit_retention.0)
+        .bind(cfg.batch_size.0)
+        .execute(pool.as_ref())
+        .await
+        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+        .rows_affected();
     let idempotency = pg_table::cleanup_pg_table_idempotency(
         pool,
         pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(

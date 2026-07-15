@@ -1,10 +1,8 @@
 #[test]
 fn string_wrappers_do_not_use_from_string() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("e2a6b9c4"),
-        super::types::SourceTextRef::from(
-            "string wrappers must validate length; use TryFrom<String> with a length check instead of From<String>:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1212),
+        super::types::SourceTextRef::from(str_constants::expr::S_1767),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -53,17 +51,7 @@ fn string_wrappers_do_not_use_from_string() {
 }
 #[test]
 fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
-    let ast = syn::parse_file(
-        "
-struct SourceText(Box<str>);
-impl From<String> for SourceText {
-    fn from(value: String) -> Self {
-        Self(value.into_boxed_str())
-    }
-}
-",
-    )
-    .expect("f7c0e2a9");
+    let ast = syn::parse_file(str_constants::expr::S_0863).expect("f7c0e2a9");
     let string_wrapper_names = super::types::StdSourceTextSet::default();
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -84,15 +72,7 @@ impl From<String> for SourceText {
 }
 #[test]
 fn bounded_string_derive_satisfies_string_wrapper_policy() {
-    let ast = syn::parse_file(
-        "
-const SOURCE_TEXT_MAX_LEN: usize = 1024;
-#[derive(newtype::BoundedString)]
-#[bounded_string(max = SOURCE_TEXT_MAX_LEN)]
-struct SourceText(String);
-",
-    )
-    .expect("90df57a8");
+    let ast = syn::parse_file(str_constants::expr::S_0859).expect("90df57a8");
     let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -118,10 +98,8 @@ struct SourceText(String);
 #[test]
 fn public_tuple_wrappers_do_not_expose_inner_field() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("b7c84e2a"),
-        super::types::SourceTextRef::from(
-            "public tuple wrappers must not expose inner fields; initialize them through From/TryFrom:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_0995),
+        super::types::SourceTextRef::from(str_constants::expr::S_1640),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -143,10 +121,8 @@ fn domain_boundaries_use_repository_declared_types() {
     let repo_crates = super::workspace_crate_names();
     let repo_types = super::declared_domain_type_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("a7f9c3e1"),
-        super::types::SourceTextRef::from(
-            "raw external or primitive types found in domain boundaries; use repository domain wrapper types initialized with From/TryFrom:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_0892),
+        super::types::SourceTextRef::from(str_constants::expr::S_1647),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -174,20 +150,9 @@ fn domain_boundaries_use_repository_declared_types() {
 }
 #[test]
 fn domain_type_policy_checks_explicit_closure_parameter_types() {
-    let ast = syn::parse_file(
-        "
-struct SourceText(Box<str>);
-fn demo() {
-    let _path_cb = |path: std::path::PathBuf| path;
-    let _syn_cb = |value: syn::Type| value;
-    let _inferred_cb = |value| value;
-    let _wrapped_cb = |value: SourceText| value;
-}
-",
-    )
-    .expect("c81a6f20");
+    let ast = syn::parse_file(str_constants::expr::S_0862).expect("c81a6f20");
     let repo_crates = std::collections::BTreeSet::new();
-    let repo_types = std::collections::BTreeSet::from([String::from("SourceText")]);
+    let repo_types = std::collections::BTreeSet::from([String::from(str_constants::expr::S_0788)]);
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::DomainTypePolicyVisitor {
@@ -214,10 +179,8 @@ fn demo() {
 #[test]
 fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("f2c7a91b"),
-        super::types::SourceTextRef::from(
-            "raw text containers found in helper struct fields; use repository wrapper types:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_1274),
+        super::types::SourceTextRef::from(str_constants::expr::S_1648),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -241,18 +204,7 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
 }
 #[test]
 fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
-    let ast = syn::parse_file(
-        "
-struct HelperState {
-    names: Vec<String>,
-    seen: std::collections::BTreeSet<String>,
-    refs: Option<std::collections::HashSet<&'static str>>,
-    wrapped: types::SourceTextList,
-}
-struct SourceTextList(Vec<String>);
-",
-    )
-    .expect("9f4d2a7c");
+    let ast = syn::parse_file(str_constants::expr::S_0861).expect("9f4d2a7c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::AnalyzerStateRawContainerFieldVisitor {
@@ -280,10 +232,8 @@ struct SourceTextList(Vec<String>);
 #[test]
 fn helper_return_types_use_repository_declared_text_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("6d41c8e2"),
-        super::types::SourceTextRef::from(
-            "raw text return types found in helper functions; use repository wrapper types:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_0416),
+        super::types::SourceTextRef::from(str_constants::expr::S_1649),
         |path, ast, ers| {
             if !super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
                 .get()
@@ -307,34 +257,7 @@ fn helper_return_types_use_repository_declared_text_wrappers() {
 }
 #[test]
 fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
-    let ast = syn::parse_file(
-        "
-fn direct() -> String {
-    String::new()
-}
-fn list() -> Vec<String> {
-    Vec::new()
-}
-fn optional() -> Option<&'static str> {
-    None
-}
-struct Helper;
-impl Helper {
-    fn nested() -> Result<types::SourceText, String> {
-        Ok(types::SourceText::try_from(String::new()).expect(\"d3a1b7c9\"))
-    }
-    fn get(self) -> String {
-        String::new()
-    }
-}
-impl AsRef<str> for Helper {
-    fn as_ref(&self) -> &str {
-        \"\"
-    }
-}
-",
-    )
-    .expect("3a9d7e2c");
+    let ast = syn::parse_file(str_constants::expr::S_0860).expect("3a9d7e2c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::HelperRawTextReturnVisitor {
@@ -368,10 +291,8 @@ impl AsRef<str> for Helper {
 fn external_leaf_tuple_wrappers_include_crate_name() {
     let repo_crates = super::workspace_crate_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr("b93d2a8c"),
-        super::types::SourceTextRef::from(
-            "tuple wrappers over external types must include the external crate name:",
-        ),
+        super::types::StaticStr(str_constants::expr::S_0999),
+        super::types::SourceTextRef::from(str_constants::expr::S_1838),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()

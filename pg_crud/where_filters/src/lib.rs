@@ -86,7 +86,7 @@ const _: () = {
 };
 impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     fn default_some_one_element() -> Self {
-        match regex::Regex::new("[a-z]+") {
+        match regex::Regex::new(str_constants::expr::S_0841) {
             Ok(v) => Self(v),
             Err(error) => {
                 eprintln!("22a9eda5: {error}");
@@ -122,8 +122,8 @@ impl RegexCase {
     #[must_use]
     pub fn postgreql_syntax(&self) -> RegexCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => RegexCasePostgreqlSyntax::from("~*"),
-            Self::Sensitive => RegexCasePostgreqlSyntax::from("~"),
+            Self::Insensitive => RegexCasePostgreqlSyntax::from(str_constants::expr::S_1958),
+            Self::Sensitive => RegexCasePostgreqlSyntax::from(str_constants::expr::S_1957),
         }
     }
 }
@@ -147,12 +147,18 @@ where
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            "Between",
+            str_constants::expr::S_0622,
             utoipa::openapi::ObjectBuilder::new()
-                .property("start", <T as utoipa::ToSchema>::schema().1)
-                .property("end", <T as utoipa::ToSchema>::schema().1)
-                .required("start")
-                .required("end")
+                .property(
+                    str_constants::expr::S_1756,
+                    <T as utoipa::ToSchema>::schema().1,
+                )
+                .property(
+                    str_constants::expr::S_1242,
+                    <T as utoipa::ToSchema>::schema().1,
+                )
+                .required(str_constants::expr::S_1756)
+                .required(str_constants::expr::S_1242)
                 .build()
                 .into(),
         )
@@ -827,9 +833,15 @@ mod tests {
     }
     #[test]
     fn regex_regex_eq_compares_pattern_content() {
-        let left = super::RegexRegex::from(regex::Regex::new(r"\d+").expect("8342ad27"));
-        let right = super::RegexRegex::from(regex::Regex::new(r"\d+").expect("4d0fa8e3"));
-        let other = super::RegexRegex::from(regex::Regex::new("[a-z]+").expect("abcc9a72"));
+        let left = super::RegexRegex::from(
+            regex::Regex::new(str_constants::expr::S_0856).expect("8342ad27"),
+        );
+        let right = super::RegexRegex::from(
+            regex::Regex::new(str_constants::expr::S_0856).expect("4d0fa8e3"),
+        );
+        let other = super::RegexRegex::from(
+            regex::Regex::new(str_constants::expr::S_0841).expect("abcc9a72"),
+        );
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

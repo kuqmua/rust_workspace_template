@@ -131,8 +131,8 @@ pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> 
     v.unwrap_or_else(|_| {
         panic_unexpected_result(
             str_constants::route_validators::EXPECT_OK_ER_ID,
-            "expect_ok",
-            "Err",
+            str_constants::expr::S_1262,
+            str_constants::expr::S_0667,
             exp_id,
         )
     })
@@ -150,8 +150,8 @@ pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) 
     v.err().unwrap_or_else(|| {
         panic_unexpected_result(
             str_constants::route_validators::EXPECT_ER_ER_ID,
-            "expect_error",
-            "Ok",
+            str_constants::expr::S_1261,
+            str_constants::expr::S_0712,
             exp_id,
         )
     })
@@ -334,7 +334,7 @@ mod tests {
                 let _ignored =
                     super::block_on(std::future::poll_fn(|_| std::task::Poll::<u8>::Pending));
             },
-            "1fc8c9f0",
+            str_constants::expr::S_0211,
         );
     }
     #[test]
@@ -355,49 +355,56 @@ mod tests {
     }
     #[test]
     fn expect_ok_returns_inner_value() {
-        let v = super::expect_ok::<u8, u16>(Ok(7), "4f607799");
+        let v = super::expect_ok::<u8, u16>(Ok(7), str_constants::expr::S_0343);
         assert_eq!(v, 7);
     }
     #[test]
     fn assert_ok_eq_checks_ok_result_value() {
-        super::assert_ok_eq::<u8, u16>(Ok(7), "9665f80a", &7);
+        super::assert_ok_eq::<u8, u16>(Ok(7), str_constants::expr::S_0541, &7);
     }
     #[test]
     fn expect_error_returns_inner_error() {
-        let v = super::expect_error::<u8, u16>(Err(9), "5cd39e4b");
+        let v = super::expect_error::<u8, u16>(Err(9), str_constants::expr::S_0376);
         assert_eq!(v, 9);
     }
     #[test]
     fn expect_error_mapped_passes_error_and_exp_id_to_mapper() {
         let v = super::expect_error_mapped::<u8, u16, (u16, &'static str)>(
             Err(9),
-            "8ce7a316",
+            str_constants::expr::S_0507,
             |error, exp_id| (error, exp_id),
         );
         assert_eq!(v, (9, "8ce7a316"));
     }
     #[test]
     fn panic_unexpected_variant_always_panics() {
-        super::assert_panics(|| super::panic_unexpected_variant("f66647ab"), "b6dba95d");
+        super::assert_panics(
+            || super::panic_unexpected_variant(str_constants::expr::S_1292),
+            str_constants::expr::S_0992,
+        );
     }
     #[test]
     fn expect_variant_returns_mapped_value_for_matching_variant() {
-        let v = super::expect_variant(Some(7u8), |v| v, "0dfd9a91");
+        let v = super::expect_variant(Some(7u8), |v| v, str_constants::expr::S_0162);
         assert_eq!(v, 7);
     }
     #[test]
     fn expect_variant_ref_returns_mapped_value_for_matching_variant() {
         let value = Some(7u8);
-        let v = super::expect_variant_ref(&value, |v| *v, "a2fcbad4");
+        let v = super::expect_variant_ref(&value, |v| *v, str_constants::expr::S_0874);
         assert_eq!(v, 7);
     }
     #[test]
     fn expect_variant_panics_for_unexpected_variant() {
         super::assert_panics(
             || {
-                let _: u8 = super::expect_variant::<Option<u8>, u8>(None, |v| v, "dba097b9");
+                let _: u8 = super::expect_variant::<Option<u8>, u8>(
+                    None,
+                    |v| v,
+                    str_constants::expr::S_1154,
+                );
             },
-            "a9651f69",
+            str_constants::expr::S_0897,
         );
     }
     #[test]
@@ -408,7 +415,7 @@ mod tests {
         }
         let v = super::expect_error_variant::<(), TestError, u8>(
             Err(TestError::A(3)),
-            "9bf4ce17",
+            str_constants::expr::S_0557,
             |error| match error {
                 TestError::A(v) => Some(v),
             },
@@ -423,7 +430,7 @@ mod tests {
         }
         let v = super::expect_error_variant_ref::<(), TestError, u8>(
             Err(TestError::A(3)),
-            "8dfc4389",
+            str_constants::expr::S_0513,
             |error| match error {
                 TestError::A(v) => Some(*v),
             },
@@ -442,7 +449,7 @@ mod tests {
         }
         let _: () = super::assert_err_status_code_variant::<(), TestError, ()>(
             Err(TestError::A),
-            "c1d74a8e",
+            str_constants::expr::S_1039,
             crate::AxumHttpStatusCode::BAD_REQUEST,
             |error| match error {
                 TestError::A => Some(()),
@@ -461,7 +468,7 @@ mod tests {
         }
         let v = super::assert_err_status_code_variant_ref::<(), TestError, u8>(
             Err(TestError::A(7)),
-            "8afb4ffd",
+            str_constants::expr::S_0501,
             crate::AxumHttpStatusCode::BAD_REQUEST,
             |error| match error {
                 TestError::A(v) => Some(*v),
@@ -472,10 +479,10 @@ mod tests {
     #[test]
     fn mk_headers_with_entry_inserts_value_for_case_insensitive_name() {
         let headers = super::mk_headers_with_entry(
-            "Commit",
-            axum::http::HeaderValue::from_static("deadbeef"),
+            str_constants::expr::S_0645,
+            axum::http::HeaderValue::from_static(str_constants::expr::S_1166),
         );
-        let actual = headers.get("commit");
+        let actual = headers.get(str_constants::expr::S_1098);
         assert_eq!(
             actual,
             Some(&axum::http::HeaderValue::from_static("deadbeef"))
@@ -484,14 +491,14 @@ mod tests {
     #[test]
     fn replace_header_name_moves_value_to_new_key() {
         let mut headers = super::mk_headers_with_entry(
-            "x-commit",
-            axum::http::HeaderValue::from_static("deadbeef"),
+            str_constants::expr::S_1920,
+            axum::http::HeaderValue::from_static(str_constants::expr::S_1166),
         );
         super::replace_header_name(
             &mut headers,
-            "x-commit",
-            axum::http::HeaderName::from_static("commit"),
-            "348c0e57",
+            str_constants::expr::S_1920,
+            axum::http::HeaderName::from_static(str_constants::expr::S_1098),
+            str_constants::expr::S_0277,
         );
         assert!(headers.get("x-commit").is_none());
         assert_eq!(
@@ -516,12 +523,12 @@ mod tests {
         }
         let _err = super::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
-            "4a1791d2",
+            str_constants::expr::S_0327,
             crate::AxumHttpStatusCode::BAD_REQUEST,
         );
         super::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
-            "773c5af2",
+            str_constants::expr::S_0443,
             crate::AxumHttpStatusCode::BAD_REQUEST,
         );
     }

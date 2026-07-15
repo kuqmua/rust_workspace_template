@@ -46,7 +46,9 @@ pub struct AdminRoleName(String);
 pub struct AdminPassword(String);
 impl std::fmt::Debug for AdminPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("AdminPassword").field(&"[REDACTED]").finish()
+        f.debug_tuple(str_constants::expr::S_0592)
+            .field(&str_constants::expr::S_0840)
+            .finish()
     }
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
@@ -665,13 +667,13 @@ pub enum AdminApiErrorCode {
 impl std::fmt::Display for AdminApiErrorCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            Self::AuthenticationFailed => "authentication failed",
-            Self::AuthorizationFailed => "authorization failed",
-            Self::Conflict => "conflict",
-            Self::CsrfFailed => "CSRF validation failed",
-            Self::InternalError => "internal error",
-            Self::RateLimited => "rate limited",
-            Self::ValidationFailed => "validation failed",
+            Self::AuthenticationFailed => str_constants::expr::S_0971,
+            Self::AuthorizationFailed => str_constants::expr::S_0976,
+            Self::Conflict => str_constants::expr::S_1103,
+            Self::CsrfFailed => str_constants::expr::S_0639,
+            Self::InternalError => str_constants::expr::S_1432,
+            Self::RateLimited => str_constants::expr::S_1646,
+            Self::ValidationFailed => str_constants::expr::S_1891,
         })
     }
 }
@@ -727,7 +729,7 @@ pub enum AdminRoutePathError {
 impl std::fmt::Display for AdminRoutePathError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::TooLong => f.write_str("administrator route path is too long"),
+            Self::TooLong => f.write_str(str_constants::expr::S_0937),
         }
     }
 }
@@ -815,14 +817,14 @@ impl AdminPage {
     #[must_use]
     pub fn title(self) -> frontend_contract::ContractStr {
         frontend_contract::ContractStr::from(match self {
-            Self::Audit => "Audit log",
-            Self::Metrics => "Metrics",
-            Self::OpenApi => "API",
-            Self::Permissions => "Permissions",
-            Self::Roles => "Roles",
-            Self::Settings => "Settings",
-            Self::Users => "Users",
-            Self::Version => "Version",
+            Self::Audit => str_constants::expr::S_0618,
+            Self::Metrics => str_constants::expr::S_0702,
+            Self::OpenApi => str_constants::expr::S_0588,
+            Self::Permissions => str_constants::expr::S_0726,
+            Self::Roles => str_constants::expr::S_0739,
+            Self::Settings => str_constants::expr::S_0783,
+            Self::Users => str_constants::expr::S_0824,
+            Self::Version => str_constants::expr::S_0831,
         })
     }
     #[must_use]
@@ -943,7 +945,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                "/metrics",
+                str_constants::expr::S_0111,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::OpenApi => (
@@ -954,7 +956,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                "/openapi.json",
+                str_constants::expr::S_0116,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Permissions => (
@@ -1124,7 +1126,7 @@ impl AdminRoute {
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                "/git_info",
+                str_constants::expr::S_0104,
                 frontend_contract::SuccessStatus::Code200,
             ),
         };
@@ -1158,7 +1160,7 @@ impl AdminRoute {
                 format!("{}/{id}/roles", str_constants::admin_api_paths::USERS)
             }
             Self::RevokeSession => String::from(str_constants::admin_api_paths::AUTH_SESSION),
-            Self::Version => String::from("/api/v1/git_info"),
+            Self::Version => String::from(str_constants::expr::S_0093),
             value @ (Self::Audit
             | Self::CreateRole
             | Self::CreateUser
@@ -1197,36 +1199,18 @@ mod tests {
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {
-        assert_rejects_unknown_field::<super::AdminSignInReq>(
-            r#"{"login":"admin","password":"secret","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminCreateUserReq>(
-            r#"{"display_name":"Admin","login":"admin","password":"secret","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminUpdateUserReq>(
-            r#"{"display_name":"Admin","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminSetUserPasswordReq>(
-            r#"{"password":"secret","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminSetUserBanReq>(
-            r#"{"is_banned":true,"unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminCreateRoleReq>(
-            r#"{"name":"administrator","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminUpdateRoleReq>(
-            r#"{"name":"administrator","unknown":true}"#,
-        );
-        assert_rejects_unknown_field::<super::AdminSetUserRolesReq>(
-            r#"{"role_ids":[1],"unknown":true}"#,
-        );
+        assert_rejects_unknown_field::<super::AdminSignInReq>(str_constants::expr::S_1936);
+        assert_rejects_unknown_field::<super::AdminCreateUserReq>(str_constants::expr::S_1929);
+        assert_rejects_unknown_field::<super::AdminUpdateUserReq>(str_constants::expr::S_1930);
+        assert_rejects_unknown_field::<super::AdminSetUserPasswordReq>(str_constants::expr::S_1946);
+        assert_rejects_unknown_field::<super::AdminSetUserBanReq>(str_constants::expr::S_1932);
+        assert_rejects_unknown_field::<super::AdminCreateRoleReq>(str_constants::expr::S_1942);
+        assert_rejects_unknown_field::<super::AdminUpdateRoleReq>(str_constants::expr::S_1942);
+        assert_rejects_unknown_field::<super::AdminSetUserRolesReq>(str_constants::expr::S_1948);
         assert_rejects_unknown_field::<super::AdminSetRolePermissionsReq>(
-            r#"{"permission_ids":[1],"unknown":true}"#,
+            str_constants::expr::S_1947,
         );
-        assert_rejects_unknown_field::<super::AdminUpdateSettingsReq>(
-            r#"{"site_name":"Admin","unknown":true}"#,
-        );
+        assert_rejects_unknown_field::<super::AdminUpdateSettingsReq>(str_constants::expr::S_1949);
     }
     #[test]
     fn route_contract_keeps_custom_action_policy_and_path_together() {
@@ -1268,7 +1252,8 @@ mod tests {
     }
     #[test]
     fn password_debug_is_redacted() {
-        let password = super::AdminPassword::try_from(String::from("secret")).expect("9f3f5164");
+        let password = super::AdminPassword::try_from(String::from(str_constants::expr::S_1706))
+            .expect("9f3f5164");
         assert!(!format!("{password:?}").contains("secret"));
     }
 }

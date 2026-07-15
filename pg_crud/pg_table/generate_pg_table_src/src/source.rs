@@ -636,14 +636,14 @@ pub fn generate_pg_table(
         let syn_field = field_ref.get();
         let Some(field_identifier) = syn_field.ident.clone() else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "915ef2ce: expected named field identifier",
+                str_constants::compile_error::CE_026,
             )));
         };
         let field_len = field_identifier.to_string().len();
         let max_pg_column_len = 63;
         if field_len > max_pg_column_len {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "1266ae5a: field identifier is longer than PostgreSQL column name limit",
+                str_constants::compile_error::CE_002,
             )));
         }
         let field = macros_helpers::field_data::SynField {
@@ -657,46 +657,43 @@ pub fn generate_pg_table(
         syn_field
             .attrs
             .iter()
-            .filter(|attr| attr.path().is_ident("generate_pg_table_frontend"))
+            .filter(|attr| attr.path().is_ident(str_constants::expr::S_1367))
             .try_for_each(|attr| {
                 frontend_attr_count = frontend_attr_count.saturating_add(1usize);
                 if frontend_attr_count > 1usize {
-                    return Err(syn::Error::new_spanned(
-                        attr,
-                        "88a934b8: duplicate generate_pg_table_frontend attribute",
-                    ));
+                    return Err(syn::Error::new_spanned(attr, str_constants::expr::S_0493));
                 }
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident("filterable") {
+                    if meta.path.is_ident(str_constants::expr::S_1328) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Filterable, || {
-                                meta.error("99307572: duplicate filterable option")
+                                meta.error(str_constants::expr::S_0551)
                             })?;
                         frontend.filterable = true;
                         return Ok(());
                     }
-                    if meta.path.is_ident("hidden") {
+                    if meta.path.is_ident(str_constants::expr::S_1388) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Hidden, || {
-                                meta.error("8689c32f: duplicate hidden option")
+                                meta.error(str_constants::expr::S_0486)
                             })?;
                         frontend.hidden = true;
                         return Ok(());
                     }
-                    if meta.path.is_ident("label") {
+                    if meta.path.is_ident(str_constants::expr::S_1452) {
                         if frontend.label.is_some() {
-                            return Err(meta.error("8af07b63: duplicate label option"));
+                            return Err(meta.error(str_constants::expr::S_0499));
                         }
                         let value = meta.value()?.parse::<syn::LitStr>()?.value();
                         if value.trim().is_empty() {
-                            return Err(meta.error("d78d2e63: frontend label must not be empty"));
+                            return Err(meta.error(str_constants::expr::S_1134));
                         }
                         frontend.label = Some(value);
                         return Ok(());
                     }
-                    if meta.path.is_ident("order") {
+                    if meta.path.is_ident(str_constants::expr::S_1576) {
                         if frontend.order.is_some() {
-                            return Err(meta.error("511d995e: duplicate order option"));
+                            return Err(meta.error(str_constants::expr::S_0349));
                         }
                         frontend.order = Some(
                             meta.value()?
@@ -705,22 +702,22 @@ pub fn generate_pg_table(
                         );
                         return Ok(());
                     }
-                    if meta.path.is_ident("placeholder") {
+                    if meta.path.is_ident(str_constants::expr::S_1613) {
                         if frontend.placeholder.is_some() {
-                            return Err(meta.error("9898d208: duplicate placeholder option"));
+                            return Err(meta.error(str_constants::expr::S_0547));
                         }
                         frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
                         return Ok(());
                     }
-                    if meta.path.is_ident("sortable") {
+                    if meta.path.is_ident(str_constants::expr::S_1743) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Sortable, || {
-                                meta.error("d1b677d4: duplicate sortable option")
+                                meta.error(str_constants::expr::S_1118)
                             })?;
                         frontend.sortable = true;
                         return Ok(());
                     }
-                    Err(meta.error("bc1d3b08: unsupported generate_pg_table_frontend option"))
+                    Err(meta.error(str_constants::expr::S_1011))
                 })
             })
             .map_err(|error| {
@@ -753,7 +750,7 @@ pub fn generate_pg_table(
     > {
         let Some(identifier) = syn_field.ident else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "ae8e173b: expected named variant field identifier",
+                str_constants::compile_error::CE_030,
             )));
         };
         let parsed_location_attr = if identifier == naming::LocationSnakeCase.to_string() {
@@ -772,12 +769,12 @@ pub fn generate_pg_table(
             let location_attr = location_attrs.next();
             if location_attrs.next().is_some() {
                 return Err(compile_error_token_stream(CompileErrorMessage(
-                    "9a4d65c9: duplicate location field attr",
+                    str_constants::compile_error::CE_029,
                 )));
             }
             let Some(parsed_location_attr) = location_attr else {
                 return Err(compile_error_token_stream(CompileErrorMessage(
-                    "8af68998: location field attr not found",
+                    str_constants::compile_error::CE_023,
                 )));
             };
             Some(parsed_location_attr)
@@ -816,7 +813,7 @@ pub fn generate_pg_table(
         let location_attr = location_attrs.next();
         if location_attrs.next().is_some() {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "9a469d36: duplicate location field attr",
+                str_constants::compile_error::CE_028,
             )));
         }
         Ok(location_attr)
@@ -830,7 +827,7 @@ pub fn generate_pg_table(
     > {
         let syn::Fields::Named(fields_named) = syn_variant.fields else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "1be4a6e2: expected named variant fields",
+                str_constants::compile_error::CE_004,
             )));
         };
         let fields_len = fields_named.named.len();
@@ -884,7 +881,7 @@ pub fn generate_pg_table(
                         if field_model.is_primary_key {
                             if optional_primary_key_field.is_some() {
                                 return Err(compile_error_token_stream(CompileErrorMessage(
-                                    "1a75cea1: duplicate primary key field",
+                                    str_constants::compile_error::CE_003,
                                 )));
                             }
                             optional_primary_key_field = Some(field_idx);
@@ -909,7 +906,7 @@ pub fn generate_pg_table(
                 ) = fields_accumulator?;
                 let Some(primary_key_field_idx) = optional_primary_key_field else {
                     return Err(compile_error_token_stream(CompileErrorMessage(
-                        "6a529a99: primary key field not found",
+                        str_constants::compile_error::CE_015,
                     )));
                 };
                 Ok(GeneratePgTableFieldsModel {
@@ -923,10 +920,10 @@ pub fn generate_pg_table(
                 workspace_macro_helpers::SynStructShapeRef::Tuple(_)
                 | workspace_macro_helpers::SynStructShapeRef::Unit,
             ) => Err(compile_error_token_stream(CompileErrorMessage(
-                "7f31872d: expected named struct fields",
+                str_constants::compile_error::CE_018,
             ))),
             Err(_error) => Err(compile_error_token_stream(CompileErrorMessage(
-                "bd4718d0: expected struct input",
+                str_constants::compile_error::CE_043,
             ))),
         }
     }
@@ -962,7 +959,7 @@ pub fn generate_pg_table(
             .any(|limit| limit.0 == 0usize)
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "536203b7: bulk item limit must be greater than zero",
+                str_constants::compile_error::CE_013,
             )));
         }
         if config.permission_prefix.as_ref().is_some_and(|prefix| {
@@ -972,7 +969,7 @@ pub fn generate_pg_table(
                     .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
         }) {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "d5f1b3a7: permission prefix must use lowercase ASCII letters, digits, or underscores",
+                str_constants::compile_error::CE_051,
             )));
         }
         let error_variants_by_attr = [
@@ -1002,7 +999,7 @@ pub fn generate_pg_table(
                 };
                 if parsed_di.ident != generate_pg_table_attr_str {
                     return Err(compile_error_token_stream(CompileErrorMessage(
-                        "8a66c852: error variant attr identifier does not match attr name",
+                        str_constants::compile_error::CE_022,
                     )));
                 }
                 if let syn::Data::Enum(data_enum) = parsed_di.data {
@@ -1071,12 +1068,12 @@ pub fn generate_pg_table(
             .any(|idx| model.fields.get(idx.get()).is_none())
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "22bc6672: non-primary-key field index not found",
+                str_constants::compile_error::CE_006,
             )));
         }
         if model.fields.len() != model.frontend_fields.len() {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                "8a5fbef9: frontend field configuration count does not match fields",
+                str_constants::compile_error::CE_021,
             )));
         }
         Ok(model)
@@ -1088,7 +1085,7 @@ pub fn generate_pg_table(
     ) -> ProcMacro2GeneratePgTableTestsTokenStream {
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.tests_write_into_file,
-            "generate_pg_table_Tests",
+            str_constants::expr::S_1364,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(tests_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
@@ -1107,13 +1104,13 @@ pub fn generate_pg_table(
     ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.common_write_into_file,
-            "generate_pg_table_common",
+            str_constants::expr::S_1366,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(common_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.whole_write_into_file,
-            "generate_pg_table",
+            str_constants::expr::S_1345,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(whole_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
@@ -1237,7 +1234,7 @@ pub fn generate_pg_table(
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
     let PgCrudCommonDefaultSomeOneElementMaxPageSizeCall =
         token_patterns::PgCrudCommonDefaultSomeOneElementMaxPageSizeCall;
-    let PgCrudSnakeCase = "pg_crud_common";
+    let PgCrudSnakeCase = str_constants::expr::S_1608;
     let PgPoolForTokioSpawnSyncMoveSnakeCase = naming::PgPoolForTokioSpawnSyncMoveSnakeCase;
     let PgPoolSnakeCase = naming::PgPoolSnakeCase;
     let PgSnakeCase = naming::PgSnakeCase;
@@ -1388,7 +1385,7 @@ pub fn generate_pg_table(
         })
     {
         return compile_error_token_stream(CompileErrorMessage(
-            "741aa5f9: create_exclude_fields must contain unique non-primary-key field names",
+            str_constants::compile_error::CE_017,
         ));
     }
     let create_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
@@ -1421,7 +1418,7 @@ pub fn generate_pg_table(
         });
     if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
         return compile_error_token_stream(CompileErrorMessage(
-            "91a3d9f2: read_exclude_fields must contain unique non-primary-key field names",
+            str_constants::compile_error::CE_027,
         ));
     }
     let read_field_is_excluded = |field: &macros_helpers::field_data::SynField| {
@@ -1447,7 +1444,7 @@ pub fn generate_pg_table(
             .position(|field| field.identifier.to_string() == *revision_field_name)
         else {
             return compile_error_token_stream(CompileErrorMessage(
-                "f7ea4b19: optimistic_revision_field must name an existing field",
+                str_constants::compile_error::CE_055,
             ));
         };
         let revision_type_is_valid = fields.get(field_idx).is_some_and(|field| {
@@ -1457,13 +1454,13 @@ pub fn generate_pg_table(
             type_path.path.segments.last().is_some_and(|segment| {
                 matches!(
                     segment.ident.to_string().as_str(),
-                    "I64AsNonNullInt8" | "I64AsNonNullBigSerialInitializationByPg"
+                    str_constants::expr::S_1976 | str_constants::expr::S_1977
                 )
             })
         });
         if field_idx == primary_key_field_idx.get() || !revision_type_is_valid {
             return compile_error_token_stream(CompileErrorMessage(
-                "45dff0e2: optimistic_revision_field must be a non-primary-key signed 64-bit field",
+                str_constants::compile_error::CE_012,
             ));
         }
         Some(field_idx)
@@ -1514,7 +1511,7 @@ pub fn generate_pg_table(
         == frontend_field_order.len();
     if !frontend_orders_are_unique {
         return compile_error_token_stream(CompileErrorMessage(
-            "35d30bd7: frontend field order values must be unique",
+            str_constants::compile_error::CE_011,
         ));
     }
     let frontend_field_contracts_token_stream = frontend_field_order
@@ -1644,26 +1641,20 @@ pub fn generate_pg_table(
     let primary_key_field_type = &primary_key_field.type0;
     if fields_without_primary_key_idxs.is_empty() {
         return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
-            syn::Error::new_spanned(
-                &**primary_key_field_type,
-                "09a11adc: update operations require at least one non-primary-key field",
-            )
-            .into_compile_error(),
+            syn::Error::new_spanned(&**primary_key_field_type, str_constants::expr::S_0153)
+                .into_compile_error(),
         );
     }
     if let syn::Type::Path(type_path) = &**primary_key_field_type
         && let Some(last_segment) = type_path.path.segments.last()
     {
         let primary_key_type_name = last_segment.ident.to_string();
-        if primary_key_type_name.starts_with("Optional")
-            || primary_key_type_name.contains("AsNullable")
+        if primary_key_type_name.starts_with(str_constants::expr::S_0718)
+            || primary_key_type_name.contains(str_constants::expr::S_0617)
         {
             return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
-                syn::Error::new_spanned(
-                    &**primary_key_field_type,
-                    "d3b03ca2: primary key type must be non-nullable",
-                )
-                .into_compile_error(),
+                syn::Error::new_spanned(&**primary_key_field_type, str_constants::expr::S_1125)
+                    .into_compile_error(),
             );
         }
     }
@@ -1715,7 +1706,7 @@ pub fn generate_pg_table(
                 if let Some(last_segment) = role_type_path.path.segments.last_mut() {
                     let identifier_string = last_segment.ident.to_string();
                     let without_optional = identifier_string
-                        .strip_prefix("Optional")
+                        .strip_prefix(str_constants::expr::S_0718)
                         .map_or(identifier_string.as_str(), |value| value);
                     last_segment.ident = quote::format_ident!(
                         "{}{}",
@@ -1994,7 +1985,7 @@ pub fn generate_pg_table(
                 })
             })
             .collect::<Vec<_>>()
-            .join(" ");
+            .join(str_constants::expr::S_0003);
         let frontend_page_title_double_quoted_token_stream = generate_quotes::dq_token_stream(&frontend_page_title);
         let pub_fn_table_token_stream = quote::quote! {
             #MustUse
@@ -2046,7 +2037,7 @@ pub fn generate_pg_table(
                     if idx != 0 {
                         accumulator.push(',');
                     }
-                    accumulator.push_str("{}");
+                    accumulator.push_str(str_constants::expr::S_1955);
                     accumulator
                 },
             );
@@ -2188,10 +2179,10 @@ pub fn generate_pg_table(
         quote::quote! {#identifier_operation_suffix}
     };
     let generate_identifier_operation_error_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(operation, "Error")
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::expr::S_0669)
     };
     let generate_identifier_operation_res_variants_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(operation, "ResVariants")
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::expr::S_0734)
     };
     let generate_initialization_token_stream: &dyn Fn(
         &SynVariant,
@@ -2203,7 +2194,7 @@ pub fn generate_pg_table(
                 let field = &element.ident;
                 let Some(field_ref) = field.as_ref() else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        "edbbd08a: expected named field identifier",
+                        str_constants::compile_error::CE_054,
                     ))
                     .into();
                 };
@@ -2221,7 +2212,7 @@ pub fn generate_pg_table(
             })
         } else {
             return compile_error_token_stream(CompileErrorMessage(
-                "10773d36: expected named variant fields",
+                str_constants::compile_error::CE_001,
             ))
             .into();
         };
@@ -2245,7 +2236,7 @@ pub fn generate_pg_table(
                 Some(v) => v.to_http_status_code_token_stream(),
                 None => {
                     return compile_error_token_stream(CompileErrorMessage(
-                        "81efa954: status code attr not found",
+                        str_constants::compile_error::CE_019,
                     ))
                     .into();
                 }
@@ -2916,8 +2907,9 @@ pub fn generate_pg_table(
     };
     let macros_helpers_location_field_attr_eo_to_err_string_serde =
         macros_helpers::location_data::LocationFieldAttr::EoToErrStringSerde;
-    let string_syn_punct =
-        macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct(["String"]);
+    let string_syn_punct = macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
+        str_constants::expr::S_0794,
+    ]);
     let try_bind_syn_variant = new_syn_variant(
         &TryBindUpperCamelCase,
         Some(macros_helpers::status_code::StatusCode::InternalServerError500),
@@ -2945,7 +2937,10 @@ pub fn generate_pg_table(
             &identifier,
         );
     let simple_syn_punct_sqlx_error =
-        macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct(["sqlx", "Error"]);
+        macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
+            str_constants::expr::S_1748,
+            str_constants::expr::S_0669,
+        ]);
     let macros_helpers_location_field_attr_eo_to_err_string =
         macros_helpers::location_data::LocationFieldAttr::EoToErrString;
     let pg_syn_variant = new_syn_variant(
@@ -3331,7 +3326,10 @@ pub fn generate_pg_table(
         generate_identifier_try_operation_error_upper_camel_case(&Operation::Rm);
     let generate_identifier_operation_error_with_serde_upper_camel_case =
         |operation: &Operation| {
-            generate_identifier_operation_suffix_token_stream(operation, "ErrorWithSerde")
+            generate_identifier_operation_suffix_token_stream(
+                operation,
+                str_constants::expr::S_0670,
+            )
         };
     let pg_crud_order_by_token_stream = quote::quote! {#import_token_stream #OrderByUpperCamelCase};
     let identifier_update_upper_camel_case =
@@ -3754,8 +3752,8 @@ pub fn generate_pg_table(
     );
     let simple_syn_punct_serde_error =
         macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            "serde_json",
-            "Error",
+            str_constants::expr::S_1717,
+            str_constants::expr::S_0669,
         ]);
     let serde_json_to_string_syn_variant = new_syn_variant(
         &SerdeJsonToStringUpperCamelCase,
@@ -3768,7 +3766,10 @@ pub fn generate_pg_table(
         false,
     );
     let simple_syn_punct_reqwest_error =
-        macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct(["reqwest", "Error"]);
+        macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
+            str_constants::expr::S_1665,
+            str_constants::expr::S_0669,
+        ]);
     let failed_to_get_res_text_syn_variant = new_syn_variant(
         &FailedToGetResTextUpperCamelCase,
         Some(macros_helpers::status_code::StatusCode::BadReq400),
@@ -3777,17 +3778,17 @@ pub fn generate_pg_table(
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &StatusCodeSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    "reqwest",
-                    "StatusCode",
+                    str_constants::expr::S_1665,
+                    str_constants::expr::S_1978,
                 ]),
             ),
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    "reqwest",
-                    "header",
-                    "HeaderMap",
+                    str_constants::expr::S_1665,
+                    str_constants::expr::S_1979,
+                    str_constants::expr::S_1980,
                 ]),
             ),
             (
@@ -3806,17 +3807,17 @@ pub fn generate_pg_table(
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &StatusCodeSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    "reqwest",
-                    "StatusCode",
+                    str_constants::expr::S_1665,
+                    str_constants::expr::S_1978,
                 ]),
             ),
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    "reqwest",
-                    "header",
-                    "HeaderMap",
+                    str_constants::expr::S_1665,
+                    str_constants::expr::S_1979,
+                    str_constants::expr::S_1980,
                 ]),
             ),
             (
@@ -3849,8 +3850,8 @@ pub fn generate_pg_table(
             macros_helpers::location_data::LocationFieldAttr::EoLocation,
             &CheckBodySizeSnakeCase,
             macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                "route_validators",
-                "check_body_size",
+                str_constants::expr::S_1981,
+                str_constants::expr::S_1982,
                 &BodySizeErrorUpperCamelCase.to_string(),
             ]),
         )],
@@ -4144,7 +4145,7 @@ pub fn generate_pg_table(
                 location_attr.get().map_or_else(
                     || {
                         compile_error_token_stream(CompileErrorMessage(
-                            "d1003b2e: location field attr not found",
+                            str_constants::compile_error::CE_050,
                         ))
                         .into()
                     },
@@ -4160,7 +4161,7 @@ pub fn generate_pg_table(
             GeneratePgTableVariantRef::Syn(syn_variant) => {
                 let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        "2acd4725: expected named variant fields",
+                        str_constants::compile_error::CE_008,
                     ))
                     .into();
                 };
@@ -4253,7 +4254,7 @@ pub fn generate_pg_table(
                 let element_type_token_stream = quote::quote! {#ty};
                 let Some(parsed_location_attr) = location_attr.get() else {
                     return compile_error_token_stream(CompileErrorMessage(
-                        "b9f53bee: location field attr not found",
+                        str_constants::compile_error::CE_042,
                     ));
                 };
                 let element_type_with_serde_token_stream = match parsed_location_attr {
@@ -4266,7 +4267,13 @@ pub fn generate_pg_table(
                     {
                         Ok(parsed_token_stream) => parsed_token_stream,
                         Err(error) => {
-                            return compile_error_token_stream(CompileErrorMessage(&format!("201dc0a4: {error}")));
+                            return compile_error_token_stream(CompileErrorMessage(
+                                &str_constants::compile_error::CE_005
+                                    .replace(
+                                        str_constants::compile_error::ERROR_PLACEHOLDER,
+                                        &error.to_string(),
+                                    ),
+                            ));
                         }
                     }
                 }
@@ -4277,7 +4284,7 @@ pub fn generate_pg_table(
                     let segments = if let syn::Type::Path(v0) = ty {
                         &v0.path.segments
                     } else {
-                        return compile_error_token_stream(CompileErrorMessage("8d93bf20: expected path type"));
+                        return compile_error_token_stream(CompileErrorMessage(str_constants::compile_error::CE_024));
                     };
                     assert!(segments.len() == 1, "8c6c5e9d");
                     let Some(first_segment) = segments.iter().next() else {
@@ -4297,7 +4304,7 @@ pub fn generate_pg_table(
                     assert!(args.len() == 1, "5bf19c5d");
                     let Some(first_arg) = args.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            "e9b33787: expected first generic arg",
+                            str_constants::compile_error::CE_053,
                         ));
                     };
                     let element_vec_type_with_serde_token_stream =
@@ -4306,9 +4313,13 @@ pub fn generate_pg_table(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(&format!(
-                                    "22c364b9: {error}"
-                                )));
+                                return compile_error_token_stream(CompileErrorMessage(
+                                    &str_constants::compile_error::CE_007
+                                        .replace(
+                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            &error.to_string(),
+                                        ),
+                                ));
                             }
                         };
                     quote::quote! {Vec<#element_vec_type_with_serde_token_stream>}
@@ -4341,9 +4352,13 @@ pub fn generate_pg_table(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(&format!(
-                                    "86307dbc: {error}"
-                                )));
+                                return compile_error_token_stream(CompileErrorMessage(
+                                    &str_constants::compile_error::CE_020
+                                        .replace(
+                                            str_constants::compile_error::ERROR_PLACEHOLDER,
+                                            &error.to_string(),
+                                        ),
+                                ));
                             }
                         };
                     quote::quote! {std::collections::HashMap<#string_token_stream, #element_hashmap_v_type_with_serde_token_stream>}
@@ -4421,7 +4436,7 @@ pub fn generate_pg_table(
             ),
         };
     let generate_identifier_operation_parameters_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(operation, "Parameters")
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::expr::S_0724)
     };
     let std_sync_arc_combination_of_app_state_logic_traits_token_stream =
         quote::quote! {std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>};
@@ -4441,7 +4456,7 @@ pub fn generate_pg_table(
     {
         let Some(source_last_segment) = type_path.path.segments.last() else {
             return compile_error_token_stream(CompileErrorMessage(
-                "6d0adac1: cloned primary key type path has no segments",
+                str_constants::compile_error::CE_016,
             ));
         };
         let origin_identifier = quote::format_ident!(
@@ -4452,14 +4467,14 @@ pub fn generate_pg_table(
         let mut origin_type_path = type_path.clone();
         let Some(last_segment) = origin_type_path.path.segments.last_mut() else {
             return compile_error_token_stream(CompileErrorMessage(
-                "e7408836: primary key type path has no segments",
+                str_constants::compile_error::CE_052,
             ));
         };
         last_segment.ident = origin_identifier;
         quote::quote! {#origin_type_path}
     } else {
         return compile_error_token_stream(CompileErrorMessage(
-            "2ad2130d: primary key type must be a path",
+            str_constants::compile_error::CE_009,
         ));
     };
     let primary_key_field_type_update_for_query_open_api_token_stream =
@@ -4903,7 +4918,7 @@ pub fn generate_pg_table(
                             git_info::PROJECT_GIT_INFO.commit.as_ref(),
                         )
                     };
-                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&"application/json");
+                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&str_constants::expr::S_0951);
                     let content_type_app_json_header_addition_token_stream = quote::quote! {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_double_quoted_token_stream)
                     };
@@ -4989,7 +5004,7 @@ pub fn generate_pg_table(
                                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
-                                            "8dcafc1c: expected named variant fields",
+                                            str_constants::compile_error::CE_025,
                                         ))
                                         .into();
                                     };
@@ -6243,7 +6258,7 @@ pub fn generate_pg_table(
                                 &quote::quote! {(#vec_identifier_update_schema_token_stream);},
                             );
                         let identifier_operation_payload_try_new_error_upper_camel_case =
-                            generate_identifier_operation_suffix_token_stream(operation, "PayloadTryNewError");
+                            generate_identifier_operation_suffix_token_stream(operation, str_constants::expr::S_0725);
                         let identifier_operation_payload_try_new_error_token_stream = pg_crud_macros_common::token_stream_helpers::error_enum_d_token_stream_builder()
                         .build_enum(
                                 &proc_macro2::TokenStream::new(),
@@ -6398,7 +6413,7 @@ pub fn generate_pg_table(
                                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
-                                            "10764d2b: expected named variant fields",
+                                            str_constants::compile_error::CE_000,
                                         )).into();
                                     };
                                     let fields_token_stream = fields_named.named.iter().map(|field| &field.ident);
@@ -6996,16 +7011,16 @@ pub fn generate_pg_table(
             let operation = operation_dsc.operation.self_snake_case_str();
             let path = format!("/{identifier_snake_case_string}/{operation}");
             let method = match crate::contract_tests::http_method(operation_dsc) {
-                OperationHttpMethod::Post => "post",
-                OperationHttpMethod::Patch => "patch",
-                OperationHttpMethod::Delete => "delete",
+                OperationHttpMethod::Post => str_constants::expr::S_1614,
+                OperationHttpMethod::Patch => str_constants::expr::S_1589,
+                OperationHttpMethod::Delete => str_constants::expr::S_1174,
             };
             let success_status = if crate::contract_tests::success_status(operation_dsc)
                 == macros_helpers::status_code::StatusCode::Created201
             {
-                "201"
+                str_constants::expr::S_0218
             } else {
-                "200"
+                str_constants::expr::S_0216
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
                 && crate::sql::idempotency_capable(operation_dsc);
@@ -7529,11 +7544,13 @@ pub fn generate_pg_table(
                 ));
             });
         };
-        let table_read_ids_and_create_into_where_eq_name = "8e427ad7";
-        let table_read_ids_and_create_into_vec_where_eq_using_fields_name = "eb24448c";
-        let table_read_ids_and_create_into_optional_vec_where_eq_to_field_name = "9ac6d79a";
+        let table_read_ids_and_create_into_where_eq_name = str_constants::expr::S_0514;
+        let table_read_ids_and_create_into_vec_where_eq_using_fields_name =
+            str_constants::expr::S_1231;
+        let table_read_ids_and_create_into_optional_vec_where_eq_to_field_name =
+            str_constants::expr::S_0554;
         let table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name =
-            "5a52af33";
+            str_constants::expr::S_0367;
         fill_table_fis_vec_token_stream(vec![
             &table_read_ids_and_create_into_where_eq_name,
             &table_read_ids_and_create_into_vec_where_eq_using_fields_name,
@@ -8565,8 +8582,8 @@ pub fn generate_pg_table(
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {element_a6bc6b2f.#fi0},
-                                "96213542",
-                                "bf0d6f55",
+                                str_constants::expr::S_0538,
+                                str_constants::expr::S_1017,
                             );
                         let expected_rm_token_stream = {
                             let ts = generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream);
@@ -8689,8 +8706,8 @@ pub fn generate_pg_table(
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {previous_read.#fi0},
-                                "4f19d0d2",
-                                "c7685b19",
+                                str_constants::expr::S_0342,
+                                str_constants::expr::S_1053,
                             );
                         let uo_read_inner_into_update_token_stream =
                             generate_read_inner_into_update_token_stream(

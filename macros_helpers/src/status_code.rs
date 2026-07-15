@@ -310,125 +310,125 @@ impl StatusCode {
 impl TryFrom<&String> for StatusCode {
     type Error = ();
     fn try_from(v: &String) -> Result<Self, Self::Error> {
-        if v == "continue_100" {
+        if v == str_constants::expr::S_1109 {
             Ok(Self::Continue100)
-        } else if v == "switching_protocols_101" {
+        } else if v == str_constants::expr::S_1782 {
             Ok(Self::SwitchingProtocols101)
-        } else if v == "processing_102" {
+        } else if v == str_constants::expr::S_1635 {
             Ok(Self::Processing102)
-        } else if v == "200_ok" {
+        } else if v == str_constants::expr::S_0217 {
             Ok(Self::Ok200)
-        } else if v == "created_201" {
+        } else if v == str_constants::expr::S_1114 {
             Ok(Self::Created201)
-        } else if v == "accepted_202" {
+        } else if v == str_constants::expr::S_0912 {
             Ok(Self::Accepted202)
-        } else if v == "non_authoritative_information_203" {
+        } else if v == str_constants::expr::S_1553 {
             Ok(Self::NonAuthoritativeInformation203)
-        } else if v == "no_cnt_204" {
+        } else if v == str_constants::expr::S_1550 {
             Ok(Self::NoContent204)
-        } else if v == "reset_cnt_205" {
+        } else if v == str_constants::expr::S_1666 {
             Ok(Self::ResetContent205)
-        } else if v == "partial_cnt_206" {
+        } else if v == str_constants::expr::S_1586 {
             Ok(Self::PartialContent206)
-        } else if v == "multi_status_207" {
+        } else if v == str_constants::expr::S_1527 {
             Ok(Self::MultiStatus207)
-        } else if v == "already_reported_208" {
+        } else if v == str_constants::expr::S_0948 {
             Ok(Self::AlreadyReported208)
-        } else if v == "im_used_226" {
+        } else if v == str_constants::expr::S_1409 {
             Ok(Self::ImUsed226)
-        } else if v == "multiple_choices_300" {
+        } else if v == str_constants::expr::S_1528 {
             Ok(Self::MultipleChoices300)
-        } else if v == "moved_permanently_301" {
+        } else if v == str_constants::expr::S_1526 {
             Ok(Self::MovedPermanently301)
-        } else if v == "found_302" {
+        } else if v == str_constants::expr::S_1336 {
             Ok(Self::Found302)
-        } else if v == "see_other_303" {
+        } else if v == str_constants::expr::S_1709 {
             Ok(Self::SeeOther303)
-        } else if v == "not_modified_304" {
+        } else if v == str_constants::expr::S_1565 {
             Ok(Self::NotModified304)
-        } else if v == "use_proxy_305" {
+        } else if v == str_constants::expr::S_1879 {
             Ok(Self::UseProxy305)
-        } else if v == "temporary_redirect_307" {
+        } else if v == str_constants::expr::S_1800 {
             Ok(Self::TemporaryRedirect307)
-        } else if v == "permanent_redirect_308" {
+        } else if v == str_constants::expr::S_1599 {
             Ok(Self::PermanentRedirect308)
-        } else if v == "bad_req_400" {
+        } else if v == str_constants::expr::S_1008 {
             Ok(Self::BadReq400)
-        } else if v == "unauthorized_401" {
+        } else if v == str_constants::expr::S_1848 {
             Ok(Self::Unauthorized401)
-        } else if v == "payment_required_402" {
+        } else if v == str_constants::expr::S_1595 {
             Ok(Self::PaymentRequired402)
-        } else if v == "forbidden_403" {
+        } else if v == str_constants::expr::S_1334 {
             Ok(Self::Forbidden403)
-        } else if v == "not_found_404" {
+        } else if v == str_constants::expr::S_1563 {
             Ok(Self::NotFound404)
-        } else if v == "method_not_allowed_405" {
+        } else if v == str_constants::expr::S_1516 {
             Ok(Self::MethodNotAllowed405)
-        } else if v == "not_acceptable_406" {
+        } else if v == str_constants::expr::S_1561 {
             Ok(Self::NotAcceptable406)
-        } else if v == "proxy_authentication_required_407" {
+        } else if v == str_constants::expr::S_1639 {
             Ok(Self::ProxyAuthenticationRequired407)
-        } else if v == "req_timeout_408" {
+        } else if v == str_constants::expr::S_1656 {
             Ok(Self::ReqTimeout408)
-        } else if v == "conflict_409" {
+        } else if v == str_constants::expr::S_1104 {
             Ok(Self::Conflict409)
-        } else if v == "gone_410" {
+        } else if v == str_constants::expr::S_1380 {
             Ok(Self::Gone410)
-        } else if v == "length_required_411" {
+        } else if v == str_constants::expr::S_1455 {
             Ok(Self::LengthRequired411)
-        } else if v == "precondition_failed_412" {
+        } else if v == str_constants::expr::S_1627 {
             Ok(Self::PreconditionFailed412)
-        } else if v == "payload_too_large_413" {
+        } else if v == str_constants::expr::S_1594 {
             Ok(Self::PayloadTooLarge413)
-        } else if v == "uri_too_long_414" {
+        } else if v == str_constants::expr::S_1877 {
             Ok(Self::UriTooLong414)
-        } else if v == "unsupported_media_type_415" {
+        } else if v == str_constants::expr::S_1862 {
             Ok(Self::UnsupportedMediaType415)
-        } else if v == "range_not_satisfiable_416" {
+        } else if v == str_constants::expr::S_1645 {
             Ok(Self::RangeNotSatisfiable416)
-        } else if v == "expectation_failed_417" {
+        } else if v == str_constants::expr::S_1263 {
             Ok(Self::ExpectationFailed417)
-        } else if v == "im_a_teapot_418" {
+        } else if v == str_constants::expr::S_1408 {
             Ok(Self::ImATeapot418)
-        } else if v == "misdirected_req_421" {
+        } else if v == str_constants::expr::S_1522 {
             Ok(Self::MisdirectedReq421)
-        } else if v == "unprocessable_entity_422" {
+        } else if v == str_constants::expr::S_1859 {
             Ok(Self::UnprocessableEntity422)
-        } else if v == "locked_423" {
+        } else if v == str_constants::expr::S_1467 {
             Ok(Self::Locked423)
-        } else if v == "failed_dependency_424" {
+        } else if v == str_constants::expr::S_1309 {
             Ok(Self::FailedDependency424)
-        } else if v == "upgrade_required_426" {
+        } else if v == str_constants::expr::S_1875 {
             Ok(Self::UpgradeRequired426)
-        } else if v == "precondition_required_428" {
+        } else if v == str_constants::expr::S_1628 {
             Ok(Self::PreconditionRequired428)
-        } else if v == "too_many_reqs_429" {
+        } else if v == str_constants::expr::S_1832 {
             Ok(Self::TooManyReqs429)
-        } else if v == "req_header_fields_too_large_431" {
+        } else if v == str_constants::expr::S_1655 {
             Ok(Self::ReqHeaderFieldsTooLarge431)
-        } else if v == "unavailable_for_legal_reasons_451" {
+        } else if v == str_constants::expr::S_1850 {
             Ok(Self::UnavailableForLegalReasons451)
-        } else if v == "internal_server_error_500" {
+        } else if v == str_constants::expr::S_1434 {
             Ok(Self::InternalServerError500)
-        } else if v == "not_implemented_501" {
+        } else if v == str_constants::expr::S_1564 {
             Ok(Self::NotImplemented501)
-        } else if v == "bad_gateway_502" {
+        } else if v == str_constants::expr::S_1007 {
             Ok(Self::BadGateway502)
-        } else if v == "service_unavailable_503" {
+        } else if v == str_constants::expr::S_1735 {
             Ok(Self::ServiceUnavailable503)
-        } else if v == "gateway_timeout_504" {
+        } else if v == str_constants::expr::S_1343 {
             Ok(Self::GatewayTimeout504)
-        } else if v == "http_version_not_supported_505" {
+        } else if v == str_constants::expr::S_1393 {
             Ok(Self::HttpVersionNotSupported505)
-        } else if v == "variant_also_negotiates_506" {
+        } else if v == str_constants::expr::S_1897 {
             Ok(Self::VariantAlsoNegotiates506)
-        } else if v == "insufficient_storage_507" {
+        } else if v == str_constants::expr::S_1422 {
             Ok(Self::InsufficientStorage507)
-        } else if v == "loop_detected_508" {
+        } else if v == str_constants::expr::S_1470 {
             Ok(Self::LoopDetected508)
-        } else if v == "not_extended_510" {
+        } else if v == str_constants::expr::S_1562 {
             Ok(Self::NotExtended510)
-        } else if v == "network_authentication_required_511" {
+        } else if v == str_constants::expr::S_1542 {
             Ok(Self::NetworkAuthenticationRequired511)
         } else {
             Err(())

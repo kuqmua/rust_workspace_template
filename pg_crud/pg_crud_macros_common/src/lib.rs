@@ -345,8 +345,8 @@ impl IsNullable {
     #[must_use]
     pub fn non_null_or_nullable_str(&self) -> NonNullOrNullableStr {
         match &self {
-            Self::False => NonNullOrNullableStr::from("NonNull"),
-            Self::True => NonNullOrNullableStr::from("Nullable"),
+            Self::False => NonNullOrNullableStr::from(str_constants::expr::S_0708),
+            Self::True => NonNullOrNullableStr::from(str_constants::expr::S_0711),
         }
     }
     #[must_use]
@@ -354,14 +354,14 @@ impl IsNullable {
         match &self {
             Self::False => IsNullablePrefixStr::try_from(String::default())
                 .unwrap_or_else(IsNullablePrefixStr::from),
-            Self::True => IsNullablePrefixStr::try_from(String::from("StdOptionalOptional"))
+            Self::True => IsNullablePrefixStr::try_from(String::from(str_constants::expr::S_0793))
                 .unwrap_or_else(IsNullablePrefixStr::from),
         }
     }
     #[must_use]
     pub fn rust(&self) -> &'static dyn std::fmt::Display {
         match &self {
-            Self::False => &"",
+            Self::False => &str_constants::expr::S_0021,
             Self::True => &naming::OptionalUpperCamelCase,
         }
     }
@@ -405,15 +405,15 @@ impl Import {
     #[must_use]
     pub fn sc_str(&self) -> ImportSnakeCaseStr {
         match &self {
-            Self::Crate => ImportSnakeCaseStr::from("crate"),
-            Self::PgCrudCommon => ImportSnakeCaseStr::from("pg_crud_common"),
+            Self::Crate => ImportSnakeCaseStr::from(str_constants::expr::S_1111),
+            Self::PgCrudCommon => ImportSnakeCaseStr::from(str_constants::expr::S_1608),
         }
     }
     #[must_use]
     pub fn to_path(&self) -> ImportPathStr {
         match &self {
-            Self::Crate => ImportPathStr::from("crate"),
-            Self::PgCrudCommon => ImportPathStr::from("pg_crud_common"),
+            Self::Crate => ImportPathStr::from(str_constants::expr::S_1111),
+            Self::PgCrudCommon => ImportPathStr::from(str_constants::expr::S_1608),
         }
     }
 }

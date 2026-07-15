@@ -40,7 +40,7 @@ fn command_log_name(idx: CommandIdx, program: &str, args: &[&str]) -> String {
         .chain(args.iter().copied())
         .take(3usize)
         .collect::<Vec<&str>>()
-        .join("-");
+        .join(str_constants::expr::S_0048);
     let sanitized = raw
         .chars()
         .map(|character| {
@@ -73,11 +73,11 @@ fn failed_test_names(log_text: &str) -> Vec<String> {
     let mut names = log_text
         .lines()
         .filter_map(|line| {
-            line.strip_prefix("test ")
-                .and_then(|tail| tail.strip_suffix(" ... FAILED"))
+            line.strip_prefix(str_constants::expr::S_1801)
+                .and_then(|tail| tail.strip_suffix(str_constants::expr::S_0006))
                 .or_else(|| {
-                    let tail = line.strip_prefix("    ")?;
-                    tail.strip_suffix(" --- FAILED")
+                    let tail = line.strip_prefix(str_constants::expr::S_0000)?;
+                    tail.strip_suffix(str_constants::expr::S_0005)
                 })
                 .map(str::to_owned)
         })
@@ -88,7 +88,7 @@ fn failed_test_names(log_text: &str) -> Vec<String> {
 }
 fn write_summary(run_dir: &RunDir, summary: &SummaryText) -> Result<(), std::io::Error> {
     std::fs::write(
-        run_dir.0.join("summary.txt"),
+        run_dir.0.join(str_constants::expr::S_1778),
         strip_ansi(summary.0.as_str()),
     )
 }
@@ -129,7 +129,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
                 super::reporting::result_log_failed(log_path.as_path(), &error);
                 return Err(summary);
             }
-            let failed_names = failed_test_names(log_text.as_str()).join(",");
+            let failed_names = failed_test_names(log_text.as_str()).join(str_constants::expr::S_0046);
             summary.0.push_str(
                 format!(
                     "command={program} args={args:?} duration_ms={} status={status_text} log={} failed_tests={failed_names}\n",

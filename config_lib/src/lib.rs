@@ -87,7 +87,7 @@ const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
 impl std::fmt::Debug for SecrecySecretBoxString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("[REDACTED]")
+        f.write_str(str_constants::expr::S_0840)
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
@@ -107,8 +107,8 @@ pub struct StdParseBoolError(std::str::ParseBoolError);
 pub struct AdminJwtSecret(SecrecySecretBoxString);
 impl std::fmt::Debug for AdminJwtSecret {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("AdminJwtSecret")
-            .field(&"[REDACTED]")
+        f.debug_tuple(str_constants::expr::S_0590)
+            .field(&str_constants::expr::S_0840)
             .finish()
     }
 }
@@ -631,7 +631,7 @@ mod tests {
     fn cors_allow_origin_parsing_returns_value() {
         config_lib_macros::assert_parse_ok_matches!(
             super::CorsAllowOrigin,
-            "*",
+            str_constants::expr::S_0043,
             super::CorsAllowOrigin(_)
         );
     }
@@ -646,7 +646,7 @@ mod tests {
     fn database_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::DatabaseUrl,
-            "postgres://db",
+            str_constants::expr::S_1619,
             super::DatabaseUrl(_)
         );
     }
@@ -660,20 +660,20 @@ mod tests {
     #[test]
     fn secret_url_debug_output_redacts_credentials() {
         let all_redacted = [
-            "postgres://username@localhost/test",
-            "postgres://username:password@localhost/test?sslmode=disable",
-            "postgres://percent%40name:percent%2Fpassword@[::1]/test#fragment",
+            str_constants::expr::S_1624,
+            str_constants::expr::S_1623,
+            str_constants::expr::S_1620,
         ]
         .into_iter()
         .all(|raw| {
             let value = parse_env::<super::DatabaseUrl>(raw).expect("ae91f62c");
             let debug = format!("{value:?}");
             !debug.contains(raw)
-                && !debug.contains("username")
-                && !debug.contains("password")
-                && !debug.contains("percent%40name")
-                && !debug.contains("percent%2Fpassword")
-                && debug.contains("REDACTED")
+                && !debug.contains(str_constants::expr::S_1882)
+                && !debug.contains(str_constants::expr::S_1587)
+                && !debug.contains(str_constants::expr::S_1598)
+                && !debug.contains(str_constants::expr::S_1597)
+                && debug.contains(str_constants::expr::S_0731)
         });
         assert!(all_redacted);
     }
@@ -681,7 +681,7 @@ mod tests {
     fn mongo_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::MongoUrl,
-            "mongodb://db",
+            str_constants::expr::S_1983,
             super::MongoUrl(_)
         );
     }
@@ -696,7 +696,7 @@ mod tests {
     fn redis_url_parsing_returns_value_for_non_empty_input() {
         config_lib_macros::assert_parse_ok_matches!(
             super::RedisUrl,
-            "redis://db",
+            str_constants::expr::S_1984,
             super::RedisUrl(_)
         );
     }
@@ -711,7 +711,7 @@ mod tests {
     fn src_place_type_parsing_is_case_insensitive() {
         config_lib_macros::assert_parse_ok_matches!(
             super::SrcPlaceType,
-            "GITHUB",
+            str_constants::expr::S_1985,
             super::SrcPlaceType(super::types::SrcPlaceType::Github)
         );
     }
@@ -719,7 +719,7 @@ mod tests {
     fn src_place_type_parsing_returns_error_for_unknown_value() {
         config_lib_macros::assert_parse_err_matches!(
             super::SrcPlaceType,
-            "bad",
+            str_constants::expr::S_1006,
             super::TryFromStdEnvVarOkSrcPlaceTypeError::AppStateSrcPlaceTypeParsing { .. }
         );
     }
@@ -727,7 +727,7 @@ mod tests {
     fn tracing_level_parsing_is_case_insensitive() {
         config_lib_macros::assert_parse_ok_matches!(
             super::TracingLevel,
-            "DeBuG",
+            str_constants::expr::S_1986,
             super::TracingLevel(super::types::TracingLevel::Debug)
         );
     }
@@ -735,7 +735,7 @@ mod tests {
     fn tracing_level_parsing_returns_error_for_unknown_value() {
         config_lib_macros::assert_parse_err_matches!(
             super::TracingLevel,
-            "bad",
+            str_constants::expr::S_1006,
             super::TryFromStdEnvVarOkTracingLevelError::AppStateTracingLevelParsing { .. }
         );
     }
@@ -743,7 +743,7 @@ mod tests {
     fn enable_api_git_commit_check_parsing_returns_bool() {
         config_lib_macros::assert_parse_ok_matches!(
             super::EnableApiGitCommitCheck,
-            "true",
+            str_constants::expr::S_1834,
             super::EnableApiGitCommitCheck(true)
         );
     }
@@ -751,7 +751,7 @@ mod tests {
     fn enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
         config_lib_macros::assert_parse_err_matches!(
             super::EnableApiGitCommitCheck,
-            "truthy",
+            str_constants::expr::S_1987,
             super::TryFromStdEnvVarOkEnableApiGitCommitCheckError::BoolParsing { .. }
         );
     }
@@ -759,7 +759,7 @@ mod tests {
     fn maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
         config_lib_macros::assert_parse_ok_matches!(
             super::MaximumSizeOfHttpBodyInBytes,
-            "128",
+            str_constants::expr::S_1988,
             super::MaximumSizeOfHttpBodyInBytes(128)
         );
     }
@@ -767,7 +767,7 @@ mod tests {
     fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_invalid_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::MaximumSizeOfHttpBodyInBytes,
-            "1k",
+            str_constants::expr::S_1989,
             super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::UsizeParsing { .. }
         );
     }
@@ -775,7 +775,7 @@ mod tests {
     fn maximum_size_of_http_body_in_bytes_parsing_returns_error_for_zero() {
         config_lib_macros::assert_parse_err_matches!(
             super::MaximumSizeOfHttpBodyInBytes,
-            "0",
+            str_constants::expr::S_0136,
             super::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::MaximumSizeOfHttpBodyInBytes { .. }
         );
     }
@@ -783,7 +783,7 @@ mod tests {
     fn pg_pool_max_connections_parsing_returns_u32() {
         config_lib_macros::assert_parse_ok_matches!(
             super::PgPoolMaxConnections,
-            "10",
+            str_constants::expr::S_0168,
             super::PgPoolMaxConnections(10)
         );
     }
@@ -791,7 +791,7 @@ mod tests {
     fn pg_pool_max_connections_parsing_returns_error_for_invalid_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::PgPoolMaxConnections,
-            "bad",
+            str_constants::expr::S_1006,
             super::TryFromStdEnvVarOkPgPoolMaxConnectionsError::U32Parsing { .. }
         );
     }
@@ -799,7 +799,7 @@ mod tests {
     fn pg_pool_max_connections_parsing_returns_error_for_zero() {
         config_lib_macros::assert_parse_err_matches!(
             super::PgPoolMaxConnections,
-            "0",
+            str_constants::expr::S_0136,
             super::TryFromStdEnvVarOkPgPoolMaxConnectionsError::PgPoolMaxConnections { .. }
         );
     }
@@ -814,7 +814,7 @@ mod tests {
     fn non_empty_string_parser_returns_value_for_non_empty_value() {
         config_lib_macros::assert_parse_ok_matches!(
             super::StartingCheckLink,
-            "https://example.com",
+            str_constants::expr::S_1990,
             super::StartingCheckLink(_)
         );
     }
@@ -822,13 +822,13 @@ mod tests {
     fn service_socket_address_parsing_returns_socket_addr() {
         config_lib_macros::assert_parse_ok_matches!(
             super::ServiceSocketAddress,
-            "127.0.0.1:3000",
+            str_constants::expr::S_0180,
             super::ServiceSocketAddress(_)
         );
     }
     #[test]
     fn service_socket_address_parsing_returns_error_for_invalid_addr() {
-        let error = parse_env::<super::ServiceSocketAddress>("127.0.0.1");
+        let error = parse_env::<super::ServiceSocketAddress>(str_constants::expr::S_0178);
         assert!(matches!(
             error,
             Err(super::TryFromStdEnvVarOkServiceSocketAddressError::StdNetSocketAddr { .. })
@@ -838,7 +838,7 @@ mod tests {
     fn timezone_parsing_returns_timezone_for_valid_offset() {
         config_lib_macros::assert_parse_ok_matches!(
             super::ChronoTimezone,
-            "0",
+            str_constants::expr::S_0136,
             super::ChronoTimezone(_)
         );
     }
@@ -846,7 +846,7 @@ mod tests {
     fn timezone_parsing_returns_i32_error_for_non_number() {
         config_lib_macros::assert_parse_err_matches!(
             super::ChronoTimezone,
-            "nan",
+            str_constants::expr::S_1991,
             super::TryFromStdEnvVarOkTimezoneError::I32Parsing { .. }
         );
     }
@@ -877,7 +877,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_parses_value_when_env_var_exists() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef("PATH"),
+            super::EnvVarNameRef(str_constants::expr::S_0721),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -889,7 +889,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_missing_env_var_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef("CONFIG_LIB_TEST_ENV_VAR_4E8A7F21"),
+            super::EnvVarNameRef(str_constants::expr::S_0632),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -909,11 +909,11 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_parse_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef("PATH"),
+            super::EnvVarNameRef(str_constants::expr::S_0721),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
-            |_v| Err::<(), _>("parse failed"),
+            |_v| Err::<(), _>(str_constants::expr::S_1584),
             |parse| ParseRequiredEnvVarTestError::Parse { parse },
         );
         assert_eq!(

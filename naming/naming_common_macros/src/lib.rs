@@ -5,21 +5,21 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     );
     if parts.len() != 4 {
         return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects str trait, ts trait, bound, closure expr",
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_PARTS_ERROR,
         )
         .into_inner()
         .into();
     }
     let Some(str_trait) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects string trait name",
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_STR_TRAIT_ERROR,
         )
         .into_inner()
         .into();
     };
     let Some(ts_trait) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects token trait name",
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_TS_TRAIT_ERROR,
         )
         .into_inner()
         .into();
@@ -28,7 +28,7 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let ts_trait_identifier = quote::format_ident!("{ts_trait}");
     let Some(bound_token_stream) = workspace_macro_helpers::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair expects bound",
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_EXPECTED_BOUND_ERROR,
         )
         .into_inner()
         .into();
@@ -55,7 +55,7 @@ pub fn case_trait_pair(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let param_identifier = quote::format_ident!("{}", param_part.trim());
     let Ok(body_token_stream) = body_part.trim().parse::<proc_macro2::TokenStream>() else {
         return workspace_macro_helpers::compile_error_token_stream(
-            "case_trait_pair failed to parse body",
+            str_constants::macro_diagnostics::CASE_TRAIT_PAIR_PARSE_BODY_ERROR,
         )
         .into_inner()
         .into();

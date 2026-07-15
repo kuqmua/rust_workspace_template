@@ -29,10 +29,10 @@ enum GeneratedCratePhase {
 impl std::fmt::Display for GeneratedCratePhase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Clippy => f.write_str("clippy"),
-            Self::Compilation => f.write_str("compilation"),
-            Self::Formatting => f.write_str("formatting"),
-            Self::Test => f.write_str("test"),
+            Self::Clippy => f.write_str(str_constants::expr::S_1090),
+            Self::Compilation => f.write_str(str_constants::expr::S_1099),
+            Self::Formatting => f.write_str(str_constants::expr::S_1335),
+            Self::Test => f.write_str(str_constants::expr::S_1802),
         }
     }
 }
@@ -48,7 +48,7 @@ struct RemoveDirOnDrop {
 #[cfg(feature = "test-utils")]
 impl Drop for RemoveDirOnDrop {
     fn drop(&mut self) {
-        remove_dir_all_if_exists(&self.path, "e28698f2");
+        remove_dir_all_if_exists(&self.path, str_constants::expr::S_1211);
         if let Some(parent) = self.path.parent()
             && let Err(error) = std::fs::remove_dir(parent)
             && error.kind() != std::io::ErrorKind::NotFound
@@ -71,9 +71,9 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf);
-    let crate_path = root.join("target/macro-check").join(crate_name);
-    remove_dir_all_if_exists(&crate_path, "e28698f2");
-    std::fs::create_dir_all(crate_path.join("src"))
+    let crate_path = root.join(str_constants::expr::S_1797).join(crate_name);
+    remove_dir_all_if_exists(&crate_path, str_constants::expr::S_1211);
+    std::fs::create_dir_all(crate_path.join(str_constants::expr::S_1750))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
     let _remove_dir_on_drop = RemoveDirOnDrop {
         path: crate_path.clone(),
@@ -92,19 +92,19 @@ keywords = ["keyword"]
 categories = ["category"]
 [workspace]"#
     );
-    let path_lib_rs = crate_path.join("src/lib.rs");
-    let path_cargo_toml = crate_path.join("Cargo.toml");
-    let workspace_cargo_toml = std::fs::read_to_string(root.join("Cargo.toml"))
+    let path_lib_rs = crate_path.join(str_constants::expr::S_1754);
+    let path_cargo_toml = crate_path.join(str_constants::expr::S_0640);
+    let workspace_cargo_toml = std::fs::read_to_string(root.join(str_constants::expr::S_0640))
         .unwrap_or_else(|error| panic!("bf40d675: {error}"));
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(
         String::with_capacity(extra_cnt.len()),
         |mut output, line| {
             let transform_line = || -> std::borrow::Cow<'_, str> {
-                if !line.contains("workspace = true") {
+                if !line.contains(str_constants::expr::S_1912) {
                     return std::borrow::Cow::Borrowed(line);
                 }
-                let Some((dep_name, _)) = line.split_once(" = ") else {
+                let Some((dep_name, _)) = line.split_once(str_constants::expr::S_0009) else {
                     return std::borrow::Cow::Borrowed(line);
                 };
                 let prefix = format!("{dep_name} = ");
@@ -125,7 +125,7 @@ categories = ["category"]
                     let Some(workspace_line) = workspace_lines.next() else {
                         panic!("1bb3996c");
                     };
-                    if workspace_line == "[workspace.dependencies]" {
+                    if workspace_line == str_constants::expr::S_0845 {
                         in_workspace_deps = true;
                         continue;
                     }
@@ -148,29 +148,33 @@ categories = ["category"]
                         break out;
                     }
                 };
-                let feature_list = line.split_once("features = ").map(|(_, tail)| {
-                    tail.chars()
-                        .scan(false, |done, ch| {
-                            if *done {
-                                None
-                            } else {
-                                if ch == ']' {
-                                    *done = true;
+                let feature_list = line
+                    .split_once(str_constants::expr::S_1326)
+                    .map(|(_, tail)| {
+                        tail.chars()
+                            .scan(false, |done, ch| {
+                                if *done {
+                                    None
+                                } else {
+                                    if ch == ']' {
+                                        *done = true;
+                                    }
+                                    Some(ch)
                                 }
-                                Some(ch)
-                            }
-                        })
-                        .collect::<String>()
-                });
-                if !dep_entry.contains("features = ")
+                            })
+                            .collect::<String>()
+                    });
+                if !dep_entry.contains(str_constants::expr::S_1326)
                     && let Some(features) = feature_list
                     && let Some(idx) = dep_entry.rfind('}')
                 {
                     dep_entry.insert_str(idx, &format!(", features = {features}"));
                 }
-                if let Some(path_prefix_idx) = dep_entry.find("path = \"./") {
-                    let dot_idx = path_prefix_idx.saturating_add("path = \"".len());
-                    if dep_entry.get(dot_idx..dot_idx.saturating_add(1usize)) == Some(".") {
+                if let Some(path_prefix_idx) = dep_entry.find(str_constants::expr::S_1591) {
+                    let dot_idx = path_prefix_idx.saturating_add(str_constants::expr::S_1590.len());
+                    if dep_entry.get(dot_idx..dot_idx.saturating_add(1usize))
+                        == Some(str_constants::expr::S_0054)
+                    {
                         dep_entry
                             .replace_range(dot_idx..dot_idx.saturating_add(1usize), &root_path);
                     }
@@ -195,7 +199,7 @@ categories = ["category"]
         .unwrap_or_else(|error| panic!("55124f90: {error}"));
     GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
         let status = macros_helpers::tool_command::ToolCommand::new(
-            macros_helpers::tool_command::ToolProgramRef::from("cargo"),
+            macros_helpers::tool_command::ToolProgramRef::from(str_constants::expr::S_1073),
         )
         .current_dir(macros_helpers::tool_command::StdPathRef::from(
             crate_path.as_path(),
@@ -249,7 +253,7 @@ mod tests {
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join("crate_dir");
+        let path = dir.path().join(str_constants::expr::S_1112);
         std::fs::create_dir_all(&path).expect("9b0e24f1");
         let guard = super::RemoveDirOnDrop { path: path.clone() };
         drop(guard);
@@ -258,8 +262,8 @@ mod tests {
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join("missing_dir");
-        super::remove_dir_all_if_exists(&path, "f39c05aa");
+        let path = dir.path().join(str_constants::expr::S_1524);
+        super::remove_dir_all_if_exists(&path, str_constants::expr::S_1279);
         assert!(!path.exists());
     }
     #[test]

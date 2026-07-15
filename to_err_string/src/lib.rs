@@ -68,8 +68,8 @@ where
 }
 to_err_string_macros::impl_to_err_string_as_ref_str!(String, str, std::borrow::Cow<'_, str>);
 to_err_string_macros::impl_to_err_string_const!(
-    tracing::dispatcher::SetGlobalDefaultError => "tracing::dispatcher::SetGlobalDefaultError",
-    tracing::log::SetLoggerError => "tracing::log::tracing::log::SetLoggerError",
+    tracing::dispatcher::SetGlobalDefaultError => str_constants::expr::S_2009,
+    tracing::log::SetLoggerError => str_constants::expr::S_2010,
 );
 #[derive(Debug, Clone, Copy)]
 struct StaticStrToOwnedInput(pub &'static str);
@@ -96,31 +96,40 @@ mod tests {
     }
     #[test]
     fn to_err_string_for_primitives_and_options() {
-        assert_to_err_string(42i32, "42");
-        assert_to_err_string(42i128, "42");
-        assert_to_err_string(42isize, "42");
-        assert_to_err_string(42u128, "42");
-        assert_to_err_string(Some(7u8), "Some(7)");
-        assert_to_err_string(None::<u16>, "None");
-        assert_to_err_string(true, "true");
-        assert_to_err_string('x', "x");
-        assert_to_err_string(Some(String::from("abc")), "Some(\"abc\")");
+        assert_to_err_string(42i32, str_constants::expr::S_0306);
+        assert_to_err_string(42i128, str_constants::expr::S_0306);
+        assert_to_err_string(42isize, str_constants::expr::S_0306);
+        assert_to_err_string(42u128, str_constants::expr::S_0306);
+        assert_to_err_string(Some(7u8), str_constants::expr::S_0786);
+        assert_to_err_string(None::<u16>, str_constants::expr::S_0710);
+        assert_to_err_string(true, str_constants::expr::S_1834);
+        assert_to_err_string('x', str_constants::expr::S_1919);
+        assert_to_err_string(
+            Some(String::from(str_constants::expr::S_0905)),
+            str_constants::expr::S_0787,
+        );
     }
     #[test]
     fn to_err_string_for_strings_and_str_refs() {
-        let owned = String::from("abc");
-        let borrowed = "xyz";
-        assert_to_err_string(owned, "abc");
-        assert_to_err_string(borrowed, "xyz");
-        assert_to_err_string(std::borrow::Cow::Borrowed("qwe"), "qwe");
+        let owned = String::from(str_constants::expr::S_0905);
+        let borrowed = str_constants::expr::S_1927;
+        assert_to_err_string(owned, str_constants::expr::S_0905);
+        assert_to_err_string(borrowed, str_constants::expr::S_1927);
         assert_to_err_string(
-            std::borrow::Cow::<'_, str>::Owned(String::from("rty")),
-            "rty",
+            std::borrow::Cow::Borrowed(str_constants::expr::S_1644),
+            str_constants::expr::S_1644,
+        );
+        assert_to_err_string(
+            std::borrow::Cow::<'_, str>::Owned(String::from(str_constants::expr::S_1689)),
+            str_constants::expr::S_1689,
         );
     }
     #[test]
     fn to_err_string_for_result_values() {
-        assert_to_err_string(Result::<u8, u16>::Ok(5), "Ok(5)");
-        assert_to_err_string(Result::<u8, &'static str>::Err("error"), "Err(\"error\")");
+        assert_to_err_string(Result::<u8, u16>::Ok(5), str_constants::expr::S_0713);
+        assert_to_err_string(
+            Result::<u8, &'static str>::Err(str_constants::expr::S_1253),
+            str_constants::expr::S_0668,
+        );
     }
 }

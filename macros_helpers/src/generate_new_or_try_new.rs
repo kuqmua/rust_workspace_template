@@ -256,9 +256,11 @@ mod tests {
     }
     #[test]
     fn generate_impl_new_for_identifier_token_stream_generates_non_const_new() {
-        let identifier: proc_macro2::TokenStream = "Cfg".parse().expect("48495be4");
-        let parameters: proc_macro2::TokenStream = "v:usize".parse().expect("db75b4fb");
-        let body: proc_macro2::TokenStream = "Self{v}".parse().expect("7ad6dd07");
+        let identifier: proc_macro2::TokenStream =
+            str_constants::expr::S_0641.parse().expect("48495be4");
+        let parameters: proc_macro2::TokenStream =
+            str_constants::expr::S_1889.parse().expect("db75b4fb");
+        let body: proc_macro2::TokenStream = str_constants::expr::S_0782.parse().expect("7ad6dd07");
         let ts = super::generate_impl_new_for_identifier_token_stream(
             &identifier,
             &empty_token_stream(),
@@ -272,9 +274,11 @@ mod tests {
     }
     #[test]
     fn generate_impl_const_new_for_identifier_token_stream_generates_const_new() {
-        let identifier: proc_macro2::TokenStream = "Cfg".parse().expect("7795af9b");
-        let parameters: proc_macro2::TokenStream = "v:usize".parse().expect("28ccdfc4");
-        let body: proc_macro2::TokenStream = "Self{v}".parse().expect("46fb1c80");
+        let identifier: proc_macro2::TokenStream =
+            str_constants::expr::S_0641.parse().expect("7795af9b");
+        let parameters: proc_macro2::TokenStream =
+            str_constants::expr::S_1889.parse().expect("28ccdfc4");
+        let body: proc_macro2::TokenStream = str_constants::expr::S_0782.parse().expect("46fb1c80");
         let ts = super::generate_impl_const_new_for_identifier_token_stream(
             &identifier,
             &empty_token_stream(),
@@ -288,10 +292,12 @@ mod tests {
     }
     #[test]
     fn generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new() {
-        let identifier: proc_macro2::TokenStream = "Cfg".parse().expect("4afbe04b");
-        let attr: proc_macro2::TokenStream = "#[inline]".parse().expect("5cfde4dd");
-        let parameters: proc_macro2::TokenStream = "v:usize".parse().expect("4304ab24");
-        let body: proc_macro2::TokenStream = "Self{v}".parse().expect("29ac89d5");
+        let identifier: proc_macro2::TokenStream =
+            str_constants::expr::S_0641.parse().expect("4afbe04b");
+        let attr: proc_macro2::TokenStream = str_constants::expr::S_0023.parse().expect("5cfde4dd");
+        let parameters: proc_macro2::TokenStream =
+            str_constants::expr::S_1889.parse().expect("4304ab24");
+        let body: proc_macro2::TokenStream = str_constants::expr::S_0782.parse().expect("29ac89d5");
         let ts = super::generate_impl_pub_const_new_for_identifier_token_stream(
             &identifier,
             &attr,

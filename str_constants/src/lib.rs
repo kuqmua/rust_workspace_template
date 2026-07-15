@@ -1,3 +1,4 @@
+pub mod expr;
 pub mod env_names {
     pub const CORS_ALLOW_ORIGIN: &str = "CORS_ALLOW_ORIGIN";
     pub const DATABASE_URL: &str = "DATABASE_URL";
@@ -60,6 +61,14 @@ pub mod macro_diagnostics {
     pub const BOUNDED_STRING_MAX_ERROR: &str =
         "BoundedString requires #[bounded_string(max = ...)]";
     pub const CASE_TRAIT_PAIR_EXPECTED_CLOSURE_ERROR: &str = "case_trait_pair expects closure";
+    pub const CASE_TRAIT_PAIR_EXPECTED_PARTS_ERROR: &str =
+        "case_trait_pair expects str trait, ts trait, bound, closure expr";
+    pub const CASE_TRAIT_PAIR_EXPECTED_STR_TRAIT_ERROR: &str =
+        "case_trait_pair expects string trait name";
+    pub const CASE_TRAIT_PAIR_EXPECTED_TS_TRAIT_ERROR: &str =
+        "case_trait_pair expects token trait name";
+    pub const CASE_TRAIT_PAIR_EXPECTED_BOUND_ERROR: &str = "case_trait_pair expects bound";
+    pub const CASE_TRAIT_PAIR_PARSE_BODY_ERROR: &str = "case_trait_pair failed to parse body";
     pub const DUPLICATE_BOUNDED_STRING_OPTION_ERROR: &str = "duplicate bounded_string option";
     pub const EXPECTED_ANGLE_BRACKETED_ARGS_ERROR: &str = "07c6ab44: expected angle bracketed args";
     pub const EXPECTED_FIRST_PATH_SEGMENT_ERROR: &str = "595050cf: expected first path segment";
@@ -101,6 +110,97 @@ pub mod macro_clippy {
     ];
     pub const CARGO_FMT_ARGS: [&str; 1] = ["fmt"];
     pub const CARGO_TEST_LIB_ARGS: [&str; 2] = ["test", "--lib"];
+}
+pub mod compile_error {
+    pub const ERROR_PLACEHOLDER: &str = "{error}";
+    pub const CE_000: &str = "10764d2b: expected named variant fields";
+    pub const CE_001: &str = "10773d36: expected named variant fields";
+    pub const CE_002: &str =
+        "1266ae5a: field identifier is longer than PostgreSQL column name limit";
+    pub const CE_003: &str = "1a75cea1: duplicate primary key field";
+    pub const CE_004: &str = "1be4a6e2: expected named variant fields";
+    pub const CE_005: &str = "201dc0a4: {error}";
+    pub const CE_006: &str = "22bc6672: non-primary-key field index not found";
+    pub const CE_007: &str = "22c364b9: {error}";
+    pub const CE_008: &str = "2acd4725: expected named variant fields";
+    pub const CE_009: &str = "2ad2130d: primary key type must be a path";
+    pub const CE_010: &str = "2db209a8: {error}";
+    pub const CE_011: &str = "35d30bd7: frontend field order values must be unique";
+    pub const CE_012: &str =
+        "45dff0e2: optimistic_revision_field must be a non-primary-key signed 64-bit field";
+    pub const CE_013: &str = "536203b7: bulk item limit must be greater than zero";
+    pub const CE_015: &str = "6a529a99: primary key field not found";
+    pub const CE_016: &str = "6d0adac1: cloned primary key type path has no segments";
+    pub const CE_017: &str =
+        "741aa5f9: create_exclude_fields must contain unique non-primary-key field names";
+    pub const CE_018: &str = "7f31872d: expected named struct fields";
+    pub const CE_019: &str = "81efa954: status code attr not found";
+    pub const CE_020: &str = "86307dbc: {error}";
+    pub const CE_021: &str = "8a5fbef9: frontend field configuration count does not match fields";
+    pub const CE_022: &str = "8a66c852: error variant attr identifier does not match attr name";
+    pub const CE_023: &str = "8af68998: location field attr not found";
+    pub const CE_024: &str = "8d93bf20: expected path type";
+    pub const CE_025: &str = "8dcafc1c: expected named variant fields";
+    pub const CE_026: &str = "915ef2ce: expected named field identifier";
+    pub const CE_027: &str =
+        "91a3d9f2: read_exclude_fields must contain unique non-primary-key field names";
+    pub const CE_028: &str = "9a469d36: duplicate location field attr";
+    pub const CE_029: &str = "9a4d65c9: duplicate location field attr";
+    pub const CE_030: &str = "ae8e173b: expected named variant field identifier";
+    pub const CE_031: &str = "assert_empty_parse_err_matches expects pattern";
+    pub const CE_032: &str = "assert_empty_parse_err_matches expects type";
+    pub const CE_033: &str = "assert_empty_parse_err_matches expects type, pattern";
+    pub const CE_034: &str = "assert_parse_err_matches expects pattern";
+    pub const CE_035: &str = "assert_parse_err_matches expects type";
+    pub const CE_036: &str = "assert_parse_err_matches expects type, value, pattern";
+    pub const CE_037: &str = "assert_parse_err_matches expects value";
+    pub const CE_038: &str = "assert_parse_ok_matches expects pattern";
+    pub const CE_039: &str = "assert_parse_ok_matches expects type";
+    pub const CE_040: &str = "assert_parse_ok_matches expects type, value, pattern";
+    pub const CE_041: &str = "assert_parse_ok_matches expects value";
+    pub const CE_042: &str = "b9f53bee: location field attr not found";
+    pub const CE_043: &str = "bd4718d0: expected struct input";
+    pub const CE_044: &str = "bool_enum_to_tokens expects comma after enum name";
+    pub const CE_045: &str = "bool_enum_to_tokens expects enum name";
+    pub const CE_046: &str = "bool_enum_to_tokens expects false => expr";
+    pub const CE_047: &str = "bool_enum_to_tokens expects true => expr";
+    pub const CE_048: &str = "bool_enum_to_tokens failed to parse false expr";
+    pub const CE_049: &str = "bool_enum_to_tokens failed to parse true expr";
+    pub const CE_050: &str = "d1003b2e: location field attr not found";
+    pub const CE_051: &str =
+        "d5f1b3a7: permission prefix must use lowercase ASCII letters, digits, or underscores";
+    pub const CE_052: &str = "e7408836: primary key type path has no segments";
+    pub const CE_053: &str = "e9b33787: expected first generic arg";
+    pub const CE_054: &str = "edbbd08a: expected named field identifier";
+    pub const CE_055: &str = "f7ea4b19: optimistic_revision_field must name an existing field";
+    pub const CE_056: &str = "impl_cfg_getter expects fn name";
+    pub const CE_057: &str = "impl_cfg_getter expects return type";
+    pub const CE_058: &str = "impl_cfg_getter expects trait name";
+    pub const CE_059: &str = "impl_cfg_getter expects trait, fn, ret_ty";
+    pub const CE_060: &str = "impl_to_err_string_const expects type => message";
+    pub const CE_061: &str = "impl_to_err_string_with expects closure";
+    pub const CE_062: &str = "impl_to_err_string_with expects types => |value| body";
+    pub const CE_063: &str = "impl_try_from_non_empty_string expects error name";
+    pub const CE_064: &str = "impl_try_from_non_empty_string expects name";
+    pub const CE_065: &str = "impl_try_from_non_empty_string expects name, error name";
+    pub const CE_066: &str = "impl_try_from_parse expects error field";
+    pub const CE_067: &str = "impl_try_from_parse expects error name";
+    pub const CE_068: &str = "impl_try_from_parse expects error variant";
+    pub const CE_069: &str = "impl_try_from_parse expects inner type";
+    pub const CE_070: &str = "impl_try_from_parse expects name";
+    pub const CE_071: &str =
+        "impl_try_from_parse expects name, error name, inner type and error variant";
+    pub const CE_072: &str = "impl_try_from_secret_url expects error name";
+    pub const CE_073: &str = "impl_try_from_secret_url expects name";
+    pub const CE_074: &str = "impl_try_from_secret_url expects name, error name";
+    pub const CE_075: &str = "tp expects comma after type name";
+    pub const CE_076: &str = "tp expects type name";
+    pub const CE_077: &str = "tp_parts expects type name";
+    pub const CE_078: &str = "tp_parts expects type name and at least one part";
+    pub const CE_079: &str = "trait_alias expects Name = Bounds";
+    pub const CE_080: &str = "trait_alias failed to parse bounds";
+    pub const CE_081: &str = "ts_path_fn expects comma after function name";
+    pub const CE_082: &str = "ts_path_fn expects function name";
 }
 pub mod naming {
     pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
@@ -291,6 +391,15 @@ pub mod test_values {
     pub const WRONG_COMMIT: &str = "deadbeef";
 }
 pub mod code_style {
+    pub const GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME: &str =
+        "generate_derive_token_stream_builder";
+    pub const GENERATE_PG_TYPES_MACRO_NAME: &str = "generate_pg_types";
+    pub const GENERATE_WHERE_FILTERS_MACRO_NAME: &str = "generate_where_filters";
+    pub const STR_CONSTANTS_EXPR_PATH: &str = "../str_constants/src/expr.rs";
+    pub const STRING_GUARD_ALLOWED_SYNTAX_FIXTURE: &str =
+        "#[path = \"fixture.rs\"] mod fixture; fn f() { value.expect(\"12345678\"); }";
+    pub const STRING_GUARD_DETECTION_FIXTURE: &str =
+        "fn f() { consume(\"ordinary\"); outer!(inner(\"macro\")); }";
     pub const CI_WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
     pub const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
         "disallowed_fields",
@@ -317,6 +426,60 @@ pub mod code_style {
         "useless_borrows_in_formatting",
     ];
     pub const WORKSPACE_MANIFEST_PATH: &str = "../Cargo.toml";
+    pub const STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
+        "assert",
+        "assert_eq",
+        "assert_ne",
+        "compile_error",
+        "concat",
+        "debug_assert",
+        "debug_assert_eq",
+        "debug_assert_ne",
+        "env",
+        "eprint",
+        "eprintln",
+        "error",
+        "error_span",
+        "format",
+        "format_args",
+        "format_ident",
+        GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+        GENERATE_PG_TYPES_MACRO_NAME,
+        "generate_self_upper_camel_case_and_snake_case_str_and_token_stream",
+        "generate_upper_camel_case_and_snake_case_str_and_token_stream",
+        GENERATE_WHERE_FILTERS_MACRO_NAME,
+        "include_bytes",
+        "include_str",
+        "impl_to_err_string_with",
+        "info",
+        "info_span",
+        "json",
+        "join",
+        "migrate",
+        "option_env",
+        "panic",
+        "parse_quote",
+        "print",
+        "println",
+        "query",
+        "query_as",
+        "query_scalar",
+        "quote",
+        "quote_spanned",
+        "select",
+        "stringify",
+        "todo",
+        "tp",
+        "trace",
+        "trace_span",
+        "unimplemented",
+        "unreachable",
+        "view",
+        "warn",
+        "warn_span",
+        "write",
+        "writeln",
+    ];
     pub const GENERATED_RUST_TOKEN_STREAM_IDENTIFIER: &str = "GeneratedRustTokenStream";
     pub const GENERATED_RUST_TOKEN_STREAM_REASON: &str = "public macro-helper API name describes generated Rust tokens and is already used across generator crates";
     pub const EXPECT_METHOD_NAME: &str = "expect";

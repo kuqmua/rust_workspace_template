@@ -231,6 +231,7 @@ syn = { version = "=2.0.118", default-features = false, features = [
 ] }
 proc-macro2 = { version = "=1.0.106", default-features = false, features = [
   "proc-macro",
+  "span-locations",
 ] }
 utoipa = { version = "=4.2.3", default-features = false, features = [
   "axum_extras",

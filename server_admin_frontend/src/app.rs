@@ -67,9 +67,7 @@ impl PageLoader {
     }
 }
 fn auth_refresh_state_error() -> ApiError {
-    ApiError::Request(Text::from(
-        "authentication refresh state is unavailable".to_owned(),
-    ))
+    ApiError::Request(Text::from(str_constants::expr::S_0974.to_owned()))
 }
 impl AdminApiClient {
     fn new() -> Self {
@@ -181,12 +179,12 @@ impl AdminApiClient {
                     redirect(str_constants::admin_page_paths::SIGN_IN);
                     return Err(ApiError::Status(
                         401u16,
-                        Text::from("authentication refresh rejected".to_owned()),
+                        Text::from(str_constants::expr::S_0972.to_owned()),
                     ));
                 }
                 crate::auth_keep_alive::AuthRefreshBegin::Wait => {
                     return Err(ApiError::Request(Text::from(
-                        "authentication refresh retry is delayed".to_owned(),
+                        str_constants::expr::S_0973.to_owned(),
                     )));
                 }
             }
@@ -297,7 +295,7 @@ fn response_error(
     body: &frontend_contract::TransportBody,
 ) -> ApiError {
     let detail = frontend_contract::decode_api_problem(body).map_or_else(
-        || Text::from("request failed".to_owned()),
+        || Text::from(str_constants::expr::S_1658.to_owned()),
         |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
     ApiError::Status(u16::from(status), detail)
@@ -324,14 +322,22 @@ fn push_path(path: &str) {
     if let Some(value) = browser_window()
         && let Ok(history) = value.history()
     {
-        let _result = history.push_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(path));
+        let _result = history.push_state_with_url(
+            &wasm_bindgen::JsValue::NULL,
+            str_constants::expr::S_0021,
+            Some(path),
+        );
     }
 }
 fn replace_path(path: &str) {
     if let Some(value) = browser_window()
         && let Ok(history) = value.history()
     {
-        let _result = history.replace_state_with_url(&wasm_bindgen::JsValue::NULL, "", Some(path));
+        let _result = history.replace_state_with_url(
+            &wasm_bindgen::JsValue::NULL,
+            str_constants::expr::S_0021,
+            Some(path),
+        );
     }
 }
 fn authentication_is_rejected(error: &ApiError) -> bool {
@@ -374,7 +380,7 @@ fn load(client: AdminApiClient, loader: PageLoader) {
                     Page::Text(
                         value
                             .commit
-                            .unwrap_or_else(|| Text::from("Unknown version".to_owned())),
+                            .unwrap_or_else(|| Text::from(str_constants::expr::S_0821.to_owned())),
                     )
                 })
             }

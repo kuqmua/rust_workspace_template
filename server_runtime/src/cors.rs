@@ -37,9 +37,7 @@ mod tests {
     #[test]
     fn parser_trims_valid_origins_and_skips_invalid_values() {
         let parsed = Vec::<http::HeaderValue>::from(super::parse_cors_allow_origin(
-            super::HttpCorsAllowOriginTextRef::from(
-                " https://a.example ,bad\nvalue,https://b.example",
-            ),
+            super::HttpCorsAllowOriginTextRef::from(str_constants::expr::S_0015),
         ));
         assert_eq!(
             parsed,
@@ -52,7 +50,7 @@ mod tests {
     #[test]
     fn parser_preserves_empty_configuration_behavior() {
         let parsed = Vec::<http::HeaderValue>::from(super::parse_cors_allow_origin(
-            super::HttpCorsAllowOriginTextRef::from(""),
+            super::HttpCorsAllowOriginTextRef::from(str_constants::expr::S_0021),
         ));
         assert_eq!(parsed, vec![http::HeaderValue::from_static("")]);
     }

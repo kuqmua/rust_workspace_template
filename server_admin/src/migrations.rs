@@ -46,11 +46,11 @@ pub(super) async fn bootstrap_admin(
         .begin()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _lock_result = sqlx::query("LOCK TABLE admin_users IN EXCLUSIVE MODE")
+    let _lock_result = sqlx::query(str_constants::expr::S_0698)
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let user_exists = sqlx::query_scalar::<_, bool>("SELECT EXISTS (SELECT 1 FROM admin_users)")
+    let user_exists = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0757)
         .fetch_one(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
@@ -64,13 +64,11 @@ pub(super) async fn bootstrap_admin(
         .fetch_one(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _role_link_result = sqlx::query(
-        "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, id FROM admin_roles WHERE name = 'admin'",
-    )
-    .bind(user_id)
-    .execute(&mut *tx)
-    .await
-    .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
+    let _role_link_result = sqlx::query(str_constants::expr::S_0690)
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     tx.commit()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;

@@ -2,9 +2,9 @@
 fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lints() {
     super::assert_workspace_lints_match(
         super::RustOrClippy::Clippy,
-        super::types::StaticStr("clippy-driver"),
+        super::types::StaticStr(str_constants::expr::S_1091),
         super::types::AnalyzerBool::from(true),
-        super::types::StaticStr("8895ca50"),
+        super::types::StaticStr(str_constants::expr::S_0492),
         super::types::StaticStrSliceRef::from(
             str_constants::code_style::CLIPPY_LINT_EXCEPTIONS.as_slice(),
         ),
@@ -13,32 +13,32 @@ fn check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lint
 #[test]
 fn check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lints() {
     let exceptions = [
-        "fuzzy_provenance_casts",
-        "implicit_provenance_casts",
-        "lossy_provenance_casts",
-        "multiple_supertrait_upcastable",
-        "must_not_suspend",
-        "non_exhaustive_omitted_patterns",
-        "supertrait_item_shadowing_definition",
-        "supertrait_item_shadowing_usage",
-        "aarch_64_softfloat_neon",
-        "default_overrides_default_fields",
-        "test_unstable_lint",
-        "resolving_to_items_shadowing_supertrait_items",
-        "shadowing_supertrait_items",
-        "unqualified_local_imports", //need to use some kind of different test flag or something for this
-        "unreachable_cfg_select_predicates",
-        "default_overrides_default_fields",
-        "linker_info",
-        "duplicate_features",
-        "deprecated_llvm_intrinsic",
-        "tail_call_track_caller",
+        str_constants::expr::S_1342,
+        str_constants::expr::S_1414,
+        str_constants::expr::S_1471,
+        str_constants::expr::S_1529,
+        str_constants::expr::S_1530,
+        str_constants::expr::S_1554,
+        str_constants::expr::S_1780,
+        str_constants::expr::S_1781,
+        str_constants::expr::S_0902,
+        str_constants::expr::S_1169,
+        str_constants::expr::S_1810,
+        str_constants::expr::S_1667,
+        str_constants::expr::S_1737,
+        str_constants::expr::S_1860, //need to use some kind of different test flag or something for this
+        str_constants::expr::S_1861,
+        str_constants::expr::S_1169,
+        str_constants::expr::S_1459,
+        str_constants::expr::S_1202,
+        str_constants::expr::S_1176,
+        str_constants::expr::S_1795,
     ];
     super::assert_workspace_lints_match(
         super::RustOrClippy::Rust,
-        super::types::StaticStr("rustc"),
+        super::types::StaticStr(str_constants::expr::S_1697),
         super::types::AnalyzerBool::default(),
-        super::types::StaticStr("3c20b457"),
+        super::types::StaticStr(str_constants::expr::S_0292),
         //todo on commit momment seems like this lints still not added to rustc, but in the list of rustc -W help
         super::types::StaticStrSliceRef::from(exceptions.as_slice()),
     );
