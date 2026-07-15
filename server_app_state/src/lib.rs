@@ -57,7 +57,7 @@ server_app_state_macros::impl_cfg_getter!(
 server_app_state_macros::impl_cfg_getter!(
     config_lib::GetAdminJwtSecret,
     get_admin_jwt_secret,
-    config_lib::SecrecySecretBoxString
+    Vec<config_lib::SecrecySecretBoxString>
 );
 server_app_state_macros::impl_cfg_getter!(
     config_lib::GetAdminPasswordHashConcurrency,

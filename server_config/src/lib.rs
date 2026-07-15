@@ -79,7 +79,7 @@ impl config_lib::GetAdminCookieSecure for Config {
     }
 }
 impl config_lib::GetAdminJwtSecret for Config {
-    fn get_admin_jwt_secret(&self) -> &config_lib::SecrecySecretBoxString {
+    fn get_admin_jwt_secret(&self) -> &Vec<config_lib::SecrecySecretBoxString> {
         self.admin_jwt_secret.as_ref()
     }
 }
@@ -159,7 +159,7 @@ impl config_lib::GetAdminCookieSecure for &Config {
     }
 }
 impl config_lib::GetAdminJwtSecret for &Config {
-    fn get_admin_jwt_secret(&self) -> &config_lib::SecrecySecretBoxString {
+    fn get_admin_jwt_secret(&self) -> &Vec<config_lib::SecrecySecretBoxString> {
         Config::get_admin_jwt_secret(self)
     }
 }

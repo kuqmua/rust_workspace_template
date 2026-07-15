@@ -1,14 +1,18 @@
 mod bounded_read;
 mod client_ip;
 mod cors;
+mod fallback;
 mod health;
 mod history;
 mod lifecycle;
 mod limits;
 mod metrics_layer;
+mod multipart;
+mod notification;
 mod origin;
 mod request_id;
 mod resource_budget;
+mod retry;
 pub use bounded_read::{
     BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
     ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
@@ -20,6 +24,11 @@ pub use client_ip::{
 };
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
+};
+pub use fallback::{
+    FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
+    HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
+    fallback_response_mode,
 };
 pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
@@ -39,6 +48,17 @@ pub use metrics_layer::{
     HttpMetricsLayer, HttpMetricsPathCacheMaximum, HttpMetricsPathCacheMaximumTryFromUsizeError,
     MetricsResponseBody, MetricsResponseBodyError,
 };
+pub use multipart::{
+    FileStagingAction, FileStagingDirectoryName, MultipartBytes, MultipartBytesPart,
+    MultipartFieldName, MultipartFileName, MultipartPayloadMaximum, MultipartRequestError,
+    MultipartTextPart, MultipartTextValue, MultipartUploadRequest, MultipartValueError,
+    MultipartValueLength, StdStorageRelativePath, StoragePathSegment, StoragePathSegmentError,
+    identifier_file_storage_relative_path, staging_directory_name,
+};
+pub use notification::{
+    NotificationApiToken, NotificationApiTokenAuthorized, NotificationApiTokenError,
+    NotificationApiTokenRef, NotificationMessage, NotificationMessageError, NotificationSender,
+};
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
     RequestOriginAllowed, request_origin_allowed,
@@ -51,6 +71,10 @@ pub use resource_budget::{
     GetBulkItemResourceBudget, GetIdempotencyResponseResourceBudget, ResourceBudget,
     ResourceBudgetAmount, ResourceBudgetConfigError, ResourceBudgetMaximum,
     ResourceBudgetReservation, ResourceBudgetReserveError,
+};
+pub use retry::{
+    RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,
+    run_with_retries,
 };
 #[derive(Debug)]
 pub struct AxumRouter(axum::Router);

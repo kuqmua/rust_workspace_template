@@ -82,6 +82,7 @@ pub trait TryFromStdEnvVarOk: Sized {
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
 }
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
+const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
 #[derive(newtype::Newtype)]
 #[newtype(as_ref_owned, from_inner)]
 pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
@@ -104,7 +105,18 @@ pub struct StdParseIntError(std::num::ParseIntError);
 pub struct StdParseBoolError(std::str::ParseBoolError);
 #[derive(generate_getter_traits_for_struct_fields::GenerateGetterTrait, newtype::Newtype)]
 #[newtype(as_ref_owned)]
-pub struct AdminJwtSecret(SecrecySecretBoxString);
+pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
+impl AdminJwtSecret {
+    #[must_use]
+    pub fn primary(&self) -> Option<&SecrecySecretBoxString> {
+        self.0.first()
+    }
+
+    #[must_use]
+    pub const fn verification_secrets(&self) -> &[SecrecySecretBoxString] {
+        self.0.as_slice()
+    }
+}
 impl std::fmt::Debug for AdminJwtSecret {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(str_constants::ADMINJWTSECRET)
@@ -114,19 +126,74 @@ impl std::fmt::Debug for AdminJwtSecret {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminJwtSecretError {
+    #[error("administrator JWT secret list must not be empty")]
+    Empty,
+    #[error(
+        "administrator JWT secret list must contain at most {ADMIN_JWT_SECRET_MAX_COUNT} entries"
+    )]
+    TooMany,
     #[error("administrator JWT secret must contain at least {ADMIN_JWT_SECRET_MIN_LEN} bytes")]
     TooShort,
 }
 impl TryFromStdEnvVarOk for AdminJwtSecret {
     type Error = TryFromStdEnvVarOkAdminJwtSecretError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        if v.0.len() < ADMIN_JWT_SECRET_MIN_LEN {
-            Err(Self::Error::TooShort)
-        } else {
-            Ok(Self(SecrecySecretBoxString::from(secrecy::SecretBox::new(
-                Box::new(v.0),
-            ))))
+        let raw_secrets =
+            v.0.split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .collect::<Vec<_>>();
+        if raw_secrets.is_empty() {
+            return Err(Self::Error::Empty);
         }
+        if raw_secrets.len() > ADMIN_JWT_SECRET_MAX_COUNT {
+            return Err(Self::Error::TooMany);
+        }
+        raw_secrets
+            .into_iter()
+            .map(|value| {
+                if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
+                    Err(Self::Error::TooShort)
+                } else {
+                    Ok(SecrecySecretBoxString::from(secrecy::SecretBox::new(
+                        Box::new(value.to_owned()),
+                    )))
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(Self)
+    }
+}
+#[cfg(test)]
+mod admin_jwt_secret_tests {
+    #[test]
+    fn parses_primary_and_verification_secrets() {
+        let first =
+            str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+        let second =
+            str_constants::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
+        let parsed = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+            super::StdEnvVarOk(format!("{first}, {second}")),
+        )
+        .expect("2c18577d");
+        assert_eq!(parsed.verification_secrets().len(), 2usize);
+        assert_eq!(
+            parsed
+                .primary()
+                .map(|secret| secrecy::ExposeSecret::expose_secret(secret.as_ref())),
+            Some(&first)
+        );
+    }
+
+    #[test]
+    fn rejects_empty_effective_secret_list() {
+        let result = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+            super::StdEnvVarOk(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST)),
+        );
+        assert!(matches!(
+            result,
+            Err(super::TryFromStdEnvVarOkAdminJwtSecretError::Empty)
+        ));
     }
 }
 #[derive(

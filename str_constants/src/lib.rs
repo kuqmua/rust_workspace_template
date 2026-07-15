@@ -3388,3 +3388,19 @@ pub const WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS: [&str; 6] = [
     SHARED_VALUES_ALL_FEATURES,
     SHARED_VALUES_LOCKED,
 ];
+pub const NOTIFICATION_API_TOKEN_REDACTED: &str = "NotificationApiToken([REDACTED])";
+pub const FILE_DELETE_STAGING_DIRECTORY: &str = ".delete_staging";
+pub const FILE_UPLOAD_STAGING_DIRECTORY: &str = ".upload_staging";
+pub const TEST_PATH_TRAVERSAL: &str = "../secret";
+pub const HTTP_ACCEPT_QUALITY_PARAMETER: &str = "q";
+pub const TEST_API_USERS_PATH: &str = "/api/users";
+pub const TEST_API_PREFIX: &str = "/api";
+pub const TEST_SIGNIN_PATH: &str = "/signin";
+pub const TEST_ACCEPT_HTML_JSON_ZERO_QUALITY: &str = "text/html, application/json;q=0";
+pub const TEST_TRANSACTION_OPERATION_ERROR: &str = "write";
+pub const TEST_TRANSACTION_ROLLBACK_ERROR: &str = "rollback";
+pub const TEST_EMPTY_DELIMITED_LIST: &str = " , ";
+pub const TEST_NOTIFICATION_API_TOKEN: &str = "secret";
+pub const TEST_JWT_SECRET_CHARACTER_A: &str = "a";
+pub const TEST_JWT_SECRET_CHARACTER_B: &str = "b";
+pub const TEST_MULTIPART_FILE_FIELD: &str = "file";

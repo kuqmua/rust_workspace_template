@@ -20,7 +20,7 @@ pub struct AdminAuthSvcState {
     allowed_origins: server_runtime::AllowedOrigins,
     audience: super::AdminTokenAudience,
     cookie_secure: super::AdminCookieSecure,
-    decoding_key: JsonwebtokenAdminDecodingKey,
+    decoding_keys: Vec<JsonwebtokenAdminDecodingKey>,
     encoding_key: JsonwebtokenAdminEncodingKey,
     issuer: super::AdminTokenIssuer,
     password_hasher: super::AdminPasswordHasher,
@@ -40,6 +40,8 @@ pub enum AdminAuthSvcStateBuildError {
     Audience,
     #[error("administrator token issuer is invalid")]
     Issuer,
+    #[error("administrator JWT secret list is empty")]
+    JwtSecret,
 }
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
@@ -323,13 +325,19 @@ async fn authenticate(
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_issuer(&[state.issuer.as_ref()]);
     validation.set_audience(&[state.audience.as_ref()]);
-    let claims = jsonwebtoken::decode::<super::AdminAccessClaims>(
-        token.as_ref(),
-        &state.decoding_key.0,
-        &validation,
-    )
-    .map(|data| data.claims)
-    .map_err(|_error| AdminApiError::Authentication)?;
+    let claims = state
+        .decoding_keys
+        .iter()
+        .find_map(|decoding_key| {
+            jsonwebtoken::decode::<super::AdminAccessClaims>(
+                token.as_ref(),
+                &decoding_key.0,
+                &validation,
+            )
+            .ok()
+            .map(|data| data.claims)
+        })
+        .ok_or(AdminApiError::Authentication)?;
     let context_hash = session_context_hash(headers, peer);
     let active = sqlx::query_scalar::<_, bool>(
         str_constants::SELECT_EXISTS_SELECT_1_FROM_ADMIN_ACCESS_SESSIONS_SESSION_JOIN_ADMIN_USERS,
@@ -918,7 +926,12 @@ impl AdminAuthSvcState {
         audience: &config_lib::AdminTokenAudience,
         allowed_origins: &config_lib::CorsAllowOrigin,
     ) -> Result<Self, AdminAuthSvcStateBuildError> {
-        let secret = secrecy::ExposeSecret::expose_secret(jwt_secret.as_ref().as_ref());
+        let secret = secrecy::ExposeSecret::expose_secret(
+            jwt_secret
+                .primary()
+                .ok_or(AdminAuthSvcStateBuildError::JwtSecret)?
+                .as_ref(),
+        );
         let parsed_origins = allowed_origins
             .0
             .split(',')
@@ -933,9 +946,16 @@ impl AdminAuthSvcState {
             audience: super::AdminTokenAudience::try_from(audience.as_ref().clone())
                 .map_err(|_error| AdminAuthSvcStateBuildError::Audience)?,
             cookie_secure: super::AdminCookieSecure::from(**cookie_secure),
-            decoding_key: JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey::from_secret(
-                secret.as_bytes(),
-            )),
+            decoding_keys: jwt_secret
+                .verification_secrets()
+                .iter()
+                .map(|verification_secret| {
+                    JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey::from_secret(
+                        secrecy::ExposeSecret::expose_secret(verification_secret.as_ref())
+                            .as_bytes(),
+                    ))
+                })
+                .collect(),
             encoding_key: JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey::from_secret(
                 secret.as_bytes(),
             )),

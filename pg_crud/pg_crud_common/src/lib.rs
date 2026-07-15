@@ -5,6 +5,7 @@ mod cursor;
 mod errors;
 mod pagination;
 mod query_fragment;
+mod rollback;
 mod sql_identifier;
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
@@ -27,6 +28,7 @@ pub use pagination::{
     DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,
 };
 pub use query_fragment::{QueryPartFragment, SqlColumnRef};
+pub use rollback::TransactionFailure;
 pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,
 };
