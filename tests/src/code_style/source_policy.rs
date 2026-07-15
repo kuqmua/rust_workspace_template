@@ -210,7 +210,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     });
     let expected = std::collections::BTreeMap::from([(
         str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(),
-        103usize,
+        109usize,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }

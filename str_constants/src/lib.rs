@@ -411,35 +411,51 @@ pub const SERVER_ADMIN_RATE_LIMIT_MUTATION: &str = "mutation";
 pub const SERVER_ADMIN_RATE_LIMIT_REFRESH_IP: &str = "refresh_ip";
 pub const SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP: &str = "sign_in_ip";
 pub const SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN: &str = "sign_in_ip_login";
-pub const ADMIN_API_PATHS_AUDIT: &str = "/audit-log";
-pub const ADMIN_API_PATHS_AUTH_ME: &str = "/auth/me";
-pub const ADMIN_API_PATHS_AUTH_REFRESH: &str = "/auth/refresh";
-pub const ADMIN_API_PATHS_AUTH_SESSION: &str = "/auth/sessions/{session_id}";
-pub const ADMIN_API_PATHS_AUTH_SESSIONS: &str = "/auth/sessions";
-pub const ADMIN_API_PATHS_AUTH_SIGN_IN: &str = "/auth/sign-in";
-pub const ADMIN_API_PATHS_AUTH_SIGN_OUT: &str = "/auth/sign-out";
-pub const ADMIN_API_PATHS_PERMISSIONS: &str = "/permissions";
-pub const ADMIN_API_PATHS_ROLE: &str = "/roles/{role_id}";
-pub const ADMIN_API_PATHS_ROLE_PERMISSIONS: &str = "/roles/{role_id}/permissions";
-pub const ADMIN_API_PATHS_ROLES: &str = "/roles";
-pub const ADMIN_API_PATHS_SETTINGS: &str = "/system-settings";
-pub const ADMIN_API_PATHS_USER: &str = "/users/{user_id}";
-pub const ADMIN_API_PATHS_USER_BAN: &str = "/users/{user_id}/ban";
-pub const ADMIN_API_PATHS_USER_PASSWORD: &str = "/users/{user_id}/password";
-pub const ADMIN_API_PATHS_USER_ROLES: &str = "/users/{user_id}/roles";
-pub const ADMIN_API_PATHS_USERS: &str = "/users";
-pub const ADMIN_PAGE_PATHS_ASSETS: &str = "/admin/assets";
-pub const ADMIN_PAGE_PATHS_AUDIT: &str = "/admin/audit-log";
-pub const ADMIN_PAGE_PATHS_METRICS: &str = "/admin/metrics";
-pub const ADMIN_PAGE_PATHS_OPEN_API: &str = "/admin/swagger-ui";
-pub const ADMIN_PAGE_PATHS_OPEN_API_DOCUMENT: &str = "/admin/openapi.json";
-pub const ADMIN_PAGE_PATHS_PERMISSIONS: &str = "/admin/permissions";
-pub const ADMIN_PAGE_PATHS_ROLES: &str = "/admin/roles";
-pub const ADMIN_PAGE_PATHS_ROOT: &str = "/admin";
-pub const ADMIN_PAGE_PATHS_SETTINGS: &str = "/admin/system-settings";
-pub const ADMIN_PAGE_PATHS_SIGN_IN: &str = "/admin/sign-in";
-pub const ADMIN_PAGE_PATHS_USERS: &str = "/admin/users";
-pub const ADMIN_PAGE_PATHS_VERSION: &str = "/admin/version";
+str_constants_macros::define_str_constants! {
+    fragments {
+        AUTH = "/auth";
+        ROLES = "/roles";
+        USERS = "/users";
+    }
+    constants {
+        ADMIN_API_PATHS_AUDIT = ["/audit-log"];
+        ADMIN_API_PATHS_AUTH_ME = [AUTH, "/me"];
+        ADMIN_API_PATHS_AUTH_REFRESH = [AUTH, "/refresh"];
+        ADMIN_API_PATHS_AUTH_SESSION = [AUTH, "/sessions/{session_id}"];
+        ADMIN_API_PATHS_AUTH_SESSIONS = [AUTH, "/sessions"];
+        ADMIN_API_PATHS_AUTH_SIGN_IN = [AUTH, "/sign-in"];
+        ADMIN_API_PATHS_AUTH_SIGN_OUT = [AUTH, "/sign-out"];
+        ADMIN_API_PATHS_PERMISSIONS = ["/permissions"];
+        ADMIN_API_PATHS_ROLE = [ROLES, "/{role_id}"];
+        ADMIN_API_PATHS_ROLE_PERMISSIONS = [ROLES, "/{role_id}/permissions"];
+        ADMIN_API_PATHS_ROLES = [ROLES];
+        ADMIN_API_PATHS_SETTINGS = ["/system-settings"];
+        ADMIN_API_PATHS_USER = [USERS, "/{user_id}"];
+        ADMIN_API_PATHS_USER_BAN = [USERS, "/{user_id}/ban"];
+        ADMIN_API_PATHS_USER_PASSWORD = [USERS, "/{user_id}/password"];
+        ADMIN_API_PATHS_USER_ROLES = [USERS, "/{user_id}/roles"];
+        ADMIN_API_PATHS_USERS = [USERS];
+    }
+}
+str_constants_macros::define_str_constants! {
+    fragments {
+        ADMIN = "/admin";
+    }
+    constants {
+        ADMIN_PAGE_PATHS_ASSETS = [ADMIN, "/assets"];
+        ADMIN_PAGE_PATHS_AUDIT = [ADMIN, "/audit-log"];
+        ADMIN_PAGE_PATHS_METRICS = [ADMIN, "/metrics"];
+        ADMIN_PAGE_PATHS_OPEN_API = [ADMIN, "/swagger-ui"];
+        ADMIN_PAGE_PATHS_OPEN_API_DOCUMENT = [ADMIN, "/openapi.json"];
+        ADMIN_PAGE_PATHS_PERMISSIONS = [ADMIN, "/permissions"];
+        ADMIN_PAGE_PATHS_ROLES = [ADMIN, "/roles"];
+        ADMIN_PAGE_PATHS_ROOT = [ADMIN];
+        ADMIN_PAGE_PATHS_SETTINGS = [ADMIN, "/system-settings"];
+        ADMIN_PAGE_PATHS_SIGN_IN = [ADMIN, "/sign-in"];
+        ADMIN_PAGE_PATHS_USERS = [ADMIN, "/users"];
+        ADMIN_PAGE_PATHS_VERSION = [ADMIN, "/version"];
+    }
+}
 
 pub const ADMIN_PAGE_PATHS_ALL: [&str; 10] = [
     ROOT,
@@ -453,28 +469,47 @@ pub const ADMIN_PAGE_PATHS_ALL: [&str; 10] = [
     VERSION,
     ADMIN_PAGE_PATHS_OPEN_API,
 ];
-pub const ADMIN_PERMISSION_VALUES_AUDIT_LOG_READ: &str = "audit_log:read";
-pub const ADMIN_PERMISSION_VALUES_METRICS_READ: &str = "metrics:read";
-pub const ADMIN_PERMISSION_VALUES_OPEN_API_READ: &str = "openapi:read";
-pub const ADMIN_PERMISSION_VALUES_PERMISSIONS_READ: &str = "permissions:read";
-pub const ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_CREATE: &str = "role_permissions:create";
-pub const ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_DELETE: &str = "role_permissions:delete";
-pub const ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_READ: &str = "role_permissions:read";
-pub const ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_UPDATE: &str = "role_permissions:update";
-pub const ADMIN_PERMISSION_VALUES_ROLES_CREATE: &str = "roles:create";
-pub const ADMIN_PERMISSION_VALUES_ROLES_DELETE: &str = "roles:delete";
-pub const ADMIN_PERMISSION_VALUES_ROLES_READ: &str = "roles:read";
-pub const ADMIN_PERMISSION_VALUES_ROLES_UPDATE: &str = "roles:update";
-pub const ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_READ: &str = "system_settings:read";
-pub const ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_UPDATE: &str = "system_settings:update";
-pub const ADMIN_PERMISSION_VALUES_USER_ROLES_CREATE: &str = "user_roles:create";
-pub const ADMIN_PERMISSION_VALUES_USER_ROLES_DELETE: &str = "user_roles:delete";
-pub const ADMIN_PERMISSION_VALUES_USER_ROLES_READ: &str = "user_roles:read";
-pub const ADMIN_PERMISSION_VALUES_USER_ROLES_UPDATE: &str = "user_roles:update";
-pub const ADMIN_PERMISSION_VALUES_USERS_CREATE: &str = "users:create";
-pub const ADMIN_PERMISSION_VALUES_USERS_DELETE: &str = "users:delete";
-pub const ADMIN_PERMISSION_VALUES_USERS_READ: &str = "users:read";
-pub const ADMIN_PERMISSION_VALUES_USERS_UPDATE: &str = "users:update";
+str_constants_macros::define_str_constants! {
+    fragments {
+        AUDIT_LOG = "audit_log";
+        CREATE = ":create";
+        DELETE = ":delete";
+        METRICS = "metrics";
+        OPEN_API = "openapi";
+        PERMISSIONS = "permissions";
+        READ = ":read";
+        ROLES = "roles";
+        ROLE_PERMISSIONS = "role_permissions";
+        SYSTEM_SETTINGS = "system_settings";
+        UPDATE = ":update";
+        USERS = "users";
+        USER_ROLES = "user_roles";
+    }
+    constants {
+        ADMIN_PERMISSION_VALUES_AUDIT_LOG_READ = [AUDIT_LOG, READ];
+        ADMIN_PERMISSION_VALUES_METRICS_READ = [METRICS, READ];
+        ADMIN_PERMISSION_VALUES_OPEN_API_READ = [OPEN_API, READ];
+        ADMIN_PERMISSION_VALUES_PERMISSIONS_READ = [PERMISSIONS, READ];
+        ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_CREATE = [ROLE_PERMISSIONS, CREATE];
+        ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_DELETE = [ROLE_PERMISSIONS, DELETE];
+        ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_READ = [ROLE_PERMISSIONS, READ];
+        ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_UPDATE = [ROLE_PERMISSIONS, UPDATE];
+        ADMIN_PERMISSION_VALUES_ROLES_CREATE = [ROLES, CREATE];
+        ADMIN_PERMISSION_VALUES_ROLES_DELETE = [ROLES, DELETE];
+        ADMIN_PERMISSION_VALUES_ROLES_READ = [ROLES, READ];
+        ADMIN_PERMISSION_VALUES_ROLES_UPDATE = [ROLES, UPDATE];
+        ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_READ = [SYSTEM_SETTINGS, READ];
+        ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_UPDATE = [SYSTEM_SETTINGS, UPDATE];
+        ADMIN_PERMISSION_VALUES_USER_ROLES_CREATE = [USER_ROLES, CREATE];
+        ADMIN_PERMISSION_VALUES_USER_ROLES_DELETE = [USER_ROLES, DELETE];
+        ADMIN_PERMISSION_VALUES_USER_ROLES_READ = [USER_ROLES, READ];
+        ADMIN_PERMISSION_VALUES_USER_ROLES_UPDATE = [USER_ROLES, UPDATE];
+        ADMIN_PERMISSION_VALUES_USERS_CREATE = [USERS, CREATE];
+        ADMIN_PERMISSION_VALUES_USERS_DELETE = [USERS, DELETE];
+        ADMIN_PERMISSION_VALUES_USERS_READ = [USERS, READ];
+        ADMIN_PERMISSION_VALUES_USERS_UPDATE = [USERS, UPDATE];
+    }
+}
 pub const TEST_VALUES_COMMIT: &str = "abc123";
 pub const TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX: &str = "/paths/~1table_example~1";
 pub const TEST_VALUES_UNREACHABLE_DATABASE_URL: &str = "postgres://usr:pwd@127.0.0.1:1/unreachable";
@@ -2845,4 +2880,118 @@ fn generated_common_route_constants_have_expected_values() {
     assert_eq!(COMMON_ROUTES_HEALTH_CHECK, "/health_check");
     assert_eq!(COMMON_ROUTES_HEALTH_LIVE, "/health/live");
     assert_eq!(COMMON_ROUTES_HEALTH_READY, "/health/ready");
+}
+
+#[cfg(test)]
+#[test]
+fn generated_admin_api_path_constants_have_expected_values() {
+    assert!(
+        [
+            (ADMIN_API_PATHS_AUDIT, "/audit-log"),
+            (ADMIN_API_PATHS_AUTH_ME, "/auth/me"),
+            (ADMIN_API_PATHS_AUTH_REFRESH, "/auth/refresh"),
+            (ADMIN_API_PATHS_AUTH_SESSION, "/auth/sessions/{session_id}"),
+            (ADMIN_API_PATHS_AUTH_SESSIONS, "/auth/sessions"),
+            (ADMIN_API_PATHS_AUTH_SIGN_IN, "/auth/sign-in"),
+            (ADMIN_API_PATHS_AUTH_SIGN_OUT, "/auth/sign-out"),
+            (ADMIN_API_PATHS_PERMISSIONS, "/permissions"),
+            (ADMIN_API_PATHS_ROLE, "/roles/{role_id}"),
+            (
+                ADMIN_API_PATHS_ROLE_PERMISSIONS,
+                "/roles/{role_id}/permissions",
+            ),
+            (ADMIN_API_PATHS_ROLES, "/roles"),
+            (ADMIN_API_PATHS_SETTINGS, "/system-settings"),
+            (ADMIN_API_PATHS_USER, "/users/{user_id}"),
+            (ADMIN_API_PATHS_USER_BAN, "/users/{user_id}/ban"),
+            (ADMIN_API_PATHS_USER_PASSWORD, "/users/{user_id}/password"),
+            (ADMIN_API_PATHS_USER_ROLES, "/users/{user_id}/roles"),
+            (ADMIN_API_PATHS_USERS, "/users"),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == expected)
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn generated_admin_page_path_constants_have_expected_values() {
+    assert!(
+        [
+            (ADMIN_PAGE_PATHS_ASSETS, "/admin/assets"),
+            (ADMIN_PAGE_PATHS_AUDIT, "/admin/audit-log"),
+            (ADMIN_PAGE_PATHS_METRICS, "/admin/metrics"),
+            (ADMIN_PAGE_PATHS_OPEN_API, "/admin/swagger-ui"),
+            (ADMIN_PAGE_PATHS_OPEN_API_DOCUMENT, "/admin/openapi.json"),
+            (ADMIN_PAGE_PATHS_PERMISSIONS, "/admin/permissions"),
+            (ADMIN_PAGE_PATHS_ROLES, "/admin/roles"),
+            (ADMIN_PAGE_PATHS_ROOT, "/admin"),
+            (ADMIN_PAGE_PATHS_SETTINGS, "/admin/system-settings"),
+            (ADMIN_PAGE_PATHS_SIGN_IN, "/admin/sign-in"),
+            (ADMIN_PAGE_PATHS_USERS, "/admin/users"),
+            (ADMIN_PAGE_PATHS_VERSION, "/admin/version"),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == expected)
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn generated_admin_permission_constants_have_expected_values() {
+    assert!(
+        [
+            (ADMIN_PERMISSION_VALUES_AUDIT_LOG_READ, "audit_log:read"),
+            (ADMIN_PERMISSION_VALUES_METRICS_READ, "metrics:read"),
+            (ADMIN_PERMISSION_VALUES_OPEN_API_READ, "openapi:read"),
+            (ADMIN_PERMISSION_VALUES_PERMISSIONS_READ, "permissions:read"),
+            (
+                ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_CREATE,
+                "role_permissions:create",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_DELETE,
+                "role_permissions:delete",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_READ,
+                "role_permissions:read",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_UPDATE,
+                "role_permissions:update",
+            ),
+            (ADMIN_PERMISSION_VALUES_ROLES_CREATE, "roles:create"),
+            (ADMIN_PERMISSION_VALUES_ROLES_DELETE, "roles:delete"),
+            (ADMIN_PERMISSION_VALUES_ROLES_READ, "roles:read"),
+            (ADMIN_PERMISSION_VALUES_ROLES_UPDATE, "roles:update"),
+            (
+                ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_READ,
+                "system_settings:read",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_UPDATE,
+                "system_settings:update",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_USER_ROLES_CREATE,
+                "user_roles:create",
+            ),
+            (
+                ADMIN_PERMISSION_VALUES_USER_ROLES_DELETE,
+                "user_roles:delete",
+            ),
+            (ADMIN_PERMISSION_VALUES_USER_ROLES_READ, "user_roles:read"),
+            (
+                ADMIN_PERMISSION_VALUES_USER_ROLES_UPDATE,
+                "user_roles:update",
+            ),
+            (ADMIN_PERMISSION_VALUES_USERS_CREATE, "users:create"),
+            (ADMIN_PERMISSION_VALUES_USERS_DELETE, "users:delete"),
+            (ADMIN_PERMISSION_VALUES_USERS_READ, "users:read"),
+            (ADMIN_PERMISSION_VALUES_USERS_UPDATE, "users:update"),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == expected)
+    );
 }
