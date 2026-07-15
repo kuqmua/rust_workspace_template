@@ -19,6 +19,14 @@ impl syn::parse::Parse for SynLitStr {
     }
 }
 
+struct SynVisibility(syn::Visibility);
+
+impl syn::parse::Parse for SynVisibility {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        input.parse().map(Self)
+    }
+}
+
 struct Fragment {
     name: SynIdent,
     value: SynLitStr,
@@ -32,6 +40,7 @@ enum ConstantPart {
 struct Constant {
     name: SynIdent,
     parts: Vec<ConstantPart>,
+    visibility: Option<SynVisibility>,
 }
 
 struct DefineStrConstantsInput {
@@ -61,6 +70,11 @@ impl syn::parse::Parse for DefineStrConstantsInput {
         let _ = syn::braced!(constant_content in input);
         let mut constants = Vec::new();
         while !constant_content.is_empty() {
+            let visibility = if constant_content.peek(syn::Token![pub]) {
+                Some(constant_content.parse()?)
+            } else {
+                None
+            };
             let name = constant_content.parse()?;
             let _: syn::Token![=] = constant_content.parse()?;
             let part_content;
@@ -79,7 +93,11 @@ impl syn::parse::Parse for DefineStrConstantsInput {
                 .into_iter()
                 .collect();
             let _: syn::Token![;] = constant_content.parse()?;
-            constants.push(Constant { name, parts });
+            constants.push(Constant {
+                name,
+                parts,
+                visibility,
+            });
         }
         if input.is_empty() {
             Ok(Self {
@@ -156,9 +174,16 @@ pub fn define_str_constants(input: proc_macro::TokenStream) -> proc_macro::Token
                 }
                 let name = constant.name.0;
                 let literal = syn::LitStr::new(&value, proc_macro2::Span::call_site());
-                generated.push(quote::quote! {
-                    pub const #name: &str = #literal;
-                });
+                if let Some(visibility) = constant.visibility {
+                    let syn_visibility = visibility.0;
+                    generated.push(quote::quote! {
+                        #syn_visibility const #name: &str = #literal;
+                    });
+                } else {
+                    generated.push(quote::quote! {
+                        pub const #name: &str = #literal;
+                    });
+                }
                 Ok((names, values, generated))
             },
         )?;
