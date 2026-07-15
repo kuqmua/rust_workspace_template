@@ -91,6 +91,127 @@ impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
 struct ForLoopVisitor {
     found_count: types::AnalyzerCount,
 }
+
+#[derive(Default)]
+struct SourceDroppingMapErrVisitor {
+    found_count: types::AnalyzerCount,
+}
+impl<'ast> syn::visit::Visit<'ast> for SourceDroppingMapErrVisitor {
+    fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
+        if i.method == str_constants::CODE_STYLE_MAP_ERR
+            && i.args.first().is_some_and(|argument| {
+                matches!(argument, syn::Expr::Closure(closure) if closure.inputs.iter().any(|input| matches!(input, syn::Pat::Wild(_))))
+            })
+        {
+            self.found_count.saturating_inc();
+        }
+        syn::visit::visit_expr_method_call(self, i);
+    }
+}
+
+#[derive(Default)]
+struct NumericAsCastVisitor {
+    found_count: types::AnalyzerCount,
+}
+
+#[derive(Default)]
+struct SerdeJsonValueFieldVisitor {
+    violations: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
+    fn visit_field(&mut self, i: &'ast syn::Field) {
+        let mut type_visitor = SerdeJsonValueTypeVisitor::default();
+        syn::visit::Visit::visit_type(&mut type_visitor, &i.ty);
+        if type_visitor.found.get() {
+            self.violations
+                .push(str_constants::CODE_STYLE_UNNAMED_ITEM.to_owned());
+        }
+        syn::visit::visit_field(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if has_test_only_cfg_attr(types::SynItemRef::from(&syn::Item::Struct(i.clone()))).get()
+            || i.ident == str_constants::CODE_STYLE_SERDE_JSON_ADMIN_AUDIT_DETAILS
+        {
+            return;
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+
+#[derive(Default)]
+struct SerdeJsonValueTypeVisitor {
+    found: types::AnalyzerBool,
+}
+
+#[derive(Default)]
+struct PublicStructFieldVisitor {
+    violations: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for PublicStructFieldVisitor {
+    fn visit_field(&mut self, i: &'ast syn::Field) {
+        if matches!(i.vis, syn::Visibility::Public(_)) {
+            self.violations
+                .push(str_constants::CODE_STYLE_UNNAMED_ITEM.to_owned());
+        }
+        syn::visit::visit_field(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if has_test_only_cfg_attr(types::SynItemRef::from(&syn::Item::Struct(i.clone()))).get() {
+            return;
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueTypeVisitor {
+    fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
+        let mut segments = i.path.segments.iter().rev();
+        if segments
+            .next()
+            .is_some_and(|segment| segment.ident == str_constants::CODE_STYLE_VALUE)
+            && segments
+                .next()
+                .is_some_and(|segment| segment.ident == str_constants::SERDE_JSON)
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_type_path(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for NumericAsCastVisitor {
+    fn visit_expr_cast(&mut self, i: &'ast syn::ExprCast) {
+        let numeric = if let syn::Type::Path(path) = i.ty.as_ref() {
+            if path.qself.is_none() {
+                path.path.segments.last().is_some_and(|segment| {
+                    matches!(
+                        segment.ident.to_string().as_str(),
+                        str_constants::CODE_STYLE_I8
+                            | str_constants::CODE_STYLE_I16
+                            | str_constants::CODE_STYLE_I32
+                            | str_constants::CODE_STYLE_I64
+                            | str_constants::CODE_STYLE_I128
+                            | str_constants::CODE_STYLE_ISIZE
+                            | str_constants::CODE_STYLE_U8
+                            | str_constants::CODE_STYLE_U16
+                            | str_constants::CODE_STYLE_U32
+                            | str_constants::CODE_STYLE_U64
+                            | str_constants::CODE_STYLE_U128
+                            | str_constants::CODE_STYLE_USIZE
+                            | str_constants::CODE_STYLE_F32
+                            | str_constants::CODE_STYLE_F64
+                    )
+                })
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+        if numeric {
+            self.found_count.saturating_inc();
+        }
+        syn::visit::visit_expr_cast(self, i);
+    }
+}
 impl<'ast> syn::visit::Visit<'ast> for ForLoopVisitor {
     fn visit_expr_for_loop(&mut self, i: &'ast syn::ExprForLoop) {
         self.found_count.saturating_inc();

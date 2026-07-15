@@ -90,6 +90,102 @@ fn no_for_loops_in_source_code() {
         },
     );
 }
+
+#[test]
+fn map_err_does_not_discard_source_with_wildcard() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter_map(|source_file| {
+                let mut visitor = super::SourceDroppingMapErrVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                (visitor.found_count.get() != 0usize).then(|| {
+                    format!(
+                        "{} discards a map_err source with a wildcard",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+
+#[test]
+fn numeric_conversions_do_not_use_as_casts() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter_map(|source_file| {
+                let mut visitor = super::NumericAsCastVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                (visitor.found_count.get() != 0usize).then(|| {
+                    format!(
+                        "{} contains {} numeric as cast(s)",
+                        source_file.path().as_ref().display(),
+                        visitor.found_count.get()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+
+#[test]
+fn runtime_struct_fields_do_not_expose_untyped_json_values() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = super::SerdeJsonValueFieldVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.violations.into_iter().map(|item| {
+                    format!(
+                        "{} exposes serde_json::Value in {item}",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+
+#[test]
+fn new_runtime_structs_keep_fields_private() {
+    let reviewed_public_field_path_parts =
+        str_constants::CODE_STYLE_REVIEWED_PUBLIC_FIELD_PATH_PARTS
+            .split('|')
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<&str>>();
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                let path = source_file.path().as_ref().to_string_lossy();
+                !reviewed_public_field_path_parts
+                    .iter()
+                    .any(|allowed| path.contains(allowed))
+            })
+            .flat_map(|source_file| {
+                let mut visitor = super::PublicStructFieldVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.violations.into_iter().map(|item| {
+                    format!(
+                        "{} exposes a public field in {item}",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
 #[test]
 fn spawned_tasks_must_retain_an_owner() {
     super::assert_rs_ast_ers_empty_with_ctx(

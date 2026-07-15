@@ -10,7 +10,11 @@ impl StdAuthRefreshInstant {
         let milliseconds = web_sys::window()
             .and_then(|window| window.performance())
             .map_or(0f64, |performance| performance.now());
-        Self((milliseconds * 1_000f64) as u64)
+        let microseconds = std::time::Duration::try_from_secs_f64(milliseconds / 1_000f64)
+            .ok()
+            .and_then(|duration| u64::try_from(duration.as_micros()).ok())
+            .unwrap_or(0u64);
+        Self(microseconds)
     }
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) const fn now() -> Self {
