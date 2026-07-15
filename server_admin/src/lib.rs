@@ -249,14 +249,17 @@ pub fn find_admin_cookie(
     headers: HttpAdminHeaderMapRef<'_>,
     kind: AdminCookieKind,
 ) -> Option<StdAdminStrRef<'_>> {
-    let cookies = headers
-        .0
-        .get(http::header::COOKIE)
-        .and_then(|header| header.to_str().ok())?;
-    cookies.split(';').find_map(|cookie| {
-        let (name, value) = cookie.trim().split_once('=')?;
-        (name == kind.name().as_ref()).then_some(StdAdminStrRef::from(value))
-    })
+    match server_runtime::resolve_unique_cookie(
+        server_runtime::HttpCookieHeadersRef::from(headers.0),
+        server_runtime::HttpCookieNameRef::from(kind.name().as_ref()),
+    ) {
+        server_runtime::CookieResolution::Resolved(value) => {
+            Some(StdAdminStrRef::from(<&str>::from(value)))
+        }
+        server_runtime::CookieResolution::Invalid | server_runtime::CookieResolution::Missing => {
+            None
+        }
+    }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(from_inner)]

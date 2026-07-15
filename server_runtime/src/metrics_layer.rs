@@ -228,10 +228,20 @@ where
             http::Method::TRACE => str_constants::HTTP_METHOD_TRACE_LABEL,
             _ => str_constants::HTTP_METHOD_OTHER_LABEL,
         };
-        let path_text = req.extensions().get::<axum::extract::MatchedPath>().map_or(
-            str_constants::HTTP_METRICS_UNMATCHED_PATH,
-            axum::extract::MatchedPath::as_str,
-        );
+        let normalized_path = req
+            .extensions()
+            .get::<axum::extract::MatchedPath>()
+            .is_none()
+            .then(|| {
+                crate::normalize_identifier_path(crate::HttpRequestPathRef::from(req.uri().path()))
+            })
+            .flatten();
+        let path_text = req
+            .extensions()
+            .get::<axum::extract::MatchedPath>()
+            .map(axum::extract::MatchedPath::as_str)
+            .or_else(|| normalized_path.as_ref().map(AsRef::as_ref))
+            .unwrap_or(str_constants::HTTP_METRICS_UNMATCHED_PATH);
         let path_label = self.paths.0.label(HttpMetricsPathTextRef::from(path_text));
         let started_at = std::time::Instant::now();
         let response_future = tower::Service::call(&mut self.inner, req);

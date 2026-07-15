@@ -6860,6 +6860,8 @@ pub fn generate_pg_table(
                 );
             }
         });
+    let path_separator_literal = proc_macro2::Literal::string(str_constants::PATH_SEPARATOR);
+    let dot_literal = proc_macro2::Literal::string(str_constants::DOT);
     let identifier_open_api_token_stream = quote::quote! {
         #[allow(clippy::needless_for_each)] // generated utoipa 4 registration uses iterator callbacks internally
         #[derive(utoipa::OpenApi)]
@@ -6908,9 +6910,9 @@ pub fn generate_pg_table(
                             let normalized_name = name
                                 .split_whitespace()
                                 .collect::<String>()
-                                .replace(str_constants::PATH_SEPARATOR, str_constants::DOT);
+                                .replace(#path_separator_literal, #dot_literal);
                             let suffix = normalized_name
-                                .rsplit(str_constants::DOT)
+                                .rsplit(#dot_literal)
                                 .next()
                                 .unwrap_or(normalized_name.as_str());
                             if let Some(schema) = components.schemas.get(suffix).cloned() {

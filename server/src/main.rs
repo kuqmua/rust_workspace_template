@@ -75,6 +75,14 @@ struct ServerPrepPgError(#[from] server_table_example::TableExamplePrepPgError);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
+#[derive(Debug)]
+struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
+impl std::fmt::Display for ServerRuntimeContentSecurityPolicyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
 struct AxumApiRoutes(axum::Router);
 #[derive(Clone, Debug)]
 struct ClientIpRateLimitKeyExtractor {
@@ -120,12 +128,16 @@ enum RunServerError {
     BuildRuntime(StdServerIoError),
     #[error("failed to read configuration from environment: {0}")]
     Config(ServerConfigError),
+    #[error("invalid content security policy: {0}")]
+    ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
     #[error("failed to build governor config")]
     GovernorConfig,
     #[error("failed to install metrics recorder: {0}")]
     MetricsRecorder(MetricsExporterPrometheusBuildError),
     #[error("failed to connect to postgres: {0}")]
     PgConnect(SqlxServerPgConnectError),
+    #[error("postgres minimum connections must not exceed maximum connections")]
+    PgPoolConfiguration,
     #[error("failed to prepare administrator schema: {0}")]
     PrepAdminPg(ServerAdminMigrateError),
     #[error("failed to prepare postgres schema: {0}")]
@@ -278,8 +290,33 @@ fn mk_runtime() -> Result<TokioServerRuntime, RunServerError> {
 async fn mk_pg_pool(
     config: &server_config::Config,
 ) -> Result<app_state::SqlxPgPool, RunServerError> {
+    if *config.pg_pool_min_connections
+        > *config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config)
+    {
+        return Err(RunServerError::PgPoolConfiguration);
+    }
     sqlx::postgres::PgPoolOptions::new()
         .max_connections(*config_lib::GetPgPoolMaxConnections::get_pg_pool_max_connections(config))
+        .min_connections(*config.pg_pool_min_connections)
+        .acquire_timeout(std::time::Duration::from_secs(
+            config.pg_pool_acquire_timeout_seconds.get(),
+        ))
+        .idle_timeout(std::time::Duration::from_secs(
+            config.pg_pool_idle_timeout_seconds.get(),
+        ))
+        .max_lifetime(std::time::Duration::from_secs(
+            config.pg_pool_max_lifetime_seconds.get(),
+        ))
+        .after_connect(|connection, _metadata| {
+            Box::pin(async move {
+                sqlx::Executor::execute(
+                    &mut *connection,
+                    str_constants::POSTGRES_STATEMENT_TIMEOUT_SQL,
+                )
+                .await
+                .map(drop)
+            })
+        })
         .connect(secrecy::ExposeSecret::expose_secret(
             config_lib::GetDatabaseUrl::get_database_url(config),
         ))
@@ -370,6 +407,12 @@ async fn run_server() -> Result<(), RunServerError> {
         .collect::<Result<Vec<server_runtime::TrustedProxyRange>, _>>()
         .map(server_runtime::TrustedProxyRanges::from)
         .map_err(RunServerError::TrustedProxyRange)?;
+    let content_security_policy = server_runtime::HttpContentSecurityPolicy::try_from(
+        config.content_security_policy.as_ref().to_owned(),
+    )
+    .map_err(|error| {
+        RunServerError::ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError(error))
+    })?;
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -404,6 +447,7 @@ async fn run_server() -> Result<(), RunServerError> {
     let router = server_runtime::RequestIdLayer.apply(
         server_runtime::HttpMetricsLayer::default().apply(
             server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
+                .with_content_security_policy(content_security_policy)
                 .apply(
                     server_runtime::RequestTimeoutLayer::from(request_timeout)
                         .apply(server_runtime::AxumRouter::from(

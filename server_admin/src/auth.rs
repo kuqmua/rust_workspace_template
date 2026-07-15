@@ -43,11 +43,28 @@ pub enum AdminAuthSvcStateBuildError {
     #[error("administrator JWT secret list is empty")]
     JwtSecret,
 }
+#[allow(clippy::single_call_fn)] // sign-in accepts existing credentials without applying the policy for newly assigned passwords
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
 ) -> super::AdminPassword {
     super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
         Box::new(value.into_inner()),
+    )))
+}
+fn admin_new_password_from_contract(
+    value: server_admin_contract::AdminPassword,
+) -> Result<super::AdminPassword, AdminApiError> {
+    let raw_value = value.into_inner();
+    server_runtime::validate_password_policy(
+        server_runtime::PasswordTextRef::from(raw_value.as_str()),
+        server_runtime::PasswordLengthRange::from_prevalidated(
+            server_runtime::PasswordLength::from(12usize),
+            server_runtime::PasswordLength::from(1024usize),
+        ),
+    )
+    .map_err(|_error| AdminApiError::Validation)?;
+    Ok(super::AdminPassword::new(super::SecrecyAdminString::from(
+        secrecy::SecretBox::new(Box::new(raw_value)),
     )))
 }
 #[derive(Debug, serde::Serialize, utoipa::ToSchema)]

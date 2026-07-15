@@ -106,6 +106,12 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
         ),
         config: server_config::Config {
             cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
+            content_security_policy: test_env(
+                config_lib::StdEnvVarOk::try_from(
+                    str_constants::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+                )
+                .expect("957dc3b8"),
+            ),
             database_url: test_env(
                 config_lib::StdEnvVarOk::try_from(
                     str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL.to_owned(),
@@ -161,6 +167,22 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             ),
             pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(1u32)
                 .expect("58530f0e"),
+            pg_pool_min_connections: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::VALUE_0.to_owned())
+                    .expect("d816fc9a"),
+            ),
+            pg_pool_acquire_timeout_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                    .expect("48634ca9"),
+            ),
+            pg_pool_idle_timeout_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                    .expect("4d68545f"),
+            ),
+            pg_pool_max_lifetime_seconds: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::TEST_VALUE_30.to_owned())
+                    .expect("8b271546"),
+            ),
             timezone: config_lib::ChronoTimezone::try_from(
                 chrono::FixedOffset::east_opt(10_800i32).expect("695a2c2a"),
             )
@@ -213,6 +235,7 @@ mod tests {
             ),
             config: server_config::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
+                content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
                     str_constants::POSTGRES_DB.to_owned(),
                 ))),
@@ -234,6 +257,10 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
                     .expect("f20c4a91"),
+                pg_pool_min_connections: env(str_constants::VALUE_0),
+                pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
+                pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
+                pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("a95d3c17"),
                 )

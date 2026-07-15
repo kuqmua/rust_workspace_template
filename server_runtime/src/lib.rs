@@ -4,12 +4,15 @@ mod cors;
 mod fallback;
 mod health;
 mod history;
+mod http_policy;
 mod lifecycle;
 mod limits;
 mod metrics_layer;
 mod multipart;
 mod notification;
 mod origin;
+mod password_policy;
+mod path_policy;
 mod request_id;
 mod resource_budget;
 mod retry;
@@ -34,6 +37,13 @@ pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
     StdAsyncRunHistoryMaximumLenTryFromUsizeError, StdAsyncRunHistoryReportCount,
+};
+pub use http_policy::{
+    BearerAuthorizationResolution, CookieResolution, HttpAuthorizationHeaderTextRef,
+    HttpBearerTokenRef, HttpContentTypeTextRef, HttpCookieHeadersRef, HttpCookieNameRef,
+    HttpCookieValueRef, OptionalJsonBodyPresence, OptionalJsonContentType,
+    OptionalJsonContentTypeDecision, classify_optional_json_content_type,
+    optional_json_content_type_decision, resolve_bearer_authorization, resolve_unique_cookie,
 };
 pub use lifecycle::{
     BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, StdRequestTimeout,
@@ -62,6 +72,15 @@ pub use notification::{
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
     RequestOriginAllowed, request_origin_allowed,
+};
+pub use password_policy::{
+    PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
+    PasswordTextRef, validate_password_policy,
+};
+pub use path_policy::{
+    HttpAllowedPathPrefixRef, HttpNormalizedPath, HttpNormalizedPathError, HttpProxyPath,
+    HttpProxyPathError, HttpProxyPathPrefixMatch, HttpProxyPathRef, HttpRequestPathRef,
+    normalize_identifier_path, proxy_path_matches_prefix,
 };
 pub use request_id::{
     HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,
@@ -298,13 +317,31 @@ pub enum ForwardedProtoTrust {
     Ignore,
     Trust,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
+pub struct HttpContentSecurityPolicy(http::HeaderValue);
+#[derive(Clone, Copy, Debug, thiserror::Error)]
+#[error("content security policy is not a valid HTTP header value")]
+pub struct HttpContentSecurityPolicyError;
+impl TryFrom<String> for HttpContentSecurityPolicy {
+    type Error = HttpContentSecurityPolicyError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > 4096usize {
+            return Err(HttpContentSecurityPolicyError);
+        }
+        http::HeaderValue::try_from(value)
+            .map(Self)
+            .map_err(|_error| HttpContentSecurityPolicyError)
+    }
+}
+#[derive(Clone, Debug)]
 pub struct SecurityHeadersLayer {
+    content_security_policy: Option<HttpContentSecurityPolicy>,
     forwarded_proto_trust: ForwardedProtoTrust,
 }
 impl From<ForwardedProtoTrust> for SecurityHeadersLayer {
     fn from(value: ForwardedProtoTrust) -> Self {
         Self {
+            content_security_policy: None,
             forwarded_proto_trust: value,
         }
     }
@@ -312,17 +349,25 @@ impl From<ForwardedProtoTrust> for SecurityHeadersLayer {
 impl SecurityHeadersLayer {
     #[must_use]
     pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter(
-            router
-                .0
-                .layer(SecurityHeadersTowerLayer(self.forwarded_proto_trust)),
-        )
+        AxumRouter(router.0.layer(SecurityHeadersTowerLayer {
+            content_security_policy: self.content_security_policy,
+            forwarded_proto_trust: self.forwarded_proto_trust,
+        }))
+    }
+    #[must_use]
+    pub fn with_content_security_policy(mut self, value: HttpContentSecurityPolicy) -> Self {
+        self.content_security_policy = Some(value);
+        self
     }
 }
-#[derive(Clone, Copy, Debug)]
-struct SecurityHeadersTowerLayer(ForwardedProtoTrust);
+#[derive(Clone, Debug)]
+struct SecurityHeadersTowerLayer {
+    content_security_policy: Option<HttpContentSecurityPolicy>,
+    forwarded_proto_trust: ForwardedProtoTrust,
+}
 #[derive(Clone, Debug)]
 struct SecurityHeadersService<Service> {
+    content_security_policy: Option<HttpContentSecurityPolicy>,
     forwarded_proto_trust: ForwardedProtoTrust,
     inner: Service,
 }
@@ -330,7 +375,8 @@ impl<Service> tower::Layer<Service> for SecurityHeadersTowerLayer {
     type Service = SecurityHeadersService<Service>;
     fn layer(&self, inner: Service) -> Self::Service {
         SecurityHeadersService {
-            forwarded_proto_trust: self.0,
+            content_security_policy: self.content_security_policy.clone(),
+            forwarded_proto_trust: self.forwarded_proto_trust,
             inner,
         }
     }
@@ -359,6 +405,7 @@ where
                         first.trim().eq_ignore_ascii_case(str_constants::HTTPS)
                     })
                 });
+        let content_security_policy = self.content_security_policy.clone();
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(async move {
             let mut response = response_future.await?;
@@ -374,6 +421,12 @@ where
                 http::HeaderName::from_static(str_constants::REFERRER_POLICY),
                 http::HeaderValue::from_static(str_constants::NO_REFERRER),
             );
+            if let Some(resolved_content_security_policy) = content_security_policy {
+                let _previous_content_security_policy = response.headers_mut().insert(
+                    http::HeaderName::from_static(str_constants::CONTENT_SECURITY_POLICY_HEADER),
+                    resolved_content_security_policy.0,
+                );
+            }
             if is_api_path {
                 let _cache_control = response.headers_mut().insert(
                     http::header::CACHE_CONTROL,
@@ -735,12 +788,18 @@ mod tests {
                 .expect("94149bdd")
         };
         let make_router = |trust| {
-            axum::Router::from(super::SecurityHeadersLayer::from(trust).apply(
-                super::AxumRouter::from(axum::Router::new().route(
-                    str_constants::API_V1_TEST,
-                    axum::routing::get(async || http::StatusCode::OK),
-                )),
-            ))
+            let policy = super::HttpContentSecurityPolicy::try_from(
+                str_constants::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+            )
+            .expect("abf8cd24");
+            axum::Router::from(
+                super::SecurityHeadersLayer::from(trust)
+                    .with_content_security_policy(policy)
+                    .apply(super::AxumRouter::from(axum::Router::new().route(
+                        str_constants::API_V1_TEST,
+                        axum::routing::get(async || http::StatusCode::OK),
+                    ))),
+            )
         };
         let ignored_response = tower::ServiceExt::oneshot(
             make_router(super::ForwardedProtoTrust::Ignore),
@@ -773,6 +832,14 @@ mod tests {
         assert_eq!(
             trusted_response.headers().get("x-content-type-options"),
             Some(&http::HeaderValue::from_static("nosniff"))
+        );
+        assert_eq!(
+            trusted_response
+                .headers()
+                .get(str_constants::CONTENT_SECURITY_POLICY_HEADER),
+            Some(&http::HeaderValue::from_static(
+                str_constants::TEST_CONTENT_SECURITY_POLICY
+            ))
         );
     }
     #[test]

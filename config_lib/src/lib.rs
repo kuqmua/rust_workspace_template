@@ -521,6 +521,91 @@ config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUr
 )]
 #[newtype(deref_inner)]
 pub struct PgPoolMaxConnections(u32);
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::Newtype)]
+#[newtype(deref_inner)]
+pub struct PgPoolMinConnections(u32);
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(deref_inner)]
+pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(deref_inner)]
+pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
+#[derive(Debug, Clone, Copy, newtype::Newtype)]
+#[newtype(deref_inner)]
+pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum PgPoolConfigParseError {
+    #[error("pg pool numeric configuration is invalid")]
+    Parse,
+    #[error("pg pool duration must be greater than zero")]
+    Zero,
+}
+impl TryFromStdEnvVarOk for PgPoolMinConnections {
+    type Error = PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        v.0.parse::<u32>()
+            .map(Self)
+            .map_err(|_error| Self::Error::Parse)
+    }
+}
+fn parse_pg_pool_non_zero_seconds(
+    v: &StdEnvVarOk,
+) -> Result<StdNonZeroU64, PgPoolConfigParseError> {
+    let value =
+        v.0.parse::<u64>()
+            .map_err(|_error| PgPoolConfigParseError::Parse)?;
+    std::num::NonZeroU64::new(value)
+        .map(StdNonZeroU64::from)
+        .ok_or(PgPoolConfigParseError::Zero)
+}
+impl TryFromStdEnvVarOk for PgPoolAcquireTimeoutSeconds {
+    type Error = PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_pg_pool_non_zero_seconds(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for PgPoolIdleTimeoutSeconds {
+    type Error = PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_pg_pool_non_zero_seconds(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for PgPoolMaxLifetimeSeconds {
+    type Error = PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_pg_pool_non_zero_seconds(&v).map(Self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
+#[newtype(as_ref_owned)]
+pub struct ContentSecurityPolicy(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum ContentSecurityPolicyError {
+    #[error("content security policy must not be empty")]
+    Empty,
+    #[error("content security policy is too long or contains forbidden line breaks")]
+    Invalid,
+}
+impl TryFrom<String> for ContentSecurityPolicy {
+    type Error = ContentSecurityPolicyError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            Err(Self::Error::Empty)
+        } else if trimmed.len() > 4096usize || trimmed.contains(['\r', '\n']) {
+            Err(Self::Error::Invalid)
+        } else {
+            Ok(Self(trimmed.to_owned()))
+        }
+    }
+}
+impl TryFromStdEnvVarOk for ContentSecurityPolicy {
+    type Error = ContentSecurityPolicyError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        Self::try_from(v.0)
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum PgPoolMaxConnectionsTryFromU32Error {
     #[error("pg pool max connections must be greater than zero")]

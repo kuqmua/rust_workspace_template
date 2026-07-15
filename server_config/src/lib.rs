@@ -3,6 +3,7 @@
 pub struct Config {
     //todo maybe auto generate .env and docker-compose environment variables. and maybe write in directly into files
     pub cors_allow_origin: config_lib::CorsAllowOrigin,
+    pub content_security_policy: config_lib::ContentSecurityPolicy,
     pub database_url: config_lib::DatabaseUrl,
     pub admin_jwt_secret: config_lib::AdminJwtSecret,
     pub admin_token_audience: config_lib::AdminTokenAudience,
@@ -13,9 +14,13 @@ pub struct Config {
     pub admin_refresh_token_ttl_seconds: config_lib::AdminRefreshTokenTtlSeconds,
     pub admin_session_limit: config_lib::AdminSessionLimit,
     pub admin_sign_in_rate_limit: config_lib::AdminSignInRateLimit,
+    pub pg_pool_acquire_timeout_seconds: config_lib::PgPoolAcquireTimeoutSeconds,
+    pub pg_pool_idle_timeout_seconds: config_lib::PgPoolIdleTimeoutSeconds,
+    pub pg_pool_max_lifetime_seconds: config_lib::PgPoolMaxLifetimeSeconds,
     pub maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes,
     pub service_socket_address: config_lib::ServiceSocketAddress,
     pub pg_pool_max_connections: config_lib::PgPoolMaxConnections,
+    pub pg_pool_min_connections: config_lib::PgPoolMinConnections,
     pub timezone: config_lib::ChronoTimezone,
     pub src_place_type: config_lib::SrcPlaceType,
     pub tracing_level: config_lib::TracingLevel,
@@ -200,6 +205,7 @@ mod tests {
         let cfg =
             super::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::ASTERISK.to_owned()),
+                content_security_policy: env(str_constants::TEST_CONTENT_SECURITY_POLICY),
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
                     str_constants::POSTGRES_DB.to_owned(),
                 ))),
@@ -221,6 +227,10 @@ mod tests {
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
                     .expect("39a84c10"),
+                pg_pool_min_connections: env(str_constants::VALUE_0),
+                pg_pool_acquire_timeout_seconds: env(str_constants::TEST_VALUE_30),
+                pg_pool_idle_timeout_seconds: env(str_constants::TEST_VALUE_30),
+                pg_pool_max_lifetime_seconds: env(str_constants::TEST_VALUE_30),
                 timezone: config_lib::ChronoTimezone::try_from(
                     chrono::FixedOffset::east_opt(3i32 * 3_600i32).expect("93cbf4a2"),
                 )
