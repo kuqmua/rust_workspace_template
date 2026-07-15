@@ -1,5 +1,6 @@
 mod bind_index;
 pub mod bounded_btree_map;
+pub mod bounded_unique_vec;
 pub mod bounded_vec;
 mod cardinality;
 mod cursor;

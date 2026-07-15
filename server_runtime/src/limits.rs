@@ -33,6 +33,28 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
 }
 #[derive(Clone, Debug)]
 pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdSemaphorePermitCount(std::num::NonZeroUsize);
+impl From<std::num::NonZeroUsize> for StdSemaphorePermitCount {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(value)
+    }
+}
+impl StdArcTokioSemaphore {
+    #[must_use]
+    pub fn new(permit_count: StdSemaphorePermitCount) -> Self {
+        Self(std::sync::Arc::new(tokio::sync::Semaphore::new(
+            permit_count.0.get(),
+        )))
+    }
+    #[must_use]
+    pub fn try_acquire(&self) -> Option<TokioOwnedSemaphorePermit> {
+        std::sync::Arc::clone(&self.0)
+            .try_acquire_owned()
+            .ok()
+            .map(TokioOwnedSemaphorePermit::from)
+    }
+}
 impl From<std::sync::Arc<tokio::sync::Semaphore>> for StdArcTokioSemaphore {
     fn from(value: std::sync::Arc<tokio::sync::Semaphore>) -> Self {
         Self(value)

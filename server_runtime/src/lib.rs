@@ -1,3 +1,4 @@
+mod background_job;
 mod bounded_read;
 mod client_ip;
 mod cors;
@@ -14,11 +15,13 @@ mod notification;
 mod origin;
 mod password_policy;
 mod path_policy;
+mod redacted_url;
 mod request_id;
 mod resource_budget;
 mod retry;
 mod text_policy;
 mod wire_token;
+pub use background_job::BackgroundJob;
 pub use bounded_read::{
     BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
     ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
@@ -59,7 +62,8 @@ pub use lifecycle::{
 };
 pub use limits::{
     AcquirePermitError, RetryAfterSecs, RetryAfterSecsTryFromU64Error, StdArcTokioSemaphore,
-    StdPermitWaitTimeout, TokioAcquireError, TokioOwnedSemaphorePermit, acquire_permit,
+    StdPermitWaitTimeout, StdSemaphorePermitCount, TokioAcquireError, TokioOwnedSemaphorePermit,
+    acquire_permit,
 };
 pub use metrics_layer::{
     HttpMetricsLayer, HttpMetricsPathCacheMaximum, HttpMetricsPathCacheMaximumTryFromUsizeError,
@@ -73,8 +77,10 @@ pub use multipart::{
     identifier_file_storage_relative_path, staging_directory_name,
 };
 pub use notification::{
-    NotificationApiToken, NotificationApiTokenAuthorized, NotificationApiTokenError,
-    NotificationApiTokenRef, NotificationMessage, NotificationMessageError, NotificationSender,
+    AxumNotificationRouter, NotificationApiToken, NotificationApiTokenAuthorized,
+    NotificationApiTokenError, NotificationApiTokenRef, NotificationMessage,
+    NotificationMessageError, NotificationRequest, NotificationSender, NotificationServiceState,
+    notification_router,
 };
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
@@ -89,6 +95,7 @@ pub use path_policy::{
     HttpProxyPathError, HttpProxyPathPrefixMatch, HttpProxyPathRef, HttpRequestPathRef,
     normalize_identifier_path, proxy_path_matches_prefix,
 };
+pub use redacted_url::{RedactedUrl, RedactedUrlTextRef, redact_url_userinfo};
 pub use request_id::{
     HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,
     RequestIdTryFromStringError,

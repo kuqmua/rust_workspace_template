@@ -63,7 +63,8 @@ fn runtime_arc_usage_is_limited_to_cross_thread_state() {
                     allow_arc_value_usage: super::types::AnalyzerBool::from(
                         path.ends_with(str_constants::SERVER_SRC_MAIN_RS)
                             || path.ends_with(str_constants::SERVER_ADMIN_SRC_PASSWORD_RS)
-                            || path.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS),
+                            || path.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
+                            || path.ends_with(str_constants::SERVER_RUNTIME_SRC_LIMITS_RS),
                     ),
                     ers: super::types::DiagnosticMsgs::default(),
                 },

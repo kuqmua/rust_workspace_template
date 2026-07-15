@@ -12,8 +12,9 @@ pub use route::{
     server_response, server_route_metadata,
 };
 pub use route_contract_validation::{
-    RouteContractMismatch, RouteContractMismatches, validate_route_contract_metadata,
-    validate_typed_route_contract,
+    HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
+    HttpContractObservation, HttpContractStatus, RouteContractMismatch, RouteContractMismatches,
+    run_http_contract_fixture, validate_route_contract_metadata, validate_typed_route_contract,
 };
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContractStr(&'static str);

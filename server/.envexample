@@ -23,4 +23,5 @@ SERVICE_SOCKET_ADDRESS="127.0.0.1:8080"
 SRC_PLACE_TYPE="src" # src|github
 TIMEZONE="10800" # i32, in seconds. main is 10800. value = hours * 3600. -24 < hours < 24. so value is -86_400 < secs && secs < 86_400. Otherwise panics on start.  Makes a new FixedOffset for the Eastern Hemisphere with given timezone difference. The negative secs means the Western Hemisphere
 TRACING_LEVEL="debug" # trace|debug|info|warn|er
+TRACING_FORMAT="text" # text|json
 TRUSTED_PROXY_RANGES_TEXT="127.0.0.1/32,::1/128"

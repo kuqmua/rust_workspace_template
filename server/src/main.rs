@@ -271,11 +271,23 @@ fn initialization_tracing() {
             tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
         }),
     );
-    let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
-        subscriber,
-        tracing_subscriber::fmt::layer(),
-    );
-    tracing_subscriber::util::SubscriberInitExt::init(subscriber_with_fmt);
+    if config_lib::types::TracingFormat::from_env_or_default()
+        == config_lib::types::TracingFormat::Json
+    {
+        tracing_subscriber::util::SubscriberInitExt::init(
+            tracing_subscriber::layer::SubscriberExt::with(
+                subscriber,
+                tracing_subscriber::fmt::layer().json(),
+            ),
+        );
+    } else {
+        tracing_subscriber::util::SubscriberInitExt::init(
+            tracing_subscriber::layer::SubscriberExt::with(
+                subscriber,
+                tracing_subscriber::fmt::layer(),
+            ),
+        );
+    }
 }
 #[allow(clippy::single_call_fn)] // runtime builder is shared by main and can be reused by startup tests
 fn mk_runtime() -> Result<TokioServerRuntime, RunServerError> {
