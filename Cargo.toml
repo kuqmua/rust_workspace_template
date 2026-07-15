@@ -56,6 +56,7 @@ members = [
   "server_runtime",
   "server_table_example",
   "str_constants",
+  "str_constants_macros",
   "tests",
   "to_err_string",
   "to_err_string/to_err_string_macros",
@@ -301,6 +302,7 @@ server_config = { path = "./server_config", version = "0.1.0" }
 server_runtime = { path = "./server_runtime", version = "0.1.0" }
 server_table_example = { path = "./server_table_example", version = "0.1.0" }
 str_constants = { path = "./str_constants", version = "0.1.0" }
+str_constants_macros = { path = "./str_constants_macros", version = "0.1.0" }
 to_err_string = { path = "./to_err_string", version = "0.1.0" }
 to_err_string_macros = { path = "./to_err_string/to_err_string_macros", version = "0.1.0" }
 token_patterns = { path = "./token_patterns", version = "0.1.0", default-features = false }

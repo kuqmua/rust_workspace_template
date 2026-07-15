@@ -1,5 +1,5 @@
 [package]
-name = "str_constants"
+name = "str_constants_macros"
 version = "0.1.0"
 publish = false
 description = "description"
@@ -9,8 +9,14 @@ license = "license"
 keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
+
+[lib]
+proc-macro = true
+
 [dependencies]
-git-version = { workspace = true }
-str_constants_macros = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+
 [lints]
 workspace = true

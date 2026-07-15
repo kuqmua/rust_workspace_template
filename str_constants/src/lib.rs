@@ -48,6 +48,7 @@ mod shared_values {
     pub(crate) const DEBUG_ASSERT: &str = "debug_assert";
     pub(crate) const DEBUG_ASSERT_EQ: &str = "debug_assert_eq";
     pub(crate) const DEBUG_ASSERT_NE: &str = "debug_assert_ne";
+    pub(crate) const DEFINE_STR_CONSTANTS: &str = "define_str_constants";
     pub(crate) const ENV: &str = "env";
     pub(crate) const EPRINT: &str = "eprint";
     pub(crate) const EPRINTLN: &str = "eprintln";
@@ -127,11 +128,18 @@ pub mod sql_names {
 }
 pub mod common_routes {
     pub const GIT_INFO: &str = "/git_info";
-    pub const HEALTH: &str = "/health";
-    pub const HEALTH_CHECK: &str = "/health_check";
+    str_constants_macros::define_str_constants! {
+        fragments {
+            HEALTH = "/health";
+        }
+        constants {
+            HEALTH = [HEALTH];
+            HEALTH_CHECK = [HEALTH, "_check"];
+            HEALTH_LIVE = [HEALTH, "/live"];
+            HEALTH_READY = [HEALTH, "/ready"];
+        }
+    }
     pub const HEALTH_CHECK_SQL: &str = "SELECT 1";
-    pub const HEALTH_LIVE: &str = "/health/live";
-    pub const HEALTH_READY: &str = "/health/ready";
     pub const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
     pub const SWAGGER_UI: &str = "/swagger-ui";
 }
@@ -546,6 +554,7 @@ pub mod code_style {
         crate::shared_values::DEBUG_ASSERT,
         crate::shared_values::DEBUG_ASSERT_EQ,
         crate::shared_values::DEBUG_ASSERT_NE,
+        crate::shared_values::DEFINE_STR_CONSTANTS,
         crate::shared_values::ENV,
         crate::shared_values::EPRINT,
         crate::shared_values::EPRINTLN,
@@ -749,4 +758,15 @@ pub mod workspace_test_runner {
         crate::shared_values::P_2,
         STATIC_WORKSPACE_PROFILE,
     ];
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn generated_common_route_constants_have_expected_values() {
+        assert_eq!(crate::common_routes::HEALTH, "/health");
+        assert_eq!(crate::common_routes::HEALTH_CHECK, "/health_check");
+        assert_eq!(crate::common_routes::HEALTH_LIVE, "/health/live");
+        assert_eq!(crate::common_routes::HEALTH_READY, "/health/ready");
+    }
 }
