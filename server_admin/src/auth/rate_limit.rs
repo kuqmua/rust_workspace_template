@@ -42,14 +42,16 @@ pub(super) async fn enforce_rate_limit(
     limit: StdAdminRateLimitCount,
     window_seconds: StdAdminRateLimitWindowSeconds,
 ) -> Result<(), super::AdminApiError> {
-    let allowed = sqlx::query_scalar::<_, bool>(str_constants::text::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT)
-        .bind(scope.as_str().as_ref())
-        .bind(subject.as_ref())
-        .bind(limit.0)
-        .bind(window_seconds.0)
-        .fetch_one(state.pool.as_ref())
-        .await
-        .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
+    let allowed = sqlx::query_scalar::<_, bool>(
+        str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT,
+    )
+    .bind(scope.as_str().as_ref())
+    .bind(subject.as_ref())
+    .bind(limit.0)
+    .bind(window_seconds.0)
+    .fetch_one(state.pool.as_ref())
+    .await
+    .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
     if allowed {
         Ok(())
     } else {

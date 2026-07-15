@@ -113,24 +113,24 @@ mod tests {
     #[test]
     fn search_and_sort_reset_paging_and_sort_toggles_direction() {
         let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from(str_constants::text::LOGIN.to_owned())
+            super::AdminFrontendTableText::try_from(str_constants::LOGIN.to_owned())
                 .expect("3f98f927"),
         );
         state.next(super::AdminFrontendTableIndex::from(50usize));
         assert_eq!(state.page_number().0, 2usize);
         state.apply_search(
-            super::AdminFrontendTableText::try_from(str_constants::text::ROOT.to_owned())
+            super::AdminFrontendTableText::try_from(str_constants::ROOT.to_owned())
                 .expect("5e68820e"),
         );
         assert_eq!(state.page_number().0, 1usize);
         assert_eq!(state.search().0, "root");
         state.apply_sort(
-            super::AdminFrontendTableText::try_from(str_constants::text::LOGIN.to_owned())
+            super::AdminFrontendTableText::try_from(str_constants::LOGIN.to_owned())
                 .expect("7c2035b3"),
         );
         assert_eq!(state.sort_dir(), super::SortDir::Desc);
         state.apply_sort(
-            super::AdminFrontendTableText::try_from(str_constants::text::DISPLAY_NAME.to_owned())
+            super::AdminFrontendTableText::try_from(str_constants::DISPLAY_NAME.to_owned())
                 .expect("8215b5f6"),
         );
         assert_eq!(state.sort().0, "display_name");
@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn paging_is_bounded_and_page_size_is_validated() {
         let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from(str_constants::text::NAME.to_owned())
+            super::AdminFrontendTableText::try_from(str_constants::NAME.to_owned())
                 .expect("fe54b186"),
         );
         state.apply_page_size(super::AdminFrontendTableIndex::from(1usize));

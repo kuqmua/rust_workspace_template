@@ -158,13 +158,13 @@ impl CommonRoutesOpenApi {
 }
 impl std::fmt::Debug for StdArcCommonRoutesAppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::text::STDARCCOMMONROUTESAPPSTATE)
+        f.debug_tuple(str_constants::STDARCCOMMONROUTESAPPSTATE)
             .finish()
     }
 }
 impl std::fmt::Debug for UtoipaCommonRoutesOpenApiDocument {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::text::UTOIPACOMMONROUTESOPENAPIDOCUMENT)
+        f.debug_tuple(str_constants::UTOIPACOMMONROUTESOPENAPIDOCUMENT)
             .finish()
     }
 }
@@ -451,7 +451,7 @@ mod tests {
     }
     #[test]
     fn not_found_response_shape_stays_stable() {
-        let uri = axum::http::Uri::from_static(str_constants::text::UNKNOWN);
+        let uri = axum::http::Uri::from_static(str_constants::UNKNOWN);
         let not_found = super::mk_not_found_payload(
             uri_ref(&uri),
             b_cow(str_constants::test_values::WRONG_COMMIT),
@@ -459,27 +459,27 @@ mod tests {
         assert_not_found_payload_with_commit(
             &not_found,
             str_constants::test_values::WRONG_COMMIT,
-            str_constants::text::UNKNOWN,
+            str_constants::UNKNOWN,
         );
     }
     #[test]
     fn no_route_message_includes_uri() {
-        let uri = axum::http::Uri::from_static(str_constants::text::MISSING_PATH);
+        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH);
         assert_no_route_message(
             &super::mk_no_route_message(uri_ref(&uri)),
-            str_constants::text::MISSING_PATH,
+            str_constants::MISSING_PATH,
         );
     }
     #[test]
     fn no_route_message_for_suffix_uses_prefix_once() {
         assert_no_route_message(
-            &super::mk_no_route_message_for_suffix(suffix_ref(str_constants::text::MISSING_PATH)),
-            str_constants::text::MISSING_PATH,
+            &super::mk_no_route_message_for_suffix(suffix_ref(str_constants::MISSING_PATH)),
+            str_constants::MISSING_PATH,
         );
     }
     #[test]
     fn get_uri_suffix_prefers_path_and_query_when_query_exists() {
-        let uri = axum::http::Uri::from_static(str_constants::text::MISSING_PATH_QUESTION_LIMIT_10);
+        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH_QUESTION_LIMIT_10);
         assert_eq!(
             super::get_uri_suffix(uri_ref(&uri)).0,
             "/missing/path?limit=10"
@@ -487,10 +487,10 @@ mod tests {
     }
     #[test]
     fn no_route_message_keeps_query_parameters() {
-        let uri = axum::http::Uri::from_static(str_constants::text::MISSING_PATH_QUESTION_LIMIT_10);
+        let uri = axum::http::Uri::from_static(str_constants::MISSING_PATH_QUESTION_LIMIT_10);
         assert_no_route_message(
             &super::mk_no_route_message(uri_ref(&uri)),
-            str_constants::text::MISSING_PATH_QUESTION_LIMIT_10,
+            str_constants::MISSING_PATH_QUESTION_LIMIT_10,
         );
     }
     #[test]
@@ -514,33 +514,29 @@ mod tests {
     }
     #[test]
     fn not_found_response_uses_uri_and_swagger_path() {
-        let uri = axum::http::Uri::from_static(str_constants::text::MISSING);
+        let uri = axum::http::Uri::from_static(str_constants::MISSING);
         let commit_link = test_commit_link();
         let payload = super::mk_not_found_payload(uri_ref(&uri), test_commit_link_cow());
-        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::text::MISSING);
+        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::MISSING);
     }
     #[test]
     fn not_found_payload_from_state_uses_uri_and_swagger_path() {
-        let uri = axum::http::Uri::from_static(str_constants::text::MISSING);
+        let uri = axum::http::Uri::from_static(str_constants::MISSING);
         let state = test_state();
         let payload = super::mk_not_found_payload(
             uri_ref(&uri),
             git_info::GetGitCommitLink::get_git_commit_link_cow(state.as_ref()),
         );
-        assert_not_found_payload_with_commit(
-            &payload,
-            &test_commit_link(),
-            str_constants::text::MISSING,
-        );
+        assert_not_found_payload_with_commit(&payload, &test_commit_link(), str_constants::MISSING);
     }
     #[test]
     fn not_found_payload_for_suffix_uses_given_suffix_and_swagger_path() {
         let commit_link = test_commit_link();
         let payload = super::mk_not_found_payload_with_message(
-            super::mk_no_route_message_for_suffix(suffix_ref(str_constants::text::MISSING)),
+            super::mk_no_route_message_for_suffix(suffix_ref(str_constants::MISSING)),
             test_commit_link_cow(),
         );
-        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::text::MISSING);
+        assert_not_found_payload_with_commit(&payload, &commit_link, str_constants::MISSING);
     }
     #[test]
     fn no_route_prefix_stays_stable() {
@@ -633,7 +629,7 @@ mod tests {
                         .get(axum::http::header::CONTENT_TYPE)
                         .is_some()
                 );
-                let escaped_path = path.replace('/', str_constants::text::VALUE_1_ALT_3);
+                let escaped_path = path.replace('/', str_constants::VALUE_1_ALT_3);
                 assert!(
                     cloned_document
                         .pointer(format!("/paths/{escaped_path}/get/responses/200").as_str())
@@ -654,7 +650,7 @@ mod tests {
         let not_found = tower::ServiceExt::oneshot(
             router,
             axum::http::Request::builder()
-                .uri(str_constants::text::MISSING)
+                .uri(str_constants::MISSING)
                 .body(axum::body::Body::empty())
                 .expect("bb258755"),
         )

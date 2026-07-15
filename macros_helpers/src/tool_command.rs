@@ -81,12 +81,9 @@ pub struct ToolCommand {
 }
 impl std::fmt::Debug for ToolCommand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct(str_constants::text::TOOLCOMMAND)
-            .field(str_constants::text::PROGRAM, &self.program.0)
-            .field(
-                str_constants::text::ARGUMENTS,
-                &str_constants::text::REDACTED,
-            )
+        f.debug_struct(str_constants::TOOLCOMMAND)
+            .field(str_constants::PROGRAM, &self.program.0)
+            .field(str_constants::ARGUMENTS, &str_constants::REDACTED)
             .finish_non_exhaustive()
     }
 }
@@ -126,8 +123,8 @@ mod tests {
     #[test]
     fn debug_redacts_arguments() {
         let mut command =
-            super::ToolCommand::new(super::ToolProgramRef::from(str_constants::text::PRINTF));
-        let _command = command.arg(super::ToolArgRef::from(str_constants::text::SECRET_VALUE));
+            super::ToolCommand::new(super::ToolProgramRef::from(str_constants::PRINTF));
+        let _command = command.arg(super::ToolArgRef::from(str_constants::SECRET_VALUE));
         let debug = format!("{command:?}");
         assert!(debug.contains("printf"));
         assert!(debug.contains("<redacted>"));

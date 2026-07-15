@@ -39,8 +39,8 @@ enum RustOrClippy {
 impl RustOrClippy {
     fn name(self) -> types::StaticStr {
         match self {
-            Self::Rust => types::StaticStr(str_constants::text::RUST),
-            Self::Clippy => types::StaticStr(str_constants::text::CLIPPY),
+            Self::Rust => types::StaticStr(str_constants::RUST),
+            Self::Clippy => types::StaticStr(str_constants::CLIPPY),
         }
     }
 }
@@ -52,7 +52,7 @@ impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
         if i.path
             .segments
             .last()
-            .is_some_and(|v_4b8e1c7a| v_4b8e1c7a.ident == str_constants::text::DBG)
+            .is_some_and(|v_4b8e1c7a| v_4b8e1c7a.ident == str_constants::DBG)
         {
             self.found.set_true();
         }
@@ -66,10 +66,10 @@ impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         if let Some(last_segment) = i.path.segments.last() {
             match () {
-                () if last_segment.ident == str_constants::text::TODO => {
+                () if last_segment.ident == str_constants::TODO => {
                     self.todo_found.saturating_inc();
                 }
-                () if last_segment.ident == str_constants::text::UNIMPLEMENTED => {
+                () if last_segment.ident == str_constants::UNIMPLEMENTED => {
                     self.unimplemented_found.saturating_inc();
                 }
                 () => {}
@@ -82,7 +82,7 @@ struct UnwrapVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::text::UNWRAP && i.args.is_empty() {
+        if i.method == str_constants::UNWRAP && i.args.is_empty() {
             self.found_count.saturating_inc();
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -103,10 +103,10 @@ struct RuntimePanicExpectUnwrapVisitor {
 impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
         if i.method == str_constants::code_style::EXPECT_METHOD_NAME {
-            self.ers.push(str_constants::text::EXPECT_CALL.to_owned());
+            self.ers.push(str_constants::EXPECT_CALL.to_owned());
         }
-        if i.method == str_constants::text::UNWRAP {
-            self.ers.push(str_constants::text::UNWRAP_CALL.to_owned());
+        if i.method == str_constants::UNWRAP {
+            self.ers.push(str_constants::UNWRAP_CALL.to_owned());
         }
         syn::visit::visit_expr_method_call(self, i);
     }
@@ -122,7 +122,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimePanicExpectUnwrapVisitor {
             .last()
             .is_some_and(|segment| segment.ident == str_constants::code_style::PANIC_METHOD_NAME)
         {
-            self.ers.push(str_constants::text::PANIC_CALL.to_owned());
+            self.ers.push(str_constants::PANIC_CALL.to_owned());
         }
         syn::visit::visit_macro(self, i);
     }
@@ -140,7 +140,7 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeMutexVisitor {
     fn visit_type_path(&mut self, i: &'ast syn::TypePath) {
         if path_has_segment(
             types::SynPathRef::from(&i.path),
-            types::SourceTextRef::from(str_constants::text::MUTEX),
+            types::SourceTextRef::from(str_constants::MUTEX),
         )
         .get()
         {
@@ -158,15 +158,13 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
         if expr_call_path(types::SynExprCallRef::from(i)).is_some_and(|path| {
             path_ends_with(
                 path,
-                types::StaticStrSliceRef::from(
-                    [str_constants::text::ARC, str_constants::text::NEW].as_slice(),
-                ),
+                types::StaticStrSliceRef::from([str_constants::ARC, str_constants::NEW].as_slice()),
             )
             .get()
         }) && !self.allow_arc_value_usage.get()
         {
             self.ers.push(
-                str_constants::text::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
+                str_constants::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION
                     .to_owned(),
             );
         }
@@ -181,14 +179,12 @@ impl<'ast> syn::visit::Visit<'ast> for RuntimeArcVisitor {
     fn visit_item_type(&mut self, i: &'ast syn::ItemType) {
         if type_contains_segment(
             types::SynTypeRef::from(&*i.ty),
-            types::SourceTextRef::from(str_constants::text::ARC),
+            types::SourceTextRef::from(str_constants::ARC),
         )
         .get()
         {
             let name = i.ident.to_string();
-            if !name.contains(str_constants::text::SHARED)
-                && !name.contains(str_constants::text::DYNARC)
-            {
+            if !name.contains(str_constants::SHARED) && !name.contains(str_constants::DYNARC) {
                 self.ers.push(format!(
                     "Arc type alias `{name}` must be explicitly named as shared cross-thread state"
                 ));
@@ -208,7 +204,7 @@ impl<'ast> syn::visit::Visit<'ast> for AsyncBlockingCallVisitor {
                 .is_some_and(|path| path_is_blocking_async_call(path).get())
         {
             self.ers
-                .push(str_constants::text::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
+                .push(str_constants::BLOCKING_CALL_INSIDE_ASYNC_FUNCTION.to_owned());
         }
         syn::visit::visit_expr_call(self, i);
     }
@@ -290,8 +286,8 @@ struct IncludeAssetMacroVisitor {
 impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         if let Some(segment) = i.path.segments.last()
-            && (segment.ident == str_constants::text::INCLUDE_STR
-                || segment.ident == str_constants::text::INCLUDE_BYTES)
+            && (segment.ident == str_constants::INCLUDE_STR
+                || segment.ident == str_constants::INCLUDE_BYTES)
         {
             self.ers.push(format!("contains {}!()", segment.ident));
         }
@@ -310,10 +306,10 @@ impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
             let call = path_to_string(path);
             if matches!(
                 call.as_ref(),
-                str_constants::text::STD_PATH_FS_PATH_READ
-                    | str_constants::text::STD_PATH_FS_PATH_READ_TO_STRING
-                    | str_constants::text::TOKIO_PATH_FS_PATH_READ
-                    | str_constants::text::TOKIO_PATH_FS_PATH_READ_TO_STRING
+                str_constants::STD_PATH_FS_PATH_READ
+                    | str_constants::STD_PATH_FS_PATH_READ_TO_STRING
+                    | str_constants::TOKIO_PATH_FS_PATH_READ
+                    | str_constants::TOKIO_PATH_FS_PATH_READ_TO_STRING
             ) {
                 self.calls.push(call.as_ref().to_owned());
             }
@@ -345,15 +341,14 @@ impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
                 let text = path_to_string(path);
                 matches!(
                     text.as_ref(),
-                    str_constants::text::TOKIO_PATH_SPAWN
-                        | str_constants::text::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
-                        | str_constants::text::STD_PATH_THREAD_PATH_SPAWN
+                    str_constants::TOKIO_PATH_SPAWN
+                        | str_constants::TOKIO_PATH_TASK_PATH_SPAWN_BLOCKING
+                        | str_constants::STD_PATH_THREAD_PATH_SPAWN
                 )
             })
         {
             self.ers.push(
-                str_constants::text::SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE
-                    .to_owned(),
+                str_constants::SPAWN_RESULT_IS_DISCARDED_RETAIN_AND_SUPERVISE_ITS_HANDLE.to_owned(),
             );
         }
         syn::visit::visit_stmt(self, i);
@@ -371,14 +366,12 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
             let text = path_to_string(path);
             if matches!(
                 text.as_ref(),
-                str_constants::text::RAND_PATH_THREAD_RANGE
-                    | str_constants::text::STD_PATH_THREAD_PATH_SLEEP
-                    | str_constants::text::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW
-                    | str_constants::text::TOKIO_PATH_TIME_PATH_SLEEP
-                    | str_constants::text::UUID_PATH_UUID_PATH_NEW_V4
-            ) || text
-                .as_ref()
-                .ends_with(str_constants::text::PATH_UTC_PATH_NOW)
+                str_constants::RAND_PATH_THREAD_RANGE
+                    | str_constants::STD_PATH_THREAD_PATH_SLEEP
+                    | str_constants::STD_PATH_TIME_PATH_SYSTEMTIME_PATH_NOW
+                    | str_constants::TOKIO_PATH_TIME_PATH_SLEEP
+                    | str_constants::UUID_PATH_UUID_PATH_NEW_V4
+            ) || text.as_ref().ends_with(str_constants::PATH_UTC_PATH_NOW)
             {
                 self.calls.push(text.as_ref().to_owned());
             }
@@ -441,7 +434,7 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
                 self.public_use_roots.push(root);
             } else {
                 self.public_use_roots
-                    .push(String::from(str_constants::text::ASTERISK));
+                    .push(String::from(str_constants::ASTERISK));
             }
         } else {
             self.found_non_public_use_import.set_true();
@@ -470,7 +463,7 @@ struct ConstantAliasVisitor {
 impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
     fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
         let local_constant_name = i.ident.to_string();
-        if local_constant_name == str_constants::text::UNDERSCORE {
+        if local_constant_name == str_constants::UNDERSCORE {
             return;
         }
         if let syn::Expr::Path(expression_path) = i.expr.as_ref()
@@ -520,7 +513,7 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
                 .path()
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == str_constants::text::TEST_ALT_3)
+                .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
         }) {
             return;
         }
@@ -531,12 +524,12 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
             matches!(
                 &attribute.meta,
                 syn::Meta::List(list)
-                    if list.path.is_ident(str_constants::text::CFG_ALT)
+                    if list.path.is_ident(str_constants::CFG_ALT)
                         && list
                             .tokens
                             .to_string()
                             .split(|symbol: char| !symbol.is_ascii_alphanumeric() && symbol != '_')
-                            .any(|condition| condition == str_constants::text::TEST_ALT_3)
+                            .any(|condition| condition == str_constants::TEST_ALT_3)
             )
         }) {
             return;
@@ -554,7 +547,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
             i.func.as_ref(),
             syn::Expr::Path(path)
                 if path.path.segments.last().is_some_and(|segment| {
-                    segment.ident == str_constants::text::COMPILE_ERROR_TOKEN_STREAM
+                    segment.ident == str_constants::COMPILE_ERROR_TOKEN_STREAM
                 })
         ) {
             let mut literal_visitor = TestStringLiteralVisitor {
@@ -565,7 +558,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
             });
             if !literal_visitor.values.is_empty() {
                 self.ers.push(
-                    str_constants::text::COMPILE_ERROR_TOKEN_STREAM_CALL_CONTAINS_STRING_LITERALS
+                    str_constants::COMPILE_ERROR_TOKEN_STREAM_CALL_CONTAINS_STRING_LITERALS
                         .to_owned(),
                 );
             }
@@ -773,7 +766,7 @@ impl StringWrapperFromVisitor<'_> {
             return;
         }
         let identifier = item_impl_self_ty_identifier(item).map_or_else(
-            || String::from(str_constants::text::NON_PATH_TARGET),
+            || String::from(str_constants::NON_PATH_TARGET),
             String::from,
         );
         self.ers.push(format!(
@@ -833,7 +826,7 @@ struct LenMethodCallVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     fn visit_expr_method_call(&mut self, i: &'ast syn::ExprMethodCall) {
-        if i.method == str_constants::text::LEN {
+        if i.method == str_constants::LEN {
             self.found.set_true();
         }
         syn::visit::visit_expr_method_call(self, i);
@@ -908,7 +901,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         }
         if path_ends_with(
             types::SynPathRef::from(&i.path),
-            types::StaticStrSliceRef::from([str_constants::text::BOOL_ENUM_TO_TOKENS].as_slice()),
+            types::StaticStrSliceRef::from([str_constants::BOOL_ENUM_TO_TOKENS].as_slice()),
         )
         .get()
         {
@@ -931,7 +924,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         {
             let _: bool = self
                 .names
-                .insert(String::from(str_constants::text::DTOKENSTREAMBUILDER));
+                .insert(String::from(str_constants::DTOKENSTREAMBUILDER));
         }
         syn::visit::visit_macro(self, i);
     }
@@ -1151,7 +1144,7 @@ impl DomainTypePolicyVisitor<'_> {
     ) -> types::AnalyzerBool {
         let identifier_ref = identifier.as_ref();
         types::AnalyzerBool::from(
-            identifier_ref == str_constants::text::SELF
+            identifier_ref == str_constants::SELF
                 || self.repo_types.as_ref().contains(identifier_ref)
                 || self
                     .generic_scopes
@@ -1181,9 +1174,9 @@ impl DomainTypePolicyVisitor<'_> {
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
                     let identifier = segment.ident.to_string();
-                    identifier != str_constants::text::CRATE
-                        && identifier != str_constants::text::SELF_ALT
-                        && identifier != str_constants::text::SUPER
+                    identifier != str_constants::CRATE
+                        && identifier != str_constants::SELF_ALT
+                        && identifier != str_constants::SUPER
                         && !self.repo_crates.as_ref().contains(&identifier)
                         && !self
                             .is_allowed_type_identifier(types::SourceTextRef::from(
@@ -1234,7 +1227,7 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             if let syn::Pat::Type(pat_ty) = input {
                 self.check_ty(
                     types::SynTypeRef::from(&*pat_ty.ty),
-                    types::SourceTextRef::from(str_constants::text::CLOSURE_PARAMETER),
+                    types::SourceTextRef::from(str_constants::CLOSURE_PARAMETER),
                 );
             }
         });
@@ -1379,10 +1372,10 @@ impl AnalyzerStateRawContainerFieldVisitor {
             if let Some((raw_ty, wrapper_ty)) =
                 analyzer_state_raw_container_ty(types::SynTypeRef::from(&field.ty))
             {
-                let field_name = field.ident.as_ref().map_or_else(
-                    || String::from(str_constants::text::TUPLE),
-                    ToString::to_string,
-                );
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map_or_else(|| String::from(str_constants::TUPLE), ToString::to_string);
                 self.ers.push(format!(
                     "struct `{}` field `{}` uses `{}`; use `{}`",
                     item_ref.ident,
@@ -1591,9 +1584,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         }
         let first_segment = ty_path_ref.path.segments.first()?;
         let first_identifier = first_segment.ident.to_string();
-        if first_identifier == str_constants::text::CRATE
-            || first_identifier == str_constants::text::SELF_ALT
-            || first_identifier == str_constants::text::SUPER
+        if first_identifier == str_constants::CRATE
+            || first_identifier == str_constants::SELF_ALT
+            || first_identifier == str_constants::SUPER
             || self.repo_crates.as_ref().contains(&first_identifier)
         {
             return ty_path_ref.path.segments.iter().find_map(|segment| {
@@ -1648,11 +1641,11 @@ fn check_expect_or_panic_contains_only_unique_uuid_v4(expect_or_panic: ExpectOrP
                         }
                     } else {
                         self.ers
-                            .push(str_constants::text::ARG_IS_NOT_STRING_LITERAL.to_owned());
+                            .push(str_constants::ARG_IS_NOT_STRING_LITERAL.to_owned());
                     }
                 } else {
                     self.ers
-                        .push(str_constants::text::WITH_NOT_EQUALS_1_ARG.to_owned());
+                        .push(str_constants::WITH_NOT_EQUALS_1_ARG.to_owned());
                 }
             }
             syn::visit::visit_expr_method_call(self, i);
@@ -1710,21 +1703,21 @@ fn lints_from_help_cmd(
         macros_helpers::tool_command::ToolProgramRef::from(tool.get()),
     )
     .args(macros_helpers::tool_command::ToolArgsRef::from(
-        [str_constants::text::W, str_constants::text::HELP].as_slice(),
+        [str_constants::W, str_constants::HELP].as_slice(),
     ))
     .output()
     .unwrap_or_else(|_| panic!("{}", exp_id.get()));
     assert_cmd_output_ok(
         types::StdProcessOutputRef::from(output.as_ref()),
-        types::StaticStr(str_constants::text::VALUE_95D4595A),
-        types::StaticStr(str_constants::text::CC4670A2),
+        types::StaticStr(str_constants::VALUE_95D4595A),
+        types::StaticStr(str_constants::CC4670A2),
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let regex = if parse_only_clippy.get() {
-        regex::Regex::new(str_constants::text::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
+        regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_CLIPPY_PATH_A_Z0_9_A_Z0_9)
             .expect("fbf14346")
     } else {
-        regex::Regex::new(str_constants::text::QUESTION_M_S_ASTERISK_A_Z0_9_A_Z0_9_PLUS_S)
+        regex::Regex::new(str_constants::QUESTION_M_S_ASTERISK_A_Z0_9_A_Z0_9_PLUS_S)
             .expect("60d99c87")
     };
     regex
@@ -1749,13 +1742,13 @@ fn assert_cmd_output_ok(
 }
 #[allow(clippy::single_call_fn)] // centralizes lint-name normalization used by command output parsing
 fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
-    types::SourceText::try_from(v.as_ref().replace('-', str_constants::text::UNDERSCORE))
+    types::SourceText::try_from(v.as_ref().replace('-', str_constants::UNDERSCORE))
         .expect("f3d821a6")
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
-    let v_table = toml_val_as_table_ref(v, types::StaticStr(str_constants::text::CB693A3F));
-    if let Some(path_v) = v_table.get().get(str_constants::text::PATH_ALT_5) {
+    let v_table = toml_val_as_table_ref(v, types::StaticStr(str_constants::CB693A3F));
+    if let Some(path_v) = v_table.get().get(str_constants::PATH_ALT_5) {
         match path_v {
             toml::Value::String(_) => {
                 validate_workspace_path_dep_version(v_table);
@@ -1782,7 +1775,7 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
             validate_workspace_dep_features(v_table);
             match v_table
                 .get()
-                .get(str_constants::text::DEFAULT_FEATURES)
+                .get(str_constants::DEFAULT_FEATURES)
                 .expect("847a138f")
             {
                 &toml::Value::Boolean(_) => (),
@@ -1801,7 +1794,7 @@ fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
 fn validate_workspace_path_dep_version(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
-        .get(str_constants::text::VERSION_ALT_3)
+        .get(str_constants::VERSION_ALT_3)
         .expect("bf2e4a7c")
     {
         toml::Value::String(version_string) => {
@@ -1817,10 +1810,7 @@ fn validate_workspace_path_dep_version(v_table: types::TomlTableRef<'_>) {
 }
 #[allow(clippy::single_call_fn)] // keeps two-key dependency tables strict while allowing featureless default-features opt-out
 fn validate_workspace_dep_features_or_default_features(v_table: types::TomlTableRef<'_>) {
-    if v_table
-        .get()
-        .contains_key(str_constants::text::FEATURES_ALT)
-    {
+    if v_table.get().contains_key(str_constants::FEATURES_ALT) {
         validate_workspace_dep_features(v_table);
     } else {
         validate_workspace_dep_default_features(v_table);
@@ -1830,7 +1820,7 @@ fn validate_workspace_dep_features_or_default_features(v_table: types::TomlTable
 fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
-        .get(str_constants::text::DEFAULT_FEATURES)
+        .get(str_constants::DEFAULT_FEATURES)
         .expect("d2a8c4e1")
     {
         &toml::Value::Boolean(_) => (),
@@ -1846,7 +1836,7 @@ fn validate_workspace_dep_default_features(v_table: types::TomlTableRef<'_>) {
 fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
-        .get(str_constants::text::VERSION_ALT_3)
+        .get(str_constants::VERSION_ALT_3)
         .expect("d5b2b269")
     {
         toml::Value::String(version_string) => {
@@ -1868,7 +1858,7 @@ fn validate_workspace_dep_version(v_table: types::TomlTableRef<'_>) {
 fn validate_workspace_dep_features(v_table: types::TomlTableRef<'_>) {
     match v_table
         .get()
-        .get(str_constants::text::FEATURES_ALT)
+        .get(str_constants::FEATURES_ALT)
         .expect("473577d5")
     {
         &toml::Value::Array(_) => (),
@@ -1920,7 +1910,7 @@ fn compare_lints_vecs(
             format!("todo!() {rust_or_clippy_name} {lint} 158b5c43-05fa-4b8f-b6fe-9cda49d26997")
         })
         .collect::<Vec<String>>()
-        .join(str_constants::text::NEWLINE);
+        .join(str_constants::NEWLINE);
     if !missing_by_exception_message.is_empty() {
         println!("{missing_by_exception_message}");
     }
@@ -2012,10 +2002,10 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
         types::TomlValueRef::from(
             workspace
                 .as_ref()
-                .get(str_constants::text::LINTS)
+                .get(str_constants::LINTS)
                 .expect("82eaea37"),
         ),
-        types::StaticStr(str_constants::text::CAE226CD),
+        types::StaticStr(str_constants::CAE226CD),
     );
     let toml_v_table = toml_val_as_table_ref(
         types::TomlValueRef::from(
@@ -2024,7 +2014,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
                 .get(rust_or_clippy.name().get())
                 .expect("dbd02f72"),
         ),
-        types::StaticStr(str_constants::text::VALUE_6F4580CE),
+        types::StaticStr(str_constants::VALUE_6F4580CE),
     );
     toml_v_table
         .as_ref()
@@ -2221,12 +2211,12 @@ fn is_allowed_english_check_ext(ext: Option<types::SourceTextRef<'_>>) -> types:
     types::AnalyzerBool::from(matches!(
         ext.map(types::SourceTextRef::get),
         Some(
-            str_constants::text::RS
-                | str_constants::text::TOML
-                | str_constants::text::TXT
-                | str_constants::text::YML
-                | str_constants::text::YAML
-                | str_constants::text::JSON
+            str_constants::RS
+                | str_constants::TOML
+                | str_constants::TXT
+                | str_constants::YML
+                | str_constants::YAML
+                | str_constants::JSON
         )
     ))
 }
@@ -2246,7 +2236,7 @@ fn item_impl_is_from_string(item: types::SynItemImplRef<'_>) -> types::AnalyzerB
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
         path_ends_with(
             types::SynPathRef::from(path),
-            types::StaticStrSliceRef::from([str_constants::text::FROM_ALT_3].as_slice()),
+            types::StaticStrSliceRef::from([str_constants::FROM_ALT_3].as_slice()),
         )
         .get()
             && from_trait_arg_is_string(types::SynPathRef::from(path)).get()
@@ -2257,7 +2247,7 @@ fn item_impl_is_try_from_string(item: types::SynItemImplRef<'_>) -> types::Analy
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
         path_ends_with(
             types::SynPathRef::from(path),
-            types::StaticStrSliceRef::from([str_constants::text::TRYFROM].as_slice()),
+            types::StaticStrSliceRef::from([str_constants::TRYFROM].as_slice()),
         )
         .get()
             && from_trait_arg_is_string(types::SynPathRef::from(path)).get()
@@ -2300,7 +2290,7 @@ fn from_trait_arg_is_string(path: types::SynPathRef<'_>) -> types::AnalyzerBool 
                 match &segment.arguments {
                     syn::PathArguments::AngleBracketed(args) => {
                         args.args.iter().any(|arg| {
-                            matches!(arg, syn::GenericArgument::Type(ty) if type_path_ends_with_identifier(types::SynTypeRef::from(ty), types::SourceTextRef::from(str_constants::text::STRING)).get())
+                            matches!(arg, syn::GenericArgument::Type(ty) if type_path_ends_with_identifier(types::SynTypeRef::from(ty), types::SourceTextRef::from(str_constants::STRING)).get())
                         })
                     }
                     syn::PathArguments::Parenthesized(_) | syn::PathArguments::None => false,
@@ -2313,7 +2303,7 @@ fn item_struct_is_single_string_wrapper(item: types::SynItemStructRef<'_>) -> ty
             fields.unnamed.first().is_some_and(|field| {
                 type_path_ends_with_identifier(
                     types::SynTypeRef::from(&field.ty),
-                    types::SourceTextRef::from(str_constants::text::STRING),
+                    types::SourceTextRef::from(str_constants::STRING),
                 )
                 .get()
             })
@@ -2351,7 +2341,7 @@ fn identifier_is_diagnostic_try_from_string_error(
         identifier
             .as_ref()
             .to_string()
-            .ends_with(str_constants::text::TRYFROMSTRINGERROR),
+            .ends_with(str_constants::TRYFROMSTRINGERROR),
     )
 }
 #[allow(clippy::single_call_fn)] // explicit wrapper escape hatches are allowed to expose their inner representation
@@ -2360,7 +2350,7 @@ fn method_is_explicit_wrapper_accessor(
 ) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
         identifier.as_ref().to_string().as_str(),
-        str_constants::text::GET_ALT | str_constants::text::INTO_INNER
+        str_constants::GET_ALT | str_constants::INTO_INNER
     ))
 }
 fn type_path_ends_with_identifier(
@@ -2393,12 +2383,12 @@ fn type_path_ends_with_identifier(
 #[allow(clippy::single_call_fn)] // keeps newtype(from) attr parsing reusable inside the string-wrapper policy
 fn attr_has_newtype_from_option(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
-    if !attr_ref.path().is_ident(str_constants::text::NEWTYPE) {
+    if !attr_ref.path().is_ident(str_constants::NEWTYPE) {
         return types::AnalyzerBool::default();
     }
     let mut has_from = false;
     drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident(str_constants::text::FROM_ALT_4) {
+        if meta.path.is_ident(str_constants::FROM_ALT_4) {
             has_from = true;
         }
         Ok(())
@@ -2408,32 +2398,29 @@ fn attr_has_newtype_from_option(attr: types::SynAttributeRef<'_>) -> types::Anal
 #[allow(clippy::single_call_fn)] // keeps BoundedString derive parsing reusable inside the string-wrapper policy
 fn attr_has_bounded_string_derive(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
-    if !attr_ref.path().is_ident(str_constants::text::DERIVE) {
+    if !attr_ref.path().is_ident(str_constants::DERIVE) {
         return types::AnalyzerBool::default();
     }
     types::AnalyzerBool::from(attr_ref.meta.require_list().is_ok_and(|list| {
         list.tokens
             .to_string()
-            .contains(str_constants::text::BOUNDEDSTRING)
+            .contains(str_constants::BOUNDEDSTRING)
     }))
 }
 #[allow(clippy::single_call_fn)] // bounded string wrappers satisfy length policy only when max is explicit
 fn attr_has_bounded_string_max_bound(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
-    if !attr_ref
-        .path()
-        .is_ident(str_constants::text::BOUNDED_STRING)
-    {
+    if !attr_ref.path().is_ident(str_constants::BOUNDED_STRING) {
         return types::AnalyzerBool::default();
     }
     let mut has_max = false;
     drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident(str_constants::text::MAX) {
+        if meta.path.is_ident(str_constants::MAX) {
             drop(meta.value()?.parse::<syn::Expr>()?);
             has_max = true;
             return Ok(());
         }
-        Err(meta.error(str_constants::text::UNKNOWN_BOUNDED_STRING_OPTION))
+        Err(meta.error(str_constants::UNKNOWN_BOUNDED_STRING_OPTION))
     }));
     types::AnalyzerBool::from(has_max)
 }
@@ -2458,7 +2445,7 @@ fn path_first_segment_is_self(path: types::SynPathRef<'_>) -> types::AnalyzerBoo
         path.as_ref()
             .segments
             .first()
-            .is_some_and(|segment| segment.ident == str_constants::text::SELF),
+            .is_some_and(|segment| segment.ident == str_constants::SELF),
     )
 }
 fn expr_call_path(call: types::SynExprCallRef<'_>) -> Option<types::SynPathRef<'_>> {
@@ -2511,12 +2498,11 @@ fn collect_generate_pg_types_domain_names(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
 ) {
-    let re =
-        regex::Regex::new(str_constants::text::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS).expect("f4e61b29");
+    let re = regex::Regex::new(str_constants::A_ZA_Z0_9_PLUS_AS_A_ZA_Z0_9_PLUS).expect("f4e61b29");
     re.captures_iter(tokens.as_ref())
         .filter_map(|captures| {
             let base = captures.get(1).map(|element| element.as_str())?;
-            base.split_once(str_constants::text::AS)
+            base.split_once(str_constants::AS)
         })
         .for_each(|(prefix, suffix)| {
             let _: bool = names.insert(format!("{prefix}AsNonNull{suffix}"));
@@ -2530,8 +2516,8 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
             path,
             types::StaticStrSliceRef::from(
                 [
-                    str_constants::text::CONFIG_LIB_MACROS,
-                    str_constants::text::IMPL_TRY_FROM_NON_EMPTY_STRING,
+                    str_constants::CONFIG_LIB_MACROS,
+                    str_constants::IMPL_TRY_FROM_NON_EMPTY_STRING,
                 ]
                 .as_slice(),
             ),
@@ -2541,8 +2527,8 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::CONFIG_LIB_MACROS,
-                        str_constants::text::IMPL_TRY_FROM_SECRET_URL,
+                        str_constants::CONFIG_LIB_MACROS,
+                        str_constants::IMPL_TRY_FROM_SECRET_URL,
                     ]
                     .as_slice(),
                 ),
@@ -2552,8 +2538,8 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::CONFIG_LIB_MACROS,
-                        str_constants::text::IMPL_TRY_FROM_PARSE,
+                        str_constants::CONFIG_LIB_MACROS,
+                        str_constants::IMPL_TRY_FROM_PARSE,
                     ]
                     .as_slice(),
                 ),
@@ -2563,8 +2549,8 @@ fn config_lib_domain_type_macro_path(path: types::SynPathRef<'_>) -> types::Anal
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::CONFIG_LIB_MACROS,
-                        str_constants::text::IMPL_TRY_FROM_PARSE_STRING_ERROR,
+                        str_constants::CONFIG_LIB_MACROS,
+                        str_constants::IMPL_TRY_FROM_PARSE_STRING_ERROR,
                     ]
                     .as_slice(),
                 ),
@@ -2577,9 +2563,8 @@ fn collect_first_macro_identifier_domain_name(
     tokens: types::SourceTextRef<'_>,
     names: &mut types::StdSourceTextSet,
 ) {
-    let re =
-        regex::Regex::new(str_constants::text::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
-            .expect("fc65b7c4");
+    let re = regex::Regex::new(str_constants::S_ASTERISK_A_ZA_Z_A_ZA_Z0_9_ASTERISK_S_ASTERISK)
+        .expect("fc65b7c4");
     if let Some(name) = re
         .captures(tokens.as_ref())
         .and_then(|captures| captures.get(1))
@@ -2618,10 +2603,10 @@ fn type_contains_segment(
 fn method_is_blocking_async_call(method: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
         method.as_ref(),
-        str_constants::text::BLOCK_ON
-            | str_constants::text::BLOCK_IN_PLACE
-            | str_constants::text::BLOCKING_RECV
-            | str_constants::text::BLOCKING_SEND
+        str_constants::BLOCK_ON
+            | str_constants::BLOCK_IN_PLACE
+            | str_constants::BLOCKING_RECV
+            | str_constants::BLOCKING_SEND
     ))
 }
 #[allow(clippy::single_call_fn)] // names the async-blocking function policy separately from traversal code
@@ -2631,9 +2616,9 @@ fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBo
             path,
             types::StaticStrSliceRef::from(
                 [
-                    str_constants::text::FUTURES,
-                    str_constants::text::EXECUTOR,
-                    str_constants::text::BLOCK_ON,
+                    str_constants::FUTURES,
+                    str_constants::EXECUTOR,
+                    str_constants::BLOCK_ON,
                 ]
                 .as_slice(),
             ),
@@ -2643,9 +2628,9 @@ fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBo
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::TOKIO,
-                        str_constants::text::TASK,
-                        str_constants::text::BLOCK_IN_PLACE,
+                        str_constants::TOKIO,
+                        str_constants::TASK,
+                        str_constants::BLOCK_IN_PLACE,
                     ]
                     .as_slice(),
                 ),
@@ -2655,9 +2640,9 @@ fn path_is_blocking_async_call(path: types::SynPathRef<'_>) -> types::AnalyzerBo
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::STD,
-                        str_constants::text::THREAD,
-                        str_constants::text::SLEEP,
+                        str_constants::STD,
+                        str_constants::THREAD,
+                        str_constants::SLEEP,
                     ]
                     .as_slice(),
                 ),
@@ -2672,9 +2657,9 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
             path,
             types::StaticStrSliceRef::from(
                 [
-                    str_constants::text::REQWEST,
-                    str_constants::text::CLIENT,
-                    str_constants::text::NEW,
+                    str_constants::REQWEST,
+                    str_constants::CLIENT,
+                    str_constants::NEW,
                 ]
                 .as_slice(),
             ),
@@ -2684,10 +2669,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::STD,
-                        str_constants::text::NET,
-                        str_constants::text::TCPSTREAM,
-                        str_constants::text::CONNECT,
+                        str_constants::STD,
+                        str_constants::NET,
+                        str_constants::TCPSTREAM,
+                        str_constants::CONNECT,
                     ]
                     .as_slice(),
                 ),
@@ -2697,10 +2682,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::STD,
-                        str_constants::text::NET,
-                        str_constants::text::TCPLISTENER,
-                        str_constants::text::BIND,
+                        str_constants::STD,
+                        str_constants::NET,
+                        str_constants::TCPLISTENER,
+                        str_constants::BIND,
                     ]
                     .as_slice(),
                 ),
@@ -2710,10 +2695,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::STD,
-                        str_constants::text::NET,
-                        str_constants::text::UDPSOCKET,
-                        str_constants::text::BIND,
+                        str_constants::STD,
+                        str_constants::NET,
+                        str_constants::UDPSOCKET,
+                        str_constants::BIND,
                     ]
                     .as_slice(),
                 ),
@@ -2723,10 +2708,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::TOKIO,
-                        str_constants::text::NET,
-                        str_constants::text::TCPSTREAM,
-                        str_constants::text::CONNECT,
+                        str_constants::TOKIO,
+                        str_constants::NET,
+                        str_constants::TCPSTREAM,
+                        str_constants::CONNECT,
                     ]
                     .as_slice(),
                 ),
@@ -2736,10 +2721,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::TOKIO,
-                        str_constants::text::NET,
-                        str_constants::text::TCPLISTENER,
-                        str_constants::text::BIND,
+                        str_constants::TOKIO,
+                        str_constants::NET,
+                        str_constants::TCPLISTENER,
+                        str_constants::BIND,
                     ]
                     .as_slice(),
                 ),
@@ -2749,10 +2734,10 @@ fn path_is_external_service_client(path: types::SynPathRef<'_>) -> types::Analyz
                 path,
                 types::StaticStrSliceRef::from(
                     [
-                        str_constants::text::TOKIO,
-                        str_constants::text::NET,
-                        str_constants::text::UDPSOCKET,
-                        str_constants::text::BIND,
+                        str_constants::TOKIO,
+                        str_constants::NET,
+                        str_constants::UDPSOCKET,
+                        str_constants::BIND,
                     ]
                     .as_slice(),
                 ),
@@ -2788,23 +2773,23 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     if path
         .as_ref()
-        .starts_with(str_constants::text::WORKSPACE_TEST_RUNNER_SRC)
+        .starts_with(str_constants::WORKSPACE_TEST_RUNNER_SRC)
         || path
             .as_ref()
-            .starts_with(str_constants::text::INITIALIZE_ENVIRONMENT_FILES_SRC)
+            .starts_with(str_constants::INITIALIZE_ENVIRONMENT_FILES_SRC)
         || path
             .as_ref()
             .components()
-            .any(|component| component.as_os_str() == str_constants::text::BENCHES)
+            .any(|component| component.as_os_str() == str_constants::BENCHES)
     {
         return types::AnalyzerBool::default();
     }
     if path
         .as_ref()
-        .ends_with(str_constants::text::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
+        .ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
         || path
             .as_ref()
-            .starts_with(str_constants::text::SERVER_ADMIN_FRONTEND_SRC_APP)
+            .starts_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP)
     {
         return types::AnalyzerBool::default();
     }
@@ -2819,26 +2804,26 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
 fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         path.as_ref()
-            .starts_with(str_constants::text::TESTS_SRC_CODE_STYLE),
+            .starts_with(str_constants::TESTS_SRC_CODE_STYLE),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps transparent container policy separate from path validation
 fn is_structural_generic_container(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
         identifier.as_ref(),
-        str_constants::text::OPTION
-            | str_constants::text::RESULT
-            | str_constants::text::VEC
-            | str_constants::text::BOX
-            | str_constants::text::COW
-            | str_constants::text::ARC
-            | str_constants::text::RC
-            | str_constants::text::PIN
-            | str_constants::text::PHANTOMDATA
-            | str_constants::text::HASHMAP
-            | str_constants::text::BTREEMAP
-            | str_constants::text::HASHSET
-            | str_constants::text::BTREESET
+        str_constants::OPTION
+            | str_constants::RESULT
+            | str_constants::VEC
+            | str_constants::BOX
+            | str_constants::COW
+            | str_constants::ARC
+            | str_constants::RC
+            | str_constants::PIN
+            | str_constants::PHANTOMDATA
+            | str_constants::HASHMAP
+            | str_constants::BTREEMAP
+            | str_constants::HASHSET
+            | str_constants::BTREESET
     ))
 }
 fn analyzer_state_raw_container_ty(
@@ -2877,8 +2862,8 @@ fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, ty
         syn::Type::Paren(ty_paren) => raw_text_return_ty(types::SynTypeRef::from(&*ty_paren.elem)),
         syn::Type::Path(ty_path) => raw_text_return_ty_path(types::SynTypePathRef::from(ty_path)),
         syn::Type::Reference(_) if type_is_str_ref(ty).get() => Some((
-            types::StaticStr(str_constants::text::STR),
-            types::StaticStr(str_constants::text::TYPES_PATH_SOURCETEXTREF),
+            types::StaticStr(str_constants::STR),
+            types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTREF),
         )),
         syn::Type::Reference(ty_reference) => {
             raw_text_return_ty(types::SynTypeRef::from(&*ty_reference.elem))
@@ -2905,40 +2890,40 @@ fn raw_text_return_ty_path(
     let segment = ty_path_ref.path.segments.last()?;
     let identifier = segment.ident.to_string();
     match identifier.as_str() {
-        str_constants::text::STRING => Some((
-            types::StaticStr(str_constants::text::STRING),
-            types::StaticStr(str_constants::text::TYPES_PATH_SOURCETEXT),
+        str_constants::STRING => Some((
+            types::StaticStr(str_constants::STRING),
+            types::StaticStr(str_constants::TYPES_PATH_SOURCETEXT),
         )),
-        str_constants::text::VEC
+        str_constants::VEC
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::text::VEC_STRING),
-                types::StaticStr(str_constants::text::TYPES_PATH_SOURCETEXTLIST),
+                types::StaticStr(str_constants::VEC_STRING),
+                types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTLIST),
             ))
         }
-        str_constants::text::OPTION
+        str_constants::OPTION
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::text::OPTION_STR),
-                types::StaticStr(str_constants::text::OPTION_TYPES_PATH_SOURCETEXTREF),
+                types::StaticStr(str_constants::OPTION_STR),
+                types::StaticStr(str_constants::OPTION_TYPES_PATH_SOURCETEXTREF),
             ))
         }
-        str_constants::text::OPTION
-        | str_constants::text::RESULT
-        | str_constants::text::BOX
-        | str_constants::text::COW
-        | str_constants::text::ARC
-        | str_constants::text::RC
-        | str_constants::text::PIN
-        | str_constants::text::PHANTOMDATA
-        | str_constants::text::HASHMAP
-        | str_constants::text::BTREEMAP
-        | str_constants::text::HASHSET
-        | str_constants::text::BTREESET => {
+        str_constants::OPTION
+        | str_constants::RESULT
+        | str_constants::BOX
+        | str_constants::COW
+        | str_constants::ARC
+        | str_constants::RC
+        | str_constants::PIN
+        | str_constants::PHANTOMDATA
+        | str_constants::HASHMAP
+        | str_constants::BTREEMAP
+        | str_constants::HASHSET
+        | str_constants::BTREESET => {
             raw_text_return_path_arguments(types::SynPathArgumentsRef::from(&segment.arguments))
         }
         _ => None,
@@ -2977,43 +2962,43 @@ fn analyzer_state_raw_container_ty_path(
     let segment = ty_path_ref.path.segments.last()?;
     let identifier = segment.ident.to_string();
     match identifier.as_str() {
-        str_constants::text::VEC
+        str_constants::VEC
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::text::VEC_STRING),
-                types::StaticStr(str_constants::text::TYPES_PATH_SOURCETEXTLIST),
+                types::StaticStr(str_constants::VEC_STRING),
+                types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTLIST),
             ))
         }
-        str_constants::text::BTREESET
+        str_constants::BTREESET
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::text::BTREESET_STRING),
-                types::StaticStr(str_constants::text::TYPES_PATH_STDSOURCETEXTSET),
+                types::StaticStr(str_constants::BTREESET_STRING),
+                types::StaticStr(str_constants::TYPES_PATH_STDSOURCETEXTSET),
             ))
         }
-        str_constants::text::HASHSET
+        str_constants::HASHSET
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::text::HASHSET_STR),
-                types::StaticStr(str_constants::text::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET),
+                types::StaticStr(str_constants::HASHSET_STR),
+                types::StaticStr(str_constants::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET),
             ))
         }
-        str_constants::text::OPTION
-        | str_constants::text::RESULT
-        | str_constants::text::BOX
-        | str_constants::text::COW
-        | str_constants::text::ARC
-        | str_constants::text::RC
-        | str_constants::text::PIN
-        | str_constants::text::PHANTOMDATA
-        | str_constants::text::HASHMAP
-        | str_constants::text::BTREEMAP => analyzer_state_raw_container_path_arguments(
+        str_constants::OPTION
+        | str_constants::RESULT
+        | str_constants::BOX
+        | str_constants::COW
+        | str_constants::ARC
+        | str_constants::RC
+        | str_constants::PIN
+        | str_constants::PHANTOMDATA
+        | str_constants::HASHMAP
+        | str_constants::BTREEMAP => analyzer_state_raw_container_path_arguments(
             types::SynPathArgumentsRef::from(&segment.arguments),
         ),
         _ => None,
@@ -3075,7 +3060,7 @@ fn type_is_string(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == str_constants::text::STRING),
+            .is_some_and(|segment| segment.ident == str_constants::STRING),
         syn::Type::Array(_)
         | syn::Type::BareFn(_)
         | syn::Type::Group(_)
@@ -3101,7 +3086,7 @@ fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == str_constants::text::STR_ALT),
+                .is_some_and(|segment| segment.ident == str_constants::STR_ALT),
             syn::Type::Array(_)
             | syn::Type::BareFn(_)
             | syn::Type::Group(_)
@@ -3138,11 +3123,9 @@ fn type_is_str_ref(ty: types::SynTypeRef<'_>) -> types::AnalyzerBool {
 #[allow(clippy::single_call_fn)] // proc-macro entrypoints must keep the compiler-required TokenStream ABI
 fn item_fn_is_proc_macro(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        attr.path().is_ident(str_constants::text::PROC_MACRO_ALT)
-            || attr.path().is_ident(str_constants::text::PROC_MACRO_DERIVE)
-            || attr
-                .path()
-                .is_ident(str_constants::text::PROC_MACRO_ATTRIBUTE)
+        attr.path().is_ident(str_constants::PROC_MACRO_ALT)
+            || attr.path().is_ident(str_constants::PROC_MACRO_DERIVE)
+            || attr.path().is_ident(str_constants::PROC_MACRO_ATTRIBUTE)
     }))
 }
 #[allow(clippy::single_call_fn)] // shared attr-list wrapper avoids exposing cfg-test matching at visitor callsites
@@ -3157,7 +3140,7 @@ fn attrs_contain_test_only_cfg(attrs: types::SynAttributeListRef<'_>) -> types::
 #[allow(clippy::single_call_fn)] // keeps unit-test detection reusable inside nested test module traversal
 fn item_fn_is_unit_test(item: types::SynItemFnRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        attr.path().is_ident(str_constants::text::TEST_ALT_3)
+        attr.path().is_ident(str_constants::TEST_ALT_3)
             || attr_is_test_only_cfg(types::SynAttributeRef::from(attr)).get()
     }))
 }
@@ -3169,7 +3152,7 @@ fn path_to_string(path: types::SynPathRef<'_>) -> types::SourceText {
             .iter()
             .map(|segment| segment.ident.to_string())
             .collect::<Vec<String>>()
-            .join(str_constants::text::PATH_SEPARATOR),
+            .join(str_constants::PATH_SEPARATOR),
     )
     .expect("50c1e4a8")
 }
@@ -3198,20 +3181,20 @@ fn identifier_to_upper_camel_fragment(
 #[allow(clippy::single_call_fn)] // centralizes production-source filtering for panic/expect/unwrap policy
 fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
     if path.as_ref().file_name().and_then(std::ffi::OsStr::to_str)
-        == Some(str_constants::text::TEST_HLP_RS)
+        == Some(str_constants::TEST_HLP_RS)
     {
         return types::AnalyzerBool::default();
     }
     if !path
         .as_ref()
         .components()
-        .any(|component| component.as_os_str() == str_constants::text::SRC_ALT)
+        .any(|component| component.as_os_str() == str_constants::SRC_ALT)
     {
         return types::AnalyzerBool::default();
     }
     if path
         .as_ref()
-        .starts_with(str_constants::text::INITIALIZE_ENVIRONMENT_FILES_SRC)
+        .starts_with(str_constants::INITIALIZE_ENVIRONMENT_FILES_SRC)
     {
         return types::AnalyzerBool::default();
     }
@@ -3230,7 +3213,7 @@ fn is_runtime_policy_source_path(path: types::StdPathRef<'_>) -> types::Analyzer
 fn nearest_cargo_toml_path(path: types::StdPathRef<'_>) -> Option<types::StdPathBuf> {
     path.as_ref()
         .ancestors()
-        .map(|ancestor| ancestor.join(str_constants::text::CARGO_TOML))
+        .map(|ancestor| ancestor.join(str_constants::CARGO_TOML))
         .find(|cargo_toml_path| cargo_toml_path.exists())
         .map(types::StdPathBuf::from)
 }
@@ -3239,14 +3222,14 @@ fn is_test_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         parsed
             .as_ref()
-            .get(str_constants::text::PACKAGE)
+            .get(str_constants::PACKAGE)
             .and_then(toml::Value::as_table)
-            .and_then(|package| package.get(str_constants::text::NAME))
+            .and_then(|package| package.get(str_constants::NAME))
             .and_then(toml::Value::as_str)
             .is_some_and(|name| {
-                name == str_constants::text::TESTS_ALT
-                    || name.contains(str_constants::text::TEST)
-                    || name.ends_with(str_constants::text::TEST_ALT_3)
+                name == str_constants::TESTS_ALT
+                    || name.contains(str_constants::TEST)
+                    || name.ends_with(str_constants::TEST_ALT_3)
             }),
     )
 }
@@ -3255,9 +3238,9 @@ fn is_proc_macro_crate(parsed: types::TomlTableRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
         parsed
             .as_ref()
-            .get(str_constants::text::LIB)
+            .get(str_constants::LIB)
             .and_then(toml::Value::as_table)
-            .and_then(|lib| lib.get(str_constants::text::PROC_MACRO))
+            .and_then(|lib| lib.get(str_constants::PROC_MACRO))
             == Some(&toml::Value::Boolean(true)),
     )
 }
@@ -3330,18 +3313,18 @@ fn has_test_only_cfg_attr(i: types::SynItemRef<'_>) -> types::AnalyzerBool {
 #[allow(clippy::single_call_fn)] // accepts cfg(test) and cfg(feature = "test-utils") as non-production code
 fn attr_is_test_only_cfg(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
-    if !attr_ref.path().is_ident(str_constants::text::CFG_ALT) {
+    if !attr_ref.path().is_ident(str_constants::CFG_ALT) {
         return types::AnalyzerBool::default();
     }
     let mut is_test_only_cfg = false;
     drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident(str_constants::text::TEST_ALT_3) {
+        if meta.path.is_ident(str_constants::TEST_ALT_3) {
             is_test_only_cfg = true;
         }
-        if meta.path.is_ident(str_constants::text::FEATURE) {
+        if meta.path.is_ident(str_constants::FEATURE) {
             let value = meta.value()?;
             let lit: syn::LitStr = value.parse()?;
-            if lit.value() == str_constants::text::TEST_UTILS {
+            if lit.value() == str_constants::TEST_UTILS {
                 is_test_only_cfg = true;
             }
         }
@@ -3373,12 +3356,8 @@ fn workspace_table_from_cargo_toml() -> types::TomlTable {
         .parse::<toml::Table>()
         .expect("beb11586");
     toml_val_as_table(
-        types::TomlValue::from(
-            table
-                .remove(str_constants::text::WORKSPACE)
-                .expect("f728192d"),
-        ),
-        types::StaticStr(str_constants::text::VALUE_2BFB0B62),
+        types::TomlValue::from(table.remove(str_constants::WORKSPACE).expect("f728192d")),
+        types::StaticStr(str_constants::VALUE_2BFB0B62),
     )
 }
 #[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required
@@ -3415,9 +3394,9 @@ fn collect_non_workspace_dep_ers(
 ) {
     ers.extend(
         [
-            str_constants::text::DEPENDENCIES,
-            str_constants::text::DEV_DEPENDENCIES,
-            str_constants::text::BUILD_DEPENDENCIES,
+            str_constants::DEPENDENCIES,
+            str_constants::DEV_DEPENDENCIES,
+            str_constants::BUILD_DEPENDENCIES,
         ]
         .into_iter()
         .filter_map(|dep_section| {
@@ -3446,9 +3425,8 @@ fn collect_non_workspace_dep_ers(
 fn workspace_dep_entry_is_valid(dep_value: types::TomlValueRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match dep_value.as_ref() {
         toml::Value::Table(dep_table) => {
-            dep_table.contains_key(str_constants::text::PATH_ALT_5)
-                || dep_table.get(str_constants::text::WORKSPACE)
-                    == Some(&toml::Value::Boolean(true))
+            dep_table.contains_key(str_constants::PATH_ALT_5)
+                || dep_table.get(str_constants::WORKSPACE) == Some(&toml::Value::Boolean(true))
         }
         toml::Value::String(_)
         | toml::Value::Integer(_)
@@ -3481,9 +3459,9 @@ fn collect_workspace_member_missing_cargo_toml_ers(
             .as_ref()
             .iter()
             .filter_map(|member_str| {
-                let path = std::path::Path::new(str_constants::text::TEXT_ALT_8)
+                let path = std::path::Path::new(str_constants::TEXT_ALT_8)
                     .join(member_str)
-                    .join(str_constants::text::CARGO_TOML);
+                    .join(str_constants::CARGO_TOML);
                 (!path.exists()).then(|| {
                     format!(
                         "member `{member_str}` Cargo.toml not found at {}",
@@ -3501,7 +3479,7 @@ fn workspace_members_as_strs(
 ) -> types::SourceTextList {
     let Some(members) = workspace
         .as_ref()
-        .get(str_constants::text::MEMBERS)
+        .get(str_constants::MEMBERS)
         .and_then(toml::Value::as_array)
     else {
         panic!("{}", exp_id.get());

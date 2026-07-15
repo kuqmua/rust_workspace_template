@@ -188,7 +188,7 @@ fn mk_api_routes(
         ));
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
-            str_constants::text::OPENAPI_JSON,
+            str_constants::OPENAPI_JSON,
             axum::routing::get(async || {
                 axum::Json(utoipa::openapi::OpenApi::from(
                     server_admin::generated_tables::generated_open_api(),
@@ -201,7 +201,7 @@ fn mk_api_routes(
     .method_not_allowed_fallback(async || server_admin::auth::AdminApiError::MethodNotAllowed);
     let secured_admin_routes = documented_admin_routes
         .route(
-            str_constants::text::METRICS,
+            str_constants::METRICS,
             axum::routing::get(async move || metrics_handle.0.render()),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
@@ -398,7 +398,7 @@ async fn run_server() -> Result<(), RunServerError> {
                     server_runtime::AxumRouter::from(
                         axum::Router::new()
                             .nest(
-                                str_constants::text::API_V1,
+                                str_constants::API_V1,
                                 operational_routes.merge(rate_limited_api_routes),
                             )
                             .merge(axum::Router::from(if swagger_enabled {
@@ -417,13 +417,13 @@ async fn run_server() -> Result<(), RunServerError> {
                                                 str_constants::route_validators::COMMIT_HEADER_NAME,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::text::IDEMPOTENCY_KEY_ALT,
+                                                str_constants::IDEMPOTENCY_KEY_ALT,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::text::IF_MATCH_ALT,
+                                                str_constants::IF_MATCH_ALT,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::text::X_CSRF_TOKEN_ALT,
+                                                str_constants::X_CSRF_TOKEN_ALT,
                                             ),
                                         ])
                                         .allow_methods([
@@ -504,7 +504,7 @@ mod tests {
     #[test]
     fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
         let trusted_proxy_range = server_runtime::TrustedProxyRange::try_from(
-            str_constants::text::VALUE_127_0_0_1_32.to_owned(),
+            str_constants::VALUE_127_0_0_1_32.to_owned(),
         )
         .expect("5c81d907");
         let extractor = super::ClientIpRateLimitKeyExtractor {
@@ -515,7 +515,7 @@ mod tests {
         let mut request = axum::http::Request::builder()
             .header(
                 str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-                str_constants::text::VALUE_203_0_113_9,
+                str_constants::VALUE_203_0_113_9,
             )
             .body(())
             .expect("b2604d91");

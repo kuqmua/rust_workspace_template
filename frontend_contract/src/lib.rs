@@ -750,7 +750,7 @@ impl std::fmt::Display for ClientError {
             }
             Self::Transport(value) => write!(f, "transport failed: {value}"),
             Self::UnexpectedResponse => {
-                f.write_str(str_constants::text::SERVER_RETURNED_AN_ERROR_RESPONSE)
+                f.write_str(str_constants::SERVER_RETURNED_AN_ERROR_RESPONSE)
             }
         }
     }
@@ -831,7 +831,7 @@ mod tests {
         .with_step(super::InputStep::Integer);
         let field = super::FieldContract::new(
             super::ContractStr::from(str_constants::sql_names::ID),
-            super::ContractStr::from(str_constants::text::ID),
+            super::ContractStr::from(str_constants::ID),
             type_contract,
         )
         .with_primary_key(super::PrimaryKeyKind::Primary)
@@ -848,7 +848,7 @@ mod tests {
             )),
             super::HttpMethod::Patch,
             super::MutationKind::Mutating,
-            super::ContractStr::from(str_constants::text::USERS_ID),
+            super::ContractStr::from(str_constants::USERS_ID),
             super::SuccessStatus::Code204,
         );
         assert_eq!(route.mutation(), super::MutationKind::Mutating);
@@ -862,7 +862,7 @@ mod tests {
         let response = super::TransportResponse::new(body, super::TransportStatus::from(401u16));
         let error = response
             .success_body(super::SuccessStatus::Code200.transport_status())
-            .expect_err(str_constants::text::VALUE_5EEA7F90);
+            .expect_err(str_constants::VALUE_5EEA7F90);
         assert!(matches!(
             error,
             super::ClientError::Problem(value)

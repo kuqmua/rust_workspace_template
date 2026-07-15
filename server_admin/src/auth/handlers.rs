@@ -59,16 +59,18 @@ pub(super) async fn sign_in(
         super::rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
     )
     .await?;
-    let recent_failures = sqlx::query_scalar::<_, i64>(str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_WHERE_LOGIN_DOLLAR_1_AND)
-        .bind(login.as_ref())
-        .fetch_one(state.as_ref().pool.as_ref())
-        .await
-        .map_err(super::AdminApiError::from)?;
+    let recent_failures = sqlx::query_scalar::<_, i64>(
+        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_WHERE_LOGIN_DOLLAR_1_AND,
+    )
+    .bind(login.as_ref())
+    .fetch_one(state.as_ref().pool.as_ref())
+    .await
+    .map_err(super::AdminApiError::from)?;
     if recent_failures >= 10i64 {
         return Err(super::AdminApiError::RateLimited);
     }
     let user = sqlx::query_as::<_, (i64, String, bool)>(
-        str_constants::text::SELECT_ID_PASSWORD_HASH_IS_BANNED_FROM_ADMIN_USERS_WHERE_LOWER_LOGIN,
+        str_constants::SELECT_ID_PASSWORD_HASH_IS_BANNED_FROM_ADMIN_USERS_WHERE_LOWER_LOGIN,
     )
     .bind(login.as_ref())
     .fetch_optional(state.as_ref().pool.as_ref())
@@ -211,7 +213,7 @@ pub(super) async fn refresh(
         .await
         .map_err(super::AdminApiError::from)?;
     let optional_user_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_USER_ID_FROM_ADMIN_REFRESH_TOKENS_WHERE_TOKEN_HASH_DOLLAR_1,
+        str_constants::SELECT_USER_ID_FROM_ADMIN_REFRESH_TOKENS_WHERE_TOKEN_HASH_DOLLAR_1,
     )
     .bind(secrecy::ExposeSecret::expose_secret(token_hash.0.as_ref()))
     .fetch_optional(&mut *tx)
@@ -233,7 +235,7 @@ pub(super) async fn refresh(
     .await
     .map_err(super::AdminApiError::Session)?;
     let login = sqlx::query_scalar::<_, String>(
-        str_constants::text::SELECT_LOGIN_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_AND_IS_BANNED,
+        str_constants::SELECT_LOGIN_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_AND_IS_BANNED,
     )
     .bind(admin_user_id.0)
     .fetch_optional(&mut *tx)
@@ -315,14 +317,16 @@ pub(super) async fn sign_out(
             peer,
         );
         let refresh_hash = super::hash_refresh_token_with_context(&refresh, &context_hash);
-        let _refresh_result = sqlx::query(str_constants::text::UPDATE_ADMIN_REFRESH_TOKENS_SET_REVOKED_AT_NOW_WHERE_TOKEN_HASH_DOLLAR)
-            .bind(secrecy::ExposeSecret::expose_secret(
-                refresh_hash.0.as_ref(),
-            ))
-            .bind(authenticated.id.0)
-            .execute(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+        let _refresh_result = sqlx::query(
+            str_constants::UPDATE_ADMIN_REFRESH_TOKENS_SET_REVOKED_AT_NOW_WHERE_TOKEN_HASH_DOLLAR,
+        )
+        .bind(secrecy::ExposeSecret::expose_secret(
+            refresh_hash.0.as_ref(),
+        ))
+        .bind(authenticated.id.0)
+        .execute(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     }
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
@@ -368,7 +372,7 @@ pub(super) async fn sessions(
     )
     .await?;
     sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-        str_constants::text::SELECT_ID_CREATED_AT_PATH_TEXT_EXPIRES_AT_PATH_TEXT_FROM_ADMIN,
+        str_constants::SELECT_ID_CREATED_AT_PATH_TEXT_EXPIRES_AT_PATH_TEXT_FROM_ADMIN,
     )
     .bind(authenticated.id.0)
     .fetch_all(auth.state.as_ref().pool.as_ref())
@@ -536,7 +540,7 @@ pub(super) async fn update_settings(
         .await
         .map_err(super::AdminApiError::from)?;
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::UPDATE_ADMIN_SYSTEM_SETTINGS_SET_SITE_NAME_COALESCE_DOLLAR_1_SITE_NAME,
+        str_constants::UPDATE_ADMIN_SYSTEM_SETTINGS_SET_SITE_NAME_COALESCE_DOLLAR_1_SITE_NAME,
     )
     .bind(site_name.as_ref().map(|value| value.as_ref().as_str()))
     .bind(tab_title.as_ref().map(|value| value.as_ref().as_str()))
@@ -661,15 +665,17 @@ pub(super) async fn update_user(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    sqlx::query_scalar::<_, bool>(str_constants::text::UPDATE_ADMIN_USERS_SET_LOGIN_COALESCE_DOLLAR_2_LOGIN_DISPLAY_NAME_COALESCE)
-        .bind(path.0.0)
-        .bind(login.as_ref().map(|value| value.as_ref().as_str()))
-        .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
-        .fetch_optional(&mut *tx)
-        .await
-        .map_err(map_unique_violation)?
-        .ok_or(super::AdminApiError::Conflict)
-        .map(drop)?;
+    sqlx::query_scalar::<_, bool>(
+        str_constants::UPDATE_ADMIN_USERS_SET_LOGIN_COALESCE_DOLLAR_2_LOGIN_DISPLAY_NAME_COALESCE,
+    )
+    .bind(path.0.0)
+    .bind(login.as_ref().map(|value| value.as_ref().as_str()))
+    .bind(display_name.as_ref().map(|value| value.as_ref().as_str()))
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(map_unique_violation)?
+    .ok_or(super::AdminApiError::Conflict)
+    .map(drop)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -709,7 +715,7 @@ pub(super) async fn set_user_password(
         .await
         .map_err(super::AdminApiError::from)?;
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::UPDATE_ADMIN_USERS_SET_PASSWORD_HASH_DOLLAR_2_WHERE_ID_DOLLAR_1,
+        str_constants::UPDATE_ADMIN_USERS_SET_PASSWORD_HASH_DOLLAR_2_WHERE_ID_DOLLAR_1,
     )
     .bind(path.0.0)
     .bind(password_hash.0.as_ref())
@@ -783,7 +789,7 @@ pub(super) async fn set_user_ban(
         }
     }
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::UPDATE_ADMIN_USERS_SET_IS_BANNED_DOLLAR_2_WHERE_ID_DOLLAR_1,
+        str_constants::UPDATE_ADMIN_USERS_SET_IS_BANNED_DOLLAR_2_WHERE_ID_DOLLAR_1,
     )
     .bind(path.0.0)
     .bind(is_banned)
@@ -855,7 +861,7 @@ pub(super) async fn delete_user(
         return Err(super::AdminApiError::Conflict);
     }
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::DELETE_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_RETURNING_TRUE,
+        str_constants::DELETE_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_RETURNING_TRUE,
     )
     .bind(path.0.0)
     .fetch_optional(&mut *tx)
@@ -895,7 +901,7 @@ pub(super) async fn create_role(
         .await
         .map_err(super::AdminApiError::from)?;
     let role_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::INSERT_INTO_ADMIN_ROLES_NAME_IS_SYSTEM_VALUES_DOLLAR_1_FALSE_RETURNING,
+        str_constants::INSERT_INTO_ADMIN_ROLES_NAME_IS_SYSTEM_VALUES_DOLLAR_1_FALSE_RETURNING,
     )
     .bind(name.as_ref())
     .fetch_one(&mut *tx)
@@ -941,7 +947,7 @@ pub(super) async fn update_role(
         .await
         .map_err(super::AdminApiError::from)?;
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::UPDATE_ADMIN_ROLES_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_AND,
+        str_constants::UPDATE_ADMIN_ROLES_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_AND,
     )
     .bind(path.0.0)
     .bind(name.as_ref())
@@ -980,7 +986,7 @@ pub(super) async fn delete_role(
         .await
         .map_err(super::AdminApiError::from)?;
     sqlx::query_scalar::<_, bool>(
-        str_constants::text::DELETE_FROM_ADMIN_ROLES_WHERE_ID_DOLLAR_1_AND_IS_SYSTEM_FALSE,
+        str_constants::DELETE_FROM_ADMIN_ROLES_WHERE_ID_DOLLAR_1_AND_IS_SYSTEM_FALSE,
     )
     .bind(path.0.0)
     .fetch_optional(&mut *tx)
@@ -1034,7 +1040,7 @@ pub(super) async fn set_role_permissions(
         .await
         .map_err(super::AdminApiError::from)?;
     let role_is_system = sqlx::query_scalar::<_, bool>(
-        str_constants::text::SELECT_IS_SYSTEM_FROM_ADMIN_ROLES_WHERE_ID_DOLLAR_1_FOR_UPDATE,
+        str_constants::SELECT_IS_SYSTEM_FROM_ADMIN_ROLES_WHERE_ID_DOLLAR_1_FOR_UPDATE,
     )
     .bind(path.0.0)
     .fetch_optional(&mut *tx)
@@ -1045,7 +1051,7 @@ pub(super) async fn set_role_permissions(
         return Err(super::AdminApiError::Conflict);
     }
     let existing_permissions = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_PERMISSIONS_WHERE_ID_ANY_DOLLAR_1,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_PERMISSIONS_WHERE_ID_ANY_DOLLAR_1,
     )
     .bind(&permission_ids)
     .fetch_one(&mut *tx)
@@ -1055,17 +1061,19 @@ pub(super) async fn set_role_permissions(
         return Err(super::AdminApiError::Validation);
     }
     let _deleted =
-        sqlx::query(str_constants::text::DELETE_FROM_ADMIN_ROLE_PERMISSIONS_WHERE_ROLE_ID_DOLLAR_1)
+        sqlx::query(str_constants::DELETE_FROM_ADMIN_ROLE_PERMISSIONS_WHERE_ROLE_ID_DOLLAR_1)
             .bind(path.0.0)
             .execute(&mut *tx)
             .await
             .map_err(super::AdminApiError::from)?;
-    let _inserted = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_ROLE_PERMISSIONS_ROLE_ID_PERMISSION_ID_SELECT_DOLLAR_1)
-        .bind(path.0.0)
-        .bind(&permission_ids)
-        .execute(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
+    let _inserted = sqlx::query(
+        str_constants::INSERT_INTO_ADMIN_ROLE_PERMISSIONS_ROLE_ID_PERMISSION_ID_SELECT_DOLLAR_1,
+    )
+    .bind(path.0.0)
+    .bind(&permission_ids)
+    .execute(&mut *tx)
+    .await
+    .map_err(super::AdminApiError::from)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -1115,7 +1123,7 @@ pub(super) async fn set_user_roles(
         .await
         .map_err(super::AdminApiError::from)?;
     let target_is_active = sqlx::query_scalar::<_, bool>(
-        str_constants::text::SELECT_NOT_IS_BANNED_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_FOR,
+        str_constants::SELECT_NOT_IS_BANNED_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_FOR,
     )
     .bind(path.0.0)
     .fetch_optional(&mut *tx)
@@ -1123,7 +1131,7 @@ pub(super) async fn set_user_roles(
     .map_err(super::AdminApiError::from)?
     .ok_or(super::AdminApiError::Conflict)?;
     let existing_roles = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLES_WHERE_ID_ANY_DOLLAR_1,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLES_WHERE_ID_ANY_DOLLAR_1,
     )
     .bind(&role_ids)
     .fetch_one(&mut *tx)
@@ -1133,13 +1141,13 @@ pub(super) async fn set_user_roles(
         return Err(super::AdminApiError::Validation);
     }
     let admin_role_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_ADMIN_AND_IS_SYSTEM_TRUE,
+        str_constants::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_ADMIN_AND_IS_SYSTEM_TRUE,
     )
     .fetch_one(&mut *tx)
     .await
     .map_err(super::AdminApiError::from)?;
     let target_was_admin = sqlx::query_scalar::<_, bool>(
-        str_constants::text::SELECT_EXISTS_SELECT_1_FROM_ADMIN_USER_ROLES_WHERE_USER_ID_DOLLAR,
+        str_constants::SELECT_EXISTS_SELECT_1_FROM_ADMIN_USER_ROLES_WHERE_USER_ID_DOLLAR,
     )
     .bind(path.0.0)
     .bind(admin_role_id)
@@ -1147,23 +1155,24 @@ pub(super) async fn set_user_roles(
     .await
     .map_err(super::AdminApiError::from)?;
     if target_is_active && target_was_admin && !role_ids.contains(&admin_role_id) {
-        let active_admin_count = sqlx::query_scalar::<_, i64>(str_constants::text::SELECT_COUNT_DISTINCT_USERS_ID_FROM_ADMIN_USERS_USERS_JOIN_ADMIN_USER)
-            .bind(admin_role_id)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+        let active_admin_count = sqlx::query_scalar::<_, i64>(
+            str_constants::SELECT_COUNT_DISTINCT_USERS_ID_FROM_ADMIN_USERS_USERS_JOIN_ADMIN_USER,
+        )
+        .bind(admin_role_id)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
         if active_admin_count <= 1i64 {
             return Err(super::AdminApiError::Conflict);
         }
     }
-    let _deleted =
-        sqlx::query(str_constants::text::DELETE_FROM_ADMIN_USER_ROLES_WHERE_USER_ID_DOLLAR_1)
-            .bind(path.0.0)
-            .execute(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+    let _deleted = sqlx::query(str_constants::DELETE_FROM_ADMIN_USER_ROLES_WHERE_USER_ID_DOLLAR_1)
+        .bind(path.0.0)
+        .execute(&mut *tx)
+        .await
+        .map_err(super::AdminApiError::from)?;
     let _inserted = sqlx::query(
-        str_constants::text::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1_ALT,
+        str_constants::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1_ALT,
     )
     .bind(path.0.0)
     .bind(&role_ids)
@@ -1208,7 +1217,7 @@ pub(super) async fn list_users(
     )
     .await?;
     let rows = sqlx::query_as::<_, (i64, String, String, bool)>(
-        str_constants::text::SELECT_ID_LOGIN_DISPLAY_NAME_IS_BANNED_FROM_ADMIN_USERS_ORDER_BY,
+        str_constants::SELECT_ID_LOGIN_DISPLAY_NAME_IS_BANNED_FROM_ADMIN_USERS_ORDER_BY,
     )
     .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
@@ -1242,7 +1251,7 @@ pub(super) async fn list_roles(
     )
     .await?;
     let rows = sqlx::query_as::<_, (i64, String, bool)>(
-        str_constants::text::SELECT_ID_NAME_IS_SYSTEM_FROM_ADMIN_ROLES_ORDER_BY_NAME,
+        str_constants::SELECT_ID_NAME_IS_SYSTEM_FROM_ADMIN_ROLES_ORDER_BY_NAME,
     )
     .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
@@ -1274,7 +1283,7 @@ pub(super) async fn list_permissions(
     )
     .await?;
     let rows = sqlx::query_as::<_, (i64, String)>(
-        str_constants::text::SELECT_ID_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+        str_constants::SELECT_ID_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )
     .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
@@ -1318,7 +1327,7 @@ pub(super) async fn settings(
             Option<String>,
         ),
     >(
-        str_constants::text::SELECT_SITE_NAME_TAB_TITLE_MAIN_LOGO_PRIMARY_COLOR_DEFAULT_ADMIN_ROUTE,
+        str_constants::SELECT_SITE_NAME_TAB_TITLE_MAIN_LOGO_PRIMARY_COLOR_DEFAULT_ADMIN_ROUTE,
     )
     .fetch_one(auth.state.as_ref().pool.as_ref())
     .await

@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn shared_json_contract_helper_round_trips_filter_fixture() {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
-            macros_helpers::json_contract::JsonFixtureRef::from(str_constants::text::VALUE_1_2),
+            macros_helpers::json_contract::JsonFixtureRef::from(str_constants::VALUE_1_2),
         )
         .expect("46f3bec1");
     }
@@ -17,20 +17,20 @@ mod tests {
         let cases = [
             (
                 where_filters::TextSearchMode::Contains,
-                str_constants::text::PERCENT_A_PERCENT_B_PERCENT,
+                str_constants::PERCENT_A_PERCENT_B_PERCENT,
             ),
             (
                 where_filters::TextSearchMode::StartsWith,
-                str_constants::text::A_PERCENT_B_PERCENT,
+                str_constants::A_PERCENT_B_PERCENT,
             ),
             (
                 where_filters::TextSearchMode::EndsWith,
-                str_constants::text::PERCENT_A_PERCENT_B,
+                str_constants::PERCENT_A_PERCENT_B,
             ),
         ];
         cases.into_iter().for_each(|(mode, expected)| {
             let pattern =
-                where_filters::build_text_search_pattern(str_constants::text::A_PERCENT_B, mode)
+                where_filters::build_text_search_pattern(str_constants::A_PERCENT_B, mode)
                     .expect("bfcd929a");
             assert_eq!(pattern.as_ref(), expected);
         });
@@ -41,7 +41,7 @@ mod tests {
             where_filters::build_text_search_pattern("", where_filters::TextSearchMode::Contains),
             Err(where_filters::TextSearchValueError::Empty)
         );
-        let oversized = str_constants::text::A_ALT
+        let oversized = str_constants::A_ALT
             .repeat(where_filters::TEXT_SEARCH_MAXIMUM_INPUT_BYTES.saturating_add(1usize));
         assert_eq!(
             where_filters::build_text_search_pattern(
@@ -59,11 +59,11 @@ mod tests {
         let filter = where_filters::PgTypeWhereTextSearch::try_new(
             pg_crud_common::Operator::And,
             where_filters::TextSearchMode::Contains,
-            str_constants::text::LITERAL_PERCENT_VALUE.to_owned(),
+            str_constants::LITERAL_PERCENT_VALUE.to_owned(),
         )
         .expect("20d018ab");
         let mut parameter_index = 4u64;
-        let column = str_constants::text::DISPLAY_NAME.to_owned();
+        let column = str_constants::DISPLAY_NAME.to_owned();
         let fragment = <where_filters::PgTypeWhereTextSearch as pg_crud_common::PgTypeWhereFilter>::query_part(
             &filter,
             &mut parameter_index,
@@ -77,9 +77,9 @@ mod tests {
     #[test]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
-            str_constants::text::GENERATE_WHERE_FLTS_TEST_CNT,
-            str_constants::text::PG_CRUD_WHERE_FILTERS,
-            str_constants::text::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
+            str_constants::GENERATE_WHERE_FLTS_TEST_CNT,
+            str_constants::PG_CRUD_WHERE_FILTERS,
+            str_constants::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
             &format!(
                 "#![allow(dead_code)]\n#![allow(unreachable_pub)]\n#![allow(unused_imports)]\n#[allow(clippy::wildcard_imports)]\nuse where_filters::*;\n{}",
                 generate_where_filters_src::generate_where_filters(

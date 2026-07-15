@@ -16,14 +16,14 @@ pub fn bool_enum_to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .into();
     }
     let rest_text = iter.collect::<proc_macro2::TokenStream>().to_string();
-    let Some(rest) = rest_text.strip_prefix(str_constants::text::FALSE_FAT_ARROW) else {
+    let Some(rest) = rest_text.strip_prefix(str_constants::FALSE_FAT_ARROW) else {
         return workspace_macro_helpers::compile_error_token_stream(
             str_constants::compile_error::CE_046,
         )
         .into_inner()
         .into();
     };
-    let Some((false_expr, true_part)) = rest.split_once(str_constants::text::TRUE_FAT_ARROW) else {
+    let Some((false_expr, true_part)) = rest.split_once(str_constants::TRUE_FAT_ARROW) else {
         return workspace_macro_helpers::compile_error_token_stream(
             str_constants::compile_error::CE_047,
         )

@@ -381,8 +381,7 @@ pub fn generate_pg_types(
     impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         type Error = String;
         fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
-            let cant_supp_nullable_variants_message =
-                str_constants::text::CANT_SUPPORT_NULLABLE_VARIANTS;
+            let cant_supp_nullable_variants_message = str_constants::CANT_SUPPORT_NULLABLE_VARIANTS;
             match &v.pg_type.can_be_nullable() {
                 CanBeNullable::False => {
                     if matches!(&v.is_nullable, pg_crud_macros_common::IsNullable::True) {
@@ -684,7 +683,7 @@ pub fn generate_pg_types(
             let mut check_accumulator = std::collections::HashSet::with_capacity(pg_type_records.len());
             let duplicate_found = pg_type_records.iter().any(|element| !check_accumulator.insert(*element));
             if duplicate_found {
-                let message_value = str_constants::text::DUPLICATE_PG_TYPE_CONFIG_ENTRY;
+                let message_value = str_constants::DUPLICATE_PG_TYPE_CONFIG_ENTRY;
                 return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
                     quote::quote! {compile_error!(#message_value);},
                 );
@@ -998,8 +997,8 @@ pub fn generate_pg_types(
             }
             WireKind::TimeChrono | WireKind::TimeTime => {
                 let (minute_name, second_name, microsecond_name) = match crate::schema::wire_kind(pg_type_dsc) {
-                    WireKind::TimeChrono => (str_constants::text::MIN, str_constants::text::SEC, str_constants::text::MICRO),
-                    WireKind::TimeTime => (str_constants::text::MINUTE, str_constants::text::SECOND_ALT, str_constants::text::MICROSECOND),
+                    WireKind::TimeChrono => (str_constants::MIN, str_constants::SEC, str_constants::MICRO),
+                    WireKind::TimeTime => (str_constants::MINUTE, str_constants::SECOND_ALT, str_constants::MICROSECOND),
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -1039,7 +1038,7 @@ pub fn generate_pg_types(
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::schema::wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
-                    WireKind::TimestampTz => str_constants::text::DATE_NAIVE,
+                    WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
                 quote::quote! {
@@ -1071,7 +1070,7 @@ pub fn generate_pg_types(
                     WireKind::RangeTimestamp | WireKind::RangeTimestampTz => {
                         let date_name = match crate::schema::wire_kind(pg_type_dsc) {
                             WireKind::RangeTimestamp => str_constants::pg_crud::PG_DATE,
-                            WireKind::RangeTimestampTz => str_constants::text::DATE_NAIVE,
+                            WireKind::RangeTimestampTz => str_constants::DATE_NAIVE,
                             _ => unreachable!(),
                         };
                         quote::quote! {
@@ -3733,7 +3732,7 @@ pub fn generate_pg_types(
             };
             let select_only_ids_and_select_only_updated_ids_query_common_token_stream = {
                 let format_token_stream = generate_quotes::dq_token_stream(&{
-                    let column_comma = str_constants::text::COLUMN_ALT;
+                    let column_comma = str_constants::COLUMN_ALT;
                     column_comma.to_owned()
                 });
                 quote::quote! {
@@ -3783,7 +3782,7 @@ pub fn generate_pg_types(
                     let maybe_primary_key_is_primary_key_token_stream = quote::quote! {pg_types_common::maybe_primary_key(is_primary_key)};
                     let column_pg_query_type = format!("{{column}} {pg_query_type}");
                     let column_pg_query_type_non_null = format!("{{column}} {pg_query_type} not null");
-                    let space_extra_parameter = str_constants::text::TEXT_ALT_3;
+                    let space_extra_parameter = str_constants::TEXT_ALT_3;
                     match (&is_nullable, &can_be_primary_key) {
                         (pg_crud_macros_common::IsNullable::False, CanBePrimaryKey::False) => {
                             let format_token_stream = generate_quotes::dq_token_stream(&column_pg_query_type_non_null);
@@ -4004,11 +4003,11 @@ pub fn generate_pg_types(
                                                     &sqlx_pg_types_pg_range_included_unbounded_token_stream,
                                                     &generate_if_start_end_eq_token_stream(
                                                         &sqlx_pg_types_pg_range_unbounded_unbounded_token_stream,
-                                                        &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::text::VALUE_98A0357B_D21A_4949_A101_C641528D2376), &generate_excluded_end_succ_opt_token_stream(&str_constants::text::FE53A6B9_2D7E_4605_9F5A_7F5C21CC01E6)),
+                                                        &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::VALUE_98A0357B_D21A_4949_A101_C641528D2376), &generate_excluded_end_succ_opt_token_stream(&str_constants::FE53A6B9_2D7E_4605_9F5A_7F5C21CC01E6)),
                                                     ),
-                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::text::D8A26635_C478_4A2A_ACF4_BF1765702889), &excluded_end_token_stream)),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::text::VALUE_9811C7C7_D7F5_4FB7_9D25_AFFB0BD4F5FB), &unbounded_upper_camel_case),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &generate_excluded_end_succ_opt_token_stream(&str_constants::text::D6288F19_0A24_42AD_9E69_36036D9F2C1D)),
+                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::D8A26635_C478_4A2A_ACF4_BF1765702889), &excluded_end_token_stream)),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&str_constants::VALUE_9811C7C7_D7F5_4FB7_9D25_AFFB0BD4F5FB), &unbounded_upper_camel_case),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &generate_excluded_end_succ_opt_token_stream(&str_constants::D6288F19_0A24_42AD_9E69_36036D9F2C1D)),
                                                     &sqlx_pg_types_pg_range_unbounded_excluded_token_stream,
                                                 )
                                             }
@@ -5049,15 +5048,15 @@ pub fn generate_pg_types(
         };
         let frontend_parse_json_value_token_stream = match crate::rust_type::wire_kind(pg_type_dsc) {
             WireKind::Date | WireKind::Inet | WireKind::Mac | WireKind::String | WireKind::Uuid => quote::quote! {serde_json::Value::String(value.as_ref().to_owned())},
-            WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::text::MIN, str_constants::text::SEC, str_constants::text::MICRO),
-            WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::text::MINUTE, str_constants::text::SECOND_ALT, str_constants::text::MICROSECOND),
+            WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::MIN, str_constants::SEC, str_constants::MICRO),
+            WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, str_constants::MINUTE, str_constants::SECOND_ALT, str_constants::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
-                    WireKind::TimestampTz => str_constants::text::DATE_NAIVE,
+                    WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
-                let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, str_constants::text::MIN, str_constants::text::SEC, str_constants::text::MICRO);
+                let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, str_constants::MIN, str_constants::SEC, str_constants::MICRO);
                 quote::quote! {{
                     let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
                     let time = #time_json_token_stream;
@@ -5091,15 +5090,15 @@ pub fn generate_pg_types(
             }
         }};
         let frontend_format_value_token_stream = match crate::rust_type::wire_kind(pg_type_dsc) {
-            WireKind::TimeChrono => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::text::MIN, str_constants::text::SEC, str_constants::text::MICRO),
-            WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::text::MINUTE, str_constants::text::SECOND_ALT, str_constants::text::MICROSECOND),
+            WireKind::TimeChrono => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::MIN, str_constants::SEC, str_constants::MICRO),
+            WireKind::TimeTime => frontend_format_time_token_stream(&quote::quote! {value}, str_constants::MINUTE, str_constants::SECOND_ALT, str_constants::MICROSECOND),
             WireKind::Timestamp | WireKind::TimestampTz => {
                 let date_name = match crate::rust_type::wire_kind(pg_type_dsc) {
                     WireKind::Timestamp => str_constants::pg_crud::PG_DATE,
-                    WireKind::TimestampTz => str_constants::text::DATE_NAIVE,
+                    WireKind::TimestampTz => str_constants::DATE_NAIVE,
                     _ => unreachable!(),
                 };
-                let time_token_stream = frontend_format_time_token_stream(&quote::quote! {time}, str_constants::text::MIN, str_constants::text::SEC, str_constants::text::MICRO);
+                let time_token_stream = frontend_format_time_token_stream(&quote::quote! {time}, str_constants::MIN, str_constants::SEC, str_constants::MICRO);
                 quote::quote! {{
                     let object = value.as_object().ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp wire value must be an object".to_owned()).unwrap_or_default())?;
                     let date = object.get(#date_name).and_then(serde_json::Value::as_str).ok_or_else(|| frontend_contract::FormValueError::try_from("timestamp date wire field is missing".to_owned()).unwrap_or_default())?;
@@ -5233,7 +5232,7 @@ pub fn generate_pg_types(
     let pg_table_cols_token_stream = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_common::ParseTokenStreamStrings::from(cols_token_stream),
-            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::text::VALUE_79EE6381),
+            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::VALUE_79EE6381),
         );
         quote::quote! {
             struct PgTableColsUsingPgTypes {
@@ -5243,14 +5242,14 @@ pub fn generate_pg_types(
     };
     macros_helpers::ts_writer::maybe_write_token_stream_into_file(
         generate_pg_types_config.pg_table_cols_write_into_file,
-        str_constants::text::PG_TABLE_COLS_USING_PG_TYPES,
+        str_constants::PG_TABLE_COLS_USING_PG_TYPES,
         macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&pg_table_cols_token_stream),
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     let generated = {
         let ts = parse_strs_to_ts2_vec(
             pg_crud_macros_common::ParseTokenStreamStrings::from(pg_type_array),
-            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::text::E0C9257D),
+            pg_crud_macros_common::ParseErrorIdRef::from(str_constants::E0C9257D),
         );
         pg_crud_macros_common::token_stream_helpers::generate_mod_with_pub_use_token_stream(
             &generate_pg_types_mod_snake_case,

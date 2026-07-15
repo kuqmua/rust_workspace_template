@@ -46,8 +46,8 @@ pub struct AdminRoleName(String);
 pub struct AdminPassword(String);
 impl std::fmt::Debug for AdminPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::text::ADMINPASSWORD)
-            .field(&str_constants::text::REDACTED_ALT_3)
+        f.debug_tuple(str_constants::ADMINPASSWORD)
+            .field(&str_constants::REDACTED_ALT_3)
             .finish()
     }
 }
@@ -667,13 +667,13 @@ pub enum AdminApiErrorCode {
 impl std::fmt::Display for AdminApiErrorCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            Self::AuthenticationFailed => str_constants::text::AUTHENTICATION_FAILED,
-            Self::AuthorizationFailed => str_constants::text::AUTHORIZATION_FAILED,
-            Self::Conflict => str_constants::text::CONFLICT,
-            Self::CsrfFailed => str_constants::text::CSRF_VALIDATION_FAILED,
-            Self::InternalError => str_constants::text::INTERNAL_ERROR,
-            Self::RateLimited => str_constants::text::RATE_LIMITED,
-            Self::ValidationFailed => str_constants::text::VALIDATION_FAILED,
+            Self::AuthenticationFailed => str_constants::AUTHENTICATION_FAILED,
+            Self::AuthorizationFailed => str_constants::AUTHORIZATION_FAILED,
+            Self::Conflict => str_constants::CONFLICT,
+            Self::CsrfFailed => str_constants::CSRF_VALIDATION_FAILED,
+            Self::InternalError => str_constants::INTERNAL_ERROR,
+            Self::RateLimited => str_constants::RATE_LIMITED,
+            Self::ValidationFailed => str_constants::VALIDATION_FAILED,
         })
     }
 }
@@ -729,7 +729,7 @@ pub enum AdminRoutePathError {
 impl std::fmt::Display for AdminRoutePathError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::TooLong => f.write_str(str_constants::text::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG),
+            Self::TooLong => f.write_str(str_constants::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG),
         }
     }
 }
@@ -817,14 +817,14 @@ impl AdminPage {
     #[must_use]
     pub fn title(self) -> frontend_contract::ContractStr {
         frontend_contract::ContractStr::from(match self {
-            Self::Audit => str_constants::text::AUDIT_LOG,
-            Self::Metrics => str_constants::text::METRICS_ALT,
-            Self::OpenApi => str_constants::text::API_ALT,
-            Self::Permissions => str_constants::text::PERMISSIONS,
-            Self::Roles => str_constants::text::ROLES,
-            Self::Settings => str_constants::text::SETTINGS,
-            Self::Users => str_constants::text::USERS,
-            Self::Version => str_constants::text::VERSION_ALT,
+            Self::Audit => str_constants::AUDIT_LOG,
+            Self::Metrics => str_constants::METRICS_ALT,
+            Self::OpenApi => str_constants::API_ALT,
+            Self::Permissions => str_constants::PERMISSIONS,
+            Self::Roles => str_constants::ROLES,
+            Self::Settings => str_constants::SETTINGS,
+            Self::Users => str_constants::USERS,
+            Self::Version => str_constants::VERSION_ALT,
         })
     }
     #[must_use]
@@ -945,7 +945,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::text::METRICS,
+                str_constants::METRICS,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::OpenApi => (
@@ -956,7 +956,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::text::OPENAPI_JSON,
+                str_constants::OPENAPI_JSON,
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Permissions => (
@@ -1160,7 +1160,7 @@ impl AdminRoute {
                 format!("{}/{id}/roles", str_constants::admin_api_paths::USERS)
             }
             Self::RevokeSession => String::from(str_constants::admin_api_paths::AUTH_SESSION),
-            Self::Version => String::from(str_constants::text::API_V1_GIT_INFO),
+            Self::Version => String::from(str_constants::API_V1_GIT_INFO),
             value @ (Self::Audit
             | Self::CreateRole
             | Self::CreateUser
@@ -1200,34 +1200,34 @@ mod tests {
     #[test]
     fn request_payloads_reject_unknown_fields() {
         assert_rejects_unknown_field::<super::AdminSignInReq>(
-            str_constants::text::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
+            str_constants::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminCreateUserReq>(
-            str_constants::text::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
+            str_constants::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminUpdateUserReq>(
-            str_constants::text::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
+            str_constants::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminSetUserPasswordReq>(
-            str_constants::text::PASSWORD_SECRET_UNKNOWN_TRUE,
+            str_constants::PASSWORD_SECRET_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminSetUserBanReq>(
-            str_constants::text::IS_BANNED_TRUE_UNKNOWN_TRUE,
+            str_constants::IS_BANNED_TRUE_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminCreateRoleReq>(
-            str_constants::text::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
+            str_constants::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminUpdateRoleReq>(
-            str_constants::text::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
+            str_constants::NAME_ADMINISTRATOR_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminSetUserRolesReq>(
-            str_constants::text::ROLE_IDS_1_UNKNOWN_TRUE,
+            str_constants::ROLE_IDS_1_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminSetRolePermissionsReq>(
-            str_constants::text::PERMISSION_IDS_1_UNKNOWN_TRUE,
+            str_constants::PERMISSION_IDS_1_UNKNOWN_TRUE,
         );
         assert_rejects_unknown_field::<super::AdminUpdateSettingsReq>(
-            str_constants::text::SITE_NAME_ADMIN_UNKNOWN_TRUE,
+            str_constants::SITE_NAME_ADMIN_UNKNOWN_TRUE,
         );
     }
     #[test]
@@ -1270,8 +1270,8 @@ mod tests {
     }
     #[test]
     fn password_debug_is_redacted() {
-        let password = super::AdminPassword::try_from(String::from(str_constants::text::SECRET))
-            .expect("9f3f5164");
+        let password =
+            super::AdminPassword::try_from(String::from(str_constants::SECRET)).expect("9f3f5164");
         assert!(!format!("{password:?}").contains("secret"));
     }
 }

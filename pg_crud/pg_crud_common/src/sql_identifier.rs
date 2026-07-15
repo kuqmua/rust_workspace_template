@@ -75,14 +75,14 @@ impl SqlSelectBuilder {
         let mut query =
             SqlQueryText::try_from(String::with_capacity(columns_len.saturating_add(32usize)))
                 .unwrap_or_else(|_error| SqlQueryText(String::new()));
-        query.0.push_str(str_constants::text::SELECT);
+        query.0.push_str(str_constants::SELECT);
         self.columns.iter().enumerate().for_each(|(idx, column)| {
             if idx != 0usize {
-                query.0.push_str(str_constants::text::TEXT_ALT_6);
+                query.0.push_str(str_constants::TEXT_ALT_6);
             }
             query.0.push_str(column.as_ref());
         });
-        query.0.push_str(str_constants::text::FROM);
+        query.0.push_str(str_constants::FROM);
         self.table.push_to(&mut query);
         crate::QueryPartFragment::try_from(query.0).unwrap_or_else(crate::QueryPartFragment::from)
     }
@@ -103,9 +103,9 @@ mod tests {
     )]
     fn sql_identifier_uses_restricted_ascii_grammar() {
         [
-            str_constants::text::TABLE_ALT,
-            str_constants::text::TABLE,
-            str_constants::text::TABLE_2,
+            str_constants::TABLE_ALT,
+            str_constants::TABLE,
+            str_constants::TABLE_2,
         ]
         .into_iter()
         .for_each(|value| {
@@ -113,27 +113,27 @@ mod tests {
         });
         [
             str_constants::pg_crud::EMPTY_SQL_SUFFIX,
-            str_constants::text::VALUE_2TABLE,
-            str_constants::text::TABLE_NAME,
-            str_constants::text::NON_ASCII_U_E9,
-            str_constants::text::TABLE_NAME_ALT,
+            str_constants::VALUE_2TABLE,
+            str_constants::TABLE_NAME,
+            str_constants::NON_ASCII_U_E9,
+            str_constants::TABLE_NAME_ALT,
         ]
         .into_iter()
         .for_each(|value| {
             let _error = super::SqlIdentifier::try_from(value.to_owned())
-                .expect_err(str_constants::text::F698FD6D);
+                .expect_err(str_constants::F698FD6D);
         });
     }
     #[test]
     fn query_builder_accepts_only_validated_identifiers() {
         let query = super::SqlSelectBuilder::new(
             super::SqlQualifiedIdentifier::new(
-                identifier(str_constants::text::PUBLIC),
-                identifier(str_constants::text::USERS_ALT),
+                identifier(str_constants::PUBLIC),
+                identifier(str_constants::USERS_ALT),
             ),
             vec![
                 identifier(str_constants::sql_names::ID),
-                identifier(str_constants::text::LOGIN),
+                identifier(str_constants::LOGIN),
             ],
         )
         .build();

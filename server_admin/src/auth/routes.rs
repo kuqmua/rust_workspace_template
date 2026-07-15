@@ -18,38 +18,38 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
             let response = operation
                 .responses
                 .responses
-                .entry(str_constants::text::VALUE_429.to_owned())
+                .entry(str_constants::VALUE_429.to_owned())
                 .or_insert_with(|| {
                     utoipa::openapi::RefOr::T(utoipa::openapi::response::Response::new(
-                        str_constants::text::REQUEST_RATE_LIMIT_EXCEEDED,
+                        str_constants::REQUEST_RATE_LIMIT_EXCEEDED,
                     ))
                 });
             if let utoipa::openapi::RefOr::T(response_value) = response {
                 let _previous_header = response_value.headers.insert(
-                    str_constants::text::RETRY_AFTER.to_owned(),
+                    str_constants::RETRY_AFTER.to_owned(),
                     utoipa::openapi::header::Header::default(),
                 );
             }
         });
     if let Some(components) = document.components.as_mut() {
         components.add_security_scheme(
-            str_constants::text::ADMIN_COOKIE,
+            str_constants::ADMIN_COOKIE,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Cookie(
                     utoipa::openapi::security::ApiKeyValue::with_description(
                         str_constants::server_admin::ACCESS_COOKIE_NAME,
-                        str_constants::text::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
+                        str_constants::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
                     ),
                 ),
             ),
         );
         components.add_security_scheme(
-            str_constants::text::ADMIN_CSRF,
+            str_constants::ADMIN_CSRF,
             utoipa::openapi::security::SecurityScheme::ApiKey(
                 utoipa::openapi::security::ApiKey::Header(
                     utoipa::openapi::security::ApiKeyValue::with_description(
-                        str_constants::text::X_CSRF_TOKEN,
-                        str_constants::text::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
+                        str_constants::X_CSRF_TOKEN,
+                        str_constants::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
                     ),
                 ),
             ),

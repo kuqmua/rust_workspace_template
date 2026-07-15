@@ -29,36 +29,32 @@ where
 }
 fn router() -> AxumAdminApiTestRouter {
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .connect_lazy(
-            str_constants::text::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
-        )
+        .connect_lazy(str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect("27db915c");
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_900,
+            str_constants::VALUE_900,
         )),
         &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_3600,
+            str_constants::VALUE_3600,
         )),
-        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef(str_constants::text::VALUE_20)),
-        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_2,
-        )),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef(str_constants::VALUE_2)),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_1,
+            str_constants::VALUE_1,
         )),
-        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef(str_constants::text::FALSE)),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef(str_constants::FALSE)),
         &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST,
+            str_constants::INTEGRATION_TEST,
         )),
         &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST_ADMIN,
+            str_constants::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::CorsAllowOrigin(str_constants::text::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
     )
     .expect("f7d8c961");
     AxumAdminApiTestRouter(axum::Router::from(server_admin::auth::routes(
@@ -69,29 +65,27 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::auth::AdminAuthSvcState::try_new(
         app_state::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
         )),
         &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_900,
+            str_constants::VALUE_900,
         )),
         &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_3600,
+            str_constants::VALUE_3600,
         )),
-        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef(str_constants::text::VALUE_20)),
-        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_2,
-        )),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef(str_constants::VALUE_2)),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef(
-            str_constants::text::VALUE_1,
+            str_constants::VALUE_1,
         )),
-        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef(str_constants::text::FALSE)),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef(str_constants::FALSE)),
         &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST,
+            str_constants::INTEGRATION_TEST,
         )),
         &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef(
-            str_constants::text::INTEGRATION_TEST_ADMIN,
+            str_constants::INTEGRATION_TEST_ADMIN,
         )),
-        &config_lib::CorsAllowOrigin(str_constants::text::HTTP_LOCALHOST.to_owned()),
+        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
     )
     .expect("a59d73c1");
     AxumAdminApiTestRouter(axum::Router::from(server_admin::auth::routes(
@@ -111,7 +105,7 @@ fn request_with_peer(
         body,
         cookie,
         csrf,
-        StdAdminApiTestStrRef(str_constants::text::VALUE_127_0_0_1_43210),
+        StdAdminApiTestStrRef(str_constants::VALUE_127_0_0_1_43210),
     )
 }
 fn request_with_peer_at(
@@ -125,16 +119,13 @@ fn request_with_peer_at(
     let mut builder = http::Request::builder()
         .method(method.0)
         .uri(uri.0)
-        .header(
-            http::header::CONTENT_TYPE,
-            str_constants::text::APPLICATION_JSON,
-        )
-        .header(http::header::ORIGIN, str_constants::text::HTTP_LOCALHOST);
+        .header(http::header::CONTENT_TYPE, str_constants::APPLICATION_JSON)
+        .header(http::header::ORIGIN, str_constants::HTTP_LOCALHOST);
     if let Some(value) = cookie {
         builder = builder.header(http::header::COOKIE, value.0);
     }
     if let Some(value) = csrf {
-        builder = builder.header(str_constants::text::X_CSRF_TOKEN_ALT, value.0);
+        builder = builder.header(str_constants::X_CSRF_TOKEN_ALT, value.0);
     }
     let mut request = builder
         .body(axum::body::Body::from(body.0.to_owned()))
@@ -195,7 +186,7 @@ async fn invalid_access_cookie_is_rejected_before_database_io() {
             .uri(str_constants::admin_api_paths::AUTH_ME)
             .header(
                 http::header::COOKIE,
-                str_constants::text::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
+                str_constants::ADMIN_ACCESS_TOKEN_INVALID_JWT_TOKEN,
             )
             .body(axum::body::Body::empty())
             .expect("819acd53"),
@@ -209,7 +200,7 @@ async fn unknown_admin_api_route_is_not_captured_by_spa_fallback() {
     let response = tower::ServiceExt::oneshot(
         router().0,
         http::Request::builder()
-            .uri(str_constants::text::NOT_AN_API_ROUTE)
+            .uri(str_constants::NOT_AN_API_ROUTE)
             .body(axum::body::Body::empty())
             .expect("1ca76f8d"),
     )
@@ -242,7 +233,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_ALT),
+            StdAdminApiTestStrRef(str_constants::LOGIN_ALT),
             None,
             None,
         )
@@ -258,7 +249,7 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         malformed_response.headers().get(http::header::CONTENT_TYPE),
         Some(&http::HeaderValue::from_static("application/problem+json")),
     );
-    let oversized_password = str_constants::text::X.repeat(65_537usize);
+    let oversized_password = str_constants::X.repeat(65_537usize);
     let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
     let oversized_response = tower::ServiceExt::oneshot(
         router().0,
@@ -288,10 +279,7 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         let mut builder = http::Request::builder()
             .method(http::Method::POST)
             .uri(str_constants::admin_api_paths::AUTH_SIGN_IN)
-            .header(
-                http::header::CONTENT_TYPE,
-                str_constants::text::APPLICATION_JSON,
-            );
+            .header(http::header::CONTENT_TYPE, str_constants::APPLICATION_JSON);
         if let Some(value) = origin {
             builder = builder.header(http::header::ORIGIN, value);
         }
@@ -300,11 +288,11 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         }
         let mut request = builder
             .body(axum::body::Body::from(
-                str_constants::text::LOGIN_ADMIN_PASSWORD_PASSWORD,
+                str_constants::LOGIN_ADMIN_PASSWORD_PASSWORD,
             ))
             .expect("168060a3");
         let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
-            str_constants::text::VALUE_127_0_0_1_43210
+            str_constants::VALUE_127_0_0_1_43210
                 .parse::<std::net::SocketAddr>()
                 .expect("c90cba14"),
         ));
@@ -320,8 +308,8 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
     let blocked_origin_response = tower::ServiceExt::oneshot(
         router().0,
         make_request(
-            Some(str_constants::text::HTTP_BLOCKED_EXAMPLE),
-            Some(str_constants::text::HTTP_LOCALHOST_ADMIN_SIGN_IN),
+            Some(str_constants::HTTP_BLOCKED_EXAMPLE),
+            Some(str_constants::HTTP_LOCALHOST_ADMIN_SIGN_IN),
         ),
     )
     .await
@@ -349,12 +337,14 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("676c00f1");
-    let _truncate_result = sqlx::query(str_constants::text::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS)
-        .execute(&pool.0)
-        .await
-        .expect("97b5ad2f");
+    let _truncate_result = sqlx::query(
+        str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+    )
+    .execute(&pool.0)
+    .await
+    .expect("97b5ad2f");
     let password =
-        serde_json::from_str::<server_admin::AdminPassword>(str_constants::text::CORRECT_PASSWORD)
+        serde_json::from_str::<server_admin::AdminPassword>(str_constants::CORRECT_PASSWORD)
             .expect("703a8df2");
     let hasher = server_admin::AdminPasswordHasher::new(
         server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
@@ -363,9 +353,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     );
     let _admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::text::ROOT_ADMIN_ALT.to_owned())
+        server_admin::AdminLogin::try_from(str_constants::ROOT_ADMIN_ALT.to_owned())
             .expect("98c7e04a"),
-        server_admin::AdminDisplayName::try_from(str_constants::text::ROOT_ADMIN.to_owned())
+        server_admin::AdminDisplayName::try_from(str_constants::ROOT_ADMIN.to_owned())
             .expect("48efed01"),
         password,
         &hasher,
@@ -373,15 +363,14 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("e2c94d67");
     let original_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::text::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("1282b56e");
-    let repeated_password = serde_json::from_str::<server_admin::AdminPassword>(
-        str_constants::text::DIFFERENT_PASSWORD,
-    )
-    .expect("e411f376");
+    let repeated_password =
+        serde_json::from_str::<server_admin::AdminPassword>(str_constants::DIFFERENT_PASSWORD)
+            .expect("e411f376");
     assert!(matches!(
         server_admin::bootstrap_admin(
             app_state::SqlxPgPoolRef::from(&pool.0),
@@ -394,42 +383,44 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         Err(server_admin::AdminBootstrapError::AlreadyInitialized)
     ));
     let preserved_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::text::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("65ff827e");
     assert_eq!(preserved_password_hash, original_password_hash);
     let administrator_count =
-        sqlx::query_scalar::<_, i64>(str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS)
+        sqlx::query_scalar::<_, i64>(str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USERS)
             .fetch_one(&pool.0)
             .await
             .expect("ae89c3bd");
     assert_eq!(administrator_count, 1i64);
     let admin_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
     .expect("a61329bf");
     let dangling_role_links = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
     )
     .fetch_one(&pool.0)
     .await
     .expect("08ef120f");
     assert_eq!(dangling_role_links, 0i64);
-    let dangling_permission_links = sqlx::query_scalar::<_, i64>(str_constants::text::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES)
-        .fetch_one(&pool.0)
-        .await
-        .expect("aebf6dc8");
+    let dangling_permission_links = sqlx::query_scalar::<_, i64>(
+        str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
+    )
+    .fetch_one(&pool.0)
+    .await
+    .expect("aebf6dc8");
     assert_eq!(dangling_permission_links, 0i64);
     let wrong_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_ROOT_ADMIN_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_ROOT_ADMIN_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -443,7 +434,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_ROOT_ADMIN_PASSWORD_CORRECT_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_ROOT_ADMIN_PASSWORD_CORRECT_PASSWORD),
             None,
             None,
         )
@@ -454,15 +445,15 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(sign_in_response.status(), http::StatusCode::OK);
     let access = cookie_value(
         HttpAdminApiTestResponseRef(&sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef(str_constants::ADMIN_ACCESS_TOKEN),
     );
     let refresh = cookie_value(
         HttpAdminApiTestResponseRef(&sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef(str_constants::ADMIN_REFRESH_TOKEN_ALT),
     );
     let csrf = cookie_value(
         HttpAdminApiTestResponseRef(&sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef(str_constants::ADMIN_CSRF_TOKEN_ALT),
     );
     let cookie = format!(
         "admin_access_token={access}; admin_refresh_token={refresh}; admin_csrf_token={csrf}"
@@ -489,7 +480,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             StdAdminApiTestStrRef(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef(cookie.as_str())),
             None,
-            StdAdminApiTestStrRef(str_constants::text::VALUE_127_0_0_2_43210),
+            StdAdminApiTestStrRef(str_constants::VALUE_127_0_0_2_43210),
         )
         .0,
     )
@@ -516,7 +507,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(refresh_response.status(), http::StatusCode::OK);
     let refreshed_access = cookie_value(
         HttpAdminApiTestResponseRef(&refresh_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef(str_constants::ADMIN_ACCESS_TOKEN),
     );
     assert!(
         !refresh_response
@@ -528,7 +519,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     );
     let refreshed_csrf = cookie_value(
         HttpAdminApiTestResponseRef(&refresh_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef(str_constants::ADMIN_CSRF_TOKEN_ALT),
     );
     let active_cookie = format!(
         "admin_access_token={refreshed_access}; admin_refresh_token={refresh}; admin_csrf_token={refreshed_csrf}"
@@ -552,7 +543,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -569,7 +560,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -586,7 +577,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -603,7 +594,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::USERS),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             None,
         )
@@ -617,7 +608,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::USERS),
-            StdAdminApiTestStrRef(str_constants::text::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
         )
@@ -631,9 +622,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(
-                str_constants::text::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
-            ),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             None,
             None,
         )
@@ -644,15 +633,15 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(limited_sign_in_response.status(), http::StatusCode::OK);
     let limited_access = cookie_value(
         HttpAdminApiTestResponseRef(&limited_sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_ACCESS_TOKEN),
+        StdAdminApiTestStrRef(str_constants::ADMIN_ACCESS_TOKEN),
     );
     let limited_refresh = cookie_value(
         HttpAdminApiTestResponseRef(&limited_sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_REFRESH_TOKEN_ALT),
+        StdAdminApiTestStrRef(str_constants::ADMIN_REFRESH_TOKEN_ALT),
     );
     let limited_csrf = cookie_value(
         HttpAdminApiTestResponseRef(&limited_sign_in_response),
-        StdAdminApiTestStrRef(str_constants::text::ADMIN_CSRF_TOKEN_ALT),
+        StdAdminApiTestStrRef(str_constants::ADMIN_CSRF_TOKEN_ALT),
     );
     let limited_cookie = format!(
         "admin_access_token={limited_access}; admin_refresh_token={limited_refresh}; admin_csrf_token={limited_csrf}"
@@ -703,7 +692,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         http::StatusCode::UNAUTHORIZED
     );
     let limited_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
+        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER,
     )
     .fetch_one(&pool.0)
     .await
@@ -713,7 +702,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::PATCH),
             StdAdminApiTestStrRef(format!("/users/{limited_id}").as_str()),
-            StdAdminApiTestStrRef(str_constants::text::DISPLAY_NAME_UPDATED_USER),
+            StdAdminApiTestStrRef(str_constants::DISPLAY_NAME_UPDATED_USER),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
         )
@@ -727,7 +716,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(format!("/users/{limited_id}/ban").as_str()),
-            StdAdminApiTestStrRef(str_constants::text::IS_BANNED_TRUE),
+            StdAdminApiTestStrRef(str_constants::IS_BANNED_TRUE),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
         )
@@ -755,9 +744,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::AUTH_SIGN_IN),
-            StdAdminApiTestStrRef(
-                str_constants::text::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
-            ),
+            StdAdminApiTestStrRef(str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             None,
             None,
         )
@@ -802,7 +789,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::POST),
             StdAdminApiTestStrRef(str_constants::admin_api_paths::ROLES),
-            StdAdminApiTestStrRef(str_constants::text::NAME_TEMPORARY_ROLE),
+            StdAdminApiTestStrRef(str_constants::NAME_TEMPORARY_ROLE),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
         )
@@ -812,7 +799,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("6d9384fe");
     assert_eq!(create_role_response.status(), http::StatusCode::CREATED);
     let role_id = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
+        str_constants::SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE,
     )
     .fetch_one(&pool.0)
     .await
@@ -822,7 +809,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::PATCH),
             StdAdminApiTestStrRef(format!("/roles/{role_id}").as_str()),
-            StdAdminApiTestStrRef(str_constants::text::NAME_RENAMED_ROLE),
+            StdAdminApiTestStrRef(str_constants::NAME_RENAMED_ROLE),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
         )
@@ -915,7 +902,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("54b9dc03");
     assert_eq!(revoked_response.status(), http::StatusCode::UNAUTHORIZED);
-    let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(str_constants::text::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
+    let audit_outcomes = sqlx::query_as::<_, (bool, i64)>(str_constants::SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER)
         .fetch_all(&pool.0)
         .await
         .expect("3de105a4");
@@ -943,7 +930,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("6c338824");
-    let _truncate_result = sqlx::query(str_constants::text::TRUNCATE_PG_TABLE_IDEMPOTENCY)
+    let _truncate_result = sqlx::query(str_constants::TRUNCATE_PG_TABLE_IDEMPOTENCY)
         .execute(&pool)
         .await
         .expect("d93beb69");
@@ -954,7 +941,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         pg_table::PgTableIdempotencyRequest::new(
             pg_table::PgTableIdempotencyScope::new(
                 pg_table::PgTableIdempotencyActor::try_from(actor.0.to_owned()).expect("e6640036"),
-                pg_table::PgTableIdempotencyMethod::try_from(str_constants::text::POST.to_owned())
+                pg_table::PgTableIdempotencyMethod::try_from(str_constants::POST.to_owned())
                     .expect("94bc0508"),
                 pg_table::PgTableIdempotencyRoute::try_from(route.0.to_owned()).expect("4e8c040f"),
                 pg_table::PgTableIdempotencyKey::try_from(key.0.to_owned()).expect("2028024d"),
@@ -963,9 +950,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         )
     };
     let first_request = make_request(
-        StdAdminApiTestStrRef(str_constants::text::ACTOR_A),
-        StdAdminApiTestStrRef(str_constants::text::ITEMS_CM),
-        StdAdminApiTestStrRef(str_constants::text::KEY_A),
+        StdAdminApiTestStrRef(str_constants::ACTOR_A),
+        StdAdminApiTestStrRef(str_constants::ITEMS_CM),
+        StdAdminApiTestStrRef(str_constants::KEY_A),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
     );
     let first =
@@ -979,9 +966,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
             .expect("c5c45332");
     assert_eq!(pending, pg_table::PgTableIdempotencyBegin::InProgress);
     let conflicting_request = make_request(
-        StdAdminApiTestStrRef(str_constants::text::ACTOR_A),
-        StdAdminApiTestStrRef(str_constants::text::ITEMS_CM),
-        StdAdminApiTestStrRef(str_constants::text::KEY_A),
+        StdAdminApiTestStrRef(str_constants::ACTOR_A),
+        StdAdminApiTestStrRef(str_constants::ITEMS_CM),
+        StdAdminApiTestStrRef(str_constants::KEY_A),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":2}"#.as_slice()),
     );
     let conflict = pg_table::begin_pg_table_idempotency(
@@ -1015,9 +1002,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         )
     );
     let other_actor = make_request(
-        StdAdminApiTestStrRef(str_constants::text::ACTOR_B),
-        StdAdminApiTestStrRef(str_constants::text::ITEMS_CM),
-        StdAdminApiTestStrRef(str_constants::text::KEY_A),
+        StdAdminApiTestStrRef(str_constants::ACTOR_B),
+        StdAdminApiTestStrRef(str_constants::ITEMS_CM),
+        StdAdminApiTestStrRef(str_constants::KEY_A),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":1}"#.as_slice()),
     );
     assert_eq!(
@@ -1036,9 +1023,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         pg_table::PgTableIdempotencyBegin::Acquired
     );
     let concurrent = make_request(
-        StdAdminApiTestStrRef(str_constants::text::ACTOR_CONCURRENT),
-        StdAdminApiTestStrRef(str_constants::text::ITEMS_CM),
-        StdAdminApiTestStrRef(str_constants::text::KEY_CONCURRENT),
+        StdAdminApiTestStrRef(str_constants::ACTOR_CONCURRENT),
+        StdAdminApiTestStrRef(str_constants::ITEMS_CM),
+        StdAdminApiTestStrRef(str_constants::KEY_CONCURRENT),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"value":3}"#.as_slice()),
     );
     let (left, right) = tokio::join!(
@@ -1061,19 +1048,19 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         1usize
     );
     let _atomic_table = sqlx::query(
-        str_constants::text::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_BIGINT,
+        str_constants::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_BIGINT,
     )
     .execute(&pool)
     .await
     .expect("af066e8b");
-    let _atomic_clear = sqlx::query(str_constants::text::TRUNCATE_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST)
+    let _atomic_clear = sqlx::query(str_constants::TRUNCATE_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST)
         .execute(&pool)
         .await
         .expect("3130e593");
     let atomic = make_request(
-        StdAdminApiTestStrRef(str_constants::text::ACTOR_ATOMIC),
-        StdAdminApiTestStrRef(str_constants::text::ITEMS_CO),
-        StdAdminApiTestStrRef(str_constants::text::KEY_ATOMIC),
+        StdAdminApiTestStrRef(str_constants::ACTOR_ATOMIC),
+        StdAdminApiTestStrRef(str_constants::ITEMS_CO),
+        StdAdminApiTestStrRef(str_constants::KEY_ATOMIC),
         pg_table::PgTableIdempotencyBodyRef::from(br#"{"id":1}"#.as_slice()),
     );
     assert_eq!(
@@ -1084,7 +1071,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     );
     let mut rollback_tx = pool.begin().await.expect("fcba80e1");
     let _mutation =
-        sqlx::query(str_constants::text::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_VALUES_1)
+        sqlx::query(str_constants::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST_ID_VALUES_1)
             .execute(&mut *rollback_tx)
             .await
             .expect("67503e70");
@@ -1098,7 +1085,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .expect("8ad86515");
     rollback_tx.rollback().await.expect("11cfcb27");
     let mutation_count = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY_ATOMIC_TEST,
     )
     .fetch_one(&pool)
     .await
@@ -1114,13 +1101,13 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         .await
         .expect("67973e68");
     let _age_records = sqlx::query(
-        str_constants::text::UPDATE_PG_TABLE_IDEMPOTENCY_SET_CREATED_AT_TIMESTAMPTZ_2000_01_01_00,
+        str_constants::UPDATE_PG_TABLE_IDEMPOTENCY_SET_CREATED_AT_TIMESTAMPTZ_2000_01_01_00,
     )
     .execute(&pool)
     .await
     .expect("a46f7336");
     let before_cleanup = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
     )
     .fetch_one(&pool)
     .await
@@ -1135,7 +1122,7 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .expect("b1ba49cc");
     assert_eq!(u64::from(cleaned), 2u64);
     let after_cleanup = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
+        str_constants::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
     )
     .fetch_one(&pool)
     .await
@@ -1156,31 +1143,33 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
         .await
         .expect("2480f8c4");
     let _drop_before =
-        sqlx::query(str_constants::text::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST)
+        sqlx::query(str_constants::DROP_TABLE_IF_EXISTS_PG_TABLE_OPTIMISTIC_REVISION_TEST)
             .execute(&pool)
             .await
             .expect("e5e1f7cb");
-    let _create = sqlx::query(str_constants::text::CREATE_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_BIGINT_PRIMARY_KEY_REVISION)
+    let _create = sqlx::query(str_constants::CREATE_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_BIGINT_PRIMARY_KEY_REVISION)
         .execute(&pool)
         .await
         .expect("a75bc224");
-    let _insert = sqlx::query(str_constants::text::INSERT_INTO_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_REVISION_VALUE_VALUES_1)
-        .execute(&pool)
-        .await
-        .expect("da271038");
-    let update = str_constants::text::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
+    let _insert = sqlx::query(
+        str_constants::INSERT_INTO_PG_TABLE_OPTIMISTIC_REVISION_TEST_ID_REVISION_VALUE_VALUES_1,
+    )
+    .execute(&pool)
+    .await
+    .expect("da271038");
+    let update = str_constants::UPDATE_PG_TABLE_OPTIMISTIC_REVISION_TEST_SET_VALUE_DOLLAR_1_REVISION_REVISION;
     let (left, right) = tokio::join!(
         sqlx::query_scalar::<_, i64>(update)
             .bind(1i64)
             .bind(
-                pg_table::PgTableRevision::try_from(str_constants::text::VALUE_0.to_owned())
+                pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
                     .expect("979fa4b2")
             )
             .fetch_optional(&pool),
         sqlx::query_scalar::<_, i64>(update)
             .bind(2i64)
             .bind(
-                pg_table::PgTableRevision::try_from(str_constants::text::VALUE_0.to_owned())
+                pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
                     .expect("589ea31d")
             )
             .fetch_optional(&pool),
@@ -1202,18 +1191,17 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
     let stale = sqlx::query_scalar::<_, i64>(update)
         .bind(3i64)
         .bind(
-            pg_table::PgTableRevision::try_from(str_constants::text::VALUE_0.to_owned())
+            pg_table::PgTableRevision::try_from(str_constants::VALUE_0.to_owned())
                 .expect("a3a08aeb"),
         )
         .fetch_optional(&pool)
         .await
         .expect("964e3ef4");
     assert_eq!(stale, None);
-    let _drop_after =
-        sqlx::query(str_constants::text::DROP_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST)
-            .execute(&pool)
-            .await
-            .expect("a4d77f54");
+    let _drop_after = sqlx::query(str_constants::DROP_TABLE_PG_TABLE_OPTIMISTIC_REVISION_TEST)
+        .execute(&pool)
+        .await
+        .expect("a4d77f54");
 }
 #[tokio::test]
 async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
@@ -1231,22 +1219,24 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("eb08dffc");
-    let _clear = sqlx::query(str_constants::text::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
+    let _clear = sqlx::query(str_constants::TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE)
         .execute(&pool)
         .await
         .expect("e1b22572");
-    let _attempts = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_SUCCEEDED_ATTEMPTED_AT_SELECT_OLD_VALUE)
+    let _attempts = sqlx::query(str_constants::INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_SUCCEEDED_ATTEMPTED_AT_SELECT_OLD_VALUE)
         .execute(&pool)
         .await
         .expect("480b06eb");
-    let _limits = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT_ALT)
+    let _limits = sqlx::query(str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT_ALT)
         .execute(&pool)
         .await
         .expect("0375574d");
-    let _audit = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_AUDIT_LOG_ACTION_RESOURCE_SUCCEEDED_CREATED_AT_SELECT_TEST)
-        .execute(&pool)
-        .await
-        .expect("f50ef817");
+    let _audit = sqlx::query(
+        str_constants::INSERT_INTO_ADMIN_AUDIT_LOG_ACTION_RESOURCE_SUCCEEDED_CREATED_AT_SELECT_TEST,
+    )
+    .execute(&pool)
+    .await
+    .expect("f50ef817");
     let retention = server_admin::AdminCleanupRetentionSeconds::try_from(1i64).expect("ab892fc5");
     let config = server_admin::AdminCleanupCfg::new(
         server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c"),
@@ -1260,12 +1250,12 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         .await
         .expect("a422e8d4");
     assert_eq!(report.total_rows().to_string(), "6");
-    let remaining = sqlx::query_as::<_, (i64, i64, i64)>(str_constants::text::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
+    let remaining = sqlx::query_as::<_, (i64, i64, i64)>(str_constants::SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM)
         .fetch_one(&pool)
         .await
         .expect("f37a3ab4");
     assert_eq!(remaining, (1i64, 1i64, 1i64));
-    let ordinary_delete = sqlx::query(str_constants::text::DELETE_FROM_ADMIN_AUDIT_LOG)
+    let ordinary_delete = sqlx::query(str_constants::DELETE_FROM_ADMIN_AUDIT_LOG)
         .execute(&pool)
         .await;
     assert!(matches!(ordinary_delete, Err(_error)));
@@ -1280,11 +1270,13 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
         .connect(database_url.as_str())
         .await
         .expect("0047f74e");
-    let _drop_schemas = sqlx::raw_sql(str_constants::text::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_IF)
-        .execute(&base_pool)
-        .await
-        .expect("df91b04d");
-    let _create_schemas = sqlx::raw_sql(str_constants::text::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CREATE_SCHEMA_ADMIN_MIGRATION_UPGRADE_TEST)
+    let _drop_schemas = sqlx::raw_sql(
+        str_constants::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_IF,
+    )
+    .execute(&base_pool)
+    .await
+    .expect("df91b04d");
+    let _create_schemas = sqlx::raw_sql(str_constants::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CREATE_SCHEMA_ADMIN_MIGRATION_UPGRADE_TEST)
         .execute(&base_pool)
         .await
         .expect("02bcd1c2");
@@ -1293,16 +1285,16 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
             database_url.as_str(),
         )
         .expect("aa7735db")
-        .options([(str_constants::text::SEARCH_PATH, schema.0)]);
+        .options([(str_constants::SEARCH_PATH, schema.0)]);
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(1u32)
             .connect_lazy_with(options)
     };
     let fresh_pool = connect(StdAdminApiTestStrRef(
-        str_constants::text::ADMIN_MIGRATION_FRESH_TEST,
+        str_constants::ADMIN_MIGRATION_FRESH_TEST,
     ));
     let upgrade_pool = connect(StdAdminApiTestStrRef(
-        str_constants::text::ADMIN_MIGRATION_UPGRADE_TEST,
+        str_constants::ADMIN_MIGRATION_UPGRADE_TEST,
     ));
     let full = sqlx::migrate!("./migrations");
     full.run(&fresh_pool).await.expect("4b6c3bd6");
@@ -1314,21 +1306,21 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     };
     baseline.run(&upgrade_pool).await.expect("2e03eccc");
     let baseline_version = sqlx::query_scalar::<_, i64>(
-        str_constants::text::SELECT_MAX_VERSION_FROM_SQLX_MIGRATIONS_WHERE_SUCCESS_TRUE,
+        str_constants::SELECT_MAX_VERSION_FROM_SQLX_MIGRATIONS_WHERE_SUCCESS_TRUE,
     )
     .fetch_one(&upgrade_pool)
     .await
     .expect("17862da9");
     assert_eq!(baseline_version, 3i64);
     full.run(&upgrade_pool).await.expect("3664ecff");
-    let versions = sqlx::query_as::<_, (i64, i64)>(str_constants::text::SELECT_SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE)
+    let versions = sqlx::query_as::<_, (i64, i64)>(str_constants::SELECT_SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE)
         .fetch_one(&base_pool)
         .await
         .expect("5c10c931");
     assert_eq!(versions, (5i64, 5i64));
     fresh_pool.close().await;
     upgrade_pool.close().await;
-    let _drop_after = sqlx::raw_sql(str_constants::text::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_ADMIN_MIGRATION_UPGRADE)
+    let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_ADMIN_MIGRATION_UPGRADE)
         .execute(&base_pool)
         .await
         .expect("88dd90b8");

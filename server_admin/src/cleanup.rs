@@ -4,7 +4,7 @@ pub(super) async fn cleanup_admin_tables(
     cfg: super::AdminCleanupCfg,
 ) -> Result<super::AdminCleanupReport, super::AdminCleanupError> {
     let access_sessions = sqlx::query(
-        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_ACCESS_SESSIONS_WHERE_EXPIRES_AT,
+        str_constants::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_ACCESS_SESSIONS_WHERE_EXPIRES_AT,
     )
     .bind(cfg.auth_retention.0)
     .bind(cfg.batch_size.0)
@@ -13,7 +13,7 @@ pub(super) async fn cleanup_admin_tables(
     .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
     .rows_affected();
     let refresh_tokens = sqlx::query(
-        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_REFRESH_TOKENS_WHERE_EXPIRES_AT,
+        str_constants::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_REFRESH_TOKENS_WHERE_EXPIRES_AT,
     )
     .bind(cfg.auth_retention.0)
     .bind(cfg.batch_size.0)
@@ -22,7 +22,7 @@ pub(super) async fn cleanup_admin_tables(
     .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
     .rows_affected();
     let login_attempts = sqlx::query(
-        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_LOGIN_ATTEMPTS_WHERE_ATTEMPTED_AT,
+        str_constants::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_LOGIN_ATTEMPTS_WHERE_ATTEMPTED_AT,
     )
     .bind(cfg.auth_retention.0)
     .bind(cfg.batch_size.0)
@@ -34,30 +34,31 @@ pub(super) async fn cleanup_admin_tables(
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
     let _audit_cleanup_permission =
-        sqlx::query(str_constants::text::SET_LOCAL_APP_ADMIN_AUDIT_CLEANUP_ON)
+        sqlx::query(str_constants::SET_LOCAL_APP_ADMIN_AUDIT_CLEANUP_ON)
             .execute(&mut *audit_tx)
             .await
             .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let audit_log = sqlx::query(
-        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_AUDIT_LOG_WHERE_CREATED_AT,
-    )
-    .bind(cfg.audit_retention.0)
-    .bind(cfg.batch_size.0)
-    .execute(&mut *audit_tx)
-    .await
-    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-    .rows_affected();
+    let audit_log =
+        sqlx::query(str_constants::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_AUDIT_LOG_WHERE_CREATED_AT)
+            .bind(cfg.audit_retention.0)
+            .bind(cfg.batch_size.0)
+            .execute(&mut *audit_tx)
+            .await
+            .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+            .rows_affected();
     audit_tx
         .commit()
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let rate_limits = sqlx::query(str_constants::text::WITH_EXPIRED_AS_SELECT_SCOPE_SUBJECT_FROM_ADMIN_RATE_LIMITS_WHERE_WINDOW)
-        .bind(cfg.rate_limit_retention.0)
-        .bind(cfg.batch_size.0)
-        .execute(pool.as_ref())
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-        .rows_affected();
+    let rate_limits = sqlx::query(
+        str_constants::WITH_EXPIRED_AS_SELECT_SCOPE_SUBJECT_FROM_ADMIN_RATE_LIMITS_WHERE_WINDOW,
+    )
+    .bind(cfg.rate_limit_retention.0)
+    .bind(cfg.batch_size.0)
+    .execute(pool.as_ref())
+    .await
+    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+    .rows_affected();
     let idempotency = pg_table::cleanup_pg_table_idempotency(
         pool,
         pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(

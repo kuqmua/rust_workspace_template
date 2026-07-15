@@ -239,7 +239,7 @@ where
                     let mut response = axum::response::IntoResponse::into_response((
                         http::StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(RequestTimeoutBody {
-                            error: StdRequestTimeoutMessage(str_constants::text::REQUEST_TIMEOUT),
+                            error: StdRequestTimeoutMessage(str_constants::REQUEST_TIMEOUT),
                         }),
                     ));
                     if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
@@ -314,45 +314,43 @@ where
     >;
     type Response = axum::response::Response;
     fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(str_constants::text::API);
+        let is_api_path = req.uri().path().starts_with(str_constants::API);
         let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
             && req
                 .headers()
-                .get(str_constants::text::X_FORWARDED_PROTO)
+                .get(str_constants::X_FORWARDED_PROTO)
                 .and_then(|value| value.to_str().ok())
                 .is_some_and(|value| {
                     value.split(',').next().is_some_and(|first| {
-                        first
-                            .trim()
-                            .eq_ignore_ascii_case(str_constants::text::HTTPS)
+                        first.trim().eq_ignore_ascii_case(str_constants::HTTPS)
                     })
                 });
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(async move {
             let mut response = response_future.await?;
             let _content_type_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::text::X_CONTENT_TYPE_OPTIONS),
-                http::HeaderValue::from_static(str_constants::text::NOSNIFF),
+                http::HeaderName::from_static(str_constants::X_CONTENT_TYPE_OPTIONS),
+                http::HeaderValue::from_static(str_constants::NOSNIFF),
             );
             let _frame_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::text::X_FRAME_OPTIONS),
-                http::HeaderValue::from_static(str_constants::text::DENY),
+                http::HeaderName::from_static(str_constants::X_FRAME_OPTIONS),
+                http::HeaderValue::from_static(str_constants::DENY),
             );
             let _referrer_policy = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::text::REFERRER_POLICY),
-                http::HeaderValue::from_static(str_constants::text::NO_REFERRER),
+                http::HeaderName::from_static(str_constants::REFERRER_POLICY),
+                http::HeaderValue::from_static(str_constants::NO_REFERRER),
             );
             if is_api_path {
                 let _cache_control = response.headers_mut().insert(
                     http::header::CACHE_CONTROL,
-                    http::HeaderValue::from_static(str_constants::text::NO_STORE),
+                    http::HeaderValue::from_static(str_constants::NO_STORE),
                 );
             }
             if is_forwarded_https {
                 let _strict_transport_security = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::text::STRICT_TRANSPORT_SECURITY),
+                    http::HeaderName::from_static(str_constants::STRICT_TRANSPORT_SECURITY),
                     http::HeaderValue::from_static(
-                        str_constants::text::MAX_AGE_31536000_INCLUDESUBDOMAINS,
+                        str_constants::MAX_AGE_31536000_INCLUDESUBDOMAINS,
                     ),
                 );
             }
@@ -387,9 +385,7 @@ impl std::fmt::Display for ServeWithGracefulShutdownError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Serve(error) => write!(f, "server failed: {error}"),
-            Self::ShutdownTimeout => {
-                f.write_str(str_constants::text::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)
-            }
+            Self::ShutdownTimeout => f.write_str(str_constants::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT),
         }
     }
 }
@@ -404,7 +400,7 @@ impl std::error::Error for ServeWithGracefulShutdownError {
 #[must_use]
 pub fn add_status_route(router: AxumRouter) -> AxumRouter {
     AxumRouter(router.0.route(
-        str_constants::text::STATUS,
+        str_constants::STATUS,
         axum::routing::get(async || http::StatusCode::OK),
     ))
 }
@@ -549,7 +545,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(router),
             axum::extract::Request::builder()
-                .uri(str_constants::text::STATUS)
+                .uri(str_constants::STATUS)
                 .body(axum::body::Body::empty())
                 .expect("8e9c3da1"),
         )
@@ -643,16 +639,16 @@ mod tests {
         let make_router = || {
             axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
                 axum::Router::new().route(
-                    str_constants::text::SLASH,
+                    str_constants::SLASH,
                     axum::routing::get(async || http::StatusCode::OK),
                 ),
             )))
         };
-        let existing = http::HeaderValue::from_static(str_constants::text::EXISTING_REQUEST_ID);
+        let existing = http::HeaderValue::from_static(str_constants::EXISTING_REQUEST_ID);
         let existing_response = tower::ServiceExt::oneshot(
             make_router(),
             axum::extract::Request::builder()
-                .uri(str_constants::text::SLASH)
+                .uri(str_constants::SLASH)
                 .header(
                     str_constants::http_header_names::X_REQUEST_ID,
                     existing.clone(),
@@ -677,7 +673,7 @@ mod tests {
         let generated_response = tower::ServiceExt::oneshot(
             make_router(),
             axum::extract::Request::builder()
-                .uri(str_constants::text::SLASH)
+                .uri(str_constants::SLASH)
                 .body(axum::body::Body::empty())
                 .expect("27ce5fbd"),
         )
@@ -699,18 +695,15 @@ mod tests {
     async fn security_headers_only_trust_forwarded_proto_when_configured() {
         let make_request = || {
             axum::extract::Request::builder()
-                .uri(str_constants::text::API_V1_TEST)
-                .header(
-                    str_constants::text::X_FORWARDED_PROTO,
-                    str_constants::text::HTTPS,
-                )
+                .uri(str_constants::API_V1_TEST)
+                .header(str_constants::X_FORWARDED_PROTO, str_constants::HTTPS)
                 .body(axum::body::Body::empty())
                 .expect("94149bdd")
         };
         let make_router = |trust| {
             axum::Router::from(super::SecurityHeadersLayer::from(trust).apply(
                 super::AxumRouter::from(axum::Router::new().route(
-                    str_constants::text::API_V1_TEST,
+                    str_constants::API_V1_TEST,
                     axum::routing::get(async || http::StatusCode::OK),
                 )),
             ))

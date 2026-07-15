@@ -345,8 +345,8 @@ impl IsNullable {
     #[must_use]
     pub fn non_null_or_nullable_str(&self) -> NonNullOrNullableStr {
         match &self {
-            Self::False => NonNullOrNullableStr::from(str_constants::text::NONNULL),
-            Self::True => NonNullOrNullableStr::from(str_constants::text::NULLABLE),
+            Self::False => NonNullOrNullableStr::from(str_constants::NONNULL),
+            Self::True => NonNullOrNullableStr::from(str_constants::NULLABLE),
         }
     }
     #[must_use]
@@ -354,10 +354,10 @@ impl IsNullable {
         match &self {
             Self::False => IsNullablePrefixStr::try_from(String::default())
                 .unwrap_or_else(IsNullablePrefixStr::from),
-            Self::True => IsNullablePrefixStr::try_from(String::from(
-                str_constants::text::STDOPTIONALOPTIONAL,
-            ))
-            .unwrap_or_else(IsNullablePrefixStr::from),
+            Self::True => {
+                IsNullablePrefixStr::try_from(String::from(str_constants::STDOPTIONALOPTIONAL))
+                    .unwrap_or_else(IsNullablePrefixStr::from)
+            }
         }
     }
     #[must_use]
@@ -407,15 +407,15 @@ impl Import {
     #[must_use]
     pub fn sc_str(&self) -> ImportSnakeCaseStr {
         match &self {
-            Self::Crate => ImportSnakeCaseStr::from(str_constants::text::CRATE),
-            Self::PgCrudCommon => ImportSnakeCaseStr::from(str_constants::text::PG_CRUD_COMMON),
+            Self::Crate => ImportSnakeCaseStr::from(str_constants::CRATE),
+            Self::PgCrudCommon => ImportSnakeCaseStr::from(str_constants::PG_CRUD_COMMON),
         }
     }
     #[must_use]
     pub fn to_path(&self) -> ImportPathStr {
         match &self {
-            Self::Crate => ImportPathStr::from(str_constants::text::CRATE),
-            Self::PgCrudCommon => ImportPathStr::from(str_constants::text::PG_CRUD_COMMON),
+            Self::Crate => ImportPathStr::from(str_constants::CRATE),
+            Self::PgCrudCommon => ImportPathStr::from(str_constants::PG_CRUD_COMMON),
         }
     }
 }

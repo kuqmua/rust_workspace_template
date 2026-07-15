@@ -40,7 +40,7 @@ mod tests {
     #[test]
     fn shared_json_contract_helper_round_trips_table_fixture() {
         macros_helpers::json_contract::ensure_json_contract_round_trip::<JsonContractValue>(
-            macros_helpers::json_contract::JsonFixtureRef::from(str_constants::text::OPERATION_RM),
+            macros_helpers::json_contract::JsonFixtureRef::from(str_constants::OPERATION_RM),
         )
         .expect("f9f9af71");
     }
@@ -86,9 +86,9 @@ mod tests {
     #[test]
     fn clippy() {
         macro_clippy_check_common::clippy_check(
-            str_constants::text::GENERATE_PG_TABLE_TEST_CNT,
-            str_constants::text::PG_CRUD_PG_TABLE,
-            str_constants::text::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
+            str_constants::GENERATE_PG_TABLE_TEST_CNT,
+            str_constants::PG_CRUD_PG_TABLE,
+            str_constants::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
             &{
                 #[derive(optml::Optml)]
                 enum AddGeneratePgTablePrimaryKey {

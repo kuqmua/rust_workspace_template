@@ -46,12 +46,12 @@ pub(super) async fn bootstrap_admin(
         .begin()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _lock_result = sqlx::query(str_constants::text::LOCK_TABLE_ADMIN_USERS_IN_EXCLUSIVE_MODE)
+    let _lock_result = sqlx::query(str_constants::LOCK_TABLE_ADMIN_USERS_IN_EXCLUSIVE_MODE)
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     let user_exists =
-        sqlx::query_scalar::<_, bool>(str_constants::text::SELECT_EXISTS_SELECT_1_FROM_ADMIN_USERS)
+        sqlx::query_scalar::<_, bool>(str_constants::SELECT_EXISTS_SELECT_1_FROM_ADMIN_USERS)
             .fetch_one(&mut *tx)
             .await
             .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
@@ -65,13 +65,12 @@ pub(super) async fn bootstrap_admin(
         .fetch_one(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _role_link_result = sqlx::query(
-        str_constants::text::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1,
-    )
-    .bind(user_id)
-    .execute(&mut *tx)
-    .await
-    .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
+    let _role_link_result =
+        sqlx::query(str_constants::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1)
+            .bind(user_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     tx.commit()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;

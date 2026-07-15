@@ -68,7 +68,7 @@ impl PageLoader {
 }
 fn auth_refresh_state_error() -> ApiError {
     ApiError::Request(Text::from(
-        str_constants::text::AUTHENTICATION_REFRESH_STATE_IS_UNAVAILABLE.to_owned(),
+        str_constants::AUTHENTICATION_REFRESH_STATE_IS_UNAVAILABLE.to_owned(),
     ))
 }
 impl AdminApiClient {
@@ -181,12 +181,12 @@ impl AdminApiClient {
                     redirect(str_constants::admin_page_paths::SIGN_IN);
                     return Err(ApiError::Status(
                         401u16,
-                        Text::from(str_constants::text::AUTHENTICATION_REFRESH_REJECTED.to_owned()),
+                        Text::from(str_constants::AUTHENTICATION_REFRESH_REJECTED.to_owned()),
                     ));
                 }
                 crate::auth_keep_alive::AuthRefreshBegin::Wait => {
                     return Err(ApiError::Request(Text::from(
-                        str_constants::text::AUTHENTICATION_REFRESH_RETRY_IS_DELAYED.to_owned(),
+                        str_constants::AUTHENTICATION_REFRESH_RETRY_IS_DELAYED.to_owned(),
                     )));
                 }
             }
@@ -297,7 +297,7 @@ fn response_error(
     body: &frontend_contract::TransportBody,
 ) -> ApiError {
     let detail = frontend_contract::decode_api_problem(body).map_or_else(
-        || Text::from(str_constants::text::REQUEST_FAILED.to_owned()),
+        || Text::from(str_constants::REQUEST_FAILED.to_owned()),
         |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
     ApiError::Status(u16::from(status), detail)
@@ -379,9 +379,11 @@ fn load(client: AdminApiClient, loader: PageLoader) {
             }
             Some(server_admin_contract::AdminPage::Version) => {
                 client.version().await.map(|value| {
-                    Page::Text(value.commit.unwrap_or_else(|| {
-                        Text::from(str_constants::text::UNKNOWN_VERSION.to_owned())
-                    }))
+                    Page::Text(
+                        value.commit.unwrap_or_else(|| {
+                            Text::from(str_constants::UNKNOWN_VERSION.to_owned())
+                        }),
+                    )
                 })
             }
             Some(server_admin_contract::AdminPage::OpenApi) => {

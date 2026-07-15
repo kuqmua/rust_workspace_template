@@ -659,49 +659,47 @@ pub fn generate_pg_table(
             .iter()
             .filter(|attr| {
                 attr.path()
-                    .is_ident(str_constants::text::GENERATE_PG_TABLE_FRONTEND)
+                    .is_ident(str_constants::GENERATE_PG_TABLE_FRONTEND)
             })
             .try_for_each(|attr| {
                 frontend_attr_count = frontend_attr_count.saturating_add(1usize);
                 if frontend_attr_count > 1usize {
                     return Err(syn::Error::new_spanned(
                         attr,
-                        str_constants::text::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
+                        str_constants::DUPLICATE_GENERATE_PG_TABLE_FRONTEND_ATTRIBUTE,
                     ));
                 }
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(str_constants::text::FILTERABLE) {
+                    if meta.path.is_ident(str_constants::FILTERABLE) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Filterable, || {
-                                meta.error(str_constants::text::DUPLICATE_FILTERABLE_OPTION)
+                                meta.error(str_constants::DUPLICATE_FILTERABLE_OPTION)
                             })?;
                         frontend.filterable = true;
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::text::HIDDEN) {
+                    if meta.path.is_ident(str_constants::HIDDEN) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Hidden, || {
-                                meta.error(str_constants::text::DUPLICATE_HIDDEN_OPTION)
+                                meta.error(str_constants::DUPLICATE_HIDDEN_OPTION)
                             })?;
                         frontend.hidden = true;
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::text::LABEL) {
+                    if meta.path.is_ident(str_constants::LABEL) {
                         if frontend.label.is_some() {
-                            return Err(meta.error(str_constants::text::DUPLICATE_LABEL_OPTION));
+                            return Err(meta.error(str_constants::DUPLICATE_LABEL_OPTION));
                         }
                         let value = meta.value()?.parse::<syn::LitStr>()?.value();
                         if value.trim().is_empty() {
-                            return Err(
-                                meta.error(str_constants::text::FRONTEND_LABEL_MUST_NOT_BE_EMPTY)
-                            );
+                            return Err(meta.error(str_constants::FRONTEND_LABEL_MUST_NOT_BE_EMPTY));
                         }
                         frontend.label = Some(value);
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::text::ORDER) {
+                    if meta.path.is_ident(str_constants::ORDER) {
                         if frontend.order.is_some() {
-                            return Err(meta.error(str_constants::text::DUPLICATE_ORDER_OPTION));
+                            return Err(meta.error(str_constants::DUPLICATE_ORDER_OPTION));
                         }
                         frontend.order = Some(
                             meta.value()?
@@ -710,25 +708,22 @@ pub fn generate_pg_table(
                         );
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::text::PLACEHOLDER) {
+                    if meta.path.is_ident(str_constants::PLACEHOLDER) {
                         if frontend.placeholder.is_some() {
-                            return Err(
-                                meta.error(str_constants::text::DUPLICATE_PLACEHOLDER_OPTION)
-                            );
+                            return Err(meta.error(str_constants::DUPLICATE_PLACEHOLDER_OPTION));
                         }
                         frontend.placeholder = Some(meta.value()?.parse::<syn::LitStr>()?.value());
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::text::SORTABLE) {
+                    if meta.path.is_ident(str_constants::SORTABLE) {
                         frontend_flags
                             .try_insert_with(GeneratePgTableFrontendFlag::Sortable, || {
-                                meta.error(str_constants::text::DUPLICATE_SORTABLE_OPTION)
+                                meta.error(str_constants::DUPLICATE_SORTABLE_OPTION)
                             })?;
                         frontend.sortable = true;
                         return Ok(());
                     }
-                    Err(meta
-                        .error(str_constants::text::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
+                    Err(meta.error(str_constants::UNSUPPORTED_GENERATE_PG_TABLE_FRONTEND_OPTION))
                 })
             })
             .map_err(|error| {
@@ -1096,7 +1091,7 @@ pub fn generate_pg_table(
     ) -> ProcMacro2GeneratePgTableTestsTokenStream {
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.tests_write_into_file,
-            str_constants::text::GENERATE_PG_TABLE_TESTS,
+            str_constants::GENERATE_PG_TABLE_TESTS,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(tests_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
@@ -1115,13 +1110,13 @@ pub fn generate_pg_table(
     ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.common_write_into_file,
-            str_constants::text::GENERATE_PG_TABLE_COMMON,
+            str_constants::GENERATE_PG_TABLE_COMMON,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(common_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
         macros_helpers::ts_writer::maybe_write_token_stream_into_file(
             config.whole_write_into_file,
-            str_constants::text::GENERATE_PG_TABLE,
+            str_constants::GENERATE_PG_TABLE,
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(whole_token_stream.as_ref()),
             &macros_helpers::ts_writer::FormatWithCargofmt::True,
         );
@@ -1245,7 +1240,7 @@ pub fn generate_pg_table(
         token_patterns::PgCrudCommonDefaultSomeOneElementCall;
     let PgCrudCommonDefaultSomeOneElementMaxPageSizeCall =
         token_patterns::PgCrudCommonDefaultSomeOneElementMaxPageSizeCall;
-    let PgCrudSnakeCase = str_constants::text::PG_CRUD_COMMON;
+    let PgCrudSnakeCase = str_constants::PG_CRUD_COMMON;
     let PgPoolForTokioSpawnSyncMoveSnakeCase = naming::PgPoolForTokioSpawnSyncMoveSnakeCase;
     let PgPoolSnakeCase = naming::PgPoolSnakeCase;
     let PgSnakeCase = naming::PgSnakeCase;
@@ -1465,8 +1460,8 @@ pub fn generate_pg_table(
             type_path.path.segments.last().is_some_and(|segment| {
                 matches!(
                     segment.ident.to_string().as_str(),
-                    str_constants::text::I64ASNONNULLINT8
-                        | str_constants::text::I64ASNONNULLBIGSERIALINITIALIZATIONBYPG
+                    str_constants::I64ASNONNULLINT8
+                        | str_constants::I64ASNONNULLBIGSERIALINITIALIZATIONBYPG
                 )
             })
         });
@@ -1655,7 +1650,7 @@ pub fn generate_pg_table(
         return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
             syn::Error::new_spanned(
                 &**primary_key_field_type,
-                str_constants::text::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
+                str_constants::UPDATE_OPERATIONS_REQUIRE_AT_LEAST_ONE_NON_PRIMARY_KEY_FIELD,
             )
             .into_compile_error(),
         );
@@ -1664,13 +1659,13 @@ pub fn generate_pg_table(
         && let Some(last_segment) = type_path.path.segments.last()
     {
         let primary_key_type_name = last_segment.ident.to_string();
-        if primary_key_type_name.starts_with(str_constants::text::OPTIONAL)
-            || primary_key_type_name.contains(str_constants::text::ASNULLABLE)
+        if primary_key_type_name.starts_with(str_constants::OPTIONAL)
+            || primary_key_type_name.contains(str_constants::ASNULLABLE)
         {
             return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
                 syn::Error::new_spanned(
                     &**primary_key_field_type,
-                    str_constants::text::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
+                    str_constants::PRIMARY_KEY_TYPE_MUST_BE_NON_NULLABLE,
                 )
                 .into_compile_error(),
             );
@@ -1724,7 +1719,7 @@ pub fn generate_pg_table(
                 if let Some(last_segment) = role_type_path.path.segments.last_mut() {
                     let identifier_string = last_segment.ident.to_string();
                     let without_optional = identifier_string
-                        .strip_prefix(str_constants::text::OPTIONAL)
+                        .strip_prefix(str_constants::OPTIONAL)
                         .map_or(identifier_string.as_str(), |value| value);
                     last_segment.ident = quote::format_ident!(
                         "{}{}",
@@ -2003,7 +1998,7 @@ pub fn generate_pg_table(
                 })
             })
             .collect::<Vec<_>>()
-            .join(str_constants::text::SPACE);
+            .join(str_constants::SPACE);
         let frontend_page_title_double_quoted_token_stream = generate_quotes::dq_token_stream(&frontend_page_title);
         let pub_fn_table_token_stream = quote::quote! {
             #MustUse
@@ -2055,7 +2050,7 @@ pub fn generate_pg_table(
                     if idx != 0 {
                         accumulator.push(',');
                     }
-                    accumulator.push_str(str_constants::text::TEXT_ALT_14);
+                    accumulator.push_str(str_constants::TEXT_ALT_14);
                     accumulator
                 },
             );
@@ -2197,13 +2192,10 @@ pub fn generate_pg_table(
         quote::quote! {#identifier_operation_suffix}
     };
     let generate_identifier_operation_error_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(operation, str_constants::text::ERROR)
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::ERROR)
     };
     let generate_identifier_operation_res_variants_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(
-            operation,
-            str_constants::text::RESVARIANTS,
-        )
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::RESVARIANTS)
     };
     let generate_initialization_token_stream: &dyn Fn(
         &SynVariant,
@@ -2929,7 +2921,7 @@ pub fn generate_pg_table(
     let macros_helpers_location_field_attr_eo_to_err_string_serde =
         macros_helpers::location_data::LocationFieldAttr::EoToErrStringSerde;
     let string_syn_punct = macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-        str_constants::text::STRING,
+        str_constants::STRING,
     ]);
     let try_bind_syn_variant = new_syn_variant(
         &TryBindUpperCamelCase,
@@ -2959,8 +2951,8 @@ pub fn generate_pg_table(
         );
     let simple_syn_punct_sqlx_error =
         macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            str_constants::text::SQLX,
-            str_constants::text::ERROR,
+            str_constants::SQLX,
+            str_constants::ERROR,
         ]);
     let macros_helpers_location_field_attr_eo_to_err_string =
         macros_helpers::location_data::LocationFieldAttr::EoToErrString;
@@ -3349,7 +3341,7 @@ pub fn generate_pg_table(
         |operation: &Operation| {
             generate_identifier_operation_suffix_token_stream(
                 operation,
-                str_constants::text::ERRORWITHSERDE,
+                str_constants::ERRORWITHSERDE,
             )
         };
     let pg_crud_order_by_token_stream = quote::quote! {#import_token_stream #OrderByUpperCamelCase};
@@ -3773,8 +3765,8 @@ pub fn generate_pg_table(
     );
     let simple_syn_punct_serde_error =
         macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            str_constants::text::SERDE_JSON,
-            str_constants::text::ERROR,
+            str_constants::SERDE_JSON,
+            str_constants::ERROR,
         ]);
     let serde_json_to_string_syn_variant = new_syn_variant(
         &SerdeJsonToStringUpperCamelCase,
@@ -3788,8 +3780,8 @@ pub fn generate_pg_table(
     );
     let simple_syn_punct_reqwest_error =
         macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-            str_constants::text::REQWEST,
-            str_constants::text::ERROR,
+            str_constants::REQWEST,
+            str_constants::ERROR,
         ]);
     let failed_to_get_res_text_syn_variant = new_syn_variant(
         &FailedToGetResTextUpperCamelCase,
@@ -3799,17 +3791,17 @@ pub fn generate_pg_table(
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &StatusCodeSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    str_constants::text::REQWEST,
-                    str_constants::text::STATUSCODE,
+                    str_constants::REQWEST,
+                    str_constants::STATUSCODE,
                 ]),
             ),
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    str_constants::text::REQWEST,
-                    str_constants::text::HEADER,
-                    str_constants::text::HEADERMAP,
+                    str_constants::REQWEST,
+                    str_constants::HEADER,
+                    str_constants::HEADERMAP,
                 ]),
             ),
             (
@@ -3828,17 +3820,17 @@ pub fn generate_pg_table(
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &StatusCodeSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    str_constants::text::REQWEST,
-                    str_constants::text::STATUSCODE,
+                    str_constants::REQWEST,
+                    str_constants::STATUSCODE,
                 ]),
             ),
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
                 &HeadersSnakeCase,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                    str_constants::text::REQWEST,
-                    str_constants::text::HEADER,
-                    str_constants::text::HEADERMAP,
+                    str_constants::REQWEST,
+                    str_constants::HEADER,
+                    str_constants::HEADERMAP,
                 ]),
             ),
             (
@@ -3871,8 +3863,8 @@ pub fn generate_pg_table(
             macros_helpers::location_data::LocationFieldAttr::EoLocation,
             &CheckBodySizeSnakeCase,
             macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
-                str_constants::text::ROUTE_VALIDATORS,
-                str_constants::text::CHECK_BODY_SIZE,
+                str_constants::ROUTE_VALIDATORS,
+                str_constants::CHECK_BODY_SIZE,
                 &BodySizeErrorUpperCamelCase.to_string(),
             ]),
         )],
@@ -4457,10 +4449,7 @@ pub fn generate_pg_table(
             ),
         };
     let generate_identifier_operation_parameters_upper_camel_case = |operation: &Operation| {
-        generate_identifier_operation_suffix_token_stream(
-            operation,
-            str_constants::text::PARAMETERS,
-        )
+        generate_identifier_operation_suffix_token_stream(operation, str_constants::PARAMETERS)
     };
     let std_sync_arc_combination_of_app_state_logic_traits_token_stream =
         quote::quote! {std::sync::Arc<dyn pg_table::CombinationOfAppStateLogicTraits>};
@@ -4942,7 +4931,7 @@ pub fn generate_pg_table(
                             git_info::PROJECT_GIT_INFO.commit.as_ref(),
                         )
                     };
-                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&str_constants::text::APPLICATION_JSON);
+                    let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&str_constants::APPLICATION_JSON);
                     let content_type_app_json_header_addition_token_stream = quote::quote! {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_double_quoted_token_stream)
                     };
@@ -6282,7 +6271,7 @@ pub fn generate_pg_table(
                                 &quote::quote! {(#vec_identifier_update_schema_token_stream);},
                             );
                         let identifier_operation_payload_try_new_error_upper_camel_case =
-                            generate_identifier_operation_suffix_token_stream(operation, str_constants::text::PAYLOADTRYNEWERROR);
+                            generate_identifier_operation_suffix_token_stream(operation, str_constants::PAYLOADTRYNEWERROR);
                         let identifier_operation_payload_try_new_error_token_stream = pg_crud_macros_common::token_stream_helpers::error_enum_d_token_stream_builder()
                         .build_enum(
                                 &proc_macro2::TokenStream::new(),
@@ -6919,9 +6908,9 @@ pub fn generate_pg_table(
                             let normalized_name = name
                                 .split_whitespace()
                                 .collect::<String>()
-                                .replace(str_constants::text::PATH_SEPARATOR, str_constants::text::DOT);
+                                .replace(str_constants::PATH_SEPARATOR, str_constants::DOT);
                             let suffix = normalized_name
-                                .rsplit(str_constants::text::DOT)
+                                .rsplit(str_constants::DOT)
                                 .next()
                                 .unwrap_or(normalized_name.as_str());
                             if let Some(schema) = components.schemas.get(suffix).cloned() {
@@ -7042,16 +7031,16 @@ pub fn generate_pg_table(
             let operation = operation_dsc.operation.self_snake_case_str();
             let path = format!("/{identifier_snake_case_string}/{operation}");
             let method = match crate::contract_tests::http_method(operation_dsc) {
-                OperationHttpMethod::Post => str_constants::text::POST_ALT,
-                OperationHttpMethod::Patch => str_constants::text::PATCH_ALT,
+                OperationHttpMethod::Post => str_constants::POST_ALT,
+                OperationHttpMethod::Patch => str_constants::PATCH_ALT,
                 OperationHttpMethod::Delete => str_constants::pg_crud::DELETE_PERMISSION_ACTION,
             };
             let success_status = if crate::contract_tests::success_status(operation_dsc)
                 == macros_helpers::status_code::StatusCode::Created201
             {
-                str_constants::text::VALUE_201
+                str_constants::VALUE_201
             } else {
-                str_constants::text::VALUE_200
+                str_constants::VALUE_200
             };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
                 && crate::sql::idempotency_capable(operation_dsc);
@@ -7575,13 +7564,12 @@ pub fn generate_pg_table(
                 ));
             });
         };
-        let table_read_ids_and_create_into_where_eq_name = str_constants::text::VALUE_8E427AD7;
-        let table_read_ids_and_create_into_vec_where_eq_using_fields_name =
-            str_constants::text::EB24448C;
+        let table_read_ids_and_create_into_where_eq_name = str_constants::VALUE_8E427AD7;
+        let table_read_ids_and_create_into_vec_where_eq_using_fields_name = str_constants::EB24448C;
         let table_read_ids_and_create_into_optional_vec_where_eq_to_field_name =
-            str_constants::text::VALUE_9AC6D79A;
+            str_constants::VALUE_9AC6D79A;
         let table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name =
-            str_constants::text::VALUE_5A52AF33;
+            str_constants::VALUE_5A52AF33;
         fill_table_fis_vec_token_stream(vec![
             &table_read_ids_and_create_into_where_eq_name,
             &table_read_ids_and_create_into_vec_where_eq_using_fields_name,
@@ -8613,8 +8601,8 @@ pub fn generate_pg_table(
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {element_a6bc6b2f.#fi0},
-                                str_constants::text::VALUE_96213542,
-                                str_constants::text::BF0D6F55,
+                                str_constants::VALUE_96213542,
+                                str_constants::BF0D6F55,
                             );
                         let expected_rm_token_stream = {
                             let ts = generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream);
@@ -8737,8 +8725,8 @@ pub fn generate_pg_table(
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {previous_read.#fi0},
-                                str_constants::text::VALUE_4F19D0D2,
-                                str_constants::text::C7685B19,
+                                str_constants::VALUE_4F19D0D2,
+                                str_constants::C7685B19,
                             );
                         let uo_read_inner_into_update_token_stream =
                             generate_read_inner_into_update_token_stream(

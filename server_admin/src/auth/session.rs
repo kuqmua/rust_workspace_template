@@ -102,7 +102,7 @@ async fn create_session_with_refresh_in_connection(
     let session_offset =
         i64::try_from(state.session_limit.0.saturating_sub(1usize)).unwrap_or(i64::MAX);
     let _expired_access = sqlx::query(
-        str_constants::text::UPDATE_ADMIN_ACCESS_SESSIONS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR,
+        str_constants::UPDATE_ADMIN_ACCESS_SESSIONS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR,
     )
     .bind(user_id.0)
     .bind(session_offset)
@@ -110,34 +110,36 @@ async fn create_session_with_refresh_in_connection(
     .await
     .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     if refresh_record.is_some() {
-        let _expired_refresh = sqlx::query(str_constants::text::UPDATE_ADMIN_REFRESH_TOKENS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR)
-            .bind(user_id.0)
-            .bind(session_offset)
-            .execute(connection.as_mut())
-            .await
-            .map_err(|error| {
-                super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error))
-            })?;
-    }
-    let _access_result = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_ACCESS_SESSIONS_ID_USER_ID_TOKEN_IDENTIFIER_HASH_TOKEN)
-        .bind(session_uuid)
+        let _expired_refresh = sqlx::query(
+            str_constants::UPDATE_ADMIN_REFRESH_TOKENS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR,
+        )
         .bind(user_id.0)
-        .bind(secrecy::ExposeSecret::expose_secret(
-            token_identifier_hash.0.as_ref(),
-        ))
-        .bind(secrecy::ExposeSecret::expose_secret(
-            context_hash.0.as_ref(),
-        ))
-        .bind(secrecy::ExposeSecret::expose_secret(
-            csrf_generated.hash().0.as_ref(),
-        ))
-        .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
+        .bind(session_offset)
         .execute(connection.as_mut())
         .await
         .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    }
+    let _access_result = sqlx::query(
+        str_constants::INSERT_INTO_ADMIN_ACCESS_SESSIONS_ID_USER_ID_TOKEN_IDENTIFIER_HASH_TOKEN,
+    )
+    .bind(session_uuid)
+    .bind(user_id.0)
+    .bind(secrecy::ExposeSecret::expose_secret(
+        token_identifier_hash.0.as_ref(),
+    ))
+    .bind(secrecy::ExposeSecret::expose_secret(
+        context_hash.0.as_ref(),
+    ))
+    .bind(secrecy::ExposeSecret::expose_secret(
+        csrf_generated.hash().0.as_ref(),
+    ))
+    .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
+    .execute(connection.as_mut())
+    .await
+    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
     if let Some((refresh_id, refresh_hash)) = refresh_record {
         let _refresh_result = sqlx::query(
-            str_constants::text::INSERT_INTO_ADMIN_REFRESH_TOKENS_ID_USER_ID_TOKEN_HASH_EXPIRES_AT,
+            str_constants::INSERT_INTO_ADMIN_REFRESH_TOKENS_ID_USER_ID_TOKEN_HASH_EXPIRES_AT,
         )
         .bind(refresh_id)
         .bind(user_id.0)

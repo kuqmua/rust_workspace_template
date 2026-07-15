@@ -71,11 +71,11 @@ impl Operator {
     pub fn to_query_part(&self, add_operator: AddOperator) -> QueryPartFragment {
         let fragment = match (bool::from(add_operator), *self) {
             (false, Self::And | Self::Or) => return QueryPartFragment(String::new()),
-            (false, Self::AndNot | Self::OrNot) => str_constants::text::NOT,
-            (true, Self::And) => str_constants::text::AND_ALT,
-            (true, Self::AndNot) => str_constants::text::AND_NOT,
-            (true, Self::Or) => str_constants::text::OR,
-            (true, Self::OrNot) => str_constants::text::OR_NOT,
+            (false, Self::AndNot | Self::OrNot) => str_constants::NOT,
+            (true, Self::And) => str_constants::AND_ALT,
+            (true, Self::AndNot) => str_constants::AND_NOT,
+            (true, Self::Or) => str_constants::OR,
+            (true, Self::OrNot) => str_constants::OR_NOT,
         };
         match QueryPartFragment::try_from(String::from(fragment)) {
             Ok(v) => v,
@@ -398,8 +398,7 @@ impl<'query_lt> AsMut<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgr
 }
 impl std::fmt::Debug for SqlxPostgresQuery<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::text::SQLXPOSTGRESQUERY)
-            .finish()
+        f.debug_tuple(str_constants::SQLXPOSTGRESQUERY).finish()
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
@@ -923,17 +922,17 @@ impl<'schema_lt, ColumnGeneric: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::text::ORDERBY,
+            str_constants::ORDERBY,
             utoipa::openapi::ObjectBuilder::new()
                 .property(
-                    str_constants::text::COLUMN,
+                    str_constants::COLUMN,
                     <ColumnGeneric as utoipa::ToSchema>::schema().1,
                 )
                 .property(
-                    str_constants::text::ORDER,
+                    str_constants::ORDER,
                     <Order as utoipa::ToSchema>::schema().1,
                 )
-                .required(str_constants::text::COLUMN)
+                .required(str_constants::COLUMN)
                 .build()
                 .into(),
         )
@@ -1171,7 +1170,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> f
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::text::V,
+            str_constants::V,
             utoipa::openapi::ObjectBuilder::new()
                 .property(
                     str_constants::pg_crud::V_FIELD,
@@ -1382,7 +1381,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error = super::NotEmptyUniqueVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
-            .expect_err(str_constants::text::ADF2B8C1);
+            .expect_err(str_constants::ADF2B8C1);
         match error {
             super::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => assert_eq!(v, NonClone(1)),
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. } => panic!("9f5e2a34"),
@@ -1391,7 +1390,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
         let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new())
-            .expect_err(str_constants::text::VALUE_3B41DE7F);
+            .expect_err(str_constants::VALUE_3B41DE7F);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
@@ -1452,7 +1451,7 @@ mod tests_not_empty_unique_vec {
     #[test]
     fn not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
         let error = super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8])
-            .expect_err(str_constants::text::VALUE_59C80912);
+            .expect_err(str_constants::VALUE_59C80912);
         assert!(matches!(
             error,
             super::NotEmptyUniqueVecTryNewError::NotUnique { v: 1u8, .. }
@@ -1514,7 +1513,7 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::text::NONPRIMARYKEYPGTYPEREADIDS,
+            str_constants::NONPRIMARYKEYPGTYPEREADIDS,
             utoipa::openapi::ObjectBuilder::new()
                 .property(
                     str_constants::pg_crud::V_FIELD,
@@ -1559,7 +1558,7 @@ impl EqOperator {
     pub fn to_query_str(&self) -> EqOperatorQueryStr {
         match &self {
             Self::Eq => EqOperatorQueryStr::from(str_constants::pg_crud::EQUALITY_SQL_OPERATOR),
-            Self::IsNull => EqOperatorQueryStr::from(str_constants::text::IS_NULL),
+            Self::IsNull => EqOperatorQueryStr::from(str_constants::IS_NULL),
         }
     }
 }
@@ -1890,17 +1889,17 @@ pub const fn bool_test_cases_vec() -> [bool; 2] {
 pub fn string_test_cases_vec() -> [String; 12] {
     [
         String::new(),
-        str_constants::text::A_ALT.to_owned(),
-        str_constants::text::HELLO_WORLD.to_owned(),
-        str_constants::text::THREE_SPACES.to_owned(),
-        str_constants::text::NEWLINE_CARRIAGE_RETURN_TAB.to_owned(),
-        str_constants::text::VALUE_1234567890.to_owned(),
-        str_constants::text::U_1F600.to_owned(),
-        str_constants::text::U_3053_U_3093_U_306B_U_3061_U_306F.to_owned(),
-        str_constants::text::U_1F30D_U_1F680_U_2728_RUST_U_1F496_U_1F980.to_owned(),
-        str_constants::text::A_ALT.repeat(1024),
-        str_constants::text::LINE1_NEWLINE_LINE2_NEWLINE_LINE3.to_owned(),
-        str_constants::text::U_1F496.to_owned(),
+        str_constants::A_ALT.to_owned(),
+        str_constants::HELLO_WORLD.to_owned(),
+        str_constants::THREE_SPACES.to_owned(),
+        str_constants::NEWLINE_CARRIAGE_RETURN_TAB.to_owned(),
+        str_constants::VALUE_1234567890.to_owned(),
+        str_constants::U_1F600.to_owned(),
+        str_constants::U_3053_U_3093_U_306B_U_3061_U_306F.to_owned(),
+        str_constants::U_1F30D_U_1F680_U_2728_RUST_U_1F496_U_1F980.to_owned(),
+        str_constants::A_ALT.repeat(1024),
+        str_constants::LINE1_NEWLINE_LINE2_NEWLINE_LINE3.to_owned(),
+        str_constants::U_1F496.to_owned(),
     ]
 }
 #[must_use]

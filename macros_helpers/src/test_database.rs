@@ -24,13 +24,10 @@ pub enum UrlError {
     NonLoopback { target: SanitizedDatabaseTarget },
 }
 pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTarget, UrlError> {
-    let Some((scheme, after_scheme)) = url.0.split_once(str_constants::text::TEXT_ALT_10) else {
+    let Some((scheme, after_scheme)) = url.0.split_once(str_constants::TEXT_ALT_10) else {
         return Err(UrlError::Malformed);
     };
-    if !matches!(
-        scheme,
-        str_constants::text::POSTGRES | str_constants::text::POSTGRESQL
-    ) {
+    if !matches!(scheme, str_constants::POSTGRES | str_constants::POSTGRESQL) {
         return Err(UrlError::Malformed);
     }
     let Some((authority, path_and_suffix)) = after_scheme.split_once('/') else {
@@ -61,15 +58,13 @@ pub fn validate_test_database_url(url: UrlRef<'_>) -> Result<SanitizedDatabaseTa
         .map_err(|_error| UrlError::Malformed)?;
     if !matches!(
         host,
-        str_constants::text::LOCALHOST
-            | str_constants::text::VALUE_127_0_0_1
-            | str_constants::text::PATH_1
+        str_constants::LOCALHOST | str_constants::VALUE_127_0_0_1 | str_constants::PATH_1
     ) {
         return Err(UrlError::NonLoopback { target });
     }
-    if database != str_constants::text::TEST_ALT_3
-        && !database.starts_with(str_constants::text::TEST_ALT_4)
-        && !database.ends_with(str_constants::text::TEST)
+    if database != str_constants::TEST_ALT_3
+        && !database.starts_with(str_constants::TEST_ALT_4)
+        && !database.ends_with(str_constants::TEST)
     {
         return Err(UrlError::AmbiguousDatabase { target });
     }
@@ -80,9 +75,9 @@ mod tests {
     #[test]
     fn accepts_explicit_loopback_test_databases() {
         let all_accepted = [
-            str_constants::text::POSTGRES_USER_SECRET_LOCALHOST_TEST,
-            str_constants::text::POSTGRESQL_USER_SECRET_127_0_0_1_5432_APP_TEST_QUESTION_SSLMODE,
-            str_constants::text::POSTGRES_USER_SECRET_PATH_1_TEST_CI_FRAGMENT,
+            str_constants::POSTGRES_USER_SECRET_LOCALHOST_TEST,
+            str_constants::POSTGRESQL_USER_SECRET_127_0_0_1_5432_APP_TEST_QUESTION_SSLMODE,
+            str_constants::POSTGRES_USER_SECRET_PATH_1_TEST_CI_FRAGMENT,
         ]
         .into_iter()
         .all(|url| super::validate_test_database_url(super::UrlRef::from(url)).is_ok());
@@ -91,17 +86,17 @@ mod tests {
     #[test]
     fn rejects_ambiguous_and_non_loopback_targets_without_leaking_credentials() {
         let all_rejected_without_credentials = [
-            str_constants::text::POSTGRES_ADMIN_PRODUCTION_SECRET_DB_EXAMPLE_COM_APP_TEST,
-            str_constants::text::POSTGRES_ADMIN_PRODUCTION_SECRET_LOCALHOST_POSTGRES,
-            str_constants::text::POSTGRES_ADMIN_PRODUCTION_SECRET_LOCALHOST_PRODUCTION,
-            str_constants::text::NOT_A_URL,
+            str_constants::POSTGRES_ADMIN_PRODUCTION_SECRET_DB_EXAMPLE_COM_APP_TEST,
+            str_constants::POSTGRES_ADMIN_PRODUCTION_SECRET_LOCALHOST_POSTGRES,
+            str_constants::POSTGRES_ADMIN_PRODUCTION_SECRET_LOCALHOST_PRODUCTION,
+            str_constants::NOT_A_URL,
         ]
         .into_iter()
         .all(|url| {
             super::validate_test_database_url(super::UrlRef::from(url)).is_err_and(|error| {
                 let message = error.to_string();
-                !message.contains(str_constants::text::ADMIN_ALT)
-                    && !message.contains(str_constants::text::PRODUCTION_SECRET)
+                !message.contains(str_constants::ADMIN_ALT)
+                    && !message.contains(str_constants::PRODUCTION_SECRET)
             })
         });
         assert!(all_rejected_without_credentials);

@@ -52,7 +52,7 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
         let syn::Data::Struct(data) = &value.data else {
             return Err(syn::Error::new_spanned(
                 value,
-                str_constants::text::EXPECTED_A_STRUCT,
+                str_constants::EXPECTED_A_STRUCT,
             ));
         };
         Ok(match &data.fields {
@@ -487,20 +487,14 @@ mod tests {
         let mut values = super::StdUniqueOptionSet::default();
         values
             .try_insert_with(1u8, || {
-                syn::Error::new(
-                    proc_macro2::Span::call_site(),
-                    str_constants::text::FIRST_ALT,
-                )
+                syn::Error::new(proc_macro2::Span::call_site(), str_constants::FIRST_ALT)
             })
             .expect("12817d29");
         let error = values
             .try_insert_with(1u8, || {
-                syn::Error::new(
-                    proc_macro2::Span::call_site(),
-                    str_constants::text::DUPLICATE,
-                )
+                syn::Error::new(proc_macro2::Span::call_site(), str_constants::DUPLICATE)
             })
-            .expect_err(str_constants::text::CE4826F4);
+            .expect_err(str_constants::CE4826F4);
         assert_eq!(error.to_string(), "duplicate");
         assert!(values.contains(1u8).get());
     }

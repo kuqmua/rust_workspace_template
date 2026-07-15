@@ -86,7 +86,7 @@ const _: () = {
 };
 impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     fn default_some_one_element() -> Self {
-        match regex::Regex::new(str_constants::text::A_Z_PLUS) {
+        match regex::Regex::new(str_constants::A_Z_PLUS) {
             Ok(v) => Self(v),
             Err(error) => {
                 eprintln!("22a9eda5: {error}");
@@ -122,8 +122,8 @@ impl RegexCase {
     #[must_use]
     pub fn postgreql_syntax(&self) -> RegexCasePostgreqlSyntax {
         match &self {
-            Self::Insensitive => RegexCasePostgreqlSyntax::from(str_constants::text::ASTERISK_ALT),
-            Self::Sensitive => RegexCasePostgreqlSyntax::from(str_constants::text::TEXT_ALT_15),
+            Self::Insensitive => RegexCasePostgreqlSyntax::from(str_constants::ASTERISK_ALT),
+            Self::Sensitive => RegexCasePostgreqlSyntax::from(str_constants::TEXT_ALT_15),
         }
     }
 }
@@ -833,15 +833,12 @@ mod tests {
     }
     #[test]
     fn regex_regex_eq_compares_pattern_content() {
-        let left = super::RegexRegex::from(
-            regex::Regex::new(str_constants::text::D_PLUS).expect("8342ad27"),
-        );
-        let right = super::RegexRegex::from(
-            regex::Regex::new(str_constants::text::D_PLUS).expect("4d0fa8e3"),
-        );
-        let other = super::RegexRegex::from(
-            regex::Regex::new(str_constants::text::A_Z_PLUS).expect("abcc9a72"),
-        );
+        let left =
+            super::RegexRegex::from(regex::Regex::new(str_constants::D_PLUS).expect("8342ad27"));
+        let right =
+            super::RegexRegex::from(regex::Regex::new(str_constants::D_PLUS).expect("4d0fa8e3"));
+        let other =
+            super::RegexRegex::from(regex::Regex::new(str_constants::A_Z_PLUS).expect("abcc9a72"));
         assert_eq!(left, right);
         assert_ne!(left, other);
     }

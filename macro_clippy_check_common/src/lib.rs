@@ -29,10 +29,10 @@ enum GeneratedCratePhase {
 impl std::fmt::Display for GeneratedCratePhase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Clippy => f.write_str(str_constants::text::CLIPPY),
-            Self::Compilation => f.write_str(str_constants::text::COMPILATION),
-            Self::Formatting => f.write_str(str_constants::text::FORMATTING),
-            Self::Test => f.write_str(str_constants::text::TEST_ALT_3),
+            Self::Clippy => f.write_str(str_constants::CLIPPY),
+            Self::Compilation => f.write_str(str_constants::COMPILATION),
+            Self::Formatting => f.write_str(str_constants::FORMATTING),
+            Self::Test => f.write_str(str_constants::TEST_ALT_3),
         }
     }
 }
@@ -48,7 +48,7 @@ struct RemoveDirOnDrop {
 #[cfg(feature = "test-utils")]
 impl Drop for RemoveDirOnDrop {
     fn drop(&mut self) {
-        remove_dir_all_if_exists(&self.path, str_constants::text::E28698F2);
+        remove_dir_all_if_exists(&self.path, str_constants::E28698F2);
         if let Some(parent) = self.path.parent()
             && let Err(error) = std::fs::remove_dir(parent)
             && error.kind() != std::io::ErrorKind::NotFound
@@ -72,10 +72,10 @@ pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_
         .parent()
         .map_or_else(|| panic!("2d592b13"), std::path::Path::to_path_buf);
     let crate_path = root
-        .join(str_constants::text::TARGET_MACRO_CHECK)
+        .join(str_constants::TARGET_MACRO_CHECK)
         .join(crate_name);
-    remove_dir_all_if_exists(&crate_path, str_constants::text::E28698F2);
-    std::fs::create_dir_all(crate_path.join(str_constants::text::SRC_ALT))
+    remove_dir_all_if_exists(&crate_path, str_constants::E28698F2);
+    std::fs::create_dir_all(crate_path.join(str_constants::SRC_ALT))
         .unwrap_or_else(|error| panic!("2b24ef1a: {error}"));
     let _remove_dir_on_drop = RemoveDirOnDrop {
         path: crate_path.clone(),
@@ -94,19 +94,19 @@ keywords = ["keyword"]
 categories = ["category"]
 [workspace]"#
     );
-    let path_lib_rs = crate_path.join(str_constants::text::SRC_LIB_RS);
-    let path_cargo_toml = crate_path.join(str_constants::text::CARGO_TOML);
-    let workspace_cargo_toml = std::fs::read_to_string(root.join(str_constants::text::CARGO_TOML))
+    let path_lib_rs = crate_path.join(str_constants::SRC_LIB_RS);
+    let path_cargo_toml = crate_path.join(str_constants::CARGO_TOML);
+    let workspace_cargo_toml = std::fs::read_to_string(root.join(str_constants::CARGO_TOML))
         .unwrap_or_else(|error| panic!("bf40d675: {error}"));
     let root_path = root.display().to_string();
     let cargo_toml_extra = extra_cnt.lines().fold(
         String::with_capacity(extra_cnt.len()),
         |mut output, line| {
             let transform_line = || -> std::borrow::Cow<'_, str> {
-                if !line.contains(str_constants::text::WORKSPACE_TRUE) {
+                if !line.contains(str_constants::WORKSPACE_TRUE) {
                     return std::borrow::Cow::Borrowed(line);
                 }
-                let Some((dep_name, _)) = line.split_once(str_constants::text::TEXT_ALT) else {
+                let Some((dep_name, _)) = line.split_once(str_constants::TEXT_ALT) else {
                     return std::borrow::Cow::Borrowed(line);
                 };
                 let prefix = format!("{dep_name} = ");
@@ -127,7 +127,7 @@ categories = ["category"]
                     let Some(workspace_line) = workspace_lines.next() else {
                         panic!("1bb3996c");
                     };
-                    if workspace_line == str_constants::text::WORKSPACE_DEPENDENCIES {
+                    if workspace_line == str_constants::WORKSPACE_DEPENDENCIES {
                         in_workspace_deps = true;
                         continue;
                     }
@@ -150,33 +150,30 @@ categories = ["category"]
                         break out;
                     }
                 };
-                let feature_list =
-                    line.split_once(str_constants::text::FEATURES)
-                        .map(|(_, tail)| {
-                            tail.chars()
-                                .scan(false, |done, ch| {
-                                    if *done {
-                                        None
-                                    } else {
-                                        if ch == ']' {
-                                            *done = true;
-                                        }
-                                        Some(ch)
-                                    }
-                                })
-                                .collect::<String>()
-                        });
-                if !dep_entry.contains(str_constants::text::FEATURES)
+                let feature_list = line.split_once(str_constants::FEATURES).map(|(_, tail)| {
+                    tail.chars()
+                        .scan(false, |done, ch| {
+                            if *done {
+                                None
+                            } else {
+                                if ch == ']' {
+                                    *done = true;
+                                }
+                                Some(ch)
+                            }
+                        })
+                        .collect::<String>()
+                });
+                if !dep_entry.contains(str_constants::FEATURES)
                     && let Some(features) = feature_list
                     && let Some(idx) = dep_entry.rfind('}')
                 {
                     dep_entry.insert_str(idx, &format!(", features = {features}"));
                 }
-                if let Some(path_prefix_idx) = dep_entry.find(str_constants::text::PATH_ALT_4) {
-                    let dot_idx =
-                        path_prefix_idx.saturating_add(str_constants::text::PATH_ALT_3.len());
+                if let Some(path_prefix_idx) = dep_entry.find(str_constants::PATH_ALT_4) {
+                    let dot_idx = path_prefix_idx.saturating_add(str_constants::PATH_ALT_3.len());
                     if dep_entry.get(dot_idx..dot_idx.saturating_add(1usize))
-                        == Some(str_constants::text::DOT)
+                        == Some(str_constants::DOT)
                     {
                         dep_entry
                             .replace_range(dot_idx..dot_idx.saturating_add(1usize), &root_path);
@@ -258,7 +255,7 @@ mod tests {
     #[test]
     fn remove_dir_on_drop_removes_temp_crate_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join(str_constants::text::CRATE_DIR);
+        let path = dir.path().join(str_constants::CRATE_DIR);
         std::fs::create_dir_all(&path).expect("9b0e24f1");
         let guard = super::RemoveDirOnDrop { path: path.clone() };
         drop(guard);
@@ -267,8 +264,8 @@ mod tests {
     #[test]
     fn remove_dir_all_if_exists_accepts_missing_dir() {
         let dir = StdTmpDir::new();
-        let path = dir.path().join(str_constants::text::MISSING_DIR);
-        super::remove_dir_all_if_exists(&path, str_constants::text::F39C05AA);
+        let path = dir.path().join(str_constants::MISSING_DIR);
+        super::remove_dir_all_if_exists(&path, str_constants::F39C05AA);
         assert!(!path.exists());
     }
     #[test]

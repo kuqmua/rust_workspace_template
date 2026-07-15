@@ -1,8 +1,8 @@
 #[test]
 fn string_wrappers_do_not_use_from_string() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::E2A6B9C4),
-        super::types::SourceTextRef::from(str_constants::text::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
+        super::types::StaticStr(str_constants::E2A6B9C4),
+        super::types::SourceTextRef::from(str_constants::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -51,7 +51,7 @@ fn string_wrappers_do_not_use_from_string() {
 }
 #[test]
 fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
-    let ast = syn::parse_file(str_constants::text::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9");
+    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9");
     let string_wrapper_names = super::types::StdSourceTextSet::default();
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -72,7 +72,10 @@ fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
 }
 #[test]
 fn bounded_string_derive_satisfies_string_wrapper_policy() {
-    let ast = syn::parse_file(str_constants::text::NEWLINE_CONST_SOURCE_TEXT_MAX_LEN_USIZE_1024_NEWLINE_DERIVE_NEWTYPE_PATH).expect("90df57a8");
+    let ast = syn::parse_file(
+        str_constants::NEWLINE_CONST_SOURCE_TEXT_MAX_LEN_USIZE_1024_NEWLINE_DERIVE_NEWTYPE_PATH,
+    )
+    .expect("90df57a8");
     let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
@@ -98,8 +101,8 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
 #[test]
 fn public_tuple_wrappers_do_not_expose_inner_field() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::B7C84E2A),
-        super::types::SourceTextRef::from(str_constants::text::PUBLIC_TUPLE_WRAPPERS_MUST_NOT_EXPOSE_INNER_FIELDS_INITIALIZE_THEM_THROUGH_FROM),
+        super::types::StaticStr(str_constants::B7C84E2A),
+        super::types::SourceTextRef::from(str_constants::PUBLIC_TUPLE_WRAPPERS_MUST_NOT_EXPOSE_INNER_FIELDS_INITIALIZE_THEM_THROUGH_FROM),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
@@ -121,8 +124,8 @@ fn domain_boundaries_use_repository_declared_types() {
     let repo_crates = super::workspace_crate_names();
     let repo_types = super::declared_domain_type_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::A7F9C3E1),
-        super::types::SourceTextRef::from(str_constants::text::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
+        super::types::StaticStr(str_constants::A7F9C3E1),
+        super::types::SourceTextRef::from(str_constants::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -151,12 +154,11 @@ fn domain_boundaries_use_repository_declared_types() {
 #[test]
 fn domain_type_policy_checks_explicit_closure_parameter_types() {
     let ast = syn::parse_file(
-        str_constants::text::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,
+        str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_FN_DEMO_NEWLINE_LET_PATH_CB,
     )
     .expect("c81a6f20");
     let repo_crates = std::collections::BTreeSet::new();
-    let repo_types =
-        std::collections::BTreeSet::from([String::from(str_constants::text::SOURCETEXT)]);
+    let repo_types = std::collections::BTreeSet::from([String::from(str_constants::SOURCETEXT)]);
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::DomainTypePolicyVisitor {
@@ -183,8 +185,8 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
 #[test]
 fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::F2C7A91B),
-        super::types::SourceTextRef::from(str_constants::text::RAW_TEXT_CONTAINERS_FOUND_IN_HELPER_STRUCT_FIELDS_USE_REPOSITORY_WRAPPER_TYPES),
+        super::types::StaticStr(str_constants::F2C7A91B),
+        super::types::SourceTextRef::from(str_constants::RAW_TEXT_CONTAINERS_FOUND_IN_HELPER_STRUCT_FIELDS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
@@ -208,7 +210,7 @@ fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
 }
 #[test]
 fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
-    let ast = syn::parse_file(str_constants::text::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c");
+    let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS).expect("9f4d2a7c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::AnalyzerStateRawContainerFieldVisitor {
@@ -236,8 +238,8 @@ fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
 #[test]
 fn helper_return_types_use_repository_declared_text_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::VALUE_6D41C8E2),
-        super::types::SourceTextRef::from(str_constants::text::RAW_TEXT_RETURN_TYPES_FOUND_IN_HELPER_FUNCTIONS_USE_REPOSITORY_WRAPPER_TYPES),
+        super::types::StaticStr(str_constants::VALUE_6D41C8E2),
+        super::types::SourceTextRef::from(str_constants::RAW_TEXT_RETURN_TYPES_FOUND_IN_HELPER_FUNCTIONS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
             if !super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
                 .get()
@@ -261,7 +263,10 @@ fn helper_return_types_use_repository_declared_text_wrappers() {
 }
 #[test]
 fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
-    let ast = syn::parse_file(str_constants::text::NEWLINE_FN_DIRECT_ARROW_STRING_NEWLINE_STRING_PATH_NEW_NEWLINE_NEWLINE_FN).expect("3a9d7e2c");
+    let ast = syn::parse_file(
+        str_constants::NEWLINE_FN_DIRECT_ARROW_STRING_NEWLINE_STRING_PATH_NEW_NEWLINE_NEWLINE_FN,
+    )
+    .expect("3a9d7e2c");
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::HelperRawTextReturnVisitor {
@@ -295,8 +300,10 @@ fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
 fn external_leaf_tuple_wrappers_include_crate_name() {
     let repo_crates = super::workspace_crate_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::text::B93D2A8C),
-        super::types::SourceTextRef::from(str_constants::text::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_EXTERNAL_CRATE_NAME),
+        super::types::StaticStr(str_constants::B93D2A8C),
+        super::types::SourceTextRef::from(
+            str_constants::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_EXTERNAL_CRATE_NAME,
+        ),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
