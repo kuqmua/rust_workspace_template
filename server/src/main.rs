@@ -202,7 +202,17 @@ fn mk_api_routes(
     let secured_admin_routes = documented_admin_routes
         .route(
             str_constants::METRICS,
-            axum::routing::get(async move || metrics_handle.0.render()),
+            axum::routing::get(async move || {
+                match server_runtime::MetricsResponseBody::try_from(metrics_handle.0.render()) {
+                    Ok(body) => axum::response::IntoResponse::into_response((
+                        axum::http::StatusCode::OK,
+                        body.into_inner(),
+                    )),
+                    Err(_error) => axum::response::IntoResponse::into_response(
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                    ),
+                }
+            }),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
             generated_admin_auth_state,
@@ -392,10 +402,11 @@ async fn run_server() -> Result<(), RunServerError> {
         .0
         .layer(tower_governor::GovernorLayer::new(governor_conf));
     let router = server_runtime::RequestIdLayer.apply(
-        server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
-            .apply(
-                server_runtime::RequestTimeoutLayer::from(request_timeout).apply(
-                    server_runtime::AxumRouter::from(
+        server_runtime::HttpMetricsLayer::default().apply(
+            server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
+                .apply(
+                    server_runtime::RequestTimeoutLayer::from(request_timeout)
+                        .apply(server_runtime::AxumRouter::from(
                         axum::Router::new()
                             .nest(
                                 str_constants::API_V1,
@@ -435,9 +446,9 @@ async fn run_server() -> Result<(), RunServerError> {
                                         ]),
                                 ),
                             ),
-                    ),
+                    )),
                 ),
-            ),
+        ),
     );
     let serve_result = server_runtime::serve_with_graceful_shutdown(
         server_runtime::TokioTcpListener::from(tcp_listener),

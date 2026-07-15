@@ -666,6 +666,9 @@ fn cargo_subcommand_available(subcommand: &str) -> bool {
 )]
 fn print_optional_release_tools() {
     [
+        str_constants::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+        str_constants::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+        str_constants::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
         str_constants::SEMVER_CHECKS,
         str_constants::UDEPS,
         str_constants::MACHETE,
@@ -678,6 +681,48 @@ fn print_optional_release_tools() {
             cargo_subcommand_available(tool)
         );
     });
+}
+#[allow(clippy::single_call_fn)] // release orchestration is an explicit CLI mode boundary
+fn run_release() -> Result<(), ()> {
+    print_optional_release_tools();
+    let mut commands = Vec::<(&str, &[&str])>::from(STATIC_COMMANDS);
+    if cargo_subcommand_available(str_constants::NEXTEST) {
+        commands.extend(NEXTEST_COMMANDS);
+    } else {
+        commands.extend(CARGO_TEST_COMMANDS);
+    }
+    [
+        (
+            str_constants::WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_AUDIT_ARGS.as_slice(),
+        ),
+        (
+            str_constants::WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_DENY_ARGS.as_slice(),
+        ),
+        (
+            str_constants::WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_HACK_ARGS.as_slice(),
+        ),
+        (
+            str_constants::MACHETE,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_MACHETE_ARGS.as_slice(),
+        ),
+        (
+            str_constants::SEMVER_CHECKS,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_SEMVER_CHECKS_ARGS.as_slice(),
+        ),
+        (
+            str_constants::UDEPS,
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS.as_slice(),
+        ),
+    ]
+    .into_iter()
+    .filter(|(subcommand, _args)| cargo_subcommand_available(subcommand))
+    .for_each(|(_subcommand, args)| {
+        commands.push((str_constants::WORKSPACE_TEST_RUNNER_CARGO, args));
+    });
+    execution::run_commands(commands.as_slice())
 }
 fn run_workspace_tests() -> Result<(), ()> {
     if cargo_subcommand_available(str_constants::NEXTEST) {
@@ -745,10 +790,7 @@ fn main() {
                 Err(())
             }
         }
-        Some(str_constants::RELEASE) => {
-            print_optional_release_tools();
-            execution::run_commands(&STATIC_COMMANDS).and_then(|()| run_workspace_tests())
-        }
+        Some(str_constants::RELEASE) => run_release(),
         Some(str_constants::MEASURE) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
                 ALLOCATION_TOOLS.iter().try_fold((), |(), tool| {

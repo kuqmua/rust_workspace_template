@@ -5,6 +5,8 @@ mod health;
 mod history;
 mod lifecycle;
 mod limits;
+mod metrics_layer;
+mod origin;
 mod request_id;
 mod resource_budget;
 pub use bounded_read::{
@@ -32,6 +34,14 @@ pub use lifecycle::{
 pub use limits::{
     AcquirePermitError, RetryAfterSecs, RetryAfterSecsTryFromU64Error, StdArcTokioSemaphore,
     StdPermitWaitTimeout, TokioAcquireError, TokioOwnedSemaphorePermit, acquire_permit,
+};
+pub use metrics_layer::{
+    HttpMetricsLayer, HttpMetricsPathCacheMaximum, HttpMetricsPathCacheMaximumTryFromUsizeError,
+    MetricsResponseBody, MetricsResponseBodyError,
+};
+pub use origin::{
+    AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
+    RequestOriginAllowed, request_origin_allowed,
 };
 pub use request_id::{
     HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,

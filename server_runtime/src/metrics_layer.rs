@@ -1,0 +1,311 @@
+const DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM: usize = 4_096usize;
+const METRICS_RESPONSE_BODY_MAXIMUM_BYTES: usize = 8 * 1_024 * 1_024usize;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MetricsResponseBody(String);
+
+impl MetricsResponseBody {
+    #[must_use]
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl TryFrom<String> for MetricsResponseBody {
+    type Error = MetricsResponseBodyError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > METRICS_RESPONSE_BODY_MAXIMUM_BYTES {
+            Err(MetricsResponseBodyError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{message}", message = str_constants::METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH)]
+pub struct MetricsResponseBodyError;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct HttpMetricsPathCacheMaximum(usize);
+
+impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
+    type Error = HttpMetricsPathCacheMaximumTryFromUsizeError;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        std::num::NonZeroUsize::new(value)
+            .map(|non_zero_value| Self(non_zero_value.get()))
+            .ok_or(HttpMetricsPathCacheMaximumTryFromUsizeError)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{message}", message = str_constants::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
+pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
+
+#[derive(Debug)]
+struct HttpMetricsPathCache {
+    entries: StdHttpMetricsPathEntries,
+    maximum: HttpMetricsPathCacheMaximum,
+    unmatched: MetricsSharedString,
+}
+
+#[derive(Debug)]
+struct StdHttpMetricsPathEntries(
+    std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
+);
+
+#[derive(Clone, Debug)]
+struct MetricsSharedString(metrics::SharedString);
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct HttpMetricsPathText(String);
+
+impl std::borrow::Borrow<str> for HttpMetricsPathText {
+    fn borrow(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl TryFrom<String> for HttpMetricsPathText {
+    type Error = HttpMetricsPathTextError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 8_192usize {
+            Err(HttpMetricsPathTextError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct HttpMetricsPathTextError;
+
+#[derive(Clone, Copy, Debug)]
+struct HttpMetricsPathTextRef<'path>(&'path str);
+
+impl<'path> From<&'path str> for HttpMetricsPathTextRef<'path> {
+    fn from(value: &'path str) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Debug)]
+struct StdSharedHttpMetricsPathCache(std::sync::Arc<HttpMetricsPathCache>);
+
+impl From<HttpMetricsPathCache> for StdSharedHttpMetricsPathCache {
+    fn from(value: HttpMetricsPathCache) -> Self {
+        Self(std::sync::Arc::from(value))
+    }
+}
+
+#[allow(clippy::arbitrary_source_item_ordering)] // constructor precedes cache lookup implementation
+impl HttpMetricsPathCache {
+    #[allow(clippy::single_call_fn)] // cache construction owns its capacity invariant
+    fn new(maximum: HttpMetricsPathCacheMaximum) -> Self {
+        Self {
+            entries: StdHttpMetricsPathEntries(std::sync::RwLock::new(
+                std::collections::HashMap::with_capacity(
+                    maximum.0.min(DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM),
+                ),
+            )),
+            maximum,
+            unmatched: MetricsSharedString(metrics::SharedString::const_str(
+                str_constants::HTTP_METRICS_UNMATCHED_PATH,
+            )),
+        }
+    }
+
+    fn label(&self, path: HttpMetricsPathTextRef<'_>) -> MetricsSharedString {
+        let read_entries = self
+            .entries
+            .0
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(label) = read_entries.get(path.0) {
+            return label.clone();
+        }
+        if read_entries.len() >= self.maximum.0 {
+            return self.unmatched.clone();
+        }
+        drop(read_entries);
+        let mut write_entries = self
+            .entries
+            .0
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(label) = write_entries.get(path.0) {
+            return label.clone();
+        }
+        if write_entries.len() >= self.maximum.0 {
+            return self.unmatched.clone();
+        }
+        let Ok(path_text) = HttpMetricsPathText::try_from(path.0.to_owned()) else {
+            return self.unmatched.clone();
+        };
+        let label = MetricsSharedString(metrics::SharedString::from(path_text.0.clone()));
+        let _previous = write_entries.insert(path_text, label.clone());
+        label
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct HttpMetricsLayer {
+    paths: StdSharedHttpMetricsPathCache,
+}
+
+impl Default for HttpMetricsLayer {
+    fn default() -> Self {
+        Self::new(HttpMetricsPathCacheMaximum(
+            DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM,
+        ))
+    }
+}
+
+impl HttpMetricsLayer {
+    #[must_use]
+    pub fn apply(self, router: crate::AxumRouter) -> crate::AxumRouter {
+        crate::AxumRouter(router.0.layer(HttpMetricsTowerLayer { paths: self.paths }))
+    }
+
+    #[must_use]
+    pub fn new(path_cache_maximum: HttpMetricsPathCacheMaximum) -> Self {
+        Self {
+            paths: StdSharedHttpMetricsPathCache::from(HttpMetricsPathCache::new(
+                path_cache_maximum,
+            )),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct HttpMetricsTowerLayer {
+    paths: StdSharedHttpMetricsPathCache,
+}
+
+impl<Service> tower::Layer<Service> for HttpMetricsTowerLayer {
+    type Service = HttpMetricsService<Service>;
+
+    fn layer(&self, inner: Service) -> Self::Service {
+        HttpMetricsService {
+            inner,
+            paths: self.paths.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct HttpMetricsService<Service> {
+    inner: Service,
+    paths: StdSharedHttpMetricsPathCache,
+}
+
+impl<Service> tower::Service<axum::extract::Request> for HttpMetricsService<Service>
+where
+    Service: tower::Service<axum::extract::Request, Response = axum::response::Response>
+        + Send
+        + 'static,
+    Service::Future: Send + 'static,
+{
+    type Error = Service::Error;
+    type Future = std::pin::Pin<
+        Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
+    >;
+    type Response = axum::response::Response;
+
+    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
+        let method = match *req.method() {
+            http::Method::CONNECT => str_constants::HTTP_METHOD_CONNECT_LABEL,
+            http::Method::DELETE => str_constants::DELETE,
+            http::Method::GET => str_constants::GET,
+            http::Method::HEAD => str_constants::HTTP_METHOD_HEAD_LABEL,
+            http::Method::OPTIONS => str_constants::HTTP_METHOD_OPTIONS_LABEL,
+            http::Method::PATCH => str_constants::PATCH,
+            http::Method::POST => str_constants::POST,
+            http::Method::PUT => str_constants::HTTP_METHOD_PUT_LABEL,
+            http::Method::TRACE => str_constants::HTTP_METHOD_TRACE_LABEL,
+            _ => str_constants::HTTP_METHOD_OTHER_LABEL,
+        };
+        let path_text = req.extensions().get::<axum::extract::MatchedPath>().map_or(
+            str_constants::HTTP_METRICS_UNMATCHED_PATH,
+            axum::extract::MatchedPath::as_str,
+        );
+        let path_label = self.paths.0.label(HttpMetricsPathTextRef::from(path_text));
+        let started_at = std::time::Instant::now();
+        let response_future = tower::Service::call(&mut self.inner, req);
+        Box::pin(async move {
+            let response = response_future.await?;
+            let status = MetricsSharedString(metrics::SharedString::from(
+                response.status().as_str().to_owned(),
+            ));
+            let labels = vec![
+                metrics::Label::new(str_constants::HTTP_METRICS_LABEL_METHOD, method),
+                metrics::Label::new(str_constants::PATH_ALT_5, path_label.0),
+                metrics::Label::new(str_constants::STATUS_ALT, status.0),
+            ];
+            metrics::counter!(str_constants::HTTP_METRICS_REQUESTS_TOTAL, labels.clone())
+                .increment(1u64);
+            metrics::histogram!(
+                str_constants::HTTP_METRICS_REQUEST_DURATION_SECONDS,
+                labels.clone()
+            )
+            .record(started_at.elapsed().as_secs_f64());
+            if response.status().is_server_error() {
+                metrics::counter!(str_constants::HTTP_METRICS_ERRORS_TOTAL, labels).increment(1u64);
+            }
+            Ok(response)
+        })
+    }
+
+    fn poll_ready(
+        &mut self,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        self.inner.poll_ready(cx)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn metrics_response_body_is_bounded() {
+        let _body = super::MetricsResponseBody::try_from(String::new()).expect("52410ad9");
+        let _error = super::MetricsResponseBody::try_from(
+            String::from_utf8(vec![
+                b'x';
+                super::METRICS_RESPONSE_BODY_MAXIMUM_BYTES
+                    .saturating_add(1usize)
+            ])
+            .expect("329fb604"),
+        )
+        .expect_err(str_constants::F0FC293DD);
+    }
+
+    #[test]
+    fn cache_is_bounded_and_reuses_labels() {
+        let cache = super::HttpMetricsPathCache::new(super::HttpMetricsPathCacheMaximum(1usize));
+        assert_eq!(
+            cache
+                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .0
+                .as_ref(),
+            str_constants::ROOT
+        );
+        assert_eq!(
+            cache
+                .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))
+                .0
+                .as_ref(),
+            str_constants::ROOT
+        );
+        assert_eq!(
+            cache
+                .label(super::HttpMetricsPathTextRef::from(str_constants::API_V1))
+                .0
+                .as_ref(),
+            str_constants::HTTP_METRICS_UNMATCHED_PATH
+        );
+    }
+}

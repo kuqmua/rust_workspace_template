@@ -29,6 +29,7 @@ str_constants_macros::define_str_constants! {
         WORD_ADMIN_USERS = "admin_users";
         WORD_ADMIN_USER_ROLES = "admin_user_roles";
         WORD_AFTER = "after";
+        WORD_ADVISORIES = "advisories";
         WORD_AGENT = "agent";
         WORD_ALIASES = "aliases";
         WORD_ALL = "all";
@@ -75,6 +76,7 @@ str_constants_macros::define_str_constants! {
         WORD_BAD = "bad";
         WORD_BE = "be";
         WORD_BETWEEN = "Between";
+        WORD_BANS = "bans";
         WORD_BIGINT = "BIGINT";
         WORD_BIN = "bin";
         WORD_BLOCKING = "blocking";
@@ -268,6 +270,10 @@ str_constants_macros::define_str_constants! {
         WORD_HELPER_2 = "helper";
         WORD_HIDDEN = "hidden";
         WORD_HTTP = "http";
+        WORD_HTTP_ERRORS_TOTAL = "http_errors_total";
+        WORD_HTTP_REQUESTS_TOTAL = "http_requests_total";
+        WORD_HTTP_REQUEST_DURATION_SECONDS = "http_request_duration_seconds";
+        WORD_HTTP_METRICS_UNMATCHED_PATH = "__unmatched__";
         WORD_HTTPONLY = "HttpOnly";
         WORD_HTTPS = "https";
         WORD_HTTP_METHOD = "http_method";
@@ -333,6 +339,7 @@ str_constants_macros::define_str_constants! {
         WORD_LLVM = "llvm";
         WORD_LOCALHOST = "localhost";
         WORD_LOCATION = "location";
+        WORD_LICENSES = "licenses";
         WORD_LOCATION_LIB = "location_lib";
         WORD_LOCATION_MACROS = "location_macros";
         WORD_LOCKED = "locked";
@@ -551,6 +558,7 @@ str_constants_macros::define_str_constants! {
         WORD_STATE = "state";
         WORD_STATIC = "static";
         WORD_STATUS = "status";
+        WORD_SOURCES = "sources";
         WORD_STD = "std";
         WORD_STORE = "store";
         WORD_STR = "str";
@@ -1151,6 +1159,47 @@ str_constants_macros::define_str_constants! {
         pub MACRO_CLIPPY_CHECK_COMMON = ["/macro_clippy_check_common/"];
         pub MACROS_HELPERS = ["/", WORD_MACROS_HELPERS, "/"];
         pub METRICS = ["/", WORD_METRICS_2];
+        pub HTTP_METRICS_ERRORS_TOTAL = [WORD_HTTP_ERRORS_TOTAL];
+        pub HTTP_METRICS_LABEL_METHOD = [WORD_METHOD];
+        pub HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO = ["HTTP metrics path cache maximum must be greater than zero"];
+        pub HTTP_METRICS_REQUESTS_TOTAL = [WORD_HTTP_REQUESTS_TOTAL];
+        pub HTTP_METRICS_REQUEST_DURATION_SECONDS = [WORD_HTTP_REQUEST_DURATION_SECONDS];
+        pub HTTP_METRICS_UNMATCHED_PATH = [WORD_HTTP_METRICS_UNMATCHED_PATH];
+        pub HTTP_METHOD_CONNECT_LABEL = ["CONNECT"];
+        pub HTTP_METHOD_HEAD_LABEL = ["HEAD"];
+        pub HTTP_METHOD_OPTIONS_LABEL = ["OPTIONS"];
+        pub HTTP_METHOD_PUT_LABEL = ["PUT"];
+        pub HTTP_METHOD_TRACE_LABEL = ["TRACE"];
+        pub HTTP_METHOD_OTHER_LABEL = ["OTHER"];
+        pub WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND = [WORD_AUDIT_2];
+        pub WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND = [WORD_DENY];
+        pub WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND = ["hack"];
+        pub(crate) WORKSPACE_TEST_RUNNER_ADVISORIES_ARG = [WORD_ADVISORIES];
+        pub(crate) WORKSPACE_TEST_RUNNER_BANS_ARG = [WORD_BANS];
+        pub(crate) WORKSPACE_TEST_RUNNER_LICENSES_ARG = [WORD_LICENSES];
+        pub(crate) WORKSPACE_TEST_RUNNER_SOURCES_ARG = [WORD_SOURCES];
+        pub(crate) WORKSPACE_TEST_RUNNER_FEATURE_POWERSET_ARG = ["--feature-powerset"];
+        pub(crate) WORKSPACE_TEST_RUNNER_NO_DEV_DEPS_ARG = ["--no-dev-deps"];
+        pub(crate) WORKSPACE_TEST_RUNNER_NIGHTLY_ARG = ["+nightly"];
+        pub CURSOR_VERSION_V1 = [WORD_V1];
+        pub CURSOR_SIGNING_KEY_MUST_NOT_BE_EMPTY = ["cursor signing key must not be empty"];
+        pub CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY = ["cursor payload must not be empty"];
+        pub SIGNED_CURSOR_MUST_NOT_BE_EMPTY = ["signed cursor must not be empty"];
+        pub CURSOR_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO = ["cursor maximum length must be greater than zero"];
+        pub CURSOR_SIGNING_KEY_IS_INVALID = ["cursor signing key is invalid"];
+        pub CURSOR_EXCEEDS_MAXIMUM_LENGTH = ["cursor exceeds maximum length"];
+        pub CURSOR_FORMAT_IS_INVALID = ["cursor format is invalid"];
+        pub CURSOR_PAYLOAD_IS_INVALID = ["cursor payload is invalid"];
+        pub CURSOR_SIGNATURE_IS_INVALID = ["cursor signature is invalid"];
+        pub ALLOWED_HTTP_ORIGIN_IS_INVALID = ["allowed HTTP origin is invalid"];
+        pub ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID = ["allowed HTTP origin list is invalid"];
+        pub METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH = ["metrics response body exceeds maximum length"];
+        pub HTTPS_ADMIN_EXAMPLE_COM_PATH = [WORD_HTTPS, "://", WORD_ADMIN_2, ".", WORD_EXAMPLE, ".", WORD_COM, "/", WORD_PATH];
+        pub HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER = ["HTTPS://ADMIN.EXAMPLE.COM/settings"];
+        pub CURSOR_TEST_JSON_PAYLOAD = ["{\"id\":42}"];
+        pub CURSOR_TEST_PAYLOAD = ["payload"];
+        pub COMMAND_THREAD_PANICKED_SUMMARY = ["command_thread_panicked=true\n"];
+        pub F0FC293DD = ["0fc293dd"];
         pub MISSING = ["/", WORD_MISSING];
         pub MISSING_PATH = ["/", WORD_MISSING, "/", WORD_PATH];
         pub MISSING_PATH_QUESTION_LIMIT_10 = ["/", WORD_MISSING, "/", WORD_PATH, "?", WORD_LIMIT_2, "=10"];
@@ -3310,4 +3359,32 @@ pub const WORKSPACE_TEST_RUNNER_NEXTEST_WORKSPACE_ARGS: [&str; 7] = [
     SHARED_VALUES_ALL_FEATURES,
     SHARED_VALUES_P_2,
     WORKSPACE_TEST_RUNNER_STATIC_WORKSPACE_PROFILE,
+];
+pub const WORKSPACE_TEST_RUNNER_CARGO_AUDIT_ARGS: [&str; 1] =
+    [WORKSPACE_TEST_RUNNER_AUDIT_SUBCOMMAND];
+pub const WORKSPACE_TEST_RUNNER_CARGO_DENY_ARGS: [&str; 6] = [
+    WORKSPACE_TEST_RUNNER_DENY_SUBCOMMAND,
+    SHARED_VALUES_CHECK,
+    WORKSPACE_TEST_RUNNER_ADVISORIES_ARG,
+    WORKSPACE_TEST_RUNNER_BANS_ARG,
+    WORKSPACE_TEST_RUNNER_LICENSES_ARG,
+    WORKSPACE_TEST_RUNNER_SOURCES_ARG,
+];
+pub const WORKSPACE_TEST_RUNNER_CARGO_HACK_ARGS: [&str; 6] = [
+    WORKSPACE_TEST_RUNNER_HACK_SUBCOMMAND,
+    SHARED_VALUES_CHECK,
+    SHARED_VALUES_WORKSPACE,
+    WORKSPACE_TEST_RUNNER_FEATURE_POWERSET_ARG,
+    WORKSPACE_TEST_RUNNER_NO_DEV_DEPS_ARG,
+    SHARED_VALUES_LOCKED,
+];
+pub const WORKSPACE_TEST_RUNNER_CARGO_MACHETE_ARGS: [&str; 1] = [MACHETE];
+pub const WORKSPACE_TEST_RUNNER_CARGO_SEMVER_CHECKS_ARGS: [&str; 1] = [SEMVER_CHECKS];
+pub const WORKSPACE_TEST_RUNNER_CARGO_UDEPS_ARGS: [&str; 6] = [
+    WORKSPACE_TEST_RUNNER_NIGHTLY_ARG,
+    UDEPS,
+    SHARED_VALUES_WORKSPACE,
+    SHARED_VALUES_ALL_TARGETS,
+    SHARED_VALUES_ALL_FEATURES,
+    SHARED_VALUES_LOCKED,
 ];

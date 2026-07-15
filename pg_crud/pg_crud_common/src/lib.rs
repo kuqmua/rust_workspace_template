@@ -1,6 +1,7 @@
 mod bind_index;
 pub mod bounded_vec;
 mod cardinality;
+mod cursor;
 mod errors;
 mod pagination;
 mod query_fragment;
@@ -11,6 +12,12 @@ pub use bind_index::{
 pub use cardinality::{
     DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash, take_fst_dup,
     take_fst_dup_by_hash,
+};
+pub use cursor::{
+    CursorCodec, CursorCodecBuildError, CursorDecodeError, CursorEncodeError, CursorMaximumLength,
+    CursorPaginationUsage, CursorPayload, CursorPayloadError, CursorSigningKey,
+    CursorSigningKeyError, OffsetPaginationPresence, SignedCursor, SignedCursorError,
+    SignedCursorPresence,
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,

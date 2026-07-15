@@ -74,6 +74,7 @@ argon2 = { version = "=0.5.3", default-features = false, features = [
   "rand",
   "zeroize",
 ] }
+base64 = { version = "=0.22.1", default-features = false, features = ["alloc"] }
 serde = { version = "=1.0.228", default-features = false, features = [
   "std",
   "derive",
@@ -175,6 +176,7 @@ tower_governor = { version = "=0.8.0", default-features = false, features = [
 ] }
 http-body = { version = "=1.0.1", default-features = false }
 http = { version = "=1.4.2", default-features = false }
+hmac = { version = "=0.12.1", default-features = false }
 futures = { version = "=0.3.32", default-features = false, features = [
   "std",
   "async-await",

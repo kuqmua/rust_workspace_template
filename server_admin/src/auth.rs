@@ -14,12 +14,10 @@ pub struct StdAdminRefreshTtlSeconds(u64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(from_inner)]
 pub struct StdAdminSessionLimit(usize);
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StdAdminAllowedOrigins(Vec<super::StdAdminString>);
 #[derive(Debug)]
 pub struct AdminAuthSvcState {
     access_ttl: StdAdminAccessTtlSeconds,
-    allowed_origins: StdAdminAllowedOrigins,
+    allowed_origins: server_runtime::AllowedOrigins,
     audience: super::AdminTokenAudience,
     cookie_secure: super::AdminCookieSecure,
     decoding_key: JsonwebtokenAdminDecodingKey,
@@ -36,6 +34,8 @@ pub struct AdminAuthSvcState {
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
 #[derive(Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {
+    #[error("administrator allowed origin is invalid")]
+    AllowedOrigin,
     #[error("administrator token audience is invalid")]
     Audience,
     #[error("administrator token issuer is invalid")]
@@ -264,48 +264,6 @@ impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessio
             .map_err(|_error| AdminApiError::Validation)
     }
 }
-fn origin_authority(
-    value: super::StdAdminStrRef<'_>,
-    allow_suffix: super::StdAdminBool,
-) -> Option<(super::StdAdminStrRef<'_>, super::StdAdminStrRef<'_>)> {
-    let (scheme, remainder) = value.0.split_once(str_constants::TEXT_ALT_10)?;
-    if !scheme.eq_ignore_ascii_case(str_constants::HTTP)
-        && !scheme.eq_ignore_ascii_case(str_constants::HTTPS)
-    {
-        return None;
-    }
-    let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
-    let authority = remainder.get(..authority_end)?;
-    if authority.is_empty() || (!allow_suffix.0 && authority_end != remainder.len()) {
-        None
-    } else {
-        Some((
-            super::StdAdminStrRef::from(scheme),
-            super::StdAdminStrRef::from(authority),
-        ))
-    }
-}
-fn origin_value_is_allowed(
-    value: super::StdAdminStrRef<'_>,
-    allow_suffix: super::StdAdminBool,
-    allowed_origins: &[super::StdAdminString],
-) -> super::StdAdminBool {
-    let Some((scheme, authority)) =
-        origin_authority(super::StdAdminStrRef::from(value.0.trim()), allow_suffix)
-    else {
-        return super::StdAdminBool::from(false);
-    };
-    super::StdAdminBool::from(allowed_origins.iter().any(|allowed_origin| {
-        origin_authority(
-            super::StdAdminStrRef::from(allowed_origin.as_ref().as_str()),
-            super::StdAdminBool::from(false),
-        )
-        .is_some_and(|(allowed_scheme, allowed_authority)| {
-            allowed_scheme.0.eq_ignore_ascii_case(scheme.0)
-                && allowed_authority.0.eq_ignore_ascii_case(authority.0)
-        })
-    }))
-}
 fn session_context_hash(
     headers: super::HttpAdminHeaderMapRef<'_>,
     peer: AdminPeerAddr,
@@ -350,33 +308,10 @@ fn origin_is_present_and_allowed(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
 ) -> super::StdAdminBool {
-    let allowed = headers.0.get(http::header::ORIGIN).map_or_else(
-        || {
-            headers
-                .0
-                .get(http::header::REFERER)
-                .and_then(|value| value.to_str().ok())
-                .is_some_and(|referer| {
-                    origin_value_is_allowed(
-                        super::StdAdminStrRef::from(referer),
-                        super::StdAdminBool::from(true),
-                        &state.allowed_origins.0,
-                    )
-                    .0
-                })
-        },
-        |origin_header| {
-            origin_header.to_str().is_ok_and(|origin_value| {
-                origin_value_is_allowed(
-                    super::StdAdminStrRef::from(origin_value),
-                    super::StdAdminBool::from(false),
-                    &state.allowed_origins.0,
-                )
-                .0
-            })
-        },
-    );
-    super::StdAdminBool::from(allowed)
+    super::StdAdminBool::from(bool::from(server_runtime::request_origin_allowed(
+        server_runtime::HttpOriginHeadersRef::from(headers.0),
+        &state.allowed_origins,
+    )))
 }
 async fn authenticate(
     state: &AdminAuthSvcState,
@@ -989,11 +924,12 @@ impl AdminAuthSvcState {
             .split(',')
             .map(str::trim)
             .filter(|value| !value.is_empty())
-            .map(|value| super::StdAdminString(value.to_owned()))
-            .collect::<Vec<super::StdAdminString>>();
+            .map(str::to_owned)
+            .collect::<Vec<String>>();
         Ok(Self {
             access_ttl: StdAdminAccessTtlSeconds::from(access_ttl.get()),
-            allowed_origins: StdAdminAllowedOrigins(parsed_origins),
+            allowed_origins: server_runtime::AllowedOrigins::try_from(parsed_origins)
+                .map_err(|_error| AdminAuthSvcStateBuildError::AllowedOrigin)?,
             audience: super::AdminTokenAudience::try_from(audience.as_ref().clone())
                 .map_err(|_error| AdminAuthSvcStateBuildError::Audience)?,
             cookie_secure: super::AdminCookieSecure::from(**cookie_secure),
@@ -1103,48 +1039,6 @@ mod tests {
         assert_eq!(
             response.headers().get(http::header::RETRY_AFTER),
             Some(&http::HeaderValue::from_static("60")),
-        );
-    }
-    #[test]
-    fn origin_policy_accepts_referer_suffix_and_rejects_origin_suffix() {
-        let allowed_origins =
-            [
-                crate::StdAdminString::try_from(str_constants::HTTPS_ADMIN_EXAMPLE_COM.to_owned())
-                    .expect("7c9e8046"),
-            ];
-        assert!(
-            super::origin_value_is_allowed(
-                crate::StdAdminStrRef::from(
-                    "HTTPS://ADMIN.EXAMPLE.COM/settings?tab=security#roles"
-                ),
-                crate::StdAdminBool::from(true),
-                &allowed_origins,
-            )
-            .0
-        );
-        assert!(
-            !super::origin_value_is_allowed(
-                crate::StdAdminStrRef::from("https://admin.example.com/settings"),
-                crate::StdAdminBool::from(false),
-                &allowed_origins,
-            )
-            .0
-        );
-        assert!(
-            !super::origin_value_is_allowed(
-                crate::StdAdminStrRef::from("https://blocked.example.com"),
-                crate::StdAdminBool::from(false),
-                &allowed_origins,
-            )
-            .0
-        );
-        assert!(
-            !super::origin_value_is_allowed(
-                crate::StdAdminStrRef::from("javascript://admin.example.com"),
-                crate::StdAdminBool::from(false),
-                &allowed_origins,
-            )
-            .0
         );
     }
     #[test]

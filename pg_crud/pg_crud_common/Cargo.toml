@@ -12,10 +12,13 @@ edition = "2024"
 
 [dependencies]
 str_constants = { workspace = true }
+base64 = { workspace = true }
+hmac = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
+sha2 = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 proc-macro2 = { workspace = true }
