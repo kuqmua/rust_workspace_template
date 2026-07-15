@@ -53,7 +53,11 @@ pub fn single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::expr::S_0021), QuoteChar('\''), v)
+    quote_literal(
+        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuoteChar('\''),
+        v,
+    )
 }
 #[must_use]
 pub fn single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -61,10 +65,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::expr::S_0021),
+        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
         QuoteChar('\''),
         v,
-        QuotePanicId(str_constants::expr::S_1233),
+        QuotePanicId(str_constants::text::EC1E77D5),
     )
 }
 #[must_use]
@@ -72,7 +76,11 @@ pub fn dq_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::expr::S_0021), QuoteChar('\"'), v)
+    quote_literal(
+        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+        QuoteChar('\"'),
+        v,
+    )
 }
 #[must_use]
 pub fn dq_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -80,10 +88,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::expr::S_0021),
+        QuotePrefix(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
         QuoteChar('\"'),
         v,
-        QuotePanicId(str_constants::expr::S_0143),
+        QuotePanicId(str_constants::text::VALUE_0391AC99),
     )
 }
 #[must_use]
@@ -91,7 +99,7 @@ pub fn binary_single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::expr::S_0977), QuoteChar('\''), v)
+    quote_literal(QuotePrefix(str_constants::text::B), QuoteChar('\''), v)
 }
 #[must_use]
 pub fn binary_single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -99,10 +107,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::expr::S_0977),
+        QuotePrefix(str_constants::text::B),
         QuoteChar('\''),
         v,
-        QuotePanicId(str_constants::expr::S_0504),
+        QuotePanicId(str_constants::text::VALUE_8BCE26E7),
     )
 }
 #[must_use]
@@ -110,7 +118,7 @@ pub fn binary_double_quoted_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::expr::S_0977), QuoteChar('\"'), v)
+    quote_literal(QuotePrefix(str_constants::text::B), QuoteChar('\"'), v)
 }
 #[must_use]
 pub fn binary_double_quoted_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -118,10 +126,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::expr::S_0977),
+        QuotePrefix(str_constants::text::B),
         QuoteChar('\"'),
         v,
-        QuotePanicId(str_constants::expr::S_0379),
+        QuotePanicId(str_constants::text::VALUE_5DC6F142),
     )
 }
 #[cfg(test)]
@@ -138,71 +146,74 @@ mod tests {
     #[test]
     fn quote_str_helpers_return_expected_literals() {
         assert_quote_str(
-            &super::single_quotes_str(str_constants::expr::S_0905),
-            str_constants::expr::S_0036,
+            &super::single_quotes_str(str_constants::text::ABC_ALT_3),
+            str_constants::text::ABC,
         );
         assert_quote_str(
-            &super::dq_str(&str_constants::expr::S_0905),
-            str_constants::expr::S_0851,
+            &super::dq_str(&str_constants::text::ABC_ALT_3),
+            str_constants::text::ABC_ALT,
         );
         assert_quote_str(
-            &super::binary_single_quotes_str(str_constants::expr::S_0905),
-            str_constants::expr::S_0980,
+            &super::binary_single_quotes_str(str_constants::text::ABC_ALT_3),
+            str_constants::text::B_ABC,
         );
         assert_quote_str(
-            &super::binary_double_quoted_str(&str_constants::expr::S_0905),
-            str_constants::expr::S_1004,
+            &super::binary_double_quoted_str(&str_constants::text::ABC_ALT_3),
+            str_constants::text::B_ABC_ALT,
         );
     }
     #[test]
     fn quote_token_stream_helpers_return_expected_tokens() {
         assert_quote_token_stream(
-            &super::single_quotes_token_stream(str_constants::expr::S_0868),
-            str_constants::expr::S_0035,
+            &super::single_quotes_token_stream(str_constants::text::A_ALT),
+            str_constants::text::A,
         );
         assert_quote_token_stream(
-            &super::dq_token_stream(&str_constants::expr::S_0905),
-            str_constants::expr::S_0851,
+            &super::dq_token_stream(&str_constants::text::ABC_ALT_3),
+            str_constants::text::ABC_ALT,
         );
         assert_quote_token_stream(
-            &super::binary_single_quotes_token_stream(str_constants::expr::S_0868),
-            str_constants::expr::S_0979,
+            &super::binary_single_quotes_token_stream(str_constants::text::A_ALT),
+            str_constants::text::B_A,
         );
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&str_constants::expr::S_0905),
-            str_constants::expr::S_1004,
+            &super::binary_double_quoted_token_stream(&str_constants::text::ABC_ALT_3),
+            str_constants::text::B_ABC_ALT,
         );
     }
     #[test]
     fn quote_helpers_support_non_string_display_inputs() {
-        assert_quote_str(&super::dq_str(&42i32), str_constants::expr::S_0849);
+        assert_quote_str(&super::dq_str(&42i32), str_constants::text::VALUE_42_ALT);
         assert_quote_str(
             &super::binary_double_quoted_str(&42i32),
-            str_constants::expr::S_1002,
+            str_constants::text::B_42,
         );
-        assert_quote_token_stream(&super::dq_token_stream(&42i32), str_constants::expr::S_0849);
+        assert_quote_token_stream(
+            &super::dq_token_stream(&42i32),
+            str_constants::text::VALUE_42_ALT,
+        );
         assert_quote_token_stream(
             &super::binary_double_quoted_token_stream(&42i32),
-            str_constants::expr::S_1002,
+            str_constants::text::B_42,
         );
     }
     #[test]
     fn quote_helpers_handle_empty_input() {
         assert_quote_str(
-            &super::single_quotes_str(str_constants::expr::S_0021),
-            str_constants::expr::S_0034,
+            &super::single_quotes_str(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::TEXT_ALT_4,
         );
         assert_quote_str(
-            &super::dq_str(&str_constants::expr::S_0021),
-            str_constants::expr::S_0850,
+            &super::dq_str(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::TEXT_ALT_12,
         );
         assert_quote_str(
-            &super::binary_single_quotes_str(str_constants::expr::S_0021),
-            str_constants::expr::S_0978,
+            &super::binary_single_quotes_str(str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::B_ALT,
         );
         assert_quote_str(
-            &super::binary_double_quoted_str(&str_constants::expr::S_0021),
-            str_constants::expr::S_1003,
+            &super::binary_double_quoted_str(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::B_ALT_3,
         );
         assert!(
             super::single_quotes_token_stream("")
@@ -210,8 +221,8 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::dq_token_stream(&str_constants::expr::S_0021),
-            str_constants::expr::S_0850,
+            &super::dq_token_stream(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::TEXT_ALT_12,
         );
         assert!(
             super::binary_single_quotes_token_stream("")
@@ -219,8 +230,8 @@ mod tests {
                 .contains("compile_error !")
         );
         assert_quote_token_stream(
-            &super::binary_double_quoted_token_stream(&str_constants::expr::S_0021),
-            str_constants::expr::S_1003,
+            &super::binary_double_quoted_token_stream(&str_constants::pg_crud::EMPTY_SQL_SUFFIX),
+            str_constants::text::B_ALT_3,
         );
     }
 }

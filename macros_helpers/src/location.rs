@@ -35,23 +35,27 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
         });
         let optional_attr = supported_attrs.next();
         if supported_attrs.next().is_some() {
-            return Err(str_constants::expr::S_1839.to_owned());
+            return Err(str_constants::text::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
         }
-        optional_attr.map_or_else(|| Err(str_constants::expr::S_1572.to_owned()), Ok)
+        optional_attr.map_or_else(|| Err(str_constants::text::OPT_ATTR_IS_NONE.to_owned()), Ok)
     }
 }
 impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
     fn attr_identifier_str(&self) -> crate::attr_identifier_str::AttrIdentifierName<'_> {
         crate::attr_identifier_str::AttrIdentifierName::from(match *self {
-            Self::EoToErrString => str_constants::expr::S_1248,
-            Self::EoToErrStringSerde => str_constants::expr::S_1249,
-            Self::EoLocation => str_constants::expr::S_1247,
-            Self::EoVecToErrString => str_constants::expr::S_1251,
-            Self::EoVecToErrStringSerde => str_constants::expr::S_1252,
-            Self::EoVecLocation => str_constants::expr::S_1250,
-            Self::EoHashMapKStringVToErrString => str_constants::expr::S_1245,
-            Self::EoHashMapKStringVToErrStringSerde => str_constants::expr::S_1246,
-            Self::EoHashMapKStringVLocation => str_constants::expr::S_1244,
+            Self::EoToErrString => str_constants::text::EO_TO_ERR_STRING,
+            Self::EoToErrStringSerde => str_constants::text::EO_TO_ERR_STRING_SERDE,
+            Self::EoLocation => str_constants::text::EO_LOCATION,
+            Self::EoVecToErrString => str_constants::text::EO_VEC_TO_ERR_STRING,
+            Self::EoVecToErrStringSerde => str_constants::text::EO_VEC_TO_ERR_STRING_SERDE,
+            Self::EoVecLocation => str_constants::text::EO_VEC_LOCATION,
+            Self::EoHashMapKStringVToErrString => {
+                str_constants::text::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
+            }
+            Self::EoHashMapKStringVToErrStringSerde => {
+                str_constants::text::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
+            }
+            Self::EoHashMapKStringVLocation => str_constants::text::EO_HASHMAP_K_STRING_V_LOCATION,
         })
     }
 }

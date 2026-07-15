@@ -1,4 +1,109 @@
-pub mod expr;
+pub mod text;
+mod shared_values {
+    pub(crate) const CHECK: &str = "check";
+    pub(crate) const ALL_TARGETS: &str = "--all-targets";
+    pub(crate) const ALL_FEATURES: &str = "--all-features";
+    pub(crate) const EMPTY: &str = "--";
+    pub(crate) const D: &str = "-D";
+    pub(crate) const WARNINGS: &str = "warnings";
+    pub(crate) const A: &str = "-A";
+    pub(crate) const CLIPPY_BOOL_ASSERT_COMPARISON: &str = "clippy::bool_assert_comparison";
+    pub(crate) const CLIPPY_CLONE_ON_COPY: &str = "clippy::clone_on_copy";
+    pub(crate) const CLIPPY_COLLAPSIBLE_IF: &str = "clippy::collapsible_if";
+    pub(crate) const CLIPPY_LET_AND_RETURN: &str = "clippy::let_and_return";
+    pub(crate) const CLIPPY_RESULT_LARGE_ERR: &str = "clippy::result_large_err";
+    pub(crate) const CLIPPY_SINGLE_CALL_FN: &str = "clippy::single_call_fn";
+    pub(crate) const CLIPPY_USELESS_BORROWS_IN_FORMATTING: &str =
+        "clippy::useless_borrows_in_formatting";
+    pub(crate) const CLIPPY_WRITE_LITERAL: &str = "clippy::write_literal";
+    pub(crate) const FMT: &str = "fmt";
+    pub(crate) const LIB: &str = "--lib";
+    pub(crate) const DISALLOWED_FIELDS: &str = "disallowed_fields";
+    pub(crate) const UNNECESSARY_TRAILING_COMMA: &str = "unnecessary_trailing_comma";
+    pub(crate) const MANUAL_POP_IF: &str = "manual_pop_if";
+    pub(crate) const ASSIGN_OPS: &str = "assign_ops";
+    pub(crate) const EXTEND_FROM_SLICE: &str = "extend_from_slice";
+    pub(crate) const MATCH_ON_VEC_ITEMS: &str = "match_on_vec_items";
+    pub(crate) const MISALIGNED_TRANSMUTE: &str = "misaligned_transmute";
+    pub(crate) const OPTION_MAP_OR_ERR_OK: &str = "option_map_or_err_ok";
+    pub(crate) const PUB_ENUM_VARIANT_NAMES: &str = "pub_enum_variant_names";
+    pub(crate) const RANGE_STEP_BY_ZERO: &str = "range_step_by_zero";
+    pub(crate) const REGEX_MACRO: &str = "regex_macro";
+    pub(crate) const REPLACE_CONSTS: &str = "replace_consts";
+    pub(crate) const SHOULD_ASSERT_EQ: &str = "should_assert_eq";
+    pub(crate) const STRING_TO_STRING: &str = "string_to_string";
+    pub(crate) const UNSAFE_VECTOR_INITIALIZATION: &str = "unsafe_vector_initialization";
+    pub(crate) const UNSTABLE_AS_MUT_SLICE: &str = "unstable_as_mut_slice";
+    pub(crate) const UNSTABLE_AS_SLICE: &str = "unstable_as_slice";
+    pub(crate) const UNUSED_COLLECT: &str = "unused_collect";
+    pub(crate) const WRONG_PUB_SELF_CONVENTION: &str = "wrong_pub_self_convention";
+    pub(crate) const MANUAL_NOOP_WAKER: &str = "manual_noop_waker";
+    pub(crate) const MANUAL_OPTION_ZIP: &str = "manual_option_zip";
+    pub(crate) const USELESS_BORROWS_IN_FORMATTING: &str = "useless_borrows_in_formatting";
+    pub(crate) const ASSERT: &str = "assert";
+    pub(crate) const ASSERT_EQ: &str = "assert_eq";
+    pub(crate) const ASSERT_NE: &str = "assert_ne";
+    pub(crate) const COMPILE_ERROR: &str = "compile_error";
+    pub(crate) const CONCAT: &str = "concat";
+    pub(crate) const DEBUG_ASSERT: &str = "debug_assert";
+    pub(crate) const DEBUG_ASSERT_EQ: &str = "debug_assert_eq";
+    pub(crate) const DEBUG_ASSERT_NE: &str = "debug_assert_ne";
+    pub(crate) const ENV: &str = "env";
+    pub(crate) const EPRINT: &str = "eprint";
+    pub(crate) const EPRINTLN: &str = "eprintln";
+    pub(crate) const ERROR_SPAN: &str = "error_span";
+    pub(crate) const FORMAT: &str = "format";
+    pub(crate) const FORMAT_ARGS: &str = "format_args";
+    pub(crate) const FORMAT_IDENT: &str = "format_ident";
+    pub(crate) const GENERATE_SELF_UPPER_CAMEL_CASE_AND_SNAKE_CASE_STR_AND_TOKEN_STREAM: &str =
+        "generate_self_upper_camel_case_and_snake_case_str_and_token_stream";
+    pub(crate) const GENERATE_UPPER_CAMEL_CASE_AND_SNAKE_CASE_STR_AND_TOKEN_STREAM: &str =
+        "generate_upper_camel_case_and_snake_case_str_and_token_stream";
+    pub(crate) const IMPL_TO_ERR_STRING_WITH: &str = "impl_to_err_string_with";
+    pub(crate) const INFO_SPAN: &str = "info_span";
+    pub(crate) const JOIN: &str = "join";
+    pub(crate) const MIGRATE: &str = "migrate";
+    pub(crate) const OPTION_ENV: &str = "option_env";
+    pub(crate) const PARSE_QUOTE: &str = "parse_quote";
+    pub(crate) const PRINT: &str = "print";
+    pub(crate) const PRINTLN: &str = "println";
+    pub(crate) const QUERY: &str = "query";
+    pub(crate) const QUERY_AS: &str = "query_as";
+    pub(crate) const QUERY_SCALAR: &str = "query_scalar";
+    pub(crate) const QUOTE: &str = "quote";
+    pub(crate) const QUOTE_SPANNED: &str = "quote_spanned";
+    pub(crate) const STRINGIFY: &str = "stringify";
+    pub(crate) const TP: &str = "tp";
+    pub(crate) const TRACE_SPAN: &str = "trace_span";
+    pub(crate) const UNREACHABLE: &str = "unreachable";
+    pub(crate) const VIEW: &str = "view";
+    pub(crate) const WARN_SPAN: &str = "warn_span";
+    pub(crate) const WRITELN: &str = "writeln";
+    pub(crate) const LOGIN_2: &str = "Login";
+    pub(crate) const DISPLAY_NAME_2: &str = "Display name";
+    pub(crate) const STATUS_2: &str = "Status";
+    pub(crate) const NAME_2: &str = "Name";
+    pub(crate) const SYSTEM_2: &str = "System";
+    pub(crate) const TIME: &str = "Time";
+    pub(crate) const USER: &str = "User";
+    pub(crate) const ACTION_2: &str = "Action";
+    pub(crate) const RESOURCE_2: &str = "Resource";
+    pub(crate) const LOCKED: &str = "--locked";
+    pub(crate) const CHECK_2: &str = "--check";
+    pub(crate) const FEATURES: &str = "--features";
+    pub(crate) const WORKSPACE: &str = "--workspace";
+    pub(crate) const DOC: &str = "--doc";
+    pub(crate) const GENERATE_PG_TABLE_TEST: &str = "generate_pg_table_test";
+    pub(crate) const GENERATE_PG_TYPES_TEST: &str = "generate_pg_types_test";
+    pub(crate) const GENERATE_WHERE_FILTERS_TEST: &str = "generate_where_filters_test";
+    pub(crate) const NO_FAIL_FAST: &str = "--no-fail-fast";
+    pub(crate) const IGNORED: &str = "--ignored";
+    pub(crate) const RUN: &str = "run";
+    pub(crate) const P_2: &str = "-P";
+    pub(crate) const HEAVY_LOAD: &str = "heavy_load";
+    pub(crate) const RUN_IGNORED: &str = "--run-ignored";
+    pub(crate) const ONLY: &str = "only";
+}
 pub mod env_names {
     pub const CORS_ALLOW_ORIGIN: &str = "CORS_ALLOW_ORIGIN";
     pub const DATABASE_URL: &str = "DATABASE_URL";
@@ -15,7 +120,6 @@ pub mod http_header_names {
     pub const X_REQUEST_ID: &str = "x-request-id";
 }
 pub mod route_paths {
-    pub const HEALTH: &str = "/health";
     pub const NOT_FOUND: &str = "/404";
 }
 pub mod sql_names {
@@ -44,13 +148,14 @@ pub mod config {
     pub const TRACING_WARN: &str = "warn";
 }
 pub mod git_info {
+    pub const TREE_SEGMENT: &str = "/tree/";
+
     pub const PROJECT_GIT_COMMIT_ID: &str =
         git_version::git_version!(args = ["--always", "--abbrev=40"]);
     pub const PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
         args = ["--always", "--abbrev=40"],
         prefix = "https://github.com/kuqmua/rust_workspace_template/tree/"
     );
-    pub const TREE_SEGMENT: &str = "/tree/";
 }
 pub mod location {
     pub const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
@@ -82,34 +187,37 @@ pub mod macro_diagnostics {
     pub const TUPLE_STRUCT_ERROR: &str = "Newtype supports only tuple structs";
 }
 pub mod macro_clippy {
-    pub const CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 3] =
-        ["check", "--all-targets", "--all-features"];
-    pub const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = [
-        "clippy",
-        "--all-targets",
-        "--all-features",
-        "--",
-        "-D",
-        "warnings",
-        "-A",
-        "clippy::bool_assert_comparison",
-        "-A",
-        "clippy::clone_on_copy",
-        "-A",
-        "clippy::collapsible_if",
-        "-A",
-        "clippy::let_and_return",
-        "-A",
-        "clippy::result_large_err",
-        "-A",
-        "clippy::single_call_fn",
-        "-A",
-        "clippy::useless_borrows_in_formatting",
-        "-A",
-        "clippy::write_literal",
+    pub const CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 3] = [
+        crate::shared_values::CHECK,
+        crate::shared_values::ALL_TARGETS,
+        crate::shared_values::ALL_FEATURES,
     ];
-    pub const CARGO_FMT_ARGS: [&str; 1] = ["fmt"];
-    pub const CARGO_TEST_LIB_ARGS: [&str; 2] = ["test", "--lib"];
+    pub const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = [
+        crate::text::CLIPPY,
+        crate::shared_values::ALL_TARGETS,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::EMPTY,
+        crate::shared_values::D,
+        crate::shared_values::WARNINGS,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_BOOL_ASSERT_COMPARISON,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_CLONE_ON_COPY,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_COLLAPSIBLE_IF,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_LET_AND_RETURN,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_RESULT_LARGE_ERR,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_SINGLE_CALL_FN,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_USELESS_BORROWS_IN_FORMATTING,
+        crate::shared_values::A,
+        crate::shared_values::CLIPPY_WRITE_LITERAL,
+    ];
+    pub const CARGO_FMT_ARGS: [&str; 1] = [crate::shared_values::FMT];
+    pub const CARGO_TEST_LIB_ARGS: [&str; 2] = [crate::text::TEST_ALT_3, crate::shared_values::LIB];
 }
 pub mod compile_error {
     pub const ERROR_PLACEHOLDER: &str = "{error}";
@@ -207,7 +315,7 @@ pub mod naming {
     pub const REGEX_VALUE: &str = "^[a-zA-Z0-9]+$";
 }
 pub mod panic_location {
-    pub const NO_LOCATION_MSG: &str = "panic occurred but can't get location information...";
+    pub const NO_LOCATION_MSG: &str = "panic occurred but can\'t get location information...";
 }
 pub mod pg_crud {
     pub const ADJACENT_SQL_OPERATOR: &str = "-|-";
@@ -219,13 +327,12 @@ pub mod pg_crud {
     pub const OVERLAPS_SQL_OPERATOR: &str = "&&";
     pub const RIGHT_OF_SQL_OPERATOR: &str = "&>";
     pub const TEXT_SEARCH_SQL_OPERATOR: &str = "ILIKE";
-    pub const TEXT_SEARCH_SQL_SUFFIX: &str = "ESCAPE '\\'";
+    pub const TEXT_SEARCH_SQL_SUFFIX: &str = "ESCAPE \'\\\'";
     pub const WITHIN_SQL_OPERATOR: &str = "<@";
     pub const CREATE_PERMISSION_ACTION: &str = "create";
     pub const DELETE_PERMISSION_ACTION: &str = "delete";
     pub const READ_PERMISSION_ACTION: &str = "read";
     pub const UPDATE_PERMISSION_ACTION: &str = "update";
-    pub const STANDARD_FORMAT_ARGUMENT: &str = "";
     pub const PG_BIGSERIAL: &str = "bigserial";
     pub const PG_BOOL: &str = "bool";
     pub const PG_BYTEA: &str = "bytea";
@@ -256,7 +363,7 @@ pub mod pg_crud {
     pub const BETWEEN_STRUCT_NAME: &str = "struct Between";
     pub const END_FIELD: &str = "end";
     pub const FIELD_IDENTIFIER: &str = "field identifier";
-    pub const COMPLETE_IDEMPOTENCY_SQL: &str = "UPDATE pg_table_idempotency SET state='completed',response_status=$6,response_body=$7,completed_at=NOW() WHERE actor=$1 AND http_method=$2 AND route_path=$3 AND idempotency_key=$4 AND request_hash=$5 AND state='pending'";
+    pub const COMPLETE_IDEMPOTENCY_SQL: &str = "UPDATE pg_table_idempotency SET state=\'completed\',response_status=$6,response_body=$7,completed_at=NOW() WHERE actor=$1 AND http_method=$2 AND route_path=$3 AND idempotency_key=$4 AND request_hash=$5 AND state=\'pending\'";
     pub const GENERATE_PG_TABLE_CONFIG_PATH: &str = "generate_pg_table::generate_pg_table_config";
     pub const NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME: &str = "NotEmptyUniqueVec";
     pub const NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING: &str =
@@ -271,12 +378,13 @@ pub mod pg_crud {
     pub const PG_TYPE_WHERE_SCHEMA_NAME: &str = "PgTypeWhere";
     pub const PG_TYPE_WHERE_STRUCT_NAME: &str = "struct PgTypeWhere";
     pub const PG_TYPE_WHERE_EXPECTING: &str = "struct PgTypeWhere with 2 els";
-    pub const SERDE_BETWEEN_FIELDS: &[&str] = &["start", "end"];
-    pub const SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &["operator", "v"];
     pub const REGEX_REGEX_SCHEMA_ID: &str = "tests::RegexRegex";
     pub const REGEX_REGEX_SCHEMA_NAME: &str = "RegexRegex";
     pub const START_FIELD: &str = "start";
     pub const V_FIELD: &str = "v";
+
+    pub const SERDE_BETWEEN_FIELDS: &[&str] = &[START_FIELD, END_FIELD];
+    pub const SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[OPERATOR_FIELD, V_FIELD];
 }
 pub mod route_validators {
     pub const BLOCK_ON_POLL_LIMIT_ER_ID: &str = "cf6e91ab";
@@ -293,22 +401,19 @@ pub mod runtime {
     pub const CORRELATION_ID_HEADER_NAME: &str = "x-correlation-id";
     pub const FORWARDED_FOR_HEADER_NAME: &str = "x-forwarded-for";
     pub const REAL_IP_HEADER_NAME: &str = "x-real-ip";
-    pub const REQUEST_ID_HEADER_NAME: &str = "x-request-id";
 }
-pub mod server {
-    pub const TRACING_DFLT_FILTER: &str = "info";
-}
+pub mod server {}
 pub mod server_admin {
     pub const ACCESS_COOKIE_NAME: &str = "admin_access_token";
-    pub const ACTIVE_ADMIN_COUNT_SQL: &str = "SELECT COUNT(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id JOIN admin_roles role ON role.id = user_role.role_id WHERE role.name = 'admin' AND users.is_banned = FALSE";
+    pub const ACTIVE_ADMIN_COUNT_SQL: &str = "SELECT COUNT(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id JOIN admin_roles role ON role.id = user_role.role_id WHERE role.name = \'admin\' AND users.is_banned = FALSE";
     pub const API_PREFIX: &str = "/api/v1/admin";
     pub const INSERT_USER_SQL: &str = "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id";
     pub const LOCK_LAST_ADMIN_SQL: &str =
-        "SELECT pg_advisory_xact_lock(hashtext('admin_last_active_administrator'))";
+        "SELECT pg_advisory_xact_lock(hashtext(\'admin_last_active_administrator\'))";
     pub const REVOKE_ACCESS_SESSION_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL";
     pub const REVOKE_USER_ACCESS_SESSIONS_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
     pub const REVOKE_USER_REFRESH_TOKENS_SQL: &str = "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
-    pub const USER_IS_ADMIN_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = 'admin')";
+    pub const USER_IS_ADMIN_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = \'admin\')";
     pub const RATE_LIMIT_AUDIT_READ: &str = "audit_read";
     pub const RATE_LIMIT_MUTATION: &str = "mutation";
     pub const RATE_LIMIT_REFRESH_IP: &str = "refresh_ip";
@@ -335,18 +440,6 @@ pub mod admin_api_paths {
     pub const USERS: &str = "/users";
 }
 pub mod admin_page_paths {
-    pub const ALL: [&str; 10] = [
-        ROOT,
-        SIGN_IN,
-        USERS,
-        ROLES,
-        PERMISSIONS,
-        AUDIT,
-        SETTINGS,
-        METRICS,
-        VERSION,
-        OPEN_API,
-    ];
     pub const ASSETS: &str = "/admin/assets";
     pub const AUDIT: &str = "/admin/audit-log";
     pub const METRICS: &str = "/admin/metrics";
@@ -359,6 +452,19 @@ pub mod admin_page_paths {
     pub const SIGN_IN: &str = "/admin/sign-in";
     pub const USERS: &str = "/admin/users";
     pub const VERSION: &str = "/admin/version";
+
+    pub const ALL: [&str; 10] = [
+        ROOT,
+        SIGN_IN,
+        USERS,
+        ROLES,
+        PERMISSIONS,
+        AUDIT,
+        SETTINGS,
+        METRICS,
+        VERSION,
+        OPEN_API,
+    ];
 }
 pub mod admin_permission_values {
     pub const AUDIT_LOG_READ: &str = "audit_log:read";
@@ -395,171 +501,126 @@ pub mod code_style {
         "generate_derive_token_stream_builder";
     pub const GENERATE_PG_TYPES_MACRO_NAME: &str = "generate_pg_types";
     pub const GENERATE_WHERE_FILTERS_MACRO_NAME: &str = "generate_where_filters";
-    pub const STR_CONSTANTS_EXPR_PATH: &str = "../str_constants/src/expr.rs";
+    pub const STR_CONSTANTS_TEXT_PATH: &str = "../str_constants/src/text.rs";
     pub const STRING_GUARD_ALLOWED_SYNTAX_FIXTURE: &str =
         "#[path = \"fixture.rs\"] mod fixture; fn f() { value.expect(\"12345678\"); }";
     pub const STRING_GUARD_DETECTION_FIXTURE: &str =
         "fn f() { consume(\"ordinary\"); outer!(inner(\"macro\")); }";
     pub const CI_WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
-    pub const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
-        "disallowed_fields",
-        "unnecessary_trailing_comma",
-        "manual_pop_if",
-        "assign_ops",
-        "extend_from_slice",
-        "match_on_vec_items",
-        "misaligned_transmute",
-        "option_map_or_err_ok",
-        "pub_enum_variant_names",
-        "range_step_by_zero",
-        "regex_macro",
-        "replace_consts",
-        "should_assert_eq",
-        "string_to_string",
-        "unsafe_vector_initialization",
-        "unstable_as_mut_slice",
-        "unstable_as_slice",
-        "unused_collect",
-        "wrong_pub_self_convention",
-        "manual_noop_waker",
-        "manual_option_zip",
-        "useless_borrows_in_formatting",
-    ];
     pub const WORKSPACE_MANIFEST_PATH: &str = "../Cargo.toml";
-    pub const STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
-        "assert",
-        "assert_eq",
-        "assert_ne",
-        "compile_error",
-        "concat",
-        "debug_assert",
-        "debug_assert_eq",
-        "debug_assert_ne",
-        "env",
-        "eprint",
-        "eprintln",
-        "error",
-        "error_span",
-        "format",
-        "format_args",
-        "format_ident",
-        GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
-        GENERATE_PG_TYPES_MACRO_NAME,
-        "generate_self_upper_camel_case_and_snake_case_str_and_token_stream",
-        "generate_upper_camel_case_and_snake_case_str_and_token_stream",
-        GENERATE_WHERE_FILTERS_MACRO_NAME,
-        "include_bytes",
-        "include_str",
-        "impl_to_err_string_with",
-        "info",
-        "info_span",
-        "json",
-        "join",
-        "migrate",
-        "option_env",
-        "panic",
-        "parse_quote",
-        "print",
-        "println",
-        "query",
-        "query_as",
-        "query_scalar",
-        "quote",
-        "quote_spanned",
-        "select",
-        "stringify",
-        "todo",
-        "tp",
-        "trace",
-        "trace_span",
-        "unimplemented",
-        "unreachable",
-        "view",
-        "warn",
-        "warn_span",
-        "write",
-        "writeln",
-    ];
     pub const GENERATED_RUST_TOKEN_STREAM_IDENTIFIER: &str = "GeneratedRustTokenStream";
     pub const GENERATED_RUST_TOKEN_STREAM_REASON: &str = "public macro-helper API name describes generated Rust tokens and is already used across generator crates";
     pub const EXPECT_METHOD_NAME: &str = "expect";
     pub const PANIC_METHOD_NAME: &str = "panic";
+
+    pub const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
+        crate::shared_values::DISALLOWED_FIELDS,
+        crate::shared_values::UNNECESSARY_TRAILING_COMMA,
+        crate::shared_values::MANUAL_POP_IF,
+        crate::shared_values::ASSIGN_OPS,
+        crate::shared_values::EXTEND_FROM_SLICE,
+        crate::shared_values::MATCH_ON_VEC_ITEMS,
+        crate::shared_values::MISALIGNED_TRANSMUTE,
+        crate::shared_values::OPTION_MAP_OR_ERR_OK,
+        crate::shared_values::PUB_ENUM_VARIANT_NAMES,
+        crate::shared_values::RANGE_STEP_BY_ZERO,
+        crate::shared_values::REGEX_MACRO,
+        crate::shared_values::REPLACE_CONSTS,
+        crate::shared_values::SHOULD_ASSERT_EQ,
+        crate::shared_values::STRING_TO_STRING,
+        crate::shared_values::UNSAFE_VECTOR_INITIALIZATION,
+        crate::shared_values::UNSTABLE_AS_MUT_SLICE,
+        crate::shared_values::UNSTABLE_AS_SLICE,
+        crate::shared_values::UNUSED_COLLECT,
+        crate::shared_values::WRONG_PUB_SELF_CONVENTION,
+        crate::shared_values::MANUAL_NOOP_WAKER,
+        crate::shared_values::MANUAL_OPTION_ZIP,
+        crate::shared_values::USELESS_BORROWS_IN_FORMATTING,
+    ];
+    pub const STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
+        crate::shared_values::ASSERT,
+        crate::shared_values::ASSERT_EQ,
+        crate::shared_values::ASSERT_NE,
+        crate::shared_values::COMPILE_ERROR,
+        crate::shared_values::CONCAT,
+        crate::shared_values::DEBUG_ASSERT,
+        crate::shared_values::DEBUG_ASSERT_EQ,
+        crate::shared_values::DEBUG_ASSERT_NE,
+        crate::shared_values::ENV,
+        crate::shared_values::EPRINT,
+        crate::shared_values::EPRINTLN,
+        crate::config::TRACING_ERROR,
+        crate::shared_values::ERROR_SPAN,
+        crate::shared_values::FORMAT,
+        crate::shared_values::FORMAT_ARGS,
+        crate::shared_values::FORMAT_IDENT,
+        GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
+        GENERATE_PG_TYPES_MACRO_NAME,
+        crate::shared_values::GENERATE_SELF_UPPER_CAMEL_CASE_AND_SNAKE_CASE_STR_AND_TOKEN_STREAM,
+        crate::shared_values::GENERATE_UPPER_CAMEL_CASE_AND_SNAKE_CASE_STR_AND_TOKEN_STREAM,
+        GENERATE_WHERE_FILTERS_MACRO_NAME,
+        crate::text::INCLUDE_BYTES,
+        crate::text::INCLUDE_STR,
+        crate::shared_values::IMPL_TO_ERR_STRING_WITH,
+        crate::config::TRACING_INFO,
+        crate::shared_values::INFO_SPAN,
+        crate::text::JSON,
+        crate::shared_values::JOIN,
+        crate::shared_values::MIGRATE,
+        crate::shared_values::OPTION_ENV,
+        PANIC_METHOD_NAME,
+        crate::shared_values::PARSE_QUOTE,
+        crate::shared_values::PRINT,
+        crate::shared_values::PRINTLN,
+        crate::shared_values::QUERY,
+        crate::shared_values::QUERY_AS,
+        crate::shared_values::QUERY_SCALAR,
+        crate::shared_values::QUOTE,
+        crate::shared_values::QUOTE_SPANNED,
+        crate::text::SELECT_ALT_3,
+        crate::shared_values::STRINGIFY,
+        crate::text::TODO,
+        crate::shared_values::TP,
+        crate::config::TRACING_TRACE,
+        crate::shared_values::TRACE_SPAN,
+        crate::text::UNIMPLEMENTED,
+        crate::shared_values::UNREACHABLE,
+        crate::shared_values::VIEW,
+        crate::config::TRACING_WARN,
+        crate::shared_values::WARN_SPAN,
+        crate::text::WRITE_ALT,
+        crate::shared_values::WRITELN,
+    ];
 }
 pub mod admin_table {
     pub const USER_SORTS: [(&str, &str); 4] = [
-        ("login", "Login"),
-        ("display_name", "Display name"),
-        ("id", "ID"),
-        ("status", "Status"),
+        (crate::text::LOGIN, crate::shared_values::LOGIN_2),
+        (
+            crate::text::DISPLAY_NAME,
+            crate::shared_values::DISPLAY_NAME_2,
+        ),
+        (crate::sql_names::ID, crate::text::ID),
+        (crate::text::STATUS_ALT, crate::shared_values::STATUS_2),
     ];
-    pub const ROLE_SORTS: [(&str, &str); 3] =
-        [("name", "Name"), ("id", "ID"), ("system", "System")];
-    pub const PERMISSION_SORTS: [(&str, &str); 2] = [("name", "Name"), ("id", "ID")];
+    pub const ROLE_SORTS: [(&str, &str); 3] = [
+        (crate::text::NAME, crate::shared_values::NAME_2),
+        (crate::sql_names::ID, crate::text::ID),
+        (crate::text::SYSTEM, crate::shared_values::SYSTEM_2),
+    ];
+    pub const PERMISSION_SORTS: [(&str, &str); 2] = [
+        (crate::text::NAME, crate::shared_values::NAME_2),
+        (crate::sql_names::ID, crate::text::ID),
+    ];
     pub const AUDIT_SORTS: [(&str, &str); 5] = [
-        ("created_at", "Time"),
-        ("user_id", "User"),
-        ("action", "Action"),
-        ("resource", "Resource"),
-        ("succeeded", "Result"),
+        (crate::text::CREATED_AT, crate::shared_values::TIME),
+        (crate::text::USER_ID, crate::shared_values::USER),
+        (crate::text::ACTION, crate::shared_values::ACTION_2),
+        (crate::text::RESOURCE, crate::shared_values::RESOURCE_2),
+        (crate::text::SUCCEEDED, crate::text::RESULT),
     ];
 }
 pub mod workspace_test_runner {
     pub const CARGO: &str = "cargo";
-    pub const CARGO_CLIPPY_ARGS: [&str; 7] = [
-        "clippy",
-        "--locked",
-        "--all-targets",
-        "--all-features",
-        "--",
-        "-D",
-        "warnings",
-    ];
-    pub const CARGO_FMT_CHECK_ARGS: [&str; 2] = ["fmt", "--check"];
-    pub const CARGO_TEST_DATABASE_ARGS: [&str; 4] =
-        ["test", "--locked", "--features", "test-utils"];
-    pub const CARGO_TEST_DOC_ARGS: [&str; 5] =
-        ["test", "--locked", "--workspace", "--doc", "--all-features"];
-    pub const CARGO_TEST_GEN_PG_TBL_ARGS: [&str; 6] = [
-        "test",
-        "--locked",
-        "-p",
-        "generate_pg_table_test",
-        "--features",
-        "test-utils",
-    ];
-    pub const CARGO_TEST_GEN_PG_TYPES_ARGS: [&str; 6] = [
-        "test",
-        "--locked",
-        "-p",
-        "generate_pg_types_test",
-        "--features",
-        "test-utils",
-    ];
-    pub const CARGO_TEST_GEN_WH_FLTS_ARGS: [&str; 6] = [
-        "test",
-        "--locked",
-        "-p",
-        "generate_where_filters_test",
-        "--features",
-        "test-utils",
-    ];
-    pub const CARGO_TEST_IGNORED_ARGS: [&str; 7] = [
-        "test",
-        "--locked",
-        "--workspace",
-        "--all-features",
-        "--no-fail-fast",
-        "--",
-        "--ignored",
-    ];
-    pub const CARGO_TEST_STYLE_ARGS: [&str; 5] = ["test", "--locked", "-p", "tests", "--lib"];
-    pub const CARGO_TEST_WORKSPACE_ARGS: [&str; 5] = [
-        "test",
-        "--locked",
-        "--workspace",
-        "--all-features",
-        "--no-fail-fast",
-    ];
     pub const FORMAT_QUERY_PART_FRAGMENT: &str = "QueryPartFragment :: try_from (format !";
     pub const GENERATE_PG_TABLE_WORKLOAD: &str = "alloc-workload-generate-pg-table-src";
     pub const GENERATE_PG_TYPES_WORKLOAD: &str = "alloc-workload-generate-pg-types-src";
@@ -574,42 +635,12 @@ pub mod workspace_test_runner {
     pub const LTRACE_PATH: &str = "/usr/bin/ltrace";
     pub const PERF_TOOL: &str = "perf";
     pub const PERF_PATH: &str = "/usr/bin/perf";
-    pub const TIME_TOOL: &str = "time";
     pub const TIME_PATH: &str = "/usr/bin/time";
     pub const GENERATE_PG_TABLE_MEASUREMENT: &str = "macro_generation_generate_pg_table_test";
     pub const GENERATE_PG_TYPES_MEASUREMENT: &str = "macro_generation_generate_pg_types_test";
     pub const GENERATE_WHERE_FILTERS_MEASUREMENT: &str =
         "macro_generation_generate_where_filters_test";
     pub const MINOR_PAGE_FAULTS_PREFIX: &str = "codex_minor_page_faults=";
-    pub const NEXTEST_HEAVY_ARGS: [&str; 7] = [
-        "nextest",
-        "run",
-        "--no-fail-fast",
-        "--workspace",
-        "--all-features",
-        "-P",
-        "heavy_load",
-    ];
-    pub const NEXTEST_IGNORED_ARGS: [&str; 9] = [
-        "nextest",
-        "run",
-        "--no-fail-fast",
-        "--workspace",
-        "--all-features",
-        "-P",
-        STATIC_WORKSPACE_PROFILE,
-        "--run-ignored",
-        "only",
-    ];
-    pub const NEXTEST_WORKSPACE_ARGS: [&str; 7] = [
-        "nextest",
-        "run",
-        "--no-fail-fast",
-        "--workspace",
-        "--all-features",
-        "-P",
-        STATIC_WORKSPACE_PROFILE,
-    ];
     pub const PEAK_RSS_PREFIX: &str = "codex_peak_rss_kb=";
     pub const PG_CRUD_COMMON_QUERY_PART_WORKLOAD: &str = "alloc-workload-pg-crud-common-query_part";
     pub const RESULT_ROOT: &str = "test_results/workspace_test_runner";
@@ -617,4 +648,105 @@ pub mod workspace_test_runner {
     pub const STD_FMT_WRITE_CALL: &str = "std :: fmt :: Write :: write_fmt";
     pub const STRING_WITH_CAPACITY_CALL: &str = "String :: with_capacity";
     pub const WHERE_FILTERS_QUERY_PART_WORKLOAD: &str = "alloc-workload-where-filters-query_part";
+
+    pub const CARGO_CLIPPY_ARGS: [&str; 7] = [
+        crate::text::CLIPPY,
+        crate::shared_values::LOCKED,
+        crate::shared_values::ALL_TARGETS,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::EMPTY,
+        crate::shared_values::D,
+        crate::shared_values::WARNINGS,
+    ];
+    pub const CARGO_FMT_CHECK_ARGS: [&str; 2] =
+        [crate::shared_values::FMT, crate::shared_values::CHECK_2];
+    pub const CARGO_TEST_DATABASE_ARGS: [&str; 4] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::shared_values::FEATURES,
+        crate::text::TEST_UTILS,
+    ];
+    pub const CARGO_TEST_DOC_ARGS: [&str; 5] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::DOC,
+        crate::shared_values::ALL_FEATURES,
+    ];
+    pub const CARGO_TEST_GEN_PG_TBL_ARGS: [&str; 6] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::text::P,
+        crate::shared_values::GENERATE_PG_TABLE_TEST,
+        crate::shared_values::FEATURES,
+        crate::text::TEST_UTILS,
+    ];
+    pub const CARGO_TEST_GEN_PG_TYPES_ARGS: [&str; 6] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::text::P,
+        crate::shared_values::GENERATE_PG_TYPES_TEST,
+        crate::shared_values::FEATURES,
+        crate::text::TEST_UTILS,
+    ];
+    pub const CARGO_TEST_GEN_WH_FLTS_ARGS: [&str; 6] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::text::P,
+        crate::shared_values::GENERATE_WHERE_FILTERS_TEST,
+        crate::shared_values::FEATURES,
+        crate::text::TEST_UTILS,
+    ];
+    pub const CARGO_TEST_IGNORED_ARGS: [&str; 7] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::NO_FAIL_FAST,
+        crate::shared_values::EMPTY,
+        crate::shared_values::IGNORED,
+    ];
+    pub const CARGO_TEST_STYLE_ARGS: [&str; 5] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::text::P,
+        crate::text::TESTS_ALT,
+        crate::shared_values::LIB,
+    ];
+    pub const CARGO_TEST_WORKSPACE_ARGS: [&str; 5] = [
+        crate::text::TEST_ALT_3,
+        crate::shared_values::LOCKED,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::NO_FAIL_FAST,
+    ];
+    pub const NEXTEST_HEAVY_ARGS: [&str; 7] = [
+        crate::text::NEXTEST,
+        crate::shared_values::RUN,
+        crate::shared_values::NO_FAIL_FAST,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::P_2,
+        crate::shared_values::HEAVY_LOAD,
+    ];
+    pub const NEXTEST_IGNORED_ARGS: [&str; 9] = [
+        crate::text::NEXTEST,
+        crate::shared_values::RUN,
+        crate::shared_values::NO_FAIL_FAST,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::P_2,
+        STATIC_WORKSPACE_PROFILE,
+        crate::shared_values::RUN_IGNORED,
+        crate::shared_values::ONLY,
+    ];
+    pub const NEXTEST_WORKSPACE_ARGS: [&str; 7] = [
+        crate::text::NEXTEST,
+        crate::shared_values::RUN,
+        crate::shared_values::NO_FAIL_FAST,
+        crate::shared_values::WORKSPACE,
+        crate::shared_values::ALL_FEATURES,
+        crate::shared_values::P_2,
+        STATIC_WORKSPACE_PROFILE,
+    ];
 }

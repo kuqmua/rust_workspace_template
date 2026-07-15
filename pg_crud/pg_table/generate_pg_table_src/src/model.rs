@@ -21,12 +21,12 @@ mod tests {
     #[test]
     fn operation_descriptor_keeps_transport_permission_and_capabilities_together() {
         let spec = super::OperationDsc {
-            http_method: str_constants::expr::S_0720,
+            http_method: str_constants::text::PATCH,
             idempotency_capable: true,
-            operation: str_constants::expr::S_1867,
-            operation_kind: str_constants::expr::S_1873,
+            operation: str_constants::text::UO,
+            operation_kind: str_constants::text::UPDATE_ONE,
             optimistic_concurrency_capable: true,
-            permission_action: str_constants::expr::S_1872,
+            permission_action: str_constants::pg_crud::UPDATE_PERMISSION_ACTION,
             success_status_code: 200u16,
         };
         assert_eq!(spec.http_method, "PATCH");

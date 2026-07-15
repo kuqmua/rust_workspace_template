@@ -198,25 +198,29 @@ mod tests {
     #[test]
     fn generated_getters_return_expected_refs_and_values() {
         let cfg = super::Config {
-            cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::expr::S_0043.to_owned()),
+            cors_allow_origin: config_lib::CorsAllowOrigin(
+                str_constants::text::ASTERISK.to_owned(),
+            ),
             database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
-                str_constants::expr::S_1619.to_owned(),
+                str_constants::text::POSTGRES_DB.to_owned(),
             ))),
-            admin_jwt_secret: env(str_constants::expr::S_1805),
-            admin_token_audience: env(str_constants::expr::S_1803),
-            admin_token_issuer: env(str_constants::expr::S_1804),
-            admin_access_token_ttl_seconds: env(str_constants::expr::S_0520),
-            admin_password_hash_concurrency: env(str_constants::expr::S_0304),
-            admin_refresh_token_ttl_seconds: env(str_constants::expr::S_0238),
-            admin_session_limit: env(str_constants::expr::S_0215),
-            admin_sign_in_rate_limit: env(str_constants::expr::S_0168),
-            admin_swagger_enabled: env(str_constants::expr::S_1834),
+            admin_jwt_secret: env(str_constants::text::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES),
+            admin_token_audience: env(str_constants::text::TEST_AUDIENCE),
+            admin_token_issuer: env(str_constants::text::TEST_ISSUER),
+            admin_access_token_ttl_seconds: env(str_constants::text::VALUE_900),
+            admin_password_hash_concurrency: env(str_constants::text::VALUE_4),
+            admin_refresh_token_ttl_seconds: env(str_constants::text::VALUE_2592000),
+            admin_session_limit: env(str_constants::text::VALUE_20),
+            admin_sign_in_rate_limit: env(str_constants::text::VALUE_10),
+            admin_swagger_enabled: env(str_constants::text::TRUE),
             maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes::try_from(
                 16_384,
             )
             .expect("0d9e4b7a"),
             service_socket_address: config_lib::ServiceSocketAddress(
-                str_constants::expr::S_0182.parse().expect("e7a3d5c1"),
+                str_constants::text::VALUE_127_0_0_1_8080
+                    .parse()
+                    .expect("e7a3d5c1"),
             ),
             pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(8)
                 .expect("39a84c10"),
@@ -227,10 +231,10 @@ mod tests {
             src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
             tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
             trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
-                str_constants::expr::S_0179.to_owned(),
+                str_constants::text::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
             ),
             enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
-            admin_cookie_secure: env(str_constants::expr::S_1311),
+            admin_cookie_secure: env(str_constants::text::FALSE),
         };
         assert_eq!(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&cfg),

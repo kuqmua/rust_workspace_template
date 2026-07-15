@@ -97,26 +97,62 @@ impl ApiProblem {
     #[must_use]
     pub fn from_status(status: ApiProblemStatus) -> Self {
         let (kind, detail) = match u16::from(status) {
-            400u16 => (ApiProblemKind::InvalidRequest, str_constants::expr::S_1439),
-            401u16 => (ApiProblemKind::Authentication, str_constants::expr::S_0975),
-            403u16 => (ApiProblemKind::Authorization, str_constants::expr::S_0976),
-            404u16 => (ApiProblemKind::NotFound, str_constants::expr::S_1671),
+            400u16 => (
+                ApiProblemKind::InvalidRequest,
+                str_constants::text::INVALID_REQUEST,
+            ),
+            401u16 => (
+                ApiProblemKind::Authentication,
+                str_constants::text::AUTHENTICATION_REQUIRED,
+            ),
+            403u16 => (
+                ApiProblemKind::Authorization,
+                str_constants::text::AUTHORIZATION_FAILED,
+            ),
+            404u16 => (
+                ApiProblemKind::NotFound,
+                str_constants::text::RESOURCE_NOT_FOUND,
+            ),
             405u16 => (
                 ApiProblemKind::MethodNotAllowed,
-                str_constants::expr::S_1515,
+                str_constants::text::METHOD_NOT_ALLOWED,
             ),
-            409u16 => (ApiProblemKind::Conflict, str_constants::expr::S_1673),
-            412u16 => (ApiProblemKind::Precondition, str_constants::expr::S_1672),
-            413u16 => (ApiProblemKind::PayloadTooLarge, str_constants::expr::S_1657),
-            422u16 => (ApiProblemKind::Validation, str_constants::expr::S_1664),
-            425u16 => (ApiProblemKind::InProgress, str_constants::expr::S_1508),
+            409u16 => (
+                ApiProblemKind::Conflict,
+                str_constants::text::RESOURCE_STATE_CONFLICT,
+            ),
+            412u16 => (
+                ApiProblemKind::Precondition,
+                str_constants::text::RESOURCE_PRECONDITION_FAILED,
+            ),
+            413u16 => (
+                ApiProblemKind::PayloadTooLarge,
+                str_constants::text::REQUEST_BODY_IS_TOO_LARGE,
+            ),
+            422u16 => (
+                ApiProblemKind::Validation,
+                str_constants::text::REQUEST_VALIDATION_FAILED,
+            ),
+            425u16 => (
+                ApiProblemKind::InProgress,
+                str_constants::text::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
+            ),
             428u16 => (
                 ApiProblemKind::PreconditionRequired,
-                str_constants::expr::S_1660,
+                str_constants::text::REQUEST_PRECONDITION_IS_REQUIRED,
             ),
-            429u16 => (ApiProblemKind::RateLimited, str_constants::expr::S_1661),
-            500u16..=599u16 => (ApiProblemKind::Internal, str_constants::expr::S_1433),
-            _ => (ApiProblemKind::RequestFailed, str_constants::expr::S_1658),
+            429u16 => (
+                ApiProblemKind::RateLimited,
+                str_constants::text::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
+            ),
+            500u16..=599u16 => (
+                ApiProblemKind::Internal,
+                str_constants::text::INTERNAL_SERVER_ERROR,
+            ),
+            _ => (
+                ApiProblemKind::RequestFailed,
+                str_constants::text::REQUEST_FAILED,
+            ),
         };
         Self {
             detail: ApiProblemDetail::try_from(detail.to_owned()).unwrap_or_default(),

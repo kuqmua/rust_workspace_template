@@ -19,7 +19,7 @@ impl TryFrom<String> for RequestId {
 pub struct RequestIdTryFromStringError;
 impl std::fmt::Display for RequestIdTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::expr::S_1659)
+        f.write_str(str_constants::text::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES)
     }
 }
 impl std::error::Error for RequestIdTryFromStringError {}

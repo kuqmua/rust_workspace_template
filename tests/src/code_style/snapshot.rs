@@ -91,7 +91,7 @@ impl CodebaseSnapshot {
                     .as_ref()
                     .extension()
                     .and_then(std::ffi::OsStr::to_str)
-                    == Some(str_constants::expr::S_1688)
+                    == Some(str_constants::text::RS)
             })
             .map(|source_file| {
                 let ast = syn::parse_file(source_file.content.as_ref()).expect("5e7a83eb");
@@ -180,11 +180,11 @@ fn workspace_member_ids(
 }
 #[allow(clippy::single_call_fn)] // keeps filesystem walker rules separate from snapshot materialization
 fn project_source_files_uncached() -> impl Iterator<Item = ProjectSourceFile> {
-    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(str_constants::expr::S_0056))
+    super::types::WalkdirWalkDir::from(walkdir::WalkDir::new(str_constants::text::TEXT_ALT_9))
         .into_iter()
         .filter_entry(|element| {
-            element.file_name() != str_constants::expr::S_1796
-                && element.file_name() != str_constants::expr::S_0080
+            element.file_name() != str_constants::text::TARGET
+                && element.file_name() != str_constants::text::GIT
                 && (element.file_type().is_dir()
                     || super::is_allowed_english_check_ext(
                         element

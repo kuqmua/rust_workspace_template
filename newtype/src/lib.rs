@@ -213,7 +213,9 @@ impl NewtypeAttrs {
         meta: SynParseNestedMetaRef<'_>,
     ) -> syn::Result<()> {
         if self.to_err_string_mode.replace(mode).is_some() {
-            return Err(meta.as_ref().error(str_constants::expr::S_1570));
+            return Err(meta
+                .as_ref()
+                .error(str_constants::text::ONLY_ONE_TO_ERR_STRING_MODE_CAN_BE_SELECTED));
         }
         Ok(())
     }
@@ -222,8 +224,10 @@ impl NewtypeAttrs {
         option: NewtypeOption,
         meta: SynParseNestedMetaRef<'_>,
     ) -> syn::Result<()> {
-        self.options
-            .try_insert_with(option, || meta.as_ref().error(str_constants::expr::S_1198))
+        self.options.try_insert_with(option, || {
+            meta.as_ref()
+                .error(str_constants::text::DUPLICATE_NEWTYPE_OPTION)
+        })
     }
 }
 #[proc_macro_derive(Newtype, attributes(newtype))]
@@ -520,13 +524,13 @@ fn generate_bounded_string_token_stream(
     if !type_path_ends_with_string_identifier(inner_ty).get() {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            str_constants::expr::S_0624,
+            str_constants::text::BOUNDEDSTRING_SUPPORTS_ONLY_STRING_TUPLE_STRUCTS,
         ));
     }
     if !input_ref.generics.params.is_empty() {
         return Err(syn::Error::new_spanned(
             &input_ref.generics,
-            str_constants::expr::S_0623,
+            str_constants::text::BOUNDEDSTRING_DOES_NOT_SUPPORT_GENERICS,
         ));
     }
     let identifier = &input_ref.ident;
@@ -552,7 +556,7 @@ fn generate_bounded_string_token_stream(
     if utoipa && !chars {
         return Err(syn::Error::new_spanned(
             input_ref,
-            str_constants::expr::S_0625,
+            str_constants::text::BOUNDEDSTRING_UTOIPA_REQUIRES_CHARS_SO_OPENAPI_LENGTH_SEMANTICS_MATCH_RUNTIME,
         ));
     }
     let min_token_stream =
@@ -616,7 +620,7 @@ fn generate_bounded_string_token_stream(
         || {
             let value = identifier_to_snake(SynIdentifierRef::from(identifier))
                 .as_ref()
-                .replace('_', str_constants::expr::S_0003);
+                .replace('_', str_constants::text::SPACE);
             quote::quote! {#value}
         },
         |value| quote::quote! {#value},
@@ -686,7 +690,7 @@ fn generate_enum_from_str_token_stream(
         syn::Data::Struct(_) | syn::Data::Union(_) => {
             return Err(syn::Error::new_spanned(
                 input_ref,
-                str_constants::expr::S_0665,
+                str_constants::text::ENUMFROMSTR_SUPPORTS_ONLY_ENUMS,
             ));
         }
     };
@@ -697,7 +701,7 @@ fn generate_enum_from_str_token_stream(
             if !matches!(variant.fields, syn::Fields::Unit) {
                 return Err(syn::Error::new_spanned(
                     variant,
-                    str_constants::expr::S_0666,
+                    str_constants::text::ENUMFROMSTR_SUPPORTS_ONLY_UNIT_VARIANTS,
                 ));
             }
             Ok((
@@ -710,7 +714,7 @@ fn generate_enum_from_str_token_stream(
         .iter()
         .map(|(_, name)| name.as_ref())
         .collect::<Vec<&str>>()
-        .join(str_constants::expr::S_0044);
+        .join(str_constants::text::TEXT_ALT_6);
     let arms = variants.iter().map(|(variant_identifier, name)| {
         let name_ref = name.as_ref();
         quote::quote! {
@@ -734,7 +738,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
     let parsed = attrs
         .as_ref()
         .iter()
-        .filter(|attr| attr.path().is_ident(str_constants::expr::S_1029))
+        .filter(|attr| attr.path().is_ident(str_constants::text::BOUNDED_STRING))
         .try_fold(
             BoundedStringAttrs {
                 description: None,
@@ -744,55 +748,55 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
             },
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(str_constants::expr::S_1509) {
+                    if meta.path.is_ident(str_constants::text::MAX) {
                         parsed.max = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1519) {
+                    if meta.path.is_ident(str_constants::text::MIN) {
                         parsed.min = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1186) {
+                    if meta.path.is_ident(str_constants::text::DESCRIPTION) {
                         parsed.description =
                             Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1086) {
+                    if meta.path.is_ident(str_constants::text::CHARS) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Chars, || {
                                 meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1566) {
+                    if meta.path.is_ident(str_constants::text::NUL_FREE) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::NulFree, || {
                                 meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1716) {
+                    if meta.path.is_ident(str_constants::text::SERDE) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Serde, || {
                                 meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1833) {
+                    if meta.path.is_ident(str_constants::text::TRIM) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Trim, || {
                                 meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
-                    if meta.path.is_ident(str_constants::expr::S_1885) {
+                    if meta.path.is_ident(str_constants::text::UTOIPA) {
                         return parsed
                             .options
                             .try_insert_with(BoundedStringOption::Utoipa, || {
                                 meta.error(str_constants::macro_diagnostics::DUPLICATE_BOUNDED_STRING_OPTION_ERROR)
                             });
                     }
-                    Err(meta.error(str_constants::expr::S_1854))
+                    Err(meta.error(str_constants::text::UNKNOWN_BOUNDED_STRING_OPTION))
                 })?;
                 Ok::<BoundedStringAttrs, syn::Error>(parsed)
             },
@@ -810,128 +814,133 @@ fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
     attrs
         .as_ref()
         .iter()
-        .filter(|attr| attr.path().is_ident(str_constants::expr::S_1545))
+        .filter(|attr| attr.path().is_ident(str_constants::text::NEWTYPE))
         .try_fold(NewtypeAttrs::default(), |mut accumulator, attr| {
             attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident(str_constants::expr::S_0965) {
+                if meta.path.is_ident(str_constants::text::AS_REF_STR) {
                     return accumulator
                         .try_insert(NewtypeOption::AsRefStr, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_0962) {
+                if meta.path.is_ident(str_constants::text::AS_REF) {
                     return accumulator
                         .try_insert(NewtypeOption::AsRef, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_0963) {
+                if meta.path.is_ident(str_constants::text::AS_REF_INNER) {
                     return accumulator.try_insert(
                         NewtypeOption::AsRefInner,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_0964) {
+                if meta.path.is_ident(str_constants::text::AS_REF_OWNED) {
                     return accumulator.try_insert(
                         NewtypeOption::AsRefOwned,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_0966) {
+                if meta.path.is_ident(str_constants::text::AS_REF_TARGET) {
                     return accumulator.try_insert(
                         NewtypeOption::AsRefTarget,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_0967) {
+                if meta.path.is_ident(str_constants::text::AS_SLICE) {
                     return accumulator
                         .try_insert(NewtypeOption::AsSlice, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1177)
-                    || meta.path.is_ident(str_constants::expr::S_1184)
+                if meta.path.is_ident(str_constants::text::DEREF)
+                    || meta.path.is_ident(str_constants::text::DEREF_TARGET)
                 {
                     return accumulator.try_insert(
                         NewtypeOption::DerefTarget,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1179) {
+                if meta.path.is_ident(str_constants::text::DEREF_INNER) {
                     return accumulator.try_insert(
                         NewtypeOption::DerefInner,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1181) {
+                if meta.path.is_ident(str_constants::text::DEREF_MUT_INNER) {
                     return accumulator.try_insert(
                         NewtypeOption::DerefMutInner,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1183) {
+                if meta.path.is_ident(str_constants::text::DEREF_MUT_TARGET) {
                     return accumulator.try_insert(
                         NewtypeOption::DerefMutTarget,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1167) {
+                if meta.path.is_ident(str_constants::text::DEBUG_TRANSPARENT) {
                     return accumulator.try_insert(
                         NewtypeOption::DebugTransparent,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1193) {
+                if meta.path.is_ident(str_constants::text::DISPLAY) {
                     return accumulator
                         .try_insert(NewtypeOption::Display, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1338)
-                    || meta.path.is_ident(str_constants::expr::S_1339)
+                if meta.path.is_ident(str_constants::text::FROM_ALT_4)
+                    || meta.path.is_ident(str_constants::text::FROM_INNER)
                 {
                     return accumulator
                         .try_insert(NewtypeOption::From, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1379) {
+                if meta.path.is_ident(str_constants::text::GETTER) {
                     return accumulator
                         .try_insert(NewtypeOption::Getter, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1436) {
+                if meta.path.is_ident(str_constants::text::INTO_INNER) {
                     return accumulator
                         .try_insert(NewtypeOption::IntoInner, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1437) {
+                if meta.path.is_ident(str_constants::text::INTO_INNER_FROM) {
                     return accumulator.try_insert(
                         NewtypeOption::IntoInnerFrom,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1438) {
+                if meta.path.is_ident(str_constants::text::INTO_VEC) {
                     return accumulator
                         .try_insert(NewtypeOption::IntoVec, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1706) {
+                if meta.path.is_ident(str_constants::text::SECRET) {
                     return accumulator
                         .try_insert(NewtypeOption::Secret, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1824) {
+                if meta.path.is_ident(str_constants::text::TO_TOKENS) {
                     return accumulator
                         .try_insert(NewtypeOption::ToTokens, SynParseNestedMetaRef::from(&meta));
                 }
-                if meta.path.is_ident(str_constants::expr::S_1820)
-                    || meta.path.is_ident(str_constants::expr::S_1823)
+                if meta.path.is_ident(str_constants::text::TO_ERR_STRING)
+                    || meta
+                        .path
+                        .is_ident(str_constants::text::TO_ERR_STRING_DISPLAY)
                 {
                     return accumulator.set_to_err_string_mode(
                         ToErrStringMode::Display,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1821) {
+                if meta
+                    .path
+                    .is_ident(str_constants::text::TO_ERR_STRING_AS_REF_STR)
+                {
                     return accumulator.set_to_err_string_mode(
                         ToErrStringMode::AsRefStr,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                if meta.path.is_ident(str_constants::expr::S_1822) {
+                if meta.path.is_ident(str_constants::text::TO_ERR_STRING_DEBUG) {
                     return accumulator.set_to_err_string_mode(
                         ToErrStringMode::Debug,
                         SynParseNestedMetaRef::from(&meta),
                     );
                 }
-                Err(meta.error(str_constants::expr::S_1855))
+                Err(meta.error(str_constants::text::UNKNOWN_NEWTYPE_OPTION))
             })?;
             Ok(accumulator)
         })
@@ -941,7 +950,7 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
     if attrs.options.is_empty().get() && attrs.to_err_string_mode.is_none() {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
-            str_constants::expr::S_0706,
+            str_constants::text::NEWTYPE_REQUIRES_AT_LEAST_ONE_NEWTYPE_OPTION,
         ));
     }
     if attrs.contains(NewtypeOption::DerefInner).get()
@@ -949,7 +958,7 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
     {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
-            str_constants::expr::S_1178,
+            str_constants::text::DEREF_INNER_AND_DEREF_TARGET_CANNOT_BE_COMBINED,
         ));
     }
     if attrs.contains(NewtypeOption::DerefMutInner).get()
@@ -957,7 +966,7 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
     {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
-            str_constants::expr::S_1180,
+            str_constants::text::DEREF_MUT_INNER_REQUIRES_DEREF_INNER,
         ));
     }
     if attrs.contains(NewtypeOption::DerefMutTarget).get()
@@ -965,7 +974,7 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
     {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
-            str_constants::expr::S_1182,
+            str_constants::text::DEREF_MUT_TARGET_REQUIRES_DEREF_TARGET,
         ));
     }
     if attrs.contains(NewtypeOption::Secret).get()
@@ -976,7 +985,7 @@ fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) ->
     {
         return Err(syn::Error::new_spanned(
             input.as_ref(),
-            str_constants::expr::S_1705,
+            str_constants::text::SECRET_CANNOT_BE_COMBINED_WITH_FORMATTING_TOKEN_OR_ERROR_STRING_FORWARDING,
         ));
     }
     Ok(())
@@ -1005,7 +1014,7 @@ fn validate_newtype_inner_ty_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            str_constants::expr::S_0024,
+            str_constants::text::NEWTYPE_AS_REF_OWNED_DOES_NOT_SUPPORT_REFERENCE_INNER_TYPES_USE_AS,
         ));
     }
     if attrs.contains(NewtypeOption::From).get()
@@ -1013,7 +1022,7 @@ fn validate_newtype_inner_ty_attrs(
     {
         return Err(syn::Error::new_spanned(
             inner_ty.as_ref(),
-            str_constants::expr::S_0025,
+            str_constants::text::NEWTYPE_FROM_INNER_CANNOT_BE_USED_FOR_STRING_WRAPPERS_IMPLEMENT_TRYFROM_STRING,
         ));
     }
     Ok(())
@@ -1041,13 +1050,15 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
     if unnamed.len() != 1 {
         return Err(syn::Error::new_spanned(
             input_ref,
-            str_constants::expr::S_0707,
+            str_constants::text::NEWTYPE_SUPPORTS_ONLY_ONE_FIELD_TUPLE_STRUCTS,
         ));
     }
     unnamed
         .first()
         .map(|field| SynTypeRef::from(&field.ty))
-        .ok_or_else(|| syn::Error::new_spanned(input_ref, str_constants::expr::S_0705))
+        .ok_or_else(|| {
+            syn::Error::new_spanned(input_ref, str_constants::text::NEWTYPE_FIELD_NOT_FOUND)
+        })
 }
 #[allow(clippy::single_call_fn)] // newtype validation only needs terminal path identifier matching for concrete String wrappers
 fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
@@ -1056,7 +1067,7 @@ fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
             .path
             .segments
             .last()
-            .is_some_and(|segment| segment.ident == str_constants::expr::S_0794),
+            .is_some_and(|segment| segment.ident == str_constants::text::STRING),
         syn::Type::Path(_) | _ => false,
     })
 }

@@ -1,11 +1,11 @@
 #[test]
 fn all_crates_have_publish_false() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr(str_constants::expr::S_1273),
+        super::types::StaticStr(str_constants::text::F2A8C5D3),
         |path, parsed, ers| {
             let publish = parsed
-                .get(str_constants::expr::S_1580)
-                .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(str_constants::expr::S_1642));
+                .get(str_constants::text::PACKAGE)
+                .and_then(|v_1c7b4e9d| v_1c7b4e9d.get(str_constants::text::PUBLISH));
             if publish != Some(&toml::Value::Boolean(false)) {
                 ers.push(format!("{}: missing `publish = false`", path.display()));
             }
@@ -15,13 +15,14 @@ fn all_crates_have_publish_false() {
 #[test]
 fn all_crates_have_workspace_lints() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr(str_constants::expr::S_1131),
+        super::types::StaticStr(str_constants::text::D5F1A4E7),
         |path, parsed, ers| match parsed
-            .get(str_constants::expr::S_1460)
+            .get(str_constants::text::LINTS)
             .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
         {
             Some(lints_table) => {
-                if lints_table.get(str_constants::expr::S_1913) != Some(&toml::Value::Boolean(true))
+                if lints_table.get(str_constants::text::WORKSPACE)
+                    != Some(&toml::Value::Boolean(true))
                 {
                     ers.push(format!(
                         "{}: [lints] missing `workspace = true`",
@@ -38,13 +39,13 @@ fn all_crates_have_workspace_lints() {
 #[test]
 fn all_crates_use_edition_2024() {
     super::assert_crate_manifest_cargo_policy(
-        super::types::StaticStr(str_constants::expr::S_0878),
+        super::types::StaticStr(str_constants::text::A3D7F1C8),
         |path, parsed, ers| {
             let edition = parsed
-                .get(str_constants::expr::S_1580)
-                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(str_constants::expr::S_1238))
+                .get(str_constants::text::PACKAGE)
+                .and_then(|v_6d9f2a3e| v_6d9f2a3e.get(str_constants::text::EDITION))
                 .and_then(toml::Value::as_str);
-            if edition != Some(str_constants::expr::S_0219) {
+            if edition != Some(str_constants::text::VALUE_2024) {
                 ers.push(format!("{}: edition is not \"2024\"", path.display()));
             }
         },
@@ -57,10 +58,10 @@ fn check_workspace_dependencies_having_exact_version() {
         super::types::TomlValueRef::from(
             workspace
                 .as_ref()
-                .get(str_constants::expr::S_1175)
+                .get(str_constants::text::DEPENDENCIES)
                 .expect("2376f58e"),
         ),
-        super::types::StaticStr(str_constants::expr::S_1206),
+        super::types::StaticStr(str_constants::text::E117FA5A),
     )
     .as_ref()
     .values()
@@ -68,9 +69,11 @@ fn check_workspace_dependencies_having_exact_version() {
 }
 #[test]
 fn env_and_envexample_have_same_keys() {
-    let env_keys = super::env_keys_from_file(super::types::StaticStr(str_constants::expr::S_0062));
-    let example_keys =
-        super::env_keys_from_file(super::types::StaticStr(str_constants::expr::S_0063));
+    let env_keys =
+        super::env_keys_from_file(super::types::StaticStr(str_constants::text::SERVER_ENV));
+    let example_keys = super::env_keys_from_file(super::types::StaticStr(
+        str_constants::text::SERVER_ENVEXAMPLE,
+    ));
     let env_keys_set = super::str_set(super::types::SourceTextListRef::from(env_keys.as_slice()));
     let example_keys_set = super::str_set(super::types::SourceTextListRef::from(
         example_keys.as_slice(),
@@ -78,24 +81,24 @@ fn env_and_envexample_have_same_keys() {
     let mut ers = super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(env_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(example_keys_set.as_ref()),
-        super::types::StaticStr(str_constants::expr::S_0075),
-        super::types::StaticStr(str_constants::expr::S_0077),
+        super::types::StaticStr(str_constants::text::ENV),
+        super::types::StaticStr(str_constants::text::ENVEXAMPLE),
     );
     ers.extend(super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(example_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(env_keys_set.as_ref()),
-        super::types::StaticStr(str_constants::expr::S_0077),
-        super::types::StaticStr(str_constants::expr::S_0075),
+        super::types::StaticStr(str_constants::text::ENVEXAMPLE),
+        super::types::StaticStr(str_constants::text::ENV),
     ));
     super::assert_joined_ers_empty_sorted(
         super::types::DiagnosticMsgsMutRef::from(&mut ers),
-        super::types::StaticStr(str_constants::expr::S_1060),
+        super::types::StaticStr(str_constants::text::C8D2F1A3),
     );
 }
 #[test]
 fn workspace_crates_must_use_workspace_dependencies() {
     super::assert_cargo_toml_ers_empty(
-        super::types::StaticStr(str_constants::expr::S_0386),
+        super::types::StaticStr(str_constants::text::VALUE_5F8A6D17),
         |path, parsed, ers| {
             super::collect_non_workspace_dep_ers(
                 super::types::StdPathRef::from(path),
@@ -107,7 +110,10 @@ fn workspace_crates_must_use_workspace_dependencies() {
 }
 #[test]
 fn workspace_dependencies_use_inline_table_style() {
-    let regex = regex::Regex::new(str_constants::expr::S_0039).expect("ac15d6b9");
+    let regex = regex::Regex::new(
+        str_constants::text::QUESTION_M_S_ASTERISK_A_ZA_Z0_9_PLUS_WORKSPACE_S_ASTERISK,
+    )
+    .expect("ac15d6b9");
     let mut ers = Vec::new();
     super::for_each_crate_manifest_file(|path| {
         let v = super::cargo_toml_content(super::types::StdPathRef::from(path)).expect("762c1d9e");
@@ -127,8 +133,10 @@ fn workspace_dependencies_use_inline_table_style() {
     });
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::expr::S_1135),
-        super::types::SourceTextRef::from(str_constants::expr::S_1197),
+        super::types::StaticStr(str_constants::text::D7A3C5B1),
+        super::types::SourceTextRef::from(
+            str_constants::text::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND,
+        ),
     );
 }
 #[test]
@@ -136,14 +144,14 @@ fn workspace_members_exist_on_disk() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
-        super::types::StaticStr(str_constants::expr::S_0462),
+        super::types::StaticStr(str_constants::text::VALUE_7F3A1C4E),
     );
     let mut ers = super::collect_workspace_member_missing_cargo_toml_ers(
         super::types::SourceTextListRef::from(members.as_slice()),
     );
     super::assert_joined_ers_empty_sorted(
         super::types::DiagnosticMsgsMutRef::from(&mut ers),
-        super::types::StaticStr(str_constants::expr::S_0884),
+        super::types::StaticStr(str_constants::text::A4E3B8D1),
     );
 }
 #[test]
@@ -151,7 +159,7 @@ fn workspace_members_sorted_alphabetically() {
     let workspace = super::workspace_table_from_cargo_toml();
     let members_vec = super::workspace_members_as_strs(
         super::types::TomlTableRef::from(workspace.as_ref()),
-        super::types::StaticStr(str_constants::expr::S_1038),
+        super::types::StaticStr(str_constants::text::C1D4F7A2),
     );
     let mut sorted = members_vec.clone();
     sorted.sort_unstable();
@@ -166,7 +174,7 @@ fn workspace_members_sorted_alphabetically() {
         .collect::<Vec<String>>();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::expr::S_0994),
-        super::types::SourceTextRef::from(str_constants::expr::S_1513),
+        super::types::StaticStr(str_constants::text::B7C2E5F8),
+        super::types::SourceTextRef::from(str_constants::text::MEMBERS_NOT_SORTED),
     );
 }

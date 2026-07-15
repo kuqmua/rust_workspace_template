@@ -46,7 +46,7 @@ where
 }
 impl std::fmt::Debug for SqlColumnRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::expr::S_0789).finish()
+        f.debug_tuple(str_constants::text::SQLCOLUMNREF).finish()
     }
 }
 impl std::fmt::Display for SqlColumnRef<'_> {

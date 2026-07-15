@@ -188,7 +188,7 @@ fn mk_api_routes(
         ));
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
-            str_constants::expr::S_0116,
+            str_constants::text::OPENAPI_JSON,
             axum::routing::get(async || {
                 axum::Json(utoipa::openapi::OpenApi::from(
                     server_admin::generated_tables::generated_open_api(),
@@ -201,7 +201,7 @@ fn mk_api_routes(
     .method_not_allowed_fallback(async || server_admin::auth::AdminApiError::MethodNotAllowed);
     let secured_admin_routes = documented_admin_routes
         .route(
-            str_constants::expr::S_0111,
+            str_constants::text::METRICS,
             axum::routing::get(async move || metrics_handle.0.render()),
         )
         .route_layer(server_admin::AdminGeneratedAuthLayer::from(
@@ -213,10 +213,10 @@ fn mk_api_routes(
                 std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
             ))
             .nest(
-                str_constants::expr::S_0084,
+                str_constants::admin_page_paths::ROOT,
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
             )
-            .nest(str_constants::expr::S_0084, secured_admin_routes),
+            .nest(str_constants::admin_page_paths::ROOT, secured_admin_routes),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place
@@ -246,7 +246,7 @@ fn initialization_tracing() {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            tracing_subscriber::EnvFilter::new(str_constants::server::TRACING_DFLT_FILTER)
+            tracing_subscriber::EnvFilter::new(str_constants::config::TRACING_INFO)
         }),
     );
     let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
@@ -398,7 +398,7 @@ async fn run_server() -> Result<(), RunServerError> {
                     server_runtime::AxumRouter::from(
                         axum::Router::new()
                             .nest(
-                                str_constants::expr::S_0092,
+                                str_constants::text::API_V1,
                                 operational_routes.merge(rate_limited_api_routes),
                             )
                             .merge(axum::Router::from(if swagger_enabled {
@@ -414,16 +414,16 @@ async fn run_server() -> Result<(), RunServerError> {
                                         .allow_headers([
                                             axum::http::header::CONTENT_TYPE,
                                             axum::http::HeaderName::from_static(
-                                                str_constants::expr::S_1098,
+                                                str_constants::route_validators::COMMIT_HEADER_NAME,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::expr::S_1406,
+                                                str_constants::text::IDEMPOTENCY_KEY_ALT,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::expr::S_1407,
+                                                str_constants::text::IF_MATCH_ALT,
                                             ),
                                             axum::http::HeaderName::from_static(
-                                                str_constants::expr::S_1922,
+                                                str_constants::text::X_CSRF_TOKEN_ALT,
                                             ),
                                         ])
                                         .allow_methods([
@@ -503,16 +503,20 @@ fn main() -> StdServerExitCode {
 mod tests {
     #[test]
     fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
-        let trusted_proxy_range =
-            server_runtime::TrustedProxyRange::try_from(str_constants::expr::S_1973.to_owned())
-                .expect("5c81d907");
+        let trusted_proxy_range = server_runtime::TrustedProxyRange::try_from(
+            str_constants::text::VALUE_127_0_0_1_32.to_owned(),
+        )
+        .expect("5c81d907");
         let extractor = super::ClientIpRateLimitKeyExtractor {
             trusted_proxy_ranges: server_runtime::TrustedProxyRanges::from(vec![
                 trusted_proxy_range,
             ]),
         };
         let mut request = axum::http::Request::builder()
-            .header(str_constants::expr::S_1923, str_constants::expr::S_0227)
+            .header(
+                str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
+                str_constants::text::VALUE_203_0_113_9,
+            )
             .body(())
             .expect("b2604d91");
         let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
@@ -526,6 +530,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(str_constants::server::TRACING_DFLT_FILTER, "info");
+        assert_eq!(str_constants::config::TRACING_INFO, "info");
     }
 }

@@ -30,7 +30,7 @@ impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
 pub struct ResourceBudgetConfigError;
 impl std::fmt::Display for ResourceBudgetConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::expr::S_1669)
+        f.write_str(str_constants::text::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)
     }
 }
 impl std::error::Error for ResourceBudgetConfigError {}
@@ -53,8 +53,10 @@ pub enum ResourceBudgetReserveError {
 impl std::fmt::Display for ResourceBudgetReserveError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Exhausted => f.write_str(str_constants::expr::S_1668),
-            Self::Overflow => f.write_str(str_constants::expr::S_1670),
+            Self::Exhausted => f.write_str(str_constants::text::RESOURCE_BUDGET_EXHAUSTED),
+            Self::Overflow => {
+                f.write_str(str_constants::text::RESOURCE_BUDGET_RESERVATION_OVERFLOW)
+            }
         }
     }
 }

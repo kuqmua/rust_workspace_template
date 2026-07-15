@@ -155,8 +155,8 @@ impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::Json
 {
     fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
         let mut schema = generator.subschema_for::<Vec<T>>();
-        let _previous_min = schema.insert(str_constants::expr::S_1520.to_owned(), MIN.into());
-        let _previous_max = schema.insert(str_constants::expr::S_1511.to_owned(), MAX.into());
+        let _previous_min = schema.insert(str_constants::text::MINITEMS.to_owned(), MIN.into());
+        let _previous_max = schema.insert(str_constants::text::MAXITEMS.to_owned(), MAX.into());
         schema
     }
     fn schema_id() -> std::borrow::Cow<'static, str> {
@@ -174,7 +174,7 @@ impl<'schema_lt, T: utoipa::PartialSchema, const MIN: usize, const MAX: usize>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            str_constants::expr::S_0627,
+            str_constants::text::BOUNDEDVEC,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::PartialSchema>::schema())
                 .min_items(Some(MIN))
@@ -230,13 +230,13 @@ mod tests {
                 std::iter::empty::<u8>(),
             ),
         );
-        let _error = below_min.expect_err(str_constants::expr::S_1077);
+        let _error = below_min.expect_err(str_constants::text::CBBF6ACF);
         let error = <super::BoundedVec<u8, 1, 2> as serde::Deserialize>::deserialize(
             serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
                 [1u8, 2u8, 3u8, 4u8].into_iter(),
             ),
         )
-        .expect_err(str_constants::expr::S_0524);
+        .expect_err(str_constants::text::VALUE_91C59B94);
         assert!(error.to_string().contains("length 3 exceeds limit 2"));
     }
     #[test]

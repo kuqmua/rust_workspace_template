@@ -4,7 +4,7 @@
 pub struct SecrecyAdminString(pub(super) secrecy::SecretBox<String>);
 impl std::fmt::Debug for SecrecyAdminString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::expr::S_0840)
+        f.write_str(str_constants::text::REDACTED_ALT_3)
     }
 }
 #[derive(

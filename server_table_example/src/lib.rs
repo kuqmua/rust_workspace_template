@@ -73,8 +73,8 @@ mod tests {
                 http::Request::builder()
                     .method(method)
                     .uri(contract.path())
-                    .header(http::header::CONTENT_TYPE, str_constants::expr::S_1813)
-                    .body(axum::body::Body::from(str_constants::expr::S_1955))
+                    .header(http::header::CONTENT_TYPE, str_constants::text::TEXT_PLAIN)
+                    .body(axum::body::Body::from(str_constants::text::TEXT_ALT_14))
                     .expect("dc39ba13"),
             )
             .await
@@ -98,8 +98,11 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri(str_constants::expr::S_0124)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
+                .header(
+                    http::header::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
                 .body(axum::body::Body::from(valid_body.clone()))
                 .expect("d02ba9f0"),
         )
@@ -110,9 +113,12 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri(str_constants::expr::S_0124)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_1813)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1538)
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
+                .header(http::header::CONTENT_TYPE, str_constants::text::TEXT_PLAIN)
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::NEGATIVE_CONTENT_TYPE,
+                )
                 .body(axum::body::Body::from(valid_body.clone()))
                 .expect("2f6ee062"),
         )
@@ -123,10 +129,16 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri(str_constants::expr::S_0124)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1539)
-                .body(axum::body::Body::from(str_constants::expr::S_1928))
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
+                .header(
+                    http::header::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::NEGATIVE_MALFORMED,
+                )
+                .body(axum::body::Body::from(str_constants::text::TEXT_ALT_13))
                 .expect("21af9e85"),
         )
         .await
@@ -150,10 +162,19 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri(str_constants::expr::S_0124)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1200)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1201)
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
+                .header(
+                    http::header::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::DUPLICATE_A,
+                )
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::DUPLICATE_B,
+                )
                 .body(axum::body::Body::from(valid_body))
                 .expect("aa9ff040"),
         )
@@ -164,10 +185,16 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::PATCH)
-                .uri(str_constants::expr::S_0125)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1523)
-                .body(axum::body::Body::from(str_constants::expr::S_1955))
+                .uri(str_constants::text::TABLE_EXAMPLE_UO)
+                .header(
+                    http::header::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::MISSING_REVISION,
+                )
+                .body(axum::body::Body::from(str_constants::text::TEXT_ALT_14))
                 .expect("19855efd"),
         )
         .await
@@ -180,11 +207,17 @@ mod tests {
             router.clone(),
             http::Request::builder()
                 .method(http::Method::POST)
-                .uri(str_constants::expr::S_0124)
-                .header(http::header::CONTENT_TYPE, str_constants::expr::S_0951)
-                .header(str_constants::expr::S_1406, str_constants::expr::S_1540)
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
+                .header(
+                    http::header::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
+                .header(
+                    str_constants::text::IDEMPOTENCY_KEY_ALT,
+                    str_constants::text::NEGATIVE_OVERSIZED,
+                )
                 .body(axum::body::Body::from(
-                    str_constants::expr::S_1919.repeat(2_048usize),
+                    str_constants::text::X.repeat(2_048usize),
                 ))
                 .expect("aed15d30"),
         )
@@ -195,7 +228,7 @@ mod tests {
             router,
             http::Request::builder()
                 .method(http::Method::GET)
-                .uri(str_constants::expr::S_0124)
+                .uri(str_constants::text::TABLE_EXAMPLE_CM)
                 .body(axum::body::Body::empty())
                 .expect("76f6f737"),
         )
@@ -239,10 +272,10 @@ mod tests {
                 .iter()
                 .for_each(|value| collect_component_refs(value, refs)),
             serde_json::Value::Object(values) => values.iter().for_each(|(key, value)| {
-                if key == str_constants::expr::S_0030
-                    && let Some(name) = value
-                        .as_str()
-                        .and_then(|value| value.strip_prefix(str_constants::expr::S_0022))
+                if key == str_constants::text::DOLLAR_REF
+                    && let Some(name) = value.as_str().and_then(|value| {
+                        value.strip_prefix(str_constants::text::COMPONENTS_SCHEMAS)
+                    })
                 {
                     let _inserted = refs.insert(name.to_owned());
                 }
@@ -258,13 +291,19 @@ mod tests {
     fn generated_open_api_contains_all_crud_paths() {
         let doc = serde_json::to_value(super::TableExampleOpenApi::open_api()).expect("3176b0d5");
         [
-            (str_constants::expr::S_1093, str_constants::expr::S_1614),
-            (str_constants::expr::S_1094, str_constants::expr::S_1614),
-            (str_constants::expr::S_1682, str_constants::expr::S_1614),
-            (str_constants::expr::S_1683, str_constants::expr::S_1614),
-            (str_constants::expr::S_1867, str_constants::expr::S_1589),
-            (str_constants::expr::S_1196, str_constants::expr::S_1174),
-            (str_constants::expr::S_1195, str_constants::expr::S_1174),
+            (str_constants::text::CM, str_constants::text::POST_ALT),
+            (str_constants::text::CO, str_constants::text::POST_ALT),
+            (str_constants::text::RM, str_constants::text::POST_ALT),
+            (str_constants::text::RO, str_constants::text::POST_ALT),
+            (str_constants::text::UO, str_constants::text::PATCH_ALT),
+            (
+                str_constants::text::DM,
+                str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+            ),
+            (
+                str_constants::text::DLO,
+                str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+            ),
         ]
         .into_iter()
         .for_each(|(operation, method)| {
@@ -292,15 +331,14 @@ mod tests {
                 serde_json::json!([])
             );
             assert!(operation_doc["responses"].get("default").is_none());
-            let success_status = if operation == str_constants::expr::S_1093
-                || operation == str_constants::expr::S_1094
-            {
-                str_constants::expr::S_0218
-            } else {
-                str_constants::expr::S_0216
-            };
+            let success_status =
+                if operation == str_constants::text::CM || operation == str_constants::text::CO {
+                    str_constants::text::VALUE_201
+                } else {
+                    str_constants::text::VALUE_200
+                };
             assert!(operation_doc["responses"].get(success_status).is_some());
-            operation_doc[str_constants::expr::S_1675]
+            operation_doc[str_constants::text::RESPONSES]
                 .as_object()
                 .expect("7c9b7f2b")
                 .iter()
@@ -313,7 +351,7 @@ mod tests {
                         ))
                     );
                 });
-            if operation == str_constants::expr::S_1867 {
+            if operation == str_constants::text::UO {
                 assert!(operation_doc["responses"].get("412").is_some());
                 assert!(operation_doc["responses"].get("428").is_some());
                 assert!(
@@ -332,7 +370,7 @@ mod tests {
             ))
             .is_none()
         );
-        let schemas = doc[str_constants::expr::S_1101][str_constants::expr::S_1701]
+        let schemas = doc[str_constants::text::COMPONENTS][str_constants::text::SCHEMAS]
             .as_object()
             .expect("95ec6823");
         assert_eq!(
@@ -359,10 +397,10 @@ mod tests {
                 .get("primary_key_column")
                 .is_none()
         );
-        [str_constants::expr::S_0800, str_constants::expr::S_0801]
+        [str_constants::text::TABLEEXAMPLEREAD, str_constants::text::TABLEEXAMPLEUPDATE]
             .into_iter()
             .for_each(|schema_name| {
-                let nullable_projection_or_patch = &schemas[schema_name][str_constants::expr::S_1638][str_constants::expr::S_1097];
+                let nullable_projection_or_patch = &schemas[schema_name][str_constants::text::PROPERTIES][str_constants::text::COLUMN_1];
                 assert_ne!(nullable_projection_or_patch["nullable"], true);
                 assert!(
                     nullable_projection_or_patch.pointer("/properties/v").is_some()
@@ -376,12 +414,12 @@ mod tests {
                     .is_some_and(|required| required.iter().any(|field| field == "column_1")));
             });
         [
-            str_constants::expr::S_1609,
-            str_constants::expr::S_1610,
-            str_constants::expr::S_1906,
-            str_constants::expr::S_1905,
-            str_constants::expr::S_1907,
-            str_constants::expr::S_1908,
+            str_constants::text::PG_CRUD_COMMON_PGTYPE_READ,
+            str_constants::text::PG_CRUD_COMMON_PGTYPE_SELECT,
+            str_constants::text::WHERE_FILTERS_PGTYPEWHEREEQ,
+            str_constants::text::WHERE_FILTERS_PGTYPEWHEREBETWEEN,
+            str_constants::text::WHERE_FILTERS_PGTYPEWHEREGREATERTHAN,
+            str_constants::text::WHERE_FILTERS_PGTYPEWHEREIN,
         ]
         .into_iter()
         .for_each(|schema_name| {
@@ -399,16 +437,16 @@ mod tests {
             .for_each(|contract| {
                 let expected = match contract.operation() {
                     super::TableExampleOperation::Cm | super::TableExampleOperation::Co => {
-                        str_constants::expr::S_1790
+                        str_constants::text::TABLE_EXAMPLE_CREATE
                     }
                     super::TableExampleOperation::Rm | super::TableExampleOperation::Ro => {
-                        str_constants::expr::S_1792
+                        str_constants::text::TABLE_EXAMPLE_READ
                     }
                     super::TableExampleOperation::Um | super::TableExampleOperation::Uo => {
-                        str_constants::expr::S_1793
+                        str_constants::text::TABLE_EXAMPLE_UPDATE
                     }
                     super::TableExampleOperation::Dlo | super::TableExampleOperation::Dm => {
-                        str_constants::expr::S_1791
+                        str_constants::text::TABLE_EXAMPLE_DELETE
                     }
                 };
                 assert_eq!(
@@ -516,36 +554,36 @@ mod tests {
     fn generated_frontend_forms_parse_typed_payloads_and_report_field() {
         let create = super::TableExampleCreate::try_from(super::TableExampleCreateForm {
             column_0: frontend_contract::FormValue::try_from(
-                str_constants::expr::S_0174.to_owned(),
+                str_constants::text::VALUE_12.to_owned(),
             )
             .expect("8f6b2f31"),
             column_1: frontend_contract::FormValue::try_from(String::new()).expect("274d2e0c"),
             column_2: frontend_contract::FormValue::try_from(
-                str_constants::expr::S_0276.to_owned(),
+                str_constants::text::VALUE_34.to_owned(),
             )
             .expect("98c9cd5e"),
         });
         let _create = create.expect("af5a7ec4");
         let error = super::TableExampleCreate::try_from(super::TableExampleCreateForm {
             column_0: frontend_contract::FormValue::try_from(
-                str_constants::expr::S_1558.to_owned(),
+                str_constants::text::NOT_A_NUMBER.to_owned(),
             )
             .expect("a6413c9d"),
             column_1: frontend_contract::FormValue::try_from(String::new()).expect("1970fd5b"),
             column_2: frontend_contract::FormValue::try_from(
-                str_constants::expr::S_0276.to_owned(),
+                str_constants::text::VALUE_34.to_owned(),
             )
             .expect("fd5e40c9"),
         })
-        .expect_err(str_constants::expr::S_1045);
+        .expect_err(str_constants::text::C563853A);
         assert_eq!(error.field().as_ref(), "column_0");
         let update = super::TableExampleUpdate::try_from(super::TableExampleUpdateForm {
             primary_key_column: frontend_contract::FormValue::try_from(
-                str_constants::expr::S_0359.to_owned(),
+                str_constants::text::VALUE_550E8400_E29B_41D4_A716_446655440000.to_owned(),
             )
             .expect("5b8439c1"),
             column_0: Some(
-                frontend_contract::FormValue::try_from(str_constants::expr::S_0187.to_owned())
+                frontend_contract::FormValue::try_from(str_constants::text::VALUE_13.to_owned())
                     .expect("4bd3fc27"),
             ),
             column_1: None,

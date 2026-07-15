@@ -192,9 +192,8 @@ mod tests {
             <super::TracingLevel as std::str::FromStr>::from_str("Warn"),
             Ok(super::TracingLevel::Warn)
         );
-        let _error =
-            <super::TracingLevel as std::str::FromStr>::from_str(str_constants::expr::S_1006)
-                .expect_err(str_constants::expr::S_0569);
+        let _error = <super::TracingLevel as std::str::FromStr>::from_str(str_constants::text::BAD)
+            .expect_err(str_constants::text::VALUE_9F8D72A1);
     }
     #[test]
     fn tracing_level_roundtrip_is_stable_for_all_variants() {
@@ -213,9 +212,8 @@ mod tests {
     }
     #[test]
     fn src_place_type_from_str_rejects_unknown_value() {
-        let _error =
-            <super::SrcPlaceType as std::str::FromStr>::from_str(str_constants::expr::S_1006)
-                .expect_err(str_constants::expr::S_0508);
+        let _error = <super::SrcPlaceType as std::str::FromStr>::from_str(str_constants::text::BAD)
+            .expect_err(str_constants::text::VALUE_8D6F70BB);
     }
     #[test]
     fn src_place_type_default_is_github() {
@@ -224,15 +222,15 @@ mod tests {
     #[test]
     fn src_place_type_parse_error_contains_expected_context() {
         let error =
-            <super::SrcPlaceType as std::str::FromStr>::from_str(str_constants::expr::S_1856)
-                .expect_err(str_constants::expr::S_1275);
+            <super::SrcPlaceType as std::str::FromStr>::from_str(str_constants::text::UNKNOWN_ALT)
+                .expect_err(str_constants::text::F2CC7D6B);
         assert!(error.contains("Unknown value"));
         assert!(error.contains("Allowed values:"));
     }
     #[test]
     fn parse_src_place_type_env_value_parses_case_insensitively() {
         let parsed = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
-            super::EnvVarValueRef(str_constants::expr::S_0673),
+            super::EnvVarValueRef(str_constants::text::GITHUB),
             super::ParseCtxRef(str_constants::config::SRC_PLACE_TYPE_PARSE_CTX),
         );
         assert_eq!(parsed, Ok(super::SrcPlaceType::Github));
@@ -240,10 +238,10 @@ mod tests {
     #[test]
     fn parse_src_place_type_env_value_wraps_parse_context() {
         let error = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
-            super::EnvVarValueRef(str_constants::expr::S_1006),
+            super::EnvVarValueRef(str_constants::text::BAD),
             super::ParseCtxRef(str_constants::config::SRC_PLACE_TYPE_PARSE_CTX),
         )
-        .expect_err(str_constants::expr::S_0506);
+        .expect_err(str_constants::text::VALUE_8C9F2A17);
         assert!(
             error
                 .as_ref()
@@ -258,13 +256,13 @@ mod tests {
             super::EnvVarNameRef(str_constants::env_names::SRC_PLACE_TYPE),
             |_v| Ok(()),
         );
-        let error = parsed.expect_err(str_constants::expr::S_1123);
+        let error = parsed.expect_err(str_constants::text::D2F3B74A);
         assert!(error.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
     }
     #[test]
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
         let parsed = super::parse_from_env_var_with(
-            super::StdEnvVarResult(Ok(String::from(str_constants::expr::S_1750))),
+            super::StdEnvVarResult(Ok(String::from(str_constants::text::SRC_ALT))),
             super::EnvVarNameRef(str_constants::env_names::SRC_PLACE_TYPE),
             |v| Ok(v.0.to_owned()),
         );
@@ -273,20 +271,20 @@ mod tests {
     #[test]
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
         let parsed = super::parse_from_env_var_from_str::<bool>(
-            super::StdEnvVarResult(Ok(String::from(str_constants::expr::S_1834))),
+            super::StdEnvVarResult(Ok(String::from(str_constants::text::TRUE))),
             super::EnvVarNameRef(str_constants::env_names::SRC_PLACE_TYPE),
-            super::ParseCtxRef(str_constants::expr::S_1026),
+            super::ParseCtxRef(str_constants::text::BOOL_PARSE),
         );
         assert_eq!(parsed, Ok(true));
     }
     #[test]
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
         let error = super::parse_from_env_var_from_str::<bool>(
-            super::StdEnvVarResult(Ok(String::from(str_constants::expr::S_1919))),
+            super::StdEnvVarResult(Ok(String::from(str_constants::text::X))),
             super::EnvVarNameRef(str_constants::env_names::SRC_PLACE_TYPE),
-            super::ParseCtxRef(str_constants::expr::S_1026),
+            super::ParseCtxRef(str_constants::text::BOOL_PARSE),
         )
-        .expect_err(str_constants::expr::S_0460);
+        .expect_err(str_constants::text::VALUE_7E4B3F19);
         assert!(error.as_ref().contains("bool parse:"));
     }
     #[test]
@@ -294,31 +292,31 @@ mod tests {
         let error = super::SrcPlaceType::parse_src_place_type_from_env_var(super::StdEnvVarResult(
             Err(std::env::VarError::NotPresent),
         ))
-        .expect_err(str_constants::expr::S_0369);
+        .expect_err(str_constants::text::VALUE_5A83F2BE);
         assert!(error.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
     }
     #[test]
     fn parse_src_place_type_from_env_var_parses_ok_value() {
         let parsed = super::SrcPlaceType::parse_src_place_type_from_env_var(
-            super::StdEnvVarResult(Ok(String::from(str_constants::expr::S_1750))),
+            super::StdEnvVarResult(Ok(String::from(str_constants::text::SRC_ALT))),
         );
         assert_eq!(parsed, Ok(super::SrcPlaceType::Src));
     }
     #[test]
     fn parse_from_str_with_ctx_parses_value_when_input_is_valid() {
         let parsed = super::parse_from_str_with_ctx::<bool>(
-            super::EnvVarValueRef(str_constants::expr::S_1834),
-            super::ParseCtxRef(str_constants::expr::S_1026),
+            super::EnvVarValueRef(str_constants::text::TRUE),
+            super::ParseCtxRef(str_constants::text::BOOL_PARSE),
         );
         assert_eq!(parsed, Ok(true));
     }
     #[test]
     fn parse_from_str_with_ctx_wraps_context_when_parsing_fails() {
         let error = super::parse_from_str_with_ctx::<bool>(
-            super::EnvVarValueRef(str_constants::expr::S_1919),
-            super::ParseCtxRef(str_constants::expr::S_1026),
+            super::EnvVarValueRef(str_constants::text::X),
+            super::ParseCtxRef(str_constants::text::BOOL_PARSE),
         )
-        .expect_err(str_constants::expr::S_0189);
+        .expect_err(str_constants::text::VALUE_13FE8A6D);
         assert!(error.as_ref().contains("bool parse:"));
     }
 }

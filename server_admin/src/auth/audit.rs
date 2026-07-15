@@ -4,7 +4,7 @@ pub(super) async fn record_success_in_connection(
     event: super::AdminAuditSuccessRef<'_>,
 ) -> Result<(), super::AdminApiError> {
     let details = serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() });
-    let _result = sqlx::query(str_constants::expr::S_0683)
+    let _result = sqlx::query(str_constants::text::INSERT_INTO_ADMIN_AUDIT_LOG_USER_ID_USER_LOGIN_ACTION_RESOURCE_RESOURCE)
         .bind(event.user_id.0)
         .bind(event.login.as_ref())
         .bind(event.action.as_str().as_ref())
@@ -57,7 +57,7 @@ pub(super) async fn query_log(
             Option<serde_json::Value>,
             String,
         ),
-    >(str_constants::expr::S_0770)
+    >(str_constants::text::SELECT_ID_USER_ID_USER_LOGIN_ACTION_RESOURCE_RESOURCE_ID_SUCCEEDED_DETAILS)
     .bind(query.0.user_id.map(|user_id| user_id.0))
     .bind(action.map(|value| value.as_ref().to_owned()))
     .bind(resource.map(|value| value.as_ref().to_owned()))

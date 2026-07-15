@@ -127,9 +127,9 @@ mod tests {
         type Transport = super::PublicTransport;
         fn metadata() -> super::RouteMetadata {
             super::RouteMetadata::new(
-                crate::ContractStr::from(str_constants::expr::S_0672),
-                crate::ContractStr::from(str_constants::expr::S_1687),
-                crate::ContractStr::from(str_constants::expr::S_0119),
+                crate::ContractStr::from(str_constants::text::GET),
+                crate::ContractStr::from(str_constants::text::ROUTE_READ),
+                crate::ContractStr::from(str_constants::text::ROUTE),
             )
         }
     }

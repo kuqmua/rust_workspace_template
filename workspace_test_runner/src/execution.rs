@@ -40,7 +40,7 @@ fn command_log_name(idx: CommandIdx, program: &str, args: &[&str]) -> String {
         .chain(args.iter().copied())
         .take(3usize)
         .collect::<Vec<&str>>()
-        .join(str_constants::expr::S_0048);
+        .join(str_constants::text::HYPHEN);
     let sanitized = raw
         .chars()
         .map(|character| {
@@ -73,11 +73,11 @@ fn failed_test_names(log_text: &str) -> Vec<String> {
     let mut names = log_text
         .lines()
         .filter_map(|line| {
-            line.strip_prefix(str_constants::expr::S_1801)
-                .and_then(|tail| tail.strip_suffix(str_constants::expr::S_0006))
+            line.strip_prefix(str_constants::text::TEST_ALT)
+                .and_then(|tail| tail.strip_suffix(str_constants::text::FAILED_ALT))
                 .or_else(|| {
-                    let tail = line.strip_prefix(str_constants::expr::S_0000)?;
-                    tail.strip_suffix(str_constants::expr::S_0005)
+                    let tail = line.strip_prefix(str_constants::text::FOUR_SPACES)?;
+                    tail.strip_suffix(str_constants::text::FAILED)
                 })
                 .map(str::to_owned)
         })
@@ -88,7 +88,7 @@ fn failed_test_names(log_text: &str) -> Vec<String> {
 }
 fn write_summary(run_dir: &RunDir, summary: &SummaryText) -> Result<(), std::io::Error> {
     std::fs::write(
-        run_dir.0.join(str_constants::expr::S_1778),
+        run_dir.0.join(str_constants::text::SUMMARY_TXT),
         strip_ansi(summary.0.as_str()),
     )
 }
@@ -129,7 +129,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
                 super::reporting::result_log_failed(log_path.as_path(), &error);
                 return Err(summary);
             }
-            let failed_names = failed_test_names(log_text.as_str()).join(str_constants::expr::S_0046);
+            let failed_names = failed_test_names(log_text.as_str()).join(str_constants::text::TEXT_ALT_7);
             summary.0.push_str(
                 format!(
                     "command={program} args={args:?} duration_ms={} status={status_text} log={} failed_tests={failed_names}\n",

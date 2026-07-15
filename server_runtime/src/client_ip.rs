@@ -239,7 +239,7 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0222),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_1),
         );
         assert_eq!(
             resolved(&headers, "198.51.100.2:80", Vec::new()),
@@ -251,7 +251,7 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0226),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_7_10_0_0_8_10_0_0),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -263,7 +263,7 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0225),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_7),
         );
         assert_eq!(
             resolved(&headers, "[::1]:80", vec![range("127.0.0.0/8")]),
@@ -275,7 +275,7 @@ mod tests {
         let mut malformed_headers = http::HeaderMap::new();
         let _inserted_malformed = malformed_headers.append(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_1560),
+            http::HeaderValue::from_static(str_constants::text::NOT_AN_IP),
         );
         assert_eq!(
             resolved(
@@ -288,7 +288,7 @@ mod tests {
         let mut mixed_headers = http::HeaderMap::new();
         let _inserted_mixed = mixed_headers.append(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0223),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_1_NOT_AN_IP),
         );
         assert_eq!(
             resolved(&mixed_headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -297,11 +297,11 @@ mod tests {
         let mut headers = http::HeaderMap::new();
         let _inserted_first = headers.append(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0222),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_1),
         );
         let _inserted_second = headers.append(
             str_constants::runtime::FORWARDED_FOR_HEADER_NAME,
-            http::HeaderValue::from_static(str_constants::expr::S_0224),
+            http::HeaderValue::from_static(str_constants::text::VALUE_203_0_113_2),
         );
         assert_eq!(
             resolved(&headers, "10.0.0.10:80", vec![range("10.0.0.0/24")]),
@@ -310,7 +310,7 @@ mod tests {
     }
     #[test]
     fn oversized_header_falls_back_without_reflecting_input() {
-        let oversized = str_constants::expr::S_0167
+        let oversized = str_constants::text::VALUE_1
             .repeat(super::MAX_FORWARDED_HEADER_BYTES.saturating_add(1usize));
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(

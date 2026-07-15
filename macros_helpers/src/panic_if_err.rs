@@ -15,7 +15,7 @@ mod tests {
     #[test]
     fn panic_if_err_returns_ok_value() {
         let value =
-            super::panic_if_err::<u8, u16>(Ok(7), |_| String::from(str_constants::expr::S_1863));
+            super::panic_if_err::<u8, u16>(Ok(7), |_| String::from(str_constants::text::UNUSED));
         assert_eq!(value, 7);
     }
 }

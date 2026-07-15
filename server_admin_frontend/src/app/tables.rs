@@ -42,10 +42,8 @@ pub(super) fn users_view(
     let auth = auth.clone();
     let client_for_create = client.clone();
     let state = RwSignal::new(crate::table_state::TableState::new(
-        crate::table_state::AdminFrontendTableText::try_from(
-            str_constants::expr::S_1468.to_owned(),
-        )
-        .unwrap_or_default(),
+        crate::table_state::AdminFrontendTableText::try_from(str_constants::text::LOGIN.to_owned())
+            .unwrap_or_default(),
     ));
     let source = StoredValue::new(values);
     let rows = move || {
@@ -68,12 +66,12 @@ pub(super) fn users_view(
         });
         filtered.sort_by(|left, right| {
             let order = match state_value.sort().0 {
-                str_constants::expr::S_1194 => left
+                str_constants::text::DISPLAY_NAME => left
                     .display_name()
                     .as_ref()
                     .cmp(right.display_name().as_ref()),
-                str_constants::expr::S_1397 => i64::from(left.id()).cmp(&i64::from(right.id())),
-                str_constants::expr::S_1758 => {
+                str_constants::sql_names::ID => i64::from(left.id()).cmp(&i64::from(right.id())),
+                str_constants::text::STATUS_ALT => {
                     bool::from(left.is_banned()).cmp(&bool::from(right.is_banned()))
                 }
                 _ => left.login().as_ref().cmp(right.login().as_ref()),
@@ -112,10 +110,8 @@ pub(super) fn roles_view(
     let auth = auth.clone();
     let client_for_create = client.clone();
     let state = RwSignal::new(crate::table_state::TableState::new(
-        crate::table_state::AdminFrontendTableText::try_from(
-            str_constants::expr::S_1536.to_owned(),
-        )
-        .unwrap_or_default(),
+        crate::table_state::AdminFrontendTableText::try_from(str_constants::text::NAME.to_owned())
+            .unwrap_or_default(),
     ));
     let source = StoredValue::new(values);
     let rows = move || {
@@ -133,8 +129,8 @@ pub(super) fn roles_view(
         });
         filtered.sort_by(|left, right| {
             let order = match state_value.sort().0 {
-                str_constants::expr::S_1397 => i64::from(left.id()).cmp(&i64::from(right.id())),
-                str_constants::expr::S_1784 => {
+                str_constants::sql_names::ID => i64::from(left.id()).cmp(&i64::from(right.id())),
+                str_constants::text::SYSTEM => {
                     bool::from(left.is_system()).cmp(&bool::from(right.is_system()))
                 }
                 _ => left.name().as_ref().cmp(right.name().as_ref()),
@@ -157,10 +153,8 @@ pub(super) fn permissions_view(
     values: Vec<server_admin_contract::AdminPermissionSummary>,
 ) -> impl IntoView {
     let state = RwSignal::new(crate::table_state::TableState::new(
-        crate::table_state::AdminFrontendTableText::try_from(
-            str_constants::expr::S_1536.to_owned(),
-        )
-        .unwrap_or_default(),
+        crate::table_state::AdminFrontendTableText::try_from(str_constants::text::NAME.to_owned())
+            .unwrap_or_default(),
     ));
     let source = StoredValue::new(values);
     let rows = move || {
@@ -177,7 +171,7 @@ pub(super) fn permissions_view(
                 || value.id().to_string().contains(search.as_str())
         });
         filtered.sort_by(|left, right| {
-            let order = if state_value.sort().0 == str_constants::expr::S_1397 {
+            let order = if state_value.sort().0 == str_constants::sql_names::ID {
                 i64::from(left.id()).cmp(&i64::from(right.id()))
             } else {
                 left.name().as_ref().cmp(right.name().as_ref())
@@ -198,7 +192,7 @@ pub(super) fn permissions_view(
 pub(super) fn audit_view(values: Vec<server_admin_contract::AdminAuditView>) -> impl IntoView {
     let state = RwSignal::new(crate::table_state::TableState::new(
         crate::table_state::AdminFrontendTableText::try_from(
-            str_constants::expr::S_1115.to_owned(),
+            str_constants::text::CREATED_AT.to_owned(),
         )
         .unwrap_or_default(),
     ));
@@ -226,18 +220,18 @@ pub(super) fn audit_view(values: Vec<server_admin_contract::AdminAuditView>) -> 
         });
         filtered.sort_by(|left, right| {
             let order = match state_value.sort().0 {
-                str_constants::expr::S_1881 => left
+                str_constants::text::USER_ID => left
                     .user_id()
                     .map(i64::from)
                     .cmp(&right.user_id().map(i64::from)),
-                str_constants::expr::S_0915 => {
+                str_constants::text::ACTION => {
                     left.action().to_string().cmp(&right.action().to_string())
                 }
-                str_constants::expr::S_1674 => left
+                str_constants::text::RESOURCE => left
                     .resource()
                     .to_string()
                     .cmp(&right.resource().to_string()),
-                str_constants::expr::S_1777 => {
+                str_constants::text::SUCCEEDED => {
                     bool::from(left.succeeded()).cmp(&bool::from(right.succeeded()))
                 }
                 _ => left.created_at().as_ref().cmp(right.created_at().as_ref()),

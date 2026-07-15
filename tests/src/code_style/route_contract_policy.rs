@@ -8,5 +8,5 @@ fn route_contract_type_mismatches_do_not_compile() {
     assert_serializable::<String>();
     assert_eq!(size_of::<frontend_contract::PublicTransport>(), 0usize);
     let cases = trybuild::TestCases::new();
-    cases.compile_fail(str_constants::expr::S_1835);
+    cases.compile_fail(str_constants::text::TRYBUILD_ROUTE_CONTRACT_ASTERISK_RS);
 }

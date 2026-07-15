@@ -18,7 +18,7 @@ struct ShouldWriteTokenStreamFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     let mut command = crate::tool_command::ToolCommand::new(
-        crate::tool_command::ToolProgramRef::from(str_constants::expr::S_1698),
+        crate::tool_command::ToolProgramRef::from(str_constants::text::RUSTFMT),
     );
     let path_text = path.0.to_string_lossy();
     let status = command
@@ -96,25 +96,29 @@ mod tests {
     #[test]
     fn maybe_write_token_stream_into_file_skips_when_flag_is_false() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::expr::S_1488,
+            str_constants::text::MACROS_HELPERS_SKIP,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = str_constants::expr::S_1774.parse().expect("5994e7e2");
+        let ts: proc_macro2::TokenStream = str_constants::text::STRUCT_SKIPWRITE
+            .parse()
+            .expect("5994e7e2");
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::False,
             &base,
             super::ProcMacro2TokenStreamRef::from(&ts),
             &super::FormatWithCargofmt::False,
         );
-        let _error = std::fs::metadata(&path).expect_err(str_constants::expr::S_0452);
+        let _error = std::fs::metadata(&path).expect_err(str_constants::text::VALUE_7BE5F201);
     }
     #[test]
     fn maybe_write_token_stream_into_file_writes_tokens_when_flag_is_true() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::expr::S_1494,
+            str_constants::text::MACROS_HELPERS_WRITE,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = str_constants::expr::S_1772.parse().expect("6c20f49a");
+        let ts: proc_macro2::TokenStream = str_constants::text::STRUCT_DIDWRITE
+            .parse()
+            .expect("6c20f49a");
         let expected = ts.to_string();
         super::maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -140,10 +144,12 @@ mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_writes_tokens_when_enabled() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::expr::S_1490,
+            str_constants::text::MACROS_HELPERS_TRY_WRITE,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = str_constants::expr::S_1775.parse().expect("f771ac2d");
+        let ts: proc_macro2::TokenStream = str_constants::text::STRUCT_TRYDIDWRITE
+            .parse()
+            .expect("f771ac2d");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -161,10 +167,12 @@ mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_accepts_path_input() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::expr::S_1492,
+            str_constants::text::MACROS_HELPERS_TRY_WRITE_PATH,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = str_constants::expr::S_1773.parse().expect("f9b0cd83");
+        let ts: proc_macro2::TokenStream = str_constants::text::STRUCT_PATHINPUT
+            .parse()
+            .expect("f9b0cd83");
         let expected = ts.to_string();
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
@@ -182,11 +190,11 @@ mod tests {
     #[test]
     fn try_maybe_write_token_stream_into_file_formats_when_rustfmt_enabled() {
         let base = crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(
-            str_constants::expr::S_1489,
+            str_constants::text::MACROS_HELPERS_TRY_RUN_RUSTFMT,
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
-        std::fs::write(&path, str_constants::expr::S_1771).expect("7091840d");
-        let ts: proc_macro2::TokenStream = str_constants::expr::S_1769.parse().expect("0f30ca53");
+        std::fs::write(&path, str_constants::text::STRUCT_B).expect("7091840d");
+        let ts: proc_macro2::TokenStream = str_constants::text::STRUCT_A.parse().expect("0f30ca53");
         super::try_maybe_write_token_stream_into_file(
             super::ShouldWriteTokenStreamIntoFile::True,
             &base,
@@ -196,7 +204,7 @@ mod tests {
         .expect("00a995a4");
         crate::test_hlp::assert_file_content(
             crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
-            crate::test_hlp::ExpectedFileContent::new(str_constants::expr::S_1770),
+            crate::test_hlp::ExpectedFileContent::new(str_constants::text::STRUCT_A_NEWLINE),
         );
         crate::test_hlp::cleanup_test_file(path);
     }

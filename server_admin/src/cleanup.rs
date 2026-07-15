@@ -3,46 +3,55 @@ pub(super) async fn cleanup_admin_tables(
     pool: app_state::SqlxPgPoolRef<'_>,
     cfg: super::AdminCleanupCfg,
 ) -> Result<super::AdminCleanupReport, super::AdminCleanupError> {
-    let access_sessions = sqlx::query(str_constants::expr::S_0834)
-        .bind(cfg.auth_retention.0)
-        .bind(cfg.batch_size.0)
-        .execute(pool.as_ref())
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-        .rows_affected();
-    let refresh_tokens = sqlx::query(str_constants::expr::S_0837)
-        .bind(cfg.auth_retention.0)
-        .bind(cfg.batch_size.0)
-        .execute(pool.as_ref())
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-        .rows_affected();
-    let login_attempts = sqlx::query(str_constants::expr::S_0836)
-        .bind(cfg.auth_retention.0)
-        .bind(cfg.batch_size.0)
-        .execute(pool.as_ref())
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-        .rows_affected();
+    let access_sessions = sqlx::query(
+        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_ACCESS_SESSIONS_WHERE_EXPIRES_AT,
+    )
+    .bind(cfg.auth_retention.0)
+    .bind(cfg.batch_size.0)
+    .execute(pool.as_ref())
+    .await
+    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+    .rows_affected();
+    let refresh_tokens = sqlx::query(
+        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_REFRESH_TOKENS_WHERE_EXPIRES_AT,
+    )
+    .bind(cfg.auth_retention.0)
+    .bind(cfg.batch_size.0)
+    .execute(pool.as_ref())
+    .await
+    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+    .rows_affected();
+    let login_attempts = sqlx::query(
+        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_LOGIN_ATTEMPTS_WHERE_ATTEMPTED_AT,
+    )
+    .bind(cfg.auth_retention.0)
+    .bind(cfg.batch_size.0)
+    .execute(pool.as_ref())
+    .await
+    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+    .rows_affected();
     let mut audit_tx = sqlx::Acquire::begin(pool.as_ref())
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let _audit_cleanup_permission = sqlx::query(str_constants::expr::S_0780)
-        .execute(&mut *audit_tx)
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let audit_log = sqlx::query(str_constants::expr::S_0835)
-        .bind(cfg.audit_retention.0)
-        .bind(cfg.batch_size.0)
-        .execute(&mut *audit_tx)
-        .await
-        .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
-        .rows_affected();
+    let _audit_cleanup_permission =
+        sqlx::query(str_constants::text::SET_LOCAL_APP_ADMIN_AUDIT_CLEANUP_ON)
+            .execute(&mut *audit_tx)
+            .await
+            .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
+    let audit_log = sqlx::query(
+        str_constants::text::WITH_EXPIRED_AS_SELECT_ID_FROM_ADMIN_AUDIT_LOG_WHERE_CREATED_AT,
+    )
+    .bind(cfg.audit_retention.0)
+    .bind(cfg.batch_size.0)
+    .execute(&mut *audit_tx)
+    .await
+    .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?
+    .rows_affected();
     audit_tx
         .commit()
         .await
         .map_err(|error| super::AdminCleanupError::Pg(super::SqlxAdminError::from(error)))?;
-    let rate_limits = sqlx::query(str_constants::expr::S_0838)
+    let rate_limits = sqlx::query(str_constants::text::WITH_EXPIRED_AS_SELECT_SCOPE_SUBJECT_FROM_ADMIN_RATE_LIMITS_WHERE_WINDOW)
         .bind(cfg.rate_limit_retention.0)
         .bind(cfg.batch_size.0)
         .execute(pool.as_ref())

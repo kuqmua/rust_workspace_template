@@ -105,7 +105,9 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             server_runtime::ResourceBudgetMaximum::try_from(8usize).expect("86d3d452"),
         ),
         config: server_config::Config {
-            cors_allow_origin: config_lib::CorsAllowOrigin(str_constants::expr::S_0043.to_owned()),
+            cors_allow_origin: config_lib::CorsAllowOrigin(
+                str_constants::text::ASTERISK.to_owned(),
+            ),
             database_url: test_env(
                 config_lib::StdEnvVarOk::try_from(
                     str_constants::test_values::UNREACHABLE_DATABASE_URL.to_owned(),
@@ -113,39 +115,41 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 .expect("3e33c100"),
             ),
             admin_jwt_secret: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_1805.to_owned())
-                    .expect("f29cc79a"),
+                config_lib::StdEnvVarOk::try_from(
+                    str_constants::text::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES.to_owned(),
+                )
+                .expect("f29cc79a"),
             ),
             admin_token_audience: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_1803.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::TEST_AUDIENCE.to_owned())
                     .expect("5b218444"),
             ),
             admin_token_issuer: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_1804.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::TEST_ISSUER.to_owned())
                     .expect("8357484d"),
             ),
             admin_access_token_ttl_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_0520.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::VALUE_900.to_owned())
                     .expect("4e1b2430"),
             ),
             admin_password_hash_concurrency: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_0167.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::VALUE_1.to_owned())
                     .expect("763e1bd9"),
             ),
             admin_refresh_token_ttl_seconds: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_0279.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::VALUE_3600.to_owned())
                     .expect("467a6513"),
             ),
             admin_session_limit: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_0215.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::VALUE_20.to_owned())
                     .expect("b26f4a08"),
             ),
             admin_sign_in_rate_limit: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_0168.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::VALUE_10.to_owned())
                     .expect("53224f39"),
             ),
             admin_swagger_enabled: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_1834.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::TRUE.to_owned())
                     .expect("818b46e8"),
             ),
             maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes::try_from(
@@ -153,7 +157,9 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             )
             .expect("d7a590e3"),
             service_socket_address: config_lib::ServiceSocketAddress(
-                str_constants::expr::S_0180.parse().expect("9cba6537"),
+                str_constants::text::VALUE_127_0_0_1_3000
+                    .parse()
+                    .expect("9cba6537"),
             ),
             pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(1u32)
                 .expect("58530f0e"),
@@ -164,11 +170,11 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
             tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
             trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
-                str_constants::expr::S_0179.to_owned(),
+                str_constants::text::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
             ),
             enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(false),
             admin_cookie_secure: test_env(
-                config_lib::StdEnvVarOk::try_from(str_constants::expr::S_1311.to_owned())
+                config_lib::StdEnvVarOk::try_from(str_constants::text::FALSE.to_owned())
                     .expect("dbe97ef3"),
             ),
         },
@@ -209,24 +215,28 @@ mod tests {
             ),
             config: server_config::Config {
                 cors_allow_origin: config_lib::CorsAllowOrigin(
-                    str_constants::expr::S_0043.to_owned(),
+                    str_constants::text::ASTERISK.to_owned(),
                 ),
                 database_url: config_lib::DatabaseUrl(secrecy::SecretBox::new(Box::new(
-                    str_constants::expr::S_1619.to_owned(),
+                    str_constants::text::POSTGRES_DB.to_owned(),
                 ))),
-                admin_jwt_secret: env(str_constants::expr::S_1805),
-                admin_token_audience: env(str_constants::expr::S_1803),
-                admin_token_issuer: env(str_constants::expr::S_1804),
-                admin_access_token_ttl_seconds: env(str_constants::expr::S_0520),
-                admin_password_hash_concurrency: env(str_constants::expr::S_0304),
-                admin_refresh_token_ttl_seconds: env(str_constants::expr::S_0238),
-                admin_session_limit: env(str_constants::expr::S_0215),
-                admin_sign_in_rate_limit: env(str_constants::expr::S_0168),
-                admin_swagger_enabled: env(str_constants::expr::S_1834),
+                admin_jwt_secret: env(
+                    str_constants::text::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
+                ),
+                admin_token_audience: env(str_constants::text::TEST_AUDIENCE),
+                admin_token_issuer: env(str_constants::text::TEST_ISSUER),
+                admin_access_token_ttl_seconds: env(str_constants::text::VALUE_900),
+                admin_password_hash_concurrency: env(str_constants::text::VALUE_4),
+                admin_refresh_token_ttl_seconds: env(str_constants::text::VALUE_2592000),
+                admin_session_limit: env(str_constants::text::VALUE_20),
+                admin_sign_in_rate_limit: env(str_constants::text::VALUE_10),
+                admin_swagger_enabled: env(str_constants::text::TRUE),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("d81f6a42"),
                 service_socket_address: config_lib::ServiceSocketAddress(
-                    str_constants::expr::S_0180.parse().expect("73f8bc91"),
+                    str_constants::text::VALUE_127_0_0_1_3000
+                        .parse()
+                        .expect("73f8bc91"),
                 ),
                 pg_pool_max_connections: config_lib::PgPoolMaxConnections::try_from(7)
                     .expect("f20c4a91"),
@@ -237,13 +247,14 @@ mod tests {
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
                 trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
-                    str_constants::expr::S_0179.to_owned(),
+                    str_constants::text::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
                 ),
                 enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck(true),
-                admin_cookie_secure: env(str_constants::expr::S_1311),
+                admin_cookie_secure: env(str_constants::text::FALSE),
             },
             pg_pool: app_state::SqlxPgPool::from(
-                sqlx::PgPool::connect_lazy(str_constants::expr::S_1625).expect("4bd3f0a1"),
+                sqlx::PgPool::connect_lazy(str_constants::text::POSTGRES_USR_PWD_LOCALHOST_5432_DB)
+                    .expect("4bd3f0a1"),
             ),
             idempotency_response_budget: server_runtime::ResourceBudget::new(
                 server_runtime::ResourceBudgetMaximum::try_from(1_048_576usize).expect("926ce310"),

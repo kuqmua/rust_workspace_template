@@ -13,19 +13,22 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
     let columns = (0usize..128usize)
         .map(|idx| identifier(format!("column_{idx}").as_str()))
         .collect::<Vec<_>>();
-    let _criterion = criterion.bench_function(str_constants::expr::S_1746, |bencher| {
-        bencher.iter(|| {
-            let query = pg_crud_common::SqlSelectBuilder::new(
-                pg_crud_common::SqlQualifiedIdentifier::new(
-                    identifier(str_constants::expr::S_1641),
-                    identifier(str_constants::expr::S_1016),
-                ),
-                columns.clone(),
-            )
-            .build();
-            let _query = std::hint::black_box(query);
-        });
-    });
+    let _criterion = criterion.bench_function(
+        str_constants::text::SQL_SELECT_BUILDER_128_COLUMNS,
+        |bencher| {
+            bencher.iter(|| {
+                let query = pg_crud_common::SqlSelectBuilder::new(
+                    pg_crud_common::SqlQualifiedIdentifier::new(
+                        identifier(str_constants::text::PUBLIC),
+                        identifier(str_constants::text::BENCHMARK_TABLE),
+                    ),
+                    columns.clone(),
+                )
+                .build();
+                let _query = std::hint::black_box(query);
+            });
+        },
+    );
 }
 criterion::criterion_group!(query_builder_benches, bench_sql_select_builder);
 criterion::criterion_main!(query_builder_benches);

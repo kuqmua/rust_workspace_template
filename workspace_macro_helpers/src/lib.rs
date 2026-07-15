@@ -50,7 +50,10 @@ impl<'shape_lt> TryFrom<&'shape_lt syn::DeriveInput> for SynStructShapeRef<'shap
     type Error = syn::Error;
     fn try_from(value: &'shape_lt syn::DeriveInput) -> Result<Self, Self::Error> {
         let syn::Data::Struct(data) = &value.data else {
-            return Err(syn::Error::new_spanned(value, str_constants::expr::S_0375));
+            return Err(syn::Error::new_spanned(
+                value,
+                str_constants::text::EXPECTED_A_STRUCT,
+            ));
         };
         Ok(match &data.fields {
             syn::Fields::Named(fields) => Self::Named(SynFieldsNamedRef(fields)),
@@ -484,14 +487,20 @@ mod tests {
         let mut values = super::StdUniqueOptionSet::default();
         values
             .try_insert_with(1u8, || {
-                syn::Error::new(proc_macro2::Span::call_site(), str_constants::expr::S_1329)
+                syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    str_constants::text::FIRST_ALT,
+                )
             })
             .expect("12817d29");
         let error = values
             .try_insert_with(1u8, || {
-                syn::Error::new(proc_macro2::Span::call_site(), str_constants::expr::S_1199)
+                syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    str_constants::text::DUPLICATE,
+                )
             })
-            .expect_err(str_constants::expr::S_1084);
+            .expect_err(str_constants::text::CE4826F4);
         assert_eq!(error.to_string(), "duplicate");
         assert!(values.contains(1u8).get());
     }

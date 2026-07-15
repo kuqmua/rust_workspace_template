@@ -30,21 +30,27 @@ impl frontend_contract::Transport for GlooTransport {
             let mut builder = gloo_net::http::RequestBuilder::new(request.path().as_ref())
                 .method(gloo_net::http::Method::from(http_method(route.method())))
                 .credentials(web_sys::RequestCredentials::Include)
-                .header(str_constants::expr::S_0647, str_constants::expr::S_0951)
                 .header(
-                    str_constants::expr::S_1098,
+                    str_constants::text::CONTENT_TYPE,
+                    str_constants::text::APPLICATION_JSON,
+                )
+                .header(
+                    str_constants::route_validators::COMMIT_HEADER_NAME,
                     git_info::PROJECT_GIT_INFO.commit.as_ref(),
                 );
             if let Some(idempotency_key) = request.idempotency_key() {
-                builder = builder.header(str_constants::expr::S_0695, idempotency_key.as_ref());
+                builder = builder.header(
+                    str_constants::text::IDEMPOTENCY_KEY,
+                    idempotency_key.as_ref(),
+                );
             }
             if let Some(if_match) = request.if_match() {
-                builder = builder.header(str_constants::expr::S_0696, if_match.as_ref());
+                builder = builder.header(str_constants::text::IF_MATCH, if_match.as_ref());
             }
             if route.mutation() == frontend_contract::MutationKind::Mutating
                 && let Some(token) = csrf_token()
             {
-                builder = builder.header(str_constants::expr::S_0839, token.as_ref());
+                builder = builder.header(str_constants::text::X_CSRF_TOKEN, token.as_ref());
             }
             let outbound = if route.method() == frontend_contract::HttpMethod::Get {
                 builder.build()
@@ -86,7 +92,7 @@ fn csrf_token() -> Option<BrowserCsrfToken> {
     let cookies = document.cookie().ok()?;
     cookies.split(';').map(str::trim).find_map(|cookie| {
         cookie
-            .strip_prefix(str_constants::expr::S_0931)
+            .strip_prefix(str_constants::text::ADMIN_CSRF_TOKEN_ALT)
             .and_then(|value| BrowserCsrfToken::try_from(value.to_owned()).ok())
     })
 }

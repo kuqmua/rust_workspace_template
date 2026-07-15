@@ -67,7 +67,9 @@ impl PageLoader {
     }
 }
 fn auth_refresh_state_error() -> ApiError {
-    ApiError::Request(Text::from(str_constants::expr::S_0974.to_owned()))
+    ApiError::Request(Text::from(
+        str_constants::text::AUTHENTICATION_REFRESH_STATE_IS_UNAVAILABLE.to_owned(),
+    ))
 }
 impl AdminApiClient {
     fn new() -> Self {
@@ -179,12 +181,12 @@ impl AdminApiClient {
                     redirect(str_constants::admin_page_paths::SIGN_IN);
                     return Err(ApiError::Status(
                         401u16,
-                        Text::from(str_constants::expr::S_0972.to_owned()),
+                        Text::from(str_constants::text::AUTHENTICATION_REFRESH_REJECTED.to_owned()),
                     ));
                 }
                 crate::auth_keep_alive::AuthRefreshBegin::Wait => {
                     return Err(ApiError::Request(Text::from(
-                        str_constants::expr::S_0973.to_owned(),
+                        str_constants::text::AUTHENTICATION_REFRESH_RETRY_IS_DELAYED.to_owned(),
                     )));
                 }
             }
@@ -295,7 +297,7 @@ fn response_error(
     body: &frontend_contract::TransportBody,
 ) -> ApiError {
     let detail = frontend_contract::decode_api_problem(body).map_or_else(
-        || Text::from(str_constants::expr::S_1658.to_owned()),
+        || Text::from(str_constants::text::REQUEST_FAILED.to_owned()),
         |problem| Text::from(problem.detail().as_ref().to_owned()),
     );
     ApiError::Status(u16::from(status), detail)
@@ -324,7 +326,7 @@ fn push_path(path: &str) {
     {
         let _result = history.push_state_with_url(
             &wasm_bindgen::JsValue::NULL,
-            str_constants::expr::S_0021,
+            str_constants::pg_crud::EMPTY_SQL_SUFFIX,
             Some(path),
         );
     }
@@ -335,7 +337,7 @@ fn replace_path(path: &str) {
     {
         let _result = history.replace_state_with_url(
             &wasm_bindgen::JsValue::NULL,
-            str_constants::expr::S_0021,
+            str_constants::pg_crud::EMPTY_SQL_SUFFIX,
             Some(path),
         );
     }
@@ -377,11 +379,9 @@ fn load(client: AdminApiClient, loader: PageLoader) {
             }
             Some(server_admin_contract::AdminPage::Version) => {
                 client.version().await.map(|value| {
-                    Page::Text(
-                        value
-                            .commit
-                            .unwrap_or_else(|| Text::from(str_constants::expr::S_0821.to_owned())),
-                    )
+                    Page::Text(value.commit.unwrap_or_else(|| {
+                        Text::from(str_constants::text::UNKNOWN_VERSION.to_owned())
+                    }))
                 })
             }
             Some(server_admin_contract::AdminPage::OpenApi) => {

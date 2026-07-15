@@ -2,12 +2,12 @@ impl super::AdminAuditAction {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::Create => str_constants::expr::S_1113,
-            Self::Delete => str_constants::expr::S_1174,
-            Self::Refresh => str_constants::expr::S_1653,
-            Self::SignIn => str_constants::expr::S_1738,
-            Self::SignOut => str_constants::expr::S_1739,
-            Self::Update => str_constants::expr::S_1872,
+            Self::Create => str_constants::pg_crud::CREATE_PERMISSION_ACTION,
+            Self::Delete => str_constants::pg_crud::DELETE_PERMISSION_ACTION,
+            Self::Refresh => str_constants::text::REFRESH,
+            Self::SignIn => str_constants::text::SIGN_IN,
+            Self::SignOut => str_constants::text::SIGN_OUT,
+            Self::Update => str_constants::pg_crud::UPDATE_PERMISSION_ACTION,
         })
     }
 }
@@ -15,12 +15,12 @@ impl super::AdminAuditResource {
     #[must_use]
     pub fn as_str(self) -> super::StdAdminStrRef<'static> {
         super::StdAdminStrRef::from(match self {
-            Self::AuditLog => str_constants::expr::S_0970,
-            Self::Permission => str_constants::expr::S_1600,
-            Self::Role => str_constants::expr::S_1684,
-            Self::Session => str_constants::expr::S_1736,
-            Self::SystemSettings => str_constants::expr::S_1785,
-            Self::User => str_constants::expr::S_1880,
+            Self::AuditLog => str_constants::text::AUDIT_LOG_ALT,
+            Self::Permission => str_constants::text::PERMISSION,
+            Self::Role => str_constants::text::ROLE,
+            Self::Session => str_constants::text::SESSION,
+            Self::SystemSettings => str_constants::text::SYSTEM_SETTINGS,
+            Self::User => str_constants::text::USER,
         })
     }
 }

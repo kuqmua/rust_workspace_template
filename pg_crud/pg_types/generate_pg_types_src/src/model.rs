@@ -15,7 +15,7 @@ mod tests {
             can_be_nullable: true,
             can_be_primary_key: false,
             filter_kind: 7u8,
-            pg_name: str_constants::expr::S_1424,
+            pg_name: str_constants::pg_crud::PG_INT4,
             wire_kind: 32u8,
         };
         assert!(crate::sqlx::can_be_nullable(spec));

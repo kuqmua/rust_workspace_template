@@ -163,8 +163,8 @@ where
     V: Into<IsPrimaryKey>,
 {
     if bool::from(v.into()) {
-        str_constants::expr::S_1629
+        str_constants::text::PRIMARY_KEY
     } else {
-        str_constants::expr::S_0021
+        str_constants::pg_crud::EMPTY_SQL_SUFFIX
     }
 }

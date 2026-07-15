@@ -21,7 +21,7 @@ impl TryFrom<u64> for RetryAfterSecs {
 pub struct RetryAfterSecsTryFromU64Error;
 impl std::fmt::Display for RetryAfterSecsTryFromU64Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::expr::S_1676)
+        f.write_str(str_constants::text::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)
     }
 }
 impl std::error::Error for RetryAfterSecsTryFromU64Error {}

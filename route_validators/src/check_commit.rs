@@ -245,22 +245,22 @@ mod tests {
     #[test]
     fn check_commit_is_skipped_when_validation_is_disabled() {
         let headers = axum::http::HeaderMap::new();
-        check_commit_ok(false, &headers, str_constants::expr::S_1285);
+        check_commit_ok(false, &headers, str_constants::text::F4CAB210);
     }
     #[test]
     fn check_commit_skip_mode_ignores_non_utf8_commit_header() {
         let headers = mk_headers_with_non_utf8_commit();
-        check_commit_ok(false, &headers, str_constants::expr::S_0261);
+        check_commit_ok(false, &headers, str_constants::text::VALUE_2F2A7B69);
     }
     #[test]
     fn check_commit_returns_no_header_error_when_header_is_absent() {
         let headers = axum::http::HeaderMap::new();
-        assert_no_commit_header_err(&headers, str_constants::expr::S_1058);
+        assert_no_commit_header_err(&headers, str_constants::text::C89F19A5);
     }
     #[test]
     fn check_commit_returns_to_str_error_for_non_utf8_header() {
         let headers = mk_headers_with_non_utf8_commit();
-        expect_commit_to_str_conversion_err(&headers, str_constants::expr::S_0451);
+        expect_commit_to_str_conversion_err(&headers, str_constants::text::VALUE_7B9AC2E3);
     }
     #[test]
     fn get_commit_header_str_returns_header_value_when_present() {
@@ -268,7 +268,7 @@ mod tests {
         crate::test_hlp::assert_ok_eq(
             super::read_commit_header_str(crate::hdr_val::AxumHeadersRef::from(&headers))
                 .map(|v| v.0),
-            str_constants::expr::S_1210,
+            str_constants::text::E1D07F53,
             &git_info::PROJECT_GIT_INFO.commit.as_ref(),
         );
     }
@@ -277,7 +277,7 @@ mod tests {
         let headers = axum::http::HeaderMap::new();
         let no_commit_header = crate::test_hlp::expect_error_variant_ref(
             super::validate_commit_header(crate::hdr_val::AxumHeadersRef::from(&headers)),
-            str_constants::expr::S_0271,
+            str_constants::text::VALUE_31EA9A57,
             no_commit_header_message,
         );
         assert_eq!(
@@ -290,7 +290,7 @@ mod tests {
         let headers = mk_headers_with_project_commit();
         crate::test_hlp::expect_ok(
             super::validate_commit_header(crate::hdr_val::AxumHeadersRef::from(&headers)),
-            str_constants::expr::S_0336,
+            str_constants::text::VALUE_4D60C385,
         );
     }
     #[test]
@@ -298,7 +298,7 @@ mod tests {
         let headers = axum::http::HeaderMap::new();
         let no_commit_header = expect_get_commit_header_str_err_variant(
             &headers,
-            str_constants::expr::S_0429,
+            str_constants::text::VALUE_72E4A18D,
             no_commit_header_message,
         );
         assert_eq!(
@@ -311,14 +311,14 @@ mod tests {
         let headers = mk_headers_with_non_utf8_commit();
         expect_get_commit_header_str_err_variant(
             &headers,
-            str_constants::expr::S_0412,
+            str_constants::text::VALUE_6B4A128F,
             is_commit_to_str_conversion,
         );
     }
     #[test]
     fn check_commit_returns_mismatch_error_for_wrong_commit() {
         let headers = mk_headers_with_wrong_commit();
-        assert_wrong_commit_err(&headers, str_constants::expr::S_0190);
+        assert_wrong_commit_err(&headers, str_constants::text::VALUE_14F304D8);
     }
     #[test]
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
@@ -326,7 +326,7 @@ mod tests {
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
                 str_constants::test_values::WRONG_COMMIT,
             )),
-            str_constants::expr::S_0406,
+            str_constants::text::VALUE_6804382F,
             commit_not_eq_fields,
         );
         assert_wrong_commit_fields(fields);
@@ -337,7 +337,7 @@ mod tests {
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
                 git_info::PROJECT_GIT_INFO.commit.as_ref(),
             )),
-            str_constants::expr::S_0384,
+            str_constants::text::VALUE_5EF927D2,
         );
     }
     #[test]
@@ -345,15 +345,15 @@ mod tests {
         let headers = mk_headers_with_wrong_commit();
         let fields = crate::test_hlp::expect_error_variant_ref(
             check_commit_enabled(&headers),
-            str_constants::expr::S_0295,
+            str_constants::text::VALUE_3DB98D20,
             commit_not_eq_fields,
         );
         assert_wrong_commit_fields(fields);
     }
     #[test]
     fn check_commit_treats_empty_commit_as_mismatch() {
-        let headers = mk_headers_with_commit(str_constants::expr::S_0021);
-        assert_wrong_commit_err(&headers, str_constants::expr::S_0325);
+        let headers = mk_headers_with_commit(str_constants::pg_crud::EMPTY_SQL_SUFFIX);
+        assert_wrong_commit_err(&headers, str_constants::text::VALUE_491EF4D6);
     }
     #[test]
     fn check_commit_accepts_header_name_with_different_case() {
@@ -361,15 +361,15 @@ mod tests {
         crate::test_hlp::replace_header_name(
             &mut headers,
             super::COMMIT_HEADER_NAME,
-            str_constants::expr::S_0645,
-            str_constants::expr::S_0177,
+            str_constants::text::COMMIT,
+            str_constants::text::VALUE_12653C9A,
         );
-        check_commit_enabled_ok(&headers, str_constants::expr::S_1010);
+        check_commit_enabled_ok(&headers, str_constants::text::BB6C239E);
     }
     #[test]
     fn check_commit_returns_ok_for_matching_commit() {
         let headers = mk_headers_with_project_commit();
-        check_commit_enabled_ok(&headers, str_constants::expr::S_1062);
+        check_commit_enabled_ok(&headers, str_constants::text::C95E27D1);
     }
     #[test]
     fn project_commit_is_recognized_by_git_info_helper() {
@@ -386,12 +386,12 @@ mod tests {
     #[test]
     fn commit_errors_have_bad_request_status_code() {
         let headers = axum::http::HeaderMap::new();
-        assert_no_commit_header_err(&headers, str_constants::expr::S_0440);
-        check_commit_bad_request(&headers, str_constants::expr::S_1278);
+        assert_no_commit_header_err(&headers, str_constants::text::VALUE_76314DB5);
+        check_commit_bad_request(&headers, str_constants::text::F39BDCC6);
         let non_utf8_headers = mk_headers_with_non_utf8_commit();
-        expect_commit_to_str_conversion_err(&non_utf8_headers, str_constants::expr::S_1209);
-        check_commit_bad_request(&non_utf8_headers, str_constants::expr::S_0259);
+        expect_commit_to_str_conversion_err(&non_utf8_headers, str_constants::text::E1C2D84A);
+        check_commit_bad_request(&non_utf8_headers, str_constants::text::VALUE_2E86AA15);
         let mismatch_headers = mk_headers_with_wrong_commit();
-        check_commit_bad_request(&mismatch_headers, str_constants::expr::S_0205);
+        check_commit_bad_request(&mismatch_headers, str_constants::text::VALUE_1CABE205);
     }
 }

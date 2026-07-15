@@ -62,8 +62,10 @@ pub enum PgTableRevisionTryFromStringError {
 impl std::fmt::Display for PgTableRevisionTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Invalid(_error) => f.write_str(str_constants::expr::S_1677),
-            Self::Negative => f.write_str(str_constants::expr::S_1678),
+            Self::Invalid(_error) => {
+                f.write_str(str_constants::text::REVISION_MUST_BE_A_DECIMAL_INTEGER)
+            }
+            Self::Negative => f.write_str(str_constants::text::REVISION_MUST_NOT_BE_NEGATIVE),
         }
     }
 }
@@ -125,9 +127,13 @@ pub enum PgTableIdempotencyTextError {
 impl std::fmt::Display for PgTableIdempotencyTextError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Empty => f.write_str(str_constants::expr::S_1405),
-            Self::InvalidMethod => f.write_str(str_constants::expr::S_1400),
-            Self::InvalidRoute => f.write_str(str_constants::expr::S_1404),
+            Self::Empty => f.write_str(str_constants::text::IDEMPOTENCY_TEXT_MUST_NOT_BE_EMPTY),
+            Self::InvalidMethod => {
+                f.write_str(str_constants::text::IDEMPOTENCY_METHOD_MUST_BE_POST_PATCH_OR_DELETE)
+            }
+            Self::InvalidRoute => {
+                f.write_str(str_constants::text::IDEMPOTENCY_ROUTE_MUST_START_WITH_A_SLASH)
+            }
             Self::TooLong {
                 actual_bytes,
                 maximum_bytes,
@@ -143,7 +149,7 @@ impl std::error::Error for PgTableIdempotencyTextError {}
 pub struct SqlxPgTableIdempotencyError(sqlx::Error);
 impl std::fmt::Display for SqlxPgTableIdempotencyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::expr::S_0730)
+        f.write_str(str_constants::text::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)
     }
 }
 impl std::error::Error for SqlxPgTableIdempotencyError {
@@ -215,7 +221,7 @@ impl TryFrom<String> for PgTableIdempotencyMethod {
         }
         if matches!(
             value.as_str(),
-            str_constants::expr::S_0722 | str_constants::expr::S_0720 | str_constants::expr::S_1975
+            str_constants::text::POST | str_constants::text::PATCH | str_constants::text::DELETE
         ) {
             Ok(Self(value))
         } else {
@@ -291,21 +297,25 @@ pub fn pg_table_idempotency_request_hash(
 pub async fn ensure_pg_table_idempotency_schema(
     pool: app_state::SqlxPgPoolRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    let _query_result = sqlx::query(str_constants::expr::S_0635)
-        .execute(pool.as_ref())
-        .await
-        .map_err(SqlxPgTableIdempotencyError::from)?;
-    let _index_result = sqlx::query(str_constants::expr::S_0633)
-        .execute(pool.as_ref())
-        .await
-        .map_err(SqlxPgTableIdempotencyError::from)?;
+    let _query_result = sqlx::query(
+        str_constants::text::CREATE_TABLE_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_ACTOR_TEXT_NOT_NULL,
+    )
+    .execute(pool.as_ref())
+    .await
+    .map_err(SqlxPgTableIdempotencyError::from)?;
+    let _index_result = sqlx::query(
+        str_constants::text::CREATE_INDEX_IF_NOT_EXISTS_PG_TABLE_IDEMPOTENCY_CREATED_AT_IDX_ON,
+    )
+    .execute(pool.as_ref())
+    .await
+    .map_err(SqlxPgTableIdempotencyError::from)?;
     Ok(())
 }
 pub async fn begin_pg_table_idempotency(
     pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<PgTableIdempotencyBegin, SqlxPgTableIdempotencyError> {
-    let inserted = sqlx::query_scalar::<_, bool>(str_constants::expr::S_0692)
+    let inserted = sqlx::query_scalar::<_, bool>(str_constants::text::INSERT_INTO_PG_TABLE_IDEMPOTENCY_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -318,7 +328,7 @@ pub async fn begin_pg_table_idempotency(
         return Ok(PgTableIdempotencyBegin::Acquired);
     }
     let existing = sqlx::query_as::<_, (Vec<u8>, String, Option<i16>, Option<Vec<u8>>)>(
-        str_constants::expr::S_0775,
+        str_constants::text::SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY,
     )
     .bind(request.scope.actor.0.as_str())
     .bind(request.scope.method.0.as_str())
@@ -330,7 +340,7 @@ pub async fn begin_pg_table_idempotency(
     if existing.0.as_slice() != request.request_hash.0.as_slice() {
         return Ok(PgTableIdempotencyBegin::Conflict);
     }
-    if existing.1 == str_constants::expr::S_1596 {
+    if existing.1 == str_constants::text::PENDING {
         return Ok(PgTableIdempotencyBegin::InProgress);
     }
     match (existing.2, existing.3) {
@@ -381,12 +391,12 @@ pub async fn complete_pg_table_idempotency_in_connection(
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     if response_body.0.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
         return Err(SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
-            str_constants::expr::S_1402.to_owned(),
+            str_constants::text::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
         )));
     }
     let response_status_i16 = i16::try_from(response_status.0).map_err(|_error| {
         SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
-            str_constants::expr::S_1403.to_owned(),
+            str_constants::text::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
         ))
     })?;
     let result = sqlx::query(str_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
@@ -404,7 +414,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
         Ok(())
     } else {
         Err(SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
-            str_constants::expr::S_1401.to_owned(),
+            str_constants::text::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
         )))
     }
 }
@@ -412,15 +422,17 @@ pub async fn release_pg_table_idempotency(
     pool: app_state::SqlxPgPoolRef<'_>,
     request: &PgTableIdempotencyRequest,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
-    let _query_result = sqlx::query(str_constants::expr::S_0655)
-        .bind(request.scope.actor.0.as_str())
-        .bind(request.scope.method.0.as_str())
-        .bind(request.scope.route.0.as_str())
-        .bind(request.scope.key.0.as_str())
-        .bind(request.request_hash.0.as_slice())
-        .execute(pool.as_ref())
-        .await
-        .map_err(SqlxPgTableIdempotencyError::from)?;
+    let _query_result = sqlx::query(
+        str_constants::text::DELETE_FROM_PG_TABLE_IDEMPOTENCY_WHERE_ACTOR_DOLLAR_1_AND_HTTP_METHOD,
+    )
+    .bind(request.scope.actor.0.as_str())
+    .bind(request.scope.method.0.as_str())
+    .bind(request.scope.route.0.as_str())
+    .bind(request.scope.key.0.as_str())
+    .bind(request.request_hash.0.as_slice())
+    .execute(pool.as_ref())
+    .await
+    .map_err(SqlxPgTableIdempotencyError::from)?;
     Ok(())
 }
 impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
@@ -441,7 +453,7 @@ pub async fn cleanup_pg_table_idempotency(
     pending_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,
     batch_size: PgTableIdempotencyCleanupBatchSize,
 ) -> Result<PgTableIdempotencyCleanupRows, SqlxPgTableIdempotencyError> {
-    let result = sqlx::query(str_constants::expr::S_0833)
+    let result = sqlx::query(str_constants::text::WITH_EXPIRED_AS_SELECT_ACTOR_HTTP_METHOD_ROUTE_PATH_IDEMPOTENCY_KEY_FROM)
         .bind(completed_retention_seconds.0)
         .bind(pending_retention_seconds.0)
         .bind(batch_size.0)
@@ -480,7 +492,7 @@ mod idempotency_tests {
             super::PgTableIdempotencyRoute::try_from("without-slash".to_owned()),
             Err(super::PgTableIdempotencyTextError::InvalidRoute)
         );
-        let oversized = str_constants::expr::S_0868
+        let oversized = str_constants::text::A_ALT
             .repeat(super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES.saturating_add(1usize));
         assert_eq!(
             super::PgTableIdempotencyKey::try_from(oversized.clone()),
@@ -613,11 +625,11 @@ fn generate_insert_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(wrapper_len),
     );
-    query.push_str(str_constants::expr::S_1419);
+    query.push_str(str_constants::text::INSERT_INTO);
     query.push_str(table.as_ref());
-    query.push_str(str_constants::expr::S_0004);
+    query.push_str(str_constants::text::TEXT);
     query.push_str(cols.as_ref());
-    query.push_str(str_constants::expr::S_0041);
+    query.push_str(str_constants::text::VALUES);
     if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
         query.push('(');
     }
@@ -625,7 +637,7 @@ fn generate_insert_query_string(
     if matches!(insert_values_fmt, InsertValuesFmt::Wrapped) {
         query.push(')');
     }
-    query.push_str(str_constants::expr::S_0017);
+    query.push_str(str_constants::text::RETURNING);
     query.push_str(cols_to_return.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -646,13 +658,13 @@ fn generate_select_query_string(
             .saturating_add(where_string.as_ref().len())
             .saturating_add(where_len),
     );
-    query.push_str(str_constants::expr::S_1710);
+    query.push_str(str_constants::text::SELECT_ALT);
     query.push_str(select_string.as_ref());
-    query.push_str(str_constants::expr::S_0014);
+    query.push_str(str_constants::text::FROM_ALT);
     query.push_str(table.as_ref());
     match select_where_fmt {
         SelectWhereFmt::Plain => query.push(' '),
-        SelectWhereFmt::Where => query.push_str(str_constants::expr::S_0019),
+        SelectWhereFmt::Where => query.push_str(str_constants::text::WHERE),
     }
     query.push_str(where_string.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
@@ -678,21 +690,21 @@ fn generate_update_query_string(
             .saturating_add(cols_to_return.as_ref().len())
             .saturating_add(selector_len),
     );
-    query.push_str(str_constants::expr::S_1868);
+    query.push_str(str_constants::text::UPDATE_ALT);
     query.push_str(table.as_ref());
-    query.push_str(str_constants::expr::S_0018);
+    query.push_str(str_constants::text::SET);
     query.push_str(cols_or_els.as_ref());
-    query.push_str(str_constants::expr::S_0019);
+    query.push_str(str_constants::text::WHERE);
     query.push_str(primary_key_field_name.as_ref());
     match update_selector_fmt {
-        UpdateSelectorFmt::Eq => query.push_str(str_constants::expr::S_0009),
-        UpdateSelectorFmt::InList => query.push_str(str_constants::expr::S_0016),
+        UpdateSelectorFmt::Eq => query.push_str(str_constants::text::TEXT_ALT),
+        UpdateSelectorFmt::InList => query.push_str(str_constants::text::IN),
     }
     query.push_str(primary_key_selector.as_ref());
     if matches!(update_selector_fmt, UpdateSelectorFmt::InList) {
         query.push(')');
     }
-    query.push_str(str_constants::expr::S_0017);
+    query.push_str(str_constants::text::RETURNING);
     query.push_str(cols_to_return.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -711,17 +723,17 @@ fn generate_delete_query_string(
             .saturating_add(where_len)
             .saturating_add(primary_key_field_name.as_ref().len()),
     );
-    query.push_str(str_constants::expr::S_1170);
+    query.push_str(str_constants::text::DELETE_FROM);
     query.push_str(table.as_ref());
     query.push(' ');
     if let Some(v) = where_string {
         query.push_str(v.as_ref());
     } else {
-        query.push_str(str_constants::expr::S_1902);
+        query.push_str(str_constants::text::WHERE_ALT);
         query.push_str(primary_key_field_name.as_ref());
-        query.push_str(str_constants::expr::S_0010);
+        query.push_str(str_constants::text::DOLLAR_1);
     }
-    query.push_str(str_constants::expr::S_0017);
+    query.push_str(str_constants::text::RETURNING);
     query.push_str(primary_key_field_name.as_ref());
     PgTableQueryString::try_from(query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -875,7 +887,8 @@ pub fn add_uo_optimistic_revision_predicate(
     expected_revision_query_part: PgTableSqlFragmentRef<'_>,
 ) -> PgTableQueryString {
     let query_text = query.to_string();
-    let Some((statement, returning)) = query_text.rsplit_once(str_constants::expr::S_0017) else {
+    let Some((statement, returning)) = query_text.rsplit_once(str_constants::text::RETURNING)
+    else {
         return query;
     };
     let mut optimistic_query = String::with_capacity(
@@ -886,11 +899,11 @@ pub fn add_uo_optimistic_revision_predicate(
             .saturating_add(9usize),
     );
     optimistic_query.push_str(statement);
-    optimistic_query.push_str(str_constants::expr::S_0013);
+    optimistic_query.push_str(str_constants::text::AND);
     optimistic_query.push_str(revision_column.as_ref());
-    optimistic_query.push_str(str_constants::expr::S_0009);
+    optimistic_query.push_str(str_constants::text::TEXT_ALT);
     optimistic_query.push_str(expected_revision_query_part.as_ref());
-    optimistic_query.push_str(str_constants::expr::S_0017);
+    optimistic_query.push_str(str_constants::text::RETURNING);
     optimistic_query.push_str(returning);
     PgTableQueryString::try_from(optimistic_query).unwrap_or_else(PgTableQueryString::from)
 }
@@ -922,8 +935,8 @@ mod tests {
         super::PgTableSqlFragmentRef<'static>,
     ) {
         (
-            table(str_constants::expr::S_1883),
-            sql(str_constants::expr::S_1397),
+            table(str_constants::text::USERS_ALT),
+            sql(str_constants::sql_names::ID),
         )
     }
     fn assert_q(actual: &str, expected: &'static str) {
@@ -933,119 +946,122 @@ mod tests {
     fn generate_cm_query_string_is_expected() {
         assert_q(
             &super::generate_cm_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1398),
-                sql(str_constants::expr::S_0037),
-                sql(str_constants::expr::S_1397),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::ID_NAME),
+                sql(str_constants::text::DOLLAR_1_DOLLAR_2_DOLLAR_3_DOLLAR_4),
+                sql(str_constants::sql_names::ID),
             ),
-            str_constants::expr::S_1421,
+            str_constants::text::INSERT_INTO_USERS_ID_NAME_VALUES_DOLLAR_1_DOLLAR_2_DOLLAR_3,
         );
     }
     #[test]
     fn generate_co_query_string_is_expected() {
         assert_q(
             &super::generate_co_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1398),
-                sql(str_constants::expr::S_0027),
-                sql(str_constants::expr::S_1397),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::ID_NAME),
+                sql(str_constants::text::DOLLAR_1_DOLLAR_2),
+                sql(str_constants::sql_names::ID),
             ),
-            str_constants::expr::S_1420,
+            str_constants::text::INSERT_INTO_USERS_ID_NAME_VALUES_DOLLAR_1_DOLLAR_2_RETURNING_ID,
         );
     }
     #[test]
     fn generate_rm_query_string_is_expected() {
         assert_q(
             &super::generate_rm_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1398),
-                sql(str_constants::expr::S_1575),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::ID_NAME),
+                sql(str_constants::text::ORDER_BY_ID),
             ),
-            str_constants::expr::S_1711,
+            str_constants::text::SELECT_ID_NAME_FROM_USERS_ORDER_BY_ID,
         );
     }
     #[test]
     fn generate_ro_query_string_is_expected() {
         assert_q(
             &super::generate_ro_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1398),
-                sql(str_constants::expr::S_1396),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::ID_NAME),
+                sql(str_constants::text::ID_DOLLAR_1),
             ),
-            str_constants::expr::S_1712,
+            str_constants::text::SELECT_ID_NAME_FROM_USERS_WHERE_ID_DOLLAR_1,
         );
     }
     #[test]
     fn generate_column_queals_v_comma_uo_query_part_is_expected() {
         assert_q(
             &super::generate_column_queals_v_comma_uo_query_part(
-                sql(str_constants::expr::S_1536),
-                sql(str_constants::expr::S_0028),
+                sql(str_constants::text::NAME),
+                sql(str_constants::text::DOLLAR_2),
             ),
-            str_constants::expr::S_1533,
+            str_constants::text::NAME_DOLLAR_2_ALT,
         );
     }
     #[test]
     fn generate_when_column_id_then_v_um_query_part_is_expected() {
         assert_q(
             &super::generate_when_column_id_then_v_um_query_part(
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0026),
-                sql(str_constants::expr::S_0028),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_1_ALT),
+                sql(str_constants::text::DOLLAR_2),
             ),
-            str_constants::expr::S_1901,
+            str_constants::text::WHEN_ID_DOLLAR_1_THEN_DOLLAR_2,
         );
     }
     #[test]
     fn generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part_is_expected() {
         assert_q(
             &super::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
-                sql(str_constants::expr::S_1536),
-                sql(str_constants::expr::S_1901),
+                sql(str_constants::text::NAME),
+                sql(str_constants::text::WHEN_ID_DOLLAR_1_THEN_DOLLAR_2),
             ),
-            str_constants::expr::S_1535,
+            str_constants::text::NAME_CASE_WHEN_ID_DOLLAR_1_THEN_DOLLAR_2_ELSE_NAME_END,
         );
     }
     #[test]
     fn generate_um_query_string_is_expected() {
         assert_q(
             &super::generate_um_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1534),
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0027),
-                sql(str_constants::expr::S_1398),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::NAME_CASE_END),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_1_DOLLAR_2),
+                sql(str_constants::text::ID_NAME),
             ),
-            str_constants::expr::S_1871,
+            str_constants::text::UPDATE_USERS_SET_NAME_CASE_END_WHERE_ID_IN_DOLLAR_1_DOLLAR,
         );
     }
     #[test]
     fn generate_uo_query_string_is_expected() {
         assert_q(
             &super::generate_uo_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1532),
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0026),
-                sql(str_constants::expr::S_1398),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::NAME_DOLLAR_2),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_1_ALT),
+                sql(str_constants::text::ID_NAME),
             ),
-            str_constants::expr::S_1870,
+            str_constants::text::UPDATE_USERS_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_RETURNING_ID,
         );
     }
     #[test]
     fn optimistic_uo_query_requires_matching_revision() {
         let query = super::add_uo_optimistic_revision_predicate(
             super::generate_uo_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1531),
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0028),
-                sql(str_constants::expr::S_1399),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::NAME_DOLLAR_1_REVISION_REVISION_PLUS_1),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_2),
+                sql(str_constants::text::ID_REVISION),
             ),
-            sql(str_constants::expr::S_1679),
-            sql(str_constants::expr::S_0029),
+            sql(str_constants::text::REVISION),
+            sql(str_constants::text::DOLLAR_3),
         );
-        assert_q(&query, str_constants::expr::S_1869);
+        assert_q(
+            &query,
+            str_constants::text::UPDATE_USERS_SET_NAME_DOLLAR_1_REVISION_REVISION_PLUS_1_WHERE_ID,
+        );
     }
     #[test]
     fn revision_rejects_invalid_and_negative_values() {
@@ -1068,11 +1084,11 @@ mod tests {
     fn generate_dm_query_string_is_expected() {
         assert_q(
             &super::generate_dm_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1904),
-                sql(str_constants::expr::S_1397),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::WHERE_ID_IN_DOLLAR_1_DOLLAR_2),
+                sql(str_constants::sql_names::ID),
             ),
-            str_constants::expr::S_1173,
+            str_constants::text::DELETE_FROM_USERS_WHERE_ID_IN_DOLLAR_1_DOLLAR_2_RETURNING_ID,
         );
     }
     #[test]
@@ -1080,17 +1096,17 @@ mod tests {
         let (table, primary_key) = users_base();
         assert_q(
             &super::generate_dlo_query_string(table, primary_key),
-            str_constants::expr::S_1171,
+            str_constants::text::DELETE_FROM_USERS_WHERE_ID_DOLLAR_1_RETURNING_ID,
         );
     }
     #[test]
     fn generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
         let v = super::generate_um_query_string(
-            table(str_constants::expr::S_1883),
-            sql(str_constants::expr::S_1534),
-            sql(str_constants::expr::S_1397),
-            sql(str_constants::expr::S_0027),
-            sql(str_constants::expr::S_1398),
+            table(str_constants::text::USERS_ALT),
+            sql(str_constants::text::NAME_CASE_END),
+            sql(str_constants::sql_names::ID),
+            sql(str_constants::text::DOLLAR_1_DOLLAR_2),
+            sql(str_constants::text::ID_NAME),
         );
         assert!(v.contains("where id in ($1,$2)"));
     }
@@ -1101,37 +1117,39 @@ mod tests {
             &super::generate_delete_query_string(
                 table,
                 primary_key,
-                Some(sql(str_constants::expr::S_1903)),
+                Some(sql(
+                    str_constants::text::WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE_TRUE,
+                )),
             ),
-            str_constants::expr::S_1172,
+            str_constants::text::DELETE_FROM_USERS_WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE,
         );
     }
     #[test]
     fn generate_update_query_string_eq_keeps_selector_without_extra_wrapping() {
         assert_q(
             &super::generate_update_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1532),
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0026),
-                sql(str_constants::expr::S_1398),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::NAME_DOLLAR_2),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_1_ALT),
+                sql(str_constants::text::ID_NAME),
                 super::UpdateSelectorFmt::Eq,
             ),
-            str_constants::expr::S_1870,
+            str_constants::text::UPDATE_USERS_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_RETURNING_ID,
         );
     }
     #[test]
     fn generate_update_query_string_in_list_wraps_selector_once() {
         assert_q(
             &super::generate_update_query_string(
-                table(str_constants::expr::S_1883),
-                sql(str_constants::expr::S_1534),
-                sql(str_constants::expr::S_1397),
-                sql(str_constants::expr::S_0027),
-                sql(str_constants::expr::S_1398),
+                table(str_constants::text::USERS_ALT),
+                sql(str_constants::text::NAME_CASE_END),
+                sql(str_constants::sql_names::ID),
+                sql(str_constants::text::DOLLAR_1_DOLLAR_2),
+                sql(str_constants::text::ID_NAME),
                 super::UpdateSelectorFmt::InList,
             ),
-            str_constants::expr::S_1871,
+            str_constants::text::UPDATE_USERS_SET_NAME_CASE_END_WHERE_ID_IN_DOLLAR_1_DOLLAR,
         );
     }
 }

@@ -104,13 +104,13 @@ fn merge_missing_assignments(current: &str, example: &str) -> Option<String> {
     reason = "separates manifest validation from filesystem mutation"
 )]
 fn workspace_members(root: &std::path::Path) -> Result<Vec<String>, InitializeError> {
-    let manifest = std::fs::read_to_string(root.join(str_constants::expr::S_0640))
+    let manifest = std::fs::read_to_string(root.join(str_constants::text::CARGO_TOML))
         .map_err(|source| InitializeError::ReadManifest { source })?;
     let value = toml::from_str::<toml::Value>(&manifest)
         .map_err(|source| InitializeError::ManifestParse { source })?;
     let members = value
-        .get(str_constants::expr::S_1913)
-        .and_then(|workspace| workspace.get(str_constants::expr::S_1514))
+        .get(str_constants::text::WORKSPACE)
+        .and_then(|workspace| workspace.get(str_constants::text::MEMBERS))
         .and_then(toml::Value::as_array)
         .ok_or(InitializeError::MembersMissing)?;
     members
@@ -138,13 +138,15 @@ fn initialize(
     workspace_members(root)?.into_iter().try_fold(
         Vec::new(),
         |mut entries, member| -> Result<Vec<InitializationEntry>, InitializeError> {
-            let example_path = root.join(member.as_str()).join(str_constants::expr::S_0076);
+            let example_path = root
+                .join(member.as_str())
+                .join(str_constants::text::ENV_EXAMPLE);
             if !example_path.exists() {
                 return Ok(entries);
             }
             let content = std::fs::read_to_string(example_path)
                 .map_err(|source| InitializeError::ReadExample { source })?;
-            let environment_path = root.join(member.as_str()).join(str_constants::expr::S_0075);
+            let environment_path = root.join(member.as_str()).join(str_constants::text::ENV);
             let status = if environment_path.exists() {
                 let current = std::fs::read_to_string(environment_path.as_path())
                     .map_err(|source| InitializeError::ReadExample { source })?;
@@ -174,7 +176,7 @@ fn initialize(
     )
 }
 fn main() -> Result<(), InitializeError> {
-    let mode = if std::env::args().any(|argument| argument == str_constants::expr::S_0049) {
+    let mode = if std::env::args().any(|argument| argument == str_constants::text::DRY_RUN) {
         RunMode::DryRun
     } else {
         RunMode::Apply
@@ -199,15 +201,15 @@ mod tests {
             "rust-workspace-template-environment-{}",
             uuid::Uuid::new_v4()
         ));
-        std::fs::create_dir_all(root.join(str_constants::expr::S_1732)).expect("fdbf7411");
+        std::fs::create_dir_all(root.join(str_constants::text::SERVICE)).expect("fdbf7411");
         std::fs::write(
-            root.join(str_constants::expr::S_0640),
-            str_constants::expr::S_0847,
+            root.join(str_constants::text::CARGO_TOML),
+            str_constants::text::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
         )
         .expect("8e781c83");
         std::fs::write(
-            root.join(str_constants::expr::S_1734),
-            str_constants::expr::S_0723,
+            root.join(str_constants::text::SERVICE_ENV_EXAMPLE),
+            str_constants::text::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
         )
         .expect("f24fca72");
         root
@@ -227,8 +229,8 @@ mod tests {
             super::InitializationStatus::Created
         );
         std::fs::write(
-            root.join(str_constants::expr::S_1733),
-            str_constants::expr::S_0741,
+            root.join(str_constants::text::SERVICE_ENV),
+            str_constants::text::SECRET_CUSTOM_NEWLINE,
         )
         .expect("2d67b058");
         let updated = super::initialize(root.as_path(), super::RunMode::Apply).expect("546af7b6");
@@ -237,7 +239,7 @@ mod tests {
             super::InitializationStatus::Updated
         );
         let updated_content =
-            std::fs::read_to_string(root.join(str_constants::expr::S_1733)).expect("bd9f5208");
+            std::fs::read_to_string(root.join(str_constants::text::SERVICE_ENV)).expect("bd9f5208");
         assert!(updated_content.contains("SECRET=custom"));
         assert!(updated_content.contains("PUBLIC=value"));
         let repeated = super::initialize(root.as_path(), super::RunMode::Apply).expect("a452843a");
@@ -251,8 +253,8 @@ mod tests {
     fn escaping_member_is_rejected() {
         let root = fixture();
         std::fs::write(
-            root.join(str_constants::expr::S_0640),
-            str_constants::expr::S_0846,
+            root.join(str_constants::text::CARGO_TOML),
+            str_constants::text::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
         )
         .expect("350646f2");
         assert!(matches!(

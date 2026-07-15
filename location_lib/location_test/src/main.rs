@@ -121,38 +121,38 @@ impl to_err_string::ToErrString for SerdeStruct {
 fn main() {
     let error = ErrorOne::Variant {
         eo_display_field: DisplayStruct {
-            display: LocationTestText(String::from(str_constants::expr::S_1888)),
+            display: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
             something: LocationTestFlag::from(true),
         },
         eo_serde: SerdeStruct {
-            one: LocationTestText(String::from(str_constants::expr::S_1888)),
+            one: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
             two: LocationTestFlag::from(true),
             three: LocationTestCount::from(42),
         },
         eo_location_field: ErrorTwo::Variant {
             eo_display_with_serde_field: LocationTestText(String::from(
-                str_constants::expr::S_1888,
+                str_constants::pg_crud::V_FIELD,
             )),
             location: location_macros::location!(),
         },
         eo_vec_display_field: vec![
             DisplayStruct {
-                display: LocationTestText(String::from(str_constants::expr::S_1964)),
+                display: LocationTestText(String::from(str_constants::text::VALUE_08708789)),
                 something: LocationTestFlag::from(true),
             },
             DisplayStruct {
-                display: LocationTestText(String::from(str_constants::expr::S_1965)),
+                display: LocationTestText(String::from(str_constants::text::VALUE_7565757)),
                 something: LocationTestFlag::from(true),
             },
         ],
         eo_vec_serde: vec![
             SerdeStruct {
-                one: LocationTestText(String::from(str_constants::expr::S_1888)),
+                one: LocationTestText(String::from(str_constants::pg_crud::V_FIELD)),
                 two: LocationTestFlag::from(true),
                 three: LocationTestCount::from(42),
             },
             SerdeStruct {
-                one: LocationTestText(String::from(str_constants::expr::S_1966)),
+                one: LocationTestText(String::from(str_constants::text::VALUE_97697697)),
                 two: LocationTestFlag::from(false),
                 three: LocationTestCount::from(422),
             },
@@ -160,46 +160,46 @@ fn main() {
         eo_vec_location_field: vec![
             ErrorUnnamedOne::Something(ErrorTwo::Variant {
                 eo_display_with_serde_field: LocationTestText(String::from(
-                    str_constants::expr::S_1888,
+                    str_constants::pg_crud::V_FIELD,
                 )),
                 location: location_macros::location!(),
             }),
             ErrorUnnamedOne::Something(ErrorTwo::Variant {
                 eo_display_with_serde_field: LocationTestText(String::from(
-                    str_constants::expr::S_1967,
+                    str_constants::text::VALUE_123,
                 )),
                 location: location_macros::location!(),
             }),
         ],
         hashmap_string_string: std::collections::HashMap::from([
             (
-                LocationTestText(String::from(str_constants::expr::S_1445)),
+                LocationTestText(String::from(str_constants::text::KESDFSFDSFSD)),
                 DisplayStruct {
-                    display: LocationTestText(String::from(str_constants::expr::S_1899)),
+                    display: LocationTestText(String::from(str_constants::text::VASFDSDFSDFLUE)),
                     something: LocationTestFlag::from(true),
                 },
             ),
             (
-                LocationTestText(String::from(str_constants::expr::S_1451)),
+                LocationTestText(String::from(str_constants::text::KSDFSDFSDFSDFEY)),
                 DisplayStruct {
-                    display: LocationTestText(String::from(str_constants::expr::S_1894)),
+                    display: LocationTestText(String::from(str_constants::text::VALSFDSFDSFDSUE)),
                     something: LocationTestFlag::from(true),
                 },
             ),
         ]),
         hashmap_string_serde: std::collections::HashMap::from([
             (
-                LocationTestText(String::from(str_constants::expr::S_1443)),
+                LocationTestText(String::from(str_constants::text::KDFGSDFGDSFGEY)),
                 SerdeStruct {
-                    one: LocationTestText(String::from(str_constants::expr::S_1895)),
+                    one: LocationTestText(String::from(str_constants::text::VALUSDFGDSGDSFGDE)),
                     two: LocationTestFlag::from(true),
                     three: LocationTestCount::from(42),
                 },
             ),
             (
-                LocationTestText(String::from(str_constants::expr::S_1450)),
+                LocationTestText(String::from(str_constants::text::KSDFGDSFGSDFGEY)),
                 SerdeStruct {
-                    one: LocationTestText(String::from(str_constants::expr::S_1893)),
+                    one: LocationTestText(String::from(str_constants::text::VALSDFGDSGDUE)),
                     two: LocationTestFlag::from(true),
                     three: LocationTestCount::from(42),
                 },
@@ -207,19 +207,19 @@ fn main() {
         ]),
         hashmap_string_location: std::collections::HashMap::from([
             (
-                LocationTestText(String::from(str_constants::expr::S_1449)),
+                LocationTestText(String::from(str_constants::text::KSDFGADSFGSDFGDFGEY)),
                 ErrorUnnamedOne::Something(ErrorTwo::Variant {
                     eo_display_with_serde_field: LocationTestText(String::from(
-                        str_constants::expr::S_1898,
+                        str_constants::text::VASDFGDGDFGLUE,
                     )),
                     location: location_macros::location!(),
                 }),
             ),
             (
-                LocationTestText(String::from(str_constants::expr::S_1444)),
+                LocationTestText(String::from(str_constants::text::KESDFGSDGFDFGY)),
                 ErrorUnnamedOne::Something(ErrorTwo::Variant {
                     eo_display_with_serde_field: LocationTestText(String::from(
-                        str_constants::expr::S_1892,
+                        str_constants::text::VALSDFGDSAFGDSGUE,
                     )),
                     location: location_macros::location!(),
                 }),

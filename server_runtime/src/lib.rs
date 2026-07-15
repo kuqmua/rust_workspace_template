@@ -125,7 +125,7 @@ where
     type Response = axum::response::Response;
     fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
         let request_id_and_header_value = [
-            str_constants::runtime::REQUEST_ID_HEADER_NAME,
+            str_constants::http_header_names::X_REQUEST_ID,
             str_constants::runtime::CORRELATION_ID_HEADER_NAME,
         ]
         .into_iter()
@@ -159,7 +159,7 @@ where
                     "http request completed"
                 );
                 let _previous_header_request_id = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::runtime::REQUEST_ID_HEADER_NAME),
+                    http::HeaderName::from_static(str_constants::http_header_names::X_REQUEST_ID),
                     request_id_and_header_value.1.clone(),
                 );
                 let _previous_correlation_id = response.headers_mut().insert(
@@ -239,7 +239,7 @@ where
                     let mut response = axum::response::IntoResponse::into_response((
                         http::StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(RequestTimeoutBody {
-                            error: StdRequestTimeoutMessage(str_constants::expr::S_1663),
+                            error: StdRequestTimeoutMessage(str_constants::text::REQUEST_TIMEOUT),
                         }),
                     ));
                     if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
@@ -314,44 +314,46 @@ where
     >;
     type Response = axum::response::Response;
     fn call(&mut self, req: axum::extract::Request) -> Self::Future {
-        let is_api_path = req.uri().path().starts_with(str_constants::expr::S_0091);
+        let is_api_path = req.uri().path().starts_with(str_constants::text::API);
         let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
             && req
                 .headers()
-                .get(str_constants::expr::S_1924)
+                .get(str_constants::text::X_FORWARDED_PROTO)
                 .and_then(|value| value.to_str().ok())
                 .is_some_and(|value| {
                     value.split(',').next().is_some_and(|first| {
                         first
                             .trim()
-                            .eq_ignore_ascii_case(str_constants::expr::S_1394)
+                            .eq_ignore_ascii_case(str_constants::text::HTTPS)
                     })
                 });
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(async move {
             let mut response = response_future.await?;
             let _content_type_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::expr::S_1921),
-                http::HeaderValue::from_static(str_constants::expr::S_1556),
+                http::HeaderName::from_static(str_constants::text::X_CONTENT_TYPE_OPTIONS),
+                http::HeaderValue::from_static(str_constants::text::NOSNIFF),
             );
             let _frame_options = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::expr::S_1925),
-                http::HeaderValue::from_static(str_constants::expr::S_0656),
+                http::HeaderName::from_static(str_constants::text::X_FRAME_OPTIONS),
+                http::HeaderValue::from_static(str_constants::text::DENY),
             );
             let _referrer_policy = response.headers_mut().insert(
-                http::HeaderName::from_static(str_constants::expr::S_1652),
-                http::HeaderValue::from_static(str_constants::expr::S_1548),
+                http::HeaderName::from_static(str_constants::text::REFERRER_POLICY),
+                http::HeaderValue::from_static(str_constants::text::NO_REFERRER),
             );
             if is_api_path {
                 let _cache_control = response.headers_mut().insert(
                     http::header::CACHE_CONTROL,
-                    http::HeaderValue::from_static(str_constants::expr::S_1549),
+                    http::HeaderValue::from_static(str_constants::text::NO_STORE),
                 );
             }
             if is_forwarded_https {
                 let _strict_transport_security = response.headers_mut().insert(
-                    http::HeaderName::from_static(str_constants::expr::S_1765),
-                    http::HeaderValue::from_static(str_constants::expr::S_1510),
+                    http::HeaderName::from_static(str_constants::text::STRICT_TRANSPORT_SECURITY),
+                    http::HeaderValue::from_static(
+                        str_constants::text::MAX_AGE_31536000_INCLUDESUBDOMAINS,
+                    ),
                 );
             }
             Ok(response)
@@ -385,7 +387,9 @@ impl std::fmt::Display for ServeWithGracefulShutdownError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Serve(error) => write!(f, "server failed: {error}"),
-            Self::ShutdownTimeout => f.write_str(str_constants::expr::S_1719),
+            Self::ShutdownTimeout => {
+                f.write_str(str_constants::text::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)
+            }
         }
     }
 }
@@ -400,7 +404,7 @@ impl std::error::Error for ServeWithGracefulShutdownError {
 #[must_use]
 pub fn add_status_route(router: AxumRouter) -> AxumRouter {
     AxumRouter(router.0.route(
-        str_constants::expr::S_0122,
+        str_constants::text::STATUS,
         axum::routing::get(async || http::StatusCode::OK),
     ))
 }
@@ -545,7 +549,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             axum::Router::from(router),
             axum::extract::Request::builder()
-                .uri(str_constants::expr::S_0122)
+                .uri(str_constants::text::STATUS)
                 .body(axum::body::Body::empty())
                 .expect("8e9c3da1"),
         )
@@ -639,18 +643,18 @@ mod tests {
         let make_router = || {
             axum::Router::from(super::RequestIdLayer.apply(super::AxumRouter::from(
                 axum::Router::new().route(
-                    str_constants::expr::S_0083,
+                    str_constants::text::SLASH,
                     axum::routing::get(async || http::StatusCode::OK),
                 ),
             )))
         };
-        let existing = http::HeaderValue::from_static(str_constants::expr::S_1259);
+        let existing = http::HeaderValue::from_static(str_constants::text::EXISTING_REQUEST_ID);
         let existing_response = tower::ServiceExt::oneshot(
             make_router(),
             axum::extract::Request::builder()
-                .uri(str_constants::expr::S_0083)
+                .uri(str_constants::text::SLASH)
                 .header(
-                    str_constants::runtime::REQUEST_ID_HEADER_NAME,
+                    str_constants::http_header_names::X_REQUEST_ID,
                     existing.clone(),
                 )
                 .body(axum::body::Body::empty())
@@ -661,7 +665,7 @@ mod tests {
         assert_eq!(
             existing_response
                 .headers()
-                .get(str_constants::runtime::REQUEST_ID_HEADER_NAME),
+                .get(str_constants::http_header_names::X_REQUEST_ID),
             Some(&existing)
         );
         assert_eq!(
@@ -673,7 +677,7 @@ mod tests {
         let generated_response = tower::ServiceExt::oneshot(
             make_router(),
             axum::extract::Request::builder()
-                .uri(str_constants::expr::S_0083)
+                .uri(str_constants::text::SLASH)
                 .body(axum::body::Body::empty())
                 .expect("27ce5fbd"),
         )
@@ -681,7 +685,7 @@ mod tests {
         .expect("4cd32371");
         let generated = generated_response
             .headers()
-            .get(str_constants::runtime::REQUEST_ID_HEADER_NAME)
+            .get(str_constants::http_header_names::X_REQUEST_ID)
             .expect("12ed6f85");
         assert_eq!(generated.as_bytes().len(), 36usize);
         assert_eq!(
@@ -695,15 +699,18 @@ mod tests {
     async fn security_headers_only_trust_forwarded_proto_when_configured() {
         let make_request = || {
             axum::extract::Request::builder()
-                .uri(str_constants::expr::S_0094)
-                .header(str_constants::expr::S_1924, str_constants::expr::S_1394)
+                .uri(str_constants::text::API_V1_TEST)
+                .header(
+                    str_constants::text::X_FORWARDED_PROTO,
+                    str_constants::text::HTTPS,
+                )
                 .body(axum::body::Body::empty())
                 .expect("94149bdd")
         };
         let make_router = |trust| {
             axum::Router::from(super::SecurityHeadersLayer::from(trust).apply(
                 super::AxumRouter::from(axum::Router::new().route(
-                    str_constants::expr::S_0094,
+                    str_constants::text::API_V1_TEST,
                     axum::routing::get(async || http::StatusCode::OK),
                 )),
             ))

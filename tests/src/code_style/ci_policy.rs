@@ -18,12 +18,12 @@ fn workflow() -> super::types::SourceText {
 fn continuous_integration_contains_required_security_and_quality_commands() {
     let workflow = workflow();
     [
-        str_constants::expr::S_1601,
-        str_constants::expr::S_1680,
-        str_constants::expr::S_1072,
-        str_constants::expr::S_1071,
-        str_constants::expr::S_0953,
-        str_constants::expr::S_1070,
+        str_constants::text::PERMISSIONS_NEWLINE_CONTENTS_READ,
+        str_constants::text::RHYSD_ACTIONLINT,
+        str_constants::text::CARGO_MACHETE,
+        str_constants::text::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_ALL_TARGETS_SUMMARY_ONLY,
+        str_constants::text::AQUASECURITY_TRIVY_ACTION,
+        str_constants::text::CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED,
     ]
     .into_iter()
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
@@ -33,15 +33,15 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
     let workflow = workflow();
     let workflow_jobs = workflow
         .as_ref()
-        .split_once(str_constants::expr::S_1442)
+        .split_once(str_constants::text::JOBS_NEWLINE)
         .map(|(_prefix, jobs)| jobs)
         .expect("ed8bc4d0");
     let mut inside_job = false;
     let mut current_job_has_timeout = false;
     workflow_jobs.lines().for_each(|line| {
-        if line.starts_with(str_constants::expr::S_0002)
+        if line.starts_with(str_constants::text::TWO_SPACES)
             && line.ends_with(':')
-            && !line.starts_with(str_constants::expr::S_0000)
+            && !line.starts_with(str_constants::text::FOUR_SPACES)
         {
             if inside_job {
                 assert!(
@@ -52,10 +52,14 @@ fn workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
             inside_job = true;
             current_job_has_timeout = false;
         }
-        if inside_job && line.trim_start().starts_with(str_constants::expr::S_1816) {
+        if inside_job
+            && line
+                .trim_start()
+                .starts_with(str_constants::text::TIMEOUT_MINUTES)
+        {
             current_job_has_timeout = true;
         }
-        if let Some(action) = line.trim().strip_prefix(str_constants::expr::S_0047) {
+        if let Some(action) = line.trim().strip_prefix(str_constants::text::USES) {
             let revision = action.rsplit_once('@').map(|(_, revision)| revision);
             assert!(
                 revision.is_some_and(|value| {

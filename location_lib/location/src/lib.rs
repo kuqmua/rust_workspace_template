@@ -7,9 +7,12 @@ pub fn errors_with_location(
     input_token_stream: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     if !attr_token_stream.is_empty() {
-        return syn::Error::new(proc_macro2::Span::call_site(), str_constants::expr::S_1254)
-            .into_compile_error()
-            .into();
+        return syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::text::ERRORS_WITH_LOCATION_DOES_NOT_ACCEPT_ARGUMENTS,
+        )
+        .into_compile_error()
+        .into();
     }
     let mut item = match syn::parse::<syn::ItemEnum>(input_token_stream) {
         Ok(v) => v,
@@ -27,18 +30,18 @@ fn add_location_fields(item: SynItemEnumMutRef<'_>) -> syn::Result<()> {
         let syn::Fields::Named(fields) = &mut variant.fields else {
             return Err(syn::Error::new_spanned(
                 variant,
-                str_constants::expr::S_1255,
+                str_constants::text::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
             ));
         };
         if fields.named.iter().any(|field| {
             field
                 .ident
                 .as_ref()
-                .is_some_and(|identifier| identifier == str_constants::expr::S_1463)
+                .is_some_and(|identifier| identifier == str_constants::text::LOCATION_ALT)
         }) {
             return Err(syn::Error::new_spanned(
                 variant,
-                str_constants::expr::S_1256,
+                str_constants::text::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
             ));
         }
         fields
@@ -73,7 +76,10 @@ pub fn location(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let utoipa_to_schema_token_stream = di
         .attrs
         .iter()
-        .any(|attr| attr.path().is_ident(str_constants::expr::S_1466))
+        .any(|attr| {
+            attr.path()
+                .is_ident(str_constants::text::LOCATION_TO_SCHEMA)
+        })
         .then(|| quote::quote! {utoipa::ToSchema,});
     let identifier = &di.ident;
     let string_token_stream = token_patterns::StringTokenStream;
@@ -580,7 +586,7 @@ mod tests {
             enum SampleError { First { location: location_lib::location::Location } }
         };
         let error = super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
-            .expect_err(str_constants::expr::S_0282);
+            .expect_err(str_constants::text::VALUE_371082FA);
         assert_eq!(
             error.to_string(),
             "errors_with_location variant already has a location field"
@@ -592,7 +598,7 @@ mod tests {
             enum SampleError { First(String) }
         };
         let error = super::add_location_fields(super::SynItemEnumMutRef::from(&mut item))
-            .expect_err(str_constants::expr::S_0546);
+            .expect_err(str_constants::text::VALUE_982F4D17);
         assert_eq!(
             error.to_string(),
             "errors_with_location supports only variants with named fields"
