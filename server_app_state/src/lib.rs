@@ -156,6 +156,10 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
                 config_lib::StdEnvVarOk::try_from(str_constants::TRUE.to_owned())
                     .expect("818b46e8"),
             ),
+            http_gzip_enabled: test_env(
+                config_lib::StdEnvVarOk::try_from(str_constants::TRUE.to_owned())
+                    .expect("7c36108e"),
+            ),
             maximum_size_of_http_body_in_bytes: config_lib::MaximumSizeOfHttpBodyInBytes::try_from(
                 1_024usize,
             )
@@ -248,6 +252,7 @@ mod tests {
                 admin_session_limit: env(str_constants::VALUE_20),
                 admin_sign_in_rate_limit: env(str_constants::VALUE_10),
                 admin_swagger_enabled: env(str_constants::TRUE),
+                http_gzip_enabled: env(str_constants::TRUE),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("d81f6a42"),
                 service_socket_address: config_lib::ServiceSocketAddress(

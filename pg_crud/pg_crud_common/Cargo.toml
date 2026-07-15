@@ -38,6 +38,8 @@ to_err_string = { workspace = true }
 test-utils = []
 
 [dev-dependencies]
+proptest = { workspace = true }
+serde_json = { workspace = true }
 criterion = { workspace = true }
 
 [[bench]]

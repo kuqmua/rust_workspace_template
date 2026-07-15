@@ -234,6 +234,41 @@ pub enum CursorDecodeError {
 
 #[cfg(test)]
 mod tests {
+    proptest::proptest! {
+        #![proptest_config(proptest::test_runner::Config {
+            cases: 64u32,
+            rng_seed: proptest::test_runner::RngSeed::Fixed(0x5a17_c0deu64),
+            ..proptest::test_runner::Config::default()
+        })]
+
+        #[test]
+        fn signed_cursor_round_trips_generated_payloads(payload_text in str_constants::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = super::CursorPayload::try_from(payload_text).expect(str_constants::VALUE_28167829);
+            let cursor = codec().encode(&domain_payload).expect(str_constants::VALUE_58718EC8);
+            proptest::prop_assert_eq!(codec().decode(&cursor), Ok(domain_payload));
+        }
+
+        #[test]
+        fn changing_signature_is_always_rejected(payload_text in str_constants::TEST_CURSOR_PAYLOAD_PATTERN) {
+            let domain_payload = super::CursorPayload::try_from(payload_text).expect(str_constants::VALUE_52BB899A);
+            let cursor = codec().encode(&domain_payload).expect(str_constants::VALUE_5E1A9245);
+            let mut modified_bytes = cursor.as_ref().as_bytes().to_vec();
+            let signature_start = modified_bytes
+                .iter()
+                .rposition(|byte| *byte == b'.')
+                .and_then(|index| index.checked_add(1usize))
+                .expect(str_constants::VALUE_02A18550);
+            let signature_byte = modified_bytes.get_mut(signature_start).expect(str_constants::VALUE_EB8B9918);
+            *signature_byte = if *signature_byte == b'A' { b'B' } else { b'A' };
+            let modified_text = String::from_utf8(modified_bytes).expect(str_constants::VALUE_130A34B8);
+            let modified_cursor = super::SignedCursor::try_from(modified_text).expect(str_constants::VALUE_D1169A2F);
+            proptest::prop_assert_eq!(
+                codec().decode(&modified_cursor),
+                Err(super::CursorDecodeError::InvalidSignature)
+            );
+        }
+    }
+
     fn codec() -> super::CursorCodec {
         super::CursorCodec::new(
             super::CursorSigningKey::try_from(vec![7u8; 32usize]).expect("556f25ae"),

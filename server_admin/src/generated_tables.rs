@@ -255,6 +255,30 @@ impl std::fmt::Debug for UtoipaAdminOpenApi {
 }
 #[must_use]
 pub fn generated_open_api() -> UtoipaAdminOpenApi {
+    fn collect_schema_refs(
+        value: &serde_json::Value,
+        refs: &mut std::collections::BTreeSet<String>,
+    ) {
+        match value {
+            serde_json::Value::Array(values) => values
+                .iter()
+                .for_each(|child| collect_schema_refs(child, refs)),
+            serde_json::Value::Object(values) => values.iter().for_each(|(key, child)| {
+                if key == str_constants::DOLLAR_REF
+                    && let Some(name) = child.as_str().and_then(|reference| {
+                        reference.strip_prefix(str_constants::COMPONENTS_SCHEMAS)
+                    })
+                {
+                    let _inserted = refs.insert(name.to_owned());
+                }
+                collect_schema_refs(child, refs);
+            }),
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
     let mut document = AdminRolesOpenApi::open_api();
     document.merge(utoipa::openapi::OpenApi::from(crate::auth::open_api()));
     document.merge(AdminRolePermissionsOpenApi::open_api());
@@ -262,10 +286,59 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
     document.merge(AdminPermissionsOpenApi::open_api());
     document.merge(AdminSystemSettingsOpenApi::open_api());
     document.merge(AdminUserRolesOpenApi::open_api());
+    let mut refs = std::collections::BTreeSet::new();
+    if let Ok(value) = serde_json::to_value(&document) {
+        collect_schema_refs(&value, &mut refs);
+    }
+    if let Some(components) = document.components.as_mut() {
+        refs.into_iter().for_each(|name| {
+            if !components.schemas.contains_key(name.as_str())
+                && let Some(suffix) = name.rsplit('.').next()
+                && let Some(schema) = components.schemas.get(suffix).cloned()
+            {
+                let _previous = components.schemas.insert(name, schema);
+            }
+        });
+    }
     UtoipaAdminOpenApi(document)
 }
 #[cfg(test)]
 mod tests {
+    fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_json::Value) {
+        match value {
+            serde_json::Value::Array(values) => values
+                .iter()
+                .for_each(|child| assert_local_references_resolve(document, child)),
+            serde_json::Value::Object(values) => {
+                if let Some(reference) = values
+                    .get(str_constants::DOLLAR_REF)
+                    .and_then(serde_json::Value::as_str)
+                    .and_then(|reference| reference.strip_prefix('#'))
+                {
+                    assert!(
+                        document.pointer(reference).is_some(),
+                        "unresolved local OpenAPI reference: {reference}"
+                    );
+                }
+                values
+                    .values()
+                    .for_each(|child| assert_local_references_resolve(document, child));
+            }
+            serde_json::Value::Null
+            | serde_json::Value::Bool(_)
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => {}
+        }
+    }
+
+    #[test]
+    fn generated_admin_open_api_has_no_unresolved_local_references() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("f514a558");
+        assert_local_references_resolve(&document, &document);
+    }
+
     #[test]
     fn generated_admin_open_api_combines_enabled_routes_only() {
         let document =

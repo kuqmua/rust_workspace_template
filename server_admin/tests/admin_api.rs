@@ -179,6 +179,44 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
     assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
 }
 #[tokio::test]
+async fn runtime_auth_router_contains_every_open_api_path() {
+    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        server_admin::auth::open_api(),
+    ))
+    .expect("71599514");
+    let paths = document
+        .get(str_constants::PATHS)
+        .and_then(serde_json::Value::as_object)
+        .expect("d908872f");
+    let responses = futures::future::join_all(paths.keys().map(|documented_path| {
+        let runtime_path = documented_path
+            .replace(
+                str_constants::ADMIN_SESSION_ID_PLACEHOLDER,
+                str_constants::VALUE_1,
+            )
+            .replace(
+                str_constants::ADMIN_USER_ID_PLACEHOLDER,
+                str_constants::VALUE_1,
+            )
+            .replace(
+                str_constants::ADMIN_ROLE_ID_PLACEHOLDER,
+                str_constants::VALUE_1,
+            );
+        tower::ServiceExt::oneshot(
+            router().0,
+            http::Request::builder()
+                .method(http::Method::OPTIONS)
+                .uri(runtime_path)
+                .body(axum::body::Body::empty())
+                .expect("a3d6fb65"),
+        )
+    }))
+    .await;
+    assert!(responses.into_iter().all(
+        |response| response.expect("f7bd9f15").status() == http::StatusCode::METHOD_NOT_ALLOWED
+    ));
+}
+#[tokio::test]
 async fn invalid_access_cookie_is_rejected_before_database_io() {
     let response = tower::ServiceExt::oneshot(
         router().0,
@@ -1318,6 +1356,38 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
         .await
         .expect("5c10c931");
     assert_eq!(versions, (5i64, 5i64));
+    let expected_tables = [
+        str_constants::ADMIN_ACCESS_SESSIONS,
+        str_constants::ADMIN_AUDIT_LOG,
+        str_constants::ADMIN_LOGIN_ATTEMPTS,
+        str_constants::ADMIN_PERMISSIONS,
+        str_constants::ADMIN_RATE_LIMITS,
+        str_constants::ADMIN_REFRESH_TOKENS,
+        str_constants::ADMIN_ROLE_PERMISSIONS,
+        str_constants::ADMIN_ROLES,
+        str_constants::ADMIN_SYSTEM_SETTINGS,
+        str_constants::ADMIN_USER_ROLES,
+        str_constants::ADMIN_USERS,
+    ];
+    let fresh_tables = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
+    )
+    .bind(str_constants::ADMIN_MIGRATION_FRESH_TEST)
+    .fetch_all(&base_pool)
+    .await
+    .expect("ab254ff4");
+    let upgrade_tables = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
+    )
+    .bind(str_constants::ADMIN_MIGRATION_UPGRADE_TEST)
+    .fetch_all(&base_pool)
+    .await
+    .expect("d4ce6fc9");
+    assert_eq!(
+        fresh_tables.iter().map(String::as_str).collect::<Vec<_>>(),
+        expected_tables
+    );
+    assert_eq!(upgrade_tables, fresh_tables);
     fresh_pool.close().await;
     upgrade_pool.close().await;
     let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_ADMIN_MIGRATION_UPGRADE)

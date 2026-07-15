@@ -406,7 +406,7 @@ where
         Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send + 'static>,
     >;
     type Response = axum::response::Response;
-    fn call(&mut self, req: axum::extract::Request) -> Self::Future {
+    fn call(&mut self, mut req: axum::extract::Request) -> Self::Future {
         let is_api_path = req.uri().path().starts_with(str_constants::API);
         let is_forwarded_https = matches!(self.forwarded_proto_trust, ForwardedProtoTrust::Trust)
             && req
@@ -418,6 +418,14 @@ where
                         first.trim().eq_ignore_ascii_case(str_constants::HTTPS)
                     })
                 });
+        req.headers_mut().iter_mut().for_each(|(name, value)| {
+            if name == http::header::AUTHORIZATION
+                || name == http::header::COOKIE
+                || name.as_str() == str_constants::X_CSRF_TOKEN_ALT
+            {
+                value.set_sensitive(true);
+            }
+        });
         let content_security_policy = self.content_security_policy.clone();
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(async move {
@@ -440,6 +448,11 @@ where
                     resolved_content_security_policy.0,
                 );
             }
+            response.headers_mut().iter_mut().for_each(|(name, value)| {
+                if name == http::header::SET_COOKIE {
+                    value.set_sensitive(true);
+                }
+            });
             if is_api_path {
                 let _cache_control = response.headers_mut().insert(
                     http::header::CACHE_CONTROL,
@@ -853,6 +866,49 @@ mod tests {
             Some(&http::HeaderValue::from_static(
                 str_constants::TEST_CONTENT_SECURITY_POLICY
             ))
+        );
+    }
+    #[tokio::test]
+    async fn security_headers_mark_credentials_as_sensitive() {
+        let router = axum::Router::from(
+            super::SecurityHeadersLayer::from(super::ForwardedProtoTrust::Ignore).apply(
+                super::AxumRouter::from(axum::Router::new().route(
+                    str_constants::API_V1_TEST,
+                    axum::routing::get(async |headers: http::HeaderMap| {
+                        assert!(
+                            headers
+                                .get(http::header::AUTHORIZATION)
+                                .is_some_and(http::HeaderValue::is_sensitive)
+                        );
+                        (
+                            [(
+                                http::header::SET_COOKIE,
+                                str_constants::TEST_SESSION_COOKIE_HEADER_VALUE,
+                            )],
+                            http::StatusCode::OK,
+                        )
+                    }),
+                )),
+            ),
+        );
+        let response = tower::ServiceExt::oneshot(
+            router,
+            axum::extract::Request::builder()
+                .uri(str_constants::API_V1_TEST)
+                .header(
+                    http::header::AUTHORIZATION,
+                    str_constants::TEST_BEARER_AUTHORIZATION,
+                )
+                .body(axum::body::Body::empty())
+                .expect("703affc9"),
+        )
+        .await
+        .expect("c975d44e");
+        assert!(
+            response
+                .headers()
+                .get(http::header::SET_COOKIE)
+                .is_some_and(http::HeaderValue::is_sensitive)
         );
     }
     #[test]

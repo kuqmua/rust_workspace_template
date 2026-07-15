@@ -278,6 +278,7 @@ str_constants_macros::define_str_constants! {
         WORD_HTTPS = "https";
         WORD_HTTP_METHOD = "http_method";
         WORD_ID = "id";
+        WORD_INFORMATION_SCHEMA = "information_schema";
         WORD_IDEMPOTENCY = "idempotency";
         WORD_IDEMPOTENCY_KEY = "idempotency_key";
         WORD_IDENTIFIER = "identifier";
@@ -580,6 +581,9 @@ str_constants_macros::define_str_constants! {
         WORD_T = "T";
         WORD_TABLE = "TABLE";
         WORD_TABLE_2 = "table";
+        WORD_TABLE_NAME_2 = "table_name";
+        WORD_TABLE_SCHEMA = "table_schema";
+        WORD_TABLES = "tables";
         WORD_TABLE_EXAMPLE = "table_example";
         WORD_TAB_TITLE = "tab_title";
         WORD_TARGET = "target";
@@ -695,6 +699,17 @@ str_constants_macros::define_str_constants! {
         WORD_ZERO = "zero";
     }
     constants {
+        pub ADMIN_ACCESS_SESSIONS = [WORD_ADMIN_ACCESS_SESSIONS];
+        pub ADMIN_AUDIT_LOG = [WORD_ADMIN_AUDIT_LOG];
+        pub ADMIN_LOGIN_ATTEMPTS = [WORD_ADMIN_LOGIN_ATTEMPTS];
+        pub ADMIN_PERMISSIONS = [WORD_ADMIN_PERMISSIONS];
+        pub ADMIN_RATE_LIMITS = [WORD_ADMIN_RATE_LIMITS];
+        pub ADMIN_REFRESH_TOKENS = [WORD_ADMIN_REFRESH_TOKENS];
+        pub ADMIN_ROLES = [WORD_ADMIN_ROLES];
+        pub ADMIN_ROLE_PERMISSIONS = [WORD_ADMIN_ROLE_PERMISSIONS];
+        pub ADMIN_SYSTEM_SETTINGS = [WORD_ADMIN_SYSTEM_SETTINGS];
+        pub ADMIN_USERS = [WORD_ADMIN_USERS];
+        pub ADMIN_USER_ROLES = [WORD_ADMIN_USER_ROLES];
         pub(crate) SHARED_VALUES_CHECK = [WORD_CHECK_2];
         pub(crate) SHARED_VALUES_ALL_TARGETS = ["--", WORD_ALL, "-", WORD_TARGETS];
         pub(crate) SHARED_VALUES_ALL_FEATURES = ["--", WORD_ALL, "-", WORD_FEATURES];
@@ -1839,6 +1854,7 @@ str_constants_macros::define_str_constants! {
         pub SELECT_EXISTS_SELECT_1_FROM_ADMIN_USER_ROLES_WHERE_USER_ID_DOLLAR = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_ROLE_ID, " = $2)"];
         pub SELECT_EXISTS_SELECT_1_FROM_ADMIN_USERS = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USERS, ")"];
         pub SELECT_MAX_VERSION_FROM_SQLX_MIGRATIONS_WHERE_SUCCESS_TRUE = [WORD_SELECT, " ", WORD_MAX, "(", WORD_VERSION, ") ", WORD_FROM, " _", WORD_SQLX_MIGRATIONS, " ", WORD_WHERE, " ", WORD_SUCCESS, " = ", WORD_TRUE];
+        pub SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA = [WORD_SELECT, " ", WORD_TABLE_NAME_2, " ", WORD_FROM, " ", WORD_INFORMATION_SCHEMA, ".", WORD_TABLES, " ", WORD_WHERE, " ", WORD_TABLE_SCHEMA, " = $1 ", WORD_AND, " ", WORD_TABLE_NAME_2, " LIKE '", WORD_ADMIN_2, "\\_%' ", WORD_ORDER, " ", WORD_BY, " ", WORD_TABLE_NAME_2];
         pub SELECT_NOT_IS_BANNED_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_FOR = [WORD_SELECT, " ", WORD_NOT, " ", WORD_IS_BANNED, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_FOR, " ", WORD_UPDATE];
         pub SELECT_CSRF_TOKEN_HASH_FROM_ADMIN_ACCESS_SESSIONS_WHERE_ID_DOLLAR_1 = [WORD_SELECT, " ", WORD_CSRF_TOKEN_HASH, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_EXPIRES_AT, " > ", WORD_NOW, "()"];
         pub SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_ADMIN_AND_IS_SYSTEM_TRUE = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_NAME_2, " = \'", WORD_ADMIN_2, "\' ", WORD_AND, " ", WORD_IS_SYSTEM, " = ", WORD_TRUE];
@@ -3148,15 +3164,15 @@ pub const PG_CRUD_SERDE_BETWEEN_FIELDS: &[&str] = &[PG_CRUD_START_FIELD, PG_CRUD
 pub const PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[PG_CRUD_OPERATOR_FIELD, PG_CRUD_V_FIELD];
 
 pub const ADMIN_PAGE_PATHS_ALL: [&str; 10] = [
-    ROOT,
-    SIGN_IN,
-    USERS,
-    ROLES,
-    PERMISSIONS,
+    ADMIN_PAGE_PATHS_ROOT,
+    ADMIN_PAGE_PATHS_SIGN_IN,
+    ADMIN_PAGE_PATHS_USERS,
+    ADMIN_PAGE_PATHS_ROLES,
+    ADMIN_PAGE_PATHS_PERMISSIONS,
     ADMIN_PAGE_PATHS_AUDIT,
-    SETTINGS,
-    METRICS,
-    VERSION,
+    ADMIN_PAGE_PATHS_SETTINGS,
+    ADMIN_PAGE_PATHS_METRICS,
+    ADMIN_PAGE_PATHS_VERSION,
     ADMIN_PAGE_PATHS_OPEN_API,
 ];
 
@@ -3447,3 +3463,22 @@ pub const TEST_TOKEN_VERSION: &str = "v1";
 pub const TEST_TOKEN_PAYLOAD: &str = "payload_1";
 pub const TEST_TOKEN_SIGNATURE: &str = "signature-1";
 pub const TEST_VERSIONED_URL_SAFE_WIRE_TOKEN: &str = "v1.payload_1.signature-1";
+pub const TEST_SESSION_COOKIE_HEADER_VALUE: &str = "session=secret";
+pub const TEST_CURSOR_PAYLOAD_PATTERN: &str = "[A-Za-z0-9]{1,128}";
+pub const TEST_JSON_MAP_WITH_TWO_ENTRIES: &str = r#"{"one":1,"two":2}"#;
+pub const TEST_JSON_MAP_WITH_ONE_ENTRY: &str = r#"{"one":1}"#;
+pub const ADMIN_SESSION_ID_PLACEHOLDER: &str = "{session_id}";
+pub const ADMIN_USER_ID_PLACEHOLDER: &str = "{user_id}";
+pub const ADMIN_ROLE_ID_PLACEHOLDER: &str = "{role_id}";
+pub const VALUE_AB603731: &str = "ab603731";
+pub const VALUE_A3C9AE5D: &str = "a3c9ae5d";
+pub const VALUE_CD23DFD9: &str = "cd23dfd9";
+pub const VALUE_D22548CF: &str = "d22548cf";
+pub const VALUE_28167829: &str = "28167829";
+pub const VALUE_58718EC8: &str = "58718ec8";
+pub const VALUE_52BB899A: &str = "52bb899a";
+pub const VALUE_5E1A9245: &str = "5e1a9245";
+pub const VALUE_02A18550: &str = "02a18550";
+pub const VALUE_EB8B9918: &str = "eb8b9918";
+pub const VALUE_130A34B8: &str = "130a34b8";
+pub const VALUE_D1169A2F: &str = "d1169a2f";

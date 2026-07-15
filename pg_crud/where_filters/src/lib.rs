@@ -12,6 +12,7 @@ generate_where_filters::generate_where_filters!({
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
+    utoipa::ToSchema,
     optml::Optml,
 )]
 pub enum EncodeFormat {
@@ -38,6 +39,19 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
 #[newtype(as_ref_owned, display, from_inner)]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(regex::Regex);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for RegexRegex {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            str_constants::PG_CRUD_REGEX_REGEX_SCHEMA_NAME,
+            utoipa::openapi::ObjectBuilder::new()
+                .schema_type(utoipa::openapi::SchemaType::String)
+                .into(),
+        )
+    }
+}
 impl TryFrom<String> for RegexRegex {
     type Error = regex::Error;
     fn try_from(v: String) -> Result<Self, Self::Error> {
@@ -104,6 +118,7 @@ impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     serde::Serialize,
     serde::Deserialize,
     schemars::JsonSchema,
+    utoipa::ToSchema,
     optml::Optml,
 )]
 pub enum RegexCase {

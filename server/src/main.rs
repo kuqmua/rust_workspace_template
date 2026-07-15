@@ -413,6 +413,11 @@ async fn run_server() -> Result<(), RunServerError> {
     .map_err(|error| {
         RunServerError::ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError(error))
     })?;
+    let maximum_http_body_bytes =
+        *config_lib::GetMaximumSizeOfHttpBodyInBytes::get_maximum_size_of_http_body_in_bytes(
+            &config,
+        );
+    let http_gzip_enabled = *config.http_gzip_enabled;
     let app_state = mk_app_state(config, pg_pool);
     let metrics_handle = metrics_exporter_prometheus::PrometheusBuilder::new()
         .install_recorder()
@@ -454,13 +459,19 @@ async fn run_server() -> Result<(), RunServerError> {
                         axum::Router::new()
                             .nest(
                                 str_constants::API_V1,
-                                operational_routes.merge(rate_limited_api_routes),
+                                operational_routes.merge(rate_limited_api_routes).layer(
+                                    axum::extract::DefaultBodyLimit::max(maximum_http_body_bytes),
+                                ),
                             )
                             .merge(axum::Router::from(if swagger_enabled {
                                 server_admin_frontend::routes()
                             } else {
                                 server_admin_frontend::routes_without_swagger()
                             }))
+                            .layer(
+                                tower_http::compression::CompressionLayer::new()
+                                    .gzip(http_gzip_enabled),
+                            )
                             .layer(
                                 tower::ServiceBuilder::new().layer(
                                     tower_http::cors::CorsLayer::new()

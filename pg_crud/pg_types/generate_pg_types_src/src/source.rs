@@ -419,6 +419,7 @@ pub fn generate_pg_types(
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
     enum PgTypeInitializationTryNew {
+        F64AsFloat8,
         StringAsText,
         SqlxTypesChronoNaiveTimeAsTime,
         SqlxTypesTimeTimeAsTime,
@@ -439,7 +440,6 @@ pub fn generate_pg_types(
                 | PgType::I32AsInt4
                 | PgType::I64AsInt8
                 | PgType::F32AsFloat4
-                | PgType::F64AsFloat8
                 | PgType::I16AsSmallSerialInitializationByPg
                 | PgType::I32AsSerialInitializationByPg
                 | PgType::I64AsBigSerialInitializationByPg
@@ -451,6 +451,7 @@ pub fn generate_pg_types(
                 | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
                 | PgType::SqlxTypesIpnetworkIpNetworkAsInet
                 | PgType::SqlxTypesMacAddressMacAddressAsMacAddr => Err(()),
+                PgType::F64AsFloat8 => Ok(Self::F64AsFloat8),
                 PgType::StringAsText => Ok(Self::StringAsText),
                 PgType::SqlxTypesChronoNaiveTimeAsTime => Ok(Self::SqlxTypesChronoNaiveTimeAsTime),
                 PgType::SqlxTypesTimeTimeAsTime => Ok(Self::SqlxTypesTimeTimeAsTime),
@@ -468,6 +469,7 @@ pub fn generate_pg_types(
     impl From<&PgTypeInitializationTryNew> for PgType {
         fn from(v: &PgTypeInitializationTryNew) -> Self {
             match v {
+                PgTypeInitializationTryNew::F64AsFloat8 => Self::F64AsFloat8,
                 PgTypeInitializationTryNew::StringAsText => Self::StringAsText,
                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime => Self::SqlxTypesChronoNaiveTimeAsTime,
                 PgTypeInitializationTryNew::SqlxTypesTimeTimeAsTime => Self::SqlxTypesTimeTimeAsTime,
@@ -511,7 +513,6 @@ pub fn generate_pg_types(
                 | PgType::I32AsInt4
                 | PgType::I64AsInt8
                 | PgType::F32AsFloat4
-                | PgType::F64AsFloat8
                 | PgType::I16AsSmallSerialInitializationByPg
                 | PgType::I32AsSerialInitializationByPg
                 | PgType::I64AsBigSerialInitializationByPg
@@ -521,7 +522,8 @@ pub fn generate_pg_types(
                 | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
                 | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
                 | PgType::SqlxTypesIpnetworkIpNetworkAsInet
-                | PgType::SqlxTypesMacAddressMacAddressAsMacAddr => Self::Derive,
+                | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
+                | PgType::F64AsFloat8 => Self::Derive,
                 PgType::StringAsText => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::StringAsText)),
                 PgType::SqlxTypesChronoNaiveTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxTypesChronoNaiveTimeAsTime)),
                 PgType::SqlxTypesTimeTimeAsTime => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::TryNewForDe(PgTypeImplTryNewForDe::SqlxTypesTimeTimeAsTime)),
@@ -2111,13 +2113,13 @@ pub fn generate_pg_types(
                             PgType::I32AsInt4 |
                             PgType::I64AsInt8 |
                             PgType::F32AsFloat4 |
-                            PgType::F64AsFloat8 |
                             PgType::I16AsSmallSerialInitializationByPg |
                             PgType::I32AsSerialInitializationByPg |
                             PgType::I64AsBigSerialInitializationByPg |
                             PgType::BoolAsBool |
                             PgType::StdVecVecU8AsBytea |
                             PgType::SqlxTypesIpnetworkIpNetworkAsInet => proc_macro2::TokenStream::new(),
+                            PgType::F64AsFloat8 => generate_serde_try_from_token_stream(&quote::quote! {"f64"}),
                             PgType::SqlxPgTypesPgMoneyAsMoney => generate_serde_from_token_stream(&quote::quote! {"i64"}),
                             PgType::SqlxTypesChronoNaiveTimeAsTime |
                             PgType::SqlxTypesTimeTimeAsTime |
@@ -2212,6 +2214,12 @@ pub fn generate_pg_types(
                     #v_snake_case: #identifier_inner_type_token_stream,
                 }
             );
+            let not_finite_upper_camel_case = quote::format_ident!("NotFinite");
+            let f64_as_float8_try_new_error_variants_token_stream =
+                generate_location_var_token_stream(
+                    &not_finite_upper_camel_case,
+                    &proc_macro2::TokenStream::new(),
+                );
             let uuid_as_uuid_v4_as_string_try_new_error_variants_token_stream = generate_location_var_token_stream(
                 &not_uuid_upper_camel_case,
                 &quote::quote! {
@@ -2252,6 +2260,8 @@ pub fn generate_pg_types(
                                 }
                             );
                             let ts: &dyn quote::ToTokens = match &pg_type_initialization_try_new {
+                                PgTypeInitializationTryNew::F64AsFloat8 =>
+                                    &f64_as_float8_try_new_error_variants_token_stream,
                                 PgTypeInitializationTryNew::StringAsText => &string_as_text_try_new_error_variants_token_stream,
                                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime | PgTypeInitializationTryNew::SqlxTypesTimeTimeAsTime => &nanosecond_precision_is_not_supported_variant_try_new_token_stream,
                                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveDateAsDate => &sqlx_types_chrono_naive_date_as_date_try_new_error_variants_token_stream,
@@ -2574,6 +2584,15 @@ pub fn generate_pg_types(
                                         }
                                     };
                                     match &pg_type_initialization_try_new {
+                                        PgTypeInitializationTryNew::F64AsFloat8 => quote::quote! {
+                                            if #v_snake_case.is_finite() {
+                                                Ok(Self(#v_snake_case))
+                                            } else {
+                                                Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#not_finite_upper_camel_case {
+                                                    location: location_macros::location!(),
+                                                })
+                                            }
+                                        },
                                         PgTypeInitializationTryNew::StringAsText => quote::quote! {
                                             if #v_snake_case.find('\0').is_some() {
                                                 Err(#identifier_standard_non_null_origin_try_new_error_upper_camel_case::#contains_null_byte_upper_camel_case {
@@ -3005,7 +3024,6 @@ pub fn generate_pg_types(
                     PgType::I32AsInt4 |
                     PgType::I64AsInt8 |
                     PgType::F32AsFloat4 |
-                    PgType::F64AsFloat8 |
                     PgType::I16AsSmallSerialInitializationByPg |
                     PgType::I32AsSerialInitializationByPg |
                     PgType::I64AsBigSerialInitializationByPg |
@@ -3020,7 +3038,7 @@ pub fn generate_pg_types(
                     PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
                     PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
                     PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => proc_macro2::TokenStream::new(),
-                    PgType::StringAsText => generate_impl_try_from_origin_token_stream(
+                    PgType::F64AsFloat8 | PgType::StringAsText => generate_impl_try_from_origin_token_stream(
                         &inner_type_standard_non_null_token_stream,
                         &identifier_standard_non_null_origin_try_new_error_upper_camel_case,
                         &quote::quote! {Self::try_new(v)}//todo use try_from instead of try_new ?
@@ -3205,7 +3223,6 @@ pub fn generate_pg_types(
                             | PgType::I32AsInt4
                             | PgType::I64AsInt8
                             | PgType::F32AsFloat4
-                            | PgType::F64AsFloat8
                             | PgType::I16AsSmallSerialInitializationByPg
                             | PgType::I32AsSerialInitializationByPg
                             | PgType::I64AsBigSerialInitializationByPg
@@ -3225,7 +3242,7 @@ pub fn generate_pg_types(
                             | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
                             | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
                             | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => ok_self_scopes_v_token_stream,
-                            PgType::SqlxTypesChronoNaiveDateAsDate | PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
+                            PgType::F64AsFloat8 | PgType::SqlxTypesChronoNaiveDateAsDate | PgType::SqlxPgTypesPgRangeI32AsInt4Range | PgType::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
                                 match Self::#try_new_snake_case #scopes_v_token_stream {
                                     Ok(v_93eb5329) => Ok(v_93eb5329),
                                     Err(error) => Err(Box::#new_snake_case(error)),
@@ -4738,7 +4755,7 @@ pub fn generate_pg_types(
                                     &quote::quote! {#f32_token_stream::MAX},
                                     &quote::quote! {#f32_token_stream::MAX.next_down()}
                                 )),
-                                PgType::F64AsFloat8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                PgType::F64AsFloat8 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                 //todo rust f64 != pg float8
                                     &quote::quote! {-2.0},
                                     &quote::quote! {-2.0 + 1.0},

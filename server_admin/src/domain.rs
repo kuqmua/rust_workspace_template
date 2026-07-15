@@ -24,15 +24,7 @@ pub struct StdAdminString(pub(super) String);
 #[newtype(as_ref_inner, from_inner)]
 pub struct StdAdminStrRef<'value_lt>(pub(super) &'value_lt str);
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Newtype,
+    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
 )]
 #[newtype(from_inner)]
 pub struct StdAdminBool(pub(super) bool);
@@ -44,6 +36,22 @@ pub struct StdAdminNonZeroUsize(pub(super) std::num::NonZeroUsize);
 )]
 #[newtype(from_inner)]
 pub struct UuidAdminValue(pub(super) uuid::Uuid);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for UuidAdminValue {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            stringify!(UuidAdminValue),
+            utoipa::openapi::ObjectBuilder::new()
+                .schema_type(utoipa::openapi::SchemaType::String)
+                .format(Some(utoipa::openapi::SchemaFormat::Custom(
+                    str_constants::PG_CRUD_PG_UUID.to_owned(),
+                )))
+                .into(),
+        )
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(as_ref_owned, from_inner)]
 pub struct StdAdminSocketAddr(pub(super) std::net::SocketAddr);

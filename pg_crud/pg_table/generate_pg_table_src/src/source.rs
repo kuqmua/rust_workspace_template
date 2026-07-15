@@ -6826,6 +6826,56 @@ pub fn generate_pg_table(
         ));
     let in_filter_schema_items_token_stream =
         generate_filter_schema_items_token_stream(&quote::format_ident!("PgTypeWhereIn"));
+    let before_filter_schema_items_token_stream =
+        generate_filter_schema_items_token_stream(&quote::format_ident!("PgTypeWhereBefore"));
+    let range_filter_schemas = [
+        naming::FindRangesWithinGivenRangeUpperCamelCase.to_string(),
+        naming::FindRangesThatFullyContainTheGivenRangeUpperCamelCase.to_string(),
+        naming::StrictlyToLeftOfRangeUpperCamelCase.to_string(),
+        naming::StrictlyToRightOfRangeUpperCamelCase.to_string(),
+        naming::IncludedLowerBoundUpperCamelCase.to_string(),
+        naming::ExcludedUpperBoundUpperCamelCase.to_string(),
+        naming::GreaterThanIncludedLowerBoundUpperCamelCase.to_string(),
+        naming::GreaterThanExcludedUpperBoundUpperCamelCase.to_string(),
+        naming::OverlapWithRangeUpperCamelCase.to_string(),
+        naming::AdjacentWithRangeUpperCamelCase.to_string(),
+    ]
+    .into_iter()
+    .map(|name| {
+        let schema_name = format!("where_filters.PgTypeWhere{name}");
+        let type_name = quote::format_ident!("PgTypeWhere{name}");
+        let items = generate_filter_schema_items_token_stream(&type_name);
+        let schema = quote::quote! {
+            utoipa::openapi::schema::Schema::from(
+                utoipa::openapi::OneOfBuilder::new()#(.item(#items))*.build()
+            ).into()
+        };
+        (schema_name, schema)
+    })
+    .collect::<Vec<_>>();
+    let range_filter_schema_names = range_filter_schemas.iter().map(|(name, _items)| name);
+    let range_filter_schema_values = range_filter_schemas.iter().map(|(_name, schema)| schema);
+    let static_filter_schemas = [
+        naming::RegexUpperCamelCase.to_string(),
+        naming::CurrentDateUpperCamelCase.to_string(),
+        naming::GreaterThanCurrentDateUpperCamelCase.to_string(),
+        naming::CurrentTimestampUpperCamelCase.to_string(),
+        naming::GreaterThanCurrentTimestampUpperCamelCase.to_string(),
+        naming::CurrentTimeUpperCamelCase.to_string(),
+        naming::GreaterThanCurrentTimeUpperCamelCase.to_string(),
+        naming::EqToEncodedStringRepresentationUpperCamelCase.to_string(),
+        naming::RangeLenUpperCamelCase.to_string(),
+    ]
+    .into_iter()
+    .map(|name| {
+        let schema_name = format!("where_filters.PgTypeWhere{name}");
+        let type_name = quote::format_ident!("PgTypeWhere{name}");
+        let schema = quote::quote! {<where_filters::#type_name as utoipa::ToSchema>::schema().1};
+        (schema_name, schema)
+    })
+    .collect::<Vec<_>>();
+    let static_filter_schema_names = static_filter_schemas.iter().map(|(name, _schema)| name);
+    let static_filter_schema_values = static_filter_schemas.iter().map(|(_name, schema)| schema);
     let in_value_schema_items_token_stream = fields.iter().map(|field| {
         let table_type_type_token_stream = generate_as_pg_type_tokens_token_stream(&field.type0, &naming::TableTypeUpperCamelCase);
         quote::quote! {<where_filters::PgTypeNotEmptyUniqueVec<#table_type_type_token_stream> as utoipa::ToSchema>::schema().1}
@@ -6892,12 +6942,23 @@ pub fn generate_pg_table(
                 let mut open_api = <Self as utoipa::OpenApi>::openapi();
                 if let Some(components) = open_api.components.as_mut() {
                     #open_api_security_schemes_token_stream
+                    for (name, schema) in [
+                        <where_filters::EncodeFormat as utoipa::ToSchema>::schema(),
+                        <where_filters::RegexCase as utoipa::ToSchema>::schema(),
+                        <where_filters::RegexRegex as utoipa::ToSchema>::schema(),
+                        <pg_crud_common::NotZeroUnsignedPartOfI32 as utoipa::ToSchema>::schema(),
+                    ] {
+                        components.schemas.insert(name.to_owned(), schema);
+                    }
                     components.schemas.insert("pg_crud_common.PgType.Read".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#read_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("pg_crud_common.PgType.Select".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#select_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("where_filters.PgTypeWhereEq".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#eq_filter_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("where_filters.PgTypeWhereBetween".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#between_filter_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("where_filters.PgTypeWhereGreaterThan".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#greater_than_filter_schema_items_token_stream))*.build()).into());
                     components.schemas.insert("where_filters.PgTypeWhereIn".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#in_filter_schema_items_token_stream))*.build()).into());
+                    components.schemas.insert("where_filters.PgTypeWhereBefore".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#before_filter_schema_items_token_stream))*.build()).into());
+                    #(components.schemas.insert(#range_filter_schema_names.to_owned(), #range_filter_schema_values);)*
+                    #(components.schemas.insert(#static_filter_schema_names.to_owned(), #static_filter_schema_values);)*
                     components.schemas.insert("PgTypeNotEmptyUniqueVec".to_owned(), utoipa::openapi::schema::Schema::from(utoipa::openapi::OneOfBuilder::new()#(.item(#in_value_schema_items_token_stream))*.build()).into());
                 }
                 let mut refs = std::collections::BTreeSet::new();

@@ -334,6 +334,27 @@ mod tests {
         );
     }
     #[test]
+    fn generated_float8_rejects_non_finite_values() {
+        let _finite =
+            pg_types_numeric::F64AsNonNullFloat8Origin::try_new(1.5f64).expect("40483cd5");
+        drop(
+            pg_types_numeric::F64AsNonNullFloat8Origin::try_new(f64::NAN)
+                .expect_err(str_constants::VALUE_A3C9AE5D),
+        );
+        drop(
+            pg_types_numeric::F64AsNonNullFloat8Origin::try_new(f64::INFINITY)
+                .expect_err(str_constants::VALUE_CD23DFD9),
+        );
+        drop(
+            <pg_types_numeric::F64AsNonNullFloat8Origin as serde::Deserialize>::deserialize(
+                serde::de::value::F64Deserializer::<serde::de::value::Error>::new(
+                    f64::NEG_INFINITY,
+                ),
+            )
+            .expect_err(str_constants::VALUE_D22548CF),
+        );
+    }
+    #[test]
     fn generated_wrapper_roles_have_standard_conversions_and_borrows() {
         assert_wrapper_traits::<
             pg_types_numeric::I16AsNonNullInt2TableType,

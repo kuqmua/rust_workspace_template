@@ -1,4 +1,5 @@
 mod bind_index;
+pub mod bounded_btree_map;
 pub mod bounded_vec;
 mod cardinality;
 mod cursor;
@@ -1699,6 +1700,21 @@ impl DefaultSomeOneElement for UnsignedPartOfI32 {
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
+impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NotZeroUnsignedPartOfI32 {
+    fn schema() -> (
+        &'schema_lt str,
+        utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+    ) {
+        (
+            stringify!(NotZeroUnsignedPartOfI32),
+            utoipa::openapi::ObjectBuilder::new()
+                .schema_type(utoipa::openapi::SchemaType::Integer)
+                .minimum(Some(1.0f64))
+                .maximum(Some(f64::from(i32::MAX)))
+                .into(),
+        )
+    }
+}
 #[derive(
     Debug,
     Clone,

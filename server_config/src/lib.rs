@@ -27,6 +27,7 @@ pub struct Config {
     pub enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck,
     pub admin_cookie_secure: config_lib::AdminCookieSecure,
     pub admin_swagger_enabled: config_lib::AdminSwaggerEnabled,
+    pub http_gzip_enabled: config_lib::HttpGzipEnabled,
 }
 impl config_lib::GetCorsAllowOrigin for Config {
     fn get_cors_allow_origin(&self) -> &String {
@@ -218,6 +219,7 @@ mod tests {
                 admin_session_limit: env(str_constants::VALUE_20),
                 admin_sign_in_rate_limit: env(str_constants::VALUE_10),
                 admin_swagger_enabled: env(str_constants::TRUE),
+                http_gzip_enabled: env(str_constants::TRUE),
                 maximum_size_of_http_body_in_bytes:
                     config_lib::MaximumSizeOfHttpBodyInBytes::try_from(16_384).expect("0d9e4b7a"),
                 service_socket_address: config_lib::ServiceSocketAddress(

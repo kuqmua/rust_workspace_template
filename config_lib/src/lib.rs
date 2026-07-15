@@ -357,6 +357,9 @@ pub struct AdminCookieSecure(bool);
 )]
 #[newtype(deref_inner)]
 pub struct AdminSwaggerEnabled(bool);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
+#[newtype(deref_inner)]
+pub struct HttpGzipEnabled(bool);
 #[derive(newtype::Newtype)]
 #[newtype(debug_transparent)]
 pub struct AdminBoolParsingError(StdParseBoolError);
@@ -378,6 +381,18 @@ impl TryFromStdEnvVarOk for AdminCookieSecure {
     }
 }
 impl TryFromStdEnvVarOk for AdminSwaggerEnabled {
+    type Error = TryFromStdEnvVarOkAdminCookieSecureError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        v.0.parse::<bool>()
+            .map(Self)
+            .map_err(|admin_bool_parsing| Self::Error {
+                admin_bool_parsing: AdminBoolParsingError(StdParseBoolError::from(
+                    admin_bool_parsing,
+                )),
+            })
+    }
+}
+impl TryFromStdEnvVarOk for HttpGzipEnabled {
     type Error = TryFromStdEnvVarOkAdminCookieSecureError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>()
