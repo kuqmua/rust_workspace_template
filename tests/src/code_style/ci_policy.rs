@@ -1,11 +1,10 @@
-const CI_WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
 fn workflow() -> super::types::SourceText {
     super::types::SourceText::try_from(
         std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .parent()
                 .expect("c02ae58b")
-                .join(CI_WORKFLOW_PATH),
+                .join(contract_constants::code_style::CI_WORKFLOW_PATH),
         )
         .expect("da504e54"),
     )

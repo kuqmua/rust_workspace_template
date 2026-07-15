@@ -7,39 +7,15 @@ mod runtime_policy;
 mod snapshot;
 mod source_policy;
 mod types;
-const WORKSPACE_MANIFEST_PATH: &str = "../Cargo.toml";
-const CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
-    "disallowed_fields",
-    "unnecessary_trailing_comma",
-    "manual_pop_if",
-    "assign_ops",
-    "extend_from_slice",
-    "match_on_vec_items",
-    "misaligned_transmute",
-    "option_map_or_err_ok",
-    "pub_enum_variant_names",
-    "range_step_by_zero",
-    "regex_macro",
-    "replace_consts",
-    "should_assert_eq",
-    "string_to_string",
-    "unsafe_vector_initialization",
-    "unstable_as_mut_slice",
-    "unstable_as_slice",
-    "unused_collect",
-    "wrong_pub_self_convention",
-    "manual_noop_waker",
-    "manual_option_zip",
-    "useless_borrows_in_formatting",
-];
-const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] = &[
-    ExternalLeafWrapperNameException {
-        identifier: types::StaticStr("GeneratedRustTokenStream"),
-        reason: types::StaticStr(
-            "public macro-helper API name describes generated Rust tokens and is already used across generator crates",
+const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] =
+    &[ExternalLeafWrapperNameException {
+        identifier: types::StaticStr(
+            contract_constants::code_style::GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
         ),
-    },
-];
+        reason: types::StaticStr(
+            contract_constants::code_style::GENERATED_RUST_TOKEN_STREAM_REASON,
+        ),
+    }];
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
     reason: types::StaticStr,
@@ -554,6 +530,61 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
             return;
         }
         syn::visit::visit_item_mod(self, i);
+    }
+}
+struct StringConstantVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
+    fn visit_impl_item_const(&mut self, i: &'ast syn::ImplItemConst) {
+        let mut literal_visitor = TestStringLiteralVisitor {
+            values: types::SourceTextList::default(),
+        };
+        syn::visit::Visit::visit_expr(&mut literal_visitor, &i.expr);
+        if !literal_visitor.values.is_empty() {
+            self.ers.push(format!(
+                "associated constant `{}` contains string literals",
+                i.ident
+            ));
+        }
+        syn::visit::visit_impl_item_const(self, i);
+    }
+    fn visit_item_const(&mut self, i: &'ast syn::ItemConst) {
+        let mut literal_visitor = TestStringLiteralVisitor {
+            values: types::SourceTextList::default(),
+        };
+        syn::visit::Visit::visit_expr(&mut literal_visitor, i.expr.as_ref());
+        if !literal_visitor.values.is_empty() {
+            self.ers
+                .push(format!("constant `{}` contains string literals", i.ident));
+        }
+        syn::visit::visit_item_const(self, i);
+    }
+    fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
+        let mut literal_visitor = TestStringLiteralVisitor {
+            values: types::SourceTextList::default(),
+        };
+        syn::visit::Visit::visit_expr(&mut literal_visitor, i.expr.as_ref());
+        if !literal_visitor.values.is_empty() {
+            self.ers
+                .push(format!("static `{}` contains string literals", i.ident));
+        }
+        syn::visit::visit_item_static(self, i);
+    }
+    fn visit_trait_item_const(&mut self, i: &'ast syn::TraitItemConst) {
+        if let Some((_equals, expr)) = &i.default {
+            let mut literal_visitor = TestStringLiteralVisitor {
+                values: types::SourceTextList::default(),
+            };
+            syn::visit::Visit::visit_expr(&mut literal_visitor, expr);
+            if !literal_visitor.values.is_empty() {
+                self.ers.push(format!(
+                    "trait constant `{}` contains string literals",
+                    i.ident
+                ));
+            }
+        }
+        syn::visit::visit_trait_item_const(self, i);
     }
 }
 struct StringWrapperNameVisitor {
@@ -3009,10 +3040,11 @@ fn for_each_rs_syn_file(mut on_file: impl FnMut(&std::path::Path, &syn::File)) {
     });
 }
 fn workspace_table_from_cargo_toml() -> types::TomlTable {
-    let mut table = std::fs::read_to_string(WORKSPACE_MANIFEST_PATH)
-        .expect("39a0d238")
-        .parse::<toml::Table>()
-        .expect("beb11586");
+    let mut table =
+        std::fs::read_to_string(contract_constants::code_style::WORKSPACE_MANIFEST_PATH)
+            .expect("39a0d238")
+            .parse::<toml::Table>()
+            .expect("beb11586");
     toml_val_as_table(
         types::TomlValue::from(table.remove("workspace").expect("f728192d")),
         types::StaticStr("2bfb0b62"),

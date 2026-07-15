@@ -1,7 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // configuration declarations stay grouped with their parse errors and TryFromStdEnvVarOk implementations
 pub mod types;
-const ENV_VALUE_IS_EMPTY_MSG: &str = "is empty";
-const TIMEZONE_NOT_EAST_MSG: &str = "not east";
 const CONFIG_LIB_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StdEnvVarOk(String);
@@ -591,7 +589,7 @@ fn try_map_non_empty_env_value<T, Error>(
     map_ok: impl FnOnce(String) -> T,
 ) -> Result<T, Error> {
     if v.0.is_empty() {
-        return Err(mk_error(ENV_VALUE_IS_EMPTY_MSG));
+        return Err(mk_error(contract_constants::config::ENV_VALUE_IS_EMPTY_MSG));
     }
     Ok(map_ok(v.0))
 }
@@ -610,7 +608,9 @@ fn parse_east_fixed_offset(
 ) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetError> {
     chrono::FixedOffset::east_opt(v.0)
         .map(ChronoEastFixedOffset)
-        .ok_or(ChronoFixedOffsetError(TIMEZONE_NOT_EAST_MSG))
+        .ok_or(ChronoFixedOffsetError(
+            contract_constants::config::TIMEZONE_NOT_EAST_MSG,
+        ))
 }
 #[cfg(test)]
 mod tests {
@@ -860,7 +860,9 @@ mod tests {
         let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds(i32::MAX));
         assert_eq!(
             parsed,
-            Err(super::ChronoFixedOffsetError(super::TIMEZONE_NOT_EAST_MSG))
+            Err(super::ChronoFixedOffsetError(
+                contract_constants::config::TIMEZONE_NOT_EAST_MSG,
+            ))
         );
     }
     #[test]

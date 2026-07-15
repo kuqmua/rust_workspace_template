@@ -1,7 +1,6 @@
 // Intentional process-wide state: std exposes the panic hook as one global slot, and this guard
 // prevents repeatedly replacing that hook from proc-macro entrypoints.
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
-const PANIC_NO_LOCATION_MSG: &str = "panic occurred but can't get location information...";
 const PANIC_WITH_LOCATION_MSG_MAX_LEN: usize = 1_048_576;
 #[derive(Clone, Copy)]
 struct PanicFile<'file_lt>(&'file_lt str);
@@ -41,7 +40,7 @@ pub fn panic_location() {
                     .0
                 );
             } else {
-                eprintln!("{PANIC_NO_LOCATION_MSG}");
+                eprintln!("{}", contract_constants::panic_location::NO_LOCATION_MSG);
             }
         }));
     });
@@ -56,7 +55,7 @@ mod tests {
     #[test]
     fn panic_no_location_message_is_stable() {
         assert_eq!(
-            super::PANIC_NO_LOCATION_MSG,
+            contract_constants::panic_location::NO_LOCATION_MSG,
             "panic occurred but can't get location information..."
         );
     }

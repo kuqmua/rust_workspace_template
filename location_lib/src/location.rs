@@ -1,6 +1,5 @@
 #![allow(clippy::module_name_repetitions)]
 const LOC_DISPLAY_UTC_OFFSET_SECS: i32 = 10_800;
-const INCORRECT_DATETIME_MSG: &str = "incorrect datetime";
 const LOC_FILE_MAX_LEN: usize = 1_048_576;
 const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
 #[derive(
@@ -173,7 +172,7 @@ impl Location {
         write!(
             f.0,
             "{}/blob/{}/{}#L{}",
-            naming::GITHUB_URL,
+            contract_constants::naming::GITHUB_URL,
             self.commit.as_ref(),
             file.0,
             line
@@ -198,7 +197,9 @@ impl Location {
     fn fmt_datetime(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
         match self.datetime_with_tz() {
             Some(v) => write!(f.0, "{}", v.0.format("%Y-%m-%d %H:%M:%S")),
-            None => f.0.write_str(INCORRECT_DATETIME_MSG),
+            None => {
+                f.0.write_str(contract_constants::location::INCORRECT_DATETIME_MSG)
+            }
         }
     }
     fn fmt_github_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
@@ -369,7 +370,10 @@ mod tests {
         let location = test_location(std::time::Duration::from_secs(0), None);
         assert_eq!(
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
-            format!("{}/blob/abc123/src/lib.rs#L10", naming::GITHUB_URL)
+            format!(
+                "{}/blob/abc123/src/lib.rs#L10",
+                contract_constants::naming::GITHUB_URL
+            )
         );
     }
     #[test]
@@ -379,8 +383,8 @@ mod tests {
             fmt_place(&location, config_lib::types::SrcPlaceType::Github),
             format!(
                 "{}/blob/abc123/src/lib.rs#L10 ({}/blob/abc123/src/error.rs#L30)",
-                naming::GITHUB_URL,
-                naming::GITHUB_URL
+                contract_constants::naming::GITHUB_URL,
+                contract_constants::naming::GITHUB_URL
             )
         );
     }
@@ -394,7 +398,7 @@ mod tests {
                     location: &location
                 }
             ),
-            super::INCORRECT_DATETIME_MSG
+            contract_constants::location::INCORRECT_DATETIME_MSG
         );
     }
     #[test]

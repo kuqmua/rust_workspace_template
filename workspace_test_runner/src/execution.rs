@@ -1,4 +1,3 @@
-const RESULT_ROOT: &str = "test_results/workspace_test_runner";
 static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
 #[derive(Clone, Copy, Debug)]
 struct CommandIdx(usize);
@@ -60,11 +59,12 @@ fn create_run_dir() -> Result<RunDir, std::io::Error> {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    let path = std::path::Path::new(RESULT_ROOT).join(format!(
-        "{timestamp}-{}-{}",
-        std::process::id(),
-        RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
-    ));
+    let path =
+        std::path::Path::new(contract_constants::workspace_test_runner::RESULT_ROOT).join(format!(
+            "{timestamp}-{}-{}",
+            std::process::id(),
+            RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
+        ));
     std::fs::create_dir_all(path.as_path())?;
     Ok(RunDir(path))
 }

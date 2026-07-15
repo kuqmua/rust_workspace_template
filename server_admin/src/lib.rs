@@ -197,14 +197,13 @@ pub enum AdminCookieKind {
     Csrf,
     Refresh,
 }
-const ADMIN_ACCESS_COOKIE_NAME: &str = "admin_access_token";
 impl AdminCookieKind {
     fn is_http_only(self) -> StdAdminBool {
         StdAdminBool::from(!matches!(self, Self::Csrf))
     }
     fn name(self) -> StdAdminStrRef<'static> {
         StdAdminStrRef::from(match self {
-            Self::Access => ADMIN_ACCESS_COOKIE_NAME,
+            Self::Access => contract_constants::server_admin::ACCESS_COOKIE_NAME,
             Self::Csrf => "admin_csrf_token",
             Self::Refresh => "admin_refresh_token",
         })

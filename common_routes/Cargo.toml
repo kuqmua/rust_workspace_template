@@ -11,6 +11,7 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
+contract_constants = { workspace = true }
 axum = { workspace = true }
 serde = { workspace = true }
 server_runtime = { workspace = true }

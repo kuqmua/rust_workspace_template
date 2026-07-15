@@ -12,6 +12,7 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
+contract_constants = { workspace = true }
 frontend_contract = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }

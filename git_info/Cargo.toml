@@ -12,10 +12,9 @@ edition = "2024"
 
 
 [dependencies]
+contract_constants = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
-git-version = { workspace = true }
-naming = { workspace = true }
 newtype = { workspace = true }
 optml = { workspace = true }
 [lints]

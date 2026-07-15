@@ -1,4 +1,3 @@
-const UNREACHABLE_TEST_DATABASE_URL: &str = "postgres://usr:pwd@127.0.0.1:1/unreachable";
 #[derive(Debug, optml::Optml)]
 pub struct ServerAppState<'lt> {
     pub bulk_item_budget: server_runtime::ResourceBudget,
@@ -108,8 +107,10 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
         config: server_config::Config {
             cors_allow_origin: config_lib::CorsAllowOrigin("*".to_owned()),
             database_url: test_env(
-                config_lib::StdEnvVarOk::try_from(UNREACHABLE_TEST_DATABASE_URL.to_owned())
-                    .expect("3e33c100"),
+                config_lib::StdEnvVarOk::try_from(
+                    contract_constants::test_values::UNREACHABLE_DATABASE_URL.to_owned(),
+                )
+                .expect("3e33c100"),
             ),
             admin_jwt_secret: test_env(
                 config_lib::StdEnvVarOk::try_from(
@@ -168,18 +169,18 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             server_runtime::ResourceBudgetMaximum::try_from(4_096usize).expect("799dc227"),
         ),
         pg_pool: app_state::SqlxPgPool::from(
-            sqlx::PgPool::connect_lazy(UNREACHABLE_TEST_DATABASE_URL).expect("d53d8ff0"),
+            sqlx::PgPool::connect_lazy(contract_constants::test_values::UNREACHABLE_DATABASE_URL)
+                .expect("d53d8ff0"),
         ),
         project_git_info: &git_info::PROJECT_GIT_INFO,
     }
 }
 #[cfg(test)]
 mod tests {
-    const TEST_COMMIT: &str = "abc123";
     #[allow(clippy::single_call_fn)] // shared fixture keeps commit test input consistent across ServerAppState tests
     fn mk_git_info() -> git_info::ProjectGitInfo<'static> {
         git_info::ProjectGitInfo {
-            commit: git_info::GitCommitIdRef::from(TEST_COMMIT),
+            commit: git_info::GitCommitIdRef::from(contract_constants::test_values::COMMIT),
         }
     }
     fn env<T>(value: &str) -> T
@@ -277,10 +278,10 @@ mod tests {
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
         let structure = mk_structure(&git_info);
-        assert_eq!(structure.as_ref(), TEST_COMMIT);
+        assert_eq!(structure.as_ref(), contract_constants::test_values::COMMIT);
         assert_eq!(
             git_info::GetGitCommitLink::get_git_commit_link(&structure),
-            git_info::git_commit_link(TEST_COMMIT)
+            git_info::git_commit_link(contract_constants::test_values::COMMIT)
         );
     }
 }

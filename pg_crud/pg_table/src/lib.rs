@@ -1,6 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // SQL helpers stay grouped by generated CRUD concern rather than alphabetically
 const PG_TBL_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
-const COMPLETE_IDEMPOTENCY_SQL: &str = "UPDATE pg_table_idempotency SET state='completed',response_status=$6,response_body=$7,completed_at=NOW() WHERE actor=$1 AND http_method=$2 AND route_path=$3 AND idempotency_key=$4 AND request_hash=$5 AND state='pending'";
 pub trait CombinationOfAppStateLogicTraits:
     config_lib::GetEnableApiGitCommitCheck
     + config_lib::GetMaximumSizeOfHttpBodyInBytes
@@ -337,7 +336,7 @@ pub async fn complete_pg_table_idempotency(
         Ok(value) => value,
         Err(_error) => return release_pg_table_idempotency(pool, request).await,
     };
-    let _query_result = sqlx::query(COMPLETE_IDEMPOTENCY_SQL)
+    let _query_result = sqlx::query(contract_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())
@@ -366,7 +365,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
             "idempotency response status is outside SMALLINT".to_owned(),
         ))
     })?;
-    let result = sqlx::query(COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(contract_constants::pg_crud::COMPLETE_IDEMPOTENCY_SQL)
         .bind(request.scope.actor.0.as_str())
         .bind(request.scope.method.0.as_str())
         .bind(request.scope.route.0.as_str())

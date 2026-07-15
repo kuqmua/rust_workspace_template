@@ -1,7 +1,5 @@
 #![allow(clippy::single_call_fn)] // stable root migration/bootstrap API delegates to the private persistence module
 static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
-pub(super) const INSERT_ADMIN_USER_SQL: &str =
-    "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id";
 #[cfg(test)]
 pub(super) const fn migrator() -> &'static sqlx::migrate::Migrator {
     &ADMIN_MIGRATOR
@@ -59,7 +57,7 @@ pub(super) async fn bootstrap_admin(
     if user_exists {
         return Err(super::AdminBootstrapError::AlreadyInitialized);
     }
-    let user_id = sqlx::query_scalar::<_, i64>(INSERT_ADMIN_USER_SQL)
+    let user_id = sqlx::query_scalar::<_, i64>(contract_constants::server_admin::INSERT_USER_SQL)
         .bind(login.as_ref())
         .bind(display_name.as_ref())
         .bind(password_hash.0.as_ref())

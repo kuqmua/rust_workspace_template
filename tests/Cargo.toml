@@ -13,6 +13,7 @@ edition = "2024"
 [dependencies]
 
 [dev-dependencies]
+contract_constants = { workspace = true }
 toml = { workspace = true }
 regex = { workspace = true }
 syn = { workspace = true }

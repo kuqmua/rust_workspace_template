@@ -1,13 +1,4 @@
 #![allow(clippy::single_call_fn)] // route facade preserves utoipa inventory while private implementations own handler logic
-const ACTIVE_ADMIN_COUNT_SQL: &str = "SELECT COUNT(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id JOIN admin_roles role ON role.id = user_role.role_id WHERE role.name = 'admin' AND users.is_banned = FALSE";
-const LOCK_LAST_ADMIN_SQL: &str =
-    "SELECT pg_advisory_xact_lock(hashtext('admin_last_active_administrator'))";
-const REVOKE_ACCESS_SESSION_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL";
-const REVOKE_USER_ACCESS_SESSIONS_SQL: &str =
-    "UPDATE admin_access_sessions SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
-const REVOKE_USER_REFRESH_TOKENS_SQL: &str =
-    "UPDATE admin_refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL";
-const USER_IS_ADMIN_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = 'admin')";
 fn map_unique_violation<Error>(value: Error) -> super::AdminApiError
 where
     Error: Into<sqlx::Error>,
@@ -308,7 +299,7 @@ pub(super) async fn sign_out(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let _access_result = sqlx::query(REVOKE_ACCESS_SESSION_SQL)
+    let _access_result = sqlx::query(contract_constants::server_admin::REVOKE_ACCESS_SESSION_SQL)
         .bind(authenticated.session_id.0.0)
         .bind(authenticated.id.0)
         .execute(&mut *tx)
@@ -426,7 +417,7 @@ pub(super) async fn revoke_session(
         &authenticated,
     )
     .await?;
-    let _result = sqlx::query(REVOKE_ACCESS_SESSION_SQL)
+    let _result = sqlx::query(contract_constants::server_admin::REVOKE_ACCESS_SESSION_SQL)
         .bind(session.0.0.0)
         .bind(authenticated.id.0)
         .execute(&mut *tx)
@@ -471,16 +462,18 @@ pub(super) async fn revoke_all_sessions(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let _access_result = sqlx::query(REVOKE_USER_ACCESS_SESSIONS_SQL)
-        .bind(authenticated.id.0)
-        .execute(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
-    let _refresh_result = sqlx::query(REVOKE_USER_REFRESH_TOKENS_SQL)
-        .bind(authenticated.id.0)
-        .execute(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
+    let _access_result =
+        sqlx::query(contract_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
+            .bind(authenticated.id.0)
+            .execute(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
+    let _refresh_result =
+        sqlx::query(contract_constants::server_admin::REVOKE_USER_REFRESH_TOKENS_SQL)
+            .bind(authenticated.id.0)
+            .execute(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -602,7 +595,7 @@ pub(super) async fn create_user(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let user_id = sqlx::query_scalar::<_, i64>(super::super::migrations::INSERT_ADMIN_USER_SQL)
+    let user_id = sqlx::query_scalar::<_, i64>(contract_constants::server_admin::INSERT_USER_SQL)
         .bind(login.as_ref())
         .bind(display_name.as_ref())
         .bind(password_hash.0.as_ref())
@@ -717,12 +710,12 @@ pub(super) async fn set_user_password(
     .map_err(super::AdminApiError::from)?
     .ok_or(super::AdminApiError::Conflict)
     .map(drop)?;
-    let _access = sqlx::query(REVOKE_USER_ACCESS_SESSIONS_SQL)
+    let _access = sqlx::query(contract_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let _refresh = sqlx::query(REVOKE_USER_REFRESH_TOKENS_SQL)
+    let _refresh = sqlx::query(contract_constants::server_admin::REVOKE_USER_REFRESH_TOKENS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await
@@ -761,20 +754,22 @@ pub(super) async fn set_user_ban(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let _lock = sqlx::query(LOCK_LAST_ADMIN_SQL)
+    let _lock = sqlx::query(contract_constants::server_admin::LOCK_LAST_ADMIN_SQL)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
     if is_banned {
-        let target_is_admin = sqlx::query_scalar::<_, bool>(USER_IS_ADMIN_SQL)
-            .bind(path.0.0)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
-        let active_admin_count = sqlx::query_scalar::<_, i64>(ACTIVE_ADMIN_COUNT_SQL)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+        let target_is_admin =
+            sqlx::query_scalar::<_, bool>(contract_constants::server_admin::USER_IS_ADMIN_SQL)
+                .bind(path.0.0)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(super::AdminApiError::from)?;
+        let active_admin_count =
+            sqlx::query_scalar::<_, i64>(contract_constants::server_admin::ACTIVE_ADMIN_COUNT_SQL)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(super::AdminApiError::from)?;
         if target_is_admin && active_admin_count <= 1i64 {
             return Err(super::AdminApiError::Conflict);
         }
@@ -790,16 +785,18 @@ pub(super) async fn set_user_ban(
     .ok_or(super::AdminApiError::Conflict)
     .map(drop)?;
     if is_banned {
-        let _access = sqlx::query(REVOKE_USER_ACCESS_SESSIONS_SQL)
-            .bind(path.0.0)
-            .execute(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
-        let _refresh = sqlx::query(REVOKE_USER_REFRESH_TOKENS_SQL)
-            .bind(path.0.0)
-            .execute(&mut *tx)
-            .await
-            .map_err(super::AdminApiError::from)?;
+        let _access =
+            sqlx::query(contract_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
+                .bind(path.0.0)
+                .execute(&mut *tx)
+                .await
+                .map_err(super::AdminApiError::from)?;
+        let _refresh =
+            sqlx::query(contract_constants::server_admin::REVOKE_USER_REFRESH_TOKENS_SQL)
+                .bind(path.0.0)
+                .execute(&mut *tx)
+                .await
+                .map_err(super::AdminApiError::from)?;
     }
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
@@ -833,19 +830,21 @@ pub(super) async fn delete_user(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let _lock = sqlx::query(LOCK_LAST_ADMIN_SQL)
+    let _lock = sqlx::query(contract_constants::server_admin::LOCK_LAST_ADMIN_SQL)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let target_is_admin = sqlx::query_scalar::<_, bool>(USER_IS_ADMIN_SQL)
-        .bind(path.0.0)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
-    let active_admin_count = sqlx::query_scalar::<_, i64>(ACTIVE_ADMIN_COUNT_SQL)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(super::AdminApiError::from)?;
+    let target_is_admin =
+        sqlx::query_scalar::<_, bool>(contract_constants::server_admin::USER_IS_ADMIN_SQL)
+            .bind(path.0.0)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
+    let active_admin_count =
+        sqlx::query_scalar::<_, i64>(contract_constants::server_admin::ACTIVE_ADMIN_COUNT_SQL)
+            .fetch_one(&mut *tx)
+            .await
+            .map_err(super::AdminApiError::from)?;
     if target_is_admin && active_admin_count <= 1i64 {
         return Err(super::AdminApiError::Conflict);
     }
@@ -1102,7 +1101,7 @@ pub(super) async fn set_user_roles(
         .begin()
         .await
         .map_err(super::AdminApiError::from)?;
-    let _lock = sqlx::query(LOCK_LAST_ADMIN_SQL)
+    let _lock = sqlx::query(contract_constants::server_admin::LOCK_LAST_ADMIN_SQL)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
@@ -1162,12 +1161,12 @@ pub(super) async fn set_user_roles(
     .execute(&mut *tx)
     .await
     .map_err(super::AdminApiError::from)?;
-    let _access = sqlx::query(REVOKE_USER_ACCESS_SESSIONS_SQL)
+    let _access = sqlx::query(contract_constants::server_admin::REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await
         .map_err(super::AdminApiError::from)?;
-    let _refresh = sqlx::query(REVOKE_USER_REFRESH_TOKENS_SQL)
+    let _refresh = sqlx::query(contract_constants::server_admin::REVOKE_USER_REFRESH_TOKENS_SQL)
         .bind(path.0.0)
         .execute(&mut *tx)
         .await

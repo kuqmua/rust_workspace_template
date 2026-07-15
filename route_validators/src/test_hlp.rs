@@ -1,9 +1,5 @@
 #![allow(clippy::shadow_reuse)]
 const MAX_BLOCK_ON_POLLS: usize = 4096;
-const BLOCK_ON_POLL_LIMIT_ER_ID: &str = "cf6e91ab";
-const EXPECT_OK_ER_ID: &str = "db9d2f63";
-const EXPECT_ER_ER_ID: &str = "2f755472";
-const REPLACE_HEADER_MISSING_SRC_ER_ID: &str = "c3a0f7be";
 #[derive(newtype::Newtype)]
 #[newtype(display, from_inner)]
 pub(crate) struct TestExpId(pub &'static str);
@@ -71,7 +67,8 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
             std::task::Poll::Pending => {
                 assert!(
                     !is_block_on_poll_limit_reached(poll_count),
-                    "{BLOCK_ON_POLL_LIMIT_ER_ID} super::block_on exceeded poll limit"
+                    "{} super::block_on exceeded poll limit",
+                    contract_constants::route_validators::BLOCK_ON_POLL_LIMIT_ER_ID
                 );
                 increment_block_on_poll_count(&mut poll_count);
                 std::thread::yield_now();
@@ -124,11 +121,21 @@ fn panic_unexpected_result(
 #[allow(clippy::single_call_fn)] // shared panic builder keeps explicit UUID-tagged panic path reusable for header-replace preconditions
 fn panic_replace_header_missing_src(exp_id: impl Into<TestExpId>) -> ! {
     let exp_id = exp_id.into();
-    panic!("{REPLACE_HEADER_MISSING_SRC_ER_ID} missing source header while replacing, id={exp_id}");
+    panic!(
+        "{} missing source header while replacing, id={exp_id}",
+        contract_constants::route_validators::REPLACE_HEADER_MISSING_SRC_ER_ID
+    );
 }
 #[track_caller]
 pub(crate) fn expect_ok<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> T {
-    v.unwrap_or_else(|_| panic_unexpected_result(EXPECT_OK_ER_ID, "expect_ok", "Err", exp_id))
+    v.unwrap_or_else(|_| {
+        panic_unexpected_result(
+            contract_constants::route_validators::EXPECT_OK_ER_ID,
+            "expect_ok",
+            "Err",
+            exp_id,
+        )
+    })
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper keeps ok-result equality assertions concise and consistent across validator tests
@@ -140,8 +147,14 @@ where
 }
 #[track_caller]
 pub(crate) fn expect_error<T, E>(v: Result<T, E>, exp_id: impl Into<TestExpId>) -> E {
-    v.err()
-        .unwrap_or_else(|| panic_unexpected_result(EXPECT_ER_ER_ID, "expect_error", "Ok", exp_id))
+    v.err().unwrap_or_else(|| {
+        panic_unexpected_result(
+            contract_constants::route_validators::EXPECT_ER_ER_ID,
+            "expect_error",
+            "Ok",
+            exp_id,
+        )
+    })
 }
 #[track_caller]
 #[allow(clippy::single_call_fn)] // shared helper centralizes error extraction and post-check mapping so higher-level helpers avoid repeating expect_error plumbing

@@ -13,7 +13,7 @@ pub(super) fn Shell(
     let nav = server_admin_contract::AdminPage::ALL;
     let initial_path = super::path();
     let current_path = RwSignal::new(
-        if initial_path == server_admin_contract::admin_page_paths::ROOT {
+        if initial_path == contract_constants::admin_page_paths::ROOT {
             let target = nav
                 .iter()
                 .find(|item| has_page_permission(&auth, **item))
@@ -41,9 +41,9 @@ pub(super) fn Shell(
     }
     let client_for_sign_out = client.clone();
     view! {
-        <div class="app-shell"><header class="topbar"><a class="brand" href=server_admin_contract::admin_page_paths::ROOT><span class="brand-mark">"A"</span><span><strong>"Admin"</strong><small>"Control center"</small></span></a><nav aria-label="Admin sections">
+        <div class="app-shell"><header class="topbar"><a class="brand" href=contract_constants::admin_page_paths::ROOT><span class="brand-mark">"A"</span><span><strong>"Admin"</strong><small>"Control center"</small></span></a><nav aria-label="Admin sections">
         {nav.into_iter().filter(|item| has_page_permission(&auth, *item)).map(|item| { let item_path = item.path().as_ref().to_owned(); let item_path_for_click = item_path.clone(); let item_title = item.title().as_ref().to_owned(); let client_for_nav = client.clone(); view! { <a class:active=move || current_path.get() == item_path href=item_path_for_click.clone() on:click=move |event| { event.prevent_default(); super::push_path(item_path_for_click.as_str()); current_path.set(item_path_for_click.clone()); super::load(client_for_nav.clone(), loader); }><span class="nav-dot"></span>{item_title}</a> } }).collect_view()}
-        </nav><div class="profile"><div class="avatar">{auth.as_ref().and_then(|value| value.display_name().as_ref().chars().next()).unwrap_or('A').to_string()}</div><div><strong>{auth.as_ref().map(|value| value.display_name().to_string())}</strong><small>"Administrator"</small></div><button class="icon-button" title="Sign out" aria-label="Sign out" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(server_admin_contract::AdminRoute::SignOut).await.is_ok() { super::redirect(server_admin_contract::admin_page_paths::SIGN_IN); } }); }>"Exit"</button></div></header>
+        </nav><div class="profile"><div class="avatar">{auth.as_ref().and_then(|value| value.display_name().as_ref().chars().next()).unwrap_or('A').to_string()}</div><div><strong>{auth.as_ref().map(|value| value.display_name().to_string())}</strong><small>"Administrator"</small></div><button class="icon-button" title="Sign out" aria-label="Sign out" on:click=move |event| { event.prevent_default(); let client = client_for_sign_out.clone(); leptos::task::spawn_local(async move { if client.send(server_admin_contract::AdminRoute::SignOut).await.is_ok() { super::redirect(contract_constants::admin_page_paths::SIGN_IN); } }); }>"Exit"</button></div></header>
         <main class="content"><PageView loader client auth /></main></div>
     }
 }

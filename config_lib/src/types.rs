@@ -1,6 +1,3 @@
-const SRC_PLACE_TYPE_PARSE_CTX: &str = "<SrcPlaceType as std::str::FromStr>::from_str(&v)";
-const SRC_PLACE_TYPE_FIX_MSG: &str =
-    "You can set environment variable SRC_PLACE_TYPE to be eq \"src\" or \"github\"";
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
 #[newtype(display)]
 struct TracingLevelName(&'static str);
@@ -105,7 +102,8 @@ impl SrcPlaceType {
             Ok(v) => v,
             Err(message) => {
                 eprintln!(
-                    "using default SrcPlaceType::{default:#?} ({message}) {SRC_PLACE_TYPE_FIX_MSG}"
+                    "using default SrcPlaceType::{default:#?} ({message}) {}",
+                    contract_constants::config::SRC_PLACE_TYPE_FIX_MSG
                 );
                 default
             }
@@ -116,7 +114,7 @@ impl SrcPlaceType {
         parse_from_env_var_from_str(
             v,
             EnvVarNameRef(contract_constants::env_names::SRC_PLACE_TYPE),
-            ParseCtxRef(SRC_PLACE_TYPE_PARSE_CTX),
+            ParseCtxRef(contract_constants::config::SRC_PLACE_TYPE_PARSE_CTX),
         )
     }
 }
@@ -232,7 +230,7 @@ mod tests {
     fn parse_src_place_type_env_value_parses_case_insensitively() {
         let parsed = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
             super::EnvVarValueRef("GiThUb"),
-            super::ParseCtxRef(super::SRC_PLACE_TYPE_PARSE_CTX),
+            super::ParseCtxRef(contract_constants::config::SRC_PLACE_TYPE_PARSE_CTX),
         );
         assert_eq!(parsed, Ok(super::SrcPlaceType::Github));
     }
@@ -240,7 +238,7 @@ mod tests {
     fn parse_src_place_type_env_value_wraps_parse_context() {
         let error = super::parse_from_str_with_ctx::<super::SrcPlaceType>(
             super::EnvVarValueRef("bad"),
-            super::ParseCtxRef(super::SRC_PLACE_TYPE_PARSE_CTX),
+            super::ParseCtxRef(contract_constants::config::SRC_PLACE_TYPE_PARSE_CTX),
         )
         .expect_err("8c9f2a17");
         assert!(

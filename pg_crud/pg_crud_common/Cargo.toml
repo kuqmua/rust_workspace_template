@@ -11,6 +11,7 @@ categories = ["category"]
 edition = "2024"
 
 [dependencies]
+contract_constants = { workspace = true }
 utoipa = { workspace = true }
 uuid = { workspace = true }
 sqlx = { workspace = true }

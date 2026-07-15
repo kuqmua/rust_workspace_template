@@ -1,4 +1,3 @@
-const TRACING_DFLT_FILTER: &str = "info";
 const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
@@ -246,8 +245,9 @@ fn mk_app_state(
 fn initialization_tracing() {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
-        tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(TRACING_DFLT_FILTER)),
+        tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+            tracing_subscriber::EnvFilter::new(contract_constants::server::TRACING_DFLT_FILTER)
+        }),
     );
     let subscriber_with_fmt = tracing_subscriber::layer::SubscriberExt::with(
         subscriber,
@@ -513,6 +513,6 @@ mod tests {
     }
     #[test]
     fn tracing_default_filter_is_stable() {
-        assert_eq!(super::TRACING_DFLT_FILTER, "info");
+        assert_eq!(contract_constants::server::TRACING_DFLT_FILTER, "info");
     }
 }

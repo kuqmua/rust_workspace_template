@@ -12,13 +12,13 @@ edition = "2024"
 
 
 [dependencies]
+contract_constants = { workspace = true }
 utoipa = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
 git_info = { workspace = true }
 config_lib = { workspace = true }
-naming = { workspace = true }
 optml = { workspace = true }
 newtype = { workspace = true }
 [lints]

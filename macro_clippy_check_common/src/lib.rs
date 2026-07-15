@@ -1,52 +1,19 @@
 #[cfg(feature = "test-utils")]
-const CARGO_FMT_ARGS: [&str; 1] = ["fmt"];
-#[cfg(feature = "test-utils")]
-const CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 3] =
-    ["check", "--all-targets", "--all-features"];
-#[cfg(feature = "test-utils")]
-// Generated fixtures intentionally preserve public wire/error shapes and mechanically emitted assertions; the narrow legacy allowlist keeps those contracts stable while every other warning remains denied.
-const CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = [
-    "clippy",
-    "--all-targets",
-    "--all-features",
-    "--",
-    "-D",
-    "warnings",
-    "-A",
-    "clippy::bool_assert_comparison",
-    "-A",
-    "clippy::clone_on_copy",
-    "-A",
-    "clippy::collapsible_if",
-    "-A",
-    "clippy::let_and_return",
-    "-A",
-    "clippy::result_large_err",
-    "-A",
-    "clippy::single_call_fn",
-    "-A",
-    "clippy::useless_borrows_in_formatting",
-    "-A",
-    "clippy::write_literal",
-];
-#[cfg(feature = "test-utils")]
-const CARGO_TEST_LIB_ARGS: [&str; 2] = ["test", "--lib"];
-#[cfg(feature = "test-utils")]
 const GENERATED_CRATE_STEPS: [GeneratedCrateStep; 4] = [
     GeneratedCrateStep {
-        args: &CARGO_FMT_ARGS,
+        args: &contract_constants::macro_clippy::CARGO_FMT_ARGS,
         phase: GeneratedCratePhase::Formatting,
     },
     GeneratedCrateStep {
-        args: &CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &contract_constants::macro_clippy::CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Compilation,
     },
     GeneratedCrateStep {
-        args: &CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
+        args: &contract_constants::macro_clippy::CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS,
         phase: GeneratedCratePhase::Clippy,
     },
     GeneratedCrateStep {
-        args: &CARGO_TEST_LIB_ARGS,
+        args: &contract_constants::macro_clippy::CARGO_TEST_LIB_ARGS,
         phase: GeneratedCratePhase::Test,
     },
 ];

@@ -1,5 +1,4 @@
 pub mod parameter;
-pub const GITHUB_URL: &str = "https://github.com/kuqmua/rust_workspace_template";
 naming_macros::generate_upper_camel_case_and_snake_case_str_and_token_stream!([
     ["primary", "key"],
     ["serde"],

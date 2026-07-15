@@ -1,10 +1,3 @@
-pub const EXPECTED_ANGLE_BRACKETED_ARGS_ERROR: &str = "07c6ab44: expected angle bracketed args";
-pub const EXPECTED_FIRST_PATH_SEGMENT_ERROR: &str = "595050cf: expected first path segment";
-pub const EXPECTED_HASH_MAP_C1_ERROR: &str = "c1d03b71: expected HashMap<K, T>";
-pub const EXPECTED_HASH_MAP_C8_ERROR: &str = "c828da34: expected HashMap<K, T>";
-pub const EXPECTED_HASH_MAP_E9_ERROR: &str = "e9c6a7d2: expected HashMap<K, T>";
-pub const EXPECTED_NAMED_FIELD_ERROR: &str = "438aa90e: expected named field identifier";
-pub const EXPECTED_NAMED_VARIANT_FIELDS_ERROR: &str = "79b0f231: expected named variant fields";
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum LocationFieldAttr {
@@ -116,12 +109,14 @@ pub fn generate_serde_version_of_named_syn_variant(
         &fields.named
     } else {
         return compile_error_token_stream(CompileErrorMessage(
-            EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+            contract_constants::macro_diagnostics::EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
         ));
     };
     let fields_with_serde_token_stream = fields.iter().map(|element| {
         let Some(element_c25b655e_identifier) = element.ident.as_ref() else {
-            return compile_error_token_stream(CompileErrorMessage(EXPECTED_NAMED_FIELD_ERROR));
+            return compile_error_token_stream(CompileErrorMessage(
+                contract_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_ERROR,
+            ));
         };
         let ts = if *element_c25b655e_identifier == *location_snake_case.to_string() {
             quote::quote! {#location_snake_case: location_lib::location::Location}
@@ -179,7 +174,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                     assert!(segments.len() == 1, "0c65bbaa");
                     let Some(first_segment) = segments.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            EXPECTED_FIRST_PATH_SEGMENT_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
                     let element_vec_type_with_serde_token_stream = if let syn::PathArguments::AngleBracketed(
@@ -210,7 +205,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         }
                     } else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
                     quote::quote! {
@@ -220,7 +215,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
                         return compile_error_token_stream(CompileErrorMessage(
-                            EXPECTED_HASH_MAP_C1_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
                     quote::quote! {
@@ -230,7 +225,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            EXPECTED_HASH_MAP_E9_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
                     quote::quote! {
@@ -240,7 +235,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            EXPECTED_HASH_MAP_C8_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
                     let element_hashmap_v_type_with_serde_token_stream =

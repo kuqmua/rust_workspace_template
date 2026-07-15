@@ -83,7 +83,7 @@ pub(crate) fn get_required_header_str_parsed<'headers, E, T>(
 #[cfg(test)]
 mod tests {
     const TEST_HEADER_NAME: axum::http::HeaderName =
-        axum::http::HeaderName::from_static("x-test-header");
+        axum::http::HeaderName::from_static(contract_constants::route_validators::TEST_HEADER_NAME);
     #[derive(Debug, PartialEq, Eq)]
     enum TestError {
         NoHeader,

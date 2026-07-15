@@ -54,20 +54,36 @@ pub(super) struct FilterSpec {
     value_shape: FilterValueShape,
 }
 impl FilterSpec {
-    pub(super) const ADJACENT: Self = Self::scalar(FilterSqlOperator("-|-"));
-    pub(super) const BEFORE: Self = Self::scalar(FilterSqlOperator("<"));
-    pub(super) const CONTAINS: Self = Self::scalar(FilterSqlOperator("@>"));
-    pub(super) const EQUALITY: Self = Self::scalar(FilterSqlOperator("="));
-    pub(super) const LEFT_OF: Self = Self::scalar(FilterSqlOperator("&<"));
-    pub(super) const OVERLAPS: Self = Self::scalar(FilterSqlOperator("&&"));
-    pub(super) const RIGHT_OF: Self = Self::scalar(FilterSqlOperator("&>"));
+    pub(super) const ADJACENT: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::ADJACENT_SQL_OPERATOR,
+    ));
+    pub(super) const BEFORE: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::BEFORE_SQL_OPERATOR,
+    ));
+    pub(super) const CONTAINS: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::CONTAINS_SQL_OPERATOR,
+    ));
+    pub(super) const EQUALITY: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::EQUALITY_SQL_OPERATOR,
+    ));
+    pub(super) const LEFT_OF: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::LEFT_OF_SQL_OPERATOR,
+    ));
+    pub(super) const OVERLAPS: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::OVERLAPS_SQL_OPERATOR,
+    ));
+    pub(super) const RIGHT_OF: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::RIGHT_OF_SQL_OPERATOR,
+    ));
     pub(super) const TEXT_SEARCH: Self = Self {
         bind_count: BindCount(1usize),
-        sql_operator: FilterSqlOperator("ILIKE"),
-        sql_suffix: FilterSqlSuffix("ESCAPE '\\'"),
+        sql_operator: FilterSqlOperator(contract_constants::pg_crud::TEXT_SEARCH_SQL_OPERATOR),
+        sql_suffix: FilterSqlSuffix(contract_constants::pg_crud::TEXT_SEARCH_SQL_SUFFIX),
         value_shape: FilterValueShape::Text,
     };
-    pub(super) const WITHIN: Self = Self::scalar(FilterSqlOperator("<@"));
+    pub(super) const WITHIN: Self = Self::scalar(FilterSqlOperator(
+        contract_constants::pg_crud::WITHIN_SQL_OPERATOR,
+    ));
     pub(super) const fn bind_count_matches(
         self,
         value: crate::bind::FilterPlaceholderCount,
@@ -81,7 +97,7 @@ impl FilterSpec {
         Self {
             bind_count: BindCount(1usize),
             sql_operator,
-            sql_suffix: FilterSqlSuffix(""),
+            sql_suffix: FilterSqlSuffix(contract_constants::pg_crud::EMPTY_SQL_SUFFIX),
             value_shape: FilterValueShape::Scalar,
         }
     }

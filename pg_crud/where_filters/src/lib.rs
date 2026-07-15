@@ -1,5 +1,3 @@
-const BETWEEN_EXPECTING: &str = "struct Between with 2 els";
-const PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME: &str = "PgTypeNotEmptyUniqueVec";
 generate_where_filters::generate_where_filters!({
     "pg_types_write_into_file": "False",
     "whole_write_into_file": "False"
@@ -69,10 +67,14 @@ const _: () = {
     #[allow(unused_braces)]
     impl schemars::JsonSchema for RegexRegex {
         fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-            schemars::_private::alloc::borrow::Cow::Borrowed("RegexRegex")
+            schemars::_private::alloc::borrow::Cow::Borrowed(
+                contract_constants::pg_crud::REGEX_REGEX_SCHEMA_NAME,
+            )
         }
         fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-            schemars::_private::alloc::borrow::Cow::Borrowed("tests::RegexRegex")
+            schemars::_private::alloc::borrow::Cow::Borrowed(
+                contract_constants::pg_crud::REGEX_REGEX_SCHEMA_ID,
+            )
         }
         fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
             { generator.subschema_for::<String>() }
@@ -222,7 +224,10 @@ const _: () = {
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(__f, "field identifier")
+                    _serde::__private228::Formatter::write_str(
+                        __f,
+                        contract_constants::pg_crud::FIELD_IDENTIFIER,
+                    )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
                 where
@@ -239,8 +244,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        "start" => Ok(__Field::f0),
-                        "end" => Ok(__Field::f1),
+                        contract_constants::pg_crud::START_FIELD => Ok(__Field::f0),
+                        contract_constants::pg_crud::END_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -287,7 +292,10 @@ const _: () = {
                     &self,
                     __f: &mut _serde::__private228::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(__f, "struct Between")
+                    _serde::__private228::Formatter::write_str(
+                        __f,
+                        contract_constants::pg_crud::BETWEEN_STRUCT_NAME,
+                    )
                 }
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
@@ -297,13 +305,13 @@ const _: () = {
                     let Some(f0) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             1usize,
-                            &BETWEEN_EXPECTING,
+                            &contract_constants::pg_crud::BETWEEN_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<T>(&mut __seq)? else {
                         return Err(_serde::de::Error::invalid_length(
                             2usize,
-                            &BETWEEN_EXPECTING,
+                            &contract_constants::pg_crud::BETWEEN_EXPECTING,
                         ));
                     };
                     match Between::try_new(f0, f1) {
@@ -323,7 +331,9 @@ const _: () = {
                             __Field::f0 => {
                                 if Option::is_some(&f0) {
                                     return Err(
-                                        <__A::Error as _serde::de::Error>::duplicate_field("start"),
+                                        <__A::Error as _serde::de::Error>::duplicate_field(
+                                            contract_constants::pg_crud::START_FIELD,
+                                        ),
                                     );
                                 }
                                 f0 = Some(_serde::de::MapAccess::next_value::<T>(&mut __map)?);
@@ -331,7 +341,9 @@ const _: () = {
                             __Field::f1 => {
                                 if Option::is_some(&f1) {
                                     return Err(
-                                        <__A::Error as _serde::de::Error>::duplicate_field("end"),
+                                        <__A::Error as _serde::de::Error>::duplicate_field(
+                                            contract_constants::pg_crud::END_FIELD,
+                                        ),
                                     );
                                 }
                                 f1 = Some(_serde::de::MapAccess::next_value::<T>(&mut __map)?);
@@ -346,11 +358,15 @@ const _: () = {
                     }
                     let f0_v = match f0 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field("start")?,
+                        None => _serde::__private228::de::missing_field(
+                            contract_constants::pg_crud::START_FIELD,
+                        )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field("end")?,
+                        None => _serde::__private228::de::missing_field(
+                            contract_constants::pg_crud::END_FIELD,
+                        )?,
                     };
                     match Between::try_new(f0_v, f1_v) {
                         Ok(v) => Ok(v),
@@ -358,12 +374,10 @@ const _: () = {
                     }
                 }
             }
-            #[doc(hidden)]
-            const FIELDS: &[&str] = &["start", "end"];
             _serde::Deserializer::deserialize_struct(
                 __deserializer,
-                "Between",
-                FIELDS,
+                contract_constants::pg_crud::BETWEEN_SCHEMA_NAME,
+                contract_constants::pg_crud::SERDE_BETWEEN_FIELDS,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,
@@ -455,7 +469,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+            contract_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
@@ -525,7 +539,7 @@ const _: () = {
                 ) -> _serde::__private228::fmt::Result {
                     _serde::__private228::Formatter::write_str(
                         __f,
-                        "tuple struct PgTypeNotEmptyUniqueVec",
+                        contract_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
                     )
                 }
                 #[inline]
@@ -545,7 +559,7 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             0usize,
-                            &"tuple struct PgTypeNotEmptyUniqueVec with 1 element",
+                            &contract_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match PgTypeNotEmptyUniqueVec::try_from(f0) {
@@ -556,7 +570,7 @@ const _: () = {
             }
             _serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                contract_constants::pg_crud::PG_TYPE_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,

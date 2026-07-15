@@ -3,15 +3,7 @@
     reason = "utoipa OpenApi derive expands to an internal for_each"
 )]
 //todo generate openapi spec
-const SLASH_HEALTH_CHECK: &str = "/health_check";
-const SLASH_HEALTH: &str = "/health";
-const SLASH_HEALTH_LIVE: &str = "/health/live";
-const SLASH_HEALTH_READY: &str = "/health/ready";
-const SLASH_GIT_INFO: &str = "/git_info";
-const SLASH_SWAGGER_UI: &str = "/swagger-ui";
-const HEALTH_CHECK_SQL: &str = "SELECT 1";
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
-const NO_ROUTE_MSG_PREFIX: &str = "No route for ";
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
 const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
     AxumHealthCheckStatus(axum::http::StatusCode::OK);
@@ -198,13 +190,17 @@ fn mk_no_route_message(uri: AxumHttpUriRef<'_>) -> NotFoundMessage {
 fn mk_no_route_message_for_suffix(uri_suffix: UriSuffixRef<'_>) -> NotFoundMessage {
     let cap = no_route_message_capacity(uri_suffix);
     let mut message = String::with_capacity(cap.0);
-    message.push_str(NO_ROUTE_MSG_PREFIX);
+    message.push_str(contract_constants::common_routes::NO_ROUTE_MSG_PREFIX);
     message.push_str(uri_suffix.0);
     NotFoundMessage::try_from(message).unwrap_or_else(NotFoundMessage::from)
 }
 #[allow(clippy::single_call_fn)] // isolated for reuse in tests and message builder
 const fn no_route_message_capacity(uri_suffix: UriSuffixRef<'_>) -> NoRouteMessageCapacity {
-    NoRouteMessageCapacity(NO_ROUTE_MSG_PREFIX.len().saturating_add(uri_suffix.0.len()))
+    NoRouteMessageCapacity(
+        contract_constants::common_routes::NO_ROUTE_MSG_PREFIX
+            .len()
+            .saturating_add(uri_suffix.0.len()),
+    )
 }
 #[allow(clippy::single_call_fn)] // keeps route text construction consistent for path-only and path+query URIs
 fn get_uri_suffix(uri: AxumHttpUriRef<'_>) -> UriSuffixRef<'_> {
@@ -229,7 +225,9 @@ const fn mk_not_found_payload_with_message(
     NotFoundHandle {
         commit,
         message,
-        open_api_specification: OpenApiSpecificationPath(SLASH_SWAGGER_UI),
+        open_api_specification: OpenApiSpecificationPath(
+            contract_constants::common_routes::SWAGGER_UI,
+        ),
     }
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
@@ -266,7 +264,7 @@ const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheck
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
     let pool = app_state::GetSqlxPgPool::get_sqlx_pg_pool(app_state);
     let probe = async {
-        sqlx::query(HEALTH_CHECK_SQL)
+        sqlx::query(contract_constants::common_routes::HEALTH_CHECK_SQL)
             .execute(pool.as_ref())
             .await
             .is_ok()
@@ -306,9 +304,12 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
     let app_state = app_state_b9fc2d94.0;
     AxumCommonRoutes(
         axum::Router::new()
-            .route(SLASH_HEALTH_LIVE, axum::routing::get(health_live))
             .route(
-                SLASH_HEALTH_READY,
+                contract_constants::common_routes::HEALTH_LIVE,
+                axum::routing::get(health_live),
+            )
+            .route(
+                contract_constants::common_routes::HEALTH_READY,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let ready_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
                     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
@@ -317,7 +318,7 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
                 }),
             )
             .route(
-                SLASH_HEALTH,
+                contract_constants::common_routes::HEALTH,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let aggregate_state: std::sync::Arc<dyn CommonRoutesParameters> = app_state_raw;
                     health_report_response(HealthReport::readiness(HealthDatabaseAvailable::from(
@@ -326,14 +327,14 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
                 }),
             )
             .route(
-                SLASH_HEALTH_CHECK,
+                contract_constants::common_routes::HEALTH_CHECK,
                 axum::routing::get(async |axum::extract::State(app_state_hc_raw)| {
                     let app_state_hc: std::sync::Arc<dyn CommonRoutesParameters> = app_state_hc_raw;
                     map_health_check_status(database_is_ready(app_state_hc.as_ref()).await).0
                 }),
             )
             .route(
-                SLASH_GIT_INFO,
+                contract_constants::common_routes::GIT_INFO,
                 axum::routing::get(async |axum::extract::State(app_state_raw)| {
                     let app_state_76fb2013: std::sync::Arc<dyn CommonRoutesParameters> =
                         app_state_raw;
@@ -359,7 +360,6 @@ pub fn common_routes(app_state_b9fc2d94: StdArcCommonRoutesAppState) -> AxumComm
 #[cfg(test)]
 #[allow(clippy::arbitrary_source_item_ordering)] // fixtures remain adjacent to the tests that exercise their route state
 mod tests {
-    const TEST_COMMIT: &str = "abc123";
     #[test]
     fn health_reports_distinguish_liveness_and_dependency_readiness() {
         let live = super::HealthReport::liveness();
@@ -395,11 +395,13 @@ mod tests {
     impl super::CommonRoutesParameters for TestState {}
     fn test_state() -> std::sync::Arc<dyn super::CommonRoutesParameters> {
         std::sync::Arc::new(TestState {
-            commit: TEST_COMMIT,
+            commit: contract_constants::test_values::COMMIT,
         })
     }
     fn test_commit_link() -> String {
-        git_info::git_commit_link(TEST_COMMIT).as_ref().to_owned()
+        git_info::git_commit_link(contract_constants::test_values::COMMIT)
+            .as_ref()
+            .to_owned()
     }
     #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
     fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
@@ -421,7 +423,10 @@ mod tests {
     #[allow(clippy::single_call_fn)] // shared assertion centralizes not-found payload checks used across direct and state-based tests
     fn assert_not_found_payload(payload: &super::NotFoundHandle, exp_uri_suffix: &str) {
         assert_no_route_message(&payload.message, exp_uri_suffix);
-        assert_eq!(payload.open_api_specification.0, super::SLASH_SWAGGER_UI);
+        assert_eq!(
+            payload.open_api_specification.0,
+            contract_constants::common_routes::SWAGGER_UI
+        );
     }
     #[allow(clippy::single_call_fn)] // shared assertion keeps not-found commit and payload checks coupled across tests
     fn assert_not_found_payload_with_commit(
@@ -525,7 +530,10 @@ mod tests {
     }
     #[test]
     fn no_route_prefix_stays_stable() {
-        assert_eq!(super::NO_ROUTE_MSG_PREFIX, "No route for ");
+        assert_eq!(
+            contract_constants::common_routes::NO_ROUTE_MSG_PREFIX,
+            "No route for "
+        );
     }
     #[test]
     fn no_route_message_capacity_is_exact_for_uri_suffix() {
@@ -560,10 +568,10 @@ mod tests {
     fn mk_json_res_wraps_payload_with_status() {
         let response = super::mk_json_res(
             super::AxumHealthCheckStatus(axum::http::StatusCode::CREATED),
-            super::mk_git_info_payload(b_cow(TEST_COMMIT)),
+            super::mk_git_info_payload(b_cow(contract_constants::test_values::COMMIT)),
         );
         assert_eq!(response.status.0, axum::http::StatusCode::CREATED);
-        assert_git_info_commit(&response.payload.0, TEST_COMMIT);
+        assert_git_info_commit(&response.payload.0, contract_constants::test_values::COMMIT);
     }
     #[test]
     fn mk_state_payload_passes_commit_link_to_mapper() {

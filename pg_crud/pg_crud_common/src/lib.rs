@@ -24,8 +24,6 @@ pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
-const NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME: &str = "NotEmptyUniqueVec";
-const PG_TYPE_WHERE_EXPECTING: &str = "struct PgTypeWhere with 2 els";
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
     fn all_variants_default_some_one_element() -> Vec<Self>;
 }
@@ -603,7 +601,10 @@ const _: () = {
                     &self,
                     __f: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
-                    _serde::__private228::Formatter::write_str(__f, "field identifier")
+                    _serde::__private228::Formatter::write_str(
+                        __f,
+                        contract_constants::pg_crud::FIELD_IDENTIFIER,
+                    )
                 }
                 fn visit_u64<__E>(self, v: u64) -> Result<Self::Value, __E>
                 where
@@ -620,8 +621,8 @@ const _: () = {
                     __E: _serde::de::Error,
                 {
                     match v {
-                        "operator" => Ok(__Field::f0),
-                        "v" => Ok(__Field::f1),
+                        contract_constants::pg_crud::OPERATOR_FIELD => Ok(__Field::f0),
+                        contract_constants::pg_crud::V_FIELD => Ok(__Field::f1),
                         _ => Ok(__Field::__ignore),
                     }
                 }
@@ -658,7 +659,10 @@ const _: () = {
                     &self,
                     __f: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
-                    std::fmt::Formatter::write_str(__f, "struct PgTypeWhere")
+                    std::fmt::Formatter::write_str(
+                        __f,
+                        contract_constants::pg_crud::PG_TYPE_WHERE_STRUCT_NAME,
+                    )
                 }
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
@@ -669,14 +673,14 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             0usize,
-                            &PG_TYPE_WHERE_EXPECTING,
+                            &contract_constants::pg_crud::PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     let Some(f1) = _serde::de::SeqAccess::next_element::<Vec<T>>(&mut __seq)?
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             1usize,
-                            &PG_TYPE_WHERE_EXPECTING,
+                            &contract_constants::pg_crud::PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
                     match PgTypeWhere::try_new(f0, f1) {
@@ -697,7 +701,7 @@ const _: () = {
                                 if Option::is_some(&f0) {
                                     return Err(
                                         <__A::Error as _serde::de::Error>::duplicate_field(
-                                            "operator",
+                                            contract_constants::pg_crud::OPERATOR_FIELD,
                                         ),
                                     );
                                 }
@@ -708,7 +712,9 @@ const _: () = {
                             __Field::f1 => {
                                 if Option::is_some(&f1) {
                                     return Err(
-                                        <__A::Error as _serde::de::Error>::duplicate_field("v"),
+                                        <__A::Error as _serde::de::Error>::duplicate_field(
+                                            contract_constants::pg_crud::V_FIELD,
+                                        ),
                                     );
                                 }
                                 f1 = Some(_serde::de::MapAccess::next_value::<Vec<T>>(&mut __map)?);
@@ -723,11 +729,15 @@ const _: () = {
                     }
                     let f0_v = match f0 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field("operator")?,
+                        None => _serde::__private228::de::missing_field(
+                            contract_constants::pg_crud::OPERATOR_FIELD,
+                        )?,
                     };
                     let f1_v = match f1 {
                         Some(v) => v,
-                        None => _serde::__private228::de::missing_field("v")?,
+                        None => _serde::__private228::de::missing_field(
+                            contract_constants::pg_crud::V_FIELD,
+                        )?,
                     };
                     match PgTypeWhere::try_new(f0_v, f1_v) {
                         Ok(v) => Ok(v),
@@ -735,12 +745,10 @@ const _: () = {
                     }
                 }
             }
-            #[doc(hidden)]
-            const FIELDS: &[&str] = &["operator", "v"];
             serde::Deserializer::deserialize_struct(
                 __deserializer,
-                "PgTypeWhere",
-                FIELDS,
+                contract_constants::pg_crud::PG_TYPE_WHERE_SCHEMA_NAME,
+                contract_constants::pg_crud::SERDE_PG_TYPE_WHERE_FIELDS,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<T>,
                     lt: _serde::__private228::PhantomData,
@@ -1197,7 +1205,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
         utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
     ) {
         (
-            NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+            contract_constants::pg_crud::NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
@@ -1279,7 +1287,10 @@ const _: () = {
                     &self,
                     __f: &mut std::fmt::Formatter<'_>,
                 ) -> _serde::__private228::fmt::Result {
-                    std::fmt::Formatter::write_str(__f, "tuple struct NotEmptyUniqueVec")
+                    std::fmt::Formatter::write_str(
+                        __f,
+                        contract_constants::pg_crud::NOT_EMPTY_UNIQUE_VEC_TUPLE_NAME,
+                    )
                 }
                 #[inline]
                 fn visit_newtype_struct<__E>(self, __e: __E) -> Result<Self::Value, __E::Error>
@@ -1298,7 +1309,7 @@ const _: () = {
                     else {
                         return Err(_serde::de::Error::invalid_length(
                             0usize,
-                            &"tuple struct NotEmptyUniqueVec with 1 element",
+                            &contract_constants::pg_crud::NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
                     match NotEmptyUniqueVec::try_new(f0) {
@@ -1309,7 +1320,7 @@ const _: () = {
             }
             serde::Deserializer::deserialize_newtype_struct(
                 __deserializer,
-                NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
+                contract_constants::pg_crud::NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME,
                 __Visitor {
                     marker: _serde::__private228::PhantomData::<Self>,
                     lt: _serde::__private228::PhantomData,

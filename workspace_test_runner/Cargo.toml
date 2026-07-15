@@ -10,6 +10,7 @@ keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
 [dependencies]
+contract_constants = { workspace = true }
 generate_pg_table_src = { workspace = true }
 generate_pg_types_src = { workspace = true }
 generate_where_filters_src = { workspace = true }

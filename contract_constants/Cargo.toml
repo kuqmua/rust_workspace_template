@@ -10,5 +10,6 @@ keywords = ["keyword"]
 categories = ["category"]
 edition = "2024"
 [dependencies]
+git-version = { workspace = true }
 [lints]
 workspace = true

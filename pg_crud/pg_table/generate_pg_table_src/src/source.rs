@@ -1,6 +1,3 @@
-const EXPECTED_NAMED_FIELD_ERROR: &str = "a21dc807: expected named field identifier";
-pub const GENERATE_PG_TABLE_CONFIG_PATH: &str = "generate_pg_table::generate_pg_table_config";
-const PRIMARY_KEY_FIELD_INDEX_ERROR: &str = "878d3f9b: primary key field index not found";
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 fn compile_error_token_stream(
@@ -794,7 +791,7 @@ pub fn generate_pg_table(
         let field = field_ref.get();
         let Some(field_identifier) = field.ident.as_ref() else {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                EXPECTED_NAMED_FIELD_ERROR,
+                contract_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_A2_ERROR,
             )));
         };
         if *field_identifier == naming::LocationSnakeCase.to_string() {
@@ -938,7 +935,7 @@ pub fn generate_pg_table(
         let config = match serde_json::from_str::<GeneratePgTableConfig>(
             &macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
                 &di.attrs,
-                GENERATE_PG_TABLE_CONFIG_PATH,
+                contract_constants::pg_crud::GENERATE_PG_TABLE_CONFIG_PATH,
             )
             .to_string(),
         ) {
@@ -1059,7 +1056,7 @@ pub fn generate_pg_table(
             .is_none()
         {
             return Err(compile_error_token_stream(CompileErrorMessage(
-                PRIMARY_KEY_FIELD_INDEX_ERROR,
+                contract_constants::macro_diagnostics::PRIMARY_KEY_FIELD_INDEX_ERROR,
             )));
         }
         if model
@@ -1365,7 +1362,9 @@ pub fn generate_pg_table(
     let fields_len = fields.len();
     let fields_len_without_primary_key = fields_without_primary_key_idxs.len();
     let Some(primary_key_field) = fields.get(primary_key_field_idx.get()) else {
-        return compile_error_token_stream(CompileErrorMessage(PRIMARY_KEY_FIELD_INDEX_ERROR));
+        return compile_error_token_stream(CompileErrorMessage(
+            contract_constants::macro_diagnostics::PRIMARY_KEY_FIELD_INDEX_ERROR,
+        ));
     };
     let fields_without_primary_key_iter = || {
         fields_without_primary_key_idxs
@@ -4163,7 +4162,7 @@ pub fn generate_pg_table(
                     fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return compile_error_token_stream(CompileErrorMessage(
-                                EXPECTED_NAMED_FIELD_ERROR,
+                                contract_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_A2_ERROR,
                             ))
                             .into();
                         };
@@ -4277,7 +4276,7 @@ pub fn generate_pg_table(
                     assert!(segments.len() == 1, "8c6c5e9d");
                     let Some(first_segment) = segments.iter().next() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_FIRST_PATH_SEGMENT_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
                     let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
@@ -4286,7 +4285,7 @@ pub fn generate_pg_table(
                     }) = &first_segment.arguments
                     else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
                     assert!(args.len() == 1, "5bf19c5d");
@@ -4311,7 +4310,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_HASH_MAP_C1_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
                     quote::quote! {std::collections::HashMap<#string_token_stream, #string_token_stream>}
@@ -4319,7 +4318,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_HASH_MAP_E9_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
                     quote::quote! {std::collections::HashMap<#string_token_stream, #second_argument>}
@@ -4327,7 +4326,7 @@ pub fn generate_pg_table(
                 macros_helpers::location_data::LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_HASH_MAP_C8_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
                     let element_hashmap_v_type_with_serde_token_stream =
@@ -4357,14 +4356,14 @@ pub fn generate_pg_table(
                 GeneratePgTableVariantRef::Syn(syn_variant) => {
                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                         return compile_error_token_stream(CompileErrorMessage(
-                            macros_helpers::location_data::EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+                            contract_constants::macro_diagnostics::EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
                         ))
                         .into();
                     };
                     let fields_with_serde_token_stream = fields_named.named.iter().map(|field| {
                         let Some(field_identifier) = field.ident.as_ref() else {
                             return compile_error_token_stream(CompileErrorMessage(
-                                macros_helpers::location_data::EXPECTED_NAMED_FIELD_ERROR,
+                                contract_constants::macro_diagnostics::EXPECTED_NAMED_FIELD_ERROR,
                             ));
                         };
                         let location_attr = match generate_pg_table_syn_field_location_attr_stage(

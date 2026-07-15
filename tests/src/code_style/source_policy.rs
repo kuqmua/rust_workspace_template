@@ -210,14 +210,15 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
         }
     });
     let expected = std::collections::BTreeMap::from([
-        ("../pg_crud/pg_table/src/lib.rs".to_owned(), 6usize),
+        ("../contract_constants/src/lib.rs".to_owned(), 7usize),
+        ("../pg_crud/pg_table/src/lib.rs".to_owned(), 5usize),
         ("../server_admin/src/auth.rs".to_owned(), 7usize),
         ("../server_admin/src/auth/audit.rs".to_owned(), 2usize),
-        ("../server_admin/src/auth/handlers.rs".to_owned(), 36usize),
+        ("../server_admin/src/auth/handlers.rs".to_owned(), 31usize),
         ("../server_admin/src/auth/rate_limit.rs".to_owned(), 2usize),
         ("../server_admin/src/auth/session.rs".to_owned(), 6usize),
         ("../server_admin/src/cleanup.rs".to_owned(), 10usize),
-        ("../server_admin/src/migrations.rs".to_owned(), 4usize),
+        ("../server_admin/src/migrations.rs".to_owned(), 3usize),
     ]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
@@ -577,6 +578,30 @@ fn long_production_string_literals_are_reused() {
         super::types::SourceTextRef::from(
             "long production string literals must be defined once and reused:",
         ),
+    );
+}
+#[test]
+fn string_constants_are_declared_only_in_contract_constants() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr("6f2c8a91"),
+        super::types::SourceTextRef::from("string constants found outside contract_constants:"),
+        |path, ast, ers| {
+            if path.to_string_lossy().contains("/contract_constants/") {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::StringConstantVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
     );
 }
 #[test]

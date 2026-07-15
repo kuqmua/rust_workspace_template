@@ -8,19 +8,6 @@ mod table_state;
 #[cfg(target_arch = "wasm32")]
 mod transport;
 #[cfg(not(target_arch = "wasm32"))]
-const ADMIN_PAGE_PATHS: [&str; 10] = [
-    server_admin_contract::admin_page_paths::ROOT,
-    server_admin_contract::admin_page_paths::SIGN_IN,
-    server_admin_contract::admin_page_paths::USERS,
-    server_admin_contract::admin_page_paths::ROLES,
-    server_admin_contract::admin_page_paths::PERMISSIONS,
-    server_admin_contract::admin_page_paths::AUDIT,
-    server_admin_contract::admin_page_paths::SETTINGS,
-    server_admin_contract::admin_page_paths::METRICS,
-    server_admin_contract::admin_page_paths::VERSION,
-    server_admin_contract::admin_page_paths::OPEN_API,
-];
-#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug, Clone, newtype::Newtype)]
 #[newtype(into_inner_from)]
 pub struct AxumAdminFrontendRouter(axum::Router);
@@ -41,11 +28,9 @@ pub fn routes_without_swagger() -> AxumAdminFrontendRouter {
 #[cfg(not(target_arch = "wasm32"))]
 fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFrontendRouter {
     let index_path = concat!(env!("CARGO_MANIFEST_DIR"), "/dist/index.html");
-    let page_routes = ADMIN_PAGE_PATHS
+    let page_routes = contract_constants::admin_page_paths::ALL
         .into_iter()
-        .filter(|path| {
-            swagger_enabled.0 || *path != server_admin_contract::admin_page_paths::OPEN_API
-        })
+        .filter(|path| swagger_enabled.0 || *path != contract_constants::admin_page_paths::OPEN_API)
         .fold(axum::Router::new(), |router, path| {
             router.route_service(path, tower_http::services::ServeFile::new(index_path))
         })
@@ -54,7 +39,7 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
             axum::http::HeaderValue::from_static("no-cache, no-store, must-revalidate"),
         ));
     AxumAdminFrontendRouter(page_routes.nest_service(
-        server_admin_contract::admin_page_paths::ASSETS,
+        contract_constants::admin_page_paths::ASSETS,
         tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/dist")).fallback(
             tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static")),
         ),
@@ -72,12 +57,20 @@ mod tests {
     #[test]
     fn page_inventory_contains_auth_and_operations() {
         assert!(
-            super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::SIGN_IN)
+            contract_constants::admin_page_paths::ALL
+                .contains(&contract_constants::admin_page_paths::SIGN_IN)
         );
-        assert!(super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::USERS));
-        assert!(super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::AUDIT));
         assert!(
-            super::ADMIN_PAGE_PATHS.contains(&server_admin_contract::admin_page_paths::OPEN_API)
+            contract_constants::admin_page_paths::ALL
+                .contains(&contract_constants::admin_page_paths::USERS)
+        );
+        assert!(
+            contract_constants::admin_page_paths::ALL
+                .contains(&contract_constants::admin_page_paths::AUDIT)
+        );
+        assert!(
+            contract_constants::admin_page_paths::ALL
+                .contains(&contract_constants::admin_page_paths::OPEN_API)
         );
     }
     #[test]

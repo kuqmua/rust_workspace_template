@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition = "2024"
 
 [dependencies]
+contract_constants = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }
 reqwest = { workspace = true }
