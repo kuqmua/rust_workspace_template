@@ -17,6 +17,7 @@ http = { workspace = true }
 metrics = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
+sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tower = { workspace = true }

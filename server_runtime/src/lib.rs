@@ -15,6 +15,7 @@ mod notification;
 mod origin;
 mod password_policy;
 mod path_policy;
+mod pg_rate_limit;
 mod redacted_url;
 mod request_id;
 mod resource_budget;
@@ -94,6 +95,11 @@ pub use path_policy::{
     HttpAllowedPathPrefixRef, HttpNormalizedPath, HttpNormalizedPathError, HttpProxyPath,
     HttpProxyPathError, HttpProxyPathPrefixMatch, HttpProxyPathRef, HttpRequestPathRef,
     normalize_identifier_path, proxy_path_matches_prefix,
+};
+pub use pg_rate_limit::{
+    PgRateLimitDecision, PgRateLimitError, PgRateLimitMaximum, PgRateLimitQueryRef,
+    PgRateLimitScopeRef, PgRateLimitSubjectRef, PgRateLimitValidationError,
+    PgRateLimitWindowSeconds, SqlxPgRateLimitError, SqlxPgRateLimitPoolRef, enforce_pg_rate_limit,
 };
 pub use redacted_url::{RedactedUrl, RedactedUrlTextRef, redact_url_userinfo};
 pub use request_id::{

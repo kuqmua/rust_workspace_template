@@ -7,8 +7,10 @@ mod url_builder;
 pub use frontend_contract_macros::TypedRoute;
 pub use openapi_validation::{
     OpenApiContractText, OpenApiContractTextError, OpenApiContractTextTryFromStringError,
+    OpenApiOperationExpectation, OpenApiOperationValidationError, OpenApiPayloadValidationError,
+    OpenApiResponseStatus, OpenApiSchemaMismatch, OpenApiSecurityExpectation,
     OpenApiValidationError, RuntimeRoutesRef, SerdeJsonOpenApiSerializationError,
-    validate_openapi_contract,
+    validate_openapi_contract, validate_openapi_json_payload, validate_openapi_operations,
 };
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,

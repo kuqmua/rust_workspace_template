@@ -7,6 +7,7 @@ mod cursor;
 mod db_schema_conformance;
 mod errors;
 mod invariants;
+mod order_preserving_deduplication;
 mod pagination;
 mod patch_field;
 mod query_fragment;
@@ -39,6 +40,9 @@ pub use errors::{
 pub use invariants::{
     BulkMutationOutcome, DataInvariantViolation, PaginationTotal, validate_bulk_atomicity,
     validate_migration_idempotency, validate_pagination_invariants,
+};
+pub use order_preserving_deduplication::{
+    SliceOrdering, classify_slice_ordering, deduplicate_preserving_order_by_key,
 };
 pub use pagination::{
     DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,

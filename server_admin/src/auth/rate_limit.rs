@@ -42,19 +42,31 @@ pub(super) async fn enforce_rate_limit(
     limit: StdAdminRateLimitCount,
     window_seconds: StdAdminRateLimitWindowSeconds,
 ) -> Result<(), super::AdminApiError> {
-    let allowed = sqlx::query_scalar::<_, bool>(
-        str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT,
+    let scope_text = scope.as_str();
+    let decision = server_runtime::enforce_pg_rate_limit(
+        server_runtime::SqlxPgRateLimitPoolRef::from(state.pool.as_ref()),
+        server_runtime::PgRateLimitQueryRef::from(
+            str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT,
+        ),
+        server_runtime::PgRateLimitScopeRef::try_from(scope_text.as_ref())
+            .map_err(|_error| super::AdminApiError::Validation)?,
+        server_runtime::PgRateLimitSubjectRef::try_from(subject.as_ref().as_str())
+            .map_err(|_error| super::AdminApiError::Validation)?,
+        server_runtime::PgRateLimitMaximum::try_from(limit.0)
+            .map_err(|_error| super::AdminApiError::Validation)?,
+        server_runtime::PgRateLimitWindowSeconds::try_from(window_seconds.0)
+            .map_err(|_error| super::AdminApiError::Validation)?,
     )
-    .bind(scope.as_str().as_ref())
-    .bind(subject.as_ref())
-    .bind(limit.0)
-    .bind(window_seconds.0)
-    .fetch_one(state.pool.as_ref())
     .await
-    .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
-    if allowed {
-        Ok(())
-    } else {
-        Err(super::AdminApiError::RateLimited)
+    .map_err(|error| match error {
+        server_runtime::PgRateLimitError::Sqlx(source) => super::AdminApiError::Pg(
+            super::super::SqlxAdminError::from(sqlx::Error::from(source)),
+        ),
+    })?;
+    match decision {
+        server_runtime::PgRateLimitDecision::Allowed => Ok(()),
+        server_runtime::PgRateLimitDecision::Limited(_retry_after) => {
+            Err(super::AdminApiError::RateLimited)
+        }
     }
 }
