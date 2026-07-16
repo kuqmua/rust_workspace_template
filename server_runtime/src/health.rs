@@ -12,6 +12,112 @@ impl From<HealthProbeSucceeded> for bool {
         value.0
     }
 }
+impl From<bool> for HealthProbeSucceeded {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HealthComponentStatus {
+    Error,
+    Ok,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+pub struct HealthSnapshot {
+    database: HealthComponentStatus,
+    service: HealthComponentStatus,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize)]
+pub struct ServiceLivenessSnapshot {
+    service: HealthComponentStatus,
+}
+impl HealthSnapshot {
+    #[must_use]
+    pub const fn database(self) -> HealthComponentStatus {
+        self.database
+    }
+    #[must_use]
+    pub const fn service(self) -> HealthComponentStatus {
+        self.service
+    }
+}
+
+#[derive(Debug)]
+struct StdHealthReadinessAtomicBool(std::sync::atomic::AtomicBool);
+#[derive(Clone, Debug)]
+struct StdSharedHealthReadiness(std::sync::Arc<StdHealthReadinessAtomicBool>);
+#[derive(Clone, Debug)]
+pub struct HealthReadiness {
+    shared: StdSharedHealthReadiness,
+}
+impl Default for HealthReadiness {
+    fn default() -> Self {
+        Self {
+            shared: StdSharedHealthReadiness(std::sync::Arc::from(StdHealthReadinessAtomicBool(
+                std::sync::atomic::AtomicBool::new(false),
+            ))),
+        }
+    }
+}
+impl HealthReadiness {
+    #[must_use]
+    pub fn snapshot(&self) -> HealthSnapshot {
+        let database = if self.shared.0.0.load(std::sync::atomic::Ordering::Acquire) {
+            HealthComponentStatus::Ok
+        } else {
+            HealthComponentStatus::Error
+        };
+        HealthSnapshot {
+            database,
+            service: HealthComponentStatus::Ok,
+        }
+    }
+    pub fn store_database_probe(&self, value: HealthProbeSucceeded) {
+        self.shared
+            .0
+            .0
+            .store(bool::from(value), std::sync::atomic::Ordering::Release);
+    }
+}
+
+#[must_use]
+pub fn add_health_routes(
+    router: crate::AxumRouter,
+    readiness: &HealthReadiness,
+) -> crate::AxumRouter {
+    let readiness_for_route = readiness.clone();
+    crate::AxumRouter(
+        router
+            .0
+            .route(
+                str_constants::LIVE_PATH,
+                axum::routing::get(async || {
+                    axum::Json(ServiceLivenessSnapshot {
+                        service: HealthComponentStatus::Ok,
+                    })
+                }),
+            )
+            .route(
+                str_constants::READY_PATH,
+                axum::routing::get(move || {
+                    let route_readiness = readiness_for_route.clone();
+                    async move {
+                        let snapshot = route_readiness.snapshot();
+                        let status = if snapshot.database == HealthComponentStatus::Ok {
+                            http::StatusCode::OK
+                        } else {
+                            http::StatusCode::SERVICE_UNAVAILABLE
+                        };
+                        (status, axum::Json(snapshot))
+                    }
+                }),
+            ),
+    )
+}
 pub async fn run_health_probe<Probe>(
     timeout: StdHealthProbeTimeout,
     probe: Probe,
@@ -42,5 +148,61 @@ mod tests {
             })
             .await
         ));
+    }
+
+    #[test]
+    fn readiness_tracks_database_probe_without_affecting_liveness() {
+        let readiness = super::HealthReadiness::default();
+        assert_eq!(
+            readiness.snapshot().database(),
+            super::HealthComponentStatus::Error
+        );
+        assert_eq!(
+            readiness.snapshot().service(),
+            super::HealthComponentStatus::Ok
+        );
+        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        assert_eq!(
+            readiness.snapshot().database(),
+            super::HealthComponentStatus::Ok
+        );
+    }
+
+    #[tokio::test]
+    async fn health_routes_distinguish_live_and_ready_statuses() {
+        let readiness = super::HealthReadiness::default();
+        let router =
+            super::add_health_routes(crate::AxumRouter::from(axum::Router::new()), &readiness).0;
+        let live_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::get(str_constants::LIVE_PATH)
+                .body(axum::body::Body::empty())
+                .expect("a943ebaa"),
+        )
+        .await
+        .expect("8112486b");
+        assert_eq!(live_response.status(), http::StatusCode::OK);
+        let unavailable_response = tower::ServiceExt::oneshot(
+            router.clone(),
+            http::Request::get(str_constants::READY_PATH)
+                .body(axum::body::Body::empty())
+                .expect("341e303a"),
+        )
+        .await
+        .expect("ee4cfce6");
+        assert_eq!(
+            unavailable_response.status(),
+            http::StatusCode::SERVICE_UNAVAILABLE
+        );
+        readiness.store_database_probe(super::HealthProbeSucceeded::from(true));
+        let ready_response = tower::ServiceExt::oneshot(
+            router,
+            http::Request::get(str_constants::READY_PATH)
+                .body(axum::body::Body::empty())
+                .expect("67247299"),
+        )
+        .await
+        .expect("7cf14a1f");
+        assert_eq!(ready_response.status(), http::StatusCode::OK);
     }
 }

@@ -1,3 +1,4 @@
+mod advisory_lock;
 mod bind_index;
 pub mod bounded_btree_map;
 pub mod bounded_unique_vec;
@@ -20,6 +21,12 @@ mod read_query_plan;
 mod rollback;
 mod sql_identifier;
 mod sql_like_pattern;
+pub use advisory_lock::{
+    PgRelationCapacityError, PgRelationCapacityMaximum, PgRelationLockError,
+    PgRelationLockNamespace, PgRelationResourceId, PgRelationResourceIds, PgRelationRowCount,
+    SqlxPgRelationLockConnectionRef, SqlxPgRelationLockError, lock_pg_relation_resources,
+    validate_pg_relation_capacity,
+};
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
 };

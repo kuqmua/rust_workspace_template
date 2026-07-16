@@ -78,6 +78,7 @@ str_constants_macros::define_str_constants! {
         WORD_BETWEEN = "Between";
         WORD_BANS = "bans";
         WORD_BIGINT = "BIGINT";
+        WORD_HASHTEXTEXTENDED = "hashtextextended";
         WORD_BIN = "bin";
         WORD_BLOCKING = "blocking";
         WORD_BODY = "body";
@@ -480,6 +481,7 @@ str_constants_macros::define_str_constants! {
         WORD_RESERVATION = "reservation";
         WORD_RESOURCE = "resource";
         WORD_RESOURCE_ID = "resource_id";
+        WORD_PG_ADVISORY_XACT_LOCK = "pg_advisory_xact_lock";
         WORD_RESPONSE = "response";
         WORD_RESPONSE_BODY = "response_body";
         WORD_RESPONSE_STATUS = "response_status";
@@ -2816,6 +2818,16 @@ str_constants_macros::define_str_constants! {
         pub TEST_DEFAULT_SRC_UPPER = ["Default-src"];
         pub TEST_TRIMMED_OK = [" ok "];
         pub TEST_X_TEST_HEADER = ["x-test"];
+        pub TEST_SQL_INJECTION = ["x;DROP TABLE y"];
+        pub PG_RELATION_RESOURCE_ADVISORY_LOCK_SQL = [WORD_SELECT, " ", WORD_PG_ADVISORY_XACT_LOCK, "(", WORD_HASHTEXTEXTENDED, "($1 || ':' || ", WORD_RESOURCE_ID, "::", WORD_TEXT, ", 0)) ", WORD_FROM, " ", WORD_UNNEST, "($2::", WORD_BIGINT, "[]) ", WORD_AS, " resources(", WORD_RESOURCE_ID, ") ", WORD_ORDER, " ", WORD_BY, " ", WORD_RESOURCE_ID];
+        pub LIVE_PATH = ["/live"];
+        pub READY_PATH = ["/ready"];
+        pub TEST_OTHER_PUBLIC_HTTPS_URL = ["https://example.org/path"];
+        pub TEST_PUBLIC_HOST = ["example.com"];
+        pub TEST_PUBLIC_HTTPS_URL_WITH_USERINFO = ["https://user:secret@example.com/path"];
+        pub TEST_STALE_STAGING_DIRECTORY = ["rust-workspace-template-stale-staging-test"];
+        pub TEST_STALE_STAGING_OPERATION_ID = ["stale-operation"];
+        pub TEST_STALE_STAGING_SECOND_OPERATION_ID = ["stale-operation-second"];
         pub VALUE_123456 = ["123456"];
         pub TEST_URL_PASSWORD = ["secret-password"];
         pub TEST_URL_WITH_CREDENTIALS = [WORD_HTTPS, "://user:secret-password@", WORD_LOCALHOST, ":8443/path?x=1"];

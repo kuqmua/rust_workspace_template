@@ -129,8 +129,148 @@ pub enum FileStorageError {
 pub struct SafeFileStorage {
     root: StdFileStorageRoot,
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FileStorageStagingArea {
+    Delete,
+    Upload,
+}
+impl FileStorageStagingArea {
+    const fn directory_name(self) -> StorageDirectoryNameRef<'static> {
+        match self {
+            Self::Delete => StorageDirectoryNameRef(str_constants::FILE_DELETE_STAGING_DIRECTORY),
+            Self::Upload => StorageDirectoryNameRef(str_constants::FILE_UPLOAD_STAGING_DIRECTORY),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdStaleStagingEntryLimit(usize);
+impl TryFrom<usize> for StdStaleStagingEntryLimit {
+    type Error = StaleStagingCleanupCfgError;
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == 0usize || value > 10_000usize {
+            Err(StaleStagingCleanupCfgError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdStaleBefore(std::time::SystemTime);
+impl From<std::time::SystemTime> for StdStaleBefore {
+    fn from(value: std::time::SystemTime) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StaleStagingCleanupCfg {
+    maximum_removed: StdStaleStagingEntryLimit,
+    maximum_scanned: StdStaleStagingEntryLimit,
+    stale_before: StdStaleBefore,
+}
+impl StaleStagingCleanupCfg {
+    #[must_use]
+    pub const fn new(
+        stale_before: StdStaleBefore,
+        maximum_scanned: StdStaleStagingEntryLimit,
+        maximum_removed: StdStaleStagingEntryLimit,
+    ) -> Self {
+        Self {
+            maximum_removed,
+            maximum_scanned,
+            stale_before,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("stale staging cleanup limit must be between 1 and 10000")]
+pub struct StaleStagingCleanupCfgError;
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct StdStaleStagingEntryCount(usize);
+impl From<usize> for StdStaleStagingEntryCount {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+impl From<StdStaleStagingEntryCount> for usize {
+    fn from(value: StdStaleStagingEntryCount) -> Self {
+        value.0
+    }
+}
+impl std::fmt::Display for StdStaleStagingEntryCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct StaleStagingCleanupReport {
+    removed: StdStaleStagingEntryCount,
+    scanned: StdStaleStagingEntryCount,
+}
+impl StaleStagingCleanupReport {
+    #[must_use]
+    pub const fn removed(self) -> StdStaleStagingEntryCount {
+        self.removed
+    }
+    #[must_use]
+    pub const fn scanned(self) -> StdStaleStagingEntryCount {
+        self.scanned
+    }
+}
 #[allow(clippy::arbitrary_source_item_ordering)] // transactional API is grouped as prepare, stage, commit, and rollback operations
 impl SafeFileStorage {
+    pub async fn cleanup_stale_staging(
+        &self,
+        area: FileStorageStagingArea,
+        cfg: StaleStagingCleanupCfg,
+    ) -> Result<StaleStagingCleanupReport, FileStorageError> {
+        let directory = self.root.0.join(area.directory_name().0);
+        self.ensure_directory_not_symlink(directory.as_path().into())
+            .await?;
+        let mut entries = tokio::fs::read_dir(directory)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        let mut report = StaleStagingCleanupReport::default();
+        while report.scanned.0 < cfg.maximum_scanned.0 && report.removed.0 < cfg.maximum_removed.0 {
+            let Some(entry) = entries
+                .next_entry()
+                .await
+                .map_err(|error| FileStorageError::Io(error.into()))?
+            else {
+                break;
+            };
+            report.scanned.0 = report.scanned.0.saturating_add(1usize);
+            let file_type = entry
+                .file_type()
+                .await
+                .map_err(|error| FileStorageError::Io(error.into()))?;
+            if file_type.is_dir() || file_type.is_symlink() {
+                continue;
+            }
+            let metadata = entry
+                .metadata()
+                .await
+                .map_err(|error| FileStorageError::Io(error.into()))?;
+            let Ok(modified) = metadata.modified() else {
+                continue;
+            };
+            if modified > cfg.stale_before.0 {
+                continue;
+            }
+            match tokio::fs::remove_file(entry.path()).await {
+                Ok(()) => report.removed.0 = report.removed.0.saturating_add(1usize),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => return Err(FileStorageError::Io(error.into())),
+            }
+        }
+        Ok(report)
+    }
     pub async fn atomic_replace(
         &self,
         operation_id: &StdStorageOperationId,
@@ -490,6 +630,81 @@ pub fn plan_disk_cache_eviction(
 
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn stale_staging_cleanup_is_bounded_and_removes_regular_files() {
+        let root_path = std::env::temp_dir().join(str_constants::TEST_STALE_STAGING_DIRECTORY);
+        match tokio::fs::remove_dir_all(&root_path).await {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => panic!("e0757d39 {error}"),
+        }
+        let storage = super::SafeFileStorage::new(
+            super::StdFileStorageRoot::try_from(root_path.clone()).expect("0a4c0bfd"),
+        );
+        storage.prepare().await.expect("73802bd5");
+        let operation_id = super::StdStorageOperationId::try_from(String::from(
+            str_constants::TEST_STALE_STAGING_OPERATION_ID,
+        ))
+        .expect("d374ce69");
+        storage
+            .stage_upload(
+                &operation_id,
+                &super::StdFileBytes::try_from(vec![1u8]).expect("a9899d14"),
+            )
+            .await
+            .expect("df4e565c");
+        let second_operation_id = super::StdStorageOperationId::try_from(String::from(
+            str_constants::TEST_STALE_STAGING_SECOND_OPERATION_ID,
+        ))
+        .expect("de441c7a");
+        storage
+            .stage_upload(
+                &second_operation_id,
+                &super::StdFileBytes::try_from(vec![2u8]).expect("941a849c"),
+            )
+            .await
+            .expect("ce87151d");
+        let stale_before = std::time::UNIX_EPOCH
+            .checked_add(std::time::Duration::from_hours(1_139_568u64))
+            .expect("c81a56d9");
+        let limit = super::StdStaleStagingEntryLimit::try_from(1usize).expect("c35f98c6");
+        let report = storage
+            .cleanup_stale_staging(
+                super::FileStorageStagingArea::Upload,
+                super::StaleStagingCleanupCfg::new(stale_before.into(), limit, limit),
+            )
+            .await
+            .expect("eb46d89c");
+        assert_eq!(
+            report,
+            super::StaleStagingCleanupReport {
+                removed: super::StdStaleStagingEntryCount::from(1usize),
+                scanned: super::StdStaleStagingEntryCount::from(1usize),
+            }
+        );
+        let mut remaining_entries =
+            tokio::fs::read_dir(root_path.join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY))
+                .await
+                .expect("acdbf8da");
+        assert!(
+            remaining_entries
+                .next_entry()
+                .await
+                .expect("3c5c9b70")
+                .is_some()
+        );
+        assert!(
+            remaining_entries
+                .next_entry()
+                .await
+                .expect("406536b7")
+                .is_none()
+        );
+        tokio::fs::remove_dir_all(root_path)
+            .await
+            .expect("9cf8105c");
+    }
+
     #[test]
     fn relative_paths_and_operation_ids_reject_traversal() {
         assert_eq!(

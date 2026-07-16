@@ -81,7 +81,10 @@ pub use header_text::{
     HttpHeaderName, HttpHeaderTextBytes, HttpHeaderTextMaximumBytes,
     HttpHeaderTextMaximumBytesError, HttpHeaderTextRef, HttpHeaderTextResolution,
 };
-pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
+pub use health::{
+    HealthComponentStatus, HealthProbeSucceeded, HealthReadiness, HealthSnapshot,
+    ServiceLivenessSnapshot, StdHealthProbeTimeout, add_health_routes, run_health_probe,
+};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
     StdAsyncRunHistoryMaximumLenTryFromUsizeError, StdAsyncRunHistoryReportCount,
@@ -134,8 +137,9 @@ pub use origin::{
     RequestOriginAllowed, request_origin_allowed,
 };
 pub use outbound_url::{
-    OutboundHostPolicy, OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef,
-    ReqwestOutboundUrl, StdOutboundIpAddr,
+    OutboundAllowedHost, OutboundHostAllowlist, OutboundHostAllowlistError, OutboundHostPolicy,
+    OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef, ReqwestOutboundUrl,
+    StdOutboundIpAddr,
 };
 pub use password_policy::{
     PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,

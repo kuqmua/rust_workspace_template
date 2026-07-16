@@ -32,6 +32,69 @@ impl ReqwestOutboundUrl {
         }
     }
 }
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct OutboundAllowedHost(String);
+impl TryFrom<String> for OutboundAllowedHost {
+    type Error = OutboundHostAllowlistError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty()
+            || value.len() > 253usize
+            || value.bytes().any(|byte| {
+                !(byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b':' | b'[' | b']'))
+            })
+        {
+            return Err(OutboundHostAllowlistError::InvalidHost);
+        }
+        Ok(Self(value.to_ascii_lowercase()))
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OutboundHostAllowlist(Vec<OutboundAllowedHost>);
+impl TryFrom<Vec<OutboundAllowedHost>> for OutboundHostAllowlist {
+    type Error = OutboundHostAllowlistError;
+    fn try_from(mut value: Vec<OutboundAllowedHost>) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            return Err(OutboundHostAllowlistError::Empty);
+        }
+        if value.len() > 64usize {
+            return Err(OutboundHostAllowlistError::TooManyHosts);
+        }
+        value.sort_unstable();
+        value.dedup();
+        Ok(Self(value))
+    }
+}
+impl OutboundHostAllowlist {
+    pub fn validate(&self, url: &ReqwestOutboundUrl) -> Result<(), OutboundHostAllowlistError> {
+        let host = url
+            .0
+            .host_str()
+            .ok_or(OutboundHostAllowlistError::InvalidHost)?;
+        if self
+            .0
+            .binary_search_by(|allowed| allowed.0.as_str().cmp(host))
+            .is_ok()
+        {
+            Ok(())
+        } else {
+            Err(OutboundHostAllowlistError::HostNotAllowed)
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum OutboundHostAllowlistError {
+    #[error("outbound host allowlist must not be empty")]
+    Empty,
+    #[error("outbound host is not present in the allowlist")]
+    HostNotAllowed,
+    #[error("outbound allowlist host is invalid")]
+    InvalidHost,
+    #[error("outbound host allowlist exceeds 64 entries")]
+    TooManyHosts,
+}
 impl std::fmt::Debug for ReqwestOutboundUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple(str_constants::OUTBOUND_URL)
@@ -75,6 +138,9 @@ impl OutboundUrlPolicy {
             return Err(OutboundUrlError::ControlCharacter);
         }
         let url = reqwest::Url::parse(value.0).map_err(|_error| OutboundUrlError::Invalid)?;
+        if !url.username().is_empty() || url.password().is_some() {
+            return Err(OutboundUrlError::UserInfo);
+        }
         if !self.schemes.iter().any(|scheme| match scheme {
             OutboundUrlScheme::Http => url.scheme() == str_constants::HTTP,
             OutboundUrlScheme::Https => url.scheme() == str_constants::HTTPS,
@@ -136,6 +202,8 @@ pub enum OutboundUrlError {
     MissingResolvedAddress,
     #[error("outbound URL scheme is not allowed")]
     Scheme,
+    #[error("outbound URL must not contain user information")]
+    UserInfo,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -226,6 +294,30 @@ mod tests {
         assert!(matches!(
             POLICY.validate(str_constants::TEST_URL_WITH_ENCODED_NEWLINE.into()),
             Err(super::OutboundUrlError::ControlCharacter)
+        ));
+    }
+
+    #[test]
+    fn allowlist_requires_exact_host_and_url_rejects_userinfo() {
+        let allowed_host =
+            super::OutboundAllowedHost::try_from(String::from(str_constants::TEST_PUBLIC_HOST))
+                .expect("3e5decb1");
+        let allowlist =
+            super::OutboundHostAllowlist::try_from(vec![allowed_host]).expect("920be78f");
+        let allowed = POLICY
+            .validate(str_constants::TEST_PUBLIC_HTTPS_URL.into())
+            .expect("27a67a96");
+        assert_eq!(allowlist.validate(&allowed), Ok(()));
+        let other = POLICY
+            .validate(str_constants::TEST_OTHER_PUBLIC_HTTPS_URL.into())
+            .expect("b3981504");
+        assert_eq!(
+            allowlist.validate(&other),
+            Err(super::OutboundHostAllowlistError::HostNotAllowed)
+        );
+        assert!(matches!(
+            POLICY.validate(str_constants::TEST_PUBLIC_HTTPS_URL_WITH_USERINFO.into()),
+            Err(super::OutboundUrlError::UserInfo)
         ));
     }
 }
