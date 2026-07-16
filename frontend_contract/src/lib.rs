@@ -47,23 +47,9 @@ pub use route_coverage::{
     missing_required_test_categories, required_test_categories, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Newtype)]
+#[newtype(as_ref_str, display, from_inner)]
 pub struct ContractStr(&'static str);
-impl From<&'static str> for ContractStr {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for ContractStr {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl std::fmt::Display for ContractStr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
 impl From<ContractStr> for String {
     fn from(value: ContractStr) -> Self {
         Self::from(value.0)

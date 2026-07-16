@@ -4,20 +4,9 @@ pub struct SynchronizationRuntimeConfiguration {
     retry_policy: server_runtime::RetryPolicy,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::Newtype)]
+#[newtype(as_ref_target, from_inner)]
 pub struct SynchronizationPayload(Vec<u8>);
-
-impl From<Vec<u8>> for SynchronizationPayload {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
-
-impl AsRef<[u8]> for SynchronizationPayload {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
 
 pub trait SynchronizationSource {
     type Error: std::error::Error + Send + Sync + 'static;
