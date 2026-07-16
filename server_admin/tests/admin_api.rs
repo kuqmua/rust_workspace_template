@@ -155,6 +155,17 @@ fn cookie_value(
         .map(|value| StdAdminApiTestCookie::try_from(value).expect("b9a203e6"))
         .expect("360de719")
 }
+async fn validate_generated_admin_table<Table>(pool: &SqlxAdminApiTestPool)
+where
+    Table: pg_crud_common::DbTableSchema,
+{
+    pg_crud_common::validate_generated_postgres_table::<Table>(
+        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+    )
+    .await
+    .expect("c8629e14");
+}
 #[tokio::test]
 async fn protected_routes_reject_missing_authentication_without_database_io() {
     let users_response = tower::ServiceExt::oneshot(
@@ -287,7 +298,10 @@ async fn invalid_admin_json_uses_problem_details_and_body_limit_contract() {
         malformed_response.headers().get(http::header::CONTENT_TYPE),
         Some(&http::HeaderValue::from_static("application/problem+json")),
     );
-    let oversized_password = str_constants::X.repeat(65_537usize);
+    let body_limit = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
+        .expect("a60751db")
+        .get();
+    let oversized_password = str_constants::X.repeat(body_limit.saturating_add(1usize));
     let oversized_body = format!(r#"{{"login":"admin","password":"{oversized_password}"}}"#);
     let oversized_response = tower::ServiceExt::oneshot(
         router().0,
@@ -375,6 +389,50 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("676c00f1");
+    validate_generated_admin_table::<server_admin::generated_tables::AdminUsers>(&pool).await;
+    validate_generated_admin_table::<server_admin::generated_tables::AdminUserRoles>(&pool).await;
+    validate_generated_admin_table::<server_admin::generated_tables::AdminRolePermissions>(&pool)
+        .await;
+    validate_generated_admin_table::<server_admin::generated_tables::AdminRoles>(&pool).await;
+    validate_generated_admin_table::<server_admin::generated_tables::AdminPermissions>(&pool).await;
+    validate_generated_admin_table::<server_admin::generated_tables::AdminSystemSettings>(&pool)
+        .await;
+    let permission_rows = sqlx::query_as::<_, (i64, String)>(
+        str_constants::SELECT_ID_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+    )
+    .fetch_all(&pool.0)
+    .await
+    .expect("db765f20");
+    let observed_permissions = permission_rows
+        .into_iter()
+        .map(|(_id, name)| name)
+        .collect::<Vec<_>>();
+    let expected_permissions = server_admin::AdminPermission::ALL
+        .into_iter()
+        .map(|permission| permission.as_str().as_ref().to_owned())
+        .collect::<Vec<_>>();
+    assert_eq!(observed_permissions, expected_permissions);
+    let _deleted_permission = sqlx::query(str_constants::DELETE_ADMIN_PERMISSION_BY_NAME)
+        .bind(
+            server_admin::AdminPermission::ALL
+                .first()
+                .expect("26d95ea4")
+                .as_str()
+                .as_ref(),
+        )
+        .execute(&pool.0)
+        .await
+        .expect("9d762f8c");
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+        .await
+        .expect("ea3f641d");
+    let reconciled_permissions = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+    )
+    .fetch_all(&pool.0)
+    .await
+    .expect("458ab19e");
+    assert_eq!(reconciled_permissions, expected_permissions);
     let _truncate_result = sqlx::query(
         str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )

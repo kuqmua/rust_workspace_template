@@ -20,6 +20,65 @@ impl From<bool> for DbColumnNullable {
     }
 }
 
+pub trait PgColumnSchema {
+    const DATA_TYPE: &'static str;
+    const HAS_SERVER_DEFAULT: bool;
+    const NULLABLE: bool;
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DbColumnSpec {
+    data_type: &'static str,
+    has_server_default: bool,
+    name: &'static str,
+    nullable: bool,
+}
+impl DbColumnSpec {
+    #[must_use]
+    pub const fn new(
+        name: &'static str,
+        data_type: &'static str,
+        nullable: bool,
+        has_server_default: bool,
+    ) -> Self {
+        Self {
+            data_type,
+            has_server_default,
+            name,
+            nullable,
+        }
+    }
+}
+
+pub trait DbTableSchema {
+    const COLUMNS: &'static [DbColumnSpec];
+    const TABLE_NAME: &'static str;
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct DbColumnContractSnapshot {
+    data_type: DbSchemaText,
+    has_server_default: bool,
+    name: DbSchemaText,
+    nullable: DbColumnNullable,
+}
+impl DbColumnContractSnapshot {
+    #[must_use]
+    pub const fn new(
+        name: DbSchemaText,
+        data_type: DbSchemaText,
+        nullable: DbColumnNullable,
+        has_server_default: bool,
+    ) -> Self {
+        Self {
+            data_type,
+            has_server_default,
+            name,
+            nullable,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct SqlxPgPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
 impl<'value_lt> From<&'value_lt sqlx::PgPool> for SqlxPgPoolRef<'value_lt> {
@@ -139,6 +198,11 @@ pub enum DbSchemaConformanceError {
         expected: DbCatalogSnapshot,
         observed: DbCatalogSnapshot,
     },
+    #[error("PostgreSQL columns differ from the generated table descriptor")]
+    ColumnContractMismatch {
+        expected: Vec<DbColumnContractSnapshot>,
+        observed: Vec<DbColumnContractSnapshot>,
+    },
     #[error("failed to inspect PostgreSQL schema: {0}")]
     Inspection(SqlxDbSchemaInspectionError),
     #[error("PostgreSQL table schema differs from the expected snapshot")]
@@ -150,6 +214,82 @@ pub enum DbSchemaConformanceError {
     SchemaTextTooLong(DbSchemaTextError),
     #[error("PostgreSQL returned an unsupported catalog object kind")]
     UnknownObjectKind,
+}
+
+pub async fn validate_generated_postgres_table<Table>(
+    pool: SqlxPgPoolRef<'_>,
+    schema: DbSchemaNameRef<'_>,
+) -> Result<(), DbSchemaConformanceError>
+where
+    Table: DbTableSchema,
+{
+    let mut expected = Table::COLUMNS
+        .iter()
+        .map(|column| {
+            Ok(DbColumnContractSnapshot::new(
+                DbSchemaText::try_from(column.name.to_owned()).map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+                DbSchemaText::try_from(column.data_type.to_owned()).map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+                DbColumnNullable::from(column.nullable),
+                column.has_server_default,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    let rows = sqlx::query(str_constants::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
+        .bind(schema.0)
+        .bind(Table::TABLE_NAME)
+        .fetch_all(pool.0)
+        .await
+        .map_err(|error| {
+            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+        })?;
+    let mut observed = rows
+        .into_iter()
+        .map(|row| {
+            let nullable: String =
+                sqlx::Row::try_get(&row, str_constants::IS_NULLABLE).map_err(|error| {
+                    DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                })?;
+            Ok(DbColumnContractSnapshot::new(
+                DbSchemaText::try_from(
+                    sqlx::Row::try_get::<String, _>(&row, str_constants::COLUMN_NAME).map_err(
+                        |error| {
+                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                        },
+                    )?,
+                )
+                .map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+                DbSchemaText::try_from(
+                    sqlx::Row::try_get::<String, _>(&row, str_constants::DATA_TYPE).map_err(
+                        |error| {
+                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                        },
+                    )?,
+                )
+                .map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+                DbColumnNullable::from(nullable == str_constants::YES),
+                sqlx::Row::try_get::<bool, _>(&row, str_constants::HAS_SERVER_DEFAULT).map_err(
+                    |error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    },
+                )?,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    expected.sort_unstable();
+    observed.sort_unstable();
+    if expected == observed {
+        Ok(())
+    } else {
+        Err(DbSchemaConformanceError::ColumnContractMismatch { expected, observed })
+    }
 }
 
 pub fn validate_postgres_table_schema(

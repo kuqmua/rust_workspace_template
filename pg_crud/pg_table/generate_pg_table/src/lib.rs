@@ -133,7 +133,11 @@ pub fn common_logic(
 }
 #[proc_macro_derive(
     GeneratePgTable,
-    attributes(generate_pg_table_frontend, generate_pg_table_primary_key)
+    attributes(
+        generate_pg_table_db_default,
+        generate_pg_table_frontend,
+        generate_pg_table_primary_key
+    )
 )]
 pub fn generate_pg_table(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input_token_stream = input.into();

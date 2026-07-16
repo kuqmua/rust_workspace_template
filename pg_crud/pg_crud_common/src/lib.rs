@@ -52,11 +52,12 @@ pub use date_sql_filter::{
     StdDateSqlBindStart, build_date_sql_filter,
 };
 pub use db_schema_conformance::{
-    DbCatalogSnapshot, DbColumnNullable, DbColumnSnapshot, DbObjectKind, DbObjectSnapshot,
-    DbSchemaConformanceError, DbSchemaNameRef, DbSchemaText, DbSchemaTextError,
-    DbSchemaTextTryFromStringError, DbTableNameRef, DbTableSnapshot, SqlxDbSchemaInspectionError,
-    SqlxPgPoolRef, inspect_postgres_catalog, inspect_postgres_table, validate_postgres_catalog,
-    validate_postgres_table_schema,
+    DbCatalogSnapshot, DbColumnContractSnapshot, DbColumnNullable, DbColumnSnapshot, DbColumnSpec,
+    DbObjectKind, DbObjectSnapshot, DbSchemaConformanceError, DbSchemaNameRef, DbSchemaText,
+    DbSchemaTextError, DbSchemaTextTryFromStringError, DbTableNameRef, DbTableSchema,
+    DbTableSnapshot, PgColumnSchema, SqlxDbSchemaInspectionError, SqlxPgPoolRef,
+    inspect_postgres_catalog, inspect_postgres_table, validate_generated_postgres_table,
+    validate_postgres_catalog, validate_postgres_table_schema,
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,

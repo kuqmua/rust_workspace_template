@@ -491,6 +491,7 @@ pub fn generate_pg_table(
     struct GeneratePgTableFieldModel {
         field: macros_helpers::field_data::SynField,
         frontend: GeneratePgTableFrontendFieldConfig,
+        has_db_default: bool,
         is_primary_key: bool,
     }
     #[derive(Clone, Debug, Default)]
@@ -543,6 +544,7 @@ pub fn generate_pg_table(
         }
     }
     struct GeneratePgTableFieldsModel {
+        db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
         fields: Vec<macros_helpers::field_data::SynField>,
         fields_without_primary_key_idxs: Vec<GeneratePgTableFieldIdx>,
         frontend_fields: Vec<GeneratePgTableFrontendFieldConfig>,
@@ -651,6 +653,11 @@ pub fn generate_pg_table(
             type0: macros_helpers::field_data::SynFieldType::from(syn_field.ty.clone()),
             identifier: macros_helpers::field_data::SynFieldIdentifier::from(field_identifier),
         };
+        let has_db_default = syn_field.attrs.iter().any(|attribute| {
+            attribute
+                .path()
+                .is_ident(str_constants::GENERATE_PG_TABLE_DB_DEFAULT)
+        });
         let mut frontend = GeneratePgTableFrontendFieldConfig::default();
         let mut frontend_flags = workspace_macro_helpers::StdUniqueOptionSet::default();
         let mut frontend_attr_count = 0usize;
@@ -744,6 +751,7 @@ pub fn generate_pg_table(
         Ok(GeneratePgTableFieldModel {
             field,
             frontend,
+            has_db_default,
             is_primary_key,
         })
     }
@@ -867,12 +875,14 @@ pub fn generate_pg_table(
                 let fields_named = fields_named_ref.get();
                 let fields_accumulator = fields_named.named.iter().try_fold(
                     (
+                        Vec::with_capacity(fields_named.named.len()),
                         None,
                         Vec::with_capacity(fields_named.named.len()),
                         Vec::with_capacity(fields_named.named.len()),
                         Vec::with_capacity(fields_named.named.len()),
                     ),
                     |(
+                        mut db_default_fields,
                         mut optional_primary_key_field,
                         mut fields,
                         mut fields_without_primary_key,
@@ -884,6 +894,9 @@ pub fn generate_pg_table(
                             primary_key_attr_name,
                         )?;
                         let field_idx = GeneratePgTableFieldIdx::from(fields.len());
+                        if field_model.has_db_default {
+                            db_default_fields.push(field_idx);
+                        }
                         if field_model.is_primary_key {
                             if optional_primary_key_field.is_some() {
                                 return Err(compile_error_token_stream(CompileErrorMessage(
@@ -897,6 +910,7 @@ pub fn generate_pg_table(
                         fields.push(field_model.field);
                         frontend_fields.push(field_model.frontend);
                         Ok((
+                            db_default_fields,
                             optional_primary_key_field,
                             fields,
                             fields_without_primary_key,
@@ -905,6 +919,7 @@ pub fn generate_pg_table(
                     },
                 );
                 let (
+                    db_default_field_idxs,
                     optional_primary_key_field,
                     fields,
                     fields_without_primary_key_idxs,
@@ -916,6 +931,7 @@ pub fn generate_pg_table(
                     )));
                 };
                 Ok(GeneratePgTableFieldsModel {
+                    db_default_field_idxs,
                     fields,
                     fields_without_primary_key_idxs,
                     frontend_fields,
@@ -1363,6 +1379,7 @@ pub fn generate_pg_table(
         Err(error) => return error,
     };
     let GeneratePgTableFieldsModel {
+        db_default_field_idxs,
         fields,
         fields_without_primary_key_idxs,
         frontend_fields,
@@ -9544,6 +9561,27 @@ pub fn generate_pg_table(
             }
         }
     };
+    let db_column_specs_token_stream = fields.iter().enumerate().map(|(index, field)| {
+        let field_name = generate_quotes::dq_token_stream(&field.identifier);
+        let field_type = &field.type0;
+        let has_explicit_default = db_default_field_idxs
+            .iter()
+            .any(|field_idx| field_idx.get() == index);
+        quote::quote! {
+            pg_crud_common::DbColumnSpec::new(
+                #field_name,
+                <#field_type as pg_crud_common::PgColumnSchema>::DATA_TYPE,
+                <#field_type as pg_crud_common::PgColumnSchema>::NULLABLE,
+                <#field_type as pg_crud_common::PgColumnSchema>::HAS_SERVER_DEFAULT || #has_explicit_default,
+            )
+        }
+    });
+    let db_table_schema_token_stream = quote::quote! {
+        impl pg_crud_common::DbTableSchema for #identifier {
+            const COLUMNS: &'static [pg_crud_common::DbColumnSpec] = &[#(#db_column_specs_token_stream),*];
+            const TABLE_NAME: &'static str = #identifier_snake_case_double_quoted_token_stream;
+        }
+    };
     let common_token_stream = quote::quote! {
         #identifier_prep_pg_error_token_stream
         #identifier_create_token_stream
@@ -9593,6 +9631,7 @@ pub fn generate_pg_table(
                 #(#content_token_stream)*
                 #identifier_api_client_token_stream
                 #identifier_route_contract_token_stream
+                #db_table_schema_token_stream
                 #frontend_form_token_stream
                 #(#frontend_capability_assertions_token_stream)*
                 #identifier_open_api_token_stream

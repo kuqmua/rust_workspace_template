@@ -177,7 +177,7 @@ mod tests {
 
         fn metadata() -> crate::RouteMetadata {
             metadata(
-                str_constants::GET,
+                crate::RouteMethod::Get,
                 str_constants::ROUTE_READ,
                 str_constants::ROUTE,
             )
@@ -185,17 +185,17 @@ mod tests {
     }
 
     fn metadata(
-        method: &'static str,
+        method: crate::RouteMethod,
         operation_id: &'static str,
         path: &'static str,
     ) -> crate::RouteMetadata {
-        crate::RouteMetadata::new(method.into(), operation_id.into(), path.into())
+        crate::RouteMetadata::new(method, operation_id.into(), path.into())
     }
 
     #[test]
     fn equal_metadata_satisfies_contract() {
         let metadata = metadata(
-            str_constants::GET,
+            crate::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
@@ -209,7 +209,7 @@ mod tests {
     fn typed_route_is_the_contract_source_of_truth() {
         assert_eq!(
             super::validate_typed_route_contract::<ReadRoute>(metadata(
-                str_constants::GET,
+                crate::RouteMethod::Get,
                 str_constants::ROUTE_READ,
                 str_constants::ROUTE,
             )),
@@ -220,7 +220,7 @@ mod tests {
     #[test]
     fn http_fixture_checks_status_and_json_body() {
         let metadata = metadata(
-            str_constants::GET,
+            crate::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
@@ -244,12 +244,12 @@ mod tests {
     #[test]
     fn every_metadata_difference_is_reported() {
         let expected = metadata(
-            str_constants::GET,
+            crate::RouteMethod::Get,
             str_constants::ROUTE_READ,
             str_constants::ROUTE,
         );
         let observed = metadata(
-            str_constants::POST,
+            crate::RouteMethod::Post,
             str_constants::ADMIN_ALT,
             str_constants::NOT_AN_API_ROUTE,
         );

@@ -29,9 +29,10 @@ pub use problem::{
     ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, CoveredRoute, PublicTransport, RouteFamily, RouteMetadata,
-    RouteRequest, RouteResponse, RouteTransport, TypedRoute, client_request, client_route_metadata,
-    openapi_route_metadata, server_response, server_route_metadata, typed_route_path,
+    AuthenticatedTransport, CoveredRoute, PublicTransport, RouteBodyLimit, RouteFamily,
+    RouteMetadata, RouteMethod, RouteRequest, RouteResponse, RouteTransport, TypedRoute,
+    client_request, client_route_metadata, openapi_route_metadata, server_response,
+    server_route_metadata, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,

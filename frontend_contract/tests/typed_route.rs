@@ -10,7 +10,7 @@ mod tests {
     #[derive(frontend_contract::TypedRoute)]
     #[typed_route(
         access = frontend_contract::RouteAccess::Public,
-        method = str_constants::GET,
+        method = frontend_contract::RouteMethod::Get,
         mutation = frontend_contract::RouteMutation::ReadOnly,
         obligations = &[
             frontend_contract::RouteCoverageObligation::IntegrationFixture,
@@ -46,6 +46,14 @@ mod tests {
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
+        );
+    }
+    #[test]
+    fn route_family_metadata_comes_from_the_typed_routes() {
+        let metadata = <TestRouteFamily as frontend_contract::RouteFamily>::route_metadata();
+        assert_eq!(
+            metadata,
+            vec![frontend_contract::client_route_metadata::<TestRoute>()]
         );
     }
 }

@@ -83,6 +83,9 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
+    #[bounded_string(max = 3usize, validator = validate_lowercase_ascii)]
+    struct ValidatedValue(String);
     #[derive(
         Debug, Clone, newtype::Display, newtype::FromInner, newtype::IntoInner, newtype::ToTokens,
     )]
@@ -124,6 +127,9 @@ mod tests {
         } else {
             Ok(())
         }
+    }
+    fn validate_lowercase_ascii(value: &str) -> bool {
+        value.bytes().all(|byte| byte.is_ascii_lowercase())
     }
     #[allow(dead_code)]
     fn dependency_markers(
@@ -285,6 +291,17 @@ mod tests {
                 RichValue::try_from(value).is_ok() == expected_ok
             });
         assert!(all_match);
+    }
+    #[test]
+    fn bounded_string_custom_validator_is_applied() {
+        assert_eq!(
+            ValidatedValue::try_from(String::from(str_constants::ABC_ALT_3)),
+            Ok(ValidatedValue(String::from(str_constants::ABC_ALT_3)))
+        );
+        assert!(matches!(
+            ValidatedValue::try_from(String::from(str_constants::GET)),
+            Err(ValidatedValueTryFromStringError::InvalidValue)
+        ));
     }
     #[test]
     fn token_impls_are_generated() {

@@ -1,6 +1,9 @@
 mod discovery;
 mod execution;
 mod reporting;
+const ADMIN_FIXTURE_ALPHA_DISPLAY_NAME: &str = "Alpha Operator";
+const ADMIN_FIXTURE_ALPHA_LOGIN: &str = "alpha";
+const ADMIN_FIXTURE_ROLE_NAME: &str = "administrator";
 const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
 const MEASURE_REPEAT_COUNT: usize = 1000;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
@@ -732,6 +735,132 @@ fn run_workspace_tests() -> Result<(), ()> {
         execution::run_commands(&CARGO_TEST_COMMANDS)
     }
 }
+fn admin_fixture_string<Value>(value: String) -> Result<Value, ()>
+where
+    Value: TryFrom<String>,
+    Value::Error: std::fmt::Display,
+{
+    Value::try_from(value).map_err(|error| {
+        eprintln!("{error}");
+    })
+}
+#[allow(
+    clippy::single_call_fn,
+    reason = "the command-mode facade keeps fixture generation out of main dispatch"
+)]
+fn write_admin_contract_fixture() -> Result<(), ()> {
+    macro_rules! fixture_json {
+        ($value:expr) => {
+            serde_json::to_value($value).map_err(|error| {
+                eprintln!("{error}");
+            })
+        };
+    }
+    let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+        .into_iter()
+        .map(|metadata| {
+            serde_json::json!([
+                metadata.openapi_operation_id().as_ref(),
+                metadata.method().as_ref(),
+                metadata.path().as_ref()
+            ])
+        })
+        .collect::<Vec<_>>();
+    let permissions = server_admin_contract::AdminPermission::ALL
+        .into_iter()
+        .map(|permission| serde_json::Value::String(permission.as_str().as_ref().to_owned()))
+        .collect::<Vec<_>>();
+    let permission_values = server_admin_contract::AdminPermission::ALL
+        .into_iter()
+        .map(|permission| {
+            admin_fixture_string::<server_admin_contract::AdminPermissionValue>(
+                permission.as_str().as_ref().to_owned(),
+            )
+        })
+        .collect::<Result<Vec<_>, ()>>()?;
+    let authenticated_admin = server_admin_contract::AuthenticatedAdmin::new(
+        admin_fixture_string::<server_admin_contract::AdminDisplayName>(String::from(
+            str_constants::ROOT_ADMIN,
+        ))?,
+        server_admin_contract::AdminUserId::from(1i64),
+        admin_fixture_string::<server_admin_contract::AdminLogin>(String::from(
+            str_constants::ROOT,
+        ))?,
+        permission_values.clone(),
+        vec![
+            admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
+                ADMIN_FIXTURE_ROLE_NAME,
+            ))?,
+        ],
+    );
+    let users = (0i64..25i64)
+        .map(|index| {
+            let number = index.checked_add(1i64).ok_or_else(|| {
+                eprintln!("administrator fixture user identifier overflow");
+            })?;
+            let is_alpha = index == 24i64;
+            Ok(server_admin_contract::AdminUserSummary::new(
+                admin_fixture_string::<server_admin_contract::AdminDisplayName>(if is_alpha {
+                    String::from(ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
+                } else {
+                    format!("User {number:02}")
+                })?,
+                server_admin_contract::AdminUserId::from(number),
+                server_admin_contract::AdminBool::from(index & 1i64 == 0i64),
+                admin_fixture_string::<server_admin_contract::AdminLogin>(if is_alpha {
+                    String::from(ADMIN_FIXTURE_ALPHA_LOGIN)
+                } else {
+                    format!("user_{number:02}")
+                })?,
+            ))
+        })
+        .collect::<Result<Vec<_>, ()>>()?;
+    let permission_summaries = permission_values
+        .into_iter()
+        .enumerate()
+        .map(|(index, permission)| {
+            let value = i64::try_from(index).map_err(|error| {
+                eprintln!("{error}");
+            })?;
+            let identifier = value.checked_add(1i64).ok_or_else(|| {
+                eprintln!("administrator fixture permission identifier overflow");
+            })?;
+            Ok(server_admin_contract::AdminPermissionSummary::new(
+                server_admin_contract::AdminPermissionId::from(identifier),
+                permission,
+            ))
+        })
+        .collect::<Result<Vec<_>, ()>>()?;
+    let audit = Vec::<server_admin_contract::AdminAuditView>::new();
+    let fixture = serde_json::to_vec_pretty(&serde_json::json!([
+        routes,
+        permissions,
+        fixture_json!(&authenticated_admin)?,
+        fixture_json!(&users)?,
+        fixture_json!(&permission_summaries)?,
+        fixture_json!(&audit)?,
+        fixture_json!(&server_admin_contract::AdminNoBody)?,
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
+            .map(frontend_contract::RouteBodyLimit::get),
+    ]))
+    .map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let Some(workspace_root) = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent() else {
+        return Err(());
+    };
+    let target = workspace_root.join(str_constants::TARGET);
+    std::fs::create_dir_all(target.as_path()).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    std::fs::write(
+        target.join(str_constants::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE),
+        fixture,
+    )
+    .map_err(|error| {
+        eprintln!("{error}");
+    })
+}
 fn main() {
     let mode = discovery::mode();
     let result = match mode.as_deref() {
@@ -765,6 +894,9 @@ fn main() {
         Some(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD) => {
             run_alloc_workload_generate_pg_types_src();
             Ok(())
+        }
+        Some(str_constants::WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE) => {
+            write_admin_contract_fixture()
         }
         Some(str_constants::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD) => {
             run_alloc_workload_pg_crud_common_query_part()

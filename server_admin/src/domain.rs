@@ -117,7 +117,14 @@ pub struct AdminPermissionName(pub(super) super::AdminPermission);
     newtype::AsRefOwned,
 )]
 #[serde(try_from = "String")]
-#[bounded_string(max = 128, chars, description = "administrator login", utoipa)]
+#[bounded_string(
+    max = server_admin_contract::ADMIN_LOGIN_MAX_CHARS,
+    min = server_admin_contract::ADMIN_LOGIN_MIN_CHARS,
+    chars,
+    description = "administrator login",
+    utoipa,
+    validator = server_admin_contract::admin_login_is_valid
+)]
 pub struct AdminLogin(pub(super) String);
 #[derive(
     Debug,
@@ -130,7 +137,14 @@ pub struct AdminLogin(pub(super) String);
     newtype::AsRefOwned,
 )]
 #[serde(try_from = "String")]
-#[bounded_string(max = 256, chars, description = "administrator display name", utoipa)]
+#[bounded_string(
+    max = server_admin_contract::ADMIN_DISPLAY_NAME_MAX_CHARS,
+    min = server_admin_contract::ADMIN_DISPLAY_NAME_MIN_CHARS,
+    chars,
+    description = "administrator display name",
+    utoipa,
+    validator = server_admin_contract::admin_display_name_is_valid
+)]
 pub struct AdminDisplayName(pub(super) String);
 #[derive(
     Debug,
@@ -143,5 +157,12 @@ pub struct AdminDisplayName(pub(super) String);
     newtype::AsRefOwned,
 )]
 #[serde(try_from = "String")]
-#[bounded_string(max = 128, chars, description = "administrator role name", utoipa)]
+#[bounded_string(
+    max = server_admin_contract::ADMIN_ROLE_NAME_MAX_CHARS,
+    min = server_admin_contract::ADMIN_ROLE_NAME_MIN_CHARS,
+    chars,
+    description = "administrator role name",
+    utoipa,
+    validator = server_admin_contract::admin_role_name_is_valid
+)]
 pub struct AdminRoleName(pub(super) String);

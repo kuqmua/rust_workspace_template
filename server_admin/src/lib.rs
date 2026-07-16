@@ -15,6 +15,7 @@ pub use domain::{
     StdAdminNonZeroUsize, StdAdminSocketAddr, StdAdminStrRef, StdAdminString, UuidAdminValue,
 };
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
+pub use server_admin_contract::{AdminPermission, AdminPermissionTryFromStrError};
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
@@ -36,8 +37,8 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
             str_constants::ADMINPASSWORD,
             utoipa::openapi::ObjectBuilder::new()
                 .schema_type(utoipa::openapi::schema::SchemaType::String)
-                .min_length(Some(1usize))
-                .max_length(Some(1024usize))
+                .min_length(Some(server_admin_contract::ADMIN_PASSWORD_MIN_CHARS))
+                .max_length(Some(server_admin_contract::ADMIN_PASSWORD_MAX_CHARS))
                 .write_only(Some(true))
                 .build()
                 .into(),
@@ -50,7 +51,11 @@ impl<'de> serde::Deserialize<'de> for AdminPassword {
         Deserializer: serde::Deserializer<'de>,
     {
         let value = <String as serde::Deserialize>::deserialize(deserializer)?;
-        if value.is_empty() || value.len() > 1024usize {
+        let len = value.chars().count();
+        if !(server_admin_contract::ADMIN_PASSWORD_MIN_CHARS
+            ..=server_admin_contract::ADMIN_PASSWORD_MAX_CHARS)
+            .contains(&len)
+        {
             return Err(serde::de::Error::custom(
                 str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID,
             ));
@@ -335,31 +340,6 @@ pub fn decode_access_token(
 ) -> Result<AdminAccessClaims, AdminAccessTokenError> {
     token::decode_access_token(token, secret, issuer, audience)
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, utoipa::ToSchema, optml::Optml)]
-pub enum AdminPermission {
-    AuditLogRead,
-    MetricsRead,
-    OpenApiRead,
-    PermissionsRead,
-    RolePermissionsCreate,
-    RolePermissionsDelete,
-    RolePermissionsRead,
-    RolePermissionsUpdate,
-    RolesCreate,
-    RolesDelete,
-    RolesRead,
-    RolesUpdate,
-    SystemSettingsRead,
-    SystemSettingsUpdate,
-    UserRolesCreate,
-    UserRolesDelete,
-    UserRolesRead,
-    UserRolesUpdate,
-    UsersCreate,
-    UsersDelete,
-    UsersRead,
-    UsersUpdate,
-}
 #[derive(
     Debug,
     Clone,
@@ -400,16 +380,18 @@ pub enum AdminAuditResource {
     SystemSettings,
     User,
 }
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("unknown administrator permission: {value:?}")]
-pub struct AdminPermissionTryFromStrError {
-    value: StdAdminString,
-}
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminMigrateError(sqlx::migrate::MigrateError);
 #[derive(Debug, thiserror::Error)]
-#[error("failed to migrate administrator schema: {0:?}")]
-pub struct AdminMigrateError(SqlxAdminMigrateError);
+enum AdminMigrateErrorInner {
+    #[error("migration failed: {0:?}")]
+    Migration(SqlxAdminMigrateError),
+    #[error("permission reconciliation failed: {0:?}")]
+    Reconciliation(SqlxAdminError),
+}
+#[derive(Debug, thiserror::Error)]
+#[error("failed to prepare administrator schema: {0}")]
+pub struct AdminMigrateError(AdminMigrateErrorInner);
 pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateError> {
     migrations::prep_pg(pool).await
 }
@@ -639,9 +621,9 @@ mod tests {
     }
     #[test]
     fn unknown_permission_is_rejected() {
-        drop(
-            super::AdminPermission::try_from(str_constants::UNKNOWN_READ)
-                .expect_err(str_constants::B482B167),
+        assert_eq!(
+            super::AdminPermission::try_from(str_constants::UNKNOWN_READ).err(),
+            Some(super::AdminPermissionTryFromStrError)
         );
     }
     #[test]
@@ -662,6 +644,18 @@ mod tests {
             migrations
                 .iter()
                 .any(|migration| migration.description == "admin session context")
+        );
+    }
+    #[test]
+    fn permission_seed_contains_the_complete_typed_catalog() {
+        let migration = super::migrations::migrator()
+            .iter()
+            .find(|migration| migration.description == "admin permissions")
+            .expect("c5f1d8a4");
+        assert!(
+            super::AdminPermission::ALL
+                .into_iter()
+                .all(|permission| { migration.sql.contains(permission.as_str().as_ref()) })
         );
     }
     #[tokio::test]
@@ -749,13 +743,11 @@ mod tests {
     fn bootstrap_login_format_accepts_only_database_compatible_values() {
         let valid =
             super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("078c759d");
-        let uppercase =
-            super::AdminLogin::try_from(str_constants::ADMIN.to_owned()).expect("a164aedd");
-        let too_short =
-            super::AdminLogin::try_from(str_constants::AB.to_owned()).expect("735a2858");
-        assert!(super::migrations::admin_login_has_valid_format(&valid).0);
-        assert!(!super::migrations::admin_login_has_valid_format(&uppercase).0);
-        assert!(!super::migrations::admin_login_has_valid_format(&too_short).0);
+        assert_eq!(valid.as_ref(), str_constants::ADMIN_USER_1);
+        let _uppercase_error =
+            super::AdminLogin::try_from(str_constants::ADMIN.to_owned()).expect_err("5fa1c6e2");
+        let _short_error =
+            super::AdminLogin::try_from(str_constants::AB.to_owned()).expect_err("b78d42a9");
     }
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {

@@ -249,7 +249,7 @@ pub fn validate_route_coverage(
 mod tests {
     fn metadata() -> crate::RouteMetadata {
         crate::RouteMetadata::new(
-            str_constants::POST.into(),
+            crate::RouteMethod::Post,
             str_constants::ROUTE_READ.into(),
             str_constants::ROUTE.into(),
         )

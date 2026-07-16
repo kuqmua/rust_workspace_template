@@ -53,7 +53,7 @@ fn admin_new_password_from_contract(
         server_runtime::PasswordTextRef::from(raw_value.as_str()),
         server_runtime::PasswordLengthRange::from_prevalidated(
             server_runtime::PasswordLength::from(12usize),
-            server_runtime::PasswordLength::from(1024usize),
+            server_runtime::PasswordLength::from(server_admin_contract::ADMIN_PASSWORD_MAX_CHARS),
         ),
     )
     .map_err(|_error| AdminApiError::Validation)?;
@@ -401,7 +401,7 @@ pub async fn authorize_generated_request(
     state: &AdminAuthSvcState,
     headers: super::HttpAdminHeaderMapRef<'_>,
     peer: AdminPeerAddr,
-    permission: super::StdAdminStrRef<'_>,
+    permission: server_admin_contract::AdminPermissionStrRef<'_>,
     mutates: super::StdAdminBool,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
     let authenticated = authenticate(state, headers, peer).await?;

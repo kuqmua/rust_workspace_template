@@ -7,22 +7,33 @@ pub(super) const fn migrator() -> &'static sqlx::migrate::Migrator {
 pub(super) async fn prep_pg(
     pool: app_state::SqlxPgPoolRef<'_>,
 ) -> Result<(), super::AdminMigrateError> {
-    ADMIN_MIGRATOR
-        .run(pool.as_ref())
+    ADMIN_MIGRATOR.run(pool.as_ref()).await.map_err(|error| {
+        super::AdminMigrateError(super::AdminMigrateErrorInner::Migration(
+            super::SqlxAdminMigrateError::from(error),
+        ))
+    })?;
+    let permission_names = server_admin_contract::AdminPermission::ALL
+        .into_iter()
+        .map(|permission| permission.as_str().as_ref().to_owned())
+        .collect::<Vec<_>>();
+    let _permission_result = sqlx::query(str_constants::RECONCILE_ADMIN_PERMISSIONS_SQL)
+        .bind(permission_names)
+        .execute(pool.as_ref())
         .await
-        .map_err(|error| super::AdminMigrateError(super::SqlxAdminMigrateError::from(error)))
-}
-#[allow(clippy::single_call_fn)] // shared validator keeps bootstrap behavior directly unit-testable and aligned with the database constraint
-pub(super) fn admin_login_has_valid_format(login: &super::AdminLogin) -> super::StdAdminBool {
-    let value: &String = login.as_ref();
-    super::StdAdminBool::from(
-        value.len() >= 3
-            && value.bytes().all(|byte| {
-                byte.is_ascii_lowercase()
-                    || byte.is_ascii_digit()
-                    || matches!(byte, b'_' | b'.' | b'-')
-            }),
-    )
+        .map_err(|error| {
+            super::AdminMigrateError(super::AdminMigrateErrorInner::Reconciliation(
+                super::SqlxAdminError::from(error),
+            ))
+        })?;
+    let _role_permission_result = sqlx::query(str_constants::RECONCILE_ADMIN_ROLE_PERMISSIONS_SQL)
+        .execute(pool.as_ref())
+        .await
+        .map_err(|error| {
+            super::AdminMigrateError(super::AdminMigrateErrorInner::Reconciliation(
+                super::SqlxAdminError::from(error),
+            ))
+        })?;
+    Ok(())
 }
 pub(super) async fn bootstrap_admin(
     pool: app_state::SqlxPgPoolRef<'_>,
@@ -31,12 +42,6 @@ pub(super) async fn bootstrap_admin(
     password: super::AdminPassword,
     password_hasher: &super::AdminPasswordHasher,
 ) -> Result<super::AdminUserId, super::AdminBootstrapError> {
-    if !admin_login_has_valid_format(&login).0 {
-        return Err(super::AdminBootstrapError::InvalidLogin);
-    }
-    if display_name.as_ref().trim().is_empty() {
-        return Err(super::AdminBootstrapError::EmptyDisplayName);
-    }
     let password_hash = password_hasher
         .hash(password)
         .await

@@ -540,7 +540,7 @@ mod tests {
             str_constants::COMPONENTS: { str_constants::SCHEMAS: { str_constants::TEST_OPENAPI_SCHEMA: { str_constants::JSON_TYPE: str_constants::OBJECT }}}
         });
         let routes = [crate::RouteMetadata::new(
-            str_constants::GET.into(),
+            crate::RouteMethod::Get,
             str_constants::TEST_OPENAPI_OPERATION_ID.into(),
             str_constants::TEST_OPENAPI_PATH.into(),
         )];
@@ -576,7 +576,7 @@ mod tests {
         });
         let expectation = super::OpenApiOperationExpectation::new(
             crate::RouteMetadata::new(
-                str_constants::GET.into(),
+                crate::RouteMethod::Get,
                 str_constants::TEST_OPENAPI_OPERATION_ID.into(),
                 str_constants::TEST_OPENAPI_PATH.into(),
             ),

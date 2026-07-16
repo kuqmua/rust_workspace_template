@@ -6,15 +6,43 @@ pub struct AuthenticatedTransport;
 impl RouteTransport for PublicTransport {}
 impl RouteTransport for AuthenticatedTransport {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteMethod {
+    Connect,
+    Delete,
+    Get,
+    Head,
+    Options,
+    Patch,
+    Post,
+    Put,
+    Trace,
+}
+impl RouteMethod {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Connect => str_constants::CONNECT,
+            Self::Delete => str_constants::DELETE,
+            Self::Get => str_constants::GET,
+            Self::Head => str_constants::HEAD,
+            Self::Options => str_constants::OPTIONS,
+            Self::Patch => str_constants::PATCH,
+            Self::Post => str_constants::POST,
+            Self::Put => str_constants::PUT,
+            Self::Trace => str_constants::TRACE,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
-    method: crate::ContractStr,
+    method: RouteMethod,
     openapi_operation_id: crate::ContractStr,
     path: crate::ContractStr,
 }
 impl RouteMetadata {
     #[must_use]
     pub const fn new(
-        method: crate::ContractStr,
+        method: RouteMethod,
         openapi_operation_id: crate::ContractStr,
         path: crate::ContractStr,
     ) -> Self {
@@ -25,7 +53,11 @@ impl RouteMetadata {
         }
     }
     #[must_use]
-    pub const fn method(self) -> crate::ContractStr {
+    pub fn method(self) -> crate::ContractStr {
+        crate::ContractStr::from(self.method.as_str())
+    }
+    #[must_use]
+    pub const fn route_method(self) -> RouteMethod {
         self.method
     }
     #[must_use]
@@ -46,8 +78,31 @@ pub trait TypedRoute: Sized {
 pub trait CoveredRoute: TypedRoute {
     fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RouteBodyLimit(usize);
+impl RouteBodyLimit {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
+    }
+}
+impl From<usize> for RouteBodyLimit {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 pub trait RouteFamily {
+    #[must_use]
+    fn body_limit() -> Option<RouteBodyLimit> {
+        None
+    }
     fn coverage_descriptors() -> Vec<crate::RouteCoverageDescriptor>;
+    fn route_metadata() -> Vec<RouteMetadata> {
+        Self::coverage_descriptors()
+            .into_iter()
+            .map(crate::RouteCoverageDescriptor::metadata)
+            .collect()
+    }
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteRequest<Route>
@@ -140,7 +195,7 @@ mod tests {
         type Transport = super::PublicTransport;
         fn metadata() -> super::RouteMetadata {
             super::RouteMetadata::new(
-                crate::ContractStr::from(str_constants::GET),
+                super::RouteMethod::Get,
                 crate::ContractStr::from(str_constants::ROUTE_READ),
                 crate::ContractStr::from(str_constants::ROUTE),
             )

@@ -5008,6 +5008,43 @@ pub fn generate_pg_types(
             pg_crud_macros_common::IsNullable::False => quote::quote! {frontend_contract::Nullability::NonNullable},
             pg_crud_macros_common::IsNullable::True => quote::quote! {frontend_contract::Nullability::Nullable},
         };
+        let db_nullable = matches!(is_nullable, pg_crud_macros_common::IsNullable::True);
+        let db_data_type = match pg_type {
+            PgType::I16AsSmallSerialInitializationByPg => str_constants::PG_CRUD_PG_INT2,
+            PgType::I32AsSerialInitializationByPg => str_constants::PG_CRUD_PG_INT4,
+            PgType::I64AsBigSerialInitializationByPg => str_constants::PG_CRUD_PG_INT8,
+            PgType::BoolAsBool
+            | PgType::F32AsFloat4
+            | PgType::F64AsFloat8
+            | PgType::I16AsInt2
+            | PgType::I32AsInt4
+            | PgType::I64AsInt8
+            | PgType::SqlxPgTypesPgIntervalAsInterval
+            | PgType::SqlxPgTypesPgMoneyAsMoney
+            | PgType::SqlxPgTypesPgRangeI32AsInt4Range
+            | PgType::SqlxPgTypesPgRangeI64AsInt8Range
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
+            | PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+            | PgType::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
+            | PgType::SqlxTypesChronoNaiveDateAsDate
+            | PgType::SqlxTypesChronoNaiveDateTimeAsTimestamp
+            | PgType::SqlxTypesChronoNaiveTimeAsTime
+            | PgType::SqlxTypesIpnetworkIpNetworkAsInet
+            | PgType::SqlxTypesMacAddressMacAddressAsMacAddr
+            | PgType::SqlxTypesTimeTimeAsTime
+            | PgType::SqlxTypesUuidUuidAsUuidInitializationByClient
+            | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+            | PgType::StdVecVecU8AsBytea
+            | PgType::StringAsText => crate::catalog::pg_name(pg_type_dsc),
+        };
+        let db_has_server_default = matches!(
+            pg_type,
+            PgType::I16AsSmallSerialInitializationByPg
+                | PgType::I32AsSerialInitializationByPg
+                | PgType::I64AsBigSerialInitializationByPg
+                | PgType::SqlxTypesUuidUuidAsUuidV4InitializationByPg
+        );
         let (frontend_input_kind_token_stream, frontend_value_format_token_stream, frontend_step_token_stream, frontend_example_token_stream) = match crate::rust_type::wire_kind(pg_type_dsc) {
             WireKind::Bool => (quote::quote! {frontend_contract::InputKind::Checkbox}, quote::quote! {frontend_contract::ValueFormat::Bool}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Boolean}),
             WireKind::Bytes => (quote::quote! {frontend_contract::InputKind::Text}, quote::quote! {frontend_contract::ValueFormat::Bytes}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Text}),
@@ -5039,6 +5076,13 @@ pub fn generate_pg_types(
                     .with_step(#frontend_step_token_stream)
                     .with_example(#frontend_example_token_stream)
                     #frontend_bounds_token_stream;
+            }
+        };
+        let impl_pg_column_schema_token_stream = quote::quote! {
+            impl pg_crud_common::PgColumnSchema for #identifier {
+                const DATA_TYPE: &'static str = #db_data_type;
+                const HAS_SERVER_DEFAULT: bool = #db_has_server_default;
+                const NULLABLE: bool = #db_nullable;
             }
         };
         let frontend_time_json_token_stream = |time_value_token_stream: &dyn quote::ToTokens, minute_name, second_name, microsecond_name| {
@@ -5161,6 +5205,7 @@ pub fn generate_pg_types(
             #maybe_impl_pg_type_primary_key_for_identifier_standard_non_null_if_can_be_primary_key_token_stream
             #maybe_impl_pg_type_not_primary_key_for_identifier_token_stream
             #impl_frontend_type_contract_token_stream
+            #impl_pg_column_schema_token_stream
             #impl_frontend_form_value_contract_token_stream
         };
         (

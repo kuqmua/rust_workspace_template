@@ -1,4 +1,35 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // DTO implementations keep constructors adjacent to their accessors and route metadata grouped by concern
+pub const ADMIN_DISPLAY_NAME_MAX_CHARS: usize = 256usize;
+pub const ADMIN_DISPLAY_NAME_MIN_CHARS: usize = 1usize;
+pub const ADMIN_LOGIN_MAX_CHARS: usize = 128usize;
+pub const ADMIN_LOGIN_MIN_CHARS: usize = 3usize;
+pub const ADMIN_PASSWORD_MAX_CHARS: usize = 1024usize;
+pub const ADMIN_PASSWORD_MIN_CHARS: usize = 1usize;
+pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
+pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminApiBodyMaxBytes(usize);
+impl AdminApiBodyMaxBytes {
+    #[must_use]
+    pub const fn get(self) -> usize {
+        self.0
+    }
+}
+pub const ADMIN_API_BODY_MAX_BYTES: AdminApiBodyMaxBytes = AdminApiBodyMaxBytes(65_536usize);
+#[must_use]
+pub fn admin_display_name_is_valid(value: &str) -> bool {
+    value.trim() == value
+}
+#[must_use]
+pub fn admin_login_is_valid(value: &str) -> bool {
+    value.bytes().all(|byte| {
+        byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'.' | b'-')
+    })
+}
+#[must_use]
+pub fn admin_role_name_is_valid(value: &str) -> bool {
+    admin_login_is_valid(value)
+}
 #[derive(
     Clone,
     Debug,
@@ -27,7 +58,15 @@ pub struct AdminText(String);
     newtype::Display,
     newtype::IntoInner,
 )]
-#[bounded_string(max = 128, chars, serde, utoipa, description = "administrator login")]
+#[bounded_string(
+    max = ADMIN_LOGIN_MAX_CHARS,
+    min = ADMIN_LOGIN_MIN_CHARS,
+    chars,
+    serde,
+    utoipa,
+    validator = admin_login_is_valid,
+    description = "administrator login"
+)]
 pub struct AdminLogin(String);
 #[derive(
     Clone,
@@ -40,10 +79,12 @@ pub struct AdminLogin(String);
     newtype::IntoInner,
 )]
 #[bounded_string(
-    max = 256,
+    max = ADMIN_DISPLAY_NAME_MAX_CHARS,
+    min = ADMIN_DISPLAY_NAME_MIN_CHARS,
     chars,
     serde,
     utoipa,
+    validator = admin_display_name_is_valid,
     description = "administrator display name"
 )]
 pub struct AdminDisplayName(String);
@@ -58,10 +99,12 @@ pub struct AdminDisplayName(String);
     newtype::IntoInner,
 )]
 #[bounded_string(
-    max = 128,
+    max = ADMIN_ROLE_NAME_MAX_CHARS,
+    min = ADMIN_ROLE_NAME_MIN_CHARS,
     chars,
     serde,
     utoipa,
+    validator = admin_role_name_is_valid,
     description = "administrator role name"
 )]
 pub struct AdminRoleName(String);
@@ -75,8 +118,8 @@ pub struct AdminRoleName(String);
     newtype::IntoInner,
 )]
 #[bounded_string(
-    max = 1024usize,
-    min = 1usize,
+    max = ADMIN_PASSWORD_MAX_CHARS,
+    min = ADMIN_PASSWORD_MIN_CHARS,
     chars,
     serde,
     utoipa,
@@ -101,6 +144,124 @@ pub struct AdminPassword(String);
     description = "administrator permission"
 )]
 pub struct AdminPermissionValue(String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+pub struct AdminPermissionStrRef<'value_lt>(&'value_lt str);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, utoipa::ToSchema)]
+pub enum AdminPermission {
+    AuditLogRead,
+    MetricsRead,
+    OpenApiRead,
+    PermissionsRead,
+    RolePermissionsCreate,
+    RolePermissionsDelete,
+    RolePermissionsRead,
+    RolePermissionsUpdate,
+    RolesCreate,
+    RolesDelete,
+    RolesRead,
+    RolesUpdate,
+    SystemSettingsRead,
+    SystemSettingsUpdate,
+    UserRolesCreate,
+    UserRolesDelete,
+    UserRolesRead,
+    UserRolesUpdate,
+    UsersCreate,
+    UsersDelete,
+    UsersRead,
+    UsersUpdate,
+}
+impl AdminPermission {
+    pub const ALL: [Self; 22] = [
+        Self::AuditLogRead,
+        Self::MetricsRead,
+        Self::OpenApiRead,
+        Self::PermissionsRead,
+        Self::RolePermissionsCreate,
+        Self::RolePermissionsDelete,
+        Self::RolePermissionsRead,
+        Self::RolePermissionsUpdate,
+        Self::RolesCreate,
+        Self::RolesDelete,
+        Self::RolesRead,
+        Self::RolesUpdate,
+        Self::SystemSettingsRead,
+        Self::SystemSettingsUpdate,
+        Self::UserRolesCreate,
+        Self::UserRolesDelete,
+        Self::UserRolesRead,
+        Self::UserRolesUpdate,
+        Self::UsersCreate,
+        Self::UsersDelete,
+        Self::UsersRead,
+        Self::UsersUpdate,
+    ];
+    #[must_use]
+    pub fn as_str(self) -> AdminPermissionStrRef<'static> {
+        AdminPermissionStrRef::from(match self {
+            Self::AuditLogRead => str_constants::ADMIN_PERMISSION_VALUES_AUDIT_LOG_READ,
+            Self::MetricsRead => str_constants::ADMIN_PERMISSION_VALUES_METRICS_READ,
+            Self::OpenApiRead => str_constants::ADMIN_PERMISSION_VALUES_OPEN_API_READ,
+            Self::PermissionsRead => str_constants::ADMIN_PERMISSION_VALUES_PERMISSIONS_READ,
+            Self::RolePermissionsCreate => {
+                str_constants::ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_CREATE
+            }
+            Self::RolePermissionsDelete => {
+                str_constants::ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_DELETE
+            }
+            Self::RolePermissionsRead => {
+                str_constants::ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_READ
+            }
+            Self::RolePermissionsUpdate => {
+                str_constants::ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_UPDATE
+            }
+            Self::RolesCreate => str_constants::ADMIN_PERMISSION_VALUES_ROLES_CREATE,
+            Self::RolesDelete => str_constants::ADMIN_PERMISSION_VALUES_ROLES_DELETE,
+            Self::RolesRead => str_constants::ADMIN_PERMISSION_VALUES_ROLES_READ,
+            Self::RolesUpdate => str_constants::ADMIN_PERMISSION_VALUES_ROLES_UPDATE,
+            Self::SystemSettingsRead => str_constants::ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_READ,
+            Self::SystemSettingsUpdate => {
+                str_constants::ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_UPDATE
+            }
+            Self::UserRolesCreate => str_constants::ADMIN_PERMISSION_VALUES_USER_ROLES_CREATE,
+            Self::UserRolesDelete => str_constants::ADMIN_PERMISSION_VALUES_USER_ROLES_DELETE,
+            Self::UserRolesRead => str_constants::ADMIN_PERMISSION_VALUES_USER_ROLES_READ,
+            Self::UserRolesUpdate => str_constants::ADMIN_PERMISSION_VALUES_USER_ROLES_UPDATE,
+            Self::UsersCreate => str_constants::ADMIN_PERMISSION_VALUES_USERS_CREATE,
+            Self::UsersDelete => str_constants::ADMIN_PERMISSION_VALUES_USERS_DELETE,
+            Self::UsersRead => str_constants::ADMIN_PERMISSION_VALUES_USERS_READ,
+            Self::UsersUpdate => str_constants::ADMIN_PERMISSION_VALUES_USERS_UPDATE,
+        })
+    }
+}
+impl serde::Serialize for AdminPermission {
+    fn serialize<Serializer>(
+        &self,
+        serializer: Serializer,
+    ) -> Result<Serializer::Ok, Serializer::Error>
+    where
+        Serializer: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str().as_ref())
+    }
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AdminPermissionTryFromStrError;
+impl std::fmt::Display for AdminPermissionTryFromStrError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION)
+    }
+}
+impl std::error::Error for AdminPermissionTryFromStrError {}
+impl TryFrom<&str> for AdminPermission {
+    type Error = AdminPermissionTryFromStrError;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::ALL
+            .into_iter()
+            .find(|permission| permission.as_str().as_ref() == value)
+            .ok_or(AdminPermissionTryFromStrError)
+    }
+}
 #[derive(
     Clone,
     Debug,
@@ -970,6 +1131,7 @@ pub struct AdminSettingsRoute;
 pub struct AdminUpdateSettingsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::RouteFamily)]
+#[route_family_body_limit(ADMIN_API_BODY_MAX_BYTES.get())]
 #[route_family(
     AdminSignInRoute,
     AdminRefreshRoute,
@@ -1495,6 +1657,11 @@ mod tests {
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
         );
+        assert_eq!(
+            <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
+                .map(frontend_contract::RouteBodyLimit::get),
+            Some(super::ADMIN_API_BODY_MAX_BYTES.get())
+        );
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {
@@ -1572,6 +1739,16 @@ mod tests {
         let password =
             super::AdminPassword::try_from(String::from(str_constants::SECRET)).expect("9f3f5164");
         assert!(!format!("{password:?}").contains("secret"));
+    }
+    #[test]
+    fn admin_domain_values_follow_database_compatible_policies() {
+        assert!(super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).is_ok());
+        assert!(super::AdminLogin::try_from(str_constants::ADMIN.to_owned()).is_err());
+        assert!(super::AdminLogin::try_from(str_constants::AB.to_owned()).is_err());
+        assert!(super::AdminDisplayName::try_from(str_constants::ADMIN.to_owned()).is_ok());
+        assert!(super::AdminDisplayName::try_from(str_constants::SPACE.to_owned()).is_err());
+        assert!(super::AdminRoleName::try_from(str_constants::ADMIN_ALT.to_owned()).is_ok());
+        assert!(super::AdminRoleName::try_from(str_constants::ADMIN.to_owned()).is_err());
     }
     #[test]
     fn audit_details_enforce_serialized_byte_limit() {

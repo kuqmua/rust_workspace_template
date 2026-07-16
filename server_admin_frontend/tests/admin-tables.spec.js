@@ -1,26 +1,29 @@
 const { test, expect } = require('@playwright/test');
+const [
+  routeCatalog,
+  permissionCatalog,
+  authenticatedAdmin,
+  users,
+  permissions,
+  auditLog,
+  noBody,
+] = require('../../target/admin_contract_fixture.json');
 
-const users = Array.from({ length: 25 }, (_, index) => ({
-  display_name: index === 24 ? 'Alpha Operator' : `User ${String(index + 1).padStart(2, '0')}`,
-  id: index + 1,
-  is_banned: index % 2 === 0,
-  login: index === 24 ? 'alpha' : `user_${String(index + 1).padStart(2, '0')}`,
-}));
+const apiRoute = (operationId) => {
+  const route = routeCatalog.find(([candidate]) => candidate === operationId);
+  if (!route) throw new Error(`missing generated route fixture for ${operationId}`);
+  return `/api/v1/admin${route[2]}`;
+};
+const apiRouteGlob = (operationId) => `**${apiRoute(operationId)}`;
 
 test.beforeEach(async ({ page }) => {
-  await page.route('**/api/v1/admin/auth/me', async (route) => {
+  await page.route(apiRouteGlob('me'), async (route) => {
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({
-        display_name: 'Root Admin',
-        id: 1,
-        login: 'root',
-        permissions: ['users:read', 'permissions:read', 'audit_log:read', 'openapi:read'],
-        roles: ['administrator'],
-      }),
+      body: JSON.stringify(authenticatedAdmin),
     });
   });
-  await page.route('**/api/v1/admin/users', async (route) => {
+  await page.route(apiRouteGlob('list_users'), async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify(users) });
   });
   await page.route('**/api/v1/admin/openapi.json', async (route) => {
@@ -29,11 +32,11 @@ test.beforeEach(async ({ page }) => {
       body: JSON.stringify({ openapi: '3.1.0', paths: { '/users': { get: {} } } }),
     });
   });
-  await page.route('**/api/v1/admin/permissions', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  await page.route(apiRouteGlob('list_permissions'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(permissions) });
   });
-  await page.route('**/api/v1/admin/audit-log', async (route) => {
-    await route.fulfill({ contentType: 'application/json', body: '[]' });
+  await page.route(apiRouteGlob('audit_log'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(auditLog) });
   });
 });
 
@@ -41,7 +44,7 @@ test('sign-in renders without starting authenticated resources', async ({ page }
   const authenticatedRequests = [];
   const pageErrors = [];
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/admin/auth/me')) authenticatedRequests.push(request.url());
+    if (request.url().includes(apiRoute('me'))) authenticatedRequests.push(request.url());
   });
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
@@ -59,10 +62,10 @@ test('sign-in renders without starting authenticated resources', async ({ page }
 });
 
 test('expired access session is refreshed without returning to sign-in', async ({ page }) => {
-  await page.unroute('**/api/v1/admin/auth/me');
+  await page.unroute(apiRouteGlob('me'));
   let meRequests = 0;
   let refreshRequests = 0;
-  await page.route('**/api/v1/admin/auth/me', async (route) => {
+  await page.route(apiRouteGlob('me'), async (route) => {
     meRequests += 1;
     if (meRequests === 1) {
       await route.fulfill({ status: 401, contentType: 'application/problem+json', body: '{}' });
@@ -70,18 +73,12 @@ test('expired access session is refreshed without returning to sign-in', async (
     }
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({
-        display_name: 'Root Admin',
-        id: 1,
-        login: 'root',
-        permissions: ['users:read'],
-        roles: ['administrator'],
-      }),
+      body: JSON.stringify(authenticatedAdmin),
     });
   });
-  await page.route('**/api/v1/admin/auth/refresh', async (route) => {
+  await page.route(apiRouteGlob('refresh'), async (route) => {
     refreshRequests += 1;
-    await route.fulfill({ contentType: 'application/json', body: '{}' });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(noBody) });
   });
 
   await page.goto('/admin/users');
@@ -94,8 +91,8 @@ test('expired access session is refreshed without returning to sign-in', async (
 });
 
 test('temporary session check failure does not discard authentication', async ({ page }) => {
-  await page.unroute('**/api/v1/admin/auth/me');
-  await page.route('**/api/v1/admin/auth/me', async (route) => {
+  await page.unroute(apiRouteGlob('me'));
+  await page.route(apiRouteGlob('me'), async (route) => {
     await route.fulfill({
       status: 503,
       contentType: 'application/problem+json',
@@ -154,7 +151,7 @@ test('users permissions and audit keep one header layout and session', async ({ 
   let apiRequests = 0;
   page.on('request', (request) => {
     if (request.url().includes('/api/v1/admin/')) apiRequests += 1;
-    if (request.url().includes('/api/v1/admin/auth/me')) meRequests += 1;
+    if (request.url().includes(apiRoute('me'))) meRequests += 1;
   });
 
   await page.goto('/admin/users');
@@ -184,10 +181,10 @@ test('users permissions and audit keep one header layout and session', async ({ 
 });
 
 test('a stale page response cannot replace the latest navigation', async ({ page }) => {
-  await page.unroute('**/api/v1/admin/permissions');
-  await page.route('**/api/v1/admin/permissions', async (route) => {
+  await page.unroute(apiRouteGlob('list_permissions'));
+  await page.route(apiRouteGlob('list_permissions'), async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    await route.fulfill({ contentType: 'application/json', body: '[]' });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(permissions) });
   });
 
   await page.goto('/admin/users');
@@ -200,27 +197,27 @@ test('a stale page response cannot replace the latest navigation', async ({ page
 });
 
 test('concurrent unauthorized requests join one refresh without freezing', async ({ page }) => {
-  await page.unroute('**/api/v1/admin/users');
-  await page.unroute('**/api/v1/admin/permissions');
+  await page.unroute(apiRouteGlob('list_users'));
+  await page.unroute(apiRouteGlob('list_permissions'));
   let userRequests = 0;
   let permissionRequests = 0;
   let refreshRequests = 0;
-  await page.route('**/api/v1/admin/users', async (route) => {
+  await page.route(apiRouteGlob('list_users'), async (route) => {
     userRequests += 1;
     await route.fulfill(userRequests === 1
       ? { status: 401, contentType: 'application/problem+json', body: '{}' }
       : { contentType: 'application/json', body: JSON.stringify(users) });
   });
-  await page.route('**/api/v1/admin/permissions', async (route) => {
+  await page.route(apiRouteGlob('list_permissions'), async (route) => {
     permissionRequests += 1;
     await route.fulfill(permissionRequests === 1
       ? { status: 401, contentType: 'application/problem+json', body: '{}' }
-      : { contentType: 'application/json', body: '[]' });
+      : { contentType: 'application/json', body: JSON.stringify(permissions) });
   });
-  await page.route('**/api/v1/admin/auth/refresh', async (route) => {
+  await page.route(apiRouteGlob('refresh'), async (route) => {
     refreshRequests += 1;
     await new Promise((resolve) => setTimeout(resolve, 100));
-    await route.fulfill({ contentType: 'application/json', body: '{}' });
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify(noBody) });
   });
 
   await page.goto('/admin/users');

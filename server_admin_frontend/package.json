@@ -2,7 +2,7 @@
   "name": "server-admin-frontend-tests",
   "private": true,
   "scripts": {
-    "test": "playwright test"
+    "test": "cargo run -p workspace_test_runner -- admin-contract-fixture && playwright test"
   },
   "devDependencies": {
     "@playwright/test": "1.61.0"

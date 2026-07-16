@@ -24,6 +24,7 @@ struct BoundedStringAttrs {
     max: Option<SynExpr>,
     min: Option<SynExpr>,
     options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
+    validator: Option<SynExpr>,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum BoundedStringOption {
@@ -870,6 +871,7 @@ fn generate_bounded_string_token_stream(
         max: max_option,
         min,
         options,
+        validator,
     } = attrs;
     let max = max_option.ok_or_else(|| {
         syn::Error::new(
@@ -901,6 +903,13 @@ fn generate_bounded_string_token_stream(
         quote::quote! {
             if value.contains('\0') {
                 return Err(Self::Error::ContainsNul);
+            }
+        }
+    });
+    let validator_check_token_stream = validator.map(|validator_expression| {
+        quote::quote! {
+                if !(#validator_expression)(&value) {
+                return Err(Self::Error::InvalidValue);
             }
         }
     });
@@ -961,6 +970,7 @@ fn generate_bounded_string_token_stream(
             TooShort { len: usize, min: usize },
             TooLong { len: usize, max: usize },
             ContainsNul,
+            InvalidValue,
         }
         impl std::fmt::Display for #error_identifier {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -975,6 +985,7 @@ fn generate_bounded_string_token_stream(
                         write!(f, "{} length {len} exceeds maximum {max}", #description_token_stream)
                     }
                     Self::ContainsNul => write!(f, "{} contains a NUL character", #description_token_stream),
+                    Self::InvalidValue => write!(f, "{} has an invalid value", #description_token_stream),
                 }
             }
         }
@@ -1001,6 +1012,7 @@ fn generate_bounded_string_token_stream(
                         max: #max,
                     });
                 }
+                #validator_check_token_stream
                 Ok(Self(value))
             }
         }
@@ -1074,6 +1086,7 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                 max: None,
                 min: None,
                 options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+                validator: None,
             },
             |mut parsed, attr| {
                 attr.parse_nested_meta(|meta| {
@@ -1087,6 +1100,16 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
                     }
                     if meta.path.is_ident(str_constants::DESCRIPTION) {
                         parsed.description =
+                            Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                        return Ok(());
+                    }
+                    if meta.path.is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR) {
+                        if parsed.validator.is_some() {
+                            return Err(meta.error(
+                                str_constants::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE,
+                            ));
+                        }
+                        parsed.validator =
                             Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
                         return Ok(());
                     }

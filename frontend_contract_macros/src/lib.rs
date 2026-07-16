@@ -95,6 +95,10 @@ impl syn::parse::Parse for TypedRouteArgs {
 }
 
 #[proc_macro_derive(TypedRoute, attributes(typed_route))]
+#[allow(
+    clippy::wildcard_enum_match_arm,
+    reason = "typed route methods intentionally reject every current and future non-path expression"
+)]
 pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = match syn::parse::<syn::DeriveInput>(input) {
         Ok(value) => value,
@@ -117,7 +121,60 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Err(error) => return error.to_compile_error().into(),
     };
     let identifier = derive_input.ident;
-    let method = args.method.0;
+    let method = match args.method.0 {
+        syn::Expr::Path(path_expression) => {
+            match path_expression
+                .path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+            {
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::CONNECT) => {
+                    quote::quote!(frontend_contract::RouteMethod::Connect)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::DELETE) => {
+                    quote::quote!(frontend_contract::RouteMethod::Delete)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::GET) => {
+                    quote::quote!(frontend_contract::RouteMethod::Get)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::HEAD) => {
+                    quote::quote!(frontend_contract::RouteMethod::Head)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::OPTIONS) => {
+                    quote::quote!(frontend_contract::RouteMethod::Options)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::PATCH) => {
+                    quote::quote!(frontend_contract::RouteMethod::Patch)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::POST) => {
+                    quote::quote!(frontend_contract::RouteMethod::Post)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::PUT) => {
+                    quote::quote!(frontend_contract::RouteMethod::Put)
+                }
+                Some(method_name) if method_name.eq_ignore_ascii_case(str_constants::TRACE) => {
+                    quote::quote!(frontend_contract::RouteMethod::Trace)
+                }
+                _ => {
+                    return syn::Error::new_spanned(
+                        path_expression,
+                        str_constants::TYPED_ROUTE_METHOD_MUST_BE_STANDARD_HTTP_METHOD,
+                    )
+                    .to_compile_error()
+                    .into();
+                }
+            }
+        }
+        value => {
+            return syn::Error::new_spanned(
+                value,
+                str_constants::TYPED_ROUTE_METHOD_MUST_BE_STANDARD_HTTP_METHOD,
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
     let access = args.access.map_or_else(
         || quote::quote!(frontend_contract::RouteAccess::Public),
         |value| quote::ToTokens::into_token_stream(&value.0),
@@ -142,7 +199,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             type Transport = #transport;
             fn metadata() -> frontend_contract::RouteMetadata {
                 frontend_contract::RouteMetadata::new(
-                    frontend_contract::ContractStr::from(#method),
+                    #method,
                     frontend_contract::ContractStr::from(#openapi_operation_id),
                     frontend_contract::ContractStr::from(#path),
                 )
@@ -162,13 +219,13 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     .into()
 }
 
-#[proc_macro_derive(RouteFamily, attributes(route_family))]
+#[proc_macro_derive(RouteFamily, attributes(route_family, route_family_body_limit))]
 pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let derive_input = match syn::parse::<syn::DeriveInput>(input) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(attribute) = derive_input
+    let Some(route_family_attribute) = derive_input
         .attrs
         .iter()
         .find(|attribute| attribute.path().is_ident(str_constants::ROUTE_FAMILY))
@@ -180,21 +237,44 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
         .to_compile_error()
         .into();
     };
-    let routes = match attribute
+    let routes = match route_family_attribute
         .parse_args_with(syn::punctuated::Punctuated::<syn::Type, syn::Token![,]>::parse_terminated)
     {
         Ok(value) if !value.is_empty() => value,
         Ok(_) => {
-            return syn::Error::new_spanned(attribute, str_constants::ROUTE_FAMILY_REQUIRES_ROUTE)
-                .to_compile_error()
-                .into();
+            return syn::Error::new_spanned(
+                route_family_attribute,
+                str_constants::ROUTE_FAMILY_REQUIRES_ROUTE,
+            )
+            .to_compile_error()
+            .into();
         }
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let body_limit = match derive_input
+        .attrs
+        .iter()
+        .find(|attribute| {
+            attribute
+                .path()
+                .is_ident(str_constants::ROUTE_FAMILY_BODY_LIMIT)
+        })
+        .map(syn::Attribute::parse_args::<syn::Expr>)
+        .transpose()
+    {
+        Ok(Some(value)) => quote::quote! {
+            fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
+                Some(frontend_contract::RouteBodyLimit::from(#value))
+            }
+        },
+        Ok(None) => quote::quote! {},
         Err(error) => return error.to_compile_error().into(),
     };
     let identifier = derive_input.ident;
     let route_types = routes.iter().collect::<Vec<_>>();
     quote::quote! {
         impl frontend_contract::RouteFamily for #identifier {
+            #body_limit
             fn coverage_descriptors() -> Vec<frontend_contract::RouteCoverageDescriptor> {
                 vec![
                     #(

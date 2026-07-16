@@ -151,7 +151,7 @@ where
                 state.as_ref(),
                 crate::HttpAdminHeaderMapRef::from(req.headers()),
                 peer,
-                crate::StdAdminStrRef::from(permission),
+                server_admin_contract::AdminPermissionStrRef::from(permission),
                 crate::StdAdminBool::from(mutates),
             )
             .await

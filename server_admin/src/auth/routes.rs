@@ -1,12 +1,46 @@
 #![allow(clippy::single_call_fn)] // public facade keeps stable auth module paths while this module owns router and OpenAPI composition
+macro_rules! admin_route_registry {
+    ($callback:ident) => {
+        $callback! {
+            (server_admin_contract::AdminSignInRoute, super::sign_in),
+            (server_admin_contract::AdminRefreshRoute, super::refresh),
+            (server_admin_contract::AdminSignOutRoute, super::sign_out),
+            (server_admin_contract::AdminMeRoute, super::me),
+            (server_admin_contract::AdminSessionsRoute, super::sessions),
+            (server_admin_contract::AdminRevokeSessionRoute, super::revoke_session),
+            (server_admin_contract::AdminRevokeAllSessionsRoute, super::revoke_all_sessions),
+            (server_admin_contract::AdminListUsersRoute, super::list_users),
+            (server_admin_contract::AdminCreateUserRoute, super::create_user),
+            (server_admin_contract::AdminUpdateUserRoute, super::update_user),
+            (server_admin_contract::AdminDeleteUserRoute, super::delete_user),
+            (server_admin_contract::AdminSetUserPasswordRoute, super::set_user_password),
+            (server_admin_contract::AdminSetUserBanRoute, super::set_user_ban),
+            (server_admin_contract::AdminSetUserRolesRoute, super::set_user_roles),
+            (server_admin_contract::AdminListRolesRoute, super::list_roles),
+            (server_admin_contract::AdminCreateRoleRoute, super::create_role),
+            (server_admin_contract::AdminUpdateRoleRoute, super::update_role),
+            (server_admin_contract::AdminDeleteRoleRoute, super::delete_role),
+            (server_admin_contract::AdminSetRolePermissionsRoute, super::set_role_permissions),
+            (server_admin_contract::AdminListPermissionsRoute, super::list_permissions),
+            (server_admin_contract::AdminAuditLogRoute, super::audit_log),
+            (server_admin_contract::AdminSettingsRoute, super::settings),
+            (server_admin_contract::AdminUpdateSettingsRoute, super::update_settings),
+        }
+    };
+}
+macro_rules! declare_admin_open_api {
+    ($(($route:path, $handler:path)),+ $(,)?) => {
 #[allow(clippy::needless_for_each)] // utoipa 4 generated component registration uses iterator callbacks
 #[derive(utoipa::OpenApi)]
 #[openapi(
-    paths(super::sign_in, super::refresh, super::sign_out, super::me, super::sessions, super::revoke_session, super::revoke_all_sessions, super::list_users, super::create_user, super::update_user, super::set_user_password, super::set_user_ban, super::delete_user, super::set_user_roles, super::list_roles, super::create_role, super::update_role, super::delete_role, super::set_role_permissions, super::list_permissions, super::audit_log, super::settings, super::update_settings),
+    paths($($handler),+),
     components(schemas(server_admin_contract::AdminSignInReq, server_admin_contract::AdminSignInRes, server_admin_contract::AuthenticatedAdmin, server_admin_contract::AdminSessionView, server_admin_contract::AdminSessionTimestamp, server_admin_contract::AdminSessionIdentifier, frontend_contract::ApiProblem, server_admin_contract::AdminApiErrorCode, server_admin_contract::AdminApiErrorBody, server_admin_contract::AdminText, server_admin_contract::AdminBool, server_admin_contract::AdminPermissionValue, server_admin_contract::AdminCreateUserReq, server_admin_contract::AdminCreateUserRes, server_admin_contract::AdminUpdateUserReq, server_admin_contract::AdminSetUserPasswordReq, server_admin_contract::AdminSetUserBanReq, server_admin_contract::AdminSetUserRolesReq, server_admin_contract::AdminCreateRoleReq, server_admin_contract::AdminCreateRoleRes, server_admin_contract::AdminUpdateRoleReq, server_admin_contract::AdminSetRolePermissionsReq, server_admin_contract::AdminAuditView, server_admin_contract::AdminAuditTimestamp, server_admin_contract::SerdeJsonAdminAuditDetails, server_admin_contract::AdminUpdateSettingsReq, server_admin_contract::AdminSettingText, server_admin_contract::AdminUserSummary, server_admin_contract::AdminRoleSummary, server_admin_contract::AdminPermissionSummary, server_admin_contract::AdminSettingsView, crate::UuidAdminValue, crate::AdminPassword, crate::AdminLogin, crate::AdminDisplayName, crate::AdminRoleName, crate::AdminUserId, crate::AdminRoleId, crate::AdminPermissionId, crate::AdminPermission, crate::AdminSessionId, crate::AdminAuditLogId, crate::AdminAuditAction, crate::AdminAuditResource)),
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"))
 )]
 struct AdminAuthOpenApi;
+    };
+}
+admin_route_registry!(declare_admin_open_api);
 pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
     let mut document = <AdminAuthOpenApi as utoipa::OpenApi>::openapi();
     document
@@ -58,78 +92,42 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
     super::UtoipaAdminAuthOpenApi(document)
 }
 pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdminAuthRouter {
-    super::AxumAdminAuthRouter(
-        axum::Router::new()
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>().as_ref(),
-                axum::routing::post(super::sign_in),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminRefreshRoute>().as_ref(),
-                axum::routing::post(super::refresh),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSignOutRoute>().as_ref(),
-                axum::routing::post(super::sign_out),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>().as_ref(),
-                axum::routing::get(super::me),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSessionsRoute>().as_ref(),
-                axum::routing::get(super::sessions).delete(super::revoke_all_sessions),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminRevokeSessionRoute>().as_ref(),
-                axum::routing::delete(super::revoke_session),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref(),
-                axum::routing::get(super::list_users).post(super::create_user),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminUpdateUserRoute>().as_ref(),
-                axum::routing::patch(super::update_user).delete(super::delete_user),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserPasswordRoute>().as_ref(),
-                axum::routing::post(super::set_user_password),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserBanRoute>().as_ref(),
-                axum::routing::post(super::set_user_ban),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminListRolesRoute>().as_ref(),
-                axum::routing::get(super::list_roles).post(super::create_role),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminUpdateRoleRoute>().as_ref(),
-                axum::routing::patch(super::update_role).delete(super::delete_role),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSetRolePermissionsRoute>().as_ref(),
-                axum::routing::put(super::set_role_permissions),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserRolesRoute>().as_ref(),
-                axum::routing::put(super::set_user_roles),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminListPermissionsRoute>().as_ref(),
-                axum::routing::get(super::list_permissions),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminAuditLogRoute>().as_ref(),
-                axum::routing::get(super::audit_log),
-            )
-            .route(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminSettingsRoute>().as_ref(),
-                axum::routing::get(super::settings).patch(super::update_settings),
-            )
-            .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed)
-            .layer(axum::extract::DefaultBodyLimit::max(65_536usize))
-            .with_state(state),
-    )
+    macro_rules! build_admin_router {
+        ($(($route:path, $handler:path)),+ $(,)?) => {
+            axum::Router::new()
+                $(.route(
+                    frontend_contract::typed_route_path::<$route>().as_ref(),
+                    typed_method_router::<$route, _, _, _>($handler),
+                ))+
+        };
+    }
+    let base_router = admin_route_registry!(build_admin_router)
+        .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed);
+    let router = match <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit() {
+        Some(limit) => base_router.layer(axum::extract::DefaultBodyLimit::max(limit.get())),
+        None => base_router,
+    };
+    super::AxumAdminAuthRouter(router.with_state(state))
+}
+fn typed_method_router<Route, Handler, HandlerArguments, State>(
+    handler: Handler,
+) -> axum::routing::MethodRouter<State>
+where
+    Route: frontend_contract::TypedRoute,
+    Handler: axum::handler::Handler<HandlerArguments, State>,
+    HandlerArguments: 'static,
+    State: Clone + Send + Sync + 'static,
+{
+    let filter = match <Route as frontend_contract::TypedRoute>::metadata().route_method() {
+        frontend_contract::RouteMethod::Connect => axum::routing::MethodFilter::CONNECT,
+        frontend_contract::RouteMethod::Delete => axum::routing::MethodFilter::DELETE,
+        frontend_contract::RouteMethod::Get => axum::routing::MethodFilter::GET,
+        frontend_contract::RouteMethod::Head => axum::routing::MethodFilter::HEAD,
+        frontend_contract::RouteMethod::Options => axum::routing::MethodFilter::OPTIONS,
+        frontend_contract::RouteMethod::Patch => axum::routing::MethodFilter::PATCH,
+        frontend_contract::RouteMethod::Post => axum::routing::MethodFilter::POST,
+        frontend_contract::RouteMethod::Put => axum::routing::MethodFilter::PUT,
+        frontend_contract::RouteMethod::Trace => axum::routing::MethodFilter::TRACE,
+    };
+    axum::routing::on(filter, handler)
 }

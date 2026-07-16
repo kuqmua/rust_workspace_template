@@ -40,8 +40,11 @@ pub struct AdminUsers {
     login: pg_types_text_misc::StringAsNonNullText,
     display_name: pg_types_text_misc::StringAsNonNullText,
     password_hash: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
     is_banned: pg_types_numeric::BoolAsNonNullBool,
+    #[generate_pg_table_db_default]
     created_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    #[generate_pg_table_db_default]
     updated_at: pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[allow(clippy::missing_fields_in_debug)] // password_hash is intentionally represented by a redacted constant
@@ -91,6 +94,7 @@ pub struct AdminUserRoles {
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
     pub user_id: pg_types_numeric::I64AsNonNullInt8,
     pub role_id: pg_types_numeric::I64AsNonNullInt8,
+    #[generate_pg_table_db_default]
     pub created_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
@@ -127,6 +131,7 @@ pub struct AdminRolePermissions {
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
     pub role_id: pg_types_numeric::I64AsNonNullInt8,
     pub permission_id: pg_types_numeric::I64AsNonNullInt8,
+    #[generate_pg_table_db_default]
     pub created_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
@@ -162,9 +167,12 @@ pub struct AdminRoles {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
     pub name: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
     pub is_system: pg_types_numeric::BoolAsNonNullBool,
+    #[generate_pg_table_db_default]
     pub created_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    #[generate_pg_table_db_default]
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
@@ -200,6 +208,7 @@ pub struct AdminPermissions {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
     pub name: pg_types_text_misc::StringAsNonNullText,
+    #[generate_pg_table_db_default]
     pub created_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
@@ -234,14 +243,17 @@ pub struct AdminPermissions {
 pub struct AdminSystemSettings {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I16AsNonNullSmallSerialInitializationByPg,
+    #[generate_pg_table_db_default]
     pub site_name: pg_types_text_misc::StringAsNonNullText,
     pub tab_title: pg_types_text_misc::OptionalStringAsNullableText,
     pub main_logo: pg_types_text_misc::OptionalStringAsNullableText,
     pub primary_color: pg_types_text_misc::OptionalStringAsNullableText,
+    #[generate_pg_table_db_default]
     pub default_admin_route: pg_types_text_misc::StringAsNonNullText,
     pub organization_name: pg_types_text_misc::OptionalStringAsNullableText,
     pub organization_contacts: pg_types_text_misc::OptionalStringAsNullableText,
     pub support_url: pg_types_text_misc::OptionalStringAsNullableText,
+    #[generate_pg_table_db_default]
     pub updated_at:
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }

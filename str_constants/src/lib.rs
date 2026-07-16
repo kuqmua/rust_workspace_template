@@ -1052,6 +1052,8 @@ str_constants_macros::define_str_constants! {
         pub WORKSPACE_TEST_RUNNER_FORMAT_QUERY_PART_FRAGMENT = ["QueryPartFragment :: ", WORD_TRY_FROM, " (", WORD_FORMAT, " !"];
         pub WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD = [WORD_ALLOC, "-", WORD_WORKLOAD, "-", WORD_GENERATE, "-", WORD_PG, "-", WORD_TABLE_2, "-", WORD_SRC];
         pub WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD = [WORD_ALLOC, "-", WORD_WORKLOAD, "-", WORD_GENERATE, "-", WORD_PG, "-", WORD_TYPES, "-", WORD_SRC];
+        pub WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE = ["admin-contract-fixture"];
+        pub WORKSPACE_TEST_RUNNER_ADMIN_CONTRACT_FIXTURE_FILE = ["admin_contract_fixture.json"];
         pub WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX = ["codex_major_page_faults="];
         pub WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH = ["/", WORD_USR, "/", WORD_LIB, "/x86_64-linux-gnu/", WORD_LIBMEMUSAGE, ".", WORD_SO];
         pub WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL = [WORD_LIBMEMUSAGE];
@@ -2961,6 +2963,7 @@ str_constants_macros::define_str_constants! {
         pub UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD = [WORD_UNIT, " ", WORD_TESTS, " ", WORD_CONTAIN, " ", WORD_EXTERNAL, "-", WORD_SERVICE, " clients; ", WORD_USE, " deterministic local fakes ", WORD_INSTEAD, ":"];
         pub UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER = [WORD_UNIT, " ", WORD_TESTS, " ", WORD_USE, " nondeterministic ", WORD_TIME, ", ", WORD_SLEEP, ", ", WORD_OR_2, " randomness without ", WORD_A_2, " reviewed owner:"];
         pub UNKNOWN_BOUNDED_STRING_OPTION = [WORD_UNKNOWN, " ", WORD_BOUNDED_STRING, " ", WORD_OPTION_2];
+        pub UNKNOWN_ADMINISTRATOR_PERMISSION = [WORD_UNKNOWN, " ", WORD_ADMINISTRATOR, " ", WORD_PERMISSION];
         pub UNKNOWN_NEWTYPE_OPTION = [WORD_UNKNOWN, " ", WORD_NEWTYPE_2, " ", WORD_OPTION_2];
         pub UNKNOWN_ALT = [WORD_UNKNOWN];
         pub UNKNOWN_USER_AGENT = [WORD_UNKNOWN, "-", WORD_USER_2, "-", WORD_AGENT];
@@ -3639,6 +3642,15 @@ pub const TYPED_ROUTE_REQUIRES_PATH: &str = "typed_route requires path";
 pub const TYPED_ROUTE_REQUIRES_REQUEST: &str = "typed_route requires request";
 pub const TYPED_ROUTE_REQUIRES_RESPONSE: &str = "typed_route requires response";
 pub const TYPED_ROUTE_REQUIRES_TRANSPORT: &str = "typed_route requires transport";
+pub const TYPED_ROUTE_METHOD_MUST_BE_STANDARD_HTTP_METHOD: &str =
+    "typed_route method must be a standard HTTP method path";
+pub const ROUTE_FAMILY_BODY_LIMIT: &str = "route_family_body_limit";
+pub const RECONCILE_ADMIN_PERMISSIONS_SQL: &str =
+    "insert into admin_permissions (name) select unnest($1::text[]) on conflict (name) do nothing";
+pub const RECONCILE_ADMIN_ROLE_PERMISSIONS_SQL: &str = "insert into admin_role_permissions (role_id, permission_id) select admin_roles.id, admin_permissions.id from admin_roles cross join admin_permissions where admin_roles.name = 'admin' on conflict (role_id, permission_id) do nothing";
+pub const DELETE_ADMIN_PERMISSION_BY_NAME: &str = "delete from admin_permissions where name = $1";
+pub const SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME: &str =
+    "select name from admin_permissions order by name";
 pub const TYPED_ROUTE_DERIVE_REQUIRES_ATTRIBUTE: &str = "TypedRoute requires #[typed_route(...)]";
 pub const APPLICATION_JSON_FIELD: &str = "content";
 pub const COLUMN_DEFAULT: &str = "column_default";
@@ -3652,6 +3664,9 @@ pub const DB_CONSTRAINT_FOREIGN_KEY: &str = "FOREIGN KEY";
 pub const DB_CONSTRAINT_PRIMARY_KEY: &str = "PRIMARY KEY";
 pub const DB_CONSTRAINT_UNIQUE: &str = "UNIQUE";
 pub const DB_SCHEMA_COLUMN_QUERY: &str = "select column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = $1 and table_name = $2";
+pub const DB_SCHEMA_COLUMN_CONTRACT_QUERY: &str = "select column_name, udt_name as data_type, is_nullable, column_default is not null as has_server_default from information_schema.columns where table_schema = $1 and table_name = $2";
+pub const HAS_SERVER_DEFAULT: &str = "has_server_default";
+pub const GENERATE_PG_TABLE_DB_DEFAULT: &str = "generate_pg_table_db_default";
 pub const DB_SCHEMA_CONSTRAINT_QUERY: &str = "select constraint_name, constraint_type, pg_get_constraintdef(pc.oid) as definition from information_schema.table_constraints tc join pg_namespace pn on pn.nspname = tc.constraint_schema join pg_constraint pc on pc.conname = tc.constraint_name and pc.connamespace = pn.oid where tc.table_schema = $1 and tc.table_name = $2";
 pub const DB_SCHEMA_CATALOG_QUERY: &str = "select object_kind, object_name, object_definition from (select 'trigger' as object_kind, trigger_name as object_name, event_object_table || ':' || action_timing || ':' || event_manipulation || ':' || action_statement as object_definition from information_schema.triggers where trigger_schema = $1 union all select 'function', p.proname, pg_get_functiondef(p.oid) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = $1 union all select 'view', table_name, view_definition from information_schema.views where table_schema = $1 union all select 'extension', e.extname, e.extversion from pg_extension e join pg_namespace n on n.oid = e.extnamespace where n.nspname = $1) objects order by object_kind, object_name, object_definition";
 pub const JSON_SNAPSHOT_DYNAMIC_VALUE: &str = "<dynamic>";
