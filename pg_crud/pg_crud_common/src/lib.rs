@@ -4,6 +4,7 @@ pub mod bounded_unique_vec;
 pub mod bounded_vec;
 mod cardinality;
 mod cursor;
+mod date_sql_filter;
 mod db_schema_conformance;
 mod errors;
 mod invariants;
@@ -28,6 +29,10 @@ pub use cursor::{
     CursorPaginationUsage, CursorPayload, CursorPayloadError, CursorSigningKey,
     CursorSigningKeyError, OffsetPaginationPresence, SignedCursor, SignedCursorError,
     SignedCursorPresence,
+};
+pub use date_sql_filter::{
+    ChronoUtcDateTimeRef, ChronoUtcDateTimes, DateFilterBounds, DateSqlFilter, DateSqlFilterError,
+    StdDateSqlBindStart, build_date_sql_filter,
 };
 pub use db_schema_conformance::{
     DbCatalogSnapshot, DbColumnNullable, DbColumnSnapshot, DbObjectKind, DbObjectSnapshot,

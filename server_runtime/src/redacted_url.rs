@@ -70,6 +70,11 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
     RedactedUrl(crate::RequiredNulFreeBoundedText::try_from(output).ok())
 }
 
+#[must_use]
+pub fn redact_rtsp_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
+    redact_url_userinfo(value)
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -78,5 +83,17 @@ mod tests {
         assert!(!redacted.as_ref().contains(str_constants::TEST_URL_PASSWORD));
         assert!(redacted.as_ref().contains(str_constants::LOCALHOST));
         assert!(redacted.as_ref().contains(str_constants::REDACTED_ALT));
+    }
+
+    #[test]
+    fn rtsp_credentials_are_removed() {
+        let redacted =
+            super::redact_rtsp_url_userinfo(str_constants::TEST_RTSP_URL_WITH_CREDENTIALS.into());
+        assert!(!redacted.as_ref().contains(str_constants::TEST_URL_PASSWORD));
+        assert!(
+            redacted
+                .as_ref()
+                .starts_with(str_constants::RTSP_SCHEME_PREFIX)
+        );
     }
 }

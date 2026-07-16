@@ -16,6 +16,13 @@ impl std::error::Error for TokioTaskJoinError {
     }
 }
 #[derive(Debug)]
+pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
+impl From<tokio::task::JoinHandle<()>> for TokioAbortTask {
+    fn from(value: tokio::task::JoinHandle<()>) -> Self {
+        Self(value)
+    }
+}
+#[derive(Debug)]
 pub enum BackgroundTaskShutdownError {
     Join(TokioTaskJoinError),
     Timeout,
@@ -147,6 +154,10 @@ impl std::fmt::Display for StdRequestTimeoutTryFromDurationError {
     }
 }
 impl std::error::Error for StdRequestTimeoutTryFromDurationError {}
+pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJoinError> {
+    task.0.abort();
+    task.0.await.map_err(TokioTaskJoinError)
+}
 #[must_use]
 #[allow(clippy::integer_division_remainder_used)]
 pub fn spawn_interval_task<Run, RunFuture>(
@@ -176,4 +187,14 @@ where
         handle: Some(TokioBackgroundTaskJoinHandle::from(handle)),
         shutdown_tx: Some(TokioBackgroundTaskShutdownSender::from(shutdown_tx)),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #[tokio::test]
+    async fn aborted_task_is_awaited_and_reports_cancellation() {
+        let handle = tokio::spawn(std::future::pending::<()>());
+        let result = super::abort_and_wait_task(super::TokioAbortTask::from(handle)).await;
+        assert!(result.is_err());
+    }
 }

@@ -118,6 +118,47 @@ impl From<reqwest::Response> for ReqwestResponse {
         Self(value)
     }
 }
+#[derive(Debug)]
+pub struct SerdeJsonError(serde_json::Error);
+impl std::fmt::Display for SerdeJsonError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for SerdeJsonError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BoundedJsonText(String);
+impl AsRef<str> for BoundedJsonText {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+impl TryFrom<String> for BoundedJsonText {
+    type Error = BoundedJsonReadError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > 16_777_216usize {
+            return Err(BoundedJsonReadError::Read(
+                BoundedReadError::ExceedsMaximum {
+                    maximum_bytes: BoundedReadMaximumBytes(16_777_216usize),
+                },
+            ));
+        }
+        let _validated_value = serde_json::from_str::<serde_json::Value>(value.as_str())
+            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
+        Ok(Self(value))
+    }
+}
+#[derive(Debug, thiserror::Error)]
+pub enum BoundedJsonReadError {
+    #[error("bounded content read failed")]
+    Read(#[source] BoundedReadError),
+    #[error("bounded content is not valid JSON")]
+    SerdeJson(#[source] SerdeJsonError),
+}
 #[derive(Debug, thiserror::Error)]
 pub enum BoundedReadError {
     #[error("content exceeds maximum size of {maximum_bytes} bytes")]
@@ -244,6 +285,33 @@ pub async fn read_bounded_http_response(
     }
     Ok(BoundedBytes(bytes))
 }
+pub fn parse_bounded_json(bytes: &BoundedBytes) -> Result<BoundedJsonText, BoundedJsonReadError> {
+    let text = String::from_utf8(bytes.0.clone()).map_err(|error| {
+        BoundedJsonReadError::Read(BoundedReadError::Utf8 {
+            source: StdFromUtf8Error(error),
+        })
+    })?;
+    BoundedJsonText::try_from(text)
+}
+pub async fn read_bounded_json_file_async(
+    path: StdPathRef<'_>,
+    maximum_bytes: BoundedReadMaximumBytes,
+) -> Result<BoundedJsonText, BoundedJsonReadError> {
+    let bytes = read_bounded_file_async(path, maximum_bytes)
+        .await
+        .map_err(BoundedJsonReadError::Read)?;
+    parse_bounded_json(&bytes)
+}
+pub async fn read_bounded_json_http_response(
+    response: ReqwestResponse,
+    maximum_bytes: BoundedReadMaximumBytes,
+    concurrency: StdBoundedReadConcurrency,
+) -> Result<BoundedJsonText, BoundedJsonReadError> {
+    let bytes = read_bounded_http_response(response, maximum_bytes, concurrency)
+        .await
+        .map_err(BoundedJsonReadError::Read)?;
+    parse_bounded_json(&bytes)
+}
 #[cfg(test)]
 mod tests {
     fn unique_path(name: &str) -> std::path::PathBuf {
@@ -295,6 +363,20 @@ mod tests {
     fn invalid_utf8_is_not_lossily_converted() {
         let result = super::BoundedText::try_from(super::BoundedBytes(vec![0xffu8]));
         assert!(matches!(result, Err(super::BoundedReadError::Utf8 { .. })));
+    }
+    #[test]
+    fn bounded_json_distinguishes_invalid_document() {
+        let valid = super::BoundedBytes(
+            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY
+                .as_bytes()
+                .to_vec(),
+        );
+        let _json = super::parse_bounded_json(&valid).expect("712a0ea9");
+        let invalid = super::BoundedBytes(str_constants::TEST_INVALID_JSON.as_bytes().to_vec());
+        assert!(matches!(
+            super::parse_bounded_json(&invalid),
+            Err(super::BoundedJsonReadError::SerdeJson(_))
+        ));
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {

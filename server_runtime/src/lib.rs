@@ -8,10 +8,12 @@ mod deduplicating_queue;
 mod exclusive_run;
 mod fallback;
 mod generation_gate;
+mod geojson;
 mod health;
 mod history;
 mod http_header_policy;
 mod http_policy;
+mod http_status_error;
 mod lease_registry;
 mod lifecycle;
 mod limits;
@@ -27,6 +29,7 @@ mod redacted_url;
 mod request_id;
 mod resource_budget;
 mod retry;
+mod secure_cookie;
 mod single_flight;
 mod text_policy;
 mod wire_token;
@@ -36,9 +39,11 @@ pub use batched_cleanup::{
     CleanupContinuation, CleanupReport, CleanupRows, run_batched_cleanup,
 };
 pub use bounded_read::{
-    BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
-    ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
-    StdIoError, StdPathRef, read_bounded_file, read_bounded_file_async, read_bounded_http_response,
+    BoundedBytes, BoundedJsonReadError, BoundedJsonText, BoundedReadError, BoundedReadMaximumBytes,
+    BoundedText, ReqwestError, ReqwestResponse, SerdeJsonError, StdBoundedReadConcurrency,
+    StdBoundedReadConcurrencyMaximum, StdFromUtf8Error, StdIoError, StdPathRef, parse_bounded_json,
+    read_bounded_file, read_bounded_file_async, read_bounded_http_response,
+    read_bounded_json_file_async, read_bounded_json_http_response,
 };
 pub use child_process::{
     ChildDiagnostic, ChildProcessCompletion, ChildProcessError, ChildProcessReport,
@@ -60,6 +65,7 @@ pub use fallback::{
     fallback_response_mode,
 };
 pub use generation_gate::{Generation, GenerationCommit, GenerationGate};
+pub use geojson::{GeoJsonDocumentText, GeoJsonValidationError, SerdeJsonGeoJsonError};
 pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
@@ -76,6 +82,7 @@ pub use http_policy::{
     OptionalJsonContentTypeDecision, classify_optional_json_content_type,
     optional_json_content_type_decision, resolve_bearer_authorization, resolve_unique_cookie,
 };
+pub use http_status_error::{HttpErrorClass, HttpErrorStatus, classify_http_error_status};
 pub use lease_registry::{
     LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseReservation, LeaseState,
     LeaseTextError, StdLeaseRegistryMaximum, StdLeaseStaleTimeout, StdLeaseStaleTimeoutError,
@@ -83,7 +90,7 @@ pub use lease_registry::{
 pub use lifecycle::{
     BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, StdRequestTimeout,
     StdRequestTimeoutTryFromDurationError, StdRunInterval, StdRunIntervalTryFromDurationError,
-    TokioTaskJoinError, spawn_interval_task,
+    TokioAbortTask, TokioTaskJoinError, abort_and_wait_task, spawn_interval_task,
 };
 pub use limits::{
     AcquirePermitError, RetryAfterSecs, RetryAfterSecsTryFromU64Error, StdArcTokioSemaphore,
@@ -129,7 +136,9 @@ pub use pg_rate_limit::{
     PgRateLimitScopeRef, PgRateLimitSubjectRef, PgRateLimitValidationError,
     PgRateLimitWindowSeconds, SqlxPgRateLimitError, SqlxPgRateLimitPoolRef, enforce_pg_rate_limit,
 };
-pub use redacted_url::{RedactedUrl, RedactedUrlTextRef, redact_url_userinfo};
+pub use redacted_url::{
+    RedactedUrl, RedactedUrlTextRef, redact_rtsp_url_userinfo, redact_url_userinfo,
+};
 pub use request_id::{
     HttpHeaderToStrError, RequestId, RequestIdTryFromHttpHeaderValueError,
     RequestIdTryFromStringError,
@@ -142,6 +151,10 @@ pub use resource_budget::{
 pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,
     run_with_retries,
+};
+pub use secure_cookie::{
+    HttpCookieAccess, HttpCookieName, HttpCookieSecure, HttpCookieValue, HttpSecureCookieError,
+    HttpSetCookieHeaderValue, StdCookieMaxAgeSeconds, build_secure_strict_cookie,
 };
 pub use single_flight::{
     SingleFlight, SingleFlightAcquire, SingleFlightKey, SingleFlightKeyError, SingleFlightOwner,
