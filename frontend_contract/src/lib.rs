@@ -3,6 +3,7 @@ mod openapi_validation;
 mod problem;
 mod route;
 mod route_contract_validation;
+mod route_coverage;
 mod url_builder;
 pub use frontend_contract_macros::TypedRoute;
 pub use openapi_validation::{
@@ -25,6 +26,10 @@ pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
     HttpContractObservation, HttpContractStatus, RouteContractMismatch, RouteContractMismatches,
     run_http_contract_fixture, validate_route_contract_metadata, validate_typed_route_contract,
+};
+pub use route_coverage::{
+    RouteAccess, RouteCoverageDescriptor, RouteCoverageError, RouteCoverageEvidence,
+    RouteCoverageObligation, RouteMutation, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

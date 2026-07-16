@@ -1,4 +1,5 @@
 mod background_job;
+mod batched_cleanup;
 mod bounded_read;
 mod client_ip;
 mod cors;
@@ -23,6 +24,10 @@ mod retry;
 mod text_policy;
 mod wire_token;
 pub use background_job::BackgroundJob;
+pub use batched_cleanup::{
+    CleanupBatchCount, CleanupBatchSize, CleanupBatchSizeError, CleanupCompletion,
+    CleanupContinuation, CleanupReport, CleanupRows, run_batched_cleanup,
+};
 pub use bounded_read::{
     BoundedBytes, BoundedReadError, BoundedReadMaximumBytes, BoundedText, ReqwestError,
     ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
