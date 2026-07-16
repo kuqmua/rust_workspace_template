@@ -7,6 +7,8 @@ members = [
   "config_lib/config_lib_macros",
   "config_lib/generate_getter_traits_for_struct_fields",
   "config_lib/try_from_env",
+  "development_data_bootstrap",
+  "external_service_emulators",
   "file_storage",
   "frontend_contract",
   "frontend_contract_macros",
@@ -47,6 +49,7 @@ members = [
   "pg_crud/where_filters/generate_where_filters",
   "pg_crud/where_filters/generate_where_filters_src",
   "pg_crud/where_filters/generate_where_filters_test",
+  "prepare_postgresql_databases",
   "route_validators",
   "server",
   "server_admin",
@@ -59,6 +62,7 @@ members = [
   "server_table_example",
   "str_constants",
   "str_constants_macros",
+  "synchronization_service_runtime",
   "tests",
   "to_err_string",
   "to_err_string/to_err_string_macros",
@@ -310,6 +314,10 @@ server_app_state = { path = "./server_app_state", version = "0.1.0" }
 server_app_state_macros = { path = "./server_app_state/server_app_state_macros", version = "0.1.0" }
 server_config = { path = "./server_config", version = "0.1.0" }
 server_runtime = { path = "./server_runtime", version = "0.1.0" }
+synchronization_service_runtime = { path = "./synchronization_service_runtime", version = "0.1.0" }
+development_data_bootstrap = { path = "./development_data_bootstrap", version = "0.1.0" }
+prepare_postgresql_databases = { path = "./prepare_postgresql_databases", version = "0.1.0" }
+external_service_emulators = { path = "./external_service_emulators", version = "0.1.0" }
 server_table_example = { path = "./server_table_example", version = "0.1.0" }
 str_constants = { path = "./str_constants", version = "0.1.0" }
 str_constants_macros = { path = "./str_constants_macros", version = "0.1.0" }

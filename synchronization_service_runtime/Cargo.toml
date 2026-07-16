@@ -1,0 +1,17 @@
+[package]
+name = "synchronization_service_runtime"
+version = "0.1.0"
+publish = false
+description = "Shared synchronization service runtime facade"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["synchronization"]
+categories = ["web-programming"]
+edition = "2024"
+
+[dependencies]
+server_runtime = { workspace = true }
+
+[lints]
+workspace = true

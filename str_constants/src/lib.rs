@@ -3758,3 +3758,13 @@ pub const TEST_FIRST: &str = "first";
 pub const TEST_LAST: &str = "last";
 pub const TEST_NEGATIVE: &str = "negative";
 pub const TEST_UNKNOWN_PG_SQLSTATE: &str = "ZZZZZ";
+pub const DATABASE_URL_FLAG: &str = "--database-url";
+pub const DATABASE_URL_MUST_NOT_BE_EMPTY: &str = "database URL must not be empty";
+pub const DATABASE_URL_EXCEEDS_MAXIMUM_LENGTH: &str = "database URL exceeds maximum length";
+pub const MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH: &str =
+    "migrations source exceeds maximum length";
+pub const SOURCE_FLAG: &str = "--source";
+pub const RUN: &str = "run";
+pub const TEST_DATABASE_URL: &str = "postgresql://localhost/test";
+pub const TEST_MIGRATIONS_PATH: &str = "./migrations";
+pub const TEST_NOTIFICATION_MESSAGE: &str = "test notification";

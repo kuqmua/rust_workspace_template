@@ -1,0 +1,18 @@
+[package]
+name = "prepare_postgresql_databases"
+version = "0.1.0"
+publish = false
+description = "PostgreSQL database preparation command planner"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["postgresql", "migration"]
+categories = ["command-line-utilities"]
+edition = "2024"
+
+[dependencies]
+str_constants = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

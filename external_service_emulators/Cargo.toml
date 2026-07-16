@@ -1,0 +1,20 @@
+[package]
+name = "external_service_emulators"
+version = "0.1.0"
+publish = false
+description = "Deterministic external service emulators for integration tests"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["emulator", "testing"]
+categories = ["development-tools::testing"]
+edition = "2024"
+
+[dependencies]
+server_runtime = { workspace = true }
+
+[dev-dependencies]
+str_constants = { workspace = true }
+
+[lints]
+workspace = true

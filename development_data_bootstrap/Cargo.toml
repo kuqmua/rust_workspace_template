@@ -1,0 +1,17 @@
+[package]
+name = "development_data_bootstrap"
+version = "0.1.0"
+publish = false
+description = "Desired-state planning for development identities and sample data"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["development", "bootstrap"]
+categories = ["development-tools"]
+edition = "2024"
+
+[dependencies]
+server_runtime = { workspace = true }
+
+[lints]
+workspace = true
