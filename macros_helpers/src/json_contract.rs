@@ -5,18 +5,8 @@ impl<'fixture_lt> From<&'fixture_lt str> for JsonFixtureRef<'fixture_lt> {
         Self(value)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
 pub struct SerdeJsonError(serde_json::Error);
-impl std::fmt::Display for SerdeJsonError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for SerdeJsonError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, thiserror::Error)]
 pub enum ContractError {
     #[error("fixture JSON deserialization failed: {0}")]

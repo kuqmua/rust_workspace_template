@@ -35,18 +35,21 @@ enum BoundedStringOption {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum NewtypeOption {
+    AsMut,
     AsRef,
     AsRefInner,
     AsRefOwned,
     AsRefStr,
     AsRefTarget,
     AsSlice,
+    DebugRedacted,
     DebugTransparent,
     DerefInner,
     DerefMutInner,
     DerefMutTarget,
     DerefTarget,
     Display,
+    ErrorTransparent,
     From,
     Getter,
     IntoInner,
@@ -280,6 +283,15 @@ fn derive_newtype_try_from(
         Err(error) => ProcMacro2GeneratedTokenStream(error.into_compile_error()),
     }
 }
+#[proc_macro_derive(AsMut)]
+pub fn as_mut(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsMut,
+        None,
+    )
+    .into()
+}
 #[proc_macro_derive(AsRef)]
 pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -334,6 +346,15 @@ pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     )
     .into()
 }
+#[proc_macro_derive(DebugRedacted)]
+pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DebugRedacted,
+        None,
+    )
+    .into()
+}
 #[proc_macro_derive(DebugTransparent)]
 pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -384,6 +405,15 @@ pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         ProcMacroInputTokenStream::from(input),
         NewtypeOption::Display,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(ErrorTransparent)]
+pub fn error_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::ErrorTransparent,
         None,
     )
     .into()
@@ -523,6 +553,20 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
+    let debug_redacted_token_stream =
+        attrs.contains(NewtypeOption::DebugRedacted).get().then(|| {
+            let redacted = str_constants::REDACTED_ALT_3;
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::fmt::Debug for #identifier #ty_generics #where_clause {
+                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        f.debug_tuple(stringify!(#identifier))
+                            .field(&#redacted)
+                            .finish()
+                    }
+                }
+            }
+        });
     let display_token_stream = attrs.contains(NewtypeOption::Display).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
@@ -533,6 +577,44 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
+    let error_transparent_token_stream = attrs
+        .contains(NewtypeOption::ErrorTransparent)
+        .get()
+        .then(|| {
+            quote::quote! {
+                #[allow(single_use_lifetimes)]
+                impl #impl_generics std::error::Error for #identifier #ty_generics #where_clause {
+                    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+                        Some(&self.0)
+                    }
+                }
+            }
+        });
+    let as_mut_token_stream = if attrs.contains(NewtypeOption::AsMut).get() {
+        let syn::Type::Reference(inner_ref_ty) = inner_ty_ref else {
+            return Err(syn::Error::new_spanned(
+                inner_ty_ref,
+                str_constants::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+            ));
+        };
+        if inner_ref_ty.mutability.is_none() {
+            return Err(syn::Error::new_spanned(
+                inner_ty_ref,
+                str_constants::NEWTYPE_AS_MUT_REQUIRES_MUTABLE_REFERENCE_INNER_TYPE,
+            ));
+        }
+        let target_ty = &inner_ref_ty.elem;
+        Some(quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics AsMut<#target_ty> for #identifier #ty_generics #where_clause {
+                fn as_mut(&mut self) -> &mut #target_ty {
+                    self.0
+                }
+            }
+        })
+    } else {
+        None
+    };
     let as_ref_str_token_stream = attrs.contains(NewtypeOption::AsRefStr).get().then(|| {
         quote::quote! {
             #[allow(single_use_lifetimes)]
@@ -737,7 +819,10 @@ fn generate_newtype_token_stream_with_attrs(
         generate_to_err_string_token_stream(attrs, SynIdentifierRef::from(identifier));
     Ok(ProcMacro2GeneratedTokenStream(quote::quote! {
         #debug_transparent_token_stream
+        #debug_redacted_token_stream
         #display_token_stream
+        #error_transparent_token_stream
+        #as_mut_token_stream
         #as_ref_str_token_stream
         #as_ref_token_stream
         #as_ref_inner_token_stream

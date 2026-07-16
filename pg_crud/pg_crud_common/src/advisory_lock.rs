@@ -1,17 +1,7 @@
 const MAXIMUM_RESOURCE_COUNT: usize = 10_000usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgRelationRowCount(u64);
-impl From<u64> for PgRelationRowCount {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-impl From<PgRelationRowCount> for u64 {
-    fn from(value: PgRelationRowCount) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRelationCapacityMaximum(u64);
@@ -36,13 +26,8 @@ pub enum PgRelationCapacityError {
     ZeroMaximum,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct PgRelationResourceId(i64);
-impl From<i64> for PgRelationResourceId {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgRelationLockNamespace(String);
@@ -83,31 +68,16 @@ pub enum PgRelationLockError {
     TooManyResources,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
-impl std::fmt::Display for SqlxPgRelationLockError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::error::Error for SqlxPgRelationLockError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 
-#[derive(Debug)]
+#[derive(Debug, newtype::AsMut)]
 pub struct SqlxPgRelationLockConnectionRef<'connection>(&'connection mut sqlx::PgConnection);
 impl<'connection> From<&'connection mut sqlx::PgConnection>
     for SqlxPgRelationLockConnectionRef<'connection>
 {
     fn from(value: &'connection mut sqlx::PgConnection) -> Self {
         Self(value)
-    }
-}
-impl AsMut<sqlx::PgConnection> for SqlxPgRelationLockConnectionRef<'_> {
-    fn as_mut(&mut self) -> &mut sqlx::PgConnection {
-        self.0
     }
 }
 

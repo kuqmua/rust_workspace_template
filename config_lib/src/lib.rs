@@ -92,7 +92,11 @@ pub struct StdNonZeroUsize(std::num::NonZeroUsize);
 pub struct StdParseIntError(std::num::ParseIntError);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseBoolError(std::str::ParseBoolError);
-#[derive(generate_getter_traits_for_struct_fields::GenerateGetterTrait, newtype::AsRefOwned)]
+#[derive(
+    generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    newtype::AsRefOwned,
+    newtype::DebugRedacted,
+)]
 pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
 impl AdminJwtSecret {
     #[must_use]
@@ -103,13 +107,6 @@ impl AdminJwtSecret {
     #[must_use]
     pub const fn verification_secrets(&self) -> &[SecrecySecretBoxString] {
         self.0.as_slice()
-    }
-}
-impl std::fmt::Debug for AdminJwtSecret {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINJWTSECRET)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]

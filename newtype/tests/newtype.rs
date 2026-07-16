@@ -99,6 +99,12 @@ mod tests {
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
     #[derive(newtype::DebugTransparent)]
     struct TransparentDebugValue(u16);
+    #[derive(newtype::DebugRedacted)]
+    struct RedactedDebugValue(Vec<u8>);
+    #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
+    struct StdTransparentErrorValue(std::io::Error);
+    #[derive(newtype::AsMut)]
+    struct MutableValueRef<'value_lt>(&'value_lt mut u16);
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum CheckedTextError {
         TooLong,
@@ -192,6 +198,29 @@ mod tests {
         let mut v = TargetVecValue(Vec::from(*b"lower"));
         v.make_ascii_uppercase();
         assert_eq!(&*v, b"LOWER");
+    }
+    #[test]
+    fn redacted_debug_does_not_expose_inner_value() {
+        let value = RedactedDebugValue(str_constants::SECRET.as_bytes().to_vec());
+        let output = format!("{value:?}");
+        assert!(output.contains(str_constants::REDACTED_ALT_3));
+        assert!(!output.contains(str_constants::SECRET));
+        assert_eq!(value.0, str_constants::SECRET.as_bytes());
+    }
+    #[test]
+    fn transparent_error_exposes_inner_source() {
+        let value = StdTransparentErrorValue(std::io::Error::other(str_constants::ERROR));
+        assert_eq!(
+            std::error::Error::source(&value).map(ToString::to_string),
+            Some(String::from(str_constants::ERROR))
+        );
+    }
+    #[test]
+    fn mutable_reference_as_mut_is_generated() {
+        let mut inner = 1u16;
+        let mut value = MutableValueRef(&mut inner);
+        *AsMut::<u16>::as_mut(&mut value) = 2u16;
+        assert_eq!(inner, 2u16);
     }
     #[test]
     fn bounded_string_description_is_configurable() {

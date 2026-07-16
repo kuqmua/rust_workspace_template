@@ -65,7 +65,15 @@ pub struct AdminDisplayName(String);
     description = "administrator role name"
 )]
 pub struct AdminRoleName(String);
-#[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::AsRefOwned,
+    newtype::BoundedString,
+    newtype::DebugRedacted,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 1024usize,
     min = 1usize,
@@ -75,13 +83,6 @@ pub struct AdminRoleName(String);
     description = "administrator password"
 )]
 pub struct AdminPassword(String);
-impl std::fmt::Debug for AdminPassword {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINPASSWORD)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
 #[derive(
     Clone,
     Debug,

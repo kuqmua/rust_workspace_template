@@ -549,17 +549,13 @@ async fn record_audit_success_in_connection(
 ) -> Result<(), AdminApiError> {
     audit::record_success_in_connection(connection, event).await
 }
+#[derive(newtype::AsMut)]
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
 impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
     for SqlxAdminPgConnectionRef<'connection_lt>
 {
     fn from(value: &'connection_lt mut sqlx::PgConnection) -> Self {
         Self(value)
-    }
-}
-impl AsMut<sqlx::PgConnection> for SqlxAdminPgConnectionRef<'_> {
-    fn as_mut(&mut self) -> &mut sqlx::PgConnection {
-        self.0
     }
 }
 enum AdminAuthDbRef<'connection_lt, 'pool_lt> {

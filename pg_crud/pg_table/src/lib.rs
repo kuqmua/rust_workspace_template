@@ -39,7 +39,7 @@ pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyCleanupRows(u64);
-#[derive(Debug)]
+#[derive(Debug, newtype::AsMut)]
 pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
 #[sqlx(transparent)]
@@ -135,16 +135,11 @@ impl std::fmt::Display for PgTableIdempotencyTextError {
     }
 }
 impl std::error::Error for PgTableIdempotencyTextError {}
-#[derive(Debug)]
+#[derive(Debug, newtype::ErrorTransparent)]
 pub struct SqlxPgTableIdempotencyError(sqlx::Error);
 impl std::fmt::Display for SqlxPgTableIdempotencyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)
-    }
-}
-impl std::error::Error for SqlxPgTableIdempotencyError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
     }
 }
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
@@ -430,11 +425,6 @@ impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
 {
     fn from(value: &'connection_lt mut sqlx::PgConnection) -> Self {
         Self(value)
-    }
-}
-impl AsMut<sqlx::PgConnection> for SqlxPgTablePgConnectionRef<'_> {
-    fn as_mut(&mut self) -> &mut sqlx::PgConnection {
-        self.0
     }
 }
 pub async fn cleanup_pg_table_idempotency(

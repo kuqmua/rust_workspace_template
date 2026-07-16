@@ -25,6 +25,7 @@ pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
+#[derive(newtype::DebugRedacted)]
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
@@ -68,13 +69,7 @@ impl AdminPassword {
         self.0
     }
 }
-impl std::fmt::Debug for AdminPassword {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINPASSWORD)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
+#[derive(newtype::DebugRedacted)]
 pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
@@ -82,13 +77,7 @@ impl AdminPasswordHash {
         Self(value)
     }
 }
-impl std::fmt::Debug for AdminPasswordHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINPASSWORDHASH)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
+#[derive(newtype::DebugRedacted)]
 pub struct AdminJwtSecret(SecrecyAdminString);
 impl AdminJwtSecret {
     #[must_use]
@@ -96,13 +85,7 @@ impl AdminJwtSecret {
         Self(value)
     }
 }
-impl std::fmt::Debug for AdminJwtSecret {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINJWTSECRET)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
+#[derive(newtype::DebugRedacted)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
     #[must_use]
@@ -110,13 +93,7 @@ impl AdminOpaqueToken {
         Self(value)
     }
 }
-impl std::fmt::Debug for AdminOpaqueToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINOPAQUETOKEN)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
+#[derive(newtype::DebugRedacted)]
 pub struct AdminRefreshToken(AdminOpaqueToken);
 impl AdminRefreshToken {
     #[must_use]
@@ -128,13 +105,7 @@ impl AdminRefreshToken {
         StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.0.as_ref()).as_str())
     }
 }
-impl std::fmt::Debug for AdminRefreshToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINREFRESHTOKEN)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
-    }
-}
+#[derive(newtype::DebugRedacted)]
 pub struct AdminTokenHash(SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
@@ -144,13 +115,6 @@ impl AdminTokenHash {
     #[must_use]
     pub fn expose(&self) -> StdAdminStrRef<'_> {
         StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.as_ref()).as_str())
-    }
-}
-impl std::fmt::Debug for AdminTokenHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple(str_constants::ADMINTOKENHASH)
-            .field(&str_constants::REDACTED_ALT_3)
-            .finish()
     }
 }
 #[derive(Debug)]
