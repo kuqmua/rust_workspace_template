@@ -101,8 +101,7 @@ impl CargoArgs {
         self.0
     }
 }
-#[derive(Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct StderrTextRef<'lt>(&'lt str);
 impl<'lt> StderrTextRef<'lt> {
     const fn get(self) -> &'lt str {

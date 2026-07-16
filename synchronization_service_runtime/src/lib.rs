@@ -4,8 +4,7 @@ pub struct SynchronizationRuntimeConfiguration {
     retry_policy: server_runtime::RetryPolicy,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(as_ref_target, from_inner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct SynchronizationPayload(Vec<u8>);
 
 pub trait SynchronizationSource {

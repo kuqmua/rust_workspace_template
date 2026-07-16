@@ -1,5 +1,4 @@
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
 pub struct SqlxPostgresQueryBindError(String);
 #[derive(
     Debug,

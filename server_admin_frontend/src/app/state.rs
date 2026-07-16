@@ -1,6 +1,5 @@
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, newtype::Newtype)]
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, newtype::Display)]
 #[serde(transparent)]
-#[newtype(display)]
 pub(super) struct Text(pub(super) String);
 impl From<String> for Text {
     fn from(value: String) -> Self {

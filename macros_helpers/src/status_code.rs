@@ -442,8 +442,7 @@ pub enum GetOnlyOneStatusCodeError {
     #[error("19fc6512: supported status code attr not found")]
     NotFound,
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynStatusCodeVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 pub fn get_only_one(
     variant_ref: SynStatusCodeVariantRef<'_>,

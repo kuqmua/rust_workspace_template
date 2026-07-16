@@ -88,8 +88,7 @@ impl LocationFieldAttr {
 }
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,

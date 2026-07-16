@@ -40,27 +40,42 @@ mod tests {
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
     const DESCRIBED_VALUE_MAX_LEN: usize = 2;
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+    #[derive(
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::AsRefStr,
+        newtype::BoundedString,
+        newtype::DerefTarget,
+        newtype::Display,
+        newtype::Getter,
+        newtype::ToErrStringAsRefStr,
+    )]
     #[bounded_string(max = STRING_VALUE_MAX_LEN)]
-    #[newtype(as_ref_str, deref_target, display, getter, to_err_string_as_ref_str)]
     struct StringValue(String);
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(display, from_inner, to_err_string)]
+    #[derive(
+        Debug, Clone, PartialEq, Eq, newtype::Display, newtype::FromInner, newtype::ToErrString,
+    )]
     struct UsizeValue(usize);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(to_err_string_debug)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::ToErrStringDebug)]
     struct DebugValue(Vec<u8>);
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(as_ref, into_inner)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRef, newtype::IntoInner)]
     struct InnerValue(u16);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(as_slice, into_vec)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::AsSlice, newtype::IntoVec)]
     struct VecValue<T>(Vec<T>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(deref_inner, deref_mut_inner, from_inner, into_inner_from)]
+    #[derive(
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::DerefInner,
+        newtype::DerefMutInner,
+        newtype::FromInner,
+        newtype::IntoInnerFrom,
+    )]
     struct InnerVecValue<T>(Vec<T>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(deref_target, deref_mut_target)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::DerefMutTarget, newtype::DerefTarget)]
     struct TargetVecValue(Vec<u8>);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
@@ -68,30 +83,41 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
-    #[derive(Debug, Clone, newtype::Newtype)]
-    #[newtype(display, from_inner, into_inner, to_tokens)]
+    #[derive(
+        Debug, Clone, newtype::Display, newtype::FromInner, newtype::IntoInner, newtype::ToTokens,
+    )]
     struct ProcMacro2TokenValue(proc_macro2::TokenStream);
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     struct ReferentValue<'value_lt>(&'value_lt str, &'value_lt str);
-    #[derive(Debug, Clone, Copy, newtype::Newtype)]
-    #[newtype(as_ref_inner, from_inner)]
+    #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
     struct ReferentValueRef<'value_lt>(&'value_lt ReferentValue<'value_lt>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(as_ref_owned, from_inner)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
     struct OwnedValue(Vec<u8>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-    #[newtype(as_ref_target, from_inner)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
     struct OwnedSliceValue(Vec<u8>);
-    #[derive(Debug, Clone, Copy, newtype::Newtype)]
-    #[newtype(as_ref_inner, from_inner)]
+    #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
-    #[derive(newtype::Newtype)]
-    #[newtype(debug_transparent)]
+    #[derive(newtype::DebugTransparent)]
     struct TransparentDebugValue(u16);
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    enum CheckedTextError {
+        TooLong,
+    }
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::TryFrom)]
+    #[try_from(validator = validate_checked_text)]
+    struct CheckedText(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
         Second,
+    }
+    #[allow(clippy::single_call_fn)] // validates named-function support in the Newtype derive
+    fn validate_checked_text(value: &str) -> Result<(), CheckedTextError> {
+        if value.len() > 2usize {
+            Err(CheckedTextError::TooLong)
+        } else {
+            Ok(())
+        }
     }
     #[allow(dead_code)]
     fn dependency_markers(
@@ -115,6 +141,17 @@ mod tests {
         assert_eq!(
             StringValue::try_from("abc".to_owned()).map(|value| value.to_string()),
             Ok(String::from("abc"))
+        );
+    }
+    #[test]
+    fn try_from_validator_generates_checked_conversion() {
+        assert_eq!(
+            CheckedText::try_from(str_constants::AB.to_owned()),
+            Ok(CheckedText(str_constants::AB.to_owned()))
+        );
+        assert_eq!(
+            CheckedText::try_from(str_constants::ABC_ALT_3.to_owned()),
+            Err(CheckedTextError::TooLong)
         );
     }
     #[test]

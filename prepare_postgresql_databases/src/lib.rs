@@ -1,11 +1,6 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(validator = validate_database_url)]
 pub struct DatabaseUrl(String);
-
-impl AsRef<str> for DatabaseUrl {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DatabaseUrlError {
@@ -15,45 +10,14 @@ pub enum DatabaseUrlError {
     TooLong,
 }
 
-impl TryFrom<String> for DatabaseUrl {
-    type Error = DatabaseUrlError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.trim().is_empty() {
-            Err(Self::Error::Empty)
-        } else if value.len() > 8_192usize {
-            Err(Self::Error::TooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(validator = validate_migrations_source)]
 pub struct MigrationsSource(String);
-
-impl AsRef<str> for MigrationsSource {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum MigrationsSourceError {
     #[error("{0}", str_constants::MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH)]
     TooLong,
-}
-
-impl TryFrom<String> for MigrationsSource {
-    type Error = MigrationsSourceError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 4_096usize {
-            Err(Self::Error::TooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -143,6 +107,33 @@ impl ProcessCommand {
     #[must_use]
     pub const fn program(&self) -> ProcessProgram {
         self.program
+    }
+}
+
+#[allow(clippy::single_call_fn)] // named validation boundary is consumed by the Newtype derive
+fn validate_database_url<Value>(value: &Value) -> Result<(), DatabaseUrlError>
+where
+    Value: AsRef<str>,
+{
+    let value_ref = value.as_ref();
+    if value_ref.trim().is_empty() {
+        Err(DatabaseUrlError::Empty)
+    } else if value_ref.len() > 8_192usize {
+        Err(DatabaseUrlError::TooLong)
+    } else {
+        Ok(())
+    }
+}
+
+#[allow(clippy::single_call_fn)] // named validation boundary is consumed by the Newtype derive
+fn validate_migrations_source<Value>(value: &Value) -> Result<(), MigrationsSourceError>
+where
+    Value: AsRef<str>,
+{
+    if value.as_ref().len() > 4_096usize {
+        Err(MigrationsSourceError::TooLong)
+    } else {
+        Ok(())
     }
 }
 

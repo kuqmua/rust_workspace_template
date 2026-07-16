@@ -1,5 +1,14 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // DTO implementations keep constructors adjacent to their accessors and route metadata grouped by concern
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 8192,
     chars,
@@ -7,13 +16,29 @@
     utoipa,
     description = "administrator API text"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminText(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(max = 128, chars, serde, utoipa, description = "administrator login")]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminLogin(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 256,
     chars,
@@ -21,9 +46,17 @@ pub struct AdminLogin(String);
     utoipa,
     description = "administrator display name"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminDisplayName(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 128,
     chars,
@@ -31,9 +64,8 @@ pub struct AdminDisplayName(String);
     utoipa,
     description = "administrator role name"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminRoleName(String);
-#[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner)]
 #[bounded_string(
     max = 1024usize,
     min = 1usize,
@@ -42,7 +74,6 @@ pub struct AdminRoleName(String);
     utoipa,
     description = "administrator password"
 )]
-#[newtype(as_ref_owned, into_inner)]
 pub struct AdminPassword(String);
 impl std::fmt::Debug for AdminPassword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -51,7 +82,16 @@ impl std::fmt::Debug for AdminPassword {
             .finish()
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 128,
     chars,
@@ -59,9 +99,17 @@ impl std::fmt::Debug for AdminPassword {
     utoipa,
     description = "administrator permission"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminPermissionValue(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 64,
     chars,
@@ -69,7 +117,6 @@ pub struct AdminPermissionValue(String);
     utoipa,
     description = "administrator audit timestamp"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminAuditTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
@@ -128,7 +175,16 @@ impl From<SerdeJsonAdminAuditDetails> for serde_json::Value {
         value.0
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::IntoInner,
+)]
 #[bounded_string(
     max = 8192,
     chars,
@@ -136,7 +192,6 @@ impl From<SerdeJsonAdminAuditDetails> for serde_json::Value {
     utoipa,
     description = "administrator setting text"
 )]
-#[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminSettingText(String);
 #[derive(
     Clone,
@@ -148,9 +203,10 @@ pub struct AdminSettingText(String);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[newtype(display, from_inner, into_inner_from)]
 pub struct AdminUserId(i64);
 #[derive(
     Clone,
@@ -162,9 +218,10 @@ pub struct AdminUserId(i64);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[newtype(display, from_inner, into_inner_from)]
 pub struct AdminRoleId(i64);
 #[derive(
     Clone,
@@ -176,9 +233,10 @@ pub struct AdminRoleId(i64);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[newtype(display, from_inner, into_inner_from)]
 pub struct AdminPermissionId(i64);
 #[derive(
     Clone,
@@ -189,9 +247,9 @@ pub struct AdminPermissionId(i64);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(display, from_inner)]
 pub struct AdminAuditLogId(i64);
 #[derive(
     Clone,
@@ -202,9 +260,10 @@ pub struct AdminAuditLogId(i64);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
-#[newtype(display, from_inner, into_inner_from)]
 pub struct AdminBool(bool);
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]

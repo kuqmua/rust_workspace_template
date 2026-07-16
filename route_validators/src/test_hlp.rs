@@ -1,13 +1,10 @@
 #![allow(clippy::shadow_reuse)]
 const MAX_BLOCK_ON_POLLS: usize = 4096;
-#[derive(newtype::Newtype)]
-#[newtype(display, from_inner)]
+#[derive(newtype::Display, newtype::FromInner)]
 pub(crate) struct TestExpId(pub &'static str);
-#[derive(newtype::Newtype)]
-#[newtype(display, from_inner)]
+#[derive(newtype::Display, newtype::FromInner)]
 struct TestPanicText(pub &'static str);
-#[derive(newtype::Newtype)]
-#[newtype(as_ref_owned, deref_inner, deref_mut_inner)]
+#[derive(newtype::AsRefOwned, newtype::DerefInner, newtype::DerefMutInner)]
 pub(crate) struct AxumTestHeaders(pub axum::http::HeaderMap);
 pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
 impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
@@ -22,8 +19,7 @@ impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap>
         Self(value)
     }
 }
-#[derive(newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(newtype::DerefInner, newtype::FromInner)]
 pub(crate) struct AxumTestHeaderValue(pub axum::http::HeaderValue);
 #[derive(Clone, Copy)]
 struct TestPollCount(pub usize);

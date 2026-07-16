@@ -12,17 +12,14 @@ pub(crate) enum SortDir {
     Desc,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub(crate) struct AdminFrontendTableIndex(pub(crate) usize);
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::BoundedString, newtype::Newtype)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::BoundedString, newtype::AsRefOwned)]
 #[bounded_string(max = 8192usize)]
-#[newtype(as_ref_owned)]
 pub(crate) struct AdminFrontendTableText(pub(crate) String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub(crate) struct AdminFrontendTableTextRef<'value_lt>(pub(crate) &'value_lt str);
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -484,11 +484,13 @@ impl std::fmt::Debug for SqlxPostgresQuery<'_> {
         f.debug_tuple(str_constants::SQLXPOSTGRESQUERY).finish()
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct AddOperator(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct IsPrimaryKey(bool);
 pub trait PgTypeWhereFilter<'query_lt> {
     fn query_bind(
@@ -940,8 +942,7 @@ impl DefaultSomeOneElement for Order {
         Self::default()
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
 pub struct OrderSnakeCaseStr(String);
 impl From<PgCrudStringWrapperTryFromStringError> for OrderSnakeCaseStr {
     fn from(value: PgCrudStringWrapperTryFromStringError) -> Self {
@@ -960,8 +961,7 @@ impl TryFrom<String> for OrderSnakeCaseStr {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(display)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
 pub struct OrderUpperCamelCaseStr(String);
 impl From<PgCrudStringWrapperTryFromStringError> for OrderUpperCamelCaseStr {
     fn from(value: PgCrudStringWrapperTryFromStringError) -> Self {
@@ -1266,8 +1266,9 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt> f
     }
 }
 //todo ExactSizeIterator now is not a solution. error[E0658]: use of unstable library feature `exact_size_is_empty`. maybe rewrite it later
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct IsStringEmptyRes(bool);
 pub trait IsStringEmpty {
     fn is_string_empty(&self) -> IsStringEmptyRes;
@@ -1291,9 +1292,8 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     serde::Serialize,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::IntoVec,
 )]
-#[newtype(into_vec)]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
     for NotEmptyUniqueVec<T>
@@ -1645,8 +1645,17 @@ impl EqOperator {
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, display, from_inner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefInner,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct EqOperatorQueryStr(&'static str);
 pub trait PgTypeEqOperator {
     fn operator(&self) -> EqOperator;
@@ -1696,9 +1705,9 @@ pub enum UnsignedPartOfI32TryFromI32Error {
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(display, from_inner)]
 pub struct UnsignedPartOfI32Raw(i32);
 impl UnsignedPartOfI32Raw {
     #[must_use]

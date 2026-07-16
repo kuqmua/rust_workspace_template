@@ -16,9 +16,10 @@ struct PaginationStartsWithOneRaw {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(display, from, to_err_string)]
 pub struct PaginationStartsWithOneValue(i64);
 impl PaginationStartsWithOneValue {
     #[must_use]
@@ -26,8 +27,9 @@ impl PaginationStartsWithOneValue {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct IsPrimaryKey(bool);
 impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
     fn from(value: pg_crud_common::IsPrimaryKey) -> Self {

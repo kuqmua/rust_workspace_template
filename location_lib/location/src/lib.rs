@@ -1,5 +1,4 @@
-#[derive(newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(newtype::FromInner)]
 struct SynItemEnumMutRef<'item_lt>(&'item_lt mut syn::ItemEnum);
 #[proc_macro_attribute]
 pub fn errors_with_location(

@@ -12,9 +12,10 @@ pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(display, from, to_err_string)]
 pub struct PaginationLimit(i64);
 impl PaginationLimit {
     #[must_use]
@@ -40,9 +41,10 @@ impl From<i32> for PaginationLimit {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(display, from, to_err_string)]
 pub struct PaginationOffset(i64);
 impl PaginationOffset {
     #[must_use]

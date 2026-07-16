@@ -13,10 +13,10 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
     schemars::JsonSchema,
     optml::Optml,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefStr,
+    newtype::Display,
 )]
-#[bounded_string(max = LOC_FILE_MAX_LEN)]
-#[newtype(as_ref_str, display)]
+#[bounded_string(max = LOC_FILE_MAX_LEN )]
 pub struct LocationFile(String);
 #[derive(
     Debug,
@@ -29,9 +29,9 @@ pub struct LocationFile(String);
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(display, from)]
 pub struct LocationLine(u32);
 #[derive(
     Debug,
@@ -44,9 +44,9 @@ pub struct LocationLine(u32);
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(display, from)]
 pub struct LocationColumn(u32);
 #[derive(
     Debug,
@@ -59,10 +59,9 @@ pub struct LocationColumn(u32);
     schemars::JsonSchema,
     optml::Optml,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefStr,
 )]
-#[bounded_string(max = LOC_COMMIT_MAX_LEN)]
-#[newtype(as_ref_str)]
+#[bounded_string(max = LOC_COMMIT_MAX_LEN )]
 pub struct LocationCommit(String);
 #[derive(
     Debug,
@@ -74,9 +73,8 @@ pub struct LocationCommit(String);
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::FromInner,
 )]
-#[newtype(from)]
 pub struct StdLocationDuration(std::time::Duration);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
     fn schema() -> (
@@ -280,11 +278,13 @@ pub struct StdTimeDuration {
     pub secs: StdTimeDurationSecs,
     pub nanos: StdTimeDurationNanos,
 }
-#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(
+    Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct StdTimeDurationSecs(u64);
-#[derive(Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(
+    Debug, Clone, Copy, utoipa::ToSchema, optml::Optml, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct StdTimeDurationNanos(u32);
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

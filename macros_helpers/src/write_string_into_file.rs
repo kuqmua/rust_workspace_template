@@ -10,14 +10,11 @@ impl AsRef<std::path::Path> for StdWrittenFilePath {
         self.0.as_path()
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ShouldWriteString(bool);
 impl std::ops::Not for ShouldWriteString {
     type Output = bool;

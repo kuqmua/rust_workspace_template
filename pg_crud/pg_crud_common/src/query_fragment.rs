@@ -1,5 +1,13 @@
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str, deref_target, display)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefStr,
+    newtype::DerefTarget,
+    newtype::Display,
+)]
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "the private parent module assembles query fragments without widening public API"

@@ -1,18 +1,13 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminAccessTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminRefreshTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminSessionLimit(usize);
 #[derive(Debug)]
 pub struct AdminAuthSvcState {
@@ -29,8 +24,7 @@ pub struct AdminAuthSvcState {
     session_limit: StdAdminSessionLimit,
     sign_in_rate_limit: rate_limit::StdAdminRateLimitCount,
 }
-#[derive(Clone, Debug, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
 #[derive(Clone, Copy, Debug, thiserror::Error)]
 pub enum AdminAuthSvcStateBuildError {
@@ -122,8 +116,7 @@ pub struct AdminAuditQuery {
     resource: Option<super::AdminAuditResource>,
     user_id: Option<super::AdminUserId>,
 }
-#[derive(Debug, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
 #[derive(Debug)]
 pub struct AdminAuthReq {
@@ -164,8 +157,7 @@ pub struct AxumAdminJson<Value>(Value);
 pub struct AxumAdminPath<Value>(Value);
 #[derive(Debug)]
 pub struct AxumAdminQuery<Value>(Value);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct AdminSessionPath(super::AdminSessionId);
 impl<S> axum::extract::FromRequestParts<S> for HttpAdminHeaderMap
 where
@@ -433,8 +425,7 @@ pub async fn authorize_generated_request(
     }
     Ok(authenticated)
 }
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct HttpAdminHeaderValueError(http::header::InvalidHeaderValue);
 #[derive(Debug, thiserror::Error)]
 pub enum AdminApiError {
@@ -468,8 +459,7 @@ impl From<sqlx::Error> for AdminApiError {
         Self::Pg(super::SqlxAdminError::from(value))
     }
 }
-#[derive(Debug, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Debug, newtype::IntoInnerFrom)]
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
@@ -895,11 +885,9 @@ async fn list_permissions(auth: AdminAuthReq) -> Result<AxumAdminResponse, Admin
 async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::settings(auth).await
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Debug, Clone, newtype::IntoInnerFrom)]
 pub struct AxumAdminAuthRouter(axum::Router);
-#[derive(Clone, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Clone, newtype::IntoInnerFrom)]
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

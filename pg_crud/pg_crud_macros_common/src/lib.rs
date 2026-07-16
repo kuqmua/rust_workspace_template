@@ -198,18 +198,14 @@ impl FromIterator<macros_helpers::generated_rust_token_stream::GeneratedRustToke
         Self(iter.into_iter().collect())
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(display, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
 pub struct NonNullOrNullableStr(&'static str);
-#[derive(Debug, Clone, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(max = IS_NL_PREFIX_STR_MAX_LEN, description = "is nullable prefix string")]
-#[newtype(display)]
+#[derive(Debug, Clone, newtype::BoundedString, newtype::Display)]
+#[bounded_string(max = IS_NL_PREFIX_STR_MAX_LEN, description = "is nullable prefix string" )]
 pub struct IsNullablePrefixStr(String);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_str, display, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefStr, newtype::Display, newtype::FromInner)]
 pub struct ImportSnakeCaseStr(&'static str);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(display, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
 pub struct ImportPathStr(&'static str);
 #[derive(Debug, Clone, Copy)]
 pub struct DimensionNumber(usize);
@@ -250,8 +246,7 @@ impl DeLen {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct WrapIntoBraces(bool);
 #[derive(Debug, Clone)]
 pub struct ParseTokenStreamStrings(Vec<String>);
@@ -277,11 +272,9 @@ impl ParseTokenStreamStrings {
             .collect::<GeneratedRustTokenStreamVec>()
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ParseErrorIdRef<'lt>(&'lt str);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct PanicUuidRef<'lt>(&'lt str);
 #[derive(Debug, Clone, Copy)]
 pub struct SynIdentifierTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);

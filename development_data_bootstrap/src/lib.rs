@@ -28,8 +28,7 @@ pub struct DevelopmentBootstrapSummary {
     missing_role: DevelopmentIdentityCount,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct DevelopmentIdentityCount(usize);
 
 impl DevelopmentBootstrapSummary {

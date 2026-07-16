@@ -3756,6 +3756,16 @@ pub const PG_SQLSTATE_SERIALIZATION_FAILURE: &str = "40001";
 pub const PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION: &str = "22001";
 pub const PG_SQLSTATE_UNIQUE_VIOLATION: &str = "23505";
 pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud/pg_crud_common/src/pg_error.rs";
+pub const NEWTYPE_TRY_FROM: &str = "try_from";
+pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
+pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
+pub const NEWTYPE_TRY_FROM_DUPLICATE: &str = "duplicate newtype try_from option";
+pub const NEWTYPE_TRY_FROM_FROM_INNER_CONFLICT: &str =
+    "newtype try_from cannot be combined with from_inner";
+pub const NEWTYPE_TRY_FROM_UNKNOWN_OPTION: &str = "unknown newtype try_from option";
+pub const NEWTYPE_TRY_FROM_VALIDATOR: &str = "validator";
+pub const NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE: &str = "duplicate newtype try_from validator";
+pub const NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED: &str = "newtype try_from requires validator = path";
 pub const TEST_DUPLICATE: &str = "duplicate";
 pub const TEST_FIRST: &str = "first";
 pub const TEST_LAST: &str = "last";

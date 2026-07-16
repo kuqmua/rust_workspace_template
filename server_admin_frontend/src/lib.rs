@@ -8,12 +8,10 @@ mod table_state;
 #[cfg(target_arch = "wasm32")]
 mod transport;
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Debug, Clone, newtype::IntoInnerFrom)]
 pub struct AxumAdminFrontendRouter(axum::Router);
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 struct AdminSwaggerEnabled(bool);
 #[cfg(not(target_arch = "wasm32"))]
 #[must_use]

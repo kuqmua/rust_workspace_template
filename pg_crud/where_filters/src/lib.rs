@@ -35,8 +35,16 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
         Self::default()
     }
 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_owned, display, from_inner)]
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    optml::Optml,
+    newtype::AsRefOwned,
+    newtype::Display,
+    newtype::FromInner,
+)]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(regex::Regex);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for RegexRegex {
@@ -125,8 +133,17 @@ pub enum RegexCase {
     Insensitive,
     Sensitive,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, display, from_inner)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefInner,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct RegexCasePostgreqlSyntax(&'static str);
 impl pg_crud_common::DefaultSomeOneElement for RegexCase {
     fn default_some_one_element() -> Self {
@@ -664,9 +681,9 @@ pub enum BoundedVecTryNewError {
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
-    newtype::Newtype,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(display, from_inner)]
 pub struct BoundedVecLen(usize);
 impl BoundedVecLen {
     #[must_use]

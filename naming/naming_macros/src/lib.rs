@@ -1,5 +1,4 @@
-#[derive(newtype::Newtype)]
-#[newtype(to_tokens)]
+#[derive(newtype::ToTokens)]
 struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
 #[derive(Clone, Copy)]
 struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);

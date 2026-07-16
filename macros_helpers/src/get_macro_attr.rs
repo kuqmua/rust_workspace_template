@@ -1,8 +1,6 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner, to_tokens)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::ToTokens)]
 pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(deref_target, from_inner, to_tokens)]
+#[derive(Debug, Clone, Copy, newtype::DerefTarget, newtype::FromInner, newtype::ToTokens)]
 pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct AttrPathMatches(bool);

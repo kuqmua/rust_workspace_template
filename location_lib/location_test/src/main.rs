@@ -44,10 +44,9 @@ pub enum ErrorOne {
     serde::Deserialize,
     optml::Optml,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::ToErrStringAsRefStr,
 )]
-#[bounded_string(max = LOC_TEST_TEXT_MAX_LEN)]
-#[newtype(to_err_string_as_ref_str)]
+#[bounded_string(max = LOC_TEST_TEXT_MAX_LEN )]
 pub struct LocationTestText(String);
 #[derive(
     Debug,
@@ -58,9 +57,9 @@ pub struct LocationTestText(String);
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
-    newtype::Newtype,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(from, to_err_string)]
 pub struct LocationTestFlag(bool);
 #[derive(
     Debug,
@@ -71,9 +70,9 @@ pub struct LocationTestFlag(bool);
     serde::Serialize,
     serde::Deserialize,
     optml::Optml,
-    newtype::Newtype,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(from, to_err_string)]
 pub struct LocationTestCount(u32);
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum ErrorTwo {

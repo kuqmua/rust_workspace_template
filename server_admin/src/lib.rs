@@ -17,17 +17,13 @@ pub use domain::{
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminJoinError(tokio::task::JoinError);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
-#[derive(Clone, Copy, newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(Clone, Copy, newtype::DebugTransparent, newtype::FromInner)]
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
@@ -180,18 +176,16 @@ impl AdminGeneratedToken {
 pub fn hash_opaque_token(token: &AdminOpaqueToken) -> AdminTokenHash {
     token::hash_opaque_token(token)
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminCookieSecure(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminCookieMaxAgeSeconds(u64);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner,
+)]
 #[bounded_string(max = 8192, description = "administrator cookie")]
-#[newtype(as_ref_owned, into_inner)]
 pub struct StdAdminCookie(String);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct HttpAdminHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminCookieKind {
@@ -261,13 +255,11 @@ pub fn find_admin_cookie(
         }
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPasswordHashConcurrency(StdAdminNonZeroUsize);
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::Newtype,
+    Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
 )]
-#[newtype(from_inner)]
 pub struct AdminUnixTokenStream(u64);
 #[derive(
     Debug,
@@ -278,9 +270,8 @@ pub struct AdminUnixTokenStream(u64);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::FromInner,
 )]
-#[newtype(from_inner)]
 pub struct AdminSessionId(UuidAdminValue);
 #[derive(
     Debug,
@@ -290,10 +281,9 @@ pub struct AdminSessionId(UuidAdminValue);
     serde::Serialize,
     serde::Deserialize,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator access token issuer")]
-#[newtype(as_ref_owned)]
 pub struct AdminTokenIssuer(String);
 #[derive(
     Debug,
@@ -303,10 +293,9 @@ pub struct AdminTokenIssuer(String);
     serde::Serialize,
     serde::Deserialize,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator access token audience")]
-#[newtype(as_ref_owned)]
 pub struct AdminTokenAudience(String);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AdminAccessClaims {
@@ -358,15 +347,15 @@ pub enum AdminPasswordHashError {
 pub struct AdminPasswordHasher {
     semaphore: StdAdminSharedSemaphore,
 }
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
 #[derive(Debug, thiserror::Error)]
 #[error("administrator access token operation failed: {0:?}")]
 pub struct AdminAccessTokenError(JsonwebtokenAdminError);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner,
+)]
 #[bounded_string(max = 8192, description = "administrator access token")]
-#[newtype(as_ref_owned, into_inner)]
 pub struct StdAdminAccessToken(String);
 pub fn encode_access_token(
     claims: &AdminAccessClaims,
@@ -452,8 +441,7 @@ pub enum AdminAuditResource {
 pub struct AdminPermissionTryFromStrError {
     value: StdAdminString,
 }
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminMigrateError(sqlx::migrate::MigrateError);
 #[derive(Debug, thiserror::Error)]
 #[error("failed to migrate administrator schema: {0:?}")]

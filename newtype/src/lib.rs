@@ -13,6 +13,11 @@ fn dependency_markers<Value>(
 struct NewtypeAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<NewtypeOption>,
     to_err_string_mode: Option<ToErrStringMode>,
+    try_from: Option<NewtypeTryFromAttrs>,
+}
+#[derive(Debug)]
+struct NewtypeTryFromAttrs {
+    validator: SynExpr,
 }
 struct BoundedStringAttrs {
     description: Option<SynExpr>,
@@ -57,6 +62,12 @@ enum ToErrStringMode {
     Display,
 }
 struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
+struct ProcMacroInputTokenStream(proc_macro::TokenStream);
+impl From<proc_macro::TokenStream> for ProcMacroInputTokenStream {
+    fn from(value: proc_macro::TokenStream) -> Self {
+        Self(value)
+    }
+}
 impl From<ProcMacro2GeneratedTokenStream> for proc_macro2::TokenStream {
     fn from(value: ProcMacro2GeneratedTokenStream) -> Self {
         value.0
@@ -161,6 +172,19 @@ impl AsRef<syn::Ident> for SynIdentifierRef<'_> {
         self.0
     }
 }
+#[derive(Clone, Copy)]
+struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
+impl<'syn_lt> From<&'syn_lt syn::Type> for SynTypeRef<'syn_lt> {
+    fn from(value: &'syn_lt syn::Type) -> Self {
+        Self(value)
+    }
+}
+impl AsRef<syn::Type> for SynTypeRef<'_> {
+    fn as_ref(&self) -> &syn::Type {
+        self.0
+    }
+}
+#[derive(Debug)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
     fn from(value: syn::Expr) -> Self {
@@ -177,68 +201,277 @@ impl quote::ToTokens for SynExpr {
         self.0.to_tokens(tokens);
     }
 }
-#[derive(Clone, Copy)]
-struct SynParseNestedMetaRef<'syn_lt>(&'syn_lt syn::meta::ParseNestedMeta<'syn_lt>);
-impl<'syn_lt> From<&'syn_lt syn::meta::ParseNestedMeta<'syn_lt>>
-    for SynParseNestedMetaRef<'syn_lt>
-{
-    fn from(value: &'syn_lt syn::meta::ParseNestedMeta<'syn_lt>) -> Self {
-        Self(value)
-    }
-}
-impl<'syn_lt> AsRef<syn::meta::ParseNestedMeta<'syn_lt>> for SynParseNestedMetaRef<'syn_lt> {
-    fn as_ref(&self) -> &syn::meta::ParseNestedMeta<'syn_lt> {
-        self.0
-    }
-}
-#[derive(Clone, Copy)]
-struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
-impl<'syn_lt> From<&'syn_lt syn::Type> for SynTypeRef<'syn_lt> {
-    fn from(value: &'syn_lt syn::Type) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<syn::Type> for SynTypeRef<'_> {
-    fn as_ref(&self) -> &syn::Type {
-        self.0
-    }
-}
 impl NewtypeAttrs {
     fn contains(&self, option: NewtypeOption) -> NewtypeBool {
         NewtypeBool(self.options.contains(option).get())
     }
-    fn set_to_err_string_mode(
-        &mut self,
-        mode: ToErrStringMode,
-        meta: SynParseNestedMetaRef<'_>,
-    ) -> syn::Result<()> {
-        if self.to_err_string_mode.replace(mode).is_some() {
-            return Err(meta
-                .as_ref()
-                .error(str_constants::ONLY_ONE_TO_ERR_STRING_MODE_CAN_BE_SELECTED));
-        }
-        Ok(())
+}
+fn derive_newtype_option(
+    input_token_stream: ProcMacroInputTokenStream,
+    option: NewtypeOption,
+    to_err_string_mode: Option<ToErrStringMode>,
+) -> ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
+        Ok(v) => v,
+        Err(error) => return ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+    };
+    let mut attrs = NewtypeAttrs {
+        options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+        to_err_string_mode,
+        try_from: None,
+    };
+    if let Err(error) = attrs.options.try_insert_with(option, || {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            str_constants::DUPLICATE_NEWTYPE_OPTION,
+        )
+    }) {
+        return ProcMacro2GeneratedTokenStream(error.into_compile_error());
     }
-    fn try_insert(
-        &mut self,
-        option: NewtypeOption,
-        meta: SynParseNestedMetaRef<'_>,
-    ) -> syn::Result<()> {
-        self.options.try_insert_with(option, || {
-            meta.as_ref().error(str_constants::DUPLICATE_NEWTYPE_OPTION)
-        })
+    match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+        Ok(v) => v,
+        Err(error) => ProcMacro2GeneratedTokenStream(error.into_compile_error()),
     }
 }
-#[proc_macro_derive(Newtype, attributes(newtype))]
-pub fn newtype(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+#[allow(clippy::single_call_fn)] // keeps TryFrom attribute parsing separate from its proc-macro entry point
+fn derive_newtype_try_from(
+    input_token_stream: ProcMacroInputTokenStream,
+) -> ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
         Ok(v) => v,
-        Err(error) => return error.into_compile_error().into(),
+        Err(error) => return ProcMacro2GeneratedTokenStream(error.into_compile_error()),
     };
-    match generate_newtype_token_stream(SynDeriveInputRef::from(&input)) {
-        Ok(v) => v.into(),
-        Err(error) => error.into_compile_error().into(),
+    let mut validator_opt = None;
+    let parse_result = input
+        .attrs
+        .iter()
+        .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE_TRY_FROM))
+        .try_for_each(|attr| {
+            attr.parse_nested_meta(|meta| {
+                if !meta
+                    .path
+                    .is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR)
+                {
+                    return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_UNKNOWN_OPTION));
+                }
+                if validator_opt.is_some() {
+                    return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE));
+                }
+                validator_opt = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                Ok(())
+            })
+        });
+    if let Err(error) = parse_result {
+        return ProcMacro2GeneratedTokenStream(error.into_compile_error());
     }
+    let Some(validator) = validator_opt else {
+        return ProcMacro2GeneratedTokenStream(
+            syn::Error::new_spanned(&input, str_constants::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
+                .into_compile_error(),
+        );
+    };
+    let attrs = NewtypeAttrs {
+        options: workspace_macro_helpers::StdUniqueOptionSet::default(),
+        to_err_string_mode: None,
+        try_from: Some(NewtypeTryFromAttrs { validator }),
+    };
+    match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
+        Ok(v) => v,
+        Err(error) => ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+    }
+}
+#[proc_macro_derive(AsRef)]
+pub fn as_ref(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsRef,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(AsRefInner)]
+pub fn as_ref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsRefInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(AsRefOwned)]
+pub fn as_ref_owned(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsRefOwned,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(AsRefStr)]
+pub fn as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsRefStr,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(AsRefTarget)]
+pub fn as_ref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsRefTarget,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(AsSlice)]
+pub fn as_slice(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::AsSlice,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DebugTransparent)]
+pub fn debug_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DebugTransparent,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DerefInner)]
+pub fn deref_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DerefInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DerefMutInner)]
+pub fn deref_mut_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DerefMutInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DerefMutTarget)]
+pub fn deref_mut_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DerefMutTarget,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DerefTarget)]
+pub fn deref_target(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DerefTarget,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(Display)]
+pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::Display,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(FromInner)]
+pub fn from_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::From,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(Getter)]
+pub fn getter(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::Getter,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(IntoInner)]
+pub fn into_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::IntoInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(IntoInnerFrom)]
+pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::IntoInnerFrom,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(IntoVec)]
+pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::IntoVec,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(ToTokens)]
+pub fn to_tokens(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::ToTokens,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(ToErrString)]
+pub fn to_err_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::Secret,
+        Some(ToErrStringMode::Display),
+    )
+    .into()
+}
+#[proc_macro_derive(ToErrStringAsRefStr)]
+pub fn to_err_string_as_ref_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::Secret,
+        Some(ToErrStringMode::AsRefStr),
+    )
+    .into()
+}
+#[proc_macro_derive(ToErrStringDebug)]
+pub fn to_err_string_debug(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::Secret,
+        Some(ToErrStringMode::Debug),
+    )
+    .into()
+}
+#[proc_macro_derive(TryFrom, attributes(try_from))]
+pub fn try_from(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_try_from(ProcMacroInputTokenStream::from(input)).into()
 }
 #[proc_macro_derive(EnumFromStr)]
 pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -262,15 +495,13 @@ pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro
         Err(error) => error.into_compile_error().into(),
     }
 }
-#[allow(clippy::single_call_fn)] // keeps top-level derive flow separate from token generation details
-fn generate_newtype_token_stream(
+fn generate_newtype_token_stream_with_attrs(
     input: SynDeriveInputRef<'_>,
+    attrs: &NewtypeAttrs,
 ) -> syn::Result<ProcMacro2GeneratedTokenStream> {
     let input_ref = input.as_ref();
-    let attrs = parse_newtype_attrs(SynAttrsRef::from(input_ref.attrs.as_slice()))?;
-    validate_newtype_attrs(&attrs, input)?;
     let inner_ty = tuple_struct_one_field_ty(input)?;
-    validate_newtype_inner_ty_attrs(&attrs, inner_ty)?;
+    validate_newtype_inner_ty_attrs(attrs, inner_ty)?;
     let inner_ty_ref = inner_ty.as_ref();
     let identifier = &input_ref.ident;
     let (impl_generics, ty_generics, where_clause) = input_ref.generics.split_for_impl();
@@ -429,6 +660,19 @@ fn generate_newtype_token_stream(
             }
         }
     });
+    let try_from_token_stream = attrs.try_from.as_ref().map(|try_from| {
+        let error = quote::format_ident!("{identifier}Error");
+        let validator = &try_from.validator;
+        quote::quote! {
+            impl #impl_generics TryFrom<#inner_ty_ref> for #identifier #ty_generics #where_clause {
+                type Error = #error;
+                fn try_from(value: #inner_ty_ref) -> Result<Self, Self::Error> {
+                    (#validator)(&value)?;
+                    Ok(Self(value))
+                }
+            }
+        }
+    });
     let getter_token_stream = attrs.contains(NewtypeOption::Getter).get().then(|| {
         let trait_identifier = quote::format_ident!("Get{identifier}");
         let fn_name = identifier_to_snake(SynIdentifierRef::from(identifier));
@@ -490,7 +734,7 @@ fn generate_newtype_token_stream(
         }
     });
     let to_err_string_token_stream =
-        generate_to_err_string_token_stream(&attrs, SynIdentifierRef::from(identifier));
+        generate_to_err_string_token_stream(attrs, SynIdentifierRef::from(identifier));
     Ok(ProcMacro2GeneratedTokenStream(quote::quote! {
         #debug_transparent_token_stream
         #display_token_stream
@@ -505,6 +749,7 @@ fn generate_newtype_token_stream(
         #deref_mut_inner_token_stream
         #deref_mut_target_token_stream
         #from_token_stream
+        #try_from_token_stream
         #getter_token_stream
         #into_inner_token_stream
         #into_inner_from_token_stream
@@ -808,182 +1053,6 @@ fn parse_bounded_string_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<BoundedStri
     }
     Ok(parsed)
 }
-#[allow(clippy::single_call_fn)] // attr parsing is intentionally isolated from code generation
-fn parse_newtype_attrs(attrs: SynAttrsRef<'_>) -> syn::Result<NewtypeAttrs> {
-    attrs
-        .as_ref()
-        .iter()
-        .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE))
-        .try_fold(NewtypeAttrs::default(), |mut accumulator, attr| {
-            attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident(str_constants::AS_REF_STR) {
-                    return accumulator
-                        .try_insert(NewtypeOption::AsRefStr, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::AS_REF) {
-                    return accumulator
-                        .try_insert(NewtypeOption::AsRef, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::AS_REF_INNER) {
-                    return accumulator.try_insert(
-                        NewtypeOption::AsRefInner,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::AS_REF_OWNED) {
-                    return accumulator.try_insert(
-                        NewtypeOption::AsRefOwned,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::AS_REF_TARGET) {
-                    return accumulator.try_insert(
-                        NewtypeOption::AsRefTarget,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::AS_SLICE) {
-                    return accumulator
-                        .try_insert(NewtypeOption::AsSlice, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::DEREF)
-                    || meta.path.is_ident(str_constants::DEREF_TARGET)
-                {
-                    return accumulator.try_insert(
-                        NewtypeOption::DerefTarget,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::DEREF_INNER) {
-                    return accumulator.try_insert(
-                        NewtypeOption::DerefInner,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::DEREF_MUT_INNER) {
-                    return accumulator.try_insert(
-                        NewtypeOption::DerefMutInner,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::DEREF_MUT_TARGET) {
-                    return accumulator.try_insert(
-                        NewtypeOption::DerefMutTarget,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::DEBUG_TRANSPARENT) {
-                    return accumulator.try_insert(
-                        NewtypeOption::DebugTransparent,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::DISPLAY) {
-                    return accumulator
-                        .try_insert(NewtypeOption::Display, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::FROM_ALT_4)
-                    || meta.path.is_ident(str_constants::FROM_INNER)
-                {
-                    return accumulator
-                        .try_insert(NewtypeOption::From, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::GETTER) {
-                    return accumulator
-                        .try_insert(NewtypeOption::Getter, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::INTO_INNER) {
-                    return accumulator
-                        .try_insert(NewtypeOption::IntoInner, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::INTO_INNER_FROM) {
-                    return accumulator.try_insert(
-                        NewtypeOption::IntoInnerFrom,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::INTO_VEC) {
-                    return accumulator
-                        .try_insert(NewtypeOption::IntoVec, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::SECRET) {
-                    return accumulator
-                        .try_insert(NewtypeOption::Secret, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::TO_TOKENS) {
-                    return accumulator
-                        .try_insert(NewtypeOption::ToTokens, SynParseNestedMetaRef::from(&meta));
-                }
-                if meta.path.is_ident(str_constants::TO_ERR_STRING)
-                    || meta.path.is_ident(str_constants::TO_ERR_STRING_DISPLAY)
-                {
-                    return accumulator.set_to_err_string_mode(
-                        ToErrStringMode::Display,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::TO_ERR_STRING_AS_REF_STR) {
-                    return accumulator.set_to_err_string_mode(
-                        ToErrStringMode::AsRefStr,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                if meta.path.is_ident(str_constants::TO_ERR_STRING_DEBUG) {
-                    return accumulator.set_to_err_string_mode(
-                        ToErrStringMode::Debug,
-                        SynParseNestedMetaRef::from(&meta),
-                    );
-                }
-                Err(meta.error(str_constants::UNKNOWN_NEWTYPE_OPTION))
-            })?;
-            Ok(accumulator)
-        })
-}
-#[allow(clippy::single_call_fn)] // validation stays named so proc-macro diagnostics are not mixed into generation
-fn validate_newtype_attrs(attrs: &NewtypeAttrs, input: SynDeriveInputRef<'_>) -> syn::Result<()> {
-    if attrs.options.is_empty().get() && attrs.to_err_string_mode.is_none() {
-        return Err(syn::Error::new_spanned(
-            input.as_ref(),
-            str_constants::NEWTYPE_REQUIRES_AT_LEAST_ONE_NEWTYPE_OPTION,
-        ));
-    }
-    if attrs.contains(NewtypeOption::DerefInner).get()
-        && attrs.contains(NewtypeOption::DerefTarget).get()
-    {
-        return Err(syn::Error::new_spanned(
-            input.as_ref(),
-            str_constants::DEREF_INNER_AND_DEREF_TARGET_CANNOT_BE_COMBINED,
-        ));
-    }
-    if attrs.contains(NewtypeOption::DerefMutInner).get()
-        && !attrs.contains(NewtypeOption::DerefInner).get()
-    {
-        return Err(syn::Error::new_spanned(
-            input.as_ref(),
-            str_constants::DEREF_MUT_INNER_REQUIRES_DEREF_INNER,
-        ));
-    }
-    if attrs.contains(NewtypeOption::DerefMutTarget).get()
-        && !attrs.contains(NewtypeOption::DerefTarget).get()
-    {
-        return Err(syn::Error::new_spanned(
-            input.as_ref(),
-            str_constants::DEREF_MUT_TARGET_REQUIRES_DEREF_TARGET,
-        ));
-    }
-    if attrs.contains(NewtypeOption::Secret).get()
-        && (attrs.contains(NewtypeOption::DebugTransparent).get()
-            || attrs.contains(NewtypeOption::Display).get()
-            || attrs.contains(NewtypeOption::ToTokens).get()
-            || attrs.to_err_string_mode.is_some())
-    {
-        return Err(syn::Error::new_spanned(
-            input.as_ref(),
-            str_constants::SECRET_CANNOT_BE_COMBINED_WITH_FORMATTING_TOKEN_OR_ERROR_STRING_FORWARDING,
-        ));
-    }
-    Ok(())
-}
 #[allow(clippy::single_call_fn)] // string wrapper policy belongs to newtype validation before From impl generation
 fn validate_newtype_inner_ty_attrs(
     attrs: &NewtypeAttrs,
@@ -1169,82 +1238,6 @@ mod tests {
             assert_eq!(error.to_string(), "duplicate bounded_string option");
         } else {
             panic!("d03ced5c");
-        }
-        let newtype_input = syn::parse_quote! {
-            #[derive(Newtype)]
-            #[newtype(display, display)]
-            struct Value(String);
-        };
-        let newtype_result =
-            super::generate_newtype_token_stream(super::SynDeriveInputRef::from(&newtype_input));
-        if let Err(error) = newtype_result {
-            assert_eq!(error.to_string(), "duplicate newtype option");
-        } else {
-            panic!("bb438633");
-        }
-    }
-    #[test]
-    fn newtype_as_ref_owned_reference_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(Newtype)]
-            #[newtype(as_ref_owned)]
-            struct Value<'value_lt>(&'value_lt u16);
-        };
-        let result = super::generate_newtype_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "d73a920b");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "#[newtype(as_ref_owned)] does not support reference inner types; use as_ref_inner"
-            );
-        }
-    }
-    #[test]
-    fn newtype_as_ref_inner_non_reference_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(Newtype)]
-            #[newtype(as_ref_inner)]
-            struct Value(u16);
-        };
-        let result = super::generate_newtype_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "33c7e891");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "#[newtype(as_ref_inner)] requires a shared reference inner type"
-            );
-        }
-    }
-    #[test]
-    fn newtype_from_string_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(Newtype)]
-            #[newtype(from_inner)]
-            struct Name(String);
-        };
-        let result = super::generate_newtype_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "f9b7c2a1");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "#[newtype(from_inner)] cannot be used for String wrappers; implement TryFrom<String> with a length check instead"
-            );
-        }
-    }
-    #[test]
-    fn newtype_secret_formatting_returns_compile_error() {
-        let input = syn::parse_quote! {
-            #[derive(Newtype)]
-            #[newtype(debug_transparent, secret)]
-            struct SecretValue(Vec<u8>);
-        };
-        let result = super::generate_newtype_token_stream(super::SynDeriveInputRef::from(&input));
-        assert!(result.is_err(), "46d9f064");
-        if let Err(error) = result {
-            assert_eq!(
-                error.to_string(),
-                "secret cannot be combined with formatting, token, or error-string forwarding"
-            );
         }
     }
 }

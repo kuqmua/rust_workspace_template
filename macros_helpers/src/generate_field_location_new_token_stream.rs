@@ -1,12 +1,9 @@
 #[must_use]
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationFile(&'static str);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationLine(u32);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct FieldLocationColumn(u32);
 #[must_use]
 pub fn generate_field_location_new_token_stream(

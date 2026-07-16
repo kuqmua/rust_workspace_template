@@ -29,11 +29,9 @@ impl AdminRateLimitScope {
         }
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StdAdminRateLimitCount(pub(super) i64);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StdAdminRateLimitWindowSeconds(i32);
 pub(super) async fn enforce_rate_limit(
     state: &super::AdminAuthSvcState,

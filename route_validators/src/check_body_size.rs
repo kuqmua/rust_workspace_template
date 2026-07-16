@@ -1,5 +1,4 @@
-#[derive(Debug, newtype::Newtype)]
-#[newtype(from)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumBody(axum::body::Body);
 #[derive(
     Debug,
@@ -10,12 +9,11 @@ pub struct AxumBody(axum::body::Body);
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    newtype::Newtype,
+    newtype::FromInner,
+    newtype::ToErrString,
 )]
-#[newtype(from, to_err_string)]
 pub struct BodySizeLimitBytes(usize);
-#[derive(Debug, newtype::Newtype)]
-#[newtype(to_err_string)]
+#[derive(Debug, newtype::ToErrString)]
 pub struct AxumBodySizeError(axum::Error);
 #[derive(Debug)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
@@ -25,8 +23,7 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(deref_target)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::DerefTarget)]
 pub struct BytesBodyBytes(bytes::Bytes);
 impl AsRef<[u8]> for BytesBodyBytes {
     fn as_ref(&self) -> &[u8] {

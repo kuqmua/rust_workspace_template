@@ -25,31 +25,23 @@ pub struct PgTableIdempotencyMethod(String);
 pub struct PgTableIdempotencyRoute(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(as_ref_target, from_inner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyResponseStatus(u16);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(display, from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct PgTableIdempotencyTextBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyCleanupRows(u64);
 #[derive(Debug)]
 pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype, sqlx::Type)]
-#[newtype(display)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);
 #[derive(Debug)]
@@ -528,8 +520,7 @@ enum UpdateSelectorFmt {
     Eq,
     InList,
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, display)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::Display)]
 pub struct PgTableNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableNameRef<'lt>
 where
@@ -539,8 +530,7 @@ where
         Self(value.as_ref())
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, display)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::Display)]
 pub struct PgTableSqlFragmentRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableSqlFragmentRef<'lt>
 where
@@ -550,8 +540,7 @@ where
         Self(value.as_ref())
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(deref_target, display)]
+#[derive(Debug, Clone, newtype::DerefTarget, newtype::Display)]
 pub struct PgTableQueryString(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgTableStringWrapperTryFromStringError {
@@ -586,8 +575,7 @@ impl TryFrom<String> for PgTableQueryString {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(deref_target, display)]
+#[derive(Debug, Clone, newtype::DerefTarget, newtype::Display)]
 pub struct PgTableQueryPartFragment(String);
 impl From<PgTableStringWrapperTryFromStringError> for PgTableQueryPartFragment {
     fn from(value: PgTableStringWrapperTryFromStringError) -> Self {

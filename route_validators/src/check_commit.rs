@@ -1,19 +1,14 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
     axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(to_err_string_as_ref_str)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
 pub struct CommitNotEqMessage(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(to_err_string_as_ref_str)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
 pub struct CommitToUse(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(to_err_string_as_ref_str)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
 pub struct NoCommitHeaderMessage(&'static str);
-#[derive(Debug, newtype::Newtype)]
-#[newtype(to_err_string)]
+#[derive(Debug, newtype::ToErrString)]
 pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(from)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct EnableApiGitCommitCheck(bool);
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 pub enum CommitError {

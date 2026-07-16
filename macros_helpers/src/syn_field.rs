@@ -4,12 +4,22 @@ pub struct SynField {
     pub type0: SynFieldType,
     pub vis: SynFieldVis,
 }
-#[derive(Debug, Clone, PartialEq, newtype::Newtype)]
-#[newtype(as_ref_owned, deref_inner, display, from_inner, to_tokens)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::ToTokens,
+)]
 pub struct SynFieldIdentifier(syn::Ident);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, deref_inner, from_inner, to_tokens)]
+#[derive(
+    Debug, Clone, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner, newtype::ToTokens,
+)]
 pub struct SynFieldType(syn::Type);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, deref_inner, from_inner, to_tokens)]
+#[derive(
+    Debug, Clone, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner, newtype::ToTokens,
+)]
 pub struct SynFieldVis(syn::Visibility);

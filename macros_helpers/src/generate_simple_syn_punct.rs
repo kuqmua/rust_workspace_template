@@ -1,8 +1,6 @@
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Debug, Clone, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct SynPathSegment(syn::PathSegment);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from, to_tokens)]
+#[derive(Debug, Clone, newtype::FromInner, newtype::IntoInnerFrom, newtype::ToTokens)]
 pub struct SynPathSegments(syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>);
 #[must_use]
 pub fn generate_simple_syn_punct<I, S>(v: I) -> SynPathSegments

@@ -11,10 +11,13 @@ fn string_wrappers_do_not_use_from_string() {
             }
             let string_wrapper_names =
                 super::string_wrapper_names(super::types::SynFileRef::from(ast));
+            let len_checked_function_names =
+                super::len_checked_function_names(super::types::SynFileRef::from(ast));
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::StringWrapperFromVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
+                    len_checked_function_names: &len_checked_function_names,
                     string_wrapper_names: &string_wrapper_names,
                     try_from_string_names: super::types::StdSourceTextSet::default(),
                     try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
@@ -53,10 +56,13 @@ fn string_wrappers_do_not_use_from_string() {
 fn from_string_impl_visitor_rejects_non_string_wrappers_too() {
     let ast = syn::parse_file(str_constants::NEWLINE_STRUCT_SOURCETEXT_BOX_STR_NEWLINE_IMPL_FROM_STRING_FOR_SOURCETEXT_NEWLINE).expect("f7c0e2a9");
     let string_wrapper_names = super::types::StdSourceTextSet::default();
+    let len_checked_function_names =
+        super::len_checked_function_names(super::types::SynFileRef::from(&ast));
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::StringWrapperFromVisitor {
             ers: super::types::DiagnosticMsgs::default(),
+            len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
             try_from_string_names: super::types::StdSourceTextSet::default(),
             try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
@@ -77,10 +83,13 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
     )
     .expect("90df57a8");
     let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
+    let len_checked_function_names =
+        super::len_checked_function_names(super::types::SynFileRef::from(&ast));
     let visitor = super::visit_syn_file(
         super::types::SynFileRef::from(&ast),
         super::StringWrapperFromVisitor {
             ers: super::types::DiagnosticMsgs::default(),
+            len_checked_function_names: &len_checked_function_names,
             string_wrapper_names: &string_wrapper_names,
             try_from_string_names: super::types::StdSourceTextSet::default(),
             try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
@@ -97,6 +106,41 @@ fn bounded_string_derive_satisfies_string_wrapper_policy() {
         "69f280b3"
     );
     assert!(visitor.ers.is_empty(), "fbd8c479 {:#?}", visitor.ers);
+}
+#[test]
+fn newtype_try_from_validator_satisfies_string_wrapper_policy() {
+    let ast: syn::File = syn::parse_quote! {
+            #[derive(newtype::TryFrom)]
+    #[try_from(
+                validator = validate_value
+            )]
+            struct Value(String);
+            fn validate_value(value: &str) -> Result<(), ValueError> {
+                if value.len() > 8usize {
+                    Err(ValueError)
+                } else {
+                    Ok(())
+                }
+            }
+        };
+    let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
+    let len_checked_function_names =
+        super::len_checked_function_names(super::types::SynFileRef::from(&ast));
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::StringWrapperFromVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            len_checked_function_names: &len_checked_function_names,
+            string_wrapper_names: &string_wrapper_names,
+            try_from_string_names: super::types::StdSourceTextSet::default(),
+            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    assert!(visitor.try_from_string_names.contains("Value"), "4d8a4c7e");
+    assert!(
+        visitor.try_from_string_len_checked_names.contains("Value"),
+        "7c2e4b50"
+    );
 }
 #[test]
 fn public_tuple_wrappers_do_not_expose_inner_field() {

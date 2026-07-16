@@ -47,8 +47,9 @@ pub use route_coverage::{
     missing_required_test_categories, required_test_categories, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_str, display, from_inner)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display, newtype::FromInner,
+)]
 pub struct ContractStr(&'static str);
 impl From<ContractStr> for String {
     fn from(value: ContractStr) -> Self {

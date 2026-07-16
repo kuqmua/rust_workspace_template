@@ -28,12 +28,17 @@ to_err_string_macros::impl_to_err_string_with!(
 pub trait ToErrString {
     fn to_err_string(&self) -> ToErrStringValue;
 }
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(
-    max = TO_ERR_STRING_VALUE_MAX_LEN,
-    description = "to error string value"
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    newtype::BoundedString,
+    newtype::AsRefStr,
+    newtype::DerefTarget,
+    newtype::Display,
 )]
-#[newtype(as_ref_str, deref_target, display)]
+#[bounded_string( max = TO_ERR_STRING_VALUE_MAX_LEN, description = "to error string value" )]
 pub struct ToErrStringValue(String);
 impl ToErrStringValue {
     #[must_use]

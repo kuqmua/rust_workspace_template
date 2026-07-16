@@ -1,8 +1,8 @@
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcMacro2GenerateWhereFiltersInput<'input_lt>(&'input_lt proc_macro2::TokenStream);
-#[derive(Debug, newtype::Newtype)]
-#[newtype(as_ref_owned, display, from_inner, into_inner_from)]
+#[derive(
+    Debug, newtype::AsRefOwned, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct ProcMacro2GenerateWhereFiltersTokenStream(proc_macro2::TokenStream);
 #[must_use]
 pub fn generate_where_filters(

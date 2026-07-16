@@ -1,6 +1,5 @@
 struct ReplaceLts;
-#[derive(newtype::Newtype)]
-#[newtype(to_tokens)]
+#[derive(newtype::ToTokens)]
 struct SynFieldTyWithStaticLts(syn::Type);
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {

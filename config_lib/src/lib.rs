@@ -36,14 +36,11 @@ impl TryFrom<String> for StdEnvVarOk {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct StdEnvVarOkRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(display)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::Display)]
 pub struct EnvVarName(String);
 impl From<ConfigLibStringWrapperTryFromStringError> for EnvVarName {
     fn from(value: ConfigLibStringWrapperTryFromStringError) -> Self {
@@ -64,14 +61,11 @@ impl TryFrom<String> for EnvVarName {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChronoFixedOffsetError(&'static str);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct StdI32ParsingError(std::num::ParseIntError);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct StdU32ParsingError(std::num::ParseIntError);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct StdUsizeParsingError(std::num::ParseIntError);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct TimezoneSeconds(i32);
@@ -83,28 +77,22 @@ pub trait TryFromStdEnvVarOk: Sized {
 }
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
-#[derive(newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(newtype::AsRefOwned, newtype::FromInner)]
 pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
 impl std::fmt::Debug for SecrecySecretBoxString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
 pub struct StdNonZeroU64(std::num::NonZeroU64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
 pub struct StdNonZeroUsize(std::num::NonZeroUsize);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseIntError(std::num::ParseIntError);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent, from_inner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdParseBoolError(std::str::ParseBoolError);
-#[derive(generate_getter_traits_for_struct_fields::GenerateGetterTrait, newtype::Newtype)]
-#[newtype(as_ref_owned)]
+#[derive(generate_getter_traits_for_struct_fields::GenerateGetterTrait, newtype::AsRefOwned)]
 pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
 impl AdminJwtSecret {
     #[must_use]
@@ -203,9 +191,8 @@ mod admin_jwt_secret_tests {
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -214,9 +201,8 @@ pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -225,9 +211,8 @@ pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminSignInRateLimit(StdNonZeroU64);
 #[derive(
     Debug,
@@ -236,12 +221,10 @@ pub struct AdminSignInRateLimit(StdNonZeroU64);
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminSessionLimit(StdNonZeroUsize);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct AdminPositiveU64ParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
@@ -303,12 +286,10 @@ impl TryFromStdEnvVarOk for AdminSessionLimit {
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminPasswordHashConcurrency(StdNonZeroUsize);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct AdminPositiveUsizeParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
@@ -342,9 +323,8 @@ impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminCookieSecure(bool);
 #[derive(
     Debug,
@@ -353,15 +333,12 @@ pub struct AdminCookieSecure(bool);
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct AdminSwaggerEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(deref_inner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner)]
 pub struct HttpGzipEnabled(bool);
-#[derive(newtype::Newtype)]
-#[newtype(debug_transparent)]
+#[derive(newtype::DebugTransparent)]
 pub struct AdminBoolParsingError(StdParseBoolError);
 #[derive(Debug, thiserror::Error)]
 #[error("{admin_bool_parsing:?}")]
@@ -411,10 +388,9 @@ impl TryFromStdEnvVarOk for HttpGzipEnabled {
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token issuer")]
-#[newtype(as_ref_owned)]
 pub struct AdminTokenIssuer(String);
 #[derive(
     Debug,
@@ -423,10 +399,9 @@ pub struct AdminTokenIssuer(String);
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::BoundedString,
-    newtype::Newtype,
+    newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token audience")]
-#[newtype(as_ref_owned)]
 pub struct AdminTokenAudience(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminTokenTextError {
@@ -481,9 +456,8 @@ config_lib_macros::impl_try_from_parse!(
     Copy,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     optml::Optml,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct MaximumSizeOfHttpBodyInBytes(usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error, optml::Optml)]
 pub enum MaximumSizeOfHttpBodyInBytesTryFromUsizeError {
@@ -532,21 +506,16 @@ config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUr
     Copy,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     optml::Optml,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct PgPoolMaxConnections(u32);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::Newtype)]
-#[newtype(deref_inner)]
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner)]
 pub struct PgPoolMinConnections(u32);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(deref_inner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner)]
 pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(deref_inner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner)]
 pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(deref_inner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner)]
 pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum PgPoolConfigParseError {
@@ -592,8 +561,7 @@ impl TryFromStdEnvVarOk for PgPoolMaxLifetimeSeconds {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_owned)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefOwned)]
 pub struct ContentSecurityPolicy(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum ContentSecurityPolicyError {
@@ -688,9 +656,8 @@ config_lib_macros::impl_try_from_non_empty_string!(
     Copy,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     optml::Optml,
-    newtype::Newtype,
+    newtype::DerefInner,
 )]
-#[newtype(deref_inner)]
 pub struct ChronoTimezone(chrono::FixedOffset);
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = ChronoFixedOffsetError;

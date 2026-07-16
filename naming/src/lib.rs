@@ -504,14 +504,11 @@ impl quote::ToTokens for HashMapSnakeCase {
 }
 pub trait DisplayPlusToTokens: std::fmt::Display + quote::ToTokens {}
 impl<T> DisplayPlusToTokens for T where T: std::fmt::Display + quote::ToTokens {}
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct SwaggerUrlPathPrefix<'prefix_lt>(&'prefix_lt str);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_str, from_inner)]
+#[derive(Debug, Clone, newtype::AsRefStr, newtype::FromInner)]
 pub struct SwaggerUrlPathSelfQuotesStrValue(generate_quotes::QuotedLiteral);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner, to_tokens)]
+#[derive(Debug, Clone, newtype::FromInner, newtype::ToTokens)]
 pub struct SwaggerUrlPathSelfQuotesTokenStreamValue(
     generate_quotes::ProcMacro2QuotedLiteralTokenStream,
 );

@@ -859,6 +859,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
 }
 struct StringWrapperFromVisitor<'names_lt> {
     ers: types::DiagnosticMsgs,
+    len_checked_function_names: &'names_lt types::StdSourceTextSet,
     string_wrapper_names: &'names_lt types::StdSourceTextSet,
     try_from_string_len_checked_names: types::StdSourceTextSet,
     try_from_string_names: types::StdSourceTextSet,
@@ -905,9 +906,95 @@ impl StringWrapperFromVisitor<'_> {
             .any(|attr| attr_has_newtype_from_option(types::SynAttributeRef::from(attr)).get())
         {
             self.ers.push(format!(
-                        "string wrapper `{}` uses `#[newtype(from)]`; implement `TryFrom<String>` with a length check instead",
+                        "string wrapper `{}` derives `newtype::FromInner`; derive `newtype::TryFrom` with a length check instead",
                         item_ref.ident
                     ));
+        }
+        let has_try_from = item_ref.attrs.iter().any(|attr| {
+            attr.path().is_ident(str_constants::DERIVE)
+                && attr.meta.require_list().is_ok_and(|list| {
+                    list.tokens
+                        .to_string()
+                        .contains(str_constants::NEWTYPE_TRY_FROM_DERIVE_NAME)
+                })
+        });
+        let mut has_len_check = false;
+        item_ref
+            .attrs
+            .iter()
+            .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE_TRY_FROM))
+            .for_each(|attr| {
+                drop(attr.parse_nested_meta(|meta| {
+                    if meta
+                        .path
+                        .is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR)
+                    {
+                        let expr = meta.value()?.parse::<syn::Expr>()?;
+                        let mut visitor = LenMethodCallVisitor {
+                            found: types::AnalyzerBool::default(),
+                        };
+                        syn::visit::Visit::visit_expr(&mut visitor, &expr);
+                        let path_is_len_checked = match &expr {
+                            syn::Expr::Path(path) => {
+                                path.path.segments.last().is_some_and(|segment| {
+                                    self.len_checked_function_names
+                                        .contains(segment.ident.to_string().as_str())
+                                })
+                            }
+                            syn::Expr::Array(_)
+                            | syn::Expr::Assign(_)
+                            | syn::Expr::Async(_)
+                            | syn::Expr::Await(_)
+                            | syn::Expr::Binary(_)
+                            | syn::Expr::Block(_)
+                            | syn::Expr::Break(_)
+                            | syn::Expr::Call(_)
+                            | syn::Expr::Cast(_)
+                            | syn::Expr::Closure(_)
+                            | syn::Expr::Const(_)
+                            | syn::Expr::Continue(_)
+                            | syn::Expr::Field(_)
+                            | syn::Expr::ForLoop(_)
+                            | syn::Expr::Group(_)
+                            | syn::Expr::If(_)
+                            | syn::Expr::Index(_)
+                            | syn::Expr::Infer(_)
+                            | syn::Expr::Let(_)
+                            | syn::Expr::Lit(_)
+                            | syn::Expr::Loop(_)
+                            | syn::Expr::Macro(_)
+                            | syn::Expr::Match(_)
+                            | syn::Expr::MethodCall(_)
+                            | syn::Expr::Paren(_)
+                            | syn::Expr::Range(_)
+                            | syn::Expr::RawAddr(_)
+                            | syn::Expr::Reference(_)
+                            | syn::Expr::Repeat(_)
+                            | syn::Expr::Return(_)
+                            | syn::Expr::Struct(_)
+                            | syn::Expr::Try(_)
+                            | syn::Expr::TryBlock(_)
+                            | syn::Expr::Tuple(_)
+                            | syn::Expr::Unary(_)
+                            | syn::Expr::Unsafe(_)
+                            | syn::Expr::Verbatim(_)
+                            | syn::Expr::While(_)
+                            | syn::Expr::Yield(_)
+                            | _ => false,
+                        };
+                        if visitor.found.get() || path_is_len_checked {
+                            has_len_check = true;
+                        }
+                    }
+                    Ok(())
+                }));
+            });
+        if has_try_from {
+            let identifier = item_ref.ident.to_string();
+            let _: bool = self.try_from_string_names.insert(identifier.clone());
+            if has_len_check {
+                let _: bool = self.try_from_string_len_checked_names.insert(identifier);
+            }
         }
     }
     fn check_try_from_impl(&mut self, item: types::SynItemImplRef<'_>) {
@@ -928,6 +1015,21 @@ impl StringWrapperFromVisitor<'_> {
                 .try_from_string_len_checked_names
                 .insert(String::from(identifier));
         }
+    }
+}
+struct LenCheckedFunctionNameVisitor {
+    names: types::StdSourceTextSet,
+}
+impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
+    fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        let mut visitor = LenMethodCallVisitor {
+            found: types::AnalyzerBool::default(),
+        };
+        syn::visit::Visit::visit_block(&mut visitor, &i.block);
+        if visitor.found.get() {
+            let _: bool = self.names.insert(i.sig.ident.to_string());
+        }
+        syn::visit::visit_item_fn(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
@@ -2501,20 +2603,17 @@ fn type_path_ends_with_identifier(
         | _ => false,
     })
 }
-#[allow(clippy::single_call_fn)] // keeps newtype(from) attr parsing reusable inside the string-wrapper policy
+#[allow(clippy::single_call_fn)] // keeps FromInner derive detection reusable inside the string-wrapper policy
 fn attr_has_newtype_from_option(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
     let attr_ref = attr.as_ref();
-    if !attr_ref.path().is_ident(str_constants::NEWTYPE) {
+    if !attr_ref.path().is_ident(str_constants::DERIVE) {
         return types::AnalyzerBool::default();
     }
-    let mut has_from = false;
-    drop(attr_ref.parse_nested_meta(|meta| {
-        if meta.path.is_ident(str_constants::FROM_ALT_4) {
-            has_from = true;
-        }
-        Ok(())
-    }));
-    types::AnalyzerBool::from(has_from)
+    types::AnalyzerBool::from(attr_ref.meta.require_list().is_ok_and(|list| {
+        list.tokens
+            .to_string()
+            .contains(str_constants::NEWTYPE_FROM_INNER_DERIVE_NAME)
+    }))
 }
 #[allow(clippy::single_call_fn)] // keeps BoundedString derive parsing reusable inside the string-wrapper policy
 fn attr_has_bounded_string_derive(attr: types::SynAttributeRef<'_>) -> types::AnalyzerBool {
@@ -2881,6 +2980,13 @@ fn declared_domain_type_names() -> types::StdSourceTextSet {
     types::StdSourceTextSet::from(names)
 }
 #[allow(clippy::single_call_fn)] // collects tuple String wrapper names before checking From<String> impls
+fn len_checked_function_names(file: types::SynFileRef<'_>) -> types::StdSourceTextSet {
+    let mut visitor = LenCheckedFunctionNameVisitor {
+        names: types::StdSourceTextSet::default(),
+    };
+    syn::visit::Visit::visit_file(&mut visitor, file.as_ref());
+    visitor.names
+}
 fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
     visit_syn_file(
         ast,

@@ -71,9 +71,10 @@ naming_common_macros::case_trait_pair!(
 );
 #[derive(Debug, Clone, Copy)]
 struct ConvertCaseKind(convert_case::Case<'static>);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(max = CASE_STRING_MAX_LEN)]
-#[newtype(as_ref_str, display)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
+)]
+#[bounded_string(max = CASE_STRING_MAX_LEN )]
 struct CaseString(String);
 #[derive(Debug, Clone)]
 struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);

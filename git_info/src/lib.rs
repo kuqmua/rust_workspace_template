@@ -16,17 +16,17 @@ const PROJECT_GIT_COMMIT_ID: GitCommitIdRef<'_> = PROJECT_GIT_INFO.commit;
     Default,
     serde_derive::Serialize,
     optml::Optml,
-    newtype::Newtype,
+    newtype::AsRefInner,
+    newtype::Display,
+    newtype::FromInner,
 )]
-#[newtype(as_ref_inner, display, from_inner)]
 pub struct GitCommitIdRef<'commit_lt>(&'commit_lt str);
 impl PartialEq<&str> for GitCommitIdRef<'_> {
     fn eq(&self, other: &&str) -> bool {
         self.0 == *other
     }
 }
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::AsRefStr)]
 pub struct GitCommitId(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum GitCommitHashError {
@@ -92,13 +92,11 @@ impl TryFrom<String> for GitCommitId {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str, from_inner)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::FromInner)]
 pub struct StdGitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr)]
 pub struct GitCommitLink(String);
 impl From<StdGitCommitLinkCow> for GitCommitLink {
     fn from(value: StdGitCommitLinkCow) -> Self {
@@ -132,11 +130,29 @@ impl PartialEq<String> for GitCommitLink {
         &self.0 == other
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde_derive::Serialize, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_str, display, from_inner)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    serde_derive::Serialize,
+    optml::Optml,
+    newtype::AsRefStr,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct StdGitCommitLinkCow(std::borrow::Cow<'static, str>);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_inner, display, into_inner_from)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefInner,
+    newtype::Display,
+    newtype::IntoInnerFrom,
+)]
 pub struct ProjectGitCommitLinkRef(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
 pub struct IsProjectCommit(bool);
@@ -146,8 +162,9 @@ impl std::ops::Not for IsProjectCommit {
         !self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(deref_inner, from_inner)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::DerefInner, newtype::FromInner,
+)]
 pub struct GitCommitLinkCapacity(usize);
 impl PartialEq<usize> for GitCommitLinkCapacity {
     fn eq(&self, other: &usize) -> bool {
@@ -156,8 +173,9 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
 }
 #[derive(Debug, optml::Optml)]
 struct GitCommitLinkOutputRefMut<'output_lt>(pub &'output_lt mut String);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::Newtype)]
-#[newtype(as_ref_owned, into_inner_from)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::AsRefOwned, newtype::IntoInnerFrom,
+)]
 pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
 #[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
 pub struct ProjectGitInfo<'commit_lt> {

@@ -51,8 +51,7 @@ impl server_runtime::NotificationSender for MockNotificationProvider {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct RemoteSyncRequestCount(usize);
 
 #[derive(Clone, Debug)]

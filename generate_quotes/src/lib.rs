@@ -5,12 +5,20 @@ struct QuotePrefix(&'static str);
 struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
 struct QuotePanicId(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(max = QUOTED_LITERAL_MAX_LEN)]
-#[newtype(as_ref_str, display)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
+)]
+#[bounded_string(max = QUOTED_LITERAL_MAX_LEN )]
 pub struct QuotedLiteral(String);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(display, from_inner, into_inner, into_inner_from, to_tokens)]
+#[derive(
+    Debug,
+    Clone,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInner,
+    newtype::IntoInnerFrom,
+    newtype::ToTokens,
+)]
 pub struct ProcMacro2QuotedLiteralTokenStream(proc_macro2::TokenStream);
 fn quote_literal<Dsp>(prefix: QuotePrefix, quote_ch: QuoteChar, v: &Dsp) -> QuotedLiteral
 where

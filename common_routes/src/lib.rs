@@ -19,9 +19,8 @@ struct NotFoundHandle {
     message: NotFoundMessage,
     open_api_specification: OpenApiSpecificationPath,
 }
-#[derive(Debug, serde::Serialize, optml::Optml, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(max = NOT_FOUND_MSG_MAX_LEN, description = "not found message")]
-#[newtype(display)]
+#[derive(Debug, serde::Serialize, optml::Optml, newtype::BoundedString, newtype::Display)]
+#[bounded_string(max = NOT_FOUND_MSG_MAX_LEN, description = "not found message" )]
 struct NotFoundMessage(String);
 #[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]
 struct OpenApiSpecificationPath(&'static str);
@@ -130,8 +129,7 @@ where
         (self.status.0, self.payload).into_response()
     }
 }
-#[derive(Debug, Clone, optml::Optml, newtype::Newtype)]
-#[newtype(into_inner_from)]
+#[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom)]
 pub struct AxumCommonRoutes(axum::Router);
 #[derive(Clone, optml::Optml)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);

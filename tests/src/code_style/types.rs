@@ -1,6 +1,5 @@
 const SOURCE_TEXT_MAX_LEN: usize = 16 * 1024 * 1024;
-#[derive(Debug, Clone, Copy, Default, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, Default, newtype::FromInner)]
 pub(super) struct AnalyzerCount(usize);
 impl AnalyzerCount {
     pub(super) const fn get(self) -> usize {
@@ -13,8 +12,7 @@ impl AnalyzerCount {
         self.0 = self.0.saturating_add(1);
     }
 }
-#[derive(Debug, Clone, Copy, Default, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, Default, newtype::FromInner)]
 pub(super) struct AnalyzerBool(bool);
 impl AnalyzerBool {
     pub(super) const fn get(self) -> bool {
@@ -24,59 +22,50 @@ impl AnalyzerBool {
         self.0 = true;
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct CargoTomlFileIdx(usize);
 impl CargoTomlFileIdx {
     pub(super) const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct AnalyzerChar(char);
 impl AnalyzerChar {
     pub(super) const fn get(self) -> char {
         self.0
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner)]
 pub(super) struct CargoMetadata(cargo_metadata::Metadata);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct CargoMetadataRef<'metadata_lt>(&'metadata_lt cargo_metadata::Metadata);
 impl<'metadata_lt> CargoMetadataRef<'metadata_lt> {
     pub(super) const fn get(self) -> &'metadata_lt cargo_metadata::Metadata {
         self.0
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner)]
 pub(super) struct StdCargoPackageIdRefSet<'metadata_lt>(
     std::collections::HashSet<&'metadata_lt cargo_metadata::PackageId>,
 );
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StaticStr(pub &'static str);
 impl StaticStr {
     pub(super) const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(super) struct StaticStrSliceRef<'text_lt>(&'text_lt [&'text_lt str]);
 impl<'text_lt> StaticStrSliceRef<'text_lt> {
     pub(super) const fn get(self) -> &'text_lt [&'text_lt str] {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SourceTextRef<'text_lt>(&'text_lt str);
 impl<'text_lt> SourceTextRef<'text_lt> {
     #[allow(clippy::single_call_fn)] // preserves the source lifetime where AsRef would borrow the wrapper temporary
@@ -84,17 +73,13 @@ impl<'text_lt> SourceTextRef<'text_lt> {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdSourceTextRefSet<'text_lt>(&'text_lt std::collections::HashSet<&'text_lt str>);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner)]
 pub(super) struct StdSourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_lt str>);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
-#[derive(Debug, Clone, Default, newtype::Newtype)]
-#[newtype(deref_inner, deref_mut_inner)]
+#[derive(Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner)]
 pub(super) struct DiagnosticMsgs(Vec<String>);
 impl IntoIterator for DiagnosticMsgs {
     type IntoIter = std::vec::IntoIter<String>;
@@ -103,16 +88,14 @@ impl IntoIterator for DiagnosticMsgs {
         self.0.into_iter()
     }
 }
-#[derive(Debug, newtype::Newtype)]
-#[newtype(deref_mut_target, deref_target, from_inner)]
+#[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
 pub(super) struct DiagnosticMsgsMutRef<'msgs_lt>(&'msgs_lt mut Vec<String>);
 impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs_lt> {
     fn from(value: &'msgs_lt mut SourceTextList) -> Self {
         Self(&mut value.0)
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_str)]
+#[derive(Debug, Clone, newtype::AsRefStr)]
 pub(super) struct SourceText(Box<str>);
 #[derive(Debug, Clone, Copy)]
 pub(super) struct SourceTextTryFromStringError {
@@ -145,8 +128,9 @@ impl From<SourceText> for String {
         value.0.into_string()
     }
 }
-#[derive(Debug, Clone, Default, newtype::Newtype)]
-#[newtype(deref_inner, deref_mut_inner, from_inner)]
+#[derive(
+    Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner,
+)]
 pub(super) struct SourceTextList(Vec<String>);
 impl IntoIterator for SourceTextList {
     type IntoIter = std::vec::IntoIter<String>;
@@ -155,16 +139,22 @@ impl IntoIterator for SourceTextList {
         self.0.into_iter()
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SourceTextListRef<'text_lt>(&'text_lt [String]);
 impl<'text_lt> SourceTextListRef<'text_lt> {
     pub(super) const fn get(self) -> &'text_lt [String] {
         self.0
     }
 }
-#[derive(Debug, Clone, Default, newtype::Newtype)]
-#[newtype(as_ref_owned, deref_inner, deref_mut_inner, from_inner)]
+#[derive(
+    Debug,
+    Clone,
+    Default,
+    newtype::AsRefOwned,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
+)]
 pub(super) struct StdSourceTextSet(std::collections::BTreeSet<String>);
 impl IntoIterator for StdSourceTextSet {
     type IntoIter = std::collections::btree_set::IntoIter<String>;
@@ -173,11 +163,11 @@ impl IntoIterator for StdSourceTextSet {
         self.0.into_iter()
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, newtype::Newtype)]
-#[newtype(deref_target, from_inner)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, newtype::DerefTarget, newtype::FromInner,
+)]
 pub(super) struct StdPathBuf(std::path::PathBuf);
 impl AsRef<std::path::Path> for StdPathBuf {
     fn as_ref(&self) -> &std::path::Path {
@@ -189,52 +179,38 @@ impl std::borrow::Borrow<std::path::Path> for StdPathBuf {
         &self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner)]
+#[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner)]
 pub(super) struct SynFile(syn::File);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynFileRef<'syn_lt>(&'syn_lt syn::File);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynAttributeRef<'syn_lt>(&'syn_lt syn::Attribute);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynAttributeListRef<'syn_lt>(&'syn_lt [syn::Attribute]);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynExprCallRef<'syn_lt>(&'syn_lt syn::ExprCall);
 impl<'syn_lt> SynExprCallRef<'syn_lt> {
     pub(super) const fn get(self) -> &'syn_lt syn::ExprCall {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynFieldsRef<'syn_lt>(&'syn_lt syn::Fields);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynGenericsRef<'syn_lt>(&'syn_lt syn::Generics);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynItemImplRef<'syn_lt>(&'syn_lt syn::ItemImpl);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynItemFnRef<'syn_lt>(&'syn_lt syn::ItemFn);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynItemRef<'syn_lt>(&'syn_lt syn::Item);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynItemStructRef<'syn_lt>(&'syn_lt syn::ItemStruct);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynPathArgumentsRef<'syn_lt>(&'syn_lt syn::PathArguments);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynPathSegmentRef<'syn_lt>(&'syn_lt syn::PathSegment);
 impl<'syn_lt> SynPathSegmentRef<'syn_lt> {
     pub(super) const fn get(self) -> &'syn_lt syn::PathSegment {
@@ -246,63 +222,52 @@ impl<'syn_lt> SynPathArgumentsRef<'syn_lt> {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynPathRef<'syn_lt>(&'syn_lt syn::Path);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynSignatureRef<'syn_lt>(&'syn_lt syn::Signature);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynTypePathRef<'syn_lt>(&'syn_lt syn::TypePath);
 impl<'syn_lt> SynTypePathRef<'syn_lt> {
     pub(super) const fn get(self) -> &'syn_lt syn::TypePath {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynUseTreeRef<'syn_lt>(&'syn_lt syn::UseTree);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
 impl<'syn_lt> SynTypeRef<'syn_lt> {
     pub(super) const fn get(self) -> &'syn_lt syn::Type {
         self.0
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(as_ref_owned, from_inner, into_inner_from)]
+#[derive(Debug, Clone, newtype::AsRefOwned, newtype::FromInner, newtype::IntoInnerFrom)]
 pub(super) struct TomlTable(toml::Table);
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct TomlTableRef<'toml_lt>(&'toml_lt toml::value::Table);
 impl<'toml_lt> TomlTableRef<'toml_lt> {
     pub(super) const fn get(self) -> &'toml_lt toml::value::Table {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct TomlValueRef<'toml_lt>(&'toml_lt toml::Value);
 impl<'toml_lt> TomlValueRef<'toml_lt> {
     pub(super) const fn get(self) -> &'toml_lt toml::Value {
         self.0
     }
 }
-#[derive(Debug, Clone, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, newtype::FromInner)]
 pub(super) struct TomlValue(toml::Value);
 impl TomlValue {
     pub(super) fn into_inner(self) -> toml::Value {
         self.0
     }
 }
-#[derive(newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(newtype::FromInner)]
 pub(super) struct WalkdirWalkDir(walkdir::WalkDir);
 impl IntoIterator for WalkdirWalkDir {
     type IntoIter = walkdir::IntoIter;

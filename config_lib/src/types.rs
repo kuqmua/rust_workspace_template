@@ -1,5 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display)]
 struct TracingLevelName(&'static str);
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
@@ -9,8 +8,7 @@ struct EnvVarNameRef<'name_lt>(&'name_lt str);
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
 #[derive(Debug, Clone, Copy)]
 struct ParseCtxRef(&'static str);
-#[derive(Debug, Clone, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_str, display)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
 struct EnvParseError(String);
 impl From<super::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
     fn from(value: super::ConfigLibStringWrapperTryFromStringError) -> Self {

@@ -1,5 +1,4 @@
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(from_inner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct AxumHeadersRef<'headers_lt>(&'headers_lt axum::http::HeaderMap);
 #[cfg(test)]
 impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
@@ -13,8 +12,7 @@ impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
 pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
     pub &'header_value_lt axum::http::HeaderValue,
 );
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Newtype)]
-#[newtype(as_ref_inner, deref_target)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::DerefTarget)]
 pub(crate) struct HeaderStrRef<'header_str_lt>(pub &'header_str_lt str);
 #[allow(clippy::single_call_fn)] // shared helper centralizes required-header extraction and no-header error mapping
 fn get_required_header_value<E>(

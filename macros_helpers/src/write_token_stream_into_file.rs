@@ -8,8 +8,7 @@ pub enum ShouldWriteTokenStreamIntoFile {
     False,
     True,
 }
-#[derive(Debug, Clone, Copy, newtype::Newtype)]
-#[newtype(as_ref_inner, from_inner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
 #[derive(Debug, Clone, Copy)]
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);

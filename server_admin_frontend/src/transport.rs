@@ -1,12 +1,10 @@
 #![allow(clippy::future_not_send)] // browser transport runs on the single-threaded WASM executor
 #[derive(Clone, Copy, Debug)]
 pub(super) struct GlooTransport;
-#[derive(Clone, Debug, newtype::Newtype)]
-#[newtype(from_inner, into_inner_from)]
+#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct GlooNetHttpMethod(gloo_net::http::Method);
-#[derive(Clone, Debug, newtype::BoundedString, newtype::Newtype)]
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefTarget)]
 #[bounded_string(max = 4096usize, min = 1usize)]
-#[newtype(as_ref_target)]
 struct BrowserCsrfToken(String);
 impl frontend_contract::Transport for GlooTransport {
     fn send(
