@@ -40,7 +40,9 @@ pub use route_contract_validation::{
 };
 pub use route_coverage::{
     RouteAccess, RouteCoverageDescriptor, RouteCoverageError, RouteCoverageEvidence,
-    RouteCoverageObligation, RouteMutation, validate_route_coverage,
+    RouteCoverageObligation, RouteDatabaseUsage, RouteJsonBodyUsage, RouteMutation,
+    RouteResponseKind, RouteTestCapabilities, RouteTestCategory, missing_required_test_categories,
+    required_test_categories, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -30,6 +30,7 @@ mod pg_rate_limit;
 mod redacted_url;
 mod request_id;
 mod resource_budget;
+mod resource_utilization;
 mod retry;
 mod secret_text;
 mod secure_cookie;
@@ -166,6 +167,10 @@ pub use resource_budget::{
     GetBulkItemResourceBudget, GetIdempotencyResponseResourceBudget, ResourceBudget,
     ResourceBudgetAmount, ResourceBudgetConfigError, ResourceBudgetMaximum,
     ResourceBudgetReservation, ResourceBudgetReserveError,
+};
+pub use resource_utilization::{
+    ResourceAmount, ResourceUtilization, ResourceUtilizationError, ResourceUtilizationPercent,
+    ResourceUtilizationStatus, calculate_resource_utilization,
 };
 pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,

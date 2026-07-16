@@ -11,6 +11,83 @@ pub enum RouteMutation {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteDatabaseUsage {
+    Database,
+    None,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteJsonBodyUsage {
+    JsonBody,
+    None,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteResponseKind {
+    Buffered,
+    Streaming,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RouteTestCapabilities {
+    database: RouteDatabaseUsage,
+    json_body: RouteJsonBodyUsage,
+    response: RouteResponseKind,
+}
+
+impl RouteTestCapabilities {
+    #[must_use]
+    pub const fn new(
+        database: RouteDatabaseUsage,
+        json_body: RouteJsonBodyUsage,
+        response: RouteResponseKind,
+    ) -> Self {
+        Self {
+            database,
+            json_body,
+            response,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RouteTestCategory {
+    DatabaseFixture,
+    FixtureHook,
+    JsonRoundTrip,
+    Metadata,
+    StreamingResponse,
+}
+
+#[must_use]
+pub fn missing_required_test_categories(
+    capabilities: RouteTestCapabilities,
+    available_categories: &[RouteTestCategory],
+) -> Vec<RouteTestCategory> {
+    required_test_categories(capabilities)
+        .into_iter()
+        .filter(|category| !available_categories.contains(category))
+        .collect()
+}
+
+#[must_use]
+pub fn required_test_categories(capabilities: RouteTestCapabilities) -> Vec<RouteTestCategory> {
+    [
+        Some(RouteTestCategory::FixtureHook),
+        Some(RouteTestCategory::Metadata),
+        (capabilities.database == RouteDatabaseUsage::Database)
+            .then_some(RouteTestCategory::DatabaseFixture),
+        (capabilities.json_body == RouteJsonBodyUsage::JsonBody)
+            .then_some(RouteTestCategory::JsonRoundTrip),
+        (capabilities.response == RouteResponseKind::Streaming)
+            .then_some(RouteTestCategory::StreamingResponse),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteCoverageEvidence {
     obligations: &'static [RouteCoverageObligation],
 }
@@ -204,5 +281,44 @@ mod tests {
             super::validate_route_coverage(&[descriptor, descriptor]),
             Err(super::RouteCoverageError::DuplicateRoute { .. })
         ));
+    }
+
+    #[test]
+    fn capabilities_require_matching_test_categories() {
+        let capabilities = super::RouteTestCapabilities::new(
+            super::RouteDatabaseUsage::Database,
+            super::RouteJsonBodyUsage::JsonBody,
+            super::RouteResponseKind::Streaming,
+        );
+        assert_eq!(
+            super::missing_required_test_categories(
+                capabilities,
+                &[
+                    super::RouteTestCategory::FixtureHook,
+                    super::RouteTestCategory::Metadata,
+                ],
+            ),
+            vec![
+                super::RouteTestCategory::DatabaseFixture,
+                super::RouteTestCategory::JsonRoundTrip,
+                super::RouteTestCategory::StreamingResponse,
+            ]
+        );
+    }
+
+    #[test]
+    fn routes_without_special_capabilities_require_baseline_categories() {
+        let capabilities = super::RouteTestCapabilities::new(
+            super::RouteDatabaseUsage::None,
+            super::RouteJsonBodyUsage::None,
+            super::RouteResponseKind::Buffered,
+        );
+        assert_eq!(
+            super::required_test_categories(capabilities),
+            vec![
+                super::RouteTestCategory::FixtureHook,
+                super::RouteTestCategory::Metadata,
+            ]
+        );
     }
 }
