@@ -742,23 +742,8 @@ async fn refresh(
 async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::sign_out(auth).await
 }
-#[derive(Debug, Clone, serde::Serialize, newtype::BoundedString, newtype::Newtype)]
-#[bounded_string(
-    max = 64,
-    chars,
-    description = "administrator session timestamp",
-    utoipa
-)]
-#[newtype(as_ref_owned)]
-pub struct AdminSessionTimestamp(String);
-#[derive(Debug, Clone, serde::Serialize, utoipa::ToSchema)]
-pub struct AdminSessionView {
-    created_at: AdminSessionTimestamp,
-    expires_at: AdminSessionTimestamp,
-    id: super::AdminSessionId,
-}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[utoipa::path(get, path = "/auth/sessions", responses((status = 200, body = [AdminSessionView]), (status = 401, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_auth")]
+#[utoipa::path(get, path = "/auth/sessions", responses((status = 200, body = [server_admin_contract::AdminSessionView]), (status = 401, body = frontend_contract::ApiProblem), (status = 500, body = frontend_contract::ApiProblem)), security(("admin_cookie" = [])), tag = "admin_auth")]
 async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::sessions(auth).await
 }
@@ -1157,33 +1142,38 @@ mod tests {
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
         assert_eq!(paths.len(), 17usize);
-        let documented_method_paths = paths
+        let documented_route_contracts = paths
             .iter()
             .flat_map(|(path, path_item)| {
                 path_item
                     .as_object()
                     .into_iter()
-                    .flat_map(|operation_map| operation_map.keys())
-                    .map(move |method| (method.to_owned(), path.to_owned()))
+                    .flat_map(|operation_map| operation_map.iter())
+                    .map(move |(method, operation)| {
+                        (
+                            method.to_owned(),
+                            operation
+                                .get(str_constants::OPERATION_ID_JSON)
+                                .and_then(serde_json::Value::as_str)
+                                .expect("4252acc8")
+                                .to_owned(),
+                            path.to_owned(),
+                        )
+                    })
             })
             .collect::<std::collections::BTreeSet<_>>();
-        let contracted_method_paths = server_admin_contract::AdminRoute::auth_routes()
+        let contracted_route_contracts = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors()
             .into_iter()
-            .map(|route| {
-                let contract = route.contract();
-                let method = match contract.method() {
-                    frontend_contract::HttpMethod::Delete => {
-                        str_constants::PG_CRUD_DELETE_PERMISSION_ACTION
-                    }
-                    frontend_contract::HttpMethod::Get => str_constants::GET_ALT,
-                    frontend_contract::HttpMethod::Patch => str_constants::PATCH_ALT,
-                    frontend_contract::HttpMethod::Post => str_constants::POST_ALT,
-                    frontend_contract::HttpMethod::Put => str_constants::PUT,
-                };
-                (method.to_owned(), contract.path().as_ref().to_owned())
+            .map(|descriptor| {
+                let metadata = descriptor.metadata();
+                (
+                    metadata.method().as_ref().to_ascii_lowercase(),
+                    metadata.openapi_operation_id().as_ref().to_owned(),
+                    metadata.path().as_ref().to_owned(),
+                )
             })
             .collect::<std::collections::BTreeSet<_>>();
-        assert_eq!(documented_method_paths, contracted_method_paths);
+        assert_eq!(documented_route_contracts, contracted_route_contracts);
         assert!(paths.contains_key("/auth/sign-in"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));
         assert!(paths.contains_key("/users/{user_id}/password"));
@@ -1191,6 +1181,24 @@ mod tests {
         assert!(paths.contains_key("/permissions"));
         assert!(paths.contains_key("/audit-log"));
         assert!(paths.contains_key("/system-settings"));
+        assert_eq!(
+            document
+                .pointer(str_constants::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)
+                .and_then(serde_json::Value::as_str),
+            Some(str_constants::ADMIN_OPERATION_SIGN_IN),
+        );
+        assert_eq!(
+            document
+                .pointer(str_constants::ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER)
+                .and_then(serde_json::Value::as_str),
+            Some(str_constants::ADMIN_OPERATION_REFRESH),
+        );
+        assert_eq!(
+            document
+                .pointer(str_constants::ADMIN_OPENAPI_ME_OPERATION_ID_POINTER)
+                .and_then(serde_json::Value::as_str),
+            Some(str_constants::ADMIN_OPERATION_ME),
+        );
         assert!(
             paths
                 .values()

@@ -312,6 +312,36 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
+fn production_pg_error_classification_is_centralized() {
+    super::snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                let path = source_file.path().as_ref().to_string_lossy();
+                !path.contains(str_constants::TESTS)
+                    && !path.ends_with(str_constants::PG_CRUD_COMMON_SRC_PG_ERROR_RS)
+                    && !path.ends_with(str_constants::STR_CONSTANTS_SRC_LIB_RS)
+                    && (source_file
+                        .content()
+                        .as_ref()
+                        .contains(str_constants::IS_UNIQUE_VIOLATION_CALL)
+                        || source_file
+                            .content()
+                            .as_ref()
+                            .contains(str_constants::PG_SQLSTATE_PREFIX))
+            })
+            .map(|source_file| {
+                format!(
+                    "{} classifies PostgreSQL errors outside pg_crud_common",
+                    source_file.path().as_ref().display()
+                )
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+#[test]
 fn direct_process_command_creation_stays_in_shared_tooling() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr(str_constants::F170AA14),

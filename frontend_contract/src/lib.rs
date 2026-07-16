@@ -31,7 +31,7 @@ pub use problem::{
 pub use route::{
     AuthenticatedTransport, CoveredRoute, PublicTransport, RouteFamily, RouteMetadata,
     RouteRequest, RouteResponse, RouteTransport, TypedRoute, client_request, client_route_metadata,
-    openapi_route_metadata, server_response, server_route_metadata,
+    openapi_route_metadata, server_response, server_route_metadata, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
@@ -39,10 +39,12 @@ pub use route_contract_validation::{
     run_http_contract_fixture, validate_route_contract_metadata, validate_typed_route_contract,
 };
 pub use route_coverage::{
-    RouteAccess, RouteCoverageDescriptor, RouteCoverageError, RouteCoverageEvidence,
-    RouteCoverageObligation, RouteDatabaseUsage, RouteJsonBodyUsage, RouteMutation,
-    RouteResponseKind, RouteTestCapabilities, RouteTestCategory, missing_required_test_categories,
-    required_test_categories, validate_route_coverage,
+    AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, RouteAccess, RouteCoverageDescriptor,
+    RouteCoverageError, RouteCoverageEvidence, RouteCoverageObligation, RouteDatabaseUsage,
+    RouteJsonBodyUsage, RouteMutation, RouteResponseKind, RouteTestCapabilities, RouteTestCategory,
+    missing_required_test_categories, required_test_categories, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -55,6 +57,16 @@ impl From<&'static str> for ContractStr {
 impl AsRef<str> for ContractStr {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+impl std::fmt::Display for ContractStr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+impl From<ContractStr> for String {
+    fn from(value: ContractStr) -> Self {
+        Self::from(value.0)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

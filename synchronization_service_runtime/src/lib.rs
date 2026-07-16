@@ -4,6 +4,27 @@ pub struct SynchronizationRuntimeConfiguration {
     retry_policy: server_runtime::RetryPolicy,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SynchronizationPayload(Vec<u8>);
+
+impl From<Vec<u8>> for SynchronizationPayload {
+    fn from(value: Vec<u8>) -> Self {
+        Self(value)
+    }
+}
+
+impl AsRef<[u8]> for SynchronizationPayload {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_slice()
+    }
+}
+
+pub trait SynchronizationSource {
+    type Error: std::error::Error + Send + Sync + 'static;
+
+    fn read(&mut self) -> impl Future<Output = Result<SynchronizationPayload, Self::Error>> + Send;
+}
+
 impl SynchronizationRuntimeConfiguration {
     #[must_use]
     pub const fn execution_mode(&self) -> server_runtime::ExecutionMode {

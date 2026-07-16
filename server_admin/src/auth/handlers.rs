@@ -4,9 +4,8 @@ where
     Error: Into<sqlx::Error>,
 {
     let error = value.into();
-    if error
-        .as_database_error()
-        .is_some_and(sqlx::error::DatabaseError::is_unique_violation)
+    if pg_crud_common::classify_pg_error(pg_crud_common::SqlxPgErrorRef::from(&error))
+        == pg_crud_common::PgErrorKind::UniqueViolation
     {
         super::AdminApiError::Conflict
     } else {
@@ -380,15 +379,16 @@ pub(super) async fn sessions(
     .map_err(super::AdminApiError::from)?
     .into_iter()
     .map(|row| {
-        Ok(super::AdminSessionView {
-            created_at: super::AdminSessionTimestamp::try_from(row.1)
+        Ok(server_admin_contract::AdminSessionView::new(
+            server_admin_contract::AdminSessionTimestamp::try_from(row.1)
                 .map_err(|_error| super::AdminApiError::Authentication)?,
-            expires_at: super::AdminSessionTimestamp::try_from(row.2)
+            server_admin_contract::AdminSessionTimestamp::try_from(row.2)
                 .map_err(|_error| super::AdminApiError::Authentication)?,
-            id: super::super::AdminSessionId::from(super::super::UuidAdminValue::from(row.0)),
-        })
+            server_admin_contract::AdminSessionIdentifier::try_from(row.0.to_string())
+                .map_err(|_error| super::AdminApiError::Authentication)?,
+        ))
     })
-    .collect::<Result<Vec<super::AdminSessionView>, super::AdminApiError>>()
+    .collect::<Result<Vec<server_admin_contract::AdminSessionView>, super::AdminApiError>>()
     .map(|sessions| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             sessions,

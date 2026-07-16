@@ -743,6 +743,200 @@ impl AdminApiErrorBody {
         self.code
     }
 }
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct AdminNoBody;
+
+#[derive(Clone, Debug, newtype::BoundedString)]
+#[bounded_string(
+    max = 64,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator session identifier"
+)]
+pub struct AdminSessionIdentifier(String);
+
+#[derive(Clone, Debug, newtype::BoundedString)]
+#[bounded_string(
+    max = 64,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator session timestamp"
+)]
+pub struct AdminSessionTimestamp(String);
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct AdminSessionView {
+    created_at: AdminSessionTimestamp,
+    expires_at: AdminSessionTimestamp,
+    id: AdminSessionIdentifier,
+}
+impl AdminSessionView {
+    #[must_use]
+    pub const fn new(
+        created_at: AdminSessionTimestamp,
+        expires_at: AdminSessionTimestamp,
+        id: AdminSessionIdentifier,
+    ) -> Self {
+        Self {
+            created_at,
+            expires_at,
+            id,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    access = frontend_contract::RouteAccess::Public,
+    method = str_constants::POST,
+    mutation = frontend_contract::RouteMutation::Mutating,
+    obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = str_constants::ADMIN_OPERATION_SIGN_IN,
+    path = str_constants::ADMIN_API_PATHS_AUTH_SIGN_IN,
+    request = AdminSignInReq,
+    response = AdminSignInRes,
+    transport = frontend_contract::PublicTransport,
+)]
+pub struct AdminSignInRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    access = frontend_contract::RouteAccess::Public,
+    method = str_constants::POST,
+    mutation = frontend_contract::RouteMutation::Mutating,
+    obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = str_constants::ADMIN_OPERATION_REFRESH,
+    path = str_constants::ADMIN_API_PATHS_AUTH_REFRESH,
+    request = AdminNoBody,
+    response = AdminSignInRes,
+    transport = frontend_contract::PublicTransport,
+)]
+pub struct AdminRefreshRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    access = frontend_contract::RouteAccess::Authenticated,
+    method = str_constants::GET,
+    mutation = frontend_contract::RouteMutation::ReadOnly,
+    obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = str_constants::ADMIN_OPERATION_ME,
+    path = str_constants::ADMIN_API_PATHS_AUTH_ME,
+    request = AdminNoBody,
+    response = AuthenticatedAdmin,
+    transport = frontend_contract::AuthenticatedTransport,
+)]
+pub struct AdminMeRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::POST, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SIGN_OUT, path = str_constants::ADMIN_API_PATHS_AUTH_SIGN_OUT, request = AdminNoBody, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSignOutRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SESSIONS, path = str_constants::ADMIN_API_PATHS_AUTH_SESSIONS, request = AdminNoBody, response = Vec<AdminSessionView>, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSessionsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::DELETE, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_REVOKE_SESSION, path = str_constants::ADMIN_API_PATHS_AUTH_SESSION, request = AdminNoBody, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminRevokeSessionRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::DELETE, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_REVOKE_ALL_SESSIONS, path = str_constants::ADMIN_API_PATHS_AUTH_SESSIONS, request = AdminNoBody, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminRevokeAllSessionsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_LIST_USERS, path = str_constants::ADMIN_API_PATHS_USERS, request = AdminNoBody, response = Vec<AdminUserSummary>, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminListUsersRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::POST, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_CREATE_USER, path = str_constants::ADMIN_API_PATHS_USERS, request = AdminCreateUserReq, response = AdminCreateUserRes, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminCreateUserRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::PATCH, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_UPDATE_USER, path = str_constants::ADMIN_API_PATHS_USER, request = AdminUpdateUserReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminUpdateUserRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::DELETE, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_DELETE_USER, path = str_constants::ADMIN_API_PATHS_USER, request = AdminNoBody, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminDeleteUserRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::POST, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SET_USER_PASSWORD, path = str_constants::ADMIN_API_PATHS_USER_PASSWORD, request = AdminSetUserPasswordReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSetUserPasswordRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::POST, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SET_USER_BAN, path = str_constants::ADMIN_API_PATHS_USER_BAN, request = AdminSetUserBanReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSetUserBanRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::PUT, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SET_USER_ROLES, path = str_constants::ADMIN_API_PATHS_USER_ROLES, request = AdminSetUserRolesReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSetUserRolesRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_LIST_ROLES, path = str_constants::ADMIN_API_PATHS_ROLES, request = AdminNoBody, response = Vec<AdminRoleSummary>, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminListRolesRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::POST, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_CREATE_ROLE, path = str_constants::ADMIN_API_PATHS_ROLES, request = AdminCreateRoleReq, response = AdminCreateRoleRes, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminCreateRoleRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::PATCH, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_UPDATE_ROLE, path = str_constants::ADMIN_API_PATHS_ROLE, request = AdminUpdateRoleReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminUpdateRoleRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::DELETE, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_DELETE_ROLE, path = str_constants::ADMIN_API_PATHS_ROLE, request = AdminNoBody, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminDeleteRoleRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::PUT, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SET_ROLE_PERMISSIONS, path = str_constants::ADMIN_API_PATHS_ROLE_PERMISSIONS, request = AdminSetRolePermissionsReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSetRolePermissionsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_LIST_PERMISSIONS, path = str_constants::ADMIN_API_PATHS_PERMISSIONS, request = AdminNoBody, response = Vec<AdminPermissionSummary>, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminListPermissionsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_AUDIT_LOG, path = str_constants::ADMIN_API_PATHS_AUDIT, request = AdminNoBody, response = Vec<AdminAuditView>, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminAuditLogRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::GET, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_SETTINGS, path = str_constants::ADMIN_API_PATHS_SETTINGS, request = AdminNoBody, response = AdminSettingsView, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminSettingsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(access = frontend_contract::RouteAccess::Authenticated, method = str_constants::PATCH, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = str_constants::ADMIN_OPERATION_UPDATE_SETTINGS, path = str_constants::ADMIN_API_PATHS_SETTINGS, request = AdminUpdateSettingsReq, response = AdminNoBody, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminUpdateSettingsRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::RouteFamily)]
+#[route_family(
+    AdminSignInRoute,
+    AdminRefreshRoute,
+    AdminMeRoute,
+    AdminSignOutRoute,
+    AdminSessionsRoute,
+    AdminRevokeSessionRoute,
+    AdminRevokeAllSessionsRoute,
+    AdminListUsersRoute,
+    AdminCreateUserRoute,
+    AdminUpdateUserRoute,
+    AdminDeleteUserRoute,
+    AdminSetUserPasswordRoute,
+    AdminSetUserBanRoute,
+    AdminSetUserRolesRoute,
+    AdminListRolesRoute,
+    AdminCreateRoleRoute,
+    AdminUpdateRoleRoute,
+    AdminDeleteRoleRoute,
+    AdminSetRolePermissionsRoute,
+    AdminListPermissionsRoute,
+    AdminAuditLogRoute,
+    AdminSettingsRoute,
+    AdminUpdateSettingsRoute
+)]
+pub struct AdminAuthenticationRouteFamily;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminRoute {
     Audit,
@@ -895,36 +1089,6 @@ impl AdminPage {
 }
 impl AdminRoute {
     #[must_use]
-    pub fn auth_routes() -> [Self; 23] {
-        let role_id = AdminRoleId::from(1i64);
-        let user_id = AdminUserId::from(1i64);
-        [
-            Self::SignIn,
-            Self::Refresh,
-            Self::SignOut,
-            Self::Me,
-            Self::Sessions,
-            Self::RevokeAllSessions,
-            Self::RevokeSession,
-            Self::Users,
-            Self::CreateUser,
-            Self::UpdateUser(user_id),
-            Self::DeleteUser(user_id),
-            Self::SetUserPassword(user_id),
-            Self::SetUserBan(user_id),
-            Self::Roles,
-            Self::CreateRole,
-            Self::UpdateRole(role_id),
-            Self::DeleteRole(role_id),
-            Self::SetRolePermissions(role_id),
-            Self::SetUserRoles(user_id),
-            Self::Permissions,
-            Self::Audit,
-            Self::Settings,
-            Self::UpdateSettings,
-        ]
-    }
-    #[must_use]
     pub fn contract(self) -> frontend_contract::RouteContract {
         let (authentication, method, mutation, path, status) = match self {
             Self::Audit => (
@@ -935,7 +1099,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_AUDIT,
+                frontend_contract::typed_route_path::<AdminAuditLogRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::CreateRole => (
@@ -946,7 +1110,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_ROLES,
+                frontend_contract::typed_route_path::<AdminCreateRoleRoute>(),
                 frontend_contract::SuccessStatus::Code201,
             ),
             Self::CreateUser => (
@@ -957,7 +1121,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USERS,
+                frontend_contract::typed_route_path::<AdminCreateUserRoute>(),
                 frontend_contract::SuccessStatus::Code201,
             ),
             Self::DeleteRole(_) => (
@@ -968,7 +1132,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_ROLE,
+                frontend_contract::typed_route_path::<AdminDeleteRoleRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::DeleteUser(_) => (
@@ -979,14 +1143,14 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USER,
+                frontend_contract::typed_route_path::<AdminDeleteUserRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Me => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_AUTH_ME,
+                frontend_contract::typed_route_path::<AdminMeRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Metrics => (
@@ -997,7 +1161,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::METRICS,
+                frontend_contract::ContractStr::from(str_constants::METRICS),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::OpenApi => (
@@ -1008,7 +1172,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::OPENAPI_JSON,
+                frontend_contract::ContractStr::from(str_constants::OPENAPI_JSON),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Permissions => (
@@ -1019,28 +1183,28 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_PERMISSIONS,
+                frontend_contract::typed_route_path::<AdminListPermissionsRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Refresh => (
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_AUTH_REFRESH,
+                frontend_contract::typed_route_path::<AdminRefreshRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::RevokeAllSessions => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_AUTH_SESSIONS,
+                frontend_contract::typed_route_path::<AdminRevokeAllSessionsRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::RevokeSession => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Delete,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_AUTH_SESSION,
+                frontend_contract::typed_route_path::<AdminRevokeSessionRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Roles => (
@@ -1051,7 +1215,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_ROLES,
+                frontend_contract::typed_route_path::<AdminListRolesRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SetRolePermissions(_) => (
@@ -1062,7 +1226,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_ROLE_PERMISSIONS,
+                frontend_contract::typed_route_path::<AdminSetRolePermissionsRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserBan(_) => (
@@ -1073,7 +1237,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USER_BAN,
+                frontend_contract::typed_route_path::<AdminSetUserBanRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserPassword(_) => (
@@ -1084,7 +1248,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USER_PASSWORD,
+                frontend_contract::typed_route_path::<AdminSetUserPasswordRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::SetUserRoles(_) => (
@@ -1095,7 +1259,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Put,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USER_ROLES,
+                frontend_contract::typed_route_path::<AdminSetUserRolesRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Settings => (
@@ -1106,28 +1270,28 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_SETTINGS,
+                frontend_contract::typed_route_path::<AdminSettingsRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SignIn => (
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_AUTH_SIGN_IN,
+                frontend_contract::typed_route_path::<AdminSignInRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::SignOut => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Post,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_AUTH_SIGN_OUT,
+                frontend_contract::typed_route_path::<AdminSignOutRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Sessions => (
                 frontend_contract::AuthenticationRequirement::Authenticated,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_AUTH_SESSIONS,
+                frontend_contract::typed_route_path::<AdminSessionsRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::UpdateRole(_) => (
@@ -1138,7 +1302,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_ROLE,
+                frontend_contract::typed_route_path::<AdminUpdateRoleRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::UpdateSettings => (
@@ -1149,7 +1313,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_SETTINGS,
+                frontend_contract::typed_route_path::<AdminUpdateSettingsRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::UpdateUser(_) => (
@@ -1160,7 +1324,7 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Patch,
                 frontend_contract::MutationKind::Mutating,
-                str_constants::ADMIN_API_PATHS_USER,
+                frontend_contract::typed_route_path::<AdminUpdateUserRoute>(),
                 frontend_contract::SuccessStatus::Code204,
             ),
             Self::Users => (
@@ -1171,47 +1335,61 @@ impl AdminRoute {
                 ),
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::ADMIN_API_PATHS_USERS,
+                frontend_contract::typed_route_path::<AdminListUsersRoute>(),
                 frontend_contract::SuccessStatus::Code200,
             ),
             Self::Version => (
                 frontend_contract::AuthenticationRequirement::Public,
                 frontend_contract::HttpMethod::Get,
                 frontend_contract::MutationKind::ReadOnly,
-                str_constants::COMMON_ROUTES_GIT_INFO,
+                frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO),
                 frontend_contract::SuccessStatus::Code200,
             ),
         };
-        frontend_contract::RouteContract::new(
-            authentication,
-            method,
-            mutation,
-            frontend_contract::ContractStr::from(path),
-            status,
-        )
+        frontend_contract::RouteContract::new(authentication, method, mutation, path, status)
     }
     #[must_use]
     pub fn path(self) -> AdminRoutePath {
         let suffix = match self {
             Self::DeleteRole(id) | Self::UpdateRole(id) => {
-                format!("{}/{id}", str_constants::ADMIN_API_PATHS_ROLES)
+                format!(
+                    "{}/{id}",
+                    frontend_contract::typed_route_path::<AdminListRolesRoute>()
+                )
             }
             Self::SetRolePermissions(id) => {
-                format!("{}/{id}/permissions", str_constants::ADMIN_API_PATHS_ROLES)
+                format!(
+                    "{}/{id}/permissions",
+                    frontend_contract::typed_route_path::<AdminListRolesRoute>()
+                )
             }
             Self::DeleteUser(id) | Self::UpdateUser(id) => {
-                format!("{}/{id}", str_constants::ADMIN_API_PATHS_USERS)
+                format!(
+                    "{}/{id}",
+                    frontend_contract::typed_route_path::<AdminListUsersRoute>()
+                )
             }
             Self::SetUserBan(id) => {
-                format!("{}/{id}/ban", str_constants::ADMIN_API_PATHS_USERS)
+                format!(
+                    "{}/{id}/ban",
+                    frontend_contract::typed_route_path::<AdminListUsersRoute>()
+                )
             }
             Self::SetUserPassword(id) => {
-                format!("{}/{id}/password", str_constants::ADMIN_API_PATHS_USERS)
+                format!(
+                    "{}/{id}/password",
+                    frontend_contract::typed_route_path::<AdminListUsersRoute>()
+                )
             }
             Self::SetUserRoles(id) => {
-                format!("{}/{id}/roles", str_constants::ADMIN_API_PATHS_USERS)
+                format!(
+                    "{}/{id}/roles",
+                    frontend_contract::typed_route_path::<AdminListUsersRoute>()
+                )
             }
-            Self::RevokeSession => String::from(str_constants::ADMIN_API_PATHS_AUTH_SESSION),
+            Self::RevokeSession => {
+                String::from(frontend_contract::typed_route_path::<AdminRevokeSessionRoute>())
+            }
             Self::Version => String::from(str_constants::API_V1_GIT_INFO),
             value @ (Self::Audit
             | Self::CreateRole
@@ -1248,6 +1426,15 @@ mod tests {
         Value: serde::de::DeserializeOwned,
     {
         assert!(serde_json::from_str::<Value>(json).is_err());
+    }
+    #[test]
+    fn authentication_route_family_has_valid_coverage() {
+        let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
+        assert_eq!(descriptors.len(), 23usize);
+        assert_eq!(
+            frontend_contract::validate_route_coverage(&descriptors),
+            Ok(())
+        );
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {

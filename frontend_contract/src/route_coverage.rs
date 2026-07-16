@@ -122,6 +122,10 @@ impl RouteCoverageDescriptor {
             mutation,
         }
     }
+    #[must_use]
+    pub const fn metadata(self) -> crate::RouteMetadata {
+        self.metadata
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -132,6 +136,30 @@ pub enum RouteCoverageObligation {
     ReplayValidation,
     SecurityValidation,
 }
+pub const PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
+    RouteCoverageObligation::IntegrationFixture,
+    RouteCoverageObligation::OpenApiOperation,
+    RouteCoverageObligation::PayloadValidation,
+];
+pub const PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
+    RouteCoverageObligation::IntegrationFixture,
+    RouteCoverageObligation::OpenApiOperation,
+    RouteCoverageObligation::PayloadValidation,
+    RouteCoverageObligation::ReplayValidation,
+];
+pub const AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
+    RouteCoverageObligation::IntegrationFixture,
+    RouteCoverageObligation::OpenApiOperation,
+    RouteCoverageObligation::PayloadValidation,
+    RouteCoverageObligation::SecurityValidation,
+];
+pub const AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS: &[RouteCoverageObligation] = &[
+    RouteCoverageObligation::IntegrationFixture,
+    RouteCoverageObligation::OpenApiOperation,
+    RouteCoverageObligation::PayloadValidation,
+    RouteCoverageObligation::ReplayValidation,
+    RouteCoverageObligation::SecurityValidation,
+];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RouteCoverageError {

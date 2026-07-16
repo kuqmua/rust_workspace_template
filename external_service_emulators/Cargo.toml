@@ -12,9 +12,11 @@ edition = "2024"
 
 [dependencies]
 server_runtime = { workspace = true }
+str_constants = { workspace = true }
+synchronization_service_runtime = { workspace = true }
+tokio = { workspace = true }
 
 [dev-dependencies]
-str_constants = { workspace = true }
 
 [lints]
 workspace = true

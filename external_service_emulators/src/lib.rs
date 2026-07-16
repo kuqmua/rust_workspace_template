@@ -1,16 +1,53 @@
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct MockNotificationProvider {
-    messages: Vec<server_runtime::NotificationMessage>,
+    sender: TokioMockNotificationSender,
 }
 
-impl MockNotificationProvider {
-    #[must_use]
-    pub fn messages(&self) -> &[server_runtime::NotificationMessage] {
-        &self.messages
-    }
+#[derive(Debug)]
+pub struct MockNotificationInbox {
+    receiver: TokioMockNotificationReceiver,
+}
 
-    pub fn send(&mut self, message: server_runtime::NotificationMessage) {
-        self.messages.push(message);
+#[derive(Clone, Debug)]
+struct TokioMockNotificationSender(
+    tokio::sync::mpsc::UnboundedSender<server_runtime::NotificationMessage>,
+);
+
+#[derive(Debug)]
+struct TokioMockNotificationReceiver(
+    tokio::sync::mpsc::UnboundedReceiver<server_runtime::NotificationMessage>,
+);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct MockNotificationProviderClosed;
+
+impl std::fmt::Display for MockNotificationProviderClosed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)
+    }
+}
+
+impl std::error::Error for MockNotificationProviderClosed {}
+
+impl MockNotificationInbox {
+    pub async fn receive(&mut self) -> Option<server_runtime::NotificationMessage> {
+        self.receiver.0.recv().await
+    }
+}
+
+impl server_runtime::NotificationSender for MockNotificationProvider {
+    type Error = MockNotificationProviderClosed;
+
+    fn send(
+        &self,
+        message: server_runtime::NotificationMessage,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send {
+        std::future::ready(
+            self.sender
+                .0
+                .send(message)
+                .map_err(|_error| MockNotificationProviderClosed),
+        )
     }
 }
 
@@ -23,40 +60,19 @@ impl From<RemoteSyncRequestCount> for usize {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RemoteSyncBytes(Vec<u8>);
-
-impl From<Vec<u8>> for RemoteSyncBytes {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
-
-impl AsRef<[u8]> for RemoteSyncBytes {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct RemoteSyncSource {
-    bytes: RemoteSyncBytes,
+    payload: synchronization_service_runtime::SynchronizationPayload,
     request_count: RemoteSyncRequestCount,
 }
 
 impl RemoteSyncSource {
     #[must_use]
-    pub const fn new(bytes: RemoteSyncBytes) -> Self {
+    pub const fn new(payload: synchronization_service_runtime::SynchronizationPayload) -> Self {
         Self {
-            bytes,
+            payload,
             request_count: RemoteSyncRequestCount(0usize),
         }
-    }
-
-    #[must_use]
-    pub const fn read(&mut self) -> &RemoteSyncBytes {
-        self.request_count.0 = self.request_count.0.saturating_add(1usize);
-        &self.bytes
     }
 
     #[must_use]
@@ -65,23 +81,55 @@ impl RemoteSyncSource {
     }
 }
 
+impl synchronization_service_runtime::SynchronizationSource for RemoteSyncSource {
+    type Error = std::convert::Infallible;
+
+    fn read(
+        &mut self,
+    ) -> impl Future<
+        Output = Result<synchronization_service_runtime::SynchronizationPayload, Self::Error>,
+    > + Send {
+        self.request_count.0 = self.request_count.0.saturating_add(1usize);
+        std::future::ready(Ok(self.payload.clone()))
+    }
+}
+
+#[must_use]
+pub fn mock_notification_provider() -> (MockNotificationProvider, MockNotificationInbox) {
+    let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
+    (
+        MockNotificationProvider {
+            sender: TokioMockNotificationSender(sender),
+        },
+        MockNotificationInbox {
+            receiver: TokioMockNotificationReceiver(receiver),
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn remote_source_returns_configured_payload_and_counts_reads() {
-        let mut source = super::RemoteSyncSource::new(super::RemoteSyncBytes::from(vec![1u8, 2u8]));
-        assert_eq!(source.read().as_ref(), &[1u8, 2u8]);
+    #[tokio::test]
+    async fn remote_source_implements_synchronization_source_contract() {
+        let mut source = super::RemoteSyncSource::new(
+            synchronization_service_runtime::SynchronizationPayload::from(vec![1u8, 2u8]),
+        );
+        let payload = synchronization_service_runtime::SynchronizationSource::read(&mut source)
+            .await
+            .expect("a64993d6");
+        assert_eq!(payload.as_ref(), &[1u8, 2u8]);
         assert_eq!(usize::from(source.request_count()), 1usize);
     }
 
-    #[test]
-    fn notification_provider_records_messages() {
-        let mut provider = super::MockNotificationProvider::default();
+    #[tokio::test]
+    async fn notification_provider_records_messages_through_runtime_contract() {
+        let (provider, mut inbox) = super::mock_notification_provider();
         let message = server_runtime::NotificationMessage::try_from(
             str_constants::TEST_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect("6ef25d4a");
-        provider.send(message);
-        assert_eq!(provider.messages().len(), 1usize);
+        let result = server_runtime::NotificationSender::send(&provider, message).await;
+        assert_eq!(result, Ok(()));
+        assert!(inbox.receive().await.is_some());
     }
 }

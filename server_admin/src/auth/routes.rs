@@ -3,7 +3,7 @@
 #[derive(utoipa::OpenApi)]
 #[openapi(
     paths(super::sign_in, super::refresh, super::sign_out, super::me, super::sessions, super::revoke_session, super::revoke_all_sessions, super::list_users, super::create_user, super::update_user, super::set_user_password, super::set_user_ban, super::delete_user, super::set_user_roles, super::list_roles, super::create_role, super::update_role, super::delete_role, super::set_role_permissions, super::list_permissions, super::audit_log, super::settings, super::update_settings),
-    components(schemas(server_admin_contract::AdminSignInReq, server_admin_contract::AdminSignInRes, server_admin_contract::AuthenticatedAdmin, super::AdminSessionView, frontend_contract::ApiProblem, server_admin_contract::AdminApiErrorCode, server_admin_contract::AdminApiErrorBody, server_admin_contract::AdminText, server_admin_contract::AdminBool, server_admin_contract::AdminPermissionValue, server_admin_contract::AdminCreateUserReq, server_admin_contract::AdminCreateUserRes, server_admin_contract::AdminUpdateUserReq, server_admin_contract::AdminSetUserPasswordReq, server_admin_contract::AdminSetUserBanReq, server_admin_contract::AdminSetUserRolesReq, server_admin_contract::AdminCreateRoleReq, server_admin_contract::AdminCreateRoleRes, server_admin_contract::AdminUpdateRoleReq, server_admin_contract::AdminSetRolePermissionsReq, server_admin_contract::AdminAuditView, server_admin_contract::AdminAuditTimestamp, server_admin_contract::SerdeJsonAdminAuditDetails, server_admin_contract::AdminUpdateSettingsReq, server_admin_contract::AdminSettingText, server_admin_contract::AdminUserSummary, server_admin_contract::AdminRoleSummary, server_admin_contract::AdminPermissionSummary, server_admin_contract::AdminSettingsView, crate::UuidAdminValue, crate::AdminPassword, crate::AdminLogin, crate::AdminDisplayName, crate::AdminRoleName, crate::AdminUserId, crate::AdminRoleId, crate::AdminPermissionId, crate::AdminPermission, crate::AdminSessionId, crate::AdminAuditLogId, crate::AdminAuditAction, crate::AdminAuditResource)),
+    components(schemas(server_admin_contract::AdminSignInReq, server_admin_contract::AdminSignInRes, server_admin_contract::AuthenticatedAdmin, server_admin_contract::AdminSessionView, server_admin_contract::AdminSessionTimestamp, server_admin_contract::AdminSessionIdentifier, frontend_contract::ApiProblem, server_admin_contract::AdminApiErrorCode, server_admin_contract::AdminApiErrorBody, server_admin_contract::AdminText, server_admin_contract::AdminBool, server_admin_contract::AdminPermissionValue, server_admin_contract::AdminCreateUserReq, server_admin_contract::AdminCreateUserRes, server_admin_contract::AdminUpdateUserReq, server_admin_contract::AdminSetUserPasswordReq, server_admin_contract::AdminSetUserBanReq, server_admin_contract::AdminSetUserRolesReq, server_admin_contract::AdminCreateRoleReq, server_admin_contract::AdminCreateRoleRes, server_admin_contract::AdminUpdateRoleReq, server_admin_contract::AdminSetRolePermissionsReq, server_admin_contract::AdminAuditView, server_admin_contract::AdminAuditTimestamp, server_admin_contract::SerdeJsonAdminAuditDetails, server_admin_contract::AdminUpdateSettingsReq, server_admin_contract::AdminSettingText, server_admin_contract::AdminUserSummary, server_admin_contract::AdminRoleSummary, server_admin_contract::AdminPermissionSummary, server_admin_contract::AdminSettingsView, crate::UuidAdminValue, crate::AdminPassword, crate::AdminLogin, crate::AdminDisplayName, crate::AdminRoleName, crate::AdminUserId, crate::AdminRoleId, crate::AdminPermissionId, crate::AdminPermission, crate::AdminSessionId, crate::AdminAuditLogId, crate::AdminAuditAction, crate::AdminAuditResource)),
     tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"))
 )]
 struct AdminAuthOpenApi;
@@ -32,11 +32,6 @@ pub(super) fn open_api() -> super::UtoipaAdminAuthOpenApi {
             }
         });
     if let Some(components) = document.components.as_mut() {
-        let (session_timestamp_name, session_timestamp_schema) =
-            <super::AdminSessionTimestamp as utoipa::ToSchema>::schema();
-        let _previous_session_timestamp = components
-            .schemas
-            .insert(session_timestamp_name.to_owned(), session_timestamp_schema);
         components.add_security_scheme(
             str_constants::ADMIN_COOKIE,
             utoipa::openapi::security::SecurityScheme::ApiKey(
@@ -66,71 +61,71 @@ pub(super) fn routes(state: super::StdSharedAdminAuthSvcState) -> super::AxumAdm
     super::AxumAdminAuthRouter(
         axum::Router::new()
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_SIGN_IN,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>().as_ref(),
                 axum::routing::post(super::sign_in),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_REFRESH,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminRefreshRoute>().as_ref(),
                 axum::routing::post(super::refresh),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_SIGN_OUT,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSignOutRoute>().as_ref(),
                 axum::routing::post(super::sign_out),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_ME,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminMeRoute>().as_ref(),
                 axum::routing::get(super::me),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_SESSIONS,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSessionsRoute>().as_ref(),
                 axum::routing::get(super::sessions).delete(super::revoke_all_sessions),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUTH_SESSION,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminRevokeSessionRoute>().as_ref(),
                 axum::routing::delete(super::revoke_session),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_USERS,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminListUsersRoute>().as_ref(),
                 axum::routing::get(super::list_users).post(super::create_user),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_USER,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminUpdateUserRoute>().as_ref(),
                 axum::routing::patch(super::update_user).delete(super::delete_user),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_USER_PASSWORD,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserPasswordRoute>().as_ref(),
                 axum::routing::post(super::set_user_password),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_USER_BAN,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserBanRoute>().as_ref(),
                 axum::routing::post(super::set_user_ban),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_ROLES,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminListRolesRoute>().as_ref(),
                 axum::routing::get(super::list_roles).post(super::create_role),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_ROLE,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminUpdateRoleRoute>().as_ref(),
                 axum::routing::patch(super::update_role).delete(super::delete_role),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_ROLE_PERMISSIONS,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSetRolePermissionsRoute>().as_ref(),
                 axum::routing::put(super::set_role_permissions),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_USER_ROLES,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSetUserRolesRoute>().as_ref(),
                 axum::routing::put(super::set_user_roles),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_PERMISSIONS,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminListPermissionsRoute>().as_ref(),
                 axum::routing::get(super::list_permissions),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_AUDIT,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminAuditLogRoute>().as_ref(),
                 axum::routing::get(super::audit_log),
             )
             .route(
-                str_constants::ADMIN_API_PATHS_SETTINGS,
+                frontend_contract::typed_route_path::<server_admin_contract::AdminSettingsRoute>().as_ref(),
                 axum::routing::get(super::settings).patch(super::update_settings),
             )
             .method_not_allowed_fallback(async || super::AdminApiError::MethodNotAllowed)

@@ -120,6 +120,13 @@ where
 {
     Route::metadata()
 }
+#[must_use]
+pub fn typed_route_path<Route>() -> crate::ContractStr
+where
+    Route: TypedRoute,
+{
+    Route::metadata().path()
+}
 #[cfg(test)]
 mod tests {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
