@@ -3723,6 +3723,8 @@ pub const VALUE_9CB64C93: &str = "9cb64c93";
 pub const VALUE_A4B28D38: &str = "a4b28d38";
 pub const RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO: &str =
     "resource utilization maximum must be greater than zero";
+pub const SOURCE_SELECTION_REQUIRES_AT_LEAST_ONE_SOURCE: &str =
+    "source selection requires at least one source";
 pub const FOREIGN_KEY_OPENING: &str = "FOREIGN KEY (";
 pub const ON_DELETE_CASCADE: &str = " ON DELETE CASCADE";
 pub const ON_DELETE_RESTRICT: &str = " ON DELETE RESTRICT";

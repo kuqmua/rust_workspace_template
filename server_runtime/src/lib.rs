@@ -7,6 +7,7 @@ mod cors;
 mod csp;
 mod deduplicating_queue;
 mod exclusive_run;
+mod execution_plan;
 mod fallback;
 mod generation_gate;
 mod geojson;
@@ -16,6 +17,7 @@ mod history;
 mod http_header_policy;
 mod http_policy;
 mod http_status_error;
+mod identity_bootstrap;
 mod lease_registry;
 mod lifecycle;
 mod limits;
@@ -36,6 +38,7 @@ mod secret_text;
 mod secure_cookie;
 mod service_bootstrap;
 mod single_flight;
+mod source_selection;
 mod text_policy;
 mod wire_token;
 pub use background_job::BackgroundJob;
@@ -71,6 +74,7 @@ pub use csp::{
 };
 pub use deduplicating_queue::{DeduplicatingQueue, QueuePush, StdQueueMaximum};
 pub use exclusive_run::{ExclusiveRun, ExclusiveRunAlreadyActive, ExclusiveRunGuard};
+pub use execution_plan::{ExecutionMode, ExecutionReport, execute_plan};
 pub use fallback::{
     FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
     HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
@@ -102,6 +106,10 @@ pub use http_policy::{
     optional_json_content_type_decision, resolve_bearer_authorization, resolve_unique_cookie,
 };
 pub use http_status_error::{HttpErrorClass, HttpErrorStatus, classify_http_error_status};
+pub use identity_bootstrap::{
+    IdentityBootstrapDecision, IdentityBootstrapReport, IdentityPresence, IdentityRolePresence,
+    IdentitySpec, plan_identity_bootstrap,
+};
 pub use lease_registry::{
     LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseReservation, LeaseState,
     LeaseTextError, StdLeaseRegistryMaximum, StdLeaseStaleTimeout, StdLeaseStaleTimeoutError,
@@ -192,6 +200,7 @@ pub use single_flight::{
     SingleFlight, SingleFlightAcquire, SingleFlightKey, SingleFlightKeyError, SingleFlightOwner,
     SingleFlightWaitOutcome, SingleFlightWaiter, StdSingleFlightMaximum,
 };
+pub use source_selection::{SourceSelection, SourceSelectionError, select_sources};
 pub use text_policy::{
     BoundedTextPolicyError, FixedLengthAsciiHexText, FixedLengthAsciiHexTextError,
     NonEmptyTrimmedText, RequiredNulFreeBoundedText, UrlSafeTokenPartText,
