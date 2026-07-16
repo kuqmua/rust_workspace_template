@@ -1,19 +1,23 @@
 mod background_job;
 mod batched_cleanup;
 mod bounded_read;
+mod child_process;
 mod client_ip;
 mod cors;
+mod exclusive_run;
 mod fallback;
 mod health;
 mod history;
 mod http_header_policy;
 mod http_policy;
+mod lease_registry;
 mod lifecycle;
 mod limits;
 mod metrics_layer;
 mod multipart;
 mod notification;
 mod origin;
+mod outbound_url;
 mod password_policy;
 mod path_policy;
 mod pg_rate_limit;
@@ -33,6 +37,11 @@ pub use bounded_read::{
     ReqwestResponse, StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error,
     StdIoError, StdPathRef, read_bounded_file, read_bounded_file_async, read_bounded_http_response,
 };
+pub use child_process::{
+    ChildDiagnostic, ChildProcessCompletion, ChildProcessError, ChildProcessReport,
+    ChildProcessSucceeded, ChildProcessSupervisor, StdChildDiagnosticMaximum, StdChildExitStatus,
+    StdChildProcessIoError, TokioChildProcess, TokioChildProcessJoinError,
+};
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
     TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, resolve_client_ip,
@@ -40,6 +49,7 @@ pub use client_ip::{
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
 };
+pub use exclusive_run::{ExclusiveRun, ExclusiveRunAlreadyActive, ExclusiveRunGuard};
 pub use fallback::{
     FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
     HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
@@ -60,6 +70,10 @@ pub use http_policy::{
     HttpCookieValueRef, OptionalJsonBodyPresence, OptionalJsonContentType,
     OptionalJsonContentTypeDecision, classify_optional_json_content_type,
     optional_json_content_type_decision, resolve_bearer_authorization, resolve_unique_cookie,
+};
+pub use lease_registry::{
+    LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseReservation, LeaseState,
+    LeaseTextError, StdLeaseRegistryMaximum, StdLeaseStaleTimeout, StdLeaseStaleTimeoutError,
 };
 pub use lifecycle::{
     BackgroundTask, BackgroundTaskOutcome, BackgroundTaskShutdownError, StdRequestTimeout,
@@ -91,6 +105,10 @@ pub use notification::{
 pub use origin::{
     AllowedOrigin, AllowedOriginError, AllowedOrigins, AllowedOriginsError, HttpOriginHeadersRef,
     RequestOriginAllowed, request_origin_allowed,
+};
+pub use outbound_url::{
+    OutboundHostPolicy, OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef,
+    ReqwestOutboundUrl, StdOutboundIpAddr,
 };
 pub use password_policy::{
     PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
