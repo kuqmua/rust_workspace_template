@@ -4,9 +4,11 @@ pub mod bounded_unique_vec;
 pub mod bounded_vec;
 mod cardinality;
 mod cursor;
+mod db_schema_conformance;
 mod errors;
 mod invariants;
 mod pagination;
+mod patch_field;
 mod query_fragment;
 mod rollback;
 mod sql_identifier;
@@ -24,6 +26,12 @@ pub use cursor::{
     CursorSigningKeyError, OffsetPaginationPresence, SignedCursor, SignedCursorError,
     SignedCursorPresence,
 };
+pub use db_schema_conformance::{
+    DbColumnNullable, DbColumnSnapshot, DbObjectKind, DbObjectSnapshot, DbSchemaConformanceError,
+    DbSchemaNameRef, DbSchemaText, DbSchemaTextError, DbSchemaTextTryFromStringError,
+    DbTableNameRef, DbTableSnapshot, SqlxDbSchemaInspectionError, SqlxPgPoolRef,
+    inspect_postgres_table, validate_postgres_table_schema,
+};
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
     SqlxPostgresQueryBindError,
@@ -35,6 +43,7 @@ pub use invariants::{
 pub use pagination::{
     DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,
 };
+pub use patch_field::PatchField;
 pub use query_fragment::{QueryPartFragment, SqlColumnRef};
 pub use rollback::TransactionFailure;
 pub use sql_identifier::{

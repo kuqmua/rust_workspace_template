@@ -1,8 +1,15 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
+mod openapi_validation;
 mod problem;
 mod route;
 mod route_contract_validation;
+mod url_builder;
 pub use frontend_contract_macros::TypedRoute;
+pub use openapi_validation::{
+    OpenApiContractText, OpenApiContractTextError, OpenApiContractTextTryFromStringError,
+    OpenApiValidationError, RuntimeRoutesRef, SerdeJsonOpenApiSerializationError,
+    validate_openapi_contract,
+};
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,
     ApiProblemStatus, ApiProblemViolation,
@@ -17,6 +24,7 @@ pub use route_contract_validation::{
     HttpContractObservation, HttpContractStatus, RouteContractMismatch, RouteContractMismatches,
     run_http_contract_fixture, validate_route_contract_metadata, validate_typed_route_contract,
 };
+pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContractStr(&'static str);
 impl From<&'static str> for ContractStr {
