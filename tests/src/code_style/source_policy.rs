@@ -220,6 +220,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
                 || path_text.contains(str_constants::TESTS)
                 || path_text.contains(str_constants::WORKSPACE_TEST_RUNNER)
                 || path_text.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)
+                || path_text.contains(str_constants::FILE_STORAGE)
                 || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
                 || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_LIB_RS)
             {

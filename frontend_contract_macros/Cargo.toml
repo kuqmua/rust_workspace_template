@@ -1,0 +1,22 @@
+[package]
+name = "frontend_contract_macros"
+version = "0.1.0"
+publish = false
+description = "Derive macros for shared typed route contracts"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["frontend", "contract"]
+categories = ["web-programming"]
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+str_constants = { workspace = true }
+syn = { workspace = true }
+
+[lints]
+workspace = true

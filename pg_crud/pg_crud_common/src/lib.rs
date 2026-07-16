@@ -5,10 +5,12 @@ pub mod bounded_vec;
 mod cardinality;
 mod cursor;
 mod errors;
+mod invariants;
 mod pagination;
 mod query_fragment;
 mod rollback;
 mod sql_identifier;
+mod sql_like_pattern;
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
 };
@@ -26,6 +28,10 @@ pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
     SqlxPostgresQueryBindError,
 };
+pub use invariants::{
+    BulkMutationOutcome, DataInvariantViolation, PaginationTotal, validate_bulk_atomicity,
+    validate_migration_idempotency, validate_pagination_invariants,
+};
 pub use pagination::{
     DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,
 };
@@ -33,6 +39,9 @@ pub use query_fragment::{QueryPartFragment, SqlColumnRef};
 pub use rollback::TransactionFailure;
 pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,
+};
+pub use sql_like_pattern::{
+    SqlLikeInputRef, SqlLikeMatchMode, SqlLikePattern, SqlLikePatternError, build_sql_like_pattern,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {

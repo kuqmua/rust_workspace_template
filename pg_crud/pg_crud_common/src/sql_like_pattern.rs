@@ -1,0 +1,116 @@
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SqlLikeMatchMode {
+    Contains,
+    EndsWith,
+    StartsWith,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for SqlLikeInputRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(transparent)]
+pub struct SqlLikePattern(String);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
+pub struct SqlLikePatternError;
+impl TryFrom<String> for SqlLikePattern {
+    type Error = SqlLikePatternError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+            Err(SqlLikePatternError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl AsRef<str> for SqlLikePattern {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+pub fn build_sql_like_pattern(
+    input: SqlLikeInputRef<'_>,
+    match_mode: SqlLikeMatchMode,
+) -> Result<SqlLikePattern, SqlLikePatternError> {
+    let wildcard_count = match match_mode {
+        SqlLikeMatchMode::Contains => 2usize,
+        SqlLikeMatchMode::EndsWith | SqlLikeMatchMode::StartsWith => 1usize,
+    };
+    let reserved_count = input
+        .0
+        .chars()
+        .filter(|character| matches!(character, '\\' | '%' | '_'))
+        .count();
+    let mut output = String::with_capacity(
+        input
+            .0
+            .len()
+            .saturating_add(reserved_count)
+            .saturating_add(wildcard_count),
+    );
+    if matches!(
+        match_mode,
+        SqlLikeMatchMode::Contains | SqlLikeMatchMode::EndsWith
+    ) {
+        output.push('%');
+    }
+    input.0.chars().for_each(|character| {
+        if matches!(character, '\\' | '%' | '_') {
+            output.push('\\');
+        }
+        output.push(character);
+    });
+    if matches!(
+        match_mode,
+        SqlLikeMatchMode::Contains | SqlLikeMatchMode::StartsWith
+    ) {
+        output.push('%');
+    }
+    SqlLikePattern::try_from(output)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn match_modes_place_wildcards_at_the_requested_edges() {
+        assert!(matches!(
+            super::build_sql_like_pattern(
+                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                super::SqlLikeMatchMode::Contains,
+            ),
+            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_CONTAINS_PATTERN
+        ));
+        assert!(matches!(
+            super::build_sql_like_pattern(
+                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                super::SqlLikeMatchMode::StartsWith,
+            ),
+            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_STARTS_WITH_PATTERN
+        ));
+        assert!(matches!(
+            super::build_sql_like_pattern(
+                str_constants::TEST_SQL_LIKE_INPUT.into(),
+                super::SqlLikeMatchMode::EndsWith,
+            ),
+            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_ENDS_WITH_PATTERN
+        ));
+    }
+
+    #[test]
+    fn reserved_symbols_are_escaped_as_literals() {
+        assert!(matches!(
+            super::build_sql_like_pattern(
+                str_constants::TEST_SQL_LIKE_RESERVED_INPUT.into(),
+                super::SqlLikeMatchMode::Contains,
+            ),
+            Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_RESERVED_PATTERN
+        ));
+    }
+}

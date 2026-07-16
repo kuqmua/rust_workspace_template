@@ -7,7 +7,9 @@ members = [
   "config_lib/config_lib_macros",
   "config_lib/generate_getter_traits_for_struct_fields",
   "config_lib/try_from_env",
+  "file_storage",
   "frontend_contract",
+  "frontend_contract_macros",
   "generate_quotes",
   "git_info",
   "initialize_environment_files",
@@ -262,7 +264,9 @@ app_state = { path = "./app_state", version = "0.1.0" }
 common_routes = { path = "./common_routes", version = "0.1.0" }
 config_lib = { path = "./config_lib", version = "0.1.0" }
 config_lib_macros = { path = "./config_lib/config_lib_macros", version = "0.1.0" }
+file_storage = { path = "./file_storage", version = "0.1.0" }
 frontend_contract = { path = "./frontend_contract", version = "0.1.0" }
+frontend_contract_macros = { path = "./frontend_contract_macros", version = "0.1.0" }
 generate_derive_token_stream_builder = { path = "./macros_helpers/generate_derive_token_stream_builder", version = "0.1.0" }
 generate_getter_traits_for_struct_fields = { path = "./config_lib/generate_getter_traits_for_struct_fields", version = "0.1.0" }
 generate_pg_table = { path = "./pg_crud/pg_table/generate_pg_table", version = "0.1.0" }

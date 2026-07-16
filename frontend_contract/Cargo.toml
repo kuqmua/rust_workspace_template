@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition = "2024"
 
 [dependencies]
+frontend_contract_macros = { workspace = true }
 str_constants = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }

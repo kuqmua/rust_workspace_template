@@ -2,6 +2,7 @@
 mod problem;
 mod route;
 mod route_contract_validation;
+pub use frontend_contract_macros::TypedRoute;
 pub use problem::{
     ApiProblem, ApiProblemDetail, ApiProblemField, ApiProblemKind, ApiProblemRequestId,
     ApiProblemStatus, ApiProblemViolation,

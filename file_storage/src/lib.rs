@@ -1,0 +1,413 @@
+const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
+const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
+
+#[derive(Debug)]
+pub struct StdFileStorageIoError(std::io::Error);
+impl From<std::io::Error> for StdFileStorageIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
+impl std::fmt::Display for StdFileStorageIoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for StdFileStorageIoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct StdStoragePathRef<'value_lt>(&'value_lt std::path::Path);
+impl<'value_lt> From<&'value_lt std::path::Path> for StdStoragePathRef<'value_lt> {
+    fn from(value: &'value_lt std::path::Path) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug)]
+struct StorageDirectoryNameRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for StorageDirectoryNameRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StdFileStorageRoot(std::path::PathBuf);
+impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
+    type Error = FileStoragePathError;
+    fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
+        if value.is_absolute() {
+            Ok(Self(value))
+        } else {
+            Err(FileStoragePathError::RootMustBeAbsolute)
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StdStorageRelativePath(std::path::PathBuf);
+impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
+    type Error = FileStoragePathError;
+    fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
+        let valid = !value.as_os_str().is_empty()
+            && value
+                .components()
+                .all(|component| matches!(component, std::path::Component::Normal(_)));
+        if valid {
+            Ok(Self(value))
+        } else {
+            Err(FileStoragePathError::RelativePathInvalid)
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StdStorageOperationId(String);
+impl TryFrom<String> for StdStorageOperationId {
+    type Error = FileStoragePathError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let valid = !value.is_empty()
+            && value.len() <= MAXIMUM_OPERATION_ID_BYTES
+            && value
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'));
+        if valid {
+            Ok(Self(value))
+        } else {
+            Err(FileStoragePathError::OperationIdInvalid)
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StdFileBytes(Vec<u8>);
+impl TryFrom<Vec<u8>> for StdFileBytes {
+    type Error = FileStoragePathError;
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() <= MAXIMUM_FILE_BYTES {
+            Ok(Self(value))
+        } else {
+            Err(FileStoragePathError::FileTooLarge)
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum FileStoragePathError {
+    #[error("{}", str_constants::FILE_STORAGE_FILE_TOO_LARGE)]
+    FileTooLarge,
+    #[error("{}", str_constants::FILE_STORAGE_OPERATION_ID_INVALID)]
+    OperationIdInvalid,
+    #[error("{}", str_constants::FILE_STORAGE_RELATIVE_PATH_INVALID)]
+    RelativePathInvalid,
+    #[error("{}", str_constants::FILE_STORAGE_ROOT_MUST_BE_ABSOLUTE)]
+    RootMustBeAbsolute,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum FileStorageError {
+    #[error("{}", str_constants::FILE_STORAGE_DESTINATION_EXISTS)]
+    DestinationExists,
+    #[error("{}", str_constants::FILE_STORAGE_IO_ERROR)]
+    Io(#[source] StdFileStorageIoError),
+    #[error("{}", str_constants::FILE_STORAGE_SOURCE_NOT_REGULAR)]
+    SourceNotRegular,
+    #[error("{}", str_constants::FILE_STORAGE_STAGING_ENTRY_EXISTS)]
+    StagingEntryExists,
+    #[error("{}", str_constants::FILE_STORAGE_PATH_IS_SYMLINK)]
+    Symlink,
+}
+
+#[derive(Clone, Debug)]
+pub struct SafeFileStorage {
+    root: StdFileStorageRoot,
+}
+#[allow(clippy::arbitrary_source_item_ordering)] // transactional API is grouped as prepare, stage, commit, and rollback operations
+impl SafeFileStorage {
+    #[must_use]
+    pub const fn new(root: StdFileStorageRoot) -> Self {
+        Self { root }
+    }
+
+    pub async fn prepare(&self) -> Result<(), FileStorageError> {
+        tokio::fs::create_dir_all(&self.root.0)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        self.ensure_directory_not_symlink(self.root.0.as_path().into())
+            .await?;
+        self.prepare_staging_directory(str_constants::FILE_UPLOAD_STAGING_DIRECTORY.into())
+            .await?;
+        self.prepare_staging_directory(str_constants::FILE_DELETE_STAGING_DIRECTORY.into())
+            .await
+    }
+
+    pub async fn stage_upload(
+        &self,
+        operation_id: &StdStorageOperationId,
+        bytes: &StdFileBytes,
+    ) -> Result<(), FileStorageError> {
+        let staging_path = self
+            .root
+            .0
+            .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(operation_id.0.as_str());
+        let mut file = tokio::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(staging_path)
+            .await
+            .map_err(|error| {
+                if error.kind() == std::io::ErrorKind::AlreadyExists {
+                    FileStorageError::StagingEntryExists
+                } else {
+                    FileStorageError::Io(error.into())
+                }
+            })?;
+        tokio::io::AsyncWriteExt::write_all(&mut file, &bytes.0)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        tokio::io::AsyncWriteExt::flush(&mut file)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    pub async fn commit_upload(
+        &self,
+        operation_id: &StdStorageOperationId,
+        destination: &StdStorageRelativePath,
+    ) -> Result<(), FileStorageError> {
+        let destination_path = self.root.0.join(&destination.0);
+        self.ensure_destination_parent(destination).await?;
+        self.ensure_destination_absent(destination_path.as_path().into())
+            .await?;
+        tokio::fs::rename(
+            self.root
+                .0
+                .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(operation_id.0.as_str()),
+            destination_path,
+        )
+        .await
+        .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    pub async fn rollback_upload(
+        &self,
+        operation_id: &StdStorageOperationId,
+    ) -> Result<(), FileStorageError> {
+        tokio::fs::remove_file(
+            self.root
+                .0
+                .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(operation_id.0.as_str()),
+        )
+        .await
+        .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    pub async fn stage_delete(
+        &self,
+        operation_id: &StdStorageOperationId,
+        source: &StdStorageRelativePath,
+    ) -> Result<(), FileStorageError> {
+        let source_path = self.root.0.join(&source.0);
+        self.ensure_regular_file(source_path.as_path().into())
+            .await?;
+        tokio::fs::rename(
+            source_path,
+            self.root
+                .0
+                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.0.as_str()),
+        )
+        .await
+        .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    pub async fn rollback_delete(
+        &self,
+        operation_id: &StdStorageOperationId,
+        destination: &StdStorageRelativePath,
+    ) -> Result<(), FileStorageError> {
+        let destination_path = self.root.0.join(&destination.0);
+        self.ensure_destination_parent(destination).await?;
+        self.ensure_destination_absent(destination_path.as_path().into())
+            .await?;
+        tokio::fs::rename(
+            self.root
+                .0
+                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.0.as_str()),
+            destination_path,
+        )
+        .await
+        .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    pub async fn commit_delete(
+        &self,
+        operation_id: &StdStorageOperationId,
+    ) -> Result<(), FileStorageError> {
+        tokio::fs::remove_file(
+            self.root
+                .0
+                .join(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.0.as_str()),
+        )
+        .await
+        .map_err(|error| FileStorageError::Io(error.into()))
+    }
+
+    async fn prepare_staging_directory(
+        &self,
+        directory_name: StorageDirectoryNameRef<'_>,
+    ) -> Result<(), FileStorageError> {
+        let path = self.root.0.join(directory_name.0);
+        tokio::fs::create_dir_all(&path)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        self.ensure_directory_not_symlink(path.as_path().into())
+            .await
+    }
+
+    async fn ensure_directory_not_symlink(
+        &self,
+        path: StdStoragePathRef<'_>,
+    ) -> Result<(), FileStorageError> {
+        let metadata = tokio::fs::symlink_metadata(path.0)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        if metadata.is_dir() && !metadata.file_type().is_symlink() {
+            Ok(())
+        } else {
+            Err(FileStorageError::Symlink)
+        }
+    }
+
+    async fn ensure_destination_absent(
+        &self,
+        path: StdStoragePathRef<'_>,
+    ) -> Result<(), FileStorageError> {
+        match tokio::fs::symlink_metadata(path.0).await {
+            Ok(metadata) if metadata.file_type().is_symlink() => Err(FileStorageError::Symlink),
+            Ok(_metadata) => Err(FileStorageError::DestinationExists),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(error) => Err(FileStorageError::Io(error.into())),
+        }
+    }
+
+    async fn ensure_destination_parent(
+        &self,
+        relative_path: &StdStorageRelativePath,
+    ) -> Result<(), FileStorageError> {
+        let mut current = self.root.0.clone();
+        let mut components = relative_path
+            .0
+            .parent()
+            .into_iter()
+            .flat_map(std::path::Path::components);
+        #[allow(clippy::while_let_on_iterator)]
+        // repository policy forbids for loops and each component requires awaited filesystem validation
+        while let Some(component) = components.next() {
+            current.push(component.as_os_str());
+            match tokio::fs::symlink_metadata(&current).await {
+                Ok(metadata) if metadata.is_dir() && !metadata.file_type().is_symlink() => {}
+                Ok(_metadata) => return Err(FileStorageError::Symlink),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                    tokio::fs::create_dir(&current)
+                        .await
+                        .map_err(|create_error| FileStorageError::Io(create_error.into()))?;
+                    self.ensure_directory_not_symlink(current.as_path().into())
+                        .await?;
+                }
+                Err(error) => return Err(FileStorageError::Io(error.into())),
+            }
+        }
+        Ok(())
+    }
+
+    async fn ensure_regular_file(
+        &self,
+        path: StdStoragePathRef<'_>,
+    ) -> Result<(), FileStorageError> {
+        let metadata = tokio::fs::symlink_metadata(path.0)
+            .await
+            .map_err(|error| FileStorageError::Io(error.into()))?;
+        if metadata.is_file() && !metadata.file_type().is_symlink() {
+            Ok(())
+        } else if metadata.file_type().is_symlink() {
+            Err(FileStorageError::Symlink)
+        } else {
+            Err(FileStorageError::SourceNotRegular)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn relative_paths_and_operation_ids_reject_traversal() {
+        assert_eq!(
+            super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
+                str_constants::TEST_PATH_TRAVERSAL
+            )),
+            Err(super::FileStoragePathError::RelativePathInvalid),
+        );
+        assert_eq!(
+            super::StdStorageOperationId::try_from(String::from(
+                str_constants::TEST_PATH_TRAVERSAL,
+            )),
+            Err(super::FileStoragePathError::OperationIdInvalid),
+        );
+    }
+
+    #[tokio::test]
+    async fn staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
+        let root_path = std::env::temp_dir().join(str_constants::TEST_FILE_STORAGE_DIRECTORY);
+        match tokio::fs::remove_dir_all(&root_path).await {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => panic!("a61c720d {error}"),
+        }
+        let storage = super::SafeFileStorage::new(
+            super::StdFileStorageRoot::try_from(root_path.clone()).expect("ec6f4321"),
+        );
+        storage.prepare().await.expect("ab760e42");
+        let operation_id = super::StdStorageOperationId::try_from(String::from(
+            str_constants::TEST_FILE_STORAGE_OPERATION_ID,
+        ))
+        .expect("ca3f4821");
+        let relative_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
+            str_constants::TEST_FILE_STORAGE_RELATIVE_PATH,
+        ))
+        .expect("85ed3042");
+        let bytes = super::StdFileBytes::try_from(vec![1u8, 2u8, 3u8]).expect("d7df0f1c");
+        storage
+            .stage_upload(&operation_id, &bytes)
+            .await
+            .expect("94c1083e");
+        storage
+            .commit_upload(&operation_id, &relative_path)
+            .await
+            .expect("217f53e4");
+        let _metadata_after_upload = tokio::fs::metadata(root_path.join(&relative_path.0))
+            .await
+            .expect("a28e410c");
+        storage
+            .stage_delete(&operation_id, &relative_path)
+            .await
+            .expect("40761d28");
+        storage
+            .rollback_delete(&operation_id, &relative_path)
+            .await
+            .expect("1cd05291");
+        let _metadata_after_delete_rollback = tokio::fs::metadata(root_path.join(&relative_path.0))
+            .await
+            .expect("3c48b27d");
+        tokio::fs::remove_dir_all(root_path)
+            .await
+            .expect("9a69203b");
+    }
+}
