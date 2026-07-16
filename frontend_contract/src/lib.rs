@@ -1,4 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
+mod json_snapshot;
 mod openapi_validation;
 mod problem;
 mod route;
@@ -6,6 +7,10 @@ mod route_contract_validation;
 mod route_coverage;
 mod url_builder;
 pub use frontend_contract_macros::TypedRoute;
+pub use json_snapshot::{
+    JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
+    canonical_json_contract_snapshot,
+};
 pub use openapi_validation::{
     OpenApiContractText, OpenApiContractTextError, OpenApiContractTextTryFromStringError,
     OpenApiOperationExpectation, OpenApiOperationValidationError, OpenApiPayloadValidationError,

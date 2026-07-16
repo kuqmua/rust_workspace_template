@@ -7,6 +7,8 @@ mod cursor;
 mod db_schema_conformance;
 mod errors;
 mod invariants;
+mod list_total;
+mod operation_budget;
 mod order_preserving_deduplication;
 mod pagination;
 mod patch_field;
@@ -28,10 +30,11 @@ pub use cursor::{
     SignedCursorPresence,
 };
 pub use db_schema_conformance::{
-    DbColumnNullable, DbColumnSnapshot, DbObjectKind, DbObjectSnapshot, DbSchemaConformanceError,
-    DbSchemaNameRef, DbSchemaText, DbSchemaTextError, DbSchemaTextTryFromStringError,
-    DbTableNameRef, DbTableSnapshot, SqlxDbSchemaInspectionError, SqlxPgPoolRef,
-    inspect_postgres_table, validate_postgres_table_schema,
+    DbCatalogSnapshot, DbColumnNullable, DbColumnSnapshot, DbObjectKind, DbObjectSnapshot,
+    DbSchemaConformanceError, DbSchemaNameRef, DbSchemaText, DbSchemaTextError,
+    DbSchemaTextTryFromStringError, DbTableNameRef, DbTableSnapshot, SqlxDbSchemaInspectionError,
+    SqlxPgPoolRef, inspect_postgres_catalog, inspect_postgres_table, validate_postgres_catalog,
+    validate_postgres_table_schema,
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
@@ -40,6 +43,13 @@ pub use errors::{
 pub use invariants::{
     BulkMutationOutcome, DataInvariantViolation, PaginationTotal, validate_bulk_atomicity,
     validate_migration_idempotency, validate_pagination_invariants,
+};
+pub use list_total::{
+    ListOffset, ListPage, ListRows, ListRowsPresence, ListTotal, ListTotalError, ListTotalSource,
+    WindowTotalPresence, list_total_source, run_list_with_total,
+};
+pub use operation_budget::{
+    OperationBudget, OperationBudgetExceeded, OperationCount, validate_operation_budget,
 };
 pub use order_preserving_deduplication::{
     SliceOrdering, classify_slice_ordering, deduplicate_preserving_order_by_key,

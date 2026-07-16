@@ -71,10 +71,14 @@ impl DbColumnSnapshot {
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum DbObjectKind {
     Check,
+    Extension,
     ForeignKey,
+    Function,
     Index,
     PrimaryKey,
+    Trigger,
     Unique,
+    View,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -99,6 +103,18 @@ pub struct DbTableSnapshot {
     columns: Vec<DbColumnSnapshot>,
     objects: Vec<DbObjectSnapshot>,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DbCatalogSnapshot {
+    objects: Vec<DbObjectSnapshot>,
+}
+impl DbCatalogSnapshot {
+    #[must_use]
+    pub fn new(mut objects: Vec<DbObjectSnapshot>) -> Self {
+        objects.sort_unstable();
+        Self { objects }
+    }
+}
 impl DbTableSnapshot {
     #[must_use]
     pub fn new(mut columns: Vec<DbColumnSnapshot>, mut objects: Vec<DbObjectSnapshot>) -> Self {
@@ -118,6 +134,11 @@ impl std::fmt::Display for SqlxDbSchemaInspectionError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum DbSchemaConformanceError {
+    #[error("PostgreSQL catalog differs from the expected snapshot")]
+    CatalogMismatch {
+        expected: DbCatalogSnapshot,
+        observed: DbCatalogSnapshot,
+    },
     #[error("failed to inspect PostgreSQL schema: {0}")]
     Inspection(SqlxDbSchemaInspectionError),
     #[error("PostgreSQL table schema differs from the expected snapshot")]
@@ -127,6 +148,8 @@ pub enum DbSchemaConformanceError {
     },
     #[error("PostgreSQL schema text exceeds the supported limit")]
     SchemaTextTooLong(DbSchemaTextError),
+    #[error("PostgreSQL returned an unsupported catalog object kind")]
+    UnknownObjectKind,
 }
 
 pub fn validate_postgres_table_schema(
@@ -138,6 +161,64 @@ pub fn validate_postgres_table_schema(
     } else {
         Err(DbSchemaConformanceError::Mismatch { expected, observed })
     }
+}
+
+pub fn validate_postgres_catalog(
+    expected: DbCatalogSnapshot,
+    observed: DbCatalogSnapshot,
+) -> Result<(), DbSchemaConformanceError> {
+    if expected == observed {
+        Ok(())
+    } else {
+        Err(DbSchemaConformanceError::CatalogMismatch { expected, observed })
+    }
+}
+
+pub async fn inspect_postgres_catalog(
+    pool: SqlxPgPoolRef<'_>,
+    schema: DbSchemaNameRef<'_>,
+) -> Result<DbCatalogSnapshot, DbSchemaConformanceError> {
+    let rows = sqlx::query(str_constants::DB_SCHEMA_CATALOG_QUERY)
+        .bind(schema.0)
+        .fetch_all(pool.0)
+        .await
+        .map_err(|error| {
+            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+        })?;
+    rows.into_iter()
+        .map(|row| {
+            let kind_text: String =
+                sqlx::Row::try_get(&row, str_constants::OBJECT_KIND).map_err(|error| {
+                    DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                })?;
+            let kind = match kind_text.as_str() {
+                str_constants::EXTENSION => DbObjectKind::Extension,
+                str_constants::FUNCTION => DbObjectKind::Function,
+                str_constants::TRIGGER => DbObjectKind::Trigger,
+                str_constants::VIEW => DbObjectKind::View,
+                _ => return Err(DbSchemaConformanceError::UnknownObjectKind),
+            };
+            let name = sqlx::Row::try_get::<String, _>(&row, str_constants::OBJECT_NAME).map_err(
+                |error| DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error)),
+            )?;
+            let definition =
+                sqlx::Row::try_get::<String, _>(&row, str_constants::OBJECT_DEFINITION).map_err(
+                    |error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    },
+                )?;
+            Ok(DbObjectSnapshot::new(
+                DbSchemaText::try_from(name).map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+                kind,
+                DbSchemaText::try_from(definition).map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?,
+            ))
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map(DbCatalogSnapshot::new)
 }
 
 pub async fn inspect_postgres_table(
@@ -296,6 +377,16 @@ pub async fn inspect_postgres_table(
 
 #[cfg(test)]
 mod tests {
+    fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
+        super::DbCatalogSnapshot::new(vec![super::DbObjectSnapshot::new(
+            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_NAME))
+                .expect(str_constants::VALUE_E84FED1B),
+            kind,
+            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_DEFINITION))
+                .expect(str_constants::VALUE_A7950FF0),
+        )])
+    }
+
     fn snapshot(nullable: bool) -> super::DbTableSnapshot {
         super::DbTableSnapshot::new(
             vec![super::DbColumnSnapshot::new(
@@ -327,6 +418,24 @@ mod tests {
         assert!(matches!(
             super::validate_postgres_table_schema(snapshot(false), snapshot(true)),
             Err(super::DbSchemaConformanceError::Mismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn catalog_object_kind_difference_is_reported() {
+        assert!(matches!(
+            super::validate_postgres_catalog(
+                catalog_snapshot(super::DbObjectKind::Trigger),
+                catalog_snapshot(super::DbObjectKind::Trigger),
+            ),
+            Ok(())
+        ));
+        assert!(matches!(
+            super::validate_postgres_catalog(
+                catalog_snapshot(super::DbObjectKind::Trigger),
+                catalog_snapshot(super::DbObjectKind::Function),
+            ),
+            Err(super::DbSchemaConformanceError::CatalogMismatch { .. })
         ));
     }
 }
