@@ -77,6 +77,11 @@ impl StdBoundedReadConcurrency {
 }
 #[derive(Debug)]
 pub struct StdIoError(std::io::Error);
+impl From<std::io::Error> for StdIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for StdIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -86,6 +91,11 @@ impl std::error::Error for StdIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
+}
+#[derive(Debug)]
+pub enum IoErrorPresenceDisposition {
+    Missing,
+    Other(StdIoError),
 }
 #[derive(Debug)]
 pub struct ReqwestError(reqwest::Error);
@@ -137,6 +147,23 @@ impl AsRef<str> for BoundedJsonText {
         self.0.as_str()
     }
 }
+impl BoundedJsonText {
+    pub fn compact(&self) -> Result<Self, BoundedJsonReadError> {
+        let value = serde_json::from_str::<serde_json::Value>(self.0.as_str())
+            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
+        let text = serde_json::to_string(&value)
+            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
+        Self::try_from(text)
+    }
+
+    pub fn pretty(&self) -> Result<Self, BoundedJsonReadError> {
+        let value = serde_json::from_str::<serde_json::Value>(self.0.as_str())
+            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
+        let text = serde_json::to_string_pretty(&value)
+            .map_err(|error| BoundedJsonReadError::SerdeJson(SerdeJsonError(error)))?;
+        Self::try_from(text)
+    }
+}
 impl TryFrom<String> for BoundedJsonText {
     type Error = BoundedJsonReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -185,6 +212,14 @@ pub enum BoundedReadError {
 }
 #[derive(Clone, Copy, Debug)]
 struct BoundedReadObservedBytes(usize);
+#[must_use]
+pub fn classify_not_found_io_error(error: StdIoError) -> IoErrorPresenceDisposition {
+    if error.0.kind() == std::io::ErrorKind::NotFound {
+        IoErrorPresenceDisposition::Missing
+    } else {
+        IoErrorPresenceDisposition::Other(error)
+    }
+}
 const fn ensure_size_within_limit(
     size: BoundedReadObservedBytes,
     maximum_bytes: BoundedReadMaximumBytes,
@@ -365,6 +400,21 @@ mod tests {
         assert!(matches!(result, Err(super::BoundedReadError::Utf8 { .. })));
     }
     #[test]
+    fn only_not_found_is_classified_as_missing() {
+        assert!(matches!(
+            super::classify_not_found_io_error(
+                std::io::Error::from(std::io::ErrorKind::NotFound).into()
+            ),
+            super::IoErrorPresenceDisposition::Missing
+        ));
+        assert!(matches!(
+            super::classify_not_found_io_error(
+                std::io::Error::from(std::io::ErrorKind::PermissionDenied).into()
+            ),
+            super::IoErrorPresenceDisposition::Other(_)
+        ));
+    }
+    #[test]
     fn bounded_json_distinguishes_invalid_document() {
         let valid = super::BoundedBytes(
             str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY
@@ -377,6 +427,19 @@ mod tests {
             super::parse_bounded_json(&invalid),
             Err(super::BoundedJsonReadError::SerdeJson(_))
         ));
+    }
+    #[test]
+    fn bounded_json_formats_pretty_and_compact_text() {
+        let json = super::BoundedJsonText::try_from(String::from(
+            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY,
+        ))
+        .expect("d2d69400");
+        let pretty = json.pretty().expect("35493db4");
+        assert!(pretty.as_ref().contains('\n'));
+        assert_eq!(
+            pretty.compact().expect("08123a26").as_ref(),
+            str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY
+        );
     }
     #[tokio::test]
     async fn asynchronous_file_read_obeys_limit() {

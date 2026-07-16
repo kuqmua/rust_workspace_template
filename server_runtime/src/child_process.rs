@@ -6,6 +6,91 @@ impl From<std::num::NonZeroUsize> for StdChildDiagnosticMaximum {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct ChildProcessId(u64);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
+impl From<std::num::NonZeroUsize> for StdChildProcessSetMaximum {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Default)]
+struct StdCollectionsChildProcessMap(
+    std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>,
+);
+
+#[derive(Debug)]
+pub struct ChildProcessSet {
+    maximum: StdChildProcessSetMaximum,
+    next_id: ChildProcessId,
+    processes: StdCollectionsChildProcessMap,
+}
+impl ChildProcessSet {
+    pub fn insert(
+        &mut self,
+        process: ChildProcessSupervisor,
+    ) -> Result<ChildProcessId, ChildProcessSetError> {
+        if self.processes.0.len() >= self.maximum.0.get() {
+            return Err(ChildProcessSetError::Full);
+        }
+        let id = self.next_id;
+        self.next_id = ChildProcessId(
+            self.next_id
+                .0
+                .checked_add(1u64)
+                .ok_or(ChildProcessSetError::IdOverflow)?,
+        );
+        let _previous = self.processes.0.insert(id, process);
+        Ok(id)
+    }
+
+    #[must_use]
+    pub const fn new(maximum: StdChildProcessSetMaximum) -> Self {
+        Self {
+            maximum,
+            next_id: ChildProcessId(0u64),
+            processes: StdCollectionsChildProcessMap(std::collections::BTreeMap::new()),
+        }
+    }
+
+    pub async fn shutdown_all(
+        mut self,
+        timeout: crate::StdRequestTimeout,
+    ) -> Result<ChildProcessReports, ChildProcessSetError> {
+        let mut reports = Vec::with_capacity(self.processes.0.len());
+        while let Some((_id, process)) = self.processes.0.pop_first() {
+            reports.push(
+                process
+                    .shutdown(timeout)
+                    .await
+                    .map_err(ChildProcessSetError::Process)?,
+            );
+        }
+        Ok(ChildProcessReports(reports))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ChildProcessReports(Vec<ChildProcessReport>);
+impl AsRef<[ChildProcessReport]> for ChildProcessReports {
+    fn as_ref(&self) -> &[ChildProcessReport] {
+        self.0.as_slice()
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ChildProcessSetError {
+    #[error("child process set is full")]
+    Full,
+    #[error("child process identifier overflowed")]
+    IdOverflow,
+    #[error("child process shutdown failed")]
+    Process(#[source] ChildProcessError),
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ChildDiagnostic(Vec<u8>);
 impl AsRef<[u8]> for ChildDiagnostic {
@@ -223,6 +308,17 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn empty_process_set_shuts_down_without_reports() {
+        let processes = super::ChildProcessSet::new(super::StdChildProcessSetMaximum::from(
+            std::num::NonZeroUsize::MIN,
+        ));
+        let timeout = crate::StdRequestTimeout::try_from(std::time::Duration::from_secs(1u64))
+            .expect("69d0d988");
+        let reports = processes.shutdown_all(timeout).await.expect("b85cbf78");
+        assert!(reports.as_ref().is_empty());
+    }
+
     #[tokio::test]
     async fn diagnostic_read_is_bounded() {
         let (mut writer, reader) = tokio::io::duplex(64usize);

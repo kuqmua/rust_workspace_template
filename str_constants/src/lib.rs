@@ -3523,6 +3523,18 @@ pub const LESS_OR_EQUAL: &str = "<= ";
 pub const TEST_DATE_SQL_FILTER: &str = "created_at >= $1 and created_at <= $2";
 pub const TEST_DATE_SQL_FROM: &str = "2026-01-01T00:00:00Z";
 pub const TEST_DATE_SQL_TO: &str = "2026-01-02T00:00:00Z";
+pub const TEST_DIFFERENT_SECRET_TEXT: &str = "different-secret-value";
+pub const TEST_REPEATED_SECRET: &str = "aaaaaaaaaaaaaaaa";
+pub const TEST_SECRET_TEXT: &str = "example-secret-value";
+pub const LIMIT_DOLLAR: &str = " limit $";
+pub const OFFSET_DOLLAR: &str = " offset $";
+pub const READ_ORDER_BY: &str = " order by ";
+pub const TEST_FILTER_TEXT: &str = "filter-text";
+pub const TEST_READ_QUERY_BASE: &str = "select id from items";
+pub const TEST_STABLE_READ_QUERY: &str =
+    "select id from items order by created_at desc, id desc limit $1 offset $2";
+pub const SORT_ASC: &str = "asc";
+pub const SORT_DESC: &str = "desc";
 pub const RTSP_SCHEME_PREFIX: &str = "rtsp://";
 pub const TEST_DISK_CACHE_NEW_PATH: &str = "cache-new";
 pub const TEST_DISK_CACHE_OLD_PATH: &str = "cache-old";

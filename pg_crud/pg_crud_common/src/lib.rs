@@ -7,6 +7,7 @@ mod cursor;
 mod date_sql_filter;
 mod db_schema_conformance;
 mod errors;
+mod filter_bind_plan;
 mod invariants;
 mod list_total;
 mod operation_budget;
@@ -14,6 +15,7 @@ mod order_preserving_deduplication;
 mod pagination;
 mod patch_field;
 mod query_fragment;
+mod read_query_plan;
 mod rollback;
 mod sql_identifier;
 mod sql_like_pattern;
@@ -45,6 +47,9 @@ pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
     SqlxPostgresQueryBindError,
 };
+pub use filter_bind_plan::{
+    FilterBindPlan, PgFilterBindValue, PgFilterBool, PgFilterI64, PgFilterText, PgFilterTextError,
+};
 pub use invariants::{
     BulkMutationOutcome, DataInvariantViolation, PaginationTotal, validate_bulk_atomicity,
     validate_migration_idempotency, validate_pagination_invariants,
@@ -64,6 +69,10 @@ pub use pagination::{
 };
 pub use patch_field::PatchField;
 pub use query_fragment::{QueryPartFragment, SqlColumnRef};
+pub use read_query_plan::{
+    QuerySortOrder, ReadQueryPlan, ReadQueryPlanError, StdReadQueryBindIndex,
+    build_stable_read_query_plan,
+};
 pub use rollback::TransactionFailure;
 pub use sql_identifier::{
     SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,

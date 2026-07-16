@@ -1,4 +1,5 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
+mod auth_session_keep_alive;
 mod json_snapshot;
 mod openapi_validation;
 mod problem;
@@ -6,6 +7,11 @@ mod route;
 mod route_contract_validation;
 mod route_coverage;
 mod url_builder;
+pub use auth_session_keep_alive::{
+    AuthSessionKeepAlive, AuthSessionKeepAliveDecision, AuthSessionKeepAliveError,
+    AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
+    StdAuthSessionRefreshInterval,
+};
 pub use frontend_contract_macros::TypedRoute;
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,

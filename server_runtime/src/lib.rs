@@ -29,7 +29,9 @@ mod redacted_url;
 mod request_id;
 mod resource_budget;
 mod retry;
+mod secret_text;
 mod secure_cookie;
+mod service_bootstrap;
 mod single_flight;
 mod text_policy;
 mod wire_token;
@@ -40,15 +42,17 @@ pub use batched_cleanup::{
 };
 pub use bounded_read::{
     BoundedBytes, BoundedJsonReadError, BoundedJsonText, BoundedReadError, BoundedReadMaximumBytes,
-    BoundedText, ReqwestError, ReqwestResponse, SerdeJsonError, StdBoundedReadConcurrency,
-    StdBoundedReadConcurrencyMaximum, StdFromUtf8Error, StdIoError, StdPathRef, parse_bounded_json,
-    read_bounded_file, read_bounded_file_async, read_bounded_http_response,
-    read_bounded_json_file_async, read_bounded_json_http_response,
+    BoundedText, IoErrorPresenceDisposition, ReqwestError, ReqwestResponse, SerdeJsonError,
+    StdBoundedReadConcurrency, StdBoundedReadConcurrencyMaximum, StdFromUtf8Error, StdIoError,
+    StdPathRef, classify_not_found_io_error, parse_bounded_json, read_bounded_file,
+    read_bounded_file_async, read_bounded_http_response, read_bounded_json_file_async,
+    read_bounded_json_http_response,
 };
 pub use child_process::{
-    ChildDiagnostic, ChildProcessCompletion, ChildProcessError, ChildProcessReport,
-    ChildProcessSucceeded, ChildProcessSupervisor, StdChildDiagnosticMaximum, StdChildExitStatus,
-    StdChildProcessIoError, TokioChildProcess, TokioChildProcessJoinError,
+    ChildDiagnostic, ChildProcessCompletion, ChildProcessError, ChildProcessId, ChildProcessReport,
+    ChildProcessReports, ChildProcessSet, ChildProcessSetError, ChildProcessSucceeded,
+    ChildProcessSupervisor, StdChildDiagnosticMaximum, StdChildExitStatus, StdChildProcessIoError,
+    StdChildProcessSetMaximum, TokioChildProcess, TokioChildProcessJoinError,
 };
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
@@ -152,9 +156,17 @@ pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,
     run_with_retries,
 };
+pub use secret_text::{
+    BoundedSecretText, BoundedSecretTextError, SecretTextMatch, SecretTextRef, secret_texts_match,
+};
 pub use secure_cookie::{
     HttpCookieAccess, HttpCookieName, HttpCookieSecure, HttpCookieValue, HttpSecureCookieError,
     HttpSetCookieHeaderValue, StdCookieMaxAgeSeconds, build_secure_strict_cookie,
+};
+pub use service_bootstrap::{
+    ServiceTracingFormat, StdServiceRuntimeIoError, TokioServiceRuntime,
+    TracingSubscriberInitError, build_service_runtime, initialize_service_tracing,
+    wait_for_service_shutdown_signal,
 };
 pub use single_flight::{
     SingleFlight, SingleFlightAcquire, SingleFlightKey, SingleFlightKeyError, SingleFlightOwner,
