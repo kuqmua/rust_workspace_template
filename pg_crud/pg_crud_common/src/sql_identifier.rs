@@ -59,6 +59,13 @@ impl SqlQualifiedIdentifier {
         output.0.push_str(self.table.as_ref());
     }
 }
+impl std::fmt::Display for SqlQualifiedIdentifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.schema.as_ref())?;
+        f.write_str(str_constants::DOT)?;
+        f.write_str(self.table.as_ref())
+    }
+}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SqlSelectBuilder {
     columns: Vec<SqlIdentifier>,

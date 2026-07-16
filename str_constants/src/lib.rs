@@ -3723,6 +3723,25 @@ pub const VALUE_9CB64C93: &str = "9cb64c93";
 pub const VALUE_A4B28D38: &str = "a4b28d38";
 pub const RESOURCE_UTILIZATION_MAXIMUM_MUST_BE_GREATER_THAN_ZERO: &str =
     "resource utilization maximum must be greater than zero";
+pub const FOREIGN_KEY_OPENING: &str = "FOREIGN KEY (";
+pub const ON_DELETE_CASCADE: &str = " ON DELETE CASCADE";
+pub const ON_DELETE_RESTRICT: &str = " ON DELETE RESTRICT";
+pub const PG_OPERATIONAL_LIMIT_BELOW_CURRENT_USAGE: &str =
+    "PostgreSQL operational limit must not be below current usage";
+pub const PG_OPERATIONAL_LIMIT_MUST_BE_GREATER_THAN_ZERO: &str =
+    "PostgreSQL operational limit must be greater than zero";
+pub const PG_SCOPED_FOREIGN_KEY_COLUMN_COUNT_MISMATCH: &str =
+    "PostgreSQL scoped foreign-key column counts must match";
+pub const PG_SCOPED_FOREIGN_KEY_DUPLICATE_COLUMN: &str =
+    "PostgreSQL scoped foreign-key columns must be unique";
+pub const PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT: &str =
+    "PostgreSQL scoped foreign key must contain between 2 and 16 columns";
+pub const PG_TEST_FEATURE_ID: &str = "feature_id";
+pub const PG_TEST_FEATURES: &str = "features";
+pub const PG_TEST_LAYER_ID: &str = "layer_id";
+pub const REFERENCES: &str = ") REFERENCES ";
+pub const TEST_SCOPED_FOREIGN_KEY_CLAUSE: &str =
+    "FOREIGN KEY (feature_id, layer_id) REFERENCES public.features(id, layer_id) ON DELETE CASCADE";
 pub const PG_SQLSTATE_CHECK_VIOLATION: &str = "23514";
 pub const PG_SQLSTATE_DEADLOCK_DETECTED: &str = "40P01";
 pub const PG_SQLSTATE_FOREIGN_KEY_VIOLATION: &str = "23503";

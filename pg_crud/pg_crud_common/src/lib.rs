@@ -14,6 +14,7 @@ mod finite_f64;
 mod invariants;
 mod list_total;
 mod operation_budget;
+mod operational_invariants;
 mod order_preserving_deduplication;
 mod pagination;
 mod patch_field;
@@ -78,6 +79,12 @@ pub use list_total::{
 };
 pub use operation_budget::{
     OperationBudget, OperationBudgetExceeded, OperationCount, validate_operation_budget,
+};
+pub use operational_invariants::{
+    PgCounterReconciliation, PgCounterValue, PgOperationalLimit, PgOperationalLimitError,
+    PgOperationalLimitUpdateAuthority, PgScopedForeignKey, PgScopedForeignKeyError,
+    PgScopedForeignKeyOnDelete, build_pg_scoped_foreign_key_clause, reconcile_pg_counter,
+    resolve_pg_operational_limit_update,
 };
 pub use order_preserving_deduplication::{
     SliceOrdering, classify_slice_ordering, deduplicate_preserving_order_by_key,
