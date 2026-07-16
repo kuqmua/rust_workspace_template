@@ -4,8 +4,10 @@ mod bounded_read;
 mod child_process;
 mod client_ip;
 mod cors;
+mod deduplicating_queue;
 mod exclusive_run;
 mod fallback;
+mod generation_gate;
 mod health;
 mod history;
 mod http_header_policy;
@@ -25,6 +27,7 @@ mod redacted_url;
 mod request_id;
 mod resource_budget;
 mod retry;
+mod single_flight;
 mod text_policy;
 mod wire_token;
 pub use background_job::BackgroundJob;
@@ -49,12 +52,14 @@ pub use client_ip::{
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
 };
+pub use deduplicating_queue::{DeduplicatingQueue, QueuePush, StdQueueMaximum};
 pub use exclusive_run::{ExclusiveRun, ExclusiveRunAlreadyActive, ExclusiveRunGuard};
 pub use fallback::{
     FallbackResponseMode, HttpAcceptHeaderMaximumBytes, HttpFallbackApiPrefixRef,
     HttpFallbackMetricsPathRef, HttpFallbackRequestPathRef, HttpOptionalAcceptHeaderRef,
     fallback_response_mode,
 };
+pub use generation_gate::{Generation, GenerationCommit, GenerationGate};
 pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,
@@ -137,6 +142,10 @@ pub use resource_budget::{
 pub use retry::{
     RetryOutcome, RetryPolicy, StdRetryAttempts, StdRetryAttemptsError, StdRetryDelay,
     run_with_retries,
+};
+pub use single_flight::{
+    SingleFlight, SingleFlightAcquire, SingleFlightKey, SingleFlightKeyError, SingleFlightOwner,
+    SingleFlightWaitOutcome, SingleFlightWaiter, StdSingleFlightMaximum,
 };
 pub use text_policy::{
     BoundedTextPolicyError, FixedLengthAsciiHexText, FixedLengthAsciiHexTextError,

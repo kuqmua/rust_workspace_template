@@ -108,6 +108,11 @@ pub enum FileStoragePathError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum FileStorageError {
+    #[error("{}", str_constants::FILE_STORAGE_ATOMIC_REPLACE_AND_CLEANUP_ERROR)]
+    AtomicReplaceAndCleanup {
+        cleanup: StdFileStorageIoError,
+        replace: StdFileStorageIoError,
+    },
     #[error("{}", str_constants::FILE_STORAGE_DESTINATION_EXISTS)]
     DestinationExists,
     #[error("{}", str_constants::FILE_STORAGE_IO_ERROR)]
@@ -126,6 +131,54 @@ pub struct SafeFileStorage {
 }
 #[allow(clippy::arbitrary_source_item_ordering)] // transactional API is grouped as prepare, stage, commit, and rollback operations
 impl SafeFileStorage {
+    pub async fn atomic_replace(
+        &self,
+        operation_id: &StdStorageOperationId,
+        destination: &StdStorageRelativePath,
+        bytes: &StdFileBytes,
+        durability: AtomicReplaceDurability,
+    ) -> Result<(), FileStorageError> {
+        self.stage_upload(operation_id, bytes).await?;
+        let staging_path = self
+            .root
+            .0
+            .join(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(operation_id.0.as_str());
+        if durability == AtomicReplaceDurability::SyncAll {
+            let file = tokio::fs::OpenOptions::new()
+                .write(true)
+                .open(&staging_path)
+                .await
+                .map_err(|error| FileStorageError::Io(error.into()))?;
+            file.sync_all()
+                .await
+                .map_err(|error| FileStorageError::Io(error.into()))?;
+        }
+        self.ensure_destination_parent(destination).await?;
+        let destination_path = self.root.0.join(&destination.0);
+        match tokio::fs::symlink_metadata(&destination_path).await {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(FileStorageError::Symlink);
+            }
+            Ok(metadata) if !metadata.is_file() => {
+                return Err(FileStorageError::SourceNotRegular);
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(FileStorageError::Io(error.into())),
+        }
+        if let Err(replace) = tokio::fs::rename(&staging_path, destination_path).await {
+            return match tokio::fs::remove_file(staging_path).await {
+                Ok(()) => Err(FileStorageError::Io(replace.into())),
+                Err(cleanup) => Err(FileStorageError::AtomicReplaceAndCleanup {
+                    cleanup: cleanup.into(),
+                    replace: replace.into(),
+                }),
+            };
+        }
+        Ok(())
+    }
+
     #[must_use]
     pub const fn new(root: StdFileStorageRoot) -> Self {
         Self { root }
@@ -345,6 +398,96 @@ impl SafeFileStorage {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AtomicReplaceDurability {
+    Flush,
+    SyncAll,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdDiskCacheSize(u64);
+impl From<u64> for StdDiskCacheSize {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StdDiskCacheModifiedAt(std::time::SystemTime);
+impl From<std::time::SystemTime> for StdDiskCacheModifiedAt {
+    fn from(value: std::time::SystemTime) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DiskCacheEntry {
+    modified_at: StdDiskCacheModifiedAt,
+    path: StdStorageRelativePath,
+    size: StdDiskCacheSize,
+}
+impl DiskCacheEntry {
+    #[must_use]
+    pub const fn new(
+        path: StdStorageRelativePath,
+        size: StdDiskCacheSize,
+        modified_at: StdDiskCacheModifiedAt,
+    ) -> Self {
+        Self {
+            modified_at,
+            path,
+            size,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct DiskCacheEvictionPlan(Vec<StdStorageRelativePath>);
+impl AsRef<[StdStorageRelativePath]> for DiskCacheEvictionPlan {
+    fn as_ref(&self) -> &[StdStorageRelativePath] {
+        self.0.as_slice()
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+pub enum DiskCacheBudgetError {
+    #[error("incoming cache entry exceeds the cache budget")]
+    IncomingTooLarge,
+    #[error("cache size calculation overflowed")]
+    SizeOverflow,
+}
+
+pub fn plan_disk_cache_eviction(
+    entries: &[DiskCacheEntry],
+    maximum: StdDiskCacheSize,
+    incoming: StdDiskCacheSize,
+) -> Result<DiskCacheEvictionPlan, DiskCacheBudgetError> {
+    if incoming.0 > maximum.0 {
+        return Err(DiskCacheBudgetError::IncomingTooLarge);
+    }
+    let mut current = entries.iter().try_fold(0u64, |total, entry| {
+        total
+            .checked_add(entry.size.0)
+            .ok_or(DiskCacheBudgetError::SizeOverflow)
+    })?;
+    let mut ordered = entries.iter().collect::<Vec<_>>();
+    ordered.sort_unstable_by_key(|entry| entry.modified_at.0);
+    let mut remove = Vec::new();
+    let mut candidates = ordered.into_iter();
+    while current
+        .checked_add(incoming.0)
+        .ok_or(DiskCacheBudgetError::SizeOverflow)?
+        > maximum.0
+    {
+        let Some(entry) = candidates.next() else {
+            break;
+        };
+        current = current.saturating_sub(entry.size.0);
+        remove.push(entry.path.clone());
+    }
+    Ok(DiskCacheEvictionPlan(remove))
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -361,6 +504,29 @@ mod tests {
             )),
             Err(super::FileStoragePathError::OperationIdInvalid),
         );
+    }
+
+    #[test]
+    fn disk_cache_budget_evicts_oldest_entries_first() {
+        let old_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
+            str_constants::TEST_DISK_CACHE_OLD_PATH,
+        ))
+        .expect("0dc17257");
+        let new_path = super::StdStorageRelativePath::try_from(std::path::PathBuf::from(
+            str_constants::TEST_DISK_CACHE_NEW_PATH,
+        ))
+        .expect("38c1eca1");
+        let entries = [
+            super::DiskCacheEntry::new(old_path.clone(), 4u64.into(), std::time::UNIX_EPOCH.into()),
+            super::DiskCacheEntry::new(
+                new_path,
+                4u64.into(),
+                (std::time::UNIX_EPOCH + std::time::Duration::from_secs(1u64)).into(),
+            ),
+        ];
+        let plan =
+            super::plan_disk_cache_eviction(&entries, 10u64.into(), 4u64.into()).expect("1bc67951");
+        assert_eq!(plan.as_ref(), &[old_path]);
     }
 
     #[tokio::test]
@@ -406,6 +572,26 @@ mod tests {
         let _metadata_after_delete_rollback = tokio::fs::metadata(root_path.join(&relative_path.0))
             .await
             .expect("3c48b27d");
+        let replacement_operation_id = super::StdStorageOperationId::try_from(String::from(
+            str_constants::TEST_FILE_STORAGE_REPLACEMENT_OPERATION_ID,
+        ))
+        .expect("fb7e68b1");
+        let replacement_bytes = super::StdFileBytes::try_from(vec![4u8, 5u8]).expect("23566f2b");
+        storage
+            .atomic_replace(
+                &replacement_operation_id,
+                &relative_path,
+                &replacement_bytes,
+                super::AtomicReplaceDurability::Flush,
+            )
+            .await
+            .expect("a1ea86b8");
+        assert_eq!(
+            tokio::fs::read(root_path.join(&relative_path.0))
+                .await
+                .expect("571084e8"),
+            vec![4u8, 5u8],
+        );
         tokio::fs::remove_dir_all(root_path)
             .await
             .expect("9a69203b");
