@@ -1,4 +1,5 @@
 mod advisory_lock;
+mod batch_validation;
 mod bind_index;
 pub mod bounded_btree_map;
 pub mod bounded_unique_vec;
@@ -16,6 +17,7 @@ mod operation_budget;
 mod order_preserving_deduplication;
 mod pagination;
 mod patch_field;
+mod pg_error;
 mod query_fragment;
 mod read_query_plan;
 mod rollback;
@@ -26,6 +28,10 @@ pub use advisory_lock::{
     PgRelationLockNamespace, PgRelationResourceId, PgRelationResourceIds, PgRelationRowCount,
     SqlxPgRelationLockConnectionRef, SqlxPgRelationLockError, lock_pg_relation_resources,
     validate_pg_relation_capacity,
+};
+pub use batch_validation::{
+    BatchDuplicatePolicy, BatchInvalidItemCount, BatchProcessedItemCount, BatchStoppedEarly,
+    BatchValidationReport, validate_batch_by_key,
 };
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
@@ -80,6 +86,7 @@ pub use pagination::{
     DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,
 };
 pub use patch_field::PatchField;
+pub use pg_error::{PgErrorKind, SqlxPgErrorRef, classify_pg_error};
 pub use query_fragment::{QueryPartFragment, SqlColumnRef};
 pub use read_query_plan::{
     QuerySortOrder, ReadQueryPlan, ReadQueryPlanError, StdReadQueryBindIndex,
