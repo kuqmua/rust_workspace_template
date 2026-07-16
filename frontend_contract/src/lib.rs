@@ -12,7 +12,7 @@ pub use auth_session_keep_alive::{
     AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
     StdAuthSessionRefreshInterval,
 };
-pub use frontend_contract_macros::TypedRoute;
+pub use frontend_contract_macros::{RouteFamily, TypedRoute};
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
     canonical_json_contract_snapshot,
@@ -29,9 +29,9 @@ pub use problem::{
     ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, PublicTransport, RouteMetadata, RouteRequest, RouteResponse,
-    RouteTransport, TypedRoute, client_request, client_route_metadata, openapi_route_metadata,
-    server_response, server_route_metadata,
+    AuthenticatedTransport, CoveredRoute, PublicTransport, RouteFamily, RouteMetadata,
+    RouteRequest, RouteResponse, RouteTransport, TypedRoute, client_request, client_route_metadata,
+    openapi_route_metadata, server_response, server_route_metadata,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,

@@ -3768,3 +3768,9 @@ pub const RUN: &str = "run";
 pub const TEST_DATABASE_URL: &str = "postgresql://localhost/test";
 pub const TEST_MIGRATIONS_PATH: &str = "./migrations";
 pub const TEST_NOTIFICATION_MESSAGE: &str = "test notification";
+pub const MUTATION: &str = "mutation";
+pub const OBLIGATIONS: &str = "obligations";
+pub const ROUTE_FAMILY: &str = "route_family";
+pub const ROUTE_FAMILY_DERIVE_REQUIRES_ATTRIBUTE: &str =
+    "RouteFamily derive requires #[route_family(...)]";
+pub const ROUTE_FAMILY_REQUIRES_ROUTE: &str = "RouteFamily requires at least one route";

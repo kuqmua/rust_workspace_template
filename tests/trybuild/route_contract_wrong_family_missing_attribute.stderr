@@ -1,0 +1,5 @@
+error: RouteFamily derive requires #[route_family(...)]
+ --> trybuild/route_contract_wrong_family_missing_attribute.rs:2:8
+  |
+2 | struct MissingAttributeRouteFamily;
+  |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^

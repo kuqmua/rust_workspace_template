@@ -1,0 +1,5 @@
+error: RouteFamily requires at least one route
+ --> trybuild/route_contract_wrong_family_empty.rs:2:1
+  |
+2 | #[route_family()]
+  | ^^^^^^^^^^^^^^^^^

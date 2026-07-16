@@ -43,6 +43,12 @@ pub trait TypedRoute: Sized {
     type Transport: RouteTransport;
     fn metadata() -> RouteMetadata;
 }
+pub trait CoveredRoute: TypedRoute {
+    fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
+}
+pub trait RouteFamily {
+    fn coverage_descriptors() -> Vec<crate::RouteCoverageDescriptor>;
+}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RouteRequest<Route>
 where
