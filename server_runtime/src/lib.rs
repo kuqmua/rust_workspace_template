@@ -4,11 +4,13 @@ mod bounded_read;
 mod child_process;
 mod client_ip;
 mod cors;
+mod csp;
 mod deduplicating_queue;
 mod exclusive_run;
 mod fallback;
 mod generation_gate;
 mod geojson;
+mod header_text;
 mod health;
 mod history;
 mod http_header_policy;
@@ -57,9 +59,14 @@ pub use child_process::{
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
     TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, resolve_client_ip,
+    resolve_header_text,
 };
 pub use cors::{
     HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
+};
+pub use csp::{
+    HttpCspBuilder, HttpCspDirectiveName, HttpCspDirectiveValue, HttpCspMaximumBytesError,
+    HttpCspTokenError,
 };
 pub use deduplicating_queue::{DeduplicatingQueue, QueuePush, StdQueueMaximum};
 pub use exclusive_run::{ExclusiveRun, ExclusiveRunAlreadyActive, ExclusiveRunGuard};
@@ -70,6 +77,10 @@ pub use fallback::{
 };
 pub use generation_gate::{Generation, GenerationCommit, GenerationGate};
 pub use geojson::{GeoJsonDocumentText, GeoJsonValidationError, SerdeJsonGeoJsonError};
+pub use header_text::{
+    HttpHeaderName, HttpHeaderTextBytes, HttpHeaderTextMaximumBytes,
+    HttpHeaderTextMaximumBytesError, HttpHeaderTextRef, HttpHeaderTextResolution,
+};
 pub use health::{HealthProbeSucceeded, StdHealthProbeTimeout, run_health_probe};
 pub use history::{
     AsyncRunHistory, AsyncRunHistorySnapshot, StdAsyncRunHistoryMaximumLen,

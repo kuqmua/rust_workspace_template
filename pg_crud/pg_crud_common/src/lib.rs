@@ -8,6 +8,7 @@ mod date_sql_filter;
 mod db_schema_conformance;
 mod errors;
 mod filter_bind_plan;
+mod finite_f64;
 mod invariants;
 mod list_total;
 mod operation_budget;
@@ -49,6 +50,10 @@ pub use errors::{
 };
 pub use filter_bind_plan::{
     FilterBindPlan, PgFilterBindValue, PgFilterBool, PgFilterI64, PgFilterText, PgFilterTextError,
+};
+pub use finite_f64::{
+    FiniteF64, FiniteF64Error, PositiveFiniteF64, PositiveFiniteF64Error, UnitIntervalF64,
+    UnitIntervalF64Error,
 };
 pub use invariants::{
     BulkMutationOutcome, DataInvariantViolation, PaginationTotal, validate_bulk_atomicity,

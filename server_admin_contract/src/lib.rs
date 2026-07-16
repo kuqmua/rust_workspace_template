@@ -71,11 +71,63 @@ pub struct AdminPermissionValue(String);
 )]
 #[newtype(as_ref_owned, display, into_inner)]
 pub struct AdminAuditTimestamp(String);
-#[derive(
-    Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, newtype::Newtype,
-)]
-#[newtype(from_inner)]
+pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+pub struct AdminAuditDetailsBytes(usize);
+impl From<usize> for AdminAuditDetailsBytes {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct AdminAuditDetailsTooLarge {
+    actual_bytes: AdminAuditDetailsBytes,
+}
+impl AdminAuditDetailsTooLarge {
+    #[must_use]
+    pub const fn actual_bytes(self) -> AdminAuditDetailsBytes {
+        self.actual_bytes
+    }
+    #[must_use]
+    pub fn maximum_bytes(self) -> AdminAuditDetailsBytes {
+        AdminAuditDetailsBytes::from(ADMIN_AUDIT_DETAILS_MAX_BYTES)
+    }
+}
+impl std::fmt::Display for AdminAuditDetailsTooLarge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "administrator audit details contain {} bytes, maximum is {} bytes",
+            self.actual_bytes.0, ADMIN_AUDIT_DETAILS_MAX_BYTES
+        )
+    }
+}
+impl std::error::Error for AdminAuditDetailsTooLarge {}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(try_from = "serde_json::Value", into = "serde_json::Value")]
 pub struct SerdeJsonAdminAuditDetails(serde_json::Value);
+impl AsRef<serde_json::Value> for SerdeJsonAdminAuditDetails {
+    fn as_ref(&self) -> &serde_json::Value {
+        &self.0
+    }
+}
+impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
+    type Error = AdminAuditDetailsTooLarge;
+    fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
+        let actual_bytes = value.to_string().len();
+        if actual_bytes > ADMIN_AUDIT_DETAILS_MAX_BYTES {
+            return Err(AdminAuditDetailsTooLarge {
+                actual_bytes: AdminAuditDetailsBytes::from(actual_bytes),
+            });
+        }
+        Ok(Self(value))
+    }
+}
+impl From<SerdeJsonAdminAuditDetails> for serde_json::Value {
+    fn from(value: SerdeJsonAdminAuditDetails) -> Self {
+        value.0
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::Newtype)]
 #[bounded_string(
     max = 8192,
@@ -1273,5 +1325,23 @@ mod tests {
         let password =
             super::AdminPassword::try_from(String::from(str_constants::SECRET)).expect("9f3f5164");
         assert!(!format!("{password:?}").contains("secret"));
+    }
+    #[test]
+    fn audit_details_enforce_serialized_byte_limit() {
+        let accepted = super::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
+            "operation": "create"
+        }));
+        let _accepted = accepted.expect("20697dc1");
+        let oversized = super::SerdeJsonAdminAuditDetails::try_from(serde_json::Value::String(
+            str_constants::A_ALT.repeat(super::ADMIN_AUDIT_DETAILS_MAX_BYTES),
+        ));
+        assert_eq!(
+            oversized.err(),
+            Some(super::AdminAuditDetailsTooLarge {
+                actual_bytes: super::AdminAuditDetailsBytes::from(
+                    super::ADMIN_AUDIT_DETAILS_MAX_BYTES.saturating_add(2usize),
+                ),
+            })
+        );
     }
 }

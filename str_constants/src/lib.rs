@@ -2807,6 +2807,16 @@ str_constants_macros::define_str_constants! {
         pub NOTIFICATIONS_PATH = ["/notifications"];
         pub REDACTED_URL = ["RedactedUrl"];
         pub TEST_NOTIFICATION_REQUEST_JSON = ["{\"message\":\"hello\"}"];
+        pub HTTP_CSP_DIRECTIVE_SEPARATOR = ["; "];
+        pub TEST_CSP_DATA_SEMI = ["data:;"];
+        pub TEST_CSP_SELF = ["'self'"];
+        pub TEST_CSP_SELF_DATA = ["'self' data:"];
+        pub TEST_DEFAULT_SRC = ["default-src"];
+        pub TEST_DEFAULT_SRC_SELF = ["default-src 'self'"];
+        pub TEST_DEFAULT_SRC_UPPER = ["Default-src"];
+        pub TEST_TRIMMED_OK = [" ok "];
+        pub TEST_X_TEST_HEADER = ["x-test"];
+        pub VALUE_123456 = ["123456"];
         pub TEST_URL_PASSWORD = ["secret-password"];
         pub TEST_URL_WITH_CREDENTIALS = [WORD_HTTPS, "://user:secret-password@", WORD_LOCALHOST, ":8443/path?x=1"];
         pub VALUE_5067F83C = ["5067f83c"];

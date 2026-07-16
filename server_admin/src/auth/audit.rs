@@ -3,7 +3,10 @@ pub(super) async fn record_success_in_connection(
     mut connection: super::SqlxAdminPgConnectionRef<'_>,
     event: super::AdminAuditSuccessRef<'_>,
 ) -> Result<(), super::AdminApiError> {
-    let details = serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() });
+    let details = server_admin_contract::SerdeJsonAdminAuditDetails::try_from(
+        serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() }),
+    )
+    .map_err(|_error| super::AdminApiError::Validation)?;
     let _result = sqlx::query(
         str_constants::INSERT_INTO_ADMIN_AUDIT_LOG_USER_ID_USER_LOGIN_ACTION_RESOURCE_RESOURCE,
     )
@@ -13,7 +16,7 @@ pub(super) async fn record_success_in_connection(
     .bind(event.resource.as_str().as_ref())
     .bind(event.resource_id.value().as_ref())
     .bind(uuid::Uuid::new_v4())
-    .bind(details)
+    .bind(details.as_ref())
     .execute(connection.as_mut())
     .await
     .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
@@ -91,7 +94,9 @@ pub(super) async fn query_log(
                 server_admin_contract::AdminAuditTimestamp::try_from(row.8)
                     .map_err(|_error| super::AdminApiError::Validation)?,
                 row.7
-                    .map(server_admin_contract::SerdeJsonAdminAuditDetails::from),
+                    .map(server_admin_contract::SerdeJsonAdminAuditDetails::try_from)
+                    .transpose()
+                    .map_err(|_error| super::AdminApiError::Validation)?,
                 server_admin_contract::AdminAuditLogId::from(row.0),
                 server_admin_contract::AdminText::try_from(row.4)
                     .map_err(|_error| super::AdminApiError::Validation)?,

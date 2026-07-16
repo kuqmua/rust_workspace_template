@@ -213,6 +213,29 @@ pub fn resolve_client_ip(
             .unwrap_or(peer_ip),
     )
 }
+#[must_use]
+pub fn resolve_header_text<'header>(
+    headers: HttpHeaderMapRef<'header>,
+    name: &crate::HttpHeaderName,
+    maximum: crate::HttpHeaderTextMaximumBytes,
+) -> crate::HttpHeaderTextResolution<'header> {
+    let Some(value) = headers.0.get(name.as_ref()) else {
+        return crate::HttpHeaderTextResolution::Missing;
+    };
+    let bytes = value.as_bytes();
+    if bytes.len() > usize::from(maximum) {
+        return crate::HttpHeaderTextResolution::ExceedsMaximumBytes {
+            actual_bytes: crate::HttpHeaderTextBytes::from(bytes.len()),
+        };
+    }
+    match value.to_str() {
+        Ok(text) => {
+            crate::HttpHeaderTextResolution::Value(crate::HttpHeaderTextRef::from(text.trim()))
+        }
+        Err(_error) => crate::HttpHeaderTextResolution::InvalidText,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     fn range(value: &str) -> super::TrustedProxyRange {
