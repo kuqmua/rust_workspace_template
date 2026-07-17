@@ -307,7 +307,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     });
     let expected = std::collections::BTreeMap::from([(
         str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(),
-        73usize,
+        6usize,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
@@ -723,9 +723,16 @@ fn string_constants_are_declared_only_in_str_constants() {
 }
 
 #[test]
+fn server_admin_string_constants_reuse_macro_fragments() {
+    let source =
+        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("4629edbb");
+    assert!(!source.contains("pub const SERVER_ADMIN_"));
+}
+
+#[test]
 fn admin_handlers_do_not_own_admin_sql() {
-    let handlers =
-        std::fs::read_to_string(str_constants::SERVER_ADMIN_HANDLERS_RS).expect("353df4df");
+    let handlers = std::fs::read_to_string(str_constants::SERVER_ADMIN_SRC_AUTH_HANDLERS_RS)
+        .expect("353df4df");
     assert!(
         !handlers.contains(str_constants::SERVER_ADMIN_CONSTANT_PREFIX)
             && !handlers.contains(str_constants::SQLX_QUERY_CALL)

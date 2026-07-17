@@ -357,6 +357,7 @@ str_constants_macros::define_str_constants! {
         WORD_LOCKED = "locked";
         WORD_LOG = "log";
         WORD_LOGIN = "login";
+        WORD_MUTATION = "mutation";
         WORD_LONG = "long";
         WORD_LOWER = "lower";
         WORD_LTRACE = "ltrace";
@@ -1030,11 +1031,11 @@ str_constants_macros::define_str_constants! {
         pub RUNTIME_FORWARDED_FOR_HEADER_NAME = [WORD_X, "-", WORD_FORWARDED, "-", WORD_FOR_2];
         pub RUNTIME_REAL_IP_HEADER_NAME = [WORD_X, "-real-", WORD_IP];
         pub SERVER_ADMIN_ACCESS_COOKIE_NAME = [WORD_ADMIN_ACCESS_TOKEN];
-        pub SERVER_ADMIN_RATE_LIMIT_AUDIT_READ = ["audit_read"];
-        pub SERVER_ADMIN_RATE_LIMIT_MUTATION = ["mutation"];
-        pub SERVER_ADMIN_RATE_LIMIT_REFRESH_IP = ["refresh_ip"];
-        pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP = ["sign_in_ip"];
-        pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN = ["sign_in_ip_login"];
+        pub SERVER_ADMIN_RATE_LIMIT_AUDIT_READ = [WORD_AUDIT_2, "_", WORD_READ];
+        pub SERVER_ADMIN_RATE_LIMIT_MUTATION = [WORD_MUTATION];
+        pub SERVER_ADMIN_RATE_LIMIT_REFRESH_IP = [WORD_REFRESH, "_", WORD_IP];
+        pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP = [WORD_SIGN_IN, "_", WORD_IP];
+        pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN = [WORD_SIGN_IN, "_", WORD_IP, "_", WORD_LOGIN];
         pub TEST_VALUES_COMMIT = ["abc123"];
         pub TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX = ["/", WORD_PATHS, "/~1", WORD_TABLE_EXAMPLE, "~1"];
         pub TEST_VALUES_UNREACHABLE_DATABASE_URL = [WORD_POSTGRES, "://", WORD_USR, ":", WORD_PWD, "@127.0.0.1:1/", WORD_UNREACHABLE];
@@ -3076,6 +3077,124 @@ str_constants_macros::define_str_constants! {
         pub TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE = [WORD_TRUNCATE, " ", WORD_ADMIN_ACCESS_SESSIONS, ", ", WORD_ADMIN_REFRESH_TOKENS, ", ", WORD_ADMIN_LOGIN_ATTEMPTS, ", ", WORD_ADMIN_RATE_LIMITS, ", ", WORD_ADMIN_AUDIT_LOG, ", ", WORD_PG_TABLE_IDEMPOTENCY];
         pub NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS = ["\n", WORD_STRUCT, " HelperState {\n    ", WORD_NAMES, ": ", WORD_VEC, "<", WORD_STRING, ">,\n    seen: ", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_BTREESET, "<", WORD_STRING, ">,\n    refs: ", WORD_OPTION, "<", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_HASHSET, "<&\'", WORD_STATIC, " ", WORD_STR, ">>,\n    wrapped: ", WORD_TYPES, "::", WORD_SOURCETEXTLIST, ",\n}\n", WORD_STRUCT, " ", WORD_SOURCETEXTLIST, "(", WORD_VEC, "<", WORD_STRING, ">);\n"];
         pub INCLUDE_STR_OR_INCLUDE_BYTES_FOUND_OUTSIDE_EXPLICIT_GENERATED_TEST_FIXTURE_ALLOWLIST = [WORD_INCLUDE_STR, "!() ", WORD_OR_2, " ", WORD_INCLUDE_BYTES, "!() ", WORD_FOUND, " ", WORD_OUTSIDE, " ", WORD_EXPLICIT, " ", WORD_GENERATED, "/", WORD_TEST, " ", WORD_FIXTURE, " allowlist:"];
+        pub SERVER_ADMIN_REPOSITORY_PATH_SEGMENT = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/"];
+        pub SERVER_ADMIN_REPOSITORY_AUDIT_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_AUDIT_2, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_CLEANUP_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_CLEANUP, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_PERMISSIONS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_PERMISSIONS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_RATE_LIMITS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_RATE, "_limits.", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_ROLES_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_ROLES_2, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_SESSIONS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_SESSIONS, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_SETTINGS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_SETTINGS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_REPOSITORY_USERS_RS = ["../", WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_REPOSITORY, "/", WORD_USERS_2, ".", WORD_RS];
+        pub SERVER_ADMIN_DB_SCHEMA_PATH_SUFFIX = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_DB, "_schema.", WORD_RS];
+        pub SERVER_ADMIN_CONSTANT_PREFIX = ["SERVER_ADMIN_"];
+        pub SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL = [WORD_INSERT_2, " ", WORD_INTO_2, " ", WORD_ADMIN_PERMISSIONS, " (", WORD_NAME_2, ") ", WORD_SELECT_2, " unnest($1::", WORD_TEXT_2, "[]) on ", WORD_CONFLICT_2, " (", WORD_NAME_2, ") do nothing"];
+        pub SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL = [WORD_INSERT_2, " ", WORD_INTO_2, " ", WORD_ADMIN_ROLE_PERMISSIONS, " (", WORD_ROLE_ID, ", ", WORD_PERMISSION_ID, ") ", WORD_SELECT_2, " ", WORD_ADMIN_ROLES, ".", WORD_ID, ", ", WORD_ADMIN_PERMISSIONS, ".", WORD_ID, " ", WORD_FROM_3, " ", WORD_ADMIN_ROLES, " ", WORD_CROSS, " join ", WORD_ADMIN_PERMISSIONS, " ", WORD_WHERE_2, " ", WORD_ADMIN_ROLES, ".", WORD_NAME_2, " = '", WORD_ADMIN_2, "' on ", WORD_CONFLICT_2, " (", WORD_ROLE_ID, ", ", WORD_PERMISSION_ID, ") do nothing"];
+        pub SERVER_ADMIN_LOCK_USERS_SQL = ["LOCK ", WORD_TABLE, " ", WORD_ADMIN_USERS, " ", WORD_IN, " EXCLUSIVE MODE"];
+        pub SERVER_ADMIN_USERS_EXIST_SQL = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USERS, ")"];
+        pub SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_USER_ROLES, " (", WORD_USER_ID, ", ", WORD_ROLE_ID, ") ", WORD_SELECT, " $1, ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_NAME_2, " = '", WORD_ADMIN_2, "'"];
+        pub SERVER_ADMIN_NOW_SQL = [WORD_NOW_2, "()"];
+        pub SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL = [WORD_WITH, " attempt ", WORD_AS, " (", WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_LOGIN_ATTEMPTS, " (", WORD_LOGIN, ", ", WORD_IP_ADDRESS, ", ", WORD_SUCCEEDED, ") ", WORD_VALUES, " ($1, $2, $3)) ", WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_AUDIT_LOG, " (", WORD_USER_LOGIN, ", ", WORD_ACTION, ", ", WORD_RESOURCE, ", ", WORD_RESOURCE_ID, ", ", WORD_REQUEST_ID, ", ", WORD_SUCCEEDED, ", ", WORD_DETAILS, ") ", WORD_SELECT, " $1, '", WORD_SIGN_IN, "', '", WORD_SESSION, "', $1, $4, ", WORD_FALSE_2, ", jsonb_build_object('", WORD_IP_ADDRESS, "', $2::INET::", WORD_TEXT_2, ") ", WORD_WHERE, " $3 = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_AUDIT_LOG, " (", WORD_USER_ID, ", ", WORD_USER_LOGIN, ", ", WORD_ACTION, ", ", WORD_RESOURCE, ", ", WORD_RESOURCE_ID, ", ", WORD_REQUEST_ID, ", ", WORD_SUCCEEDED, ", ", WORD_DETAILS, ") ", WORD_VALUES, " ($1, $2, $3, $4, $5, $6, ", WORD_TRUE_2, ", $7)"];
+        pub SERVER_ADMIN_QUERY_AUDIT_LOG_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_USER_ID, ", ", WORD_USER_LOGIN, ", ", WORD_ACTION, ", ", WORD_RESOURCE, ", ", WORD_RESOURCE_ID, ", ", WORD_SUCCEEDED, ", ", WORD_DETAILS, ", ", WORD_CREATED_AT, "::", WORD_TEXT_2, " ", WORD_FROM, " ", WORD_ADMIN_AUDIT_LOG, " ", WORD_WHERE, " ($1::bigint ", WORD_IS, " ", WORD_NULL, " ", WORD_OR, " ", WORD_USER_ID, " = $1) ", WORD_AND, " ($2::", WORD_TEXT_2, " ", WORD_IS, " ", WORD_NULL, " ", WORD_OR, " ", WORD_ACTION, " = $2) ", WORD_AND, " ($3::", WORD_TEXT_2, " ", WORD_IS, " ", WORD_NULL, " ", WORD_OR, " ", WORD_RESOURCE, " = $3) ", WORD_AND, " ($4::timestamptz ", WORD_IS, " ", WORD_NULL, " ", WORD_OR, " ", WORD_CREATED_AT, " >= $4::timestamptz) ", WORD_AND, " ($5::timestamptz ", WORD_IS, " ", WORD_NULL, " ", WORD_OR, " ", WORD_CREATED_AT, " <= $5::timestamptz) ", WORD_ORDER, " ", WORD_BY, " ", WORD_CREATED_AT, " ", WORD_DESC, " ", WORD_LIMIT, " 200"];
+        pub SERVER_ADMIN_CLEANUP_ACCESS_SESSIONS_SQL = [WORD_WITH, " ", WORD_EXPIRED, " ", WORD_AS, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_WHERE, " ", WORD_EXPIRES_AT, " < ", WORD_NOW_2, "() ", WORD_OR, " (", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NOT, " ", WORD_NULL, " ", WORD_AND, " ", WORD_REVOKED_AT, " < ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $1)) ", WORD_ORDER, " ", WORD_BY, " ", WORD_EXPIRES_AT, " ", WORD_LIMIT, " $2) ", WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_TARGET, " ", WORD_USING, " ", WORD_EXPIRED, " ", WORD_WHERE, " ", WORD_TARGET, ".", WORD_ID, "=", WORD_EXPIRED, ".", WORD_ID];
+        pub SERVER_ADMIN_CLEANUP_REFRESH_TOKENS_SQL = [WORD_WITH, " ", WORD_EXPIRED, " ", WORD_AS, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_WHERE, " ", WORD_EXPIRES_AT, " < ", WORD_NOW_2, "() ", WORD_OR, " (", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NOT, " ", WORD_NULL, " ", WORD_AND, " ", WORD_REVOKED_AT, " < ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $1)) ", WORD_ORDER, " ", WORD_BY, " ", WORD_EXPIRES_AT, " ", WORD_LIMIT, " $2) ", WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_TARGET, " ", WORD_USING, " ", WORD_EXPIRED, " ", WORD_WHERE, " ", WORD_TARGET, ".", WORD_ID, "=", WORD_EXPIRED, ".", WORD_ID];
+        pub SERVER_ADMIN_CLEANUP_LOGIN_ATTEMPTS_SQL = [WORD_WITH, " ", WORD_EXPIRED, " ", WORD_AS, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_LOGIN_ATTEMPTS, " ", WORD_WHERE, " ", WORD_ATTEMPTED_AT, " < ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $1) ", WORD_ORDER, " ", WORD_BY, " ", WORD_ATTEMPTED_AT, " ", WORD_LIMIT, " $2) ", WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_LOGIN_ATTEMPTS, " ", WORD_TARGET, " ", WORD_USING, " ", WORD_EXPIRED, " ", WORD_WHERE, " ", WORD_TARGET, ".", WORD_ID, "=", WORD_EXPIRED, ".", WORD_ID];
+        pub SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL = [WORD_SET, " LOCAL ", WORD_APP, ".", WORD_ADMIN_2, "_", WORD_AUDIT_2, "_", WORD_CLEANUP, " = 'on'"];
+        pub SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL = [WORD_WITH, " ", WORD_EXPIRED, " ", WORD_AS, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_AUDIT_LOG, " ", WORD_WHERE, " ", WORD_CREATED_AT, " < ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $1) ", WORD_ORDER, " ", WORD_BY, " ", WORD_CREATED_AT, " ", WORD_LIMIT, " $2) ", WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_AUDIT_LOG, " ", WORD_TARGET, " ", WORD_USING, " ", WORD_EXPIRED, " ", WORD_WHERE, " ", WORD_TARGET, ".", WORD_ID, "=", WORD_EXPIRED, ".", WORD_ID];
+        pub SERVER_ADMIN_CLEANUP_RATE_LIMITS_SQL = [WORD_WITH, " ", WORD_EXPIRED, " ", WORD_AS, " (", WORD_SELECT, " ", WORD_SCOPE, ",", WORD_SUBJECT, " ", WORD_FROM, " ", WORD_ADMIN_RATE_LIMITS, " ", WORD_WHERE, " ", WORD_WINDOW_STARTED_AT, " < ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $1) ", WORD_ORDER, " ", WORD_BY, " ", WORD_WINDOW_STARTED_AT, " ", WORD_LIMIT, " $2) ", WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_RATE_LIMITS, " ", WORD_TARGET, " ", WORD_USING, " ", WORD_EXPIRED, " ", WORD_WHERE, " ", WORD_TARGET, ".", WORD_SCOPE, "=", WORD_EXPIRED, ".", WORD_SCOPE, " ", WORD_AND, " ", WORD_TARGET, ".", WORD_SUBJECT, "=", WORD_EXPIRED, ".", WORD_SUBJECT];
+        pub SERVER_ADMIN_LIST_PERMISSIONS_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_NAME_2];
+        pub SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL = [WORD_SELECT, " ", WORD_IS_SYSTEM, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_FOR, " ", WORD_UPDATE];
+        pub SERVER_ADMIN_COUNT_PERMISSIONS_SQL = [WORD_SELECT, " count(*) ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_WHERE, " ", WORD_ID, " = ", WORD_ANY, "($1)"];
+        pub SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_WHERE, " ", WORD_ROLE_ID, " = $1"];
+        pub SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_ROLE_PERMISSIONS, " (", WORD_ROLE_ID, ", ", WORD_PERMISSION_ID, ") ", WORD_SELECT, " $1, ", WORD_PERMISSION_ID, " ", WORD_FROM, " unnest($2::bigint[]) ", WORD_AS, " ", WORD_PERMISSION_ID];
+        pub SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_RATE_LIMITS, " (", WORD_SCOPE, ", ", WORD_SUBJECT, ", ", WORD_WINDOW_STARTED_AT, ", ", WORD_REQUEST_COUNT, ") ", WORD_VALUES, " ($1, $2, ", WORD_NOW_2, "(), 1) ", WORD_ON, " ", WORD_CONFLICT, " (", WORD_SCOPE, ", ", WORD_SUBJECT, ") ", WORD_DO, " ", WORD_UPDATE, " ", WORD_SET, " ", WORD_WINDOW_STARTED_AT, " = ", WORD_CASE, " ", WORD_WHEN, " ", WORD_ADMIN_RATE_LIMITS, ".", WORD_WINDOW_STARTED_AT, " <= ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $4) ", WORD_THEN, " ", WORD_NOW_2, "() ", WORD_ELSE, " ", WORD_ADMIN_RATE_LIMITS, ".", WORD_WINDOW_STARTED_AT, " ", WORD_END, ", ", WORD_REQUEST_COUNT, " = ", WORD_CASE, " ", WORD_WHEN, " ", WORD_ADMIN_RATE_LIMITS, ".", WORD_WINDOW_STARTED_AT, " <= ", WORD_NOW_2, "() - ", WORD_MAKE_INTERVAL, "(", WORD_SECS, " => $4) ", WORD_THEN, " 1 ", WORD_ELSE, " ", WORD_ADMIN_RATE_LIMITS, ".", WORD_REQUEST_COUNT, " + 1 ", WORD_END, " ", WORD_RETURNING, " ", WORD_REQUEST_COUNT, " <= $3"];
+        pub SERVER_ADMIN_INSERT_ROLE_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_ROLES, " (", WORD_NAME_2, ", ", WORD_IS_SYSTEM, ") ", WORD_VALUES, " ($1, ", WORD_FALSE_2, ") ", WORD_RETURNING, " ", WORD_ID];
+        pub SERVER_ADMIN_UPDATE_ROLE_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ROLES, " ", WORD_SET, " ", WORD_NAME_2, " = $2 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_SYSTEM, " = ", WORD_FALSE_2, " ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_DELETE_ROLE_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_SYSTEM, " = ", WORD_FALSE_2, " ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_LIST_ROLES_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_NAME_2, ", ", WORD_IS_SYSTEM, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_NAME_2];
+        pub SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL = [WORD_SELECT, " ", WORD_NOT, " ", WORD_IS_BANNED, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_FOR, " ", WORD_UPDATE];
+        pub SERVER_ADMIN_COUNT_ROLES_SQL = [WORD_SELECT, " count(*) ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_ID, " = ", WORD_ANY, "($1)"];
+        pub SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_NAME_2, " = '", WORD_ADMIN_2, "' ", WORD_AND, " ", WORD_IS_SYSTEM, " = ", WORD_TRUE_2];
+        pub SERVER_ADMIN_USER_HAS_ROLE_SQL = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_ROLE_ID, " = $2)"];
+        pub SERVER_ADMIN_ACTIVE_ROLE_USER_COUNT_SQL = [WORD_SELECT, " count(", WORD_DISTINCT, " ", WORD_USERS_2, ".", WORD_ID, ") ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_USERS_2, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = ", WORD_USERS_2, ".", WORD_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " = $1 ", WORD_AND, " ", WORD_USERS_2, ".", WORD_IS_BANNED, " = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1"];
+        pub SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_USER_ROLES, " (", WORD_USER_ID, ", ", WORD_ROLE_ID, ") ", WORD_SELECT, " $1, ", WORD_ROLE_ID, " ", WORD_FROM, " unnest($2::bigint[]) ", WORD_AS, " ", WORD_ROLE_ID];
+        pub SERVER_ADMIN_LOCK_LAST_ADMIN_SQL = [WORD_SELECT, " ", WORD_PG_ADVISORY_XACT_LOCK, "(hashtext('", WORD_ADMIN_2, "_last_", WORD_ACTIVE, "_", WORD_ADMINISTRATOR, "'))"];
+        pub SERVER_ADMIN_USER_IS_ADMIN_SQL = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_ON, " ", WORD_ROLE, ".", WORD_ID, " = ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_ROLE, ".", WORD_NAME_2, " = '", WORD_ADMIN_2, "')"];
+        pub SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL = [WORD_SELECT, " count(", WORD_DISTINCT, " ", WORD_USERS_2, ".", WORD_ID, ") ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_USERS_2, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = ", WORD_USERS_2, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_ON, " ", WORD_ROLE, ".", WORD_ID, " = ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_ROLE, ".", WORD_NAME_2, " = '", WORD_ADMIN_2, "' ", WORD_AND, " ", WORD_USERS_2, ".", WORD_IS_BANNED, " = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_REVOKE_ACCESS_SESSION_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
+        pub SERVER_ADMIN_REVOKE_USER_ACCESS_SESSIONS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
+        pub SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
+        pub SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL = [WORD_SELECT, " ", WORD_LOGIN, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_BANNED, " = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_CREATED_AT, "::", WORD_TEXT_2, ", ", WORD_EXPIRES_AT, "::", WORD_TEXT_2, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_EXPIRES_AT, " > ", WORD_NOW_2, "() ", WORD_ORDER, " ", WORD_BY, " ", WORD_CREATED_AT, " ", WORD_DESC];
+        pub SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SESSION, " ", WORD_JOIN, " ", WORD_ADMIN_USERS, " ", WORD_USERS_2, " ", WORD_ON, " ", WORD_USERS_2, ".", WORD_ID, " = ", WORD_SESSION, ".", WORD_USER_ID, " ", WORD_WHERE, " ", WORD_SESSION, ".", WORD_ID, " = $1 ", WORD_AND, " ", WORD_SESSION, ".", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_SESSION, ".", WORD_TOKEN_CONTEXT_HASH, " = $3 ", WORD_AND, " ", WORD_SESSION, ".", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_SESSION, ".", WORD_EXPIRES_AT, " > ", WORD_NOW_2, "() ", WORD_AND, " ", WORD_USERS_2, ".", WORD_IS_BANNED, " = ", WORD_FALSE_2, ")"];
+        pub SERVER_ADMIN_READ_CSRF_HASH_SQL = [WORD_SELECT, " ", WORD_CSRF_TOKEN_HASH, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_EXPIRES_AT, " > ", WORD_NOW_2, "()"];
+        pub SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_ID, " ", WORD_IN, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_CREATED_AT, " ", WORD_DESC, " ", WORD_OFFSET, " $2)"];
+        pub SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_ID, " ", WORD_IN, " (", WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_CREATED_AT, " ", WORD_DESC, " ", WORD_OFFSET, " $2)"];
+        pub SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_ACCESS_SESSIONS, " (", WORD_ID, ", ", WORD_USER_ID, ", ", WORD_TOKEN, "_", WORD_IDENTIFIER, "_hash, ", WORD_TOKEN_CONTEXT_HASH, ", ", WORD_CSRF_TOKEN_HASH, ", ", WORD_EXPIRES_AT, ") ", WORD_VALUES, " ($1, $2, $3, $4, $5, ", WORD_NOW_2, "() + ($6 * ", WORD_INTERVAL_2, " '1 ", WORD_SECOND, "'))"];
+        pub SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_REFRESH_TOKENS, " (", WORD_ID, ", ", WORD_USER_ID, ", ", WORD_TOKEN_HASH, ", ", WORD_EXPIRES_AT, ") ", WORD_VALUES, " ($1, $2, $3, ", WORD_NOW_2, "() + ($4 * ", WORD_INTERVAL_2, " '1 ", WORD_SECOND, "'))"];
+        pub SERVER_ADMIN_READ_SETTINGS_SQL = [WORD_SELECT, " ", WORD_SITE_NAME, ", ", WORD_TAB_TITLE, ", ", WORD_MAIN_LOGO, ", ", WORD_PRIMARY_COLOR, ", ", WORD_DEFAULT_ADMIN_ROUTE, ", ", WORD_ORGANIZATION_NAME, ", ", WORD_ORGANIZATION_CONTACTS, ", ", WORD_SUPPORT_URL, " ", WORD_FROM, " ", WORD_ADMIN_SYSTEM_SETTINGS, " ", WORD_WHERE, " ", WORD_ID, " = 1"];
+        pub SERVER_ADMIN_UPDATE_SETTINGS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_SYSTEM_SETTINGS, " ", WORD_SET, " ", WORD_SITE_NAME, " = ", WORD_COALESCE, "($1, ", WORD_SITE_NAME, "), ", WORD_TAB_TITLE, " = ", WORD_COALESCE, "($2, ", WORD_TAB_TITLE, "), ", WORD_MAIN_LOGO, " = ", WORD_COALESCE, "($3, ", WORD_MAIN_LOGO, "), ", WORD_PRIMARY_COLOR, " = ", WORD_COALESCE, "($4, ", WORD_PRIMARY_COLOR, "), ", WORD_DEFAULT_ADMIN_ROUTE, " = ", WORD_COALESCE, "($5, ", WORD_DEFAULT_ADMIN_ROUTE, "), ", WORD_ORGANIZATION_NAME, " = ", WORD_COALESCE, "($6, ", WORD_ORGANIZATION_NAME, "), ", WORD_ORGANIZATION_CONTACTS, " = ", WORD_COALESCE, "($7, ", WORD_ORGANIZATION_CONTACTS, "), ", WORD_SUPPORT_URL, " = ", WORD_COALESCE, "($8, ", WORD_SUPPORT_URL, ") ", WORD_WHERE, " ", WORD_ID, " = 1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_INSERT_USER_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_USERS, " (", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, ", ", WORD_PASSWORD_HASH, ") ", WORD_VALUES, " ($1, $2, $3) ", WORD_RETURNING, " ", WORD_ID];
+        pub SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL = [WORD_SELECT, " count(*) ", WORD_FROM, " ", WORD_ADMIN_LOGIN_ATTEMPTS, " ", WORD_WHERE, " ", WORD_LOGIN, " = $1 ", WORD_AND, " ", WORD_SUCCEEDED, " = ", WORD_FALSE_2, " ", WORD_AND, " ", WORD_ATTEMPTED_AT, " > ", WORD_NOW_2, "() - ", WORD_INTERVAL_2, " '15 ", WORD_MINUTES, "'"];
+        pub SERVER_ADMIN_SIGN_IN_USER_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_PASSWORD_HASH, ", ", WORD_IS_BANNED, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOWER, "(", WORD_LOGIN, ") = ", WORD_LOWER, "($1)"];
+        pub SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL = [WORD_SELECT, " ", WORD_USER_ID, " ", WORD_FROM, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_WHERE, " ", WORD_TOKEN_HASH, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL, " ", WORD_AND, " ", WORD_EXPIRES_AT, " > ", WORD_NOW_2, "() ", WORD_FOR, " ", WORD_UPDATE];
+        pub SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL = [WORD_UPDATE, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW_2, "() ", WORD_WHERE, " ", WORD_TOKEN_HASH, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
+        pub SERVER_ADMIN_UPDATE_USER_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_LOGIN, " = ", WORD_COALESCE, "($2, ", WORD_LOGIN, "), ", WORD_DISPLAY_NAME, " = ", WORD_COALESCE, "($3, ", WORD_DISPLAY_NAME, ") ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_PASSWORD_HASH, " = $2 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_UPDATE_USER_BAN_SQL = [WORD_UPDATE, " ", WORD_ADMIN_USERS, " ", WORD_SET, " ", WORD_IS_BANNED, " = $2 ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_DELETE_USER_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
+        pub SERVER_ADMIN_LIST_USERS_SQL = [WORD_SELECT, " ", WORD_ID, ", ", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, ", ", WORD_IS_BANNED, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_LOGIN, " ", WORD_LIMIT, " 500"];
+        pub SERVER_ADMIN_READ_AUTH_USER_SQL = [WORD_SELECT, " ", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_BANNED, " = ", WORD_FALSE_2];
+        pub SERVER_ADMIN_READ_AUTH_ROLES_SQL = [WORD_SELECT, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_LINK, " ", WORD_ON, " ", WORD_LINK, ".", WORD_ROLE_ID, " = ", WORD_ROLE, ".", WORD_ID, " ", WORD_WHERE, " ", WORD_LINK, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_ROLE, ".", WORD_NAME_2];
+        pub SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL = [WORD_SELECT, " ", WORD_DISTINCT, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_PERMISSION, " ", WORD_JOIN, " ", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_ROLE_PERMISSION, " ", WORD_ON, " ", WORD_ROLE_PERMISSION, ".", WORD_PERMISSION_ID, " = ", WORD_PERMISSION, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " = ", WORD_ROLE_PERMISSION, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_PERMISSION, ".", WORD_NAME_2];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_001 = [WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_002 = [WORD_ADMIN_2, "_", WORD_SET_2, "_updated_", WORD_AT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_003 = [WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY, "_guard"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_004 = [WORD_ADMIN_AUDIT_LOG, ":BEFORE:", WORD_DELETE, ":EXECUTE FUNCTION ", WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY, "()"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_005 = [WORD_ADMIN_AUDIT_LOG, ":BEFORE:", WORD_UPDATE, ":EXECUTE FUNCTION ", WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY, "()"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_006 = [WORD_ADMIN_ROLES, "_", WORD_SET_2, "_updated_", WORD_AT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_007 = [WORD_ADMIN_ROLES, ":BEFORE:", WORD_UPDATE, ":EXECUTE FUNCTION ", WORD_ADMIN_2, "_", WORD_SET_2, "_updated_", WORD_AT, "()"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_008 = [WORD_ADMIN_SYSTEM_SETTINGS, "_", WORD_SET_2, "_updated_", WORD_AT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_009 = [WORD_ADMIN_SYSTEM_SETTINGS, ":BEFORE:", WORD_UPDATE, ":EXECUTE FUNCTION ", WORD_ADMIN_2, "_", WORD_SET_2, "_updated_", WORD_AT, "()"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_010 = [WORD_ADMIN_USERS, "_", WORD_SET_2, "_updated_", WORD_AT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_011 = [WORD_ADMIN_USERS, ":BEFORE:", WORD_UPDATE, ":EXECUTE FUNCTION ", WORD_ADMIN_2, "_", WORD_SET_2, "_updated_", WORD_AT, "()"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_015 = [WORD_ADMIN_USERS, "_", WORD_DISPLAY_NAME, "_", WORD_LENGTH];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_016 = [WORD_CHECK, " (char_", WORD_LENGTH, "(", WORD_DISPLAY_NAME, ") >= 1 ", WORD_AND, " char_", WORD_LENGTH, "(", WORD_DISPLAY_NAME, ") <= 256)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_017 = [WORD_ADMIN_USERS, "_", WORD_DISPLAY_NAME, "_trimmed"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_018 = [WORD_CHECK, " (", WORD_DISPLAY_NAME, " = btrim(", WORD_DISPLAY_NAME, "))"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_019 = [WORD_ADMIN_USERS, "_", WORD_LOGIN, "_", WORD_FORMAT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_020 = [WORD_CHECK, " (", WORD_LOGIN, " = ", WORD_LOWER, "(", WORD_LOGIN, ") ", WORD_AND, " ", WORD_LOGIN, " ~ '^[a-", WORD_Z0, "-9_.-]+$'::", WORD_TEXT_2, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_021 = [WORD_ADMIN_USERS, "_", WORD_LOGIN, "_", WORD_LENGTH];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_022 = [WORD_CHECK, " (char_", WORD_LENGTH, "(", WORD_LOGIN, ") >= 3 ", WORD_AND, " char_", WORD_LENGTH, "(", WORD_LOGIN, ") <= 128)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_023 = [WORD_ADMIN_USERS, "_", WORD_PASSWORD_HASH, "_", WORD_NOT_2, "_", WORD_EMPTY];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_024 = [WORD_CHECK, " (char_", WORD_LENGTH, "(", WORD_PASSWORD_HASH, ") > 0)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_025 = [WORD_ADMIN_USERS, "_", WORD_LOGIN, "_", WORD_LOWER, "_unq"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_026 = [WORD_CREATE, " UNIQUE INDEX ", WORD_ADMIN_USERS, "_", WORD_LOGIN, "_", WORD_LOWER, "_unq ", WORD_ON, " ", WORD_PUBLIC, ".", WORD_ADMIN_USERS, " ", WORD_USING, " btree (", WORD_LOWER, "(", WORD_LOGIN, "))"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_027 = [WORD_IS_SYSTEM];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_028 = [WORD_ADMIN_ROLES, "_", WORD_NAME_2, "_", WORD_FORMAT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_029 = [WORD_CHECK, " (", WORD_NAME_2, " = ", WORD_LOWER, "(", WORD_NAME_2, ") ", WORD_AND, " ", WORD_NAME_2, " ~ '^[a-", WORD_Z0, "-9_.-]+$'::", WORD_TEXT_2, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_030 = [WORD_ADMIN_ROLES, "_", WORD_NAME_2, "_", WORD_LENGTH];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_031 = [WORD_CHECK, " (char_", WORD_LENGTH, "(", WORD_NAME_2, ") >= 1 ", WORD_AND, " char_", WORD_LENGTH, "(", WORD_NAME_2, ") <= 128)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_032 = [WORD_ADMIN_PERMISSIONS, "_", WORD_NAME_2, "_", WORD_FORMAT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_033 = [WORD_CHECK, " (", WORD_NAME_2, " = ", WORD_LOWER, "(", WORD_NAME_2, ") ", WORD_AND, " ", WORD_NAME_2, " ~ '^[a-", WORD_Z0, "-9_]+:[a-", WORD_Z0, "-9_]+$'::", WORD_TEXT_2, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_034 = [WORD_ADMIN_PERMISSIONS, "_", WORD_NAME_2, "_", WORD_LENGTH];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_035 = [WORD_CHECK, " (char_", WORD_LENGTH, "(", WORD_NAME_2, ") >= 3 ", WORD_AND, " char_", WORD_LENGTH, "(", WORD_NAME_2, ") <= 128)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_036 = [WORD_ADMIN_USER_ROLES, "_", WORD_ROLE_ID, "_idx"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_037 = [WORD_CREATE, " INDEX ", WORD_ADMIN_USER_ROLES, "_", WORD_ROLE_ID, "_idx ", WORD_ON, " ", WORD_PUBLIC, ".", WORD_ADMIN_USER_ROLES, " ", WORD_USING, " btree (", WORD_ROLE_ID, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_038 = [WORD_ADMIN_ROLE_PERMISSIONS, "_", WORD_PERMISSION_ID, "_idx"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_039 = [WORD_CREATE, " INDEX ", WORD_ADMIN_ROLE_PERMISSIONS, "_", WORD_PERMISSION_ID, "_idx ", WORD_ON, " ", WORD_PUBLIC, ".", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_USING, " btree (", WORD_PERMISSION_ID, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_042 = [WORD_SITE_NAME];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_043 = ["'", WORD_ADMIN, "'::", WORD_TEXT_2];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_044 = [WORD_DEFAULT_ADMIN_ROUTE];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_045 = ["'/", WORD_ADMIN_2, "/", WORD_USERS_2, "'::", WORD_TEXT_2];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_046 = [WORD_ADMIN_SYSTEM_SETTINGS, "_default_", WORD_ROUTE, "_", WORD_FORMAT];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_047 = [WORD_CHECK, " (", WORD_DEFAULT_ADMIN_ROUTE, " ~~ '/", WORD_ADMIN_2, "%'::", WORD_TEXT_2, ")"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_048 = [WORD_ADMIN_SYSTEM_SETTINGS, "_singleton"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_049 = [WORD_CHECK, " (", WORD_ID, " = 1)"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_050 = [WORD_ADMIN_SYSTEM_SETTINGS, "_", WORD_SITE_NAME, "_not_empty"];
+        pub SERVER_ADMIN_DB_SCHEMA_VALUE_051 = [WORD_CHECK, " (char_length(btrim(", WORD_SITE_NAME, ")) > 0)"];
     }
 }
 
@@ -3527,20 +3646,6 @@ pub const TYPED_ROUTE_PARAMETER_PATH_SUPPORTS_ONE_PLACEHOLDER: &str =
     "parameterized typed route supports one placeholder";
 pub const UNKNOWN_ADMIN_TABLE_SORT_FIELD: &str = "unknown admin table sort field";
 pub const OPEN_API_ROUTE_SCHEMA: &str = "OpenApiRouteSchema";
-pub const SERVER_ADMIN_REPOSITORY_PATH_SEGMENT: &str = "server_admin/src/repository/";
-pub const SERVER_ADMIN_REPOSITORY_AUDIT_RS: &str = "../server_admin/src/repository/audit.rs";
-pub const SERVER_ADMIN_REPOSITORY_CLEANUP_RS: &str = "../server_admin/src/repository/cleanup.rs";
-pub const SERVER_ADMIN_REPOSITORY_PERMISSIONS_RS: &str =
-    "../server_admin/src/repository/permissions.rs";
-pub const SERVER_ADMIN_REPOSITORY_RATE_LIMITS_RS: &str =
-    "../server_admin/src/repository/rate_limits.rs";
-pub const SERVER_ADMIN_REPOSITORY_ROLES_RS: &str = "../server_admin/src/repository/roles.rs";
-pub const SERVER_ADMIN_REPOSITORY_SESSIONS_RS: &str = "../server_admin/src/repository/sessions.rs";
-pub const SERVER_ADMIN_REPOSITORY_SETTINGS_RS: &str = "../server_admin/src/repository/settings.rs";
-pub const SERVER_ADMIN_REPOSITORY_USERS_RS: &str = "../server_admin/src/repository/users.rs";
-pub const SERVER_ADMIN_DB_SCHEMA_PATH_SUFFIX: &str = "server_admin/src/db_schema.rs";
-pub const SERVER_ADMIN_HANDLERS_RS: &str = "../server_admin/src/auth/handlers.rs";
-pub const SERVER_ADMIN_CONSTANT_PREFIX: &str = "SERVER_ADMIN_";
 pub const SQL_CONSTANT_SUFFIX: &str = "_SQL";
 pub const REPOSITORY_RS_FILE_NAME: &str = "repository.rs";
 pub const CONFIG_FIELD_DESCRIPTOR: &str = "ConfigFieldDescriptor";
@@ -3754,154 +3859,3 @@ pub const ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER: &str =
 pub const ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER: &str =
     "/paths/~1auth~1sign-in/post/operationId";
 pub const MOCK_NOTIFICATION_PROVIDER_CLOSED: &str = "mock notification provider is closed";
-pub const SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL: &str =
-    "insert into admin_permissions (name) select unnest($1::text[]) on conflict (name) do nothing";
-pub const SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL: &str = "insert into admin_role_permissions (role_id, permission_id) select admin_roles.id, admin_permissions.id from admin_roles cross join admin_permissions where admin_roles.name = 'admin' on conflict (role_id, permission_id) do nothing";
-pub const SERVER_ADMIN_LOCK_USERS_SQL: &str = "LOCK TABLE admin_users IN EXCLUSIVE MODE";
-pub const SERVER_ADMIN_USERS_EXIST_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_users)";
-pub const SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL: &str = "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, id FROM admin_roles WHERE name = 'admin'";
-pub const SERVER_ADMIN_NOW_SQL: &str = "now()";
-pub const SERVER_ADMIN_FALSE_SQL: &str = "false";
-pub const SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL: &str = "WITH attempt AS (INSERT INTO admin_login_attempts (login, ip_address, succeeded) VALUES ($1, $2, $3)) INSERT INTO admin_audit_log (user_login, action, resource, resource_id, request_id, succeeded, details) SELECT $1, 'sign_in', 'session', $1, $4, false, jsonb_build_object('ip_address', $2::INET::text) WHERE $3 = false";
-pub const SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL: &str = "INSERT INTO admin_audit_log (user_id, user_login, action, resource, resource_id, request_id, succeeded, details) VALUES ($1, $2, $3, $4, $5, $6, true, $7)";
-pub const SERVER_ADMIN_QUERY_AUDIT_LOG_SQL: &str = "SELECT id, user_id, user_login, action, resource, resource_id, succeeded, details, created_at::text FROM admin_audit_log WHERE ($1::bigint IS NULL OR user_id = $1) AND ($2::text IS NULL OR action = $2) AND ($3::text IS NULL OR resource = $3) AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz) AND ($5::timestamptz IS NULL OR created_at <= $5::timestamptz) ORDER BY created_at DESC LIMIT 200";
-pub const SERVER_ADMIN_CLEANUP_ACCESS_SESSIONS_SQL: &str = "WITH expired AS (SELECT id FROM admin_access_sessions WHERE expires_at < now() OR (revoked_at IS NOT NULL AND revoked_at < now() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_access_sessions target USING expired WHERE target.id=expired.id";
-pub const SERVER_ADMIN_CLEANUP_REFRESH_TOKENS_SQL: &str = "WITH expired AS (SELECT id FROM admin_refresh_tokens WHERE expires_at < now() OR (revoked_at IS NOT NULL AND revoked_at < now() - make_interval(secs => $1)) ORDER BY expires_at LIMIT $2) DELETE FROM admin_refresh_tokens target USING expired WHERE target.id=expired.id";
-pub const SERVER_ADMIN_CLEANUP_LOGIN_ATTEMPTS_SQL: &str = "WITH expired AS (SELECT id FROM admin_login_attempts WHERE attempted_at < now() - make_interval(secs => $1) ORDER BY attempted_at LIMIT $2) DELETE FROM admin_login_attempts target USING expired WHERE target.id=expired.id";
-pub const SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL: &str = "SET LOCAL app.admin_audit_cleanup = 'on'";
-pub const SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL: &str = "WITH expired AS (SELECT id FROM admin_audit_log WHERE created_at < now() - make_interval(secs => $1) ORDER BY created_at LIMIT $2) DELETE FROM admin_audit_log target USING expired WHERE target.id=expired.id";
-pub const SERVER_ADMIN_CLEANUP_RATE_LIMITS_SQL: &str = "WITH expired AS (SELECT scope,subject FROM admin_rate_limits WHERE window_started_at < now() - make_interval(secs => $1) ORDER BY window_started_at LIMIT $2) DELETE FROM admin_rate_limits target USING expired WHERE target.scope=expired.scope AND target.subject=expired.subject";
-pub const SERVER_ADMIN_LIST_PERMISSIONS_SQL: &str =
-    "SELECT id, name FROM admin_permissions ORDER BY name";
-pub const SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL: &str =
-    "SELECT is_system FROM admin_roles WHERE id = $1 FOR UPDATE";
-pub const SERVER_ADMIN_COUNT_PERMISSIONS_SQL: &str =
-    "SELECT count(*) FROM admin_permissions WHERE id = ANY($1)";
-pub const SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL: &str =
-    "DELETE FROM admin_role_permissions WHERE role_id = $1";
-pub const SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL: &str = "INSERT INTO admin_role_permissions (role_id, permission_id) SELECT $1, permission_id FROM unnest($2::bigint[]) AS permission_id";
-pub const SERVER_ADMIN_ENFORCE_RATE_LIMIT_SQL: &str = "INSERT INTO admin_rate_limits (scope, subject, window_started_at, request_count) VALUES ($1, $2, now(), 1) ON CONFLICT (scope, subject) DO UPDATE SET window_started_at = CASE WHEN admin_rate_limits.window_started_at <= now() - make_interval(secs => $4) THEN now() ELSE admin_rate_limits.window_started_at END, request_count = CASE WHEN admin_rate_limits.window_started_at <= now() - make_interval(secs => $4) THEN 1 ELSE admin_rate_limits.request_count + 1 END RETURNING request_count <= $3";
-pub const SERVER_ADMIN_INSERT_ROLE_SQL: &str =
-    "INSERT INTO admin_roles (name, is_system) VALUES ($1, false) RETURNING id";
-pub const SERVER_ADMIN_UPDATE_ROLE_SQL: &str =
-    "UPDATE admin_roles SET name = $2 WHERE id = $1 AND is_system = false RETURNING true";
-pub const SERVER_ADMIN_DELETE_ROLE_SQL: &str =
-    "DELETE FROM admin_roles WHERE id = $1 AND is_system = false RETURNING true";
-pub const SERVER_ADMIN_LIST_ROLES_SQL: &str =
-    "SELECT id, name, is_system FROM admin_roles ORDER BY name";
-pub const SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL: &str =
-    "SELECT NOT is_banned FROM admin_users WHERE id = $1 FOR UPDATE";
-pub const SERVER_ADMIN_COUNT_ROLES_SQL: &str =
-    "SELECT count(*) FROM admin_roles WHERE id = ANY($1)";
-pub const SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL: &str =
-    "SELECT id FROM admin_roles WHERE name = 'admin' AND is_system = true";
-pub const SERVER_ADMIN_USER_HAS_ROLE_SQL: &str =
-    "SELECT EXISTS (SELECT 1 FROM admin_user_roles WHERE user_id = $1 AND role_id = $2)";
-pub const SERVER_ADMIN_ACTIVE_ROLE_USER_COUNT_SQL: &str = "SELECT count(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id WHERE user_role.role_id = $1 AND users.is_banned = false";
-pub const SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL: &str =
-    "DELETE FROM admin_user_roles WHERE user_id = $1";
-pub const SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL: &str = "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, role_id FROM unnest($2::bigint[]) AS role_id";
-pub const SERVER_ADMIN_LOCK_LAST_ADMIN_SQL: &str =
-    "SELECT pg_advisory_xact_lock(hashtext('admin_last_active_administrator'))";
-pub const SERVER_ADMIN_USER_IS_ADMIN_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_user_roles user_role JOIN admin_roles role ON role.id = user_role.role_id WHERE user_role.user_id = $1 AND role.name = 'admin')";
-pub const SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL: &str = "SELECT count(DISTINCT users.id) FROM admin_users users JOIN admin_user_roles user_role ON user_role.user_id = users.id JOIN admin_roles role ON role.id = user_role.role_id WHERE role.name = 'admin' AND users.is_banned = false";
-pub const SERVER_ADMIN_REVOKE_ACCESS_SESSION_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = now() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL";
-pub const SERVER_ADMIN_REVOKE_USER_ACCESS_SESSIONS_SQL: &str =
-    "UPDATE admin_access_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL";
-pub const SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL: &str =
-    "UPDATE admin_refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL";
-pub const SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL: &str =
-    "SELECT login FROM admin_users WHERE id = $1 AND is_banned = false";
-pub const SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL: &str = "SELECT id, created_at::text, expires_at::text FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now() ORDER BY created_at DESC";
-pub const SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL: &str = "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.token_context_hash = $3 AND session.revoked_at IS NULL AND session.expires_at > now() AND users.is_banned = false)";
-pub const SERVER_ADMIN_READ_CSRF_HASH_SQL: &str = "SELECT csrf_token_hash FROM admin_access_sessions WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL AND expires_at > now()";
-pub const SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL: &str = "UPDATE admin_access_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)";
-pub const SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL: &str = "UPDATE admin_refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)";
-pub const SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL: &str = "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, token_context_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, $5, now() + ($6 * interval '1 second'))";
-pub const SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL: &str = "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, now() + ($4 * interval '1 second'))";
-pub const SERVER_ADMIN_READ_SETTINGS_SQL: &str = "SELECT site_name, tab_title, main_logo, primary_color, default_admin_route, organization_name, organization_contacts, support_url FROM admin_system_settings WHERE id = 1";
-pub const SERVER_ADMIN_UPDATE_SETTINGS_SQL: &str = "UPDATE admin_system_settings SET site_name = COALESCE($1, site_name), tab_title = COALESCE($2, tab_title), main_logo = COALESCE($3, main_logo), primary_color = COALESCE($4, primary_color), default_admin_route = COALESCE($5, default_admin_route), organization_name = COALESCE($6, organization_name), organization_contacts = COALESCE($7, organization_contacts), support_url = COALESCE($8, support_url) WHERE id = 1 RETURNING true";
-pub const SERVER_ADMIN_INSERT_USER_SQL: &str =
-    "INSERT INTO admin_users (login, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id";
-pub const SERVER_ADMIN_RECENT_LOGIN_FAILURE_COUNT_SQL: &str = "SELECT count(*) FROM admin_login_attempts WHERE login = $1 AND succeeded = false AND attempted_at > now() - interval '15 minutes'";
-pub const SERVER_ADMIN_SIGN_IN_USER_SQL: &str =
-    "SELECT id, password_hash, is_banned FROM admin_users WHERE lower(login) = lower($1)";
-pub const SERVER_ADMIN_LOCK_REFRESH_TOKEN_USER_SQL: &str = "SELECT user_id FROM admin_refresh_tokens WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > now() FOR UPDATE";
-pub const SERVER_ADMIN_REVOKE_REFRESH_TOKEN_SQL: &str = "UPDATE admin_refresh_tokens SET revoked_at = now() WHERE token_hash = $1 AND user_id = $2 AND revoked_at IS NULL";
-pub const SERVER_ADMIN_UPDATE_USER_SQL: &str = "UPDATE admin_users SET login = COALESCE($2, login), display_name = COALESCE($3, display_name) WHERE id = $1 RETURNING true";
-pub const SERVER_ADMIN_UPDATE_USER_PASSWORD_SQL: &str =
-    "UPDATE admin_users SET password_hash = $2 WHERE id = $1 RETURNING true";
-pub const SERVER_ADMIN_UPDATE_USER_BAN_SQL: &str =
-    "UPDATE admin_users SET is_banned = $2 WHERE id = $1 RETURNING true";
-pub const SERVER_ADMIN_DELETE_USER_SQL: &str =
-    "DELETE FROM admin_users WHERE id = $1 RETURNING true";
-pub const SERVER_ADMIN_LIST_USERS_SQL: &str =
-    "SELECT id, login, display_name, is_banned FROM admin_users ORDER BY login LIMIT 500";
-pub const SERVER_ADMIN_READ_AUTH_USER_SQL: &str =
-    "SELECT login, display_name FROM admin_users WHERE id = $1 AND is_banned = false";
-pub const SERVER_ADMIN_READ_AUTH_ROLES_SQL: &str = "SELECT role.name FROM admin_roles role JOIN admin_user_roles link ON link.role_id = role.id WHERE link.user_id = $1 ORDER BY role.name";
-pub const SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL: &str = "SELECT DISTINCT permission.name FROM admin_permissions permission JOIN admin_role_permissions role_permission ON role_permission.permission_id = permission.id JOIN admin_user_roles user_role ON user_role.role_id = role_permission.role_id WHERE user_role.user_id = $1 ORDER BY permission.name";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_001: &str = "admin_audit_log_append_only";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_002: &str = "admin_set_updated_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_003: &str = "admin_audit_log_append_only_guard";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_004: &str =
-    "admin_audit_log:BEFORE:DELETE:EXECUTE FUNCTION admin_audit_log_append_only()";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_005: &str =
-    "admin_audit_log:BEFORE:UPDATE:EXECUTE FUNCTION admin_audit_log_append_only()";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_006: &str = "admin_roles_set_updated_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_007: &str =
-    "admin_roles:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_008: &str = "admin_system_settings_set_updated_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_009: &str =
-    "admin_system_settings:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_010: &str = "admin_users_set_updated_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_011: &str =
-    "admin_users:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_012: &str = "is_banned";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_013: &str = "created_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_014: &str = "updated_at";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_015: &str = "admin_users_display_name_length";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_016: &str =
-    "CHECK (char_length(display_name) >= 1 AND char_length(display_name) <= 256)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_017: &str = "admin_users_display_name_trimmed";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_018: &str = "CHECK (display_name = btrim(display_name))";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_019: &str = "admin_users_login_format";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_020: &str =
-    "CHECK (login = lower(login) AND login ~ '^[a-z0-9_.-]+$'::text)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_021: &str = "admin_users_login_length";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_022: &str =
-    "CHECK (char_length(login) >= 3 AND char_length(login) <= 128)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_023: &str = "admin_users_password_hash_not_empty";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_024: &str = "CHECK (char_length(password_hash) > 0)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_025: &str = "admin_users_login_lower_unq";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_026: &str = "CREATE UNIQUE INDEX admin_users_login_lower_unq ON public.admin_users USING btree (lower(login))";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_027: &str = "is_system";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_028: &str = "admin_roles_name_format";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_029: &str =
-    "CHECK (name = lower(name) AND name ~ '^[a-z0-9_.-]+$'::text)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_030: &str = "admin_roles_name_length";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_031: &str =
-    "CHECK (char_length(name) >= 1 AND char_length(name) <= 128)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_032: &str = "admin_permissions_name_format";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_033: &str =
-    "CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$'::text)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_034: &str = "admin_permissions_name_length";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_035: &str =
-    "CHECK (char_length(name) >= 3 AND char_length(name) <= 128)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_036: &str = "admin_user_roles_role_id_idx";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_037: &str =
-    "CREATE INDEX admin_user_roles_role_id_idx ON public.admin_user_roles USING btree (role_id)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_038: &str = "admin_role_permissions_permission_id_idx";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_039: &str = "CREATE INDEX admin_role_permissions_permission_id_idx ON public.admin_role_permissions USING btree (permission_id)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_040: &str = "id";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_041: &str = "1";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_042: &str = "site_name";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_043: &str = "'Admin'::text";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_044: &str = "default_admin_route";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_045: &str = "'/admin/users'::text";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_046: &str = "admin_system_settings_default_route_format";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_047: &str = "CHECK (default_admin_route ~~ '/admin%'::text)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_048: &str = "admin_system_settings_singleton";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_049: &str = "CHECK (id = 1)";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_050: &str = "admin_system_settings_site_name_not_empty";
-pub const SERVER_ADMIN_DB_SCHEMA_VALUE_051: &str = "CHECK (char_length(btrim(site_name)) > 0)";

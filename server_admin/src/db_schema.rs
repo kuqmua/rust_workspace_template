@@ -85,16 +85,13 @@ where
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUsers {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![
+            default(str_constants::IS_BANNED, str_constants::FALSE),
             default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_012,
-                str_constants::SERVER_ADMIN_FALSE_SQL,
-            ),
-            default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+                str_constants::CREATED_AT,
                 str_constants::SERVER_ADMIN_NOW_SQL,
             ),
             default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::UPDATED_AT,
                 str_constants::SERVER_ADMIN_NOW_SQL,
             ),
         ]
@@ -139,14 +136,14 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRol
         vec![
             default(
                 str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_027,
-                str_constants::SERVER_ADMIN_FALSE_SQL,
+                str_constants::FALSE,
             ),
             default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+                str_constants::CREATED_AT,
                 str_constants::SERVER_ADMIN_NOW_SQL,
             ),
             default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::UPDATED_AT,
                 str_constants::SERVER_ADMIN_NOW_SQL,
             ),
         ]
@@ -169,7 +166,7 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRol
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminPermissions {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![default(
-            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::CREATED_AT,
             str_constants::SERVER_ADMIN_NOW_SQL,
         )]
     }
@@ -191,7 +188,7 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminPer
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUserRoles {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![default(
-            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::CREATED_AT,
             str_constants::SERVER_ADMIN_NOW_SQL,
         )]
     }
@@ -206,7 +203,7 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUse
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRolePermissions {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![default(
-            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::CREATED_AT,
             str_constants::SERVER_ADMIN_NOW_SQL,
         )]
     }
@@ -221,10 +218,7 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRol
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminSystemSettings {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![
-            default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_040,
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_041,
-            ),
+            default(str_constants::SQL_NAMES_ID, str_constants::VALUE_1),
             default(
                 str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_042,
                 str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_043,
@@ -234,7 +228,7 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminSys
                 str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_045,
             ),
             default(
-                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::UPDATED_AT,
                 str_constants::SERVER_ADMIN_NOW_SQL,
             ),
         ]
