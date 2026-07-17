@@ -1,25 +1,10 @@
 #![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
 
-const REVOKE_ACCESS_SESSION: &str = "UPDATE admin_access_sessions SET revoked_at = now() WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL";
-const REVOKE_USER_ACCESS_SESSIONS: &str =
-    "UPDATE admin_access_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL";
-const REVOKE_USER_REFRESH_TOKENS: &str =
-    "UPDATE admin_refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL";
-const READ_ACTIVE_USER_LOGIN: &str =
-    "SELECT login FROM admin_users WHERE id = $1 AND is_banned = false";
-const LIST_ACTIVE_SESSIONS: &str = "SELECT id, created_at::text, expires_at::text FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > now() ORDER BY created_at DESC";
-const ACTIVE_ACCESS_SESSION: &str = "SELECT EXISTS (SELECT 1 FROM admin_access_sessions session JOIN admin_users users ON users.id = session.user_id WHERE session.id = $1 AND session.user_id = $2 AND session.token_context_hash = $3 AND session.revoked_at IS NULL AND session.expires_at > now() AND users.is_banned = false)";
-const READ_CSRF_HASH: &str = "SELECT csrf_token_hash FROM admin_access_sessions WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL AND expires_at > now()";
-const REVOKE_EXCESS_ACCESS_SESSIONS: &str = "UPDATE admin_access_sessions SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_access_sessions WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)";
-const REVOKE_EXCESS_REFRESH_TOKENS: &str = "UPDATE admin_refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL AND id IN (SELECT id FROM admin_refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL ORDER BY created_at DESC OFFSET $2)";
-const INSERT_ACCESS_SESSION: &str = "INSERT INTO admin_access_sessions (id, user_id, token_identifier_hash, token_context_hash, csrf_token_hash, expires_at) VALUES ($1, $2, $3, $4, $5, now() + ($6 * interval '1 second'))";
-const INSERT_REFRESH_TOKEN: &str = "INSERT INTO admin_refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, now() + ($4 * interval '1 second'))";
-
 pub(crate) async fn read_active_user_login(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
 ) -> Result<Option<server_admin_contract::AdminLogin>, super::AdminRepositoryError> {
-    sqlx::query_scalar::<_, String>(READ_ACTIVE_USER_LOGIN)
+    sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_ACTIVE_USER_LOGIN_SQL)
         .bind(user_id.0)
         .fetch_optional(connection.0)
         .await
@@ -33,23 +18,25 @@ pub(crate) async fn list_active_sessions(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     user_id: crate::AdminUserId,
 ) -> Result<Vec<server_admin_contract::AdminSessionView>, super::AdminRepositoryError> {
-    sqlx::query_as::<_, (uuid::Uuid, String, String)>(LIST_ACTIVE_SESSIONS)
-        .bind(user_id.0)
-        .fetch_all(pool.0)
-        .await
-        .map_err(crate::SqlxAdminError::from)?
-        .into_iter()
-        .map(|(id, created_at, expires_at)| {
-            Ok(server_admin_contract::AdminSessionView::new(
-                server_admin_contract::AdminSessionTimestamp::try_from(created_at)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                server_admin_contract::AdminSessionTimestamp::try_from(expires_at)
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                server_admin_contract::AdminSessionIdentifier::try_from(id.to_string())
-                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-            ))
-        })
-        .collect()
+    sqlx::query_as::<_, (uuid::Uuid, String, String)>(
+        str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+    )
+    .bind(user_id.0)
+    .fetch_all(pool.0)
+    .await
+    .map_err(crate::SqlxAdminError::from)?
+    .into_iter()
+    .map(|(id, created_at, expires_at)| {
+        Ok(server_admin_contract::AdminSessionView::new(
+            server_admin_contract::AdminSessionTimestamp::try_from(created_at)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            server_admin_contract::AdminSessionTimestamp::try_from(expires_at)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            server_admin_contract::AdminSessionIdentifier::try_from(id.to_string())
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        ))
+    })
+    .collect()
 }
 
 pub(crate) async fn access_session_is_active(
@@ -58,7 +45,7 @@ pub(crate) async fn access_session_is_active(
     user_id: crate::AdminUserId,
     context_hash: &crate::AdminTokenHash,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, bool>(ACTIVE_ACCESS_SESSION)
+    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_ACTIVE_ACCESS_SESSION_SQL)
         .bind(session_id.0.0)
         .bind(user_id.0)
         .bind(secrecy::ExposeSecret::expose_secret(
@@ -75,7 +62,7 @@ pub(crate) async fn read_csrf_hash(
     session_id: crate::AdminSessionId,
     user_id: crate::AdminUserId,
 ) -> Result<Option<crate::AdminTokenHash>, crate::SqlxAdminError> {
-    sqlx::query_scalar::<_, String>(READ_CSRF_HASH)
+    sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_CSRF_HASH_SQL)
         .bind(session_id.0.0)
         .bind(user_id.0)
         .fetch_optional(pool.0)
@@ -98,19 +85,20 @@ pub(crate) async fn enforce_session_limit(
 ) -> Result<(), crate::SqlxAdminError> {
     let session_offset =
         i64::try_from(usize::from(session_limit).saturating_sub(1usize)).unwrap_or(i64::MAX);
-    let _access_result = sqlx::query(REVOKE_EXCESS_ACCESS_SESSIONS)
+    let _access_result = sqlx::query(str_constants::SERVER_ADMIN_REVOKE_EXCESS_ACCESS_SESSIONS_SQL)
         .bind(user_id.0)
         .bind(session_offset)
         .execute(&mut *connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
     if revoke_refresh.0 {
-        let _refresh_result = sqlx::query(REVOKE_EXCESS_REFRESH_TOKENS)
-            .bind(user_id.0)
-            .bind(session_offset)
-            .execute(connection.0)
-            .await
-            .map_err(crate::SqlxAdminError::from)?;
+        let _refresh_result =
+            sqlx::query(str_constants::SERVER_ADMIN_REVOKE_EXCESS_REFRESH_TOKENS_SQL)
+                .bind(user_id.0)
+                .bind(session_offset)
+                .execute(connection.0)
+                .await
+                .map_err(crate::SqlxAdminError::from)?;
     }
     Ok(())
 }
@@ -125,7 +113,7 @@ pub(crate) async fn insert_access_session(
     csrf_hash: &crate::AdminTokenHash,
     access_ttl: crate::auth::StdAdminAccessTtlSeconds,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(INSERT_ACCESS_SESSION)
+    sqlx::query(str_constants::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
         .bind(session_id.0.0)
         .bind(user_id.0)
         .bind(token_identifier_hash.expose().as_ref())
@@ -145,7 +133,7 @@ pub(crate) async fn insert_refresh_token(
     refresh_hash: &crate::AdminTokenHash,
     refresh_ttl: crate::auth::StdAdminRefreshTtlSeconds,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(INSERT_REFRESH_TOKEN)
+    sqlx::query(str_constants::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
         .bind(refresh_id.0)
         .bind(user_id.0)
         .bind(refresh_hash.expose().as_ref())
@@ -161,7 +149,7 @@ pub(crate) async fn revoke_access_session(
     session_id: crate::AdminSessionId,
     user_id: crate::AdminUserId,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(REVOKE_ACCESS_SESSION)
+    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_ACCESS_SESSION_SQL)
         .bind(session_id.0.0)
         .bind(user_id.0)
         .execute(connection.0)
@@ -174,13 +162,13 @@ pub(crate) async fn revoke_user_sessions(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(REVOKE_USER_ACCESS_SESSIONS)
+    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_USER_ACCESS_SESSIONS_SQL)
         .bind(user_id.0)
         .execute(&mut *connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
         .map(drop)?;
-    sqlx::query(REVOKE_USER_REFRESH_TOKENS)
+    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
         .bind(user_id.0)
         .execute(connection.0)
         .await

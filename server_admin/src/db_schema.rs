@@ -1,6 +1,3 @@
-const NOW: &str = "now()";
-const FALSE: &str = "false";
-
 pub fn admin_catalog_snapshot(
     schema: super::StdAdminStrRef<'_>,
 ) -> Result<pg_crud_common::DbCatalogSnapshot, pg_crud_common::DbSchemaTextTryFromStringError> {
@@ -26,42 +23,39 @@ pub fn admin_catalog_snapshot(
     );
     Ok(pg_crud_common::DbCatalogSnapshot::new(vec![
         snapshot(
-            "admin_audit_log_append_only",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_001,
             pg_crud_common::DbObjectKind::Function,
             audit_function,
         )?,
         snapshot(
-            "admin_set_updated_at",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_002,
             pg_crud_common::DbObjectKind::Function,
             updated_at_function,
         )?,
         snapshot(
-            "admin_audit_log_append_only_guard",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_003,
             pg_crud_common::DbObjectKind::Trigger,
-            "admin_audit_log:BEFORE:DELETE:EXECUTE FUNCTION admin_audit_log_append_only()"
-                .to_owned(),
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_004.to_owned(),
         )?,
         snapshot(
-            "admin_audit_log_append_only_guard",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_003,
             pg_crud_common::DbObjectKind::Trigger,
-            "admin_audit_log:BEFORE:UPDATE:EXECUTE FUNCTION admin_audit_log_append_only()"
-                .to_owned(),
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_005.to_owned(),
         )?,
         snapshot(
-            "admin_roles_set_updated_at",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_006,
             pg_crud_common::DbObjectKind::Trigger,
-            "admin_roles:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()".to_owned(),
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_007.to_owned(),
         )?,
         snapshot(
-            "admin_system_settings_set_updated_at",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_008,
             pg_crud_common::DbObjectKind::Trigger,
-            "admin_system_settings:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()"
-                .to_owned(),
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_009.to_owned(),
         )?,
         snapshot(
-            "admin_users_set_updated_at",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_010,
             pg_crud_common::DbObjectKind::Trigger,
-            "admin_users:BEFORE:UPDATE:EXECUTE FUNCTION admin_set_updated_at()".to_owned(),
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_011.to_owned(),
         )?,
     ]))
 }
@@ -91,42 +85,51 @@ where
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUsers {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![
-            default("is_banned", FALSE),
-            default("created_at", NOW),
-            default("updated_at", NOW),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_012,
+                str_constants::SERVER_ADMIN_FALSE_SQL,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+                str_constants::SERVER_ADMIN_NOW_SQL,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::SERVER_ADMIN_NOW_SQL,
+            ),
         ]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![
             object(
-                "admin_users_display_name_length",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_015,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(display_name) >= 1 AND char_length(display_name) <= 256)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_016,
             ),
             object(
-                "admin_users_display_name_trimmed",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_017,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (display_name = btrim(display_name))",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_018,
             ),
             object(
-                "admin_users_login_format",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_019,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (login = lower(login) AND login ~ '^[a-z0-9_.-]+$'::text)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_020,
             ),
             object(
-                "admin_users_login_length",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_021,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(login) >= 3 AND char_length(login) <= 128)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_022,
             ),
             object(
-                "admin_users_password_hash_not_empty",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_023,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(password_hash) > 0)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_024,
             ),
             object(
-                "admin_users_login_lower_unq",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_025,
                 pg_crud_common::DbObjectKind::Index,
-                "CREATE UNIQUE INDEX admin_users_login_lower_unq ON public.admin_users USING btree (lower(login))",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_026,
             ),
         ]
     }
@@ -134,94 +137,124 @@ impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUse
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRoles {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![
-            default("is_system", FALSE),
-            default("created_at", NOW),
-            default("updated_at", NOW),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_027,
+                str_constants::SERVER_ADMIN_FALSE_SQL,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+                str_constants::SERVER_ADMIN_NOW_SQL,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::SERVER_ADMIN_NOW_SQL,
+            ),
         ]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![
             object(
-                "admin_roles_name_format",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_028,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (name = lower(name) AND name ~ '^[a-z0-9_.-]+$'::text)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_029,
             ),
             object(
-                "admin_roles_name_length",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_030,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(name) >= 1 AND char_length(name) <= 128)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_031,
             ),
         ]
     }
 }
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminPermissions {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
-        vec![default("created_at", NOW)]
+        vec![default(
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::SERVER_ADMIN_NOW_SQL,
+        )]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![
             object(
-                "admin_permissions_name_format",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_032,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$'::text)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_033,
             ),
             object(
-                "admin_permissions_name_length",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_034,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(name) >= 3 AND char_length(name) <= 128)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_035,
             ),
         ]
     }
 }
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminUserRoles {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
-        vec![default("created_at", NOW)]
+        vec![default(
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::SERVER_ADMIN_NOW_SQL,
+        )]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![object(
-            "admin_user_roles_role_id_idx",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_036,
             pg_crud_common::DbObjectKind::Index,
-            "CREATE INDEX admin_user_roles_role_id_idx ON public.admin_user_roles USING btree (role_id)",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_037,
         )]
     }
 }
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminRolePermissions {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
-        vec![default("created_at", NOW)]
+        vec![default(
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_013,
+            str_constants::SERVER_ADMIN_NOW_SQL,
+        )]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![object(
-            "admin_role_permissions_permission_id_idx",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_038,
             pg_crud_common::DbObjectKind::Index,
-            "CREATE INDEX admin_role_permissions_permission_id_idx ON public.admin_role_permissions USING btree (permission_id)",
+            str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_039,
         )]
     }
 }
 impl pg_crud_common::DbExtendedTableSchema for super::generated_tables::AdminSystemSettings {
     fn exact_defaults() -> Vec<pg_crud_common::DbDefaultSpec> {
         vec![
-            default("id", "1"),
-            default("site_name", "'Admin'::text"),
-            default("default_admin_route", "'/admin/users'::text"),
-            default("updated_at", NOW),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_040,
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_041,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_042,
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_043,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_044,
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_045,
+            ),
+            default(
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_014,
+                str_constants::SERVER_ADMIN_NOW_SQL,
+            ),
         ]
     }
     fn checks_and_indexes() -> Vec<pg_crud_common::DbObjectSpec> {
         vec![
             object(
-                "admin_system_settings_default_route_format",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_046,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (default_admin_route ~~ '/admin%'::text)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_047,
             ),
             object(
-                "admin_system_settings_singleton",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_048,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (id = 1)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_049,
             ),
             object(
-                "admin_system_settings_site_name_not_empty",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_050,
                 pg_crud_common::DbObjectKind::Check,
-                "CHECK (char_length(btrim(site_name)) > 0)",
+                str_constants::SERVER_ADMIN_DB_SCHEMA_VALUE_051,
             ),
         ]
     }

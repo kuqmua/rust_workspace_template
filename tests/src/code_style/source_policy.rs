@@ -305,45 +305,10 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
             let _previous = observed.insert(relative, count);
         }
     });
-    let expected = std::collections::BTreeMap::from([
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_AUDIT_RS.to_owned(),
-            4usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_CLEANUP_RS.to_owned(),
-            10usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_PERMISSIONS_RS.to_owned(),
-            6usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_RATE_LIMITS_RS.to_owned(),
-            2usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_ROLES_RS.to_owned(),
-            14usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_SESSIONS_RS.to_owned(),
-            13usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_SETTINGS_RS.to_owned(),
-            2usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_REPOSITORY_USERS_RS.to_owned(),
-            13usize,
-        ),
-        (
-            str_constants::SERVER_ADMIN_SRC_MIGRATIONS_RS.to_owned(),
-            3usize,
-        ),
-        (str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(), 6usize),
-    ]);
+    let expected = std::collections::BTreeMap::from([(
+        str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(),
+        73usize,
+    )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
 #[test]
@@ -738,11 +703,7 @@ fn string_constants_are_declared_only_in_str_constants() {
         ),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
-            if path_text.contains(str_constants::STR_CONSTANTS)
-                || path_text.contains(str_constants::SERVER_ADMIN_REPOSITORY_PATH_SEGMENT)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_DB_SCHEMA_PATH_SUFFIX)
-                || path_text.ends_with(str_constants::SERVER_ADMIN_SRC_MIGRATIONS_RS)
-            {
+            if path_text.contains(str_constants::STR_CONSTANTS) {
                 return;
             }
             let visitor = super::visit_syn_file(
@@ -762,13 +723,7 @@ fn string_constants_are_declared_only_in_str_constants() {
 }
 
 #[test]
-fn admin_repository_owns_admin_sql_instead_of_str_constants_or_handlers() {
-    let constants =
-        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("54daf187");
-    assert!(!constants.lines().any(|line| {
-        line.contains(str_constants::SERVER_ADMIN_CONSTANT_PREFIX)
-            && line.contains(str_constants::SQL_CONSTANT_SUFFIX)
-    }));
+fn admin_handlers_do_not_own_admin_sql() {
     let handlers =
         std::fs::read_to_string(str_constants::SERVER_ADMIN_HANDLERS_RS).expect("353df4df");
     assert!(

@@ -1,8 +1,5 @@
 #![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
 
-const READ_SETTINGS: &str = "SELECT site_name, tab_title, main_logo, primary_color, default_admin_route, organization_name, organization_contacts, support_url FROM admin_system_settings WHERE id = 1";
-const UPDATE_SETTINGS: &str = "UPDATE admin_system_settings SET site_name = COALESCE($1, site_name), tab_title = COALESCE($2, tab_title), main_logo = COALESCE($3, main_logo), primary_color = COALESCE($4, primary_color), default_admin_route = COALESCE($5, default_admin_route), organization_name = COALESCE($6, organization_name), organization_contacts = COALESCE($7, organization_contacts), support_url = COALESCE($8, support_url) WHERE id = 1 RETURNING true";
-
 pub(crate) async fn read_settings(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
 ) -> Result<server_admin_contract::AdminSettingsView, super::AdminRepositoryError> {
@@ -18,7 +15,7 @@ pub(crate) async fn read_settings(
             Option<String>,
             Option<String>,
         ),
-    >(READ_SETTINGS)
+    >(str_constants::SERVER_ADMIN_READ_SETTINGS_SQL)
     .fetch_one(pool.0)
     .await
     .map_err(crate::SqlxAdminError::from)?;
@@ -68,7 +65,7 @@ pub(crate) async fn update_settings(
         support_url,
         tab_title,
     ) = request.into_parts();
-    sqlx::query_scalar::<_, bool>(UPDATE_SETTINGS)
+    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_SETTINGS_SQL)
         .bind(site_name.as_ref().map(AsRef::<str>::as_ref))
         .bind(tab_title.as_ref().map(AsRef::<str>::as_ref))
         .bind(main_logo.as_ref().map(AsRef::<str>::as_ref))

@@ -1,9 +1,5 @@
 #![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
 
-const RECORD_LOGIN_ATTEMPT: &str = "WITH attempt AS (INSERT INTO admin_login_attempts (login, ip_address, succeeded) VALUES ($1, $2, $3)) INSERT INTO admin_audit_log (user_login, action, resource, resource_id, request_id, succeeded, details) SELECT $1, 'sign_in', 'session', $1, $4, false, jsonb_build_object('ip_address', $2::INET::text) WHERE $3 = false";
-const INSERT_AUDIT_SUCCESS: &str = "INSERT INTO admin_audit_log (user_id, user_login, action, resource, resource_id, request_id, succeeded, details) VALUES ($1, $2, $3, $4, $5, $6, true, $7)";
-const QUERY_AUDIT_LOG: &str = "SELECT id, user_id, user_login, action, resource, resource_id, succeeded, details, created_at::text FROM admin_audit_log WHERE ($1::bigint IS NULL OR user_id = $1) AND ($2::text IS NULL OR action = $2) AND ($3::text IS NULL OR resource = $3) AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz) AND ($5::timestamptz IS NULL OR created_at <= $5::timestamptz) ORDER BY created_at DESC LIMIT 200";
-
 pub(crate) async fn record_login_attempt(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     login: &server_admin_contract::AdminLogin,
@@ -11,7 +7,7 @@ pub(crate) async fn record_login_attempt(
     succeeded: crate::StdAdminBool,
     request_id: crate::UuidAdminValue,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(RECORD_LOGIN_ATTEMPT)
+    sqlx::query(str_constants::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
         .bind(login.as_ref())
         .bind(peer.socket_addr().0.ip())
         .bind(succeeded.0)
@@ -32,7 +28,7 @@ pub(crate) async fn insert_audit_success(
     request_id: crate::UuidAdminValue,
     details: &server_admin_contract::SerdeJsonAdminAuditDetails,
 ) -> Result<(), crate::SqlxAdminError> {
-    sqlx::query(INSERT_AUDIT_SUCCESS)
+    sqlx::query(str_constants::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
         .bind(user_id.0)
         .bind(login.as_ref())
         .bind(action.as_str().as_ref())
@@ -66,7 +62,7 @@ pub(crate) async fn query_audit_log(
             Option<serde_json::Value>,
             String,
         ),
-    >(QUERY_AUDIT_LOG)
+    >(str_constants::SERVER_ADMIN_QUERY_AUDIT_LOG_SQL)
     .bind(user_id.map(|value| value.0))
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))
