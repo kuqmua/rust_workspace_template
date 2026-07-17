@@ -117,6 +117,9 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, newtype::TryFrom)]
     #[try_from(validator = validate_checked_text)]
     struct CheckedText(String);
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::TryFrom)]
+    #[try_from(error = CheckedTextError, validator = validate_checked_text)]
+    struct ExplicitErrorCheckedText(String);
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::EnumFromStr)]
     enum SampleEnum {
         FirstValue,
@@ -162,6 +165,17 @@ mod tests {
         );
         assert_eq!(
             CheckedText::try_from(str_constants::ABC_ALT_3.to_owned()),
+            Err(CheckedTextError::TooLong)
+        );
+    }
+    #[test]
+    fn try_from_validator_supports_explicit_error_type() {
+        assert_eq!(
+            ExplicitErrorCheckedText::try_from(str_constants::AB.to_owned()),
+            Ok(ExplicitErrorCheckedText(str_constants::AB.to_owned()))
+        );
+        assert_eq!(
+            ExplicitErrorCheckedText::try_from(str_constants::ABC_ALT_3.to_owned()),
             Err(CheckedTextError::TooLong)
         );
     }

@@ -3829,6 +3829,8 @@ pub const NEWTYPE_TRY_FROM_DUPLICATE: &str = "duplicate newtype try_from option"
 pub const NEWTYPE_TRY_FROM_FROM_INNER_CONFLICT: &str =
     "newtype try_from cannot be combined with from_inner";
 pub const NEWTYPE_TRY_FROM_UNKNOWN_OPTION: &str = "unknown newtype try_from option";
+pub const NEWTYPE_TRY_FROM_ERROR: &str = "error";
+pub const NEWTYPE_TRY_FROM_ERROR_DUPLICATE: &str = "duplicate newtype try_from error";
 pub const NEWTYPE_TRY_FROM_VALIDATOR: &str = "validator";
 pub const NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE: &str = "duplicate newtype try_from validator";
 pub const NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED: &str = "newtype try_from requires validator = path";

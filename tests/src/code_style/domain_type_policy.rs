@@ -143,6 +143,39 @@ fn newtype_try_from_validator_satisfies_string_wrapper_policy() {
     );
 }
 #[test]
+fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
+    let ast: syn::File = syn::parse_quote! {
+        #[derive(newtype::TryFrom)]
+        #[try_from(
+            error = SharedValueError,
+            validator = |value: &String| if value.len() > 8usize {
+                Err(SharedValueError)
+            } else {
+                Ok(())
+            }
+        )]
+        struct Value(String);
+    };
+    let string_wrapper_names = super::string_wrapper_names(super::types::SynFileRef::from(&ast));
+    let len_checked_function_names =
+        super::len_checked_function_names(super::types::SynFileRef::from(&ast));
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::StringWrapperFromVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            len_checked_function_names: &len_checked_function_names,
+            string_wrapper_names: &string_wrapper_names,
+            try_from_string_names: super::types::StdSourceTextSet::default(),
+            try_from_string_len_checked_names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    assert!(visitor.try_from_string_names.contains("Value"), "89c632cd");
+    assert!(
+        visitor.try_from_string_len_checked_names.contains("Value"),
+        "b49bc6d0"
+    );
+}
+#[test]
 fn public_tuple_wrappers_do_not_expose_inner_field() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr(str_constants::B7C84E2A),

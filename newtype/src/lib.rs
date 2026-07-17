@@ -17,6 +17,7 @@ struct NewtypeAttrs {
 }
 #[derive(Debug)]
 struct NewtypeTryFromAttrs {
+    error: Option<SynType>,
     validator: SynExpr,
 }
 struct BoundedStringAttrs {
@@ -189,6 +190,8 @@ impl AsRef<syn::Type> for SynTypeRef<'_> {
     }
 }
 #[derive(Debug)]
+struct SynType(syn::Type);
+#[derive(Debug)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
     fn from(value: syn::Expr) -> Self {
@@ -245,6 +248,7 @@ fn derive_newtype_try_from(
         Ok(v) => v,
         Err(error) => return ProcMacro2GeneratedTokenStream(error.into_compile_error()),
     };
+    let mut error_opt = None;
     let mut validator_opt = None;
     let parse_result = input
         .attrs
@@ -252,17 +256,24 @@ fn derive_newtype_try_from(
         .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE_TRY_FROM))
         .try_for_each(|attr| {
             attr.parse_nested_meta(|meta| {
-                if !meta
+                if meta.path.is_ident(str_constants::NEWTYPE_TRY_FROM_ERROR) {
+                    if error_opt.is_some() {
+                        return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
+                    }
+                    error_opt = Some(SynType(meta.value()?.parse::<syn::Type>()?));
+                    return Ok(());
+                }
+                if meta
                     .path
                     .is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR)
                 {
-                    return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_UNKNOWN_OPTION));
+                    if validator_opt.is_some() {
+                        return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE));
+                    }
+                    validator_opt = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
+                    return Ok(());
                 }
-                if validator_opt.is_some() {
-                    return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE));
-                }
-                validator_opt = Some(SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                Ok(())
+                Err(meta.error(str_constants::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
             })
         });
     if let Err(error) = parse_result {
@@ -277,7 +288,10 @@ fn derive_newtype_try_from(
     let attrs = NewtypeAttrs {
         options: workspace_macro_helpers::StdUniqueOptionSet::default(),
         to_err_string_mode: None,
-        try_from: Some(NewtypeTryFromAttrs { validator }),
+        try_from: Some(NewtypeTryFromAttrs {
+            error: error_opt,
+            validator,
+        }),
     };
     match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
         Ok(v) => v,
@@ -744,7 +758,14 @@ fn generate_newtype_token_stream_with_attrs(
         }
     });
     let try_from_token_stream = attrs.try_from.as_ref().map(|try_from| {
-        let error = quote::format_ident!("{identifier}Error");
+        let inferred_error = syn::Type::Path(syn::TypePath {
+            qself: None,
+            path: syn::Path::from(quote::format_ident!("{identifier}Error")),
+        });
+        let error = try_from
+            .error
+            .as_ref()
+            .map_or(&inferred_error, |value| &value.0);
         let validator = &try_from.validator;
         quote::quote! {
             impl #impl_generics TryFrom<#inner_ty_ref> for #identifier #ty_generics #where_clause {

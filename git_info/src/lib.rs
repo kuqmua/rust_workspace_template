@@ -25,7 +25,20 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
         self.0 == *other
     }
 }
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::AsRefStr)]
+#[derive(
+    Debug, Clone, Hash, PartialEq, Eq, Default, optml::Optml, newtype::AsRefStr, newtype::TryFrom,
+)]
+#[try_from(
+    error = GitInfoStringTryFromStringError,
+    validator = |value: &String| if value.len() > GIT_INFO_STRING_MAX_LEN {
+        Err(GitInfoStringTryFromStringError::TooLong {
+            len: value.len(),
+            max: GIT_INFO_STRING_MAX_LEN,
+        })
+    } else {
+        Ok(())
+    }
+)]
 pub struct GitCommitId(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum GitCommitHashError {
@@ -76,23 +89,22 @@ impl From<GitInfoStringTryFromStringError> for GitCommitId {
         Self(value.to_string())
     }
 }
-impl TryFrom<String> for GitCommitId {
-    type Error = GitInfoStringTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: GIT_INFO_STRING_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::FromInner)]
 pub struct StdGitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(
+    error = GitInfoStringTryFromStringError,
+    validator = |value: &String| if value.len() > GIT_INFO_STRING_MAX_LEN {
+        Err(GitInfoStringTryFromStringError::TooLong {
+            len: value.len(),
+            max: GIT_INFO_STRING_MAX_LEN,
+        })
+    } else {
+        Ok(())
+    }
+)]
 pub struct GitCommitLink(String);
 impl From<StdGitCommitLinkCow> for GitCommitLink {
     fn from(value: StdGitCommitLinkCow) -> Self {
@@ -102,18 +114,6 @@ impl From<StdGitCommitLinkCow> for GitCommitLink {
 impl From<GitInfoStringTryFromStringError> for GitCommitLink {
     fn from(value: GitInfoStringTryFromStringError) -> Self {
         Self(value.to_string())
-    }
-}
-impl TryFrom<String> for GitCommitLink {
-    type Error = GitInfoStringTryFromStringError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > GIT_INFO_STRING_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: GIT_INFO_STRING_MAX_LEN,
-            });
-        }
-        Ok(Self(value))
     }
 }
 impl PartialEq<ProjectGitCommitLinkRef> for GitCommitLink {

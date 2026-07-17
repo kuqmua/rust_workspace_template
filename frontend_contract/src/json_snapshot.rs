@@ -1,18 +1,12 @@
 const JSON_CONTRACT_SNAPSHOT_MAX_BYTES: usize = 1_048_576usize;
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(validator = |value: &String| if value.len() > JSON_CONTRACT_SNAPSHOT_MAX_BYTES {
+    Err(JsonContractSnapshotError::TooLong)
+} else {
+    Ok(())
+})]
 pub struct JsonContractSnapshot(String);
-impl TryFrom<String> for JsonContractSnapshot {
-    type Error = JsonContractSnapshotError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > JSON_CONTRACT_SNAPSHOT_MAX_BYTES {
-            Err(JsonContractSnapshotError::TooLong)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);

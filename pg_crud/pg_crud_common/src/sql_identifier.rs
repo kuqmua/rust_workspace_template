@@ -1,4 +1,17 @@
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(validator = |value: &String| {
+    if value.len() > 128usize {
+        return Err(SqlIdentifierError::Invalid);
+    }
+    let mut bytes = value.bytes();
+    let first = bytes.next().ok_or(SqlIdentifierError::Empty)?;
+    if !(first.is_ascii_alphabetic() || first == b'_')
+        || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+    {
+        return Err(SqlIdentifierError::Invalid);
+    }
+    Ok(())
+})]
 pub struct SqlIdentifier(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum SqlIdentifierError {
@@ -6,22 +19,6 @@ pub enum SqlIdentifierError {
     Empty,
     #[error("SQL identifier contains unsupported characters")]
     Invalid,
-}
-impl TryFrom<String> for SqlIdentifier {
-    type Error = SqlIdentifierError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 128usize {
-            return Err(SqlIdentifierError::Invalid);
-        }
-        let mut bytes = value.bytes();
-        let first = bytes.next().ok_or(SqlIdentifierError::Empty)?;
-        if !(first.is_ascii_alphabetic() || first == b'_')
-            || !bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-        {
-            return Err(SqlIdentifierError::Invalid);
-        }
-        Ok(Self(value))
-    }
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SqlQualifiedIdentifier {

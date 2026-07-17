@@ -8,22 +8,26 @@ pub enum SqlLikeMatchMode {
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, newtype::AsRefStr)]
+#[derive(
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+    newtype::AsRefStr,
+    newtype::TryFrom,
+)]
+#[try_from(validator = |value: &String| if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+    Err(SqlLikePatternError)
+} else {
+    Ok(())
+})]
 #[serde(transparent)]
 pub struct SqlLikePattern(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct SqlLikePatternError;
-impl TryFrom<String> for SqlLikePattern {
-    type Error = SqlLikePatternError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            Err(SqlLikePatternError)
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
 pub fn build_sql_like_pattern(
     input: SqlLikeInputRef<'_>,
     match_mode: SqlLikeMatchMode,

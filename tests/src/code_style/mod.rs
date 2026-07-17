@@ -925,6 +925,10 @@ impl StringWrapperFromVisitor<'_> {
             .filter(|attr| attr.path().is_ident(str_constants::NEWTYPE_TRY_FROM))
             .for_each(|attr| {
                 drop(attr.parse_nested_meta(|meta| {
+                    if meta.path.is_ident(str_constants::NEWTYPE_TRY_FROM_ERROR) {
+                        let _error_type = meta.value()?.parse::<syn::Type>()?;
+                        return Ok(());
+                    }
                     if meta
                         .path
                         .is_ident(str_constants::NEWTYPE_TRY_FROM_VALIDATOR)
