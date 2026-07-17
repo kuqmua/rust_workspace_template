@@ -16,6 +16,7 @@ pub(crate) async fn read_active_user_login(
 
 pub(crate) async fn list_active_sessions(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    current_session_id: crate::AdminSessionId,
     user_id: crate::AdminUserId,
 ) -> Result<Vec<server_admin_contract::AdminSessionView>, super::AdminRepositoryError> {
     sqlx::query_as::<_, (uuid::Uuid, String, String)>(
@@ -34,6 +35,7 @@ pub(crate) async fn list_active_sessions(
                 .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             server_admin_contract::AdminSessionIdentifier::try_from(id.to_string())
                 .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            server_admin_contract::AdminBool::from(id == current_session_id.0.0),
         ))
     })
     .collect()
@@ -168,6 +170,30 @@ pub(crate) async fn revoke_user_sessions(
         .await
         .map_err(crate::SqlxAdminError::from)
         .map(drop)?;
+    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
+        .bind(user_id.0)
+        .execute(connection.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map(drop)
+}
+pub(crate) async fn revoke_other_access_sessions(
+    connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    user_id: crate::AdminUserId,
+    current_session_id: crate::AdminSessionId,
+) -> Result<(), crate::SqlxAdminError> {
+    sqlx::query(str_constants::SERVER_ADMIN_REVOKE_OTHER_ACCESS_SESSIONS_SQL)
+        .bind(user_id.0)
+        .bind(current_session_id.0.0)
+        .execute(connection.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map(drop)
+}
+pub(crate) async fn revoke_user_refresh_tokens(
+    connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    user_id: crate::AdminUserId,
+) -> Result<(), crate::SqlxAdminError> {
     sqlx::query(str_constants::SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL)
         .bind(user_id.0)
         .execute(connection.0)

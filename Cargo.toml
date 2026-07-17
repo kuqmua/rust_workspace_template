@@ -75,6 +75,12 @@ members = [
 exclude = []
 
 [workspace.dependencies]
+aes-gcm = { version = "=0.11.0", default-features = false, features = [
+  "aes",
+  "alloc",
+  "getrandom",
+  "zeroize",
+] }
 argon2 = { version = "=0.5.3", default-features = false, features = [
   "std",
   "password-hash",
@@ -126,8 +132,11 @@ gloo-net = { version = "=0.6.0", default-features = false, features = [
 wasm-bindgen = { version = "=0.2.114", default-features = false }
 web-sys = { version = "=0.3.91", default-features = false, features = [
   "Document",
+  "CssStyleDeclaration",
+  "Element",
   "Event",
   "HtmlDocument",
+  "HtmlElement",
   "HtmlInputElement",
   "History",
   "Location",
@@ -159,6 +168,7 @@ sqlx = { version = "=0.8.6", default-features = false, features = [
   "mac_address",
   "json",
 ] }
+subtle = { version = "=2.6.1", default-features = false }
 axum = { version = "=0.8.9", default-features = false, features = [
   "form",
   "http1",

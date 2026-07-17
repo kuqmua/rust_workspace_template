@@ -340,6 +340,11 @@ pub fn decode_access_token(
 pub enum AdminAuditAction {
     Create,
     Delete,
+    MfaChallengeFailed,
+    MfaDisable,
+    MfaEnroll,
+    MfaRecovery,
+    MfaStepUp,
     Refresh,
     SignIn,
     SignOut,
@@ -359,6 +364,7 @@ pub enum AdminAuditAction {
 #[serde(rename_all = "snake_case")]
 pub enum AdminAuditResource {
     AuditLog,
+    Mfa,
     Permission,
     Role,
     Session,
@@ -604,7 +610,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 5usize);
+        assert_eq!(migrations.len(), 7usize);
         assert!(
             migrations
                 .iter()
@@ -623,15 +629,11 @@ mod tests {
     }
     #[test]
     fn permission_seed_contains_the_complete_typed_catalog() {
-        let migration = super::migrations::migrator()
-            .iter()
-            .find(|migration| migration.description == str_constants::ADMIN_PERMISSIONS_ALT)
-            .expect("c5f1d8a4");
-        assert!(
-            super::AdminPermission::ALL
-                .into_iter()
-                .all(|permission| { migration.sql.contains(permission.as_str().as_ref()) })
-        );
+        assert!(super::AdminPermission::ALL.into_iter().all(|permission| {
+            super::migrations::migrator()
+                .iter()
+                .any(|migration| migration.sql.contains(permission.as_str().as_ref()))
+        }));
     }
     #[tokio::test]
     async fn password_hash_verifies_only_matching_password() {

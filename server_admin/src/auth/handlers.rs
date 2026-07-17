@@ -24,6 +24,25 @@ fn map_repository_error(
         }
     }
 }
+fn page_total(value: i64) -> Result<server_admin_contract::AdminPageTotal, super::AdminApiError> {
+    u64::try_from(value)
+        .map(server_admin_contract::AdminPageTotal::from)
+        .map_err(|_error| super::AdminApiError::Validation)
+}
+fn validate_table_sort(
+    query: &server_admin_contract::AdminTableQuery,
+    options: &[server_admin_contract::AdminTableSortField],
+) -> Result<(), super::AdminApiError> {
+    if query.sort().as_ref().is_empty() {
+        return Ok(());
+    }
+    server_admin_contract::AdminTableSortField::try_from_key(
+        options,
+        server_admin_contract::AdminTableSortKeyRef::from(query.sort().as_ref()),
+    )
+    .map(drop)
+    .map_err(|_error| super::AdminApiError::Validation)
+}
 pub(super) async fn sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
@@ -362,6 +381,96 @@ pub(super) async fn me(
         )))
     })
 }
+pub(super) async fn change_own_password(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminChangeOwnPasswordReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = super::authenticate(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+    )
+    .await?;
+    let (current_password, new_password, revoke_other_sessions) = request.0.into_parts();
+    let expected_hash = super::super::repository::users::read_password_hash(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .ok_or(super::AdminApiError::Authentication)?;
+    if !auth
+        .state
+        .as_ref()
+        .password_hasher
+        .verify(
+            super::admin_password_from_contract(current_password),
+            expected_hash,
+        )
+        .await
+        .map_err(super::AdminApiError::PasswordHash)?
+        .0
+    {
+        return Err(super::AdminApiError::Validation);
+    }
+    let password_hash = auth
+        .state
+        .as_ref()
+        .password_hasher
+        .hash(super::admin_new_password_from_contract(new_password))
+        .await
+        .map_err(super::AdminApiError::PasswordHash)?;
+    let mut tx = auth
+        .state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    super::super::repository::users::update_user_password(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+        &password_hash,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .0
+    .then_some(())
+    .ok_or(super::AdminApiError::Conflict)?;
+    if bool::from(revoke_other_sessions) {
+        super::super::repository::sessions::revoke_other_access_sessions(
+            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+            actor.id,
+            actor.session_id,
+        )
+        .await
+        .map_err(super::AdminApiError::from)?;
+        super::super::repository::sessions::revoke_user_refresh_tokens(
+            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+            actor.id,
+        )
+        .await
+        .map_err(super::AdminApiError::from)?;
+    }
+    super::record_audit_success_in_connection(
+        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::AdminAuditSuccessRef {
+            action: super::super::AdminAuditAction::Update,
+            login: &actor.login,
+            resource: super::super::AdminAuditResource::User,
+            resource_id: super::AdminAuditResourceId::User(actor.id),
+            user_id: actor.id,
+        },
+    )
+    .await?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
+    ))
+}
 pub(super) async fn sessions(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
@@ -375,6 +484,7 @@ pub(super) async fn sessions(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
+        authenticated.session_id,
         authenticated.id,
     )
     .await
@@ -485,7 +595,7 @@ pub(super) async fn update_settings(
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let actor =
         super::authorize_custom(&auth, super::super::AdminPermission::SystemSettingsUpdate).await?;
-    if !bool::from(request.0.has_fields()) {
+    if !bool::from(request.0.has_fields()) || !bool::from(request.0.is_valid()) {
         return Err(super::AdminApiError::Validation);
     }
     let mut tx = auth
@@ -1042,6 +1152,7 @@ pub(super) async fn set_user_roles(
 }
 pub(super) async fn list_users(
     auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -1051,19 +1162,24 @@ pub(super) async fn list_users(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let users = super::super::repository::users::list_users(
-        super::super::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
-    )
-    .await
-    .map_err(map_repository_error)?;
+    validate_table_sort(&query.0, &server_admin_contract::AdminTableSortField::USER)?;
+    let pool = super::super::repository::SqlxAdminRepositoryPoolRef::from(
+        auth.state.as_ref().pool.as_ref(),
+    );
+    let (users, total) = super::super::repository::users::list_users(pool, &query.0)
+        .await
+        .map_err(map_repository_error)?;
+    let roles = super::super::repository::roles::list_role_catalog(pool)
+        .await
+        .map_err(map_repository_error)?;
+    let page = server_admin_contract::AdminUsersPage::new(users, roles, page_total(total)?);
     Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(users)),
+        axum::response::IntoResponse::into_response(axum::Json(page)),
     ))
 }
 pub(super) async fn list_roles(
     auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -1073,19 +1189,24 @@ pub(super) async fn list_roles(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let roles = super::super::repository::roles::list_roles(
-        super::super::repository::SqlxAdminRepositoryPoolRef::from(
-            auth.state.as_ref().pool.as_ref(),
-        ),
-    )
-    .await
-    .map_err(map_repository_error)?;
+    validate_table_sort(&query.0, &server_admin_contract::AdminTableSortField::ROLE)?;
+    let pool = super::super::repository::SqlxAdminRepositoryPoolRef::from(
+        auth.state.as_ref().pool.as_ref(),
+    );
+    let (roles, total) = super::super::repository::roles::list_roles(pool, &query.0)
+        .await
+        .map_err(map_repository_error)?;
+    let permissions = super::super::repository::permissions::list_permission_catalog(pool)
+        .await
+        .map_err(map_repository_error)?;
+    let page = server_admin_contract::AdminRolesPage::new(roles, permissions, page_total(total)?);
     Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(roles)),
+        axum::response::IntoResponse::into_response(axum::Json(page)),
     ))
 }
 pub(super) async fn list_permissions(
     auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -1095,15 +1216,21 @@ pub(super) async fn list_permissions(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let permissions = super::super::repository::permissions::list_permissions(
+    validate_table_sort(
+        &query.0,
+        &server_admin_contract::AdminTableSortField::PERMISSION,
+    )?;
+    let (permissions, total) = super::super::repository::permissions::list_permissions(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
+        &query.0,
     )
     .await
     .map_err(map_repository_error)?;
+    let page = server_admin_contract::AdminPermissionsPage::new(permissions, page_total(total)?);
     Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(permissions)),
+        axum::response::IntoResponse::into_response(axum::Json(page)),
     ))
 }
 pub(super) async fn settings(
@@ -1124,6 +1251,61 @@ pub(super) async fn settings(
     )
     .await
     .map_err(map_repository_error)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(view)),
+    ))
+}
+pub(super) async fn branding(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let settings = super::super::repository::settings::read_settings(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+    )
+    .await
+    .map_err(map_repository_error)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(
+            server_admin_contract::AdminBrandingView::from_settings(&settings),
+        )),
+    ))
+}
+pub(super) async fn dashboard(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let _actor = super::authorize_generated_request(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+        super::super::AdminPermission::MetricsRead.as_str(),
+        super::super::StdAdminBool::from(false),
+    )
+    .await?;
+    let pool = super::super::repository::SqlxAdminRepositoryPoolRef::from(
+        auth.state.as_ref().pool.as_ref(),
+    );
+    let (active_sessions, failed_sign_ins_24h) = super::super::repository::dashboard::counts(pool)
+        .await
+        .map_err(map_repository_error)?;
+    let recent_changes =
+        super::super::repository::audit::query_audit_log(pool, super::AdminAuditQuery::dashboard())
+            .await
+            .map_err(map_repository_error)?;
+    let uptime_seconds = server_admin_contract::AdminUptimeSeconds::from(
+        auth.state.as_ref().started_at.elapsed().as_secs(),
+    );
+    let version =
+        server_admin_contract::AdminText::try_from(git_info::PROJECT_GIT_INFO.commit.to_string())
+            .map_err(|_error| super::AdminApiError::Validation)?;
+    let view = server_admin_contract::AdminDashboardView::new(
+        active_sessions,
+        server_admin_contract::AdminBool::from(true),
+        failed_sign_ins_24h,
+        recent_changes.items().to_vec(),
+        uptime_seconds,
+        version,
+    );
     Ok(super::AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(view)),
     ))

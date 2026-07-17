@@ -42,6 +42,61 @@ impl TableState {
         }
     }
 
+    pub(crate) fn from_query(
+        default_sort: server_admin_contract::AdminTableSortField,
+        options: &[server_admin_contract::AdminTableSortField],
+        query: &str,
+    ) -> Self {
+        let mut state = Self::new(default_sort);
+        let mut offset = 0usize;
+        query.trim_start_matches('?').split('&').for_each(|part| {
+            let Some((key, value)) = part.split_once('=') else {
+                return;
+            };
+            let decoded = percent_decode(value).unwrap_or_default();
+            match key {
+                "limit" => {
+                    if let Ok(value) = decoded.parse::<usize>() {
+                        state.page_size =
+                            AdminFrontendTableIndex::from(value.clamp(10usize, 100usize));
+                    }
+                }
+                "offset" => offset = decoded.parse::<usize>().unwrap_or_default(),
+                "search" => {
+                    if let Ok(value) = AdminFrontendTableText::try_from(decoded) {
+                        state.search = value;
+                    }
+                }
+                "sort" => {
+                    if let Ok(value) = server_admin_contract::AdminTableSortField::try_from_key(
+                        options,
+                        server_admin_contract::AdminTableSortKeyRef::from(decoded.as_str()),
+                    ) {
+                        state.sort = value;
+                    }
+                }
+                "direction" if decoded == "desc" => state.sort_dir = SortDir::Desc,
+                _ => {}
+            }
+        });
+        state.page = AdminFrontendTableIndex::from(offset / state.page_size.0);
+        state
+    }
+
+    pub(crate) fn query(&self) -> String {
+        let direction = match self.sort_dir {
+            SortDir::Asc => "asc",
+            SortDir::Desc => "desc",
+        };
+        format!(
+            "limit={}&offset={}&search={}&sort={}&direction={direction}",
+            self.page_size.0,
+            self.page.0.saturating_mul(self.page_size.0),
+            percent_encode(self.search.0.as_str()),
+            self.sort.key(),
+        )
+    }
+
     pub(crate) fn apply_search(&mut self, value: AdminFrontendTableText) {
         self.search = value;
         self.page = AdminFrontendTableIndex::from(0usize);
@@ -76,6 +131,9 @@ impl TableState {
     }
 
     pub(crate) fn start(&self, total: AdminFrontendTableIndex) -> AdminFrontendTableIndex {
+        if total.0 <= self.page_size.0 {
+            return AdminFrontendTableIndex::from(0usize);
+        }
         AdminFrontendTableIndex::from(self.page.0.saturating_mul(self.page_size.0).min(total.0))
     }
 
@@ -102,6 +160,53 @@ impl TableState {
 
     pub(crate) fn sort_dir(&self) -> SortDir {
         self.sort_dir
+    }
+}
+
+pub(crate) fn percent_encode(value: &str) -> String {
+    let mut encoded = String::with_capacity(value.len());
+    value.bytes().for_each(|byte| {
+        if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
+            encoded.push(char::from(byte));
+        } else {
+            use std::fmt::Write;
+            let _result = write!(encoded, "%{byte:02X}");
+        }
+    });
+    encoded
+}
+
+pub(crate) fn percent_decode(value: &str) -> Option<String> {
+    let bytes = value.as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len());
+    let mut index = 0usize;
+    while index < bytes.len() {
+        match bytes[index] {
+            b'%' if index.saturating_add(2usize) < bytes.len() => {
+                let high = hex(bytes[index + 1usize])?;
+                let low = hex(bytes[index + 2usize])?;
+                decoded.push(high.saturating_mul(16u8).saturating_add(low));
+                index = index.saturating_add(3usize);
+            }
+            b'+' => {
+                decoded.push(b' ');
+                index = index.saturating_add(1usize);
+            }
+            byte => {
+                decoded.push(byte);
+                index = index.saturating_add(1usize);
+            }
+        }
+    }
+    String::from_utf8(decoded).ok()
+}
+
+const fn hex(value: u8) -> Option<u8> {
+    match value {
+        b'0'..=b'9' => Some(value - b'0'),
+        b'a'..=b'f' => Some(value - b'a' + 10u8),
+        b'A'..=b'F' => Some(value - b'A' + 10u8),
+        _ => None,
     }
 }
 
@@ -152,5 +257,25 @@ mod tests {
         );
         state.previous();
         assert_eq!(state.page_number().0, 2usize);
+    }
+
+    #[test]
+    fn query_round_trip_preserves_server_table_state() {
+        let state = super::TableState::from_query(
+            server_admin_contract::AdminTableSortField::UserLogin,
+            &server_admin_contract::AdminTableSortField::USER,
+            "?limit=50&offset=100&search=Alpha%20Operator&sort=display_name&direction=desc",
+        );
+        assert_eq!(state.page_number().0, 3usize);
+        assert_eq!(state.search().0, "Alpha Operator");
+        assert_eq!(
+            state.sort(),
+            server_admin_contract::AdminTableSortField::UserDisplayName
+        );
+        assert_eq!(state.sort_dir(), super::SortDir::Desc);
+        assert_eq!(
+            state.query(),
+            "limit=50&offset=100&search=Alpha%20Operator&sort=display_name&direction=desc"
+        );
     }
 }

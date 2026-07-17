@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // each typed function owns one SQL bind/result contract
 
-pub(crate) async fn list_permissions(
+pub(crate) async fn list_permission_catalog(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
 ) -> Result<Vec<server_admin_contract::AdminPermissionSummary>, super::AdminRepositoryError> {
     sqlx::query_as::<_, (i64, String)>(str_constants::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
@@ -16,6 +16,40 @@ pub(crate) async fn list_permissions(
             ))
         })
         .collect()
+}
+
+pub(crate) async fn list_permissions(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    query: &server_admin_contract::AdminTableQuery,
+) -> Result<(Vec<server_admin_contract::AdminPermissionSummary>, i64), super::AdminRepositoryError>
+{
+    let search = query.search().as_ref();
+    let total =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_PERMISSIONS_SQL)
+            .bind(search)
+            .fetch_one(pool.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
+    let items =
+        sqlx::query_as::<_, (i64, String)>(str_constants::SERVER_ADMIN_PAGE_PERMISSIONS_SQL)
+            .bind(search)
+            .bind(query.sort().as_ref())
+            .bind(query.direction().as_str())
+            .bind(i64::from(u16::from(query.limit())))
+            .bind(i64::from(u32::from(query.offset())))
+            .fetch_all(pool.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?
+            .into_iter()
+            .map(|(id, name)| {
+                Ok(server_admin_contract::AdminPermissionSummary::new(
+                    server_admin_contract::AdminPermissionId::from(id),
+                    server_admin_contract::AdminPermissionValue::try_from(name)
+                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                ))
+            })
+            .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+    Ok((items, total))
 }
 
 pub(crate) async fn replace_role_permissions(

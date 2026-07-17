@@ -2,49 +2,54 @@
     unreachable_pub,
     reason = "Leptos component expansion and prelude visibility are confined by the private parent module"
 )]
-pub(super) fn permission_ids(value: &str) -> Vec<server_admin_contract::AdminPermissionId> {
-    value
-        .split(',')
-        .filter_map(|item| item.trim().parse::<i64>().ok())
-        .map(server_admin_contract::AdminPermissionId::from)
-        .collect()
-}
-pub(super) fn role_ids(value: &str) -> Vec<server_admin_contract::AdminRoleId> {
-    value
-        .split(',')
-        .filter_map(|item| item.trim().parse::<i64>().ok())
-        .map(server_admin_contract::AdminRoleId::from)
-        .collect()
-}
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn identifier_lists_ignore_invalid_and_empty_items() {
-        assert_eq!(
-            super::role_ids("1, invalid, , 2"),
-            vec![
-                server_admin_contract::AdminRoleId::from(1i64),
-                server_admin_contract::AdminRoleId::from(2i64)
-            ]
-        );
-        assert_eq!(
-            super::permission_ids("3, invalid, , 4"),
-            vec![
-                server_admin_contract::AdminPermissionId::from(3i64),
-                server_admin_contract::AdminPermissionId::from(4i64)
-            ]
-        );
-    }
-}
 pub use leptos::prelude::*;
+pub(super) fn profile_view(
+    client: super::AdminApiClient,
+    loader: super::PageLoader,
+    auth: &Option<server_admin_contract::AuthenticatedAdmin>,
+) -> impl IntoView {
+    let current_password = RwSignal::new(String::new());
+    let new_password = RwSignal::new(String::new());
+    let revoke_other_sessions = RwSignal::new(true);
+    let pending = RwSignal::new(false);
+    let error = RwSignal::<Option<String>>::new(None);
+    let login = auth
+        .as_ref()
+        .map(|value| value.login().to_string())
+        .unwrap_or_default();
+    let display_name = auth
+        .as_ref()
+        .map(|value| value.display_name().to_string())
+        .unwrap_or_default();
+    let roles = auth
+        .as_ref()
+        .map(|value| {
+            value
+                .roles()
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_default();
+    view! { <section><div class="page-heading"><div><p class="eyebrow">"Account security"</p><h1>"Profile"</h1></div></div><dl class="profile-details"><dt>"Login"</dt><dd>{login}</dd><dt>"Display name"</dt><dd>{display_name}</dd><dt>"Roles"</dt><dd>{roles}</dd></dl><form class="settings-form" on:submit=move |event| { event.prevent_default(); match (server_admin_contract::AdminPassword::try_from(current_password.get_untracked()), server_admin_contract::AdminNewPassword::try_from(new_password.get_untracked())) { (Ok(current), Ok(new)) => { pending.set(true); error.set(None); let body = server_admin_contract::AdminChangeOwnPasswordReq::new(current, new, server_admin_contract::AdminBool::from(revoke_other_sessions.get_untracked())); let action_client = client.clone(); leptos::task::spawn_local(async move { match action_client.clone().send_json(server_admin_contract::AdminRoute::ChangeOwnPassword, body).await { Ok(()) => { loader.set_notice(super::state::Text::try_from("Password changed".to_owned()).unwrap_or_default()); super::load(action_client, loader); }, Err(value) => error.set(Some(value.to_string())), } pending.set(false); }); }, _ => error.set(Some("Check current password and new password policy".to_owned())), } }><h2>"Change password"</h2><label><span>"Current password"</span><input type="password" aria-label="Current password" prop:value=move || current_password.get() on:input=move |event| current_password.set(event_target_value(&event)) /></label><label><span>"New password"</span><input type="password" aria-label="Profile new password" prop:value=move || new_password.get() on:input=move |event| new_password.set(event_target_value(&event)) /></label><label class="checkbox-field"><input type="checkbox" prop:checked=move || revoke_other_sessions.get() on:change=move |event| revoke_other_sessions.set(event_target_checked(&event)) /><span>"Revoke other sessions and all refresh tokens"</span></label>{move || error.get().map(|value| view! { <p class="field-error" role="alert">{value}</p> })}<button type="submit" disabled=move || pending.get()>{move || if pending.get() { "Changing..." } else { "Change password" }}</button></form></section> }
+}
 #[component]
-pub(super) fn SignIn(client: super::AdminApiClient) -> impl IntoView {
+pub(super) fn SignIn(
+    client: super::AdminApiClient,
+    branding: Option<server_admin_contract::AdminBrandingView>,
+) -> impl IntoView {
     let login = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
     let error = RwSignal::new(Option::<super::Text>::None);
     let pending = RwSignal::new(false);
+    let site_name = branding.as_ref().map_or_else(
+        || "Admin Console".to_owned(),
+        |value| value.site_name().as_ref().to_owned(),
+    );
+    let logo = branding.and_then(|value| value.main_logo().cloned());
     view! {
-        <main class="auth-page"><section class="auth-card"><div class="auth-brand"><span class="brand-mark">"A"</span><div><strong>"Admin Console"</strong><small>"Workspace control center"</small></div></div><div class="auth-copy"><p class="eyebrow">"Secure access"</p><h1>"Welcome back"</h1><p>"Sign in to manage users, roles and system settings."</p></div>
+        <main class="auth-page"><section class="auth-card"><div class="auth-brand">{logo.map_or_else(|| view! { <span class="brand-mark">"A"</span> }.into_any(), |value| view! { <img class="brand-logo" src=value.as_ref().to_owned() alt="" /> }.into_any())}<div><strong>{site_name}</strong><small>"Workspace control center"</small></div></div><div class="auth-copy"><p class="eyebrow">"Secure access"</p><h1>"Welcome back"</h1><p>"Sign in to manage users, roles and system settings."</p></div>
         <form class="auth-form" on:submit=move |event| {
             event.prevent_default();
             let client = client.clone();
@@ -53,12 +58,12 @@ pub(super) fn SignIn(client: super::AdminApiClient) -> impl IntoView {
             leptos::task::spawn_local(async move {
                 let input = match (server_admin_contract::AdminLogin::try_from(login.get()), server_admin_contract::AdminPassword::try_from(password.get())) {
                     (Ok(login), Ok(password)) => server_admin_contract::AdminSignInReq::new(login, password),
-                    (Err(value), _) => { pending.set(false); error.set(Some(super::Text::from(value.to_string()))); return; },
-                    (_, Err(value)) => { pending.set(false); error.set(Some(super::Text::from(value.to_string()))); return; },
+                    (Err(value), _) => { pending.set(false); error.set(Some(super::Text::try_from(value.to_string()).unwrap_or_default())); return; },
+                    (_, Err(value)) => { pending.set(false); error.set(Some(super::Text::try_from(value.to_string()).unwrap_or_default())); return; },
                 };
                 match client.sign_in(input).await {
                     Ok(value) => { let _display_name = value.user().display_name(); super::redirect(server_admin_contract::AdminFrontendPath::Root.get()); },
-                    Err(value) => { pending.set(false); error.set(Some(super::Text::from(value.to_string()))); },
+                    Err(value) => { pending.set(false); error.set(Some(super::Text::try_from(value.to_string()).unwrap_or_default())); },
                 }
             });
         }>
@@ -68,6 +73,16 @@ pub(super) fn SignIn(client: super::AdminApiClient) -> impl IntoView {
         </form>
         {move || error.get().map(|value| view! { <div class="alert error" role="alert"><strong>"Unable to sign in"</strong><span>{value.to_string()}</span></div> })}
         <p class="auth-footnote">"Protected administrator area"</p></section><div class="auth-visual"><div class="visual-orb"></div><div class="visual-card"><span>"SYSTEM STATUS"</span><strong>"All controls in one place"</strong><p>"Fast, typed and secure administration powered by Rust."</p></div></div></main>
+    }
+}
+fn optional_setting<Value, Error>(value: String) -> Result<Option<Value>, Error>
+where
+    Value: TryFrom<String, Error = Error>,
+{
+    if value.trim().is_empty() {
+        Ok(None)
+    } else {
+        Value::try_from(value).map(Some)
     }
 }
 pub(super) fn settings_view(
@@ -110,7 +125,17 @@ pub(super) fn settings_view(
     );
     let can_update =
         super::pages::has_route_permission(auth, server_admin_contract::AdminRoute::UpdateSettings);
-    view! { <section><p class="eyebrow">"Configuration"</p><h1>"System settings"</h1><form class="settings-form" on:submit=move |event| { event.prevent_default(); if let (Ok(site_name), Ok(default_admin_route), Ok(tab_title), Ok(main_logo), Ok(primary_color), Ok(organization_name), Ok(organization_contacts), Ok(support_url)) = (server_admin_contract::AdminSiteName::try_from(site_name.get()), server_admin_contract::AdminDefaultRoute::try_from(default_admin_route.get()), server_admin_contract::AdminTabTitle::try_from(tab_title.get()), server_admin_contract::AdminMainLogo::try_from(main_logo.get()), server_admin_contract::AdminPrimaryColor::try_from(primary_color.get()), server_admin_contract::AdminOrganizationName::try_from(organization_name.get()), server_admin_contract::AdminOrganizationContacts::try_from(organization_contacts.get()), server_admin_contract::AdminSupportUrl::try_from(support_url.get())) { let body = server_admin_contract::AdminUpdateSettingsReq::new(Some(default_admin_route), Some(main_logo), Some(organization_contacts), Some(organization_name), Some(primary_color), Some(site_name), Some(support_url), Some(tab_title)); let action_client = client.clone(); super::run_action(action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateSettings, body), action_client, loader); } }>
+    let initial_site_name = site_name.get_untracked();
+    let initial_default_admin_route = default_admin_route.get_untracked();
+    let initial_tab_title = tab_title.get_untracked();
+    let initial_main_logo = main_logo.get_untracked();
+    let initial_primary_color = primary_color.get_untracked();
+    let initial_organization_name = organization_name.get_untracked();
+    let initial_organization_contacts = organization_contacts.get_untracked();
+    let initial_support_url = support_url.get_untracked();
+    let pending = RwSignal::new(false);
+    let error = RwSignal::<Option<String>>::new(None);
+    view! { <section><p class="eyebrow">"Configuration"</p><h1>"System settings"</h1><div class="branding-preview" style=move || format!("--preview-primary: {}", primary_color.get())><span class="brand-mark">"A"</span><div><strong>{move || site_name.get()}</strong><small>{move || tab_title.get()}</small></div></div><form class="settings-form" on:submit=move |event| { event.prevent_default(); let parsed = (server_admin_contract::AdminSiteName::try_from(site_name.get_untracked()), server_admin_contract::AdminDefaultRoute::try_from(default_admin_route.get_untracked()), optional_setting::<server_admin_contract::AdminTabTitle, _>(tab_title.get_untracked()), optional_setting::<server_admin_contract::AdminMainLogo, _>(main_logo.get_untracked()), optional_setting::<server_admin_contract::AdminPrimaryColor, _>(primary_color.get_untracked()), optional_setting::<server_admin_contract::AdminOrganizationName, _>(organization_name.get_untracked()), optional_setting::<server_admin_contract::AdminOrganizationContacts, _>(organization_contacts.get_untracked()), optional_setting::<server_admin_contract::AdminSupportUrl, _>(support_url.get_untracked())); match parsed { (Ok(site_name), Ok(default_admin_route), Ok(tab_title), Ok(main_logo), Ok(primary_color), Ok(organization_name), Ok(organization_contacts), Ok(support_url)) => { error.set(None); pending.set(true); let mut clear = Vec::new(); if tab_title.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::TabTitle); } if main_logo.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::MainLogo); } if primary_color.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::PrimaryColor); } if organization_name.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::OrganizationName); } if organization_contacts.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::OrganizationContacts); } if support_url.is_none() { clear.push(server_admin_contract::AdminOptionalSetting::SupportUrl); } let body = server_admin_contract::AdminUpdateSettingsReq::new(Some(default_admin_route), main_logo, organization_contacts, organization_name, primary_color, Some(site_name), support_url, tab_title, clear); let action_client = client.clone(); leptos::task::spawn_local(async move { match action_client.clone().send_json(server_admin_contract::AdminRoute::UpdateSettings, body).await { Ok(()) => { loader.set_notice(super::state::Text::try_from("Settings saved".to_owned()).unwrap_or_default()); super::load(action_client, loader); }, Err(value) => error.set(Some(value.to_string())), } pending.set(false); }); }, _ => error.set(Some("Use an existing admin page, #RRGGBB color, and HTTPS URLs".to_owned())), } }>
     <label><span>"Site name"</span><input placeholder="Administration" prop:value=move || site_name.get() on:input=move |event| site_name.set(event_target_value(&event)) /></label>
     <label><span>"Browser tab title"</span><input placeholder="Admin Console" prop:value=move || tab_title.get() on:input=move |event| tab_title.set(event_target_value(&event)) /></label>
     <label><span>"Default admin route"</span><input placeholder=server_admin_contract::AdminFrontendPath::Users.get() prop:value=move || default_admin_route.get() on:input=move |event| default_admin_route.set(event_target_value(&event)) /></label>
@@ -119,5 +144,5 @@ pub(super) fn settings_view(
     <label><span>"Organization"</span><input placeholder="Organization name" prop:value=move || organization_name.get() on:input=move |event| organization_name.set(event_target_value(&event)) /></label>
     <label><span>"Contacts"</span><input placeholder="support@example.com" prop:value=move || organization_contacts.get() on:input=move |event| organization_contacts.set(event_target_value(&event)) /></label>
     <label class="full-field"><span>"Support URL"</span><input placeholder="https://support.example.com" prop:value=move || support_url.get() on:input=move |event| support_url.set(event_target_value(&event)) /></label>
-    <button type="submit" disabled=!can_update>"Save changes"</button></form></section> }
+    {move || error.get().map(|value| view! { <p class="field-error full-field" role="alert">{value}</p> })}<div class="form-actions full-field"><button type="button" class="secondary-button" on:click=move |_| { site_name.set(initial_site_name.clone()); default_admin_route.set(initial_default_admin_route.clone()); tab_title.set(initial_tab_title.clone()); main_logo.set(initial_main_logo.clone()); primary_color.set(initial_primary_color.clone()); organization_name.set(initial_organization_name.clone()); organization_contacts.set(initial_organization_contacts.clone()); support_url.set(initial_support_url.clone()); error.set(None); }>"Reset unsaved changes"</button><button type="submit" disabled=move || !can_update || pending.get()>{move || if pending.get() { "Saving..." } else { "Save changes" }}</button></div></form></section> }
 }

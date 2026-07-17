@@ -795,6 +795,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
                 } else {
                     format!("user_{number:02}")
                 })?,
+                vec![server_admin_contract::AdminRoleId::from(1i64)],
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
@@ -814,18 +815,110 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
-    let audit = Vec::<server_admin_contract::AdminAuditView>::new();
+    let role_summaries = vec![server_admin_contract::AdminRoleSummary::new(
+        server_admin_contract::AdminRoleId::from(1i64),
+        server_admin_contract::AdminBool::from(false),
+        admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
+            str_constants::ADMIN_FIXTURE_ROLE_NAME,
+        ))?,
+        permission_summaries
+            .iter()
+            .map(server_admin_contract::AdminPermissionSummary::id)
+            .collect(),
+    )];
+    let audit = vec![server_admin_contract::AdminAuditView::new(
+        admin_fixture_string::<server_admin_contract::AdminText>(String::from(
+            str_constants::ADMIN_FIXTURE_AUDIT_ACTION,
+        ))?,
+        admin_fixture_string::<server_admin_contract::AdminAuditTimestamp>(String::from(
+            str_constants::ADMIN_FIXTURE_AUDIT_CREATED_AT,
+        ))?,
+        Some(
+            server_admin_contract::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
+                "field": "display_name"
+            }))
+            .map_err(|error| eprintln!("{error}"))?,
+        ),
+        server_admin_contract::AdminAuditLogId::from(1i64),
+        admin_fixture_string::<server_admin_contract::AdminText>(String::from(
+            str_constants::ADMIN_FIXTURE_AUDIT_RESOURCE,
+        ))?,
+        Some(admin_fixture_string::<server_admin_contract::AdminText>(
+            String::from(str_constants::ADMIN_FIXTURE_AUDIT_RESOURCE_ID),
+        )?),
+        server_admin_contract::AdminBool::from(true),
+        Some(server_admin_contract::AdminUserId::from(25i64)),
+        Some(admin_fixture_string::<server_admin_contract::AdminLogin>(
+            String::from(str_constants::ADMIN_FIXTURE_ALPHA_LOGIN),
+        )?),
+    )];
+    let sessions = vec![
+        server_admin_contract::AdminSessionView::new(
+            admin_fixture_string::<server_admin_contract::AdminSessionTimestamp>(String::from(
+                str_constants::ADMIN_FIXTURE_SESSION_CREATED_AT,
+            ))?,
+            admin_fixture_string::<server_admin_contract::AdminSessionTimestamp>(String::from(
+                str_constants::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+            ))?,
+            admin_fixture_string::<server_admin_contract::AdminSessionIdentifier>(String::from(
+                str_constants::ADMIN_FIXTURE_SESSION_ID,
+            ))?,
+            server_admin_contract::AdminBool::from(true),
+        ),
+        server_admin_contract::AdminSessionView::new(
+            admin_fixture_string::<server_admin_contract::AdminSessionTimestamp>(String::from(
+                str_constants::ADMIN_FIXTURE_SESSION_CREATED_AT,
+            ))?,
+            admin_fixture_string::<server_admin_contract::AdminSessionTimestamp>(String::from(
+                str_constants::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
+            ))?,
+            admin_fixture_string::<server_admin_contract::AdminSessionIdentifier>(String::from(
+                str_constants::ADMIN_FIXTURE_SECOND_SESSION_ID,
+            ))?,
+            server_admin_contract::AdminBool::from(false),
+        ),
+    ];
     let authenticated_admin_json = serde_json::to_value(&authenticated_admin).map_err(|error| {
         eprintln!("{error}");
     })?;
-    let users_json = serde_json::to_value(&users).map_err(|error| {
+    let user_total = u64::try_from(users.len()).map_err(|error| eprintln!("{error}"))?;
+    let users_page = server_admin_contract::AdminUsersPage::new(
+        users,
+        role_summaries.clone(),
+        server_admin_contract::AdminPageTotal::from(user_total),
+    );
+    let role_total = u64::try_from(role_summaries.len()).map_err(|error| eprintln!("{error}"))?;
+    let roles_page = server_admin_contract::AdminRolesPage::new(
+        role_summaries,
+        permission_summaries.clone(),
+        server_admin_contract::AdminPageTotal::from(role_total),
+    );
+    let permission_total =
+        u64::try_from(permission_summaries.len()).map_err(|error| eprintln!("{error}"))?;
+    let permissions_page = server_admin_contract::AdminPermissionsPage::new(
+        permission_summaries,
+        server_admin_contract::AdminPageTotal::from(permission_total),
+    );
+    let users_json = serde_json::to_value(&users_page).map_err(|error| {
         eprintln!("{error}");
     })?;
-    let permission_summaries_json =
-        serde_json::to_value(&permission_summaries).map_err(|error| {
-            eprintln!("{error}");
-        })?;
-    let audit_json = serde_json::to_value(&audit).map_err(|error| {
+    let role_summaries_json = serde_json::to_value(&roles_page).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let permission_summaries_json = serde_json::to_value(&permissions_page).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let audit_cursor = server_admin_contract::AdminAuditCursor::new(
+        admin_fixture_string::<server_admin_contract::AdminAuditTimestamp>(String::from(
+            str_constants::ADMIN_FIXTURE_AUDIT_CREATED_AT,
+        ))?,
+        server_admin_contract::AdminAuditLogId::from(1i64),
+    );
+    let audit_page = server_admin_contract::AdminAuditPage::new(audit, Some(audit_cursor));
+    let audit_json = serde_json::to_value(&audit_page).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let sessions_json = serde_json::to_value(&sessions).map_err(|error| {
         eprintln!("{error}");
     })?;
     let no_body_json =
@@ -837,8 +930,10 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         permissions,
         authenticated_admin_json,
         users_json,
+        role_summaries_json,
         permission_summaries_json,
         audit_json,
+        sessions_json,
         no_body_json,
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
             .map(frontend_contract::RouteBodyLimit::get),

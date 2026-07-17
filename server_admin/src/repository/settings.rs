@@ -64,6 +64,7 @@ pub(crate) async fn update_settings(
         site_name,
         support_url,
         tab_title,
+        clear,
     ) = request.into_parts();
     sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_SETTINGS_SQL)
         .bind(site_name.as_ref().map(AsRef::<str>::as_ref))
@@ -74,6 +75,12 @@ pub(crate) async fn update_settings(
         .bind(organization_name.as_ref().map(AsRef::<str>::as_ref))
         .bind(organization_contacts.as_ref().map(AsRef::<str>::as_ref))
         .bind(support_url.as_ref().map(AsRef::<str>::as_ref))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::TabTitle))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::MainLogo))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::PrimaryColor))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::OrganizationName))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::OrganizationContacts))
+        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::SupportUrl))
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)

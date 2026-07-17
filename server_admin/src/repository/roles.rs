@@ -52,13 +52,74 @@ pub(crate) async fn delete_role(
         .map(|value| crate::StdAdminBool::from(value.is_some()))
 }
 
-pub(crate) async fn list_roles(
+pub(crate) async fn list_role_catalog(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
 ) -> Result<Vec<server_admin_contract::AdminRoleSummary>, super::AdminRepositoryError> {
-    sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_LIST_ROLES_SQL)
+    let rows = sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_LIST_ROLES_SQL)
         .fetch_all(pool.0)
         .await
-        .map_err(crate::SqlxAdminError::from)?
+        .map_err(crate::SqlxAdminError::from)?;
+    let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
+    let links =
+        sqlx::query_as::<_, (i64, i64)>(str_constants::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL)
+            .bind(role_ids.as_slice())
+            .fetch_all(pool.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
+    let mut permission_ids_by_role =
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new();
+    links.into_iter().for_each(|(role_id, permission_id)| {
+        permission_ids_by_role.entry(role_id).or_default().push(
+            server_admin_contract::AdminPermissionId::from(permission_id),
+        );
+    });
+    rows.into_iter()
+        .map(|(id, name, is_system)| {
+            Ok(server_admin_contract::AdminRoleSummary::new(
+                server_admin_contract::AdminRoleId::from(id),
+                server_admin_contract::AdminBool::from(is_system),
+                server_admin_contract::AdminRoleName::try_from(name)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                permission_ids_by_role.remove(&id).unwrap_or_default(),
+            ))
+        })
+        .collect()
+}
+
+pub(crate) async fn list_roles(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    query: &server_admin_contract::AdminTableQuery,
+) -> Result<(Vec<server_admin_contract::AdminRoleSummary>, i64), super::AdminRepositoryError> {
+    let search = query.search().as_ref();
+    let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL)
+        .bind(search)
+        .fetch_one(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)?;
+    let rows = sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_PAGE_ROLES_SQL)
+        .bind(search)
+        .bind(query.sort().as_ref())
+        .bind(query.direction().as_str())
+        .bind(i64::from(u16::from(query.limit())))
+        .bind(i64::from(u32::from(query.offset())))
+        .fetch_all(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)?;
+    let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
+    let links =
+        sqlx::query_as::<_, (i64, i64)>(str_constants::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL)
+            .bind(role_ids.as_slice())
+            .fetch_all(pool.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
+    let mut permission_ids_by_role =
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new();
+    links.into_iter().for_each(|(role_id, permission_id)| {
+        permission_ids_by_role.entry(role_id).or_default().push(
+            server_admin_contract::AdminPermissionId::from(permission_id),
+        );
+    });
+    let items = rows
         .into_iter()
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
@@ -66,9 +127,11 @@ pub(crate) async fn list_roles(
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                permission_ids_by_role.remove(&id).unwrap_or_default(),
             ))
         })
-        .collect()
+        .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+    Ok((items, total))
 }
 
 pub(crate) async fn replace_user_roles(

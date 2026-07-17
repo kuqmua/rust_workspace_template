@@ -25,6 +25,9 @@ pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    if !query.0.cursor_is_complete() {
+        return Err(super::AdminApiError::Validation);
+    }
     let actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -43,7 +46,7 @@ pub(super) async fn query_log(
         auth.state.as_ref().policy.audit_window,
     )
     .await?;
-    let views = super::super::repository::audit::query_audit_log(
+    let page = super::super::repository::audit::query_audit_log(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
@@ -59,6 +62,83 @@ pub(super) async fn query_log(
         }
     })?;
     Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(views)),
+        axum::response::IntoResponse::into_response(axum::Json(page)),
+    ))
+}
+pub(super) async fn export_log(
+    auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<super::AdminAuditQuery>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    if !query.0.cursor_is_complete() {
+        return Err(super::AdminApiError::Validation);
+    }
+    let actor = super::authorize_generated_request(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+        super::super::AdminPermission::AuditLogExport.as_str(),
+        super::super::StdAdminBool::from(false),
+    )
+    .await?;
+    let rate_subject = super::super::StdAdminString::try_from(actor.id.0.to_string())
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    super::rate_limit::enforce_rate_limit(
+        auth.state.as_ref(),
+        super::rate_limit::AdminRateLimitScope::AuditRead,
+        &rate_subject,
+        auth.state.as_ref().policy.audit_limit,
+        auth.state.as_ref().policy.audit_window,
+    )
+    .await?;
+    let page = super::super::repository::audit::query_audit_log(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        query.0,
+    )
+    .await
+    .map_err(|error| match error {
+        super::super::repository::AdminRepositoryError::InvalidStoredValue => {
+            super::AdminApiError::Validation
+        }
+        super::super::repository::AdminRepositoryError::Sqlx(error) => {
+            super::AdminApiError::Pg(error)
+        }
+    })?;
+    let mut csv = String::from(
+        "id,created_at,user_id,user_login,action,resource,resource_id,succeeded,details\n",
+    );
+    page.items().iter().for_each(|value| {
+        let fields = [
+            value.id().to_string(),
+            value.created_at().to_string(),
+            value.user_id().map(|id| id.to_string()).unwrap_or_default(),
+            value
+                .user_login()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            value.action().to_string(),
+            value.resource().to_string(),
+            value
+                .resource_id()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            value.succeeded().to_string(),
+            value.details().map(ToString::to_string).unwrap_or_default(),
+        ];
+        csv.push_str(
+            fields
+                .map(|field| format!("\"{}\"", field.replace('"', "\"\"")))
+                .join(",")
+                .as_str(),
+        );
+        csv.push('\n');
+    });
+    let export = server_admin_contract::AdminAuditExport::new(
+        server_admin_contract::AdminAuditExportCsv::try_from(csv)
+            .map_err(|_error| super::AdminApiError::Validation)?,
+    );
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(export)),
     ))
 }

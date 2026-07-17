@@ -148,6 +148,24 @@ pub struct AdminPassword(String);
     description = "new administrator password"
 )]
 pub struct AdminNewPassword(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(max = 6, min = 6, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_digit()), description = "six digit administrator TOTP code")]
+pub struct AdminMfaCode(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(max = 19, min = 19, chars, serde, utoipa, validator = |value: &String| value.bytes().enumerate().all(|(index, byte)| if matches!(index, 4 | 9 | 14) { byte == b'-' } else { byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase() }), description = "administrator MFA recovery code")]
+pub struct AdminRecoveryCode(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(max = 64, min = 32, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_uppercase() || (b'2'..=b'7').contains(&byte)), description = "base32 TOTP enrollment secret")]
+pub struct AdminMfaSecret(String);
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(max = 2048, min = 1, chars, serde, utoipa, description = "TOTP enrollment URI")]
+pub struct AdminMfaEnrollmentUri(String);
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(tag = "kind", content = "value", rename_all = "snake_case")]
+pub enum AdminMfaProof {
+    Totp(AdminMfaCode),
+    Recovery(AdminRecoveryCode),
+}
 #[derive(
     Clone,
     Debug,
@@ -176,6 +194,8 @@ impl<'value_lt> AdminPermissionStrRef<'value_lt> {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr, utoipa::ToSchema)]
 pub enum AdminPermission {
+    #[strum(serialize = "audit_log:export")]
+    AuditLogExport,
     #[strum(serialize = "audit_log:read")]
     AuditLogRead,
     #[strum(serialize = "metrics:read")]
@@ -222,7 +242,8 @@ pub enum AdminPermission {
     UsersUpdate,
 }
 impl AdminPermission {
-    pub const ALL: [Self; 22] = [
+    pub const ALL: [Self; 23] = [
+        Self::AuditLogExport,
         Self::AuditLogRead,
         Self::MetricsRead,
         Self::OpenApiRead,
@@ -331,6 +352,7 @@ impl std::error::Error for AdminAuditDetailsTooLarge {}
     serde::Deserialize,
     utoipa::ToSchema,
     newtype::AsRefOwned,
+    newtype::Display,
     newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "serde_json::Value", into = "serde_json::Value")]
@@ -347,9 +369,26 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
         Ok(Self(value))
     }
 }
+fn is_admin_page_path(value: &str) -> bool {
+    AdminPage::from_path(AdminPagePathRef::from(value)).is_some()
+}
+fn is_https_url(value: &str) -> bool {
+    value.strip_prefix("https://").is_some_and(|remainder| {
+        let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default();
+        !authority.is_empty()
+            && !authority.contains('@')
+            && !authority.starts_with('.')
+            && !authority.ends_with('.')
+            && authority.contains('.')
+    })
+}
+fn is_rgb_hex_color(value: &str) -> bool {
+    value.len() == 7usize
+        && value.starts_with('#')
+        && value[1usize..].bytes().all(|byte| byte.is_ascii_hexdigit())
+}
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 8192, chars, serde, utoipa, validator = |value: &String| value
-    .starts_with(AdminFrontendPath::Root.get()), description = "administrator default route")]
+#[bounded_string(max = 8192, chars, serde, utoipa, validator = |value: &String| is_admin_page_path(value), description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value
@@ -359,9 +398,11 @@ pub struct AdminSiteName(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
     max = 8192,
+    min = 1,
     chars,
     serde,
     utoipa,
+    validator = |value: &String| is_https_url(value),
     description = "administrator main logo"
 )]
 pub struct AdminMainLogo(String);
@@ -386,27 +427,33 @@ pub struct AdminOrganizationName(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
     max = 8192,
+    min = 7,
     chars,
     serde,
     utoipa,
+    validator = |value: &String| is_rgb_hex_color(value),
     description = "administrator primary color"
 )]
 pub struct AdminPrimaryColor(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
     max = 8192,
+    min = 1,
     chars,
     serde,
     utoipa,
+    validator = |value: &String| is_https_url(value),
     description = "administrator support URL"
 )]
 pub struct AdminSupportUrl(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
     max = 8192,
+    min = 1,
     chars,
     serde,
     utoipa,
+    validator = |value: &String| !value.trim().is_empty(),
     description = "administrator tab title"
 )]
 pub struct AdminTabTitle(String);
@@ -552,12 +599,14 @@ pub struct AdminPermissionId(i64);
     utoipa::ToSchema,
     newtype::Display,
     newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct AdminAuditLogId(i64);
 #[derive(
     Clone,
     Copy,
     Debug,
+    Default,
     PartialEq,
     Eq,
     serde::Serialize,
@@ -568,6 +617,212 @@ pub struct AdminAuditLogId(i64);
     newtype::IntoInnerFrom,
 )]
 pub struct AdminBool(bool);
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminPageOffset(u32);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[serde(transparent)]
+pub struct AdminPageLimit(u16);
+impl Default for AdminPageLimit {
+    fn default() -> Self {
+        Self(20u16)
+    }
+}
+impl TryFrom<u16> for AdminPageLimit {
+    type Error = AdminPageLimitError;
+    fn try_from(value: u16) -> Result<Self, Self::Error> {
+        if (1u16..=100u16).contains(&value) {
+            Ok(Self(value))
+        } else {
+            Err(AdminPageLimitError)
+        }
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminPageLimit {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        u16::deserialize(deserializer)
+            .and_then(|value| Self::try_from(value).map_err(serde::de::Error::custom))
+    }
+}
+impl From<AdminPageLimit> for u16 {
+    fn from(value: AdminPageLimit) -> Self {
+        value.0
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AdminPageLimitError;
+impl std::fmt::Display for AdminPageLimitError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("administrator page limit must be between 1 and 100")
+    }
+}
+impl std::error::Error for AdminPageLimitError {}
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminPageTotal(u64);
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminOperationalCount(u64);
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::Display,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminUptimeSeconds(u64);
+
+#[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(
+    max = 128usize,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator table search"
+)]
+pub struct AdminTableSearch(String);
+
+#[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(
+    max = 32usize,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator table sort key"
+)]
+pub struct AdminTableSortKey(String);
+
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum AdminSortDirection {
+    #[default]
+    Asc,
+    Desc,
+}
+impl AdminSortDirection {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Asc => "asc",
+            Self::Desc => "desc",
+        }
+    }
+}
+
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::IntoParams,
+    utoipa::ToSchema,
+)]
+#[into_params(parameter_in = Query)]
+pub struct AdminTableQuery {
+    #[serde(default)]
+    #[param(value_type = u16, minimum = 1, maximum = 100)]
+    limit: AdminPageLimit,
+    #[serde(default)]
+    #[param(value_type = u32)]
+    offset: AdminPageOffset,
+    #[serde(default)]
+    #[param(value_type = String, max_length = 128)]
+    search: AdminTableSearch,
+    #[serde(default)]
+    #[param(value_type = String, max_length = 32)]
+    sort: AdminTableSortKey,
+    #[serde(default)]
+    #[param(value_type = String)]
+    direction: AdminSortDirection,
+}
+impl AdminTableQuery {
+    #[must_use]
+    pub const fn limit(&self) -> AdminPageLimit {
+        self.limit
+    }
+    #[must_use]
+    pub const fn offset(&self) -> AdminPageOffset {
+        self.offset
+    }
+    #[must_use]
+    pub const fn search(&self) -> &AdminTableSearch {
+        &self.search
+    }
+    #[must_use]
+    pub const fn sort(&self) -> &AdminTableSortKey {
+        &self.sort
+    }
+    #[must_use]
+    pub const fn direction(&self) -> AdminSortDirection {
+        self.direction
+    }
+}
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
@@ -625,10 +880,96 @@ impl AuthenticatedAdmin {
     pub const fn permissions(&self) -> &Vec<AdminPermissionValue> {
         &self.permissions
     }
+    #[must_use]
+    pub const fn login(&self) -> &AdminLogin {
+        &self.login
+    }
+    #[must_use]
+    pub const fn roles(&self) -> &[AdminRoleName] {
+        self.roles.as_slice()
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminSignInRes {
     user: AuthenticatedAdmin,
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminMfaStatus {
+    enabled: AdminBool,
+    recovery_codes_remaining: AdminOperationalCount,
+}
+impl AdminMfaStatus {
+    #[must_use]
+    pub const fn new(enabled: AdminBool, recovery_codes_remaining: AdminOperationalCount) -> Self {
+        Self { enabled, recovery_codes_remaining }
+    }
+    #[must_use]
+    pub const fn enabled(&self) -> AdminBool { self.enabled }
+    #[must_use]
+    pub const fn recovery_codes_remaining(&self) -> AdminOperationalCount { self.recovery_codes_remaining }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdminMfaEnrollReq { current_password: AdminPassword }
+impl AdminMfaEnrollReq {
+    #[must_use]
+    pub const fn new(current_password: AdminPassword) -> Self { Self { current_password } }
+    #[must_use]
+    pub fn into_current_password(self) -> AdminPassword { self.current_password }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminMfaEnrollRes {
+    secret: AdminMfaSecret,
+    uri: AdminMfaEnrollmentUri,
+}
+impl AdminMfaEnrollRes {
+    #[must_use]
+    pub const fn new(secret: AdminMfaSecret, uri: AdminMfaEnrollmentUri) -> Self { Self { secret, uri } }
+    #[must_use]
+    pub const fn secret(&self) -> &AdminMfaSecret { &self.secret }
+    #[must_use]
+    pub const fn uri(&self) -> &AdminMfaEnrollmentUri { &self.uri }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdminMfaConfirmReq { code: AdminMfaCode }
+impl AdminMfaConfirmReq {
+    #[must_use]
+    pub const fn new(code: AdminMfaCode) -> Self { Self { code } }
+    #[must_use]
+    pub fn into_code(self) -> AdminMfaCode { self.code }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminMfaConfirmRes { recovery_codes: Vec<AdminRecoveryCode> }
+impl AdminMfaConfirmRes {
+    #[must_use]
+    pub const fn new(recovery_codes: Vec<AdminRecoveryCode>) -> Self { Self { recovery_codes } }
+    #[must_use]
+    pub const fn recovery_codes(&self) -> &[AdminRecoveryCode] { self.recovery_codes.as_slice() }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdminMfaDisableReq {
+    current_password: AdminPassword,
+    proof: AdminMfaProof,
+}
+impl AdminMfaDisableReq {
+    #[must_use]
+    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self { Self { current_password, proof } }
+    #[must_use]
+    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) { (self.current_password, self.proof) }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdminMfaStepUpReq {
+    current_password: AdminPassword,
+    proof: AdminMfaProof,
+}
+impl AdminMfaStepUpReq {
+    #[must_use]
+    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self { Self { current_password, proof } }
+    #[must_use]
+    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) { (self.current_password, self.proof) }
 }
 impl AdminSignInRes {
     #[must_use]
@@ -707,6 +1048,35 @@ impl AdminSetUserPasswordReq {
     #[must_use]
     pub fn into_password(self) -> AdminNewPassword {
         self.password
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdminChangeOwnPasswordReq {
+    current_password: AdminPassword,
+    new_password: AdminNewPassword,
+    revoke_other_sessions: AdminBool,
+}
+impl AdminChangeOwnPasswordReq {
+    #[must_use]
+    pub const fn new(
+        current_password: AdminPassword,
+        new_password: AdminNewPassword,
+        revoke_other_sessions: AdminBool,
+    ) -> Self {
+        Self {
+            current_password,
+            new_password,
+            revoke_other_sessions,
+        }
+    }
+    #[must_use]
+    pub fn into_parts(self) -> (AdminPassword, AdminNewPassword, AdminBool) {
+        (
+            self.current_password,
+            self.new_password,
+            self.revoke_other_sessions,
+        )
     }
 }
 #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -800,6 +1170,8 @@ pub struct AdminUserSummary {
     id: AdminUserId,
     is_banned: AdminBool,
     login: AdminLogin,
+    #[serde(default)]
+    role_ids: Vec<AdminRoleId>,
 }
 impl AdminUserSummary {
     #[must_use]
@@ -808,12 +1180,14 @@ impl AdminUserSummary {
         id: AdminUserId,
         is_banned: AdminBool,
         login: AdminLogin,
+        role_ids: Vec<AdminRoleId>,
     ) -> Self {
         Self {
             display_name,
             id,
             is_banned,
             login,
+            role_ids,
         }
     }
     #[must_use]
@@ -832,20 +1206,32 @@ impl AdminUserSummary {
     pub const fn login(&self) -> &AdminLogin {
         &self.login
     }
+    #[must_use]
+    pub const fn role_ids(&self) -> &[AdminRoleId] {
+        self.role_ids.as_slice()
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminRoleSummary {
     id: AdminRoleId,
     is_system: AdminBool,
     name: AdminRoleName,
+    #[serde(default)]
+    permission_ids: Vec<AdminPermissionId>,
 }
 impl AdminRoleSummary {
     #[must_use]
-    pub const fn new(id: AdminRoleId, is_system: AdminBool, name: AdminRoleName) -> Self {
+    pub const fn new(
+        id: AdminRoleId,
+        is_system: AdminBool,
+        name: AdminRoleName,
+        permission_ids: Vec<AdminPermissionId>,
+    ) -> Self {
         Self {
             id,
             is_system,
             name,
+            permission_ids,
         }
     }
     #[must_use]
@@ -859,6 +1245,10 @@ impl AdminRoleSummary {
     #[must_use]
     pub const fn name(&self) -> &AdminRoleName {
         &self.name
+    }
+    #[must_use]
+    pub const fn permission_ids(&self) -> &[AdminPermissionId] {
+        self.permission_ids.as_slice()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -878,6 +1268,104 @@ impl AdminPermissionSummary {
     #[must_use]
     pub const fn name(&self) -> &AdminPermissionValue {
         &self.name
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminUsersPage {
+    items: Vec<AdminUserSummary>,
+    roles: Vec<AdminRoleSummary>,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
+}
+impl AdminUsersPage {
+    #[must_use]
+    pub const fn new(
+        items: Vec<AdminUserSummary>,
+        roles: Vec<AdminRoleSummary>,
+        total: AdminPageTotal,
+    ) -> Self {
+        Self {
+            items,
+            roles,
+            total,
+        }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminUserSummary] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
+    }
+    #[must_use]
+    pub const fn roles(&self) -> &[AdminRoleSummary] {
+        self.roles.as_slice()
+    }
+    #[must_use]
+    pub fn into_items(self) -> Vec<AdminUserSummary> {
+        self.items
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminRolesPage {
+    items: Vec<AdminRoleSummary>,
+    permissions: Vec<AdminPermissionSummary>,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
+}
+impl AdminRolesPage {
+    #[must_use]
+    pub const fn new(
+        items: Vec<AdminRoleSummary>,
+        permissions: Vec<AdminPermissionSummary>,
+        total: AdminPageTotal,
+    ) -> Self {
+        Self {
+            items,
+            permissions,
+            total,
+        }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminRoleSummary] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
+    }
+    #[must_use]
+    pub const fn permissions(&self) -> &[AdminPermissionSummary] {
+        self.permissions.as_slice()
+    }
+    #[must_use]
+    pub fn into_items(self) -> Vec<AdminRoleSummary> {
+        self.items
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminPermissionsPage {
+    items: Vec<AdminPermissionSummary>,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
+}
+impl AdminPermissionsPage {
+    #[must_use]
+    pub const fn new(items: Vec<AdminPermissionSummary>, total: AdminPageTotal) -> Self {
+        Self { items, total }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminPermissionSummary] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
+    }
+    #[must_use]
+    pub fn into_items(self) -> Vec<AdminPermissionSummary> {
+        self.items
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -926,8 +1414,20 @@ impl AdminAuditView {
         &self.created_at
     }
     #[must_use]
+    pub const fn details(&self) -> Option<&SerdeJsonAdminAuditDetails> {
+        self.details.as_ref()
+    }
+    #[must_use]
+    pub const fn id(&self) -> AdminAuditLogId {
+        self.id
+    }
+    #[must_use]
     pub const fn resource(&self) -> &AdminText {
         &self.resource
+    }
+    #[must_use]
+    pub const fn resource_id(&self) -> Option<&AdminText> {
+        self.resource_id.as_ref()
     }
     #[must_use]
     pub const fn succeeded(&self) -> AdminBool {
@@ -936,6 +1436,73 @@ impl AdminAuditView {
     #[must_use]
     pub const fn user_id(&self) -> Option<AdminUserId> {
         self.user_id
+    }
+    #[must_use]
+    pub const fn user_login(&self) -> Option<&AdminLogin> {
+        self.user_login.as_ref()
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminAuditCursor {
+    created_at: AdminAuditTimestamp,
+    id: AdminAuditLogId,
+}
+impl AdminAuditCursor {
+    #[must_use]
+    pub const fn new(created_at: AdminAuditTimestamp, id: AdminAuditLogId) -> Self {
+        Self { created_at, id }
+    }
+    #[must_use]
+    pub const fn created_at(&self) -> &AdminAuditTimestamp {
+        &self.created_at
+    }
+    #[must_use]
+    pub const fn id(&self) -> AdminAuditLogId {
+        self.id
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminAuditPage {
+    items: Vec<AdminAuditView>,
+    #[schema(inline)]
+    next_cursor: Option<AdminAuditCursor>,
+}
+#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)]
+#[bounded_string(
+    max = 262144usize,
+    chars,
+    serde,
+    utoipa,
+    description = "bounded administrator audit CSV export"
+)]
+pub struct AdminAuditExportCsv(String);
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminAuditExport {
+    #[schema(value_type = String, max_length = 262144)]
+    csv: AdminAuditExportCsv,
+}
+impl AdminAuditExport {
+    #[must_use]
+    pub const fn new(csv: AdminAuditExportCsv) -> Self {
+        Self { csv }
+    }
+    #[must_use]
+    pub const fn csv(&self) -> &AdminAuditExportCsv {
+        &self.csv
+    }
+}
+impl AdminAuditPage {
+    #[must_use]
+    pub const fn new(items: Vec<AdminAuditView>, next_cursor: Option<AdminAuditCursor>) -> Self {
+        Self { items, next_cursor }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminAuditView] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn next_cursor(&self) -> Option<&AdminAuditCursor> {
+        self.next_cursor.as_ref()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1006,8 +1573,109 @@ impl AdminSettingsView {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminBrandingView {
+    default_admin_route: AdminDefaultRoute,
+    main_logo: Option<AdminMainLogo>,
+    primary_color: Option<AdminPrimaryColor>,
+    site_name: AdminSiteName,
+    support_url: Option<AdminSupportUrl>,
+    tab_title: Option<AdminTabTitle>,
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminDashboardView {
+    active_sessions: AdminOperationalCount,
+    database_healthy: AdminBool,
+    failed_sign_ins_24h: AdminOperationalCount,
+    recent_changes: Vec<AdminAuditView>,
+    uptime_seconds: AdminUptimeSeconds,
+    version: AdminText,
+}
+impl AdminDashboardView {
+    #[must_use]
+    pub const fn new(
+        active_sessions: AdminOperationalCount,
+        database_healthy: AdminBool,
+        failed_sign_ins_24h: AdminOperationalCount,
+        recent_changes: Vec<AdminAuditView>,
+        uptime_seconds: AdminUptimeSeconds,
+        version: AdminText,
+    ) -> Self {
+        Self {
+            active_sessions,
+            database_healthy,
+            failed_sign_ins_24h,
+            recent_changes,
+            uptime_seconds,
+            version,
+        }
+    }
+    #[must_use]
+    pub const fn active_sessions(&self) -> AdminOperationalCount {
+        self.active_sessions
+    }
+    #[must_use]
+    pub const fn database_healthy(&self) -> AdminBool {
+        self.database_healthy
+    }
+    #[must_use]
+    pub const fn failed_sign_ins_24h(&self) -> AdminOperationalCount {
+        self.failed_sign_ins_24h
+    }
+    #[must_use]
+    pub const fn recent_changes(&self) -> &[AdminAuditView] {
+        self.recent_changes.as_slice()
+    }
+    #[must_use]
+    pub const fn uptime_seconds(&self) -> AdminUptimeSeconds {
+        self.uptime_seconds
+    }
+    #[must_use]
+    pub const fn version(&self) -> &AdminText {
+        &self.version
+    }
+}
+impl AdminBrandingView {
+    #[must_use]
+    pub fn from_settings(value: &AdminSettingsView) -> Self {
+        Self {
+            default_admin_route: value.default_admin_route.clone(),
+            main_logo: value.main_logo.clone(),
+            primary_color: value.primary_color.clone(),
+            site_name: value.site_name.clone(),
+            support_url: value.support_url.clone(),
+            tab_title: value.tab_title.clone(),
+        }
+    }
+    #[must_use]
+    pub const fn default_admin_route(&self) -> &AdminDefaultRoute {
+        &self.default_admin_route
+    }
+    #[must_use]
+    pub const fn main_logo(&self) -> Option<&AdminMainLogo> {
+        self.main_logo.as_ref()
+    }
+    #[must_use]
+    pub const fn primary_color(&self) -> Option<&AdminPrimaryColor> {
+        self.primary_color.as_ref()
+    }
+    #[must_use]
+    pub const fn site_name(&self) -> &AdminSiteName {
+        &self.site_name
+    }
+    #[must_use]
+    pub const fn support_url(&self) -> Option<&AdminSupportUrl> {
+        self.support_url.as_ref()
+    }
+    #[must_use]
+    pub const fn tab_title(&self) -> Option<&AdminTabTitle> {
+        self.tab_title.as_ref()
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateSettingsReq {
+    #[schema(max_items = 6)]
+    clear: Vec<AdminOptionalSetting>,
     default_admin_route: Option<AdminDefaultRoute>,
     main_logo: Option<AdminMainLogo>,
     organization_contacts: Option<AdminOrganizationContacts>,
@@ -1016,6 +1684,18 @@ pub struct AdminUpdateSettingsReq {
     site_name: Option<AdminSiteName>,
     support_url: Option<AdminSupportUrl>,
     tab_title: Option<AdminTabTitle>,
+}
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum AdminOptionalSetting {
+    MainLogo,
+    OrganizationContacts,
+    OrganizationName,
+    PrimaryColor,
+    SupportUrl,
+    TabTitle,
 }
 impl AdminUpdateSettingsReq {
     #[must_use]
@@ -1028,8 +1708,10 @@ impl AdminUpdateSettingsReq {
         site_name: Option<AdminSiteName>,
         support_url: Option<AdminSupportUrl>,
         tab_title: Option<AdminTabTitle>,
+        clear: Vec<AdminOptionalSetting>,
     ) -> Self {
         Self {
+            clear,
             default_admin_route,
             main_logo,
             organization_contacts,
@@ -1052,6 +1734,7 @@ impl AdminUpdateSettingsReq {
         Option<AdminSiteName>,
         Option<AdminSupportUrl>,
         Option<AdminTabTitle>,
+        Vec<AdminOptionalSetting>,
     ) {
         (
             self.default_admin_route,
@@ -1062,6 +1745,7 @@ impl AdminUpdateSettingsReq {
             self.site_name,
             self.support_url,
             self.tab_title,
+            self.clear,
         )
     }
     #[must_use]
@@ -1074,7 +1758,30 @@ impl AdminUpdateSettingsReq {
                 || self.primary_color.is_some()
                 || self.site_name.is_some()
                 || self.support_url.is_some()
-                || self.tab_title.is_some(),
+                || self.tab_title.is_some()
+                || !self.clear.is_empty(),
+        )
+    }
+    #[must_use]
+    pub fn is_valid(&self) -> AdminBool {
+        let unique = self
+            .clear
+            .iter()
+            .copied()
+            .collect::<std::collections::HashSet<_>>();
+        AdminBool::from(
+            unique.len() == self.clear.len()
+                && self.clear.len() <= 6usize
+                && !(self.main_logo.is_some() && unique.contains(&AdminOptionalSetting::MainLogo))
+                && !(self.organization_contacts.is_some()
+                    && unique.contains(&AdminOptionalSetting::OrganizationContacts))
+                && !(self.organization_name.is_some()
+                    && unique.contains(&AdminOptionalSetting::OrganizationName))
+                && !(self.primary_color.is_some()
+                    && unique.contains(&AdminOptionalSetting::PrimaryColor))
+                && !(self.support_url.is_some()
+                    && unique.contains(&AdminOptionalSetting::SupportUrl))
+                && !(self.tab_title.is_some() && unique.contains(&AdminOptionalSetting::TabTitle)),
         )
     }
 }
@@ -1131,7 +1838,7 @@ pub struct AdminNoBody;
 )]
 pub struct AdminSessionIdentifier(String);
 
-#[derive(Clone, Debug, newtype::BoundedString)]
+#[derive(Clone, Debug, newtype::BoundedString, newtype::Display)]
 #[bounded_string(
     max = 64,
     chars,
@@ -1146,6 +1853,8 @@ pub struct AdminSessionView {
     created_at: AdminSessionTimestamp,
     expires_at: AdminSessionTimestamp,
     id: AdminSessionIdentifier,
+    #[serde(default)]
+    is_current: AdminBool,
 }
 fn admin_permission_requirement(
     permission: AdminPermission,
@@ -1160,12 +1869,30 @@ impl AdminSessionView {
         created_at: AdminSessionTimestamp,
         expires_at: AdminSessionTimestamp,
         id: AdminSessionIdentifier,
+        is_current: AdminBool,
     ) -> Self {
         Self {
             created_at,
             expires_at,
             id,
+            is_current,
         }
+    }
+    #[must_use]
+    pub const fn created_at(&self) -> &AdminSessionTimestamp {
+        &self.created_at
+    }
+    #[must_use]
+    pub const fn expires_at(&self) -> &AdminSessionTimestamp {
+        &self.expires_at
+    }
+    #[must_use]
+    pub const fn id(&self) -> &AdminSessionIdentifier {
+        &self.id
+    }
+    #[must_use]
+    pub const fn is_current(&self) -> AdminBool {
+        self.is_current
     }
 }
 
@@ -1218,6 +1945,26 @@ pub struct AdminRefreshRoute;
 pub struct AdminMeRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "change_own_password", path = "/auth/password", request = AdminChangeOwnPasswordReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminChangeOwnPasswordRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_status", path = "/auth/mfa", request = AdminNoBody, response = AdminMfaStatus, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminMfaStatusRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_enroll", path = "/auth/mfa/enroll", request = AdminMfaEnrollReq, response = AdminMfaEnrollRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminMfaEnrollRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_confirm", path = "/auth/mfa/confirm", request = AdminMfaConfirmReq, response = AdminMfaConfirmRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminMfaConfirmRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_disable", path = "/auth/mfa", request = AdminMfaDisableReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminMfaDisableRoute;
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_step_up", path = "/auth/mfa/step-up", request = AdminMfaStepUpReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminMfaStepUpRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign-out", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSignOutRoute;
 
@@ -1234,7 +1981,7 @@ pub struct AdminRevokeSessionRoute;
 pub struct AdminRevokeAllSessionsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::UsersRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_users", path = "/users", request = AdminNoBody, response = Vec<AdminUserSummary>, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::UsersRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_users", path = "/users", request = AdminNoBody, response = AdminUsersPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListUsersRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
@@ -1262,7 +2009,7 @@ pub struct AdminSetUserBanRoute;
 pub struct AdminSetUserRolesRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::RolesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_roles", path = "/roles", request = AdminNoBody, response = Vec<AdminRoleSummary>, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::RolesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_roles", path = "/roles", request = AdminNoBody, response = AdminRolesPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListRolesRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
@@ -1282,12 +2029,24 @@ pub struct AdminDeleteRoleRoute;
 pub struct AdminSetRolePermissionsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::PermissionsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_permissions", path = "/permissions", request = AdminNoBody, response = Vec<AdminPermissionSummary>, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::PermissionsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_permissions", path = "/permissions", request = AdminNoBody, response = AdminPermissionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminListPermissionsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit-log", request = AdminNoBody, response = Vec<AdminAuditView>, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "audit_log", path = "/audit-log", request = AdminNoBody, response = AdminAuditPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminAuditLogRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::AuditLogExport), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "export_audit_log", path = "/audit-log/export", request = AdminNoBody, response = AdminAuditExport, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminAuditExportRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::PUBLIC_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Public, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "branding", path = "/branding", request = AdminNoBody, response = AdminBrandingView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::PublicTransport)]
+pub struct AdminBrandingRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::MetricsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "dashboard", path = "/dashboard", request = AdminNoBody, response = AdminDashboardView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminDashboardRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system-settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
@@ -1303,6 +2062,12 @@ pub struct AdminUpdateSettingsRoute;
     AdminSignInRoute,
     AdminRefreshRoute,
     AdminMeRoute,
+    AdminChangeOwnPasswordRoute,
+    AdminMfaStatusRoute,
+    AdminMfaEnrollRoute,
+    AdminMfaConfirmRoute,
+    AdminMfaDisableRoute,
+    AdminMfaStepUpRoute,
     AdminSignOutRoute,
     AdminSessionsRoute,
     AdminRevokeSessionRoute,
@@ -1321,6 +2086,9 @@ pub struct AdminUpdateSettingsRoute;
     AdminSetRolePermissionsRoute,
     AdminListPermissionsRoute,
     AdminAuditLogRoute,
+    AdminAuditExportRoute,
+    AdminBrandingRoute,
+    AdminDashboardRoute,
     AdminSettingsRoute,
     AdminUpdateSettingsRoute
 )]
@@ -1329,6 +2097,15 @@ pub struct AdminAuthenticationRouteFamily;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminRoute {
     Audit,
+    AuditExport,
+    Branding,
+    Dashboard,
+    ChangeOwnPassword,
+    MfaStatus,
+    MfaEnroll,
+    MfaConfirm,
+    MfaDisable,
+    MfaStepUp,
     CreateRole,
     CreateUser,
     DeleteRole(AdminRoleId),
@@ -1386,6 +2163,8 @@ pub enum AdminFrontendPath {
     Assets,
     #[strum(serialize = "/admin/audit-log")]
     Audit,
+    #[strum(serialize = "/admin/dashboard")]
+    Dashboard,
     #[strum(serialize = "/admin/metrics")]
     Metrics,
     #[strum(serialize = "/admin/openapi.json")]
@@ -1394,8 +2173,12 @@ pub enum AdminFrontendPath {
     OpenApi,
     #[strum(serialize = "/admin/permissions")]
     Permissions,
+    #[strum(serialize = "/admin/profile")]
+    Profile,
     #[strum(serialize = "/admin/roles")]
     Roles,
+    #[strum(serialize = "/admin/sessions")]
+    Sessions,
     #[strum(serialize = "/admin")]
     Root,
     #[strum(serialize = "/admin/sign-in")]
@@ -1408,12 +2191,15 @@ pub enum AdminFrontendPath {
     Version,
 }
 impl AdminFrontendPath {
-    pub const ALL_PAGES: [Self; 10] = [
+    pub const ALL_PAGES: [Self; 13] = [
         Self::Root,
         Self::SignIn,
+        Self::Dashboard,
         Self::Users,
         Self::Roles,
+        Self::Sessions,
         Self::Permissions,
+        Self::Profile,
         Self::Audit,
         Self::Settings,
         Self::Metrics,
@@ -1428,10 +2214,13 @@ impl AdminFrontendPath {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminPage {
     Audit,
+    Dashboard,
     Metrics,
     OpenApi,
     Permissions,
+    Profile,
     Roles,
+    Sessions,
     Settings,
     Users,
     Version,
@@ -1445,9 +2234,12 @@ pub enum AdminPageCapability {
 enum AdminPageTitle {
     Api,
     AuditLog,
+    Dashboard,
     Metrics,
     Permissions,
+    Profile,
     Roles,
+    Sessions,
     Settings,
     Users,
     Version,
@@ -1482,16 +2274,26 @@ impl AdminPageSpec {
         frontend_contract::ContractStr::from(match self.title {
             AdminPageTitle::Api => str_constants::API_ALT,
             AdminPageTitle::AuditLog => str_constants::AUDIT_LOG,
+            AdminPageTitle::Dashboard => str_constants::DASHBOARD,
             AdminPageTitle::Metrics => str_constants::METRICS_ALT,
             AdminPageTitle::Permissions => str_constants::PERMISSIONS,
+            AdminPageTitle::Profile => str_constants::PROFILE,
             AdminPageTitle::Roles => str_constants::ROLES,
+            AdminPageTitle::Sessions => str_constants::SESSIONS,
             AdminPageTitle::Settings => str_constants::SETTINGS,
             AdminPageTitle::Users => str_constants::USERS,
             AdminPageTitle::Version => str_constants::VERSION_ALT,
         })
     }
 }
-const ADMIN_PAGE_SPECS: [AdminPageSpec; 8] = [
+const ADMIN_PAGE_SPECS: [AdminPageSpec; 11] = [
+    AdminPageSpec {
+        capability: AdminPageCapability::Always,
+        page: AdminPage::Dashboard,
+        path: AdminFrontendPath::Dashboard,
+        route: AdminRoute::Dashboard,
+        title: AdminPageTitle::Dashboard,
+    },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Users,
@@ -1529,6 +2331,13 @@ const ADMIN_PAGE_SPECS: [AdminPageSpec; 8] = [
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
+        page: AdminPage::Sessions,
+        path: AdminFrontendPath::Sessions,
+        route: AdminRoute::Sessions,
+        title: AdminPageTitle::Sessions,
+    },
+    AdminPageSpec {
+        capability: AdminPageCapability::Always,
         page: AdminPage::Metrics,
         path: AdminFrontendPath::Metrics,
         route: AdminRoute::Metrics,
@@ -1540,6 +2349,13 @@ const ADMIN_PAGE_SPECS: [AdminPageSpec; 8] = [
         path: AdminFrontendPath::Version,
         route: AdminRoute::Version,
         title: AdminPageTitle::Version,
+    },
+    AdminPageSpec {
+        capability: AdminPageCapability::Always,
+        page: AdminPage::Profile,
+        path: AdminFrontendPath::Profile,
+        route: AdminRoute::ChangeOwnPassword,
+        title: AdminPageTitle::Profile,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Swagger,
@@ -1567,14 +2383,17 @@ impl AdminPage {
     #[must_use]
     pub const fn spec(self) -> AdminPageSpec {
         match self {
-            Self::Users => ADMIN_PAGE_SPECS[0],
-            Self::Roles => ADMIN_PAGE_SPECS[1],
-            Self::Permissions => ADMIN_PAGE_SPECS[2],
-            Self::Audit => ADMIN_PAGE_SPECS[3],
-            Self::Settings => ADMIN_PAGE_SPECS[4],
-            Self::Metrics => ADMIN_PAGE_SPECS[5],
-            Self::Version => ADMIN_PAGE_SPECS[6],
-            Self::OpenApi => ADMIN_PAGE_SPECS[7],
+            Self::Dashboard => ADMIN_PAGE_SPECS[0],
+            Self::Users => ADMIN_PAGE_SPECS[1],
+            Self::Roles => ADMIN_PAGE_SPECS[2],
+            Self::Permissions => ADMIN_PAGE_SPECS[3],
+            Self::Audit => ADMIN_PAGE_SPECS[4],
+            Self::Settings => ADMIN_PAGE_SPECS[5],
+            Self::Sessions => ADMIN_PAGE_SPECS[6],
+            Self::Metrics => ADMIN_PAGE_SPECS[7],
+            Self::Version => ADMIN_PAGE_SPECS[8],
+            Self::Profile => ADMIN_PAGE_SPECS[9],
+            Self::OpenApi => ADMIN_PAGE_SPECS[10],
         }
     }
     #[must_use]
@@ -1605,6 +2424,15 @@ impl AdminRoute {
         }
         match self {
             Self::Audit => typed_contract::<AdminAuditLogRoute>(),
+            Self::AuditExport => typed_contract::<AdminAuditExportRoute>(),
+            Self::Branding => typed_contract::<AdminBrandingRoute>(),
+            Self::Dashboard => typed_contract::<AdminDashboardRoute>(),
+            Self::ChangeOwnPassword => typed_contract::<AdminChangeOwnPasswordRoute>(),
+            Self::MfaStatus => typed_contract::<AdminMfaStatusRoute>(),
+            Self::MfaEnroll => typed_contract::<AdminMfaEnrollRoute>(),
+            Self::MfaConfirm => typed_contract::<AdminMfaConfirmRoute>(),
+            Self::MfaDisable => typed_contract::<AdminMfaDisableRoute>(),
+            Self::MfaStepUp => typed_contract::<AdminMfaStepUpRoute>(),
             Self::CreateRole => typed_contract::<AdminCreateRoleRoute>(),
             Self::CreateUser => typed_contract::<AdminCreateUserRoute>(),
             Self::DeleteRole(_) => typed_contract::<AdminDeleteRoleRoute>(),
@@ -1698,6 +2526,15 @@ impl AdminRoute {
             }
             Self::Version => String::from(str_constants::API_V1_GIT_INFO),
             value @ (Self::Audit
+            | Self::AuditExport
+            | Self::Branding
+            | Self::Dashboard
+            | Self::ChangeOwnPassword
+            | Self::MfaStatus
+            | Self::MfaEnroll
+            | Self::MfaConfirm
+            | Self::MfaDisable
+            | Self::MfaStepUp
             | Self::CreateRole
             | Self::CreateUser
             | Self::Me
@@ -1737,7 +2574,7 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 23usize);
+        assert_eq!(descriptors.len(), 27usize);
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
@@ -1771,8 +2608,17 @@ mod tests {
     }
     #[test]
     fn update_settings_reports_whether_it_contains_a_field() {
-        let empty =
-            super::AdminUpdateSettingsReq::new(None, None, None, None, None, None, None, None);
+        let empty = super::AdminUpdateSettingsReq::new(
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Vec::new(),
+        );
         assert!(!bool::from(empty.has_fields()));
         let with_site_name = super::AdminUpdateSettingsReq::new(
             None,
@@ -1785,8 +2631,23 @@ mod tests {
             ),
             None,
             None,
+            Vec::new(),
         );
         assert!(bool::from(with_site_name.has_fields()));
+        assert!(bool::from(with_site_name.is_valid()));
+        let clear_logo = super::AdminUpdateSettingsReq::new(
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            vec![super::AdminOptionalSetting::MainLogo],
+        );
+        assert!(bool::from(clear_logo.has_fields()));
+        assert!(bool::from(clear_logo.is_valid()));
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {
@@ -1945,6 +2806,16 @@ mod tests {
                 super::AdminTableSortKeyRef::from(str_constants::CREATED_AT),
             ),
             Err(super::AdminTableSortFieldTryFromKeyError)
+        );
+    }
+
+    #[test]
+    fn page_limit_rejects_zero_and_values_above_server_maximum() {
+        assert!(serde_json::from_str::<super::AdminPageLimit>("0").is_err());
+        assert!(serde_json::from_str::<super::AdminPageLimit>("101").is_err());
+        assert_eq!(
+            u16::from(serde_json::from_str::<super::AdminPageLimit>("100").expect("d4d7c99a")),
+            100u16
         );
     }
 }

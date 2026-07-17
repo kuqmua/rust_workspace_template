@@ -103,6 +103,23 @@ pub(crate) async fn update_user_password(
         .map_err(crate::SqlxAdminError::from)
         .map(|value| crate::StdAdminBool::from(value.is_some()))
 }
+pub(crate) async fn read_password_hash(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    user_id: crate::AdminUserId,
+) -> Result<Option<crate::AdminPasswordHash>, crate::SqlxAdminError> {
+    sqlx::query_scalar::<_, String>(str_constants::SERVER_ADMIN_READ_PASSWORD_HASH_SQL)
+        .bind(user_id.0)
+        .fetch_optional(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map(|value| {
+            value.map(|hash| {
+                crate::AdminPasswordHash::new(pg_types_text_misc::StringAsNonNullTextSecret::from(
+                    hash,
+                ))
+            })
+        })
+}
 
 pub(crate) async fn update_user_ban(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
@@ -132,11 +149,40 @@ pub(crate) async fn delete_user(
 
 pub(crate) async fn list_users(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
-) -> Result<Vec<server_admin_contract::AdminUserSummary>, super::AdminRepositoryError> {
-    sqlx::query_as::<_, (i64, String, String, bool)>(str_constants::SERVER_ADMIN_LIST_USERS_SQL)
+    query: &server_admin_contract::AdminTableQuery,
+) -> Result<(Vec<server_admin_contract::AdminUserSummary>, i64), super::AdminRepositoryError> {
+    let search = query.search().as_ref();
+    let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
+        .bind(search)
+        .fetch_one(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)?;
+    let rows = sqlx::query_as::<_, (i64, String, String, bool)>(
+        str_constants::SERVER_ADMIN_PAGE_USERS_SQL,
+    )
+    .bind(search)
+    .bind(query.sort().as_ref())
+    .bind(query.direction().as_str())
+    .bind(i64::from(u16::from(query.limit())))
+    .bind(i64::from(u32::from(query.offset())))
+    .fetch_all(pool.0)
+    .await
+    .map_err(crate::SqlxAdminError::from)?;
+    let user_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
+    let links = sqlx::query_as::<_, (i64, i64)>(str_constants::SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL)
+        .bind(user_ids.as_slice())
         .fetch_all(pool.0)
         .await
-        .map_err(crate::SqlxAdminError::from)?
+        .map_err(crate::SqlxAdminError::from)?;
+    let mut role_ids_by_user =
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::new();
+    links.into_iter().for_each(|(user_id, role_id)| {
+        role_ids_by_user
+            .entry(user_id)
+            .or_default()
+            .push(server_admin_contract::AdminRoleId::from(role_id));
+    });
+    let items = rows
         .into_iter()
         .map(|(id, login, display_name, is_banned)| {
             Ok(server_admin_contract::AdminUserSummary::new(
@@ -146,9 +192,11 @@ pub(crate) async fn list_users(
                 server_admin_contract::AdminBool::from(is_banned),
                 server_admin_contract::AdminLogin::try_from(login)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                role_ids_by_user.remove(&id).unwrap_or_default(),
             ))
         })
-        .collect()
+        .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+    Ok((items, total))
 }
 
 pub(crate) async fn read_authenticated_record(
