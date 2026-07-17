@@ -1,4 +1,22 @@
-# Resolved Bug Review
+# Bug List
+
+## Current status
+
+No confirmed unresolved bugs are recorded in this file.
+
+| ID | Status | Area | Bug |
+|---|---|---|---|
+| BUG-001 | Resolved | Frontend authentication | Concurrent authentication refresh could deadlock |
+| BUG-002 | Resolved | Frontend navigation | A stale response could overwrite the currently selected page |
+| BUG-003 | Resolved | Browser navigation | Back and Forward could desynchronize the URL and displayed content |
+| BUG-004 | Resolved | Authentication refresh | Refresh could consume a token before delivering its replacement |
+| BUG-005 | Resolved | Authentication refresh | Refresh-token rotation was unsafe across browser tabs |
+| BUG-006 | Resolved | Rate limiting | Users behind a reverse proxy could share one rate-limit key |
+| BUG-007 | Resolved | CORS | Required frontend headers were rejected during preflight |
+| BUG-008 | Resolved | Frontend caching | Admin HTML cleared the cache for the entire origin |
+| BUG-009 | Resolved | Shutdown | SIGTERM bypassed graceful shutdown |
+
+## Resolution details
 
 Resolution date: 2026-07-14
 
@@ -65,4 +83,3 @@ All findings from the 2026-07-14 review are resolved in the current worktree. Th
 - `cargo test -p server_admin_frontend`
 - `trunk build --release`
 - Playwright administrator navigation, history, stale-response, refresh, and layout tests
-
