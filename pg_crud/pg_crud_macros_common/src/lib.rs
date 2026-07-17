@@ -166,19 +166,10 @@ pub enum DeriveOrImpl {
     Derive,
     Impl(macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream),
 }
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, newtype::FromInner)]
 pub struct GeneratedRustTokenStreamVec(
     Vec<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>,
 );
-impl From<Vec<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>>
-    for GeneratedRustTokenStreamVec
-{
-    fn from(
-        value: Vec<macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream>,
-    ) -> Self {
-        Self(value)
-    }
-}
 impl quote::ToTokens for GeneratedRustTokenStreamVec {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         self.0
@@ -207,39 +198,24 @@ pub struct IsNullablePrefixStr(String);
 pub struct ImportSnakeCaseStr(&'static str);
 #[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]
 pub struct ImportPathStr(&'static str);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct DimensionNumber(usize);
-impl From<usize> for DimensionNumber {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 impl DimensionNumber {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct StructElsLen(usize);
-impl From<usize> for StructElsLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 impl StructElsLen {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct DeLen(usize);
-impl From<usize> for DeLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 impl DeLen {
     #[must_use]
     pub const fn get(self) -> usize {
@@ -248,13 +224,8 @@ impl DeLen {
 }
 #[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct WrapIntoBraces(bool);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, newtype::FromInner)]
 pub struct ParseTokenStreamStrings(Vec<String>);
-impl From<Vec<String>> for ParseTokenStreamStrings {
-    fn from(value: Vec<String>) -> Self {
-        Self(value)
-    }
-}
 impl ParseTokenStreamStrings {
     #[must_use]
     pub fn into_generated_vec(self, uuid: ParseErrorIdRef<'_>) -> GeneratedRustTokenStreamVec {
@@ -276,20 +247,10 @@ impl ParseTokenStreamStrings {
 pub struct ParseErrorIdRef<'lt>(&'lt str);
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct PanicUuidRef<'lt>(&'lt str);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynIdentifierTypeRefs<'lt>(&'lt [(&'lt syn::Ident, &'lt syn::Type)]);
-impl<'lt> From<&'lt [(&'lt syn::Ident, &'lt syn::Type)]> for SynIdentifierTypeRefs<'lt> {
-    fn from(value: &'lt [(&'lt syn::Ident, &'lt syn::Type)]) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynFieldRefs<'lt>(&'lt [macros_helpers::field_data::SynField]);
-impl<'lt> From<&'lt [macros_helpers::field_data::SynField]> for SynFieldRefs<'lt> {
-    fn from(value: &'lt [macros_helpers::field_data::SynField]) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, Copy, optml::Optml)]
 pub enum IsStandardNonNull {
     False,

@@ -4,13 +4,8 @@ pub enum BulkMutationOutcome {
     Succeeded,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PaginationTotal(usize);
-impl From<usize> for PaginationTotal {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum DataInvariantViolation {

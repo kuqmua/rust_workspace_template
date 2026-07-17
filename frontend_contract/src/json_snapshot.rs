@@ -1,12 +1,7 @@
 const JSON_CONTRACT_SNAPSHOT_MAX_BYTES: usize = 1_048_576usize;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct JsonContractSnapshot(String);
-impl AsRef<str> for JsonContractSnapshot {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for JsonContractSnapshot {
     type Error = JsonContractSnapshotError;
 
@@ -19,13 +14,8 @@ impl TryFrom<String> for JsonContractSnapshot {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for JsonSnapshotDynamicFieldRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum JsonContractSnapshotError {

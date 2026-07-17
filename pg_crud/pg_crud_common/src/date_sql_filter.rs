@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ChronoUtcDateTimeRef<'value_lt>(&'value_lt chrono::DateTime<chrono::Utc>);
-impl<'value_lt> From<&'value_lt chrono::DateTime<chrono::Utc>> for ChronoUtcDateTimeRef<'value_lt> {
-    fn from(value: &'value_lt chrono::DateTime<chrono::Utc>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct DateFilterBounds<'value_lt> {
@@ -30,21 +25,11 @@ impl<'value_lt> DateFilterBounds<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDateSqlBindStart(std::num::NonZeroU32);
-impl From<std::num::NonZeroU32> for StdDateSqlBindStart {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct ChronoUtcDateTimes(Vec<chrono::DateTime<chrono::Utc>>);
-impl AsRef<[chrono::DateTime<chrono::Utc>]> for ChronoUtcDateTimes {
-    fn as_ref(&self) -> &[chrono::DateTime<chrono::Utc>] {
-        self.0.as_slice()
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DateSqlFilter {

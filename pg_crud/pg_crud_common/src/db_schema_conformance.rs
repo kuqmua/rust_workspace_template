@@ -8,21 +8,11 @@ const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
 #[bounded_string(max = DB_SCHEMA_TEXT_MAX_LEN)]
 pub struct DbSchemaText(String);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::Display)]
 pub struct DbSchemaTextError(DbSchemaTextTryFromStringError);
-impl std::fmt::Display for DbSchemaTextError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct DbColumnNullable(bool);
-impl From<bool> for DbColumnNullable {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
 pub trait PgColumnSchema {
     const DATA_TYPE: &'static str;
@@ -30,26 +20,11 @@ pub trait PgColumnSchema {
     const NULLABLE: bool;
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct DbStaticSchemaText(&'static str);
-impl AsRef<str> for DbStaticSchemaText {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl From<&'static str> for DbStaticSchemaText {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct DbColumnHasServerDefault(bool);
-impl From<bool> for DbColumnHasServerDefault {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbColumnSpec {
@@ -165,29 +140,14 @@ impl DbColumnContractSnapshot {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
-impl<'value_lt> From<&'value_lt sqlx::PgPool> for SqlxPgPoolRef<'value_lt> {
-    fn from(value: &'value_lt sqlx::PgPool) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbSchemaNameRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for DbSchemaNameRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct DbTableNameRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for DbTableNameRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct DbColumnSnapshot {

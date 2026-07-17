@@ -1,10 +1,16 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::Display)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    optml::Optml,
+    newtype::Display,
+    newtype::FromInner,
+)]
 pub struct QueryPartIncrement(u64);
-impl From<u64> for QueryPartIncrement {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 impl QueryPartIncrement {
     #[must_use]
     pub const fn get(self) -> u64 {

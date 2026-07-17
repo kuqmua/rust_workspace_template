@@ -34,13 +34,8 @@ pub enum GitCommitHashError {
     #[error("Git commit hash must contain lowercase ASCII hexadecimal symbols")]
     InvalidSymbol,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct GitCommitHash(String);
-impl AsRef<str> for GitCommitHash {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for GitCommitHash {
     type Error = GitCommitHashError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

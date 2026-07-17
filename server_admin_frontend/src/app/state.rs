@@ -1,11 +1,8 @@
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, newtype::Display)]
+#[derive(
+    Clone, Debug, serde::Deserialize, serde::Serialize, newtype::Display, newtype::FromInner,
+)]
 #[serde(transparent)]
 pub(super) struct Text(pub(super) String);
-impl From<String> for Text {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
 #[derive(Clone, Debug, serde::Deserialize)]
 pub(super) struct GitInfo {
     pub(super) commit: Option<Text>,

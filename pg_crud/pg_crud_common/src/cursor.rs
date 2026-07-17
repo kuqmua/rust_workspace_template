@@ -76,17 +76,11 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
 #[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_MUST_NOT_BE_EMPTY)]
 pub struct CursorSigningKeyError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct CursorPayload(String);
 
 impl CursorPayload {
     const MAXIMUM_LENGTH: usize = 65_536usize;
-}
-
-impl AsRef<str> for CursorPayload {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
 }
 
 impl TryFrom<String> for CursorPayload {
@@ -105,17 +99,11 @@ impl TryFrom<String> for CursorPayload {
 #[error("{message}", message = str_constants::CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY)]
 pub struct CursorPayloadError;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct SignedCursor(String);
 
 impl SignedCursor {
     const MAXIMUM_LENGTH: usize = 65_536usize;
-}
-
-impl AsRef<str> for SignedCursor {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
 }
 
 impl TryFrom<String> for SignedCursor {

@@ -17,13 +17,8 @@ impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ApiUrlQueryComponentRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for ApiUrlQueryComponentRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ApiUrlBuildError {
@@ -36,7 +31,9 @@ impl std::fmt::Display for ApiUrlBuildError {
 }
 impl std::error::Error for ApiUrlBuildError {}
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::BoundedString)]
+#[derive(
+    Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom,
+)]
 #[bounded_string(max = API_URL_MAX_LEN)]
 pub struct ApiUrl(String);
 impl ApiUrl {
@@ -116,16 +113,6 @@ impl ApiUrl {
                     }
                 });
             });
-    }
-}
-impl AsRef<str> for ApiUrl {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-impl From<ApiUrl> for String {
-    fn from(value: ApiUrl) -> Self {
-        value.0
     }
 }
 

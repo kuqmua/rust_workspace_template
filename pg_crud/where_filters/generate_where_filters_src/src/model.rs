@@ -1,41 +1,11 @@
 #[derive(Clone, Copy)]
 struct BindCount(usize);
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::AsRefInner, newtype::Display, newtype::ToTokens)]
 pub(super) struct FilterSqlOperator(&'static str);
-impl AsRef<str> for FilterSqlOperator {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl std::fmt::Display for FilterSqlOperator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl quote::ToTokens for FilterSqlOperator {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::AsRefInner, newtype::ToTokens)]
 pub(super) struct FilterSqlSuffix(&'static str);
-impl AsRef<str> for FilterSqlSuffix {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl quote::ToTokens for FilterSqlSuffix {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub(super) struct FilterSpecValid(bool);
-impl From<bool> for FilterSpecValid {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 impl FilterSpecValid {
     pub(super) const fn get(self) -> bool {
         self.0

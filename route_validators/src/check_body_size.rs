@@ -23,13 +23,8 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, newtype::DerefTarget)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::DerefTarget)]
 pub struct BytesBodyBytes(bytes::Bytes);
-impl AsRef<[u8]> for BytesBodyBytes {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_ref()
-    }
-}
 #[location::errors_with_location]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
 #[location_to_schema]

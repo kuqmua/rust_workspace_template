@@ -167,15 +167,8 @@ impl<'lt> MemusageProgNameRef<'lt> {
         self.0
     }
 }
-#[derive(Clone)]
+#[derive(Clone, newtype::AsRefOwned)]
 struct QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::__private::TokenStream);
-impl AsRef<quote::__private::TokenStream>
-    for QuoteTokenStreamGeneratePgTableMeasureInputTokenStream
-{
-    fn as_ref(&self) -> &quote::__private::TokenStream {
-        &self.0
-    }
-}
 #[derive(Clone, Copy)]
 struct ToolName(&'static str);
 impl ToolName {

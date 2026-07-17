@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonFixtureRef<'fixture_lt>(&'fixture_lt str);
-impl<'fixture_lt> From<&'fixture_lt str> for JsonFixtureRef<'fixture_lt> {
-    fn from(value: &'fixture_lt str) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
 pub struct SerdeJsonError(serde_json::Error);
 #[derive(Debug, thiserror::Error)]

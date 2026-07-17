@@ -1,15 +1,5 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct StdWrittenFilePath(std::path::PathBuf);
-impl From<std::path::PathBuf> for StdWrittenFilePath {
-    fn from(value: std::path::PathBuf) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<std::path::Path> for StdWrittenFilePath {
-    fn as_ref(&self) -> &std::path::Path {
-        self.0.as_path()
-    }
-}
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]

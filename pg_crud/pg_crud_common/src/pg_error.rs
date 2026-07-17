@@ -14,14 +14,8 @@ pub enum PgErrorKind {
     Unknown,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgErrorRef<'error_lt>(&'error_lt sqlx::Error);
-
-impl<'error_lt> From<&'error_lt sqlx::Error> for SqlxPgErrorRef<'error_lt> {
-    fn from(value: &'error_lt sqlx::Error) -> Self {
-        Self(value)
-    }
-}
 
 #[must_use]
 pub fn classify_pg_error(error_ref: SqlxPgErrorRef<'_>) -> PgErrorKind {

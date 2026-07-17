@@ -38,7 +38,7 @@ impl TryFrom<String> for StdEnvVarOk {
 }
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct StdEnvVarOkRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct EnvVarNameRef<'name_lt>(&'name_lt str);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::Display)]
 pub struct EnvVarName(String);
@@ -85,7 +85,7 @@ pub enum ConfigExampleValidity {
     Invalid,
     Valid,
 }
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::AsRefInner, newtype::FromInner)]
 pub struct ConfigRustTypeName(&'static str);
 #[derive(Clone, Copy)]
 pub struct ConfigFieldDescriptor {
@@ -133,16 +133,6 @@ impl ConfigFieldDescriptor {
     #[must_use]
     pub fn validate_example(self, value: StdEnvVarOk) -> ConfigExampleValidity {
         (self.parser)(value)
-    }
-}
-impl AsRef<str> for ConfigRustTypeName {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl AsRef<str> for EnvVarNameRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
     }
 }
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;

@@ -1,15 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct StdBoundedBTreeMapLen(usize);
-impl From<usize> for StdBoundedBTreeMapLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for StdBoundedBTreeMapLen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("bounded map length exceeds limit {max}")]

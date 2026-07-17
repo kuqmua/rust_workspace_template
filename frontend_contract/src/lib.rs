@@ -112,7 +112,7 @@ pub enum NumericBound {
     None,
     Inclusive(ContractI64),
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct ContractI64(i64);
 impl ContractI64 {
     pub const I16_MAX: Self = Self(32_767i64);
@@ -121,11 +121,6 @@ impl ContractI64 {
     pub const I32_MIN: Self = Self(-2_147_483_648i64);
     pub const MAX: Self = Self(i64::MAX);
     pub const MIN: Self = Self(i64::MIN);
-}
-impl From<i64> for ContractI64 {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueExample {
@@ -233,34 +228,14 @@ impl TypeContract {
 pub trait HasTypeContract {
     const TYPE_CONTRACT: TypeContract;
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]
 pub struct FormValue(String);
-impl AsRef<str> for FormValue {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
 pub struct FormValueRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for FormValueRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<str> for FormValueRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = 65536usize)]
 pub struct FormValueError(String);
-impl std::fmt::Display for FormValueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 pub trait FormValueContract: Sized {
     fn format_form_value(&self) -> Result<FormValue, FormValueError>;
     fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueError>;
@@ -294,13 +269,8 @@ pub enum PrimaryKeyKind {
     NonPrimary,
     Primary,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct FieldOrder(usize);
-impl From<usize> for FieldOrder {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FieldVisibility {
     Hidden,
@@ -326,18 +296,8 @@ pub struct FieldContract {
     updatable: FieldCapability,
     visibility: FieldVisibility,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct FieldContracts(Vec<FieldContract>);
-impl From<Vec<FieldContract>> for FieldContracts {
-    fn from(value: Vec<FieldContract>) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[FieldContract]> for FieldContracts {
-    fn as_ref(&self) -> &[FieldContract] {
-        self.0.as_slice()
-    }
-}
 impl FieldContract {
     #[must_use]
     pub const fn new(name: ContractStr, label: ContractStr, type_contract: TypeContract) -> Self {
@@ -582,18 +542,8 @@ pub struct ActionContract {
     operation: OperationKind,
     route: RouteContract,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ActionContracts(Vec<ActionContract>);
-impl From<Vec<ActionContract>> for ActionContracts {
-    fn from(value: Vec<ActionContract>) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[ActionContract]> for ActionContracts {
-    fn as_ref(&self) -> &[ActionContract] {
-        self.0.as_slice()
-    }
-}
 impl ActionContract {
     #[must_use]
     pub const fn new(operation: OperationKind, route: RouteContract) -> Self {
@@ -629,18 +579,8 @@ pub struct RouteContract {
     path: ContractStr,
     success_status: SuccessStatus,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct RouteContracts(Vec<RouteContract>);
-impl From<Vec<RouteContract>> for RouteContracts {
-    fn from(value: Vec<RouteContract>) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[RouteContract]> for RouteContracts {
-    fn as_ref(&self) -> &[RouteContract] {
-        self.0.as_slice()
-    }
-}
 impl RouteContract {
     #[must_use]
     pub const fn new(
@@ -687,18 +627,8 @@ pub struct PageContract {
     routes: RouteContracts,
     title: ContractStr,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct TransportBody(Vec<u8>);
-impl From<Vec<u8>> for TransportBody {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
-impl AsRef<[u8]> for TransportBody {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: TransportBody,
@@ -749,47 +679,19 @@ impl TransportRequest {
         self
     }
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 255usize, min = 1usize)]
 pub struct TransportIdempotencyKey(String);
-impl AsRef<str> for TransportIdempotencyKey {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 20usize, min = 1usize)]
 pub struct TransportIfMatch(String);
-impl AsRef<str> for TransportIfMatch {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 8192usize)]
 pub struct TransportPath(String);
-impl AsRef<str> for TransportPath {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
+)]
 pub struct TransportStatus(u16);
-impl From<u16> for TransportStatus {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
-impl From<TransportStatus> for u16 {
-    fn from(value: TransportStatus) -> Self {
-        value.0
-    }
-}
-impl std::fmt::Display for TransportStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: TransportBody,
@@ -826,14 +728,9 @@ impl TransportResponse {
 pub fn decode_api_problem(body: &TransportBody) -> Option<ApiProblem> {
     serde_json::from_slice(body.as_ref()).ok()
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = 65536usize)]
 pub struct TransportError(String);
-impl std::fmt::Display for TransportError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 pub trait Transport {
     fn send(
         &self,

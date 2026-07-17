@@ -80,14 +80,8 @@ impl PgScopedForeignKey {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct PgCounterValue(u64);
-
-impl From<u64> for PgCounterValue {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PgCounterReconciliation {

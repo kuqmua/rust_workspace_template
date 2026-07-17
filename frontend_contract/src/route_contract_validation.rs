@@ -14,30 +14,14 @@ pub enum RouteContractMismatch {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 
-impl AsRef<[RouteContractMismatch]> for RouteContractMismatches {
-    fn as_ref(&self) -> &[RouteContractMismatch] {
-        self.0.as_slice()
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpContractStatus(u16);
-impl From<u16> for HttpContractStatus {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpContractBody(Vec<u8>);
-impl From<Vec<u8>> for HttpContractBody {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpContractBodyKind {

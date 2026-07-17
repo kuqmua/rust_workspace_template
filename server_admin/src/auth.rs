@@ -175,13 +175,8 @@ pub struct AdminAuthReq {
     peer: AdminPeerAddr,
     state: StdSharedAdminAuthSvcState,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct AdminPeerAddr(super::StdAdminSocketAddr);
-impl From<super::StdAdminSocketAddr> for AdminPeerAddr {
-    fn from(value: super::StdAdminSocketAddr) -> Self {
-        Self(value)
-    }
-}
 impl AdminPeerAddr {
     pub(crate) const fn socket_addr(self) -> super::StdAdminSocketAddr {
         self.0

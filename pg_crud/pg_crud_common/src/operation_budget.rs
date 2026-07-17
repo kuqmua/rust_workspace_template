@@ -1,18 +1,8 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OperationBudget(usize);
-impl From<usize> for OperationBudget {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct OperationCount(usize);
-impl From<usize> for OperationCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("operation count exceeds the deterministic budget")]

@@ -17,7 +17,7 @@ const PG_TBL_IDEMPOTENCY_ROUTE_MAX_BYTES: usize = 1024usize;
 const PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES: usize = 1_048_576usize;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyActor(String);
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct PgTableIdempotencyKey(String);
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyMethod(String);
@@ -181,11 +181,6 @@ impl TryFrom<String> for PgTableIdempotencyKey {
         } else {
             Ok(Self(value))
         }
-    }
-}
-impl AsRef<str> for PgTableIdempotencyKey {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
     }
 }
 #[must_use]

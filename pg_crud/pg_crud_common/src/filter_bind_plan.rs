@@ -1,20 +1,10 @@
 const FILTER_TEXT_MAXIMUM_BYTES: usize = 1_048_576usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgFilterBool(bool);
-impl From<bool> for PgFilterBool {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgFilterI64(i64);
-impl From<i64> for PgFilterI64 {
-    fn from(value: i64) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgFilterText(String);

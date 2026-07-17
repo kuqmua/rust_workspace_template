@@ -5,15 +5,10 @@ pub enum SqlLikeMatchMode {
     StartsWith,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for SqlLikeInputRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, newtype::AsRefStr)]
 #[serde(transparent)]
 pub struct SqlLikePattern(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -29,12 +24,6 @@ impl TryFrom<String> for SqlLikePattern {
         }
     }
 }
-impl AsRef<str> for SqlLikePattern {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
 pub fn build_sql_like_pattern(
     input: SqlLikeInputRef<'_>,
     match_mode: SqlLikeMatchMode,

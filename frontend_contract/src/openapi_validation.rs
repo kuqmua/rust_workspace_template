@@ -4,24 +4,14 @@ const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
 #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)]
 pub struct OpenApiContractText(String);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::Display)]
 pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
-impl std::fmt::Display for OpenApiContractTextError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
 #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
 pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
-impl<'value_lt> From<&'value_lt [crate::RouteMetadata]> for RuntimeRoutesRef<'value_lt> {
-    fn from(value: &'value_lt [crate::RouteMetadata]) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Debug)]
 pub enum OpenApiValidationError {
@@ -48,13 +38,8 @@ impl std::fmt::Display for OpenApiValidationError {
 }
 impl std::error::Error for OpenApiValidationError {}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OpenApiResponseStatus(u16);
-impl From<u16> for OpenApiResponseStatus {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSecurityExpectation {

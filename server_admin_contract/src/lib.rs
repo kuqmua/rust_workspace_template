@@ -298,13 +298,8 @@ impl TryFrom<&str> for AdminPermission {
 )]
 pub struct AdminAuditTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
-impl From<usize> for AdminAuditDetailsBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct AdminAuditDetailsTooLarge {
     actual_bytes: AdminAuditDetailsBytes,
@@ -329,14 +324,17 @@ impl std::fmt::Display for AdminAuditDetailsTooLarge {
     }
 }
 impl std::error::Error for AdminAuditDetailsTooLarge {}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefOwned,
+    newtype::IntoInnerFrom,
+)]
 #[serde(try_from = "serde_json::Value", into = "serde_json::Value")]
 pub struct SerdeJsonAdminAuditDetails(serde_json::Value);
-impl AsRef<serde_json::Value> for SerdeJsonAdminAuditDetails {
-    fn as_ref(&self) -> &serde_json::Value {
-        &self.0
-    }
-}
 impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
     type Error = AdminAuditDetailsTooLarge;
     fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
@@ -347,11 +345,6 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
             });
         }
         Ok(Self(value))
-    }
-}
-impl From<SerdeJsonAdminAuditDetails> for serde_json::Value {
-    fn from(value: SerdeJsonAdminAuditDetails) -> Self {
-        value.0
     }
 }
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
@@ -442,13 +435,8 @@ impl std::fmt::Display for AdminTableSortFieldTryFromKeyError {
     }
 }
 impl std::error::Error for AdminTableSortFieldTryFromKeyError {}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for AdminTableSortKeyRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 impl AdminTableSortField {
     pub const USER: [Self; 4] = [
         Self::UserLogin,
@@ -1367,7 +1355,7 @@ pub enum AdminRoute {
     Users,
     Version,
 }
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
 pub struct AdminRoutePath(Box<str>);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminRoutePathError {
@@ -1390,23 +1378,8 @@ impl TryFrom<String> for AdminRoutePath {
         }
     }
 }
-impl AsRef<str> for AdminRoutePath {
-    fn as_ref(&self) -> &str {
-        self.0.as_ref()
-    }
-}
-impl std::fmt::Display for AdminRoutePath {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
-impl<'path_lt> From<&'path_lt str> for AdminPagePathRef<'path_lt> {
-    fn from(value: &'path_lt str) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)]
 pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/assets")]

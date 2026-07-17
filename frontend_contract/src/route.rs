@@ -154,7 +154,7 @@ pub trait TypedRoute: Sized {
         None
     }
 }
-#[derive(Clone)]
+#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -162,17 +162,7 @@ impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
             .finish_non_exhaustive()
     }
 }
-impl From<utoipa::openapi::RefOr<utoipa::openapi::Schema>> for UtoipaOpenApiRouteSchema {
-    fn from(value: utoipa::openapi::RefOr<utoipa::openapi::Schema>) -> Self {
-        Self(value)
-    }
-}
-impl From<UtoipaOpenApiRouteSchema> for utoipa::openapi::RefOr<utoipa::openapi::Schema> {
-    fn from(value: UtoipaOpenApiRouteSchema) -> Self {
-        value.0
-    }
-}
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct ParameterizedRoutePath(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ParameterizedRoutePathTryFromStringError;
@@ -186,18 +176,8 @@ impl TryFrom<String> for ParameterizedRoutePath {
         }
     }
 }
-impl From<ParameterizedRoutePath> for String {
-    fn from(value: ParameterizedRoutePath) -> Self {
-        value.0
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for OpenApiSecuritySchemeRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 pub trait CoveredRoute: TypedRoute {
     fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
 }
@@ -205,17 +185,12 @@ pub trait ParameterizedRoute: TypedRoute {
     type Parameter;
     fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath;
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct RouteBodyLimit(usize);
 impl RouteBodyLimit {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0
-    }
-}
-impl From<usize> for RouteBodyLimit {
-    fn from(value: usize) -> Self {
-        Self(value)
     }
 }
 pub trait RouteFamily {

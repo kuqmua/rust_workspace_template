@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdAuthSessionInstant(std::time::Instant);
-impl From<std::time::Instant> for StdAuthSessionInstant {
-    fn from(value: std::time::Instant) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAuthSessionRefreshInterval(std::time::Duration);

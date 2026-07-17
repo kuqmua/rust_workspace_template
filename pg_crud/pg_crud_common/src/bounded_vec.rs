@@ -1,20 +1,12 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord, newtype::Display, newtype::FromInner,
+)]
 #[allow(clippy::module_name_repetitions)] // the public name remains explicit when imported outside this module
 pub struct BoundedVecLen(usize);
 impl BoundedVecLen {
     #[must_use]
     pub const fn get(self) -> usize {
         self.0
-    }
-}
-impl From<usize> for BoundedVecLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for BoundedVecLen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -36,7 +28,7 @@ pub enum BoundedVecError {
         max: BoundedVecLen,
     },
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::IntoInnerFrom)]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     #[must_use]
@@ -50,16 +42,6 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
     #[must_use]
     pub fn len(&self) -> BoundedVecLen {
         BoundedVecLen::from(self.0.len())
-    }
-}
-impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedVec<T, MIN, MAX> {
-    fn as_ref(&self) -> &[T] {
-        self.as_slice()
-    }
-}
-impl<T, const MIN: usize, const MAX: usize> From<BoundedVec<T, MIN, MAX>> for Vec<T> {
-    fn from(value: BoundedVec<T, MIN, MAX>) -> Self {
-        value.into_vec()
     }
 }
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {

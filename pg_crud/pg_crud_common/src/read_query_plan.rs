@@ -12,29 +12,14 @@ impl QuerySortOrder {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
 struct SqlSortOrderText(&'static str);
-impl AsRef<str> for SqlSortOrderText {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
-impl From<std::num::NonZeroU32> for StdReadQueryBindIndex {
-    fn from(value: std::num::NonZeroU32) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct ReadQueryPlan(crate::QueryPartFragment);
-impl From<ReadQueryPlan> for crate::QueryPartFragment {
-    fn from(value: ReadQueryPlan) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("read query plan exceeds the query fragment limit")]

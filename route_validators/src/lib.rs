@@ -4,7 +4,7 @@ pub mod hdr_val;
 #[cfg(test)]
 pub(crate) mod test_hlp;
 //todo request per second middleware
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AxumHttpStatusCode(axum::http::StatusCode);
 impl AxumHttpStatusCode {
     pub const BAD_REQUEST: Self = Self(axum::http::StatusCode::BAD_REQUEST);
@@ -13,11 +13,6 @@ impl AxumHttpStatusCode {
     #[must_use]
     pub const fn get(self) -> axum::http::StatusCode {
         self.0
-    }
-}
-impl From<axum::http::StatusCode> for AxumHttpStatusCode {
-    fn from(value: axum::http::StatusCode) -> Self {
-        Self(value)
     }
 }
 pub trait GetAxumHttpStatusCode {

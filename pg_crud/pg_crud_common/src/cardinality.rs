@@ -1,10 +1,5 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::FromInner)]
 pub struct DuplicateIdx(usize);
-impl From<usize> for DuplicateIdx {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 impl DuplicateIdx {
     #[must_use]
     pub const fn get(self) -> usize {

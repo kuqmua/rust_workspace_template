@@ -1,15 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct UniqueVecLen(usize);
-impl From<usize> for UniqueVecLen {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-impl std::fmt::Display for UniqueVecLen {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum UniqueVecError {
@@ -29,15 +19,9 @@ pub enum UniqueVecError {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, newtype::AsRefTarget)]
 #[serde(transparent)]
 pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
-impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedUniqueVec<T, MIN, MAX> {
-    fn as_ref(&self) -> &[T] {
-        self.0.as_slice()
-    }
-}
-
 impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     for BoundedUniqueVec<T, MIN, MAX>
 {

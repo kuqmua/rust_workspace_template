@@ -1,4 +1,4 @@
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::AsRefStr)]
 pub struct SqlIdentifier(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum SqlIdentifierError {
@@ -21,11 +21,6 @@ impl TryFrom<String> for SqlIdentifier {
             return Err(SqlIdentifierError::Invalid);
         }
         Ok(Self(value))
-    }
-}
-impl AsRef<str> for SqlIdentifier {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
     }
 }
 #[derive(Clone, Debug, Eq, PartialEq)]

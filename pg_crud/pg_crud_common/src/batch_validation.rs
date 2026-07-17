@@ -5,7 +5,7 @@ pub enum BatchDuplicatePolicy {
     Reject,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchProcessedItemCount(usize);
 
 impl BatchProcessedItemCount {
@@ -15,13 +15,7 @@ impl BatchProcessedItemCount {
     }
 }
 
-impl From<usize> for BatchProcessedItemCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchInvalidItemCount(usize);
 
 impl BatchInvalidItemCount {
@@ -31,25 +25,13 @@ impl BatchInvalidItemCount {
     }
 }
 
-impl From<usize> for BatchInvalidItemCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchStoppedEarly(bool);
 
 impl BatchStoppedEarly {
     #[must_use]
     pub const fn get(self) -> bool {
         self.0
-    }
-}
-
-impl From<bool> for BatchStoppedEarly {
-    fn from(value: bool) -> Self {
-        Self(value)
     }
 }
 

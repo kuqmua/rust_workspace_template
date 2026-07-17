@@ -402,13 +402,8 @@ pub struct AdminCleanupReport {
     rate_limits: AdminCleanupRows,
     refresh_tokens: AdminCleanupRows,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Display, newtype::FromInner)]
 pub struct AdminCleanupRows(u64);
-impl From<u64> for AdminCleanupRows {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 impl std::ops::Add for AdminCleanupRows {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
@@ -418,11 +413,6 @@ impl std::ops::Add for AdminCleanupRows {
 impl AdminCleanupRows {
     const fn saturating_add(self, rhs: Self) -> Self {
         Self(self.0.saturating_add(rhs.0))
-    }
-}
-impl std::fmt::Display for AdminCleanupRows {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

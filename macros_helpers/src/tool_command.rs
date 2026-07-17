@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'lt>(&'lt std::path::Path);
-impl<'lt> From<&'lt std::path::Path> for StdPathRef<'lt> {
-    fn from(value: &'lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug)]
 struct StdProcessCommand(std::process::Command);
 #[derive(Debug)]
@@ -14,67 +9,20 @@ impl From<&str> for StdOsString {
         Self(std::ffi::OsString::from(value))
     }
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolProgramRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ToolProgramRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ToolArgRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolArgsRef<'lt>(&'lt [&'lt str]);
-impl<'lt> From<&'lt [&'lt str]> for ToolArgsRef<'lt> {
-    fn from(value: &'lt [&'lt str]) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvKeyRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ToolEnvKeyRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvValueRef<'lt>(&'lt str);
-impl<'lt> From<&'lt str> for ToolEnvValueRef<'lt> {
-    fn from(value: &'lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::Display)]
 pub struct StdProcessExitStatus(std::process::ExitStatus);
-impl std::ops::Deref for StdProcessExitStatus {
-    type Target = std::process::ExitStatus;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl std::fmt::Display for StdProcessExitStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::AsRefOwned, newtype::DerefInner)]
 pub struct StdProcessOutput(std::process::Output);
-impl std::ops::Deref for StdProcessOutput {
-    type Target = std::process::Output;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl AsRef<std::process::Output> for StdProcessOutput {
-    fn as_ref(&self) -> &std::process::Output {
-        &self.0
-    }
-}
 pub struct ToolCommand {
     inner: StdProcessCommand,
     program: StdOsString,

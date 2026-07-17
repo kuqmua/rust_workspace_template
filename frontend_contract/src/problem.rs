@@ -19,26 +19,26 @@ pub enum ApiProblemKind {
     Validation,
 }
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub struct ApiProblemStatus(u16);
-impl From<u16> for ApiProblemStatus {
-    fn from(value: u16) -> Self {
-        Self(value)
-    }
-}
-impl From<ApiProblemStatus> for u16 {
-    fn from(value: ApiProblemStatus) -> Self {
-        value.0
-    }
-}
 #[derive(
     Clone,
     Debug,
     Default,
     PartialEq,
     Eq,
+    newtype::AsRefStr,
     newtype::BoundedString,
     serde::Deserialize,
     serde::Serialize,
@@ -47,11 +47,6 @@ impl From<ApiProblemStatus> for u16 {
 #[bounded_string(max = 1024usize)]
 #[serde(transparent)]
 pub struct ApiProblemDetail(String);
-impl AsRef<str> for ApiProblemDetail {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 #[derive(
     Clone,
     Debug,

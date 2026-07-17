@@ -80,23 +80,11 @@ impl AsRef<str> for ProcessArgument {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct ProcessArguments(Vec<ProcessArgument>);
 
-impl AsRef<[ProcessArgument]> for ProcessArguments {
-    fn as_ref(&self) -> &[ProcessArgument] {
-        self.0.as_slice()
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
 pub struct ProcessProgram(&'static str);
-
-impl AsRef<str> for ProcessProgram {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 
 impl ProcessCommand {
     #[must_use]

@@ -1,19 +1,9 @@
 const SANITIZED_DATABASE_TARGET_MAX_LEN: usize = 4096;
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct UrlRef<'url_lt>(&'url_lt str);
-impl<'url_lt> From<&'url_lt str> for UrlRef<'url_lt> {
-    fn from(value: &'url_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Debug, Eq, PartialEq, newtype::BoundedString)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = SANITIZED_DATABASE_TARGET_MAX_LEN)]
 pub struct SanitizedDatabaseTarget(String);
-impl std::fmt::Display for SanitizedDatabaseTarget {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Clone, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum UrlError {
     #[error("database name is not explicitly test-only: {target}")]
