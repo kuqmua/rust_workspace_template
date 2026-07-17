@@ -47,25 +47,25 @@ pub enum GitCommitHashError {
     #[error("Git commit hash must contain lowercase ASCII hexadecimal symbols")]
     InvalidSymbol,
 }
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
-pub struct GitCommitHash(String);
-impl TryFrom<String> for GitCommitHash {
-    type Error = GitCommitHashError;
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() != 40usize {
-            return Err(Self::Error::InvalidLength);
-        }
-        match text_policy::FixedLengthAsciiHexText::try_from(value) {
-            Ok(validated) => Ok(Self(validated.into_inner())),
-            Err(text_policy::FixedLengthAsciiHexTextError::InvalidLength) => {
-                Err(Self::Error::InvalidLength)
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
+#[try_from(
+    error = GitCommitHashError,
+    validator = |value: &String| if value.len() == 40usize {
+        text_policy::FixedLengthAsciiHexText::try_from(value.clone())
+            .map(|_validated| ())
+            .map_err(|error| match error {
+            text_policy::FixedLengthAsciiHexTextError::InvalidLength => {
+                GitCommitHashError::InvalidLength
             }
-            Err(text_policy::FixedLengthAsciiHexTextError::InvalidSymbol) => {
-                Err(Self::Error::InvalidSymbol)
+            text_policy::FixedLengthAsciiHexTextError::InvalidSymbol => {
+                GitCommitHashError::InvalidSymbol
             }
-        }
+        })
+    } else {
+        Err(GitCommitHashError::InvalidLength)
     }
-}
+)]
+pub struct GitCommitHash(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
