@@ -29,7 +29,13 @@ fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFronten
     let page_routes = server_admin_contract::AdminFrontendPath::ALL_PAGES
         .into_iter()
         .filter(|path| {
-            swagger_enabled.0 || *path != server_admin_contract::AdminFrontendPath::OpenApi
+            server_admin_contract::AdminPage::from_path(
+                server_admin_contract::AdminPagePathRef::from(path.get()),
+            )
+            .is_none_or(|page| {
+                page.spec().capability() == server_admin_contract::AdminPageCapability::Always
+                    || swagger_enabled.0
+            })
         })
         .fold(axum::Router::new(), |router, path| {
             router.route_service(path.get(), tower_http::services::ServeFile::new(index_path))

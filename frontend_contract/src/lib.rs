@@ -29,10 +29,11 @@ pub use problem::{
     ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, CoveredRoute, PublicTransport, RouteBodyLimit, RouteFamily,
-    RouteMetadata, RouteMethod, RouteRequest, RouteResponse, RouteTransport, TypedRoute,
-    client_request, client_route_metadata, openapi_route_metadata, server_response,
-    server_route_metadata, typed_route_path,
+    AuthenticatedTransport, CoveredRoute, ParameterizedRoute, PublicTransport, RouteBodyLimit,
+    RouteFamily, RouteMetadata, RouteMethod, RouteRequest, RouteResponse, RouteTransport,
+    TypedRoute, apply_openapi_error_contract, apply_openapi_security_contract,
+    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
+    server_response, server_route_metadata, typed_parameterized_route_path, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,
@@ -449,11 +450,15 @@ impl FieldContract {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HttpMethod {
+    Connect,
     Delete,
     Get,
+    Head,
+    Options,
     Patch,
     Post,
     Put,
+    Trace,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SuccessStatus {
@@ -461,6 +466,77 @@ pub enum SuccessStatus {
     Code201,
     Code204,
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RouteErrorStatus {
+    Authentication,
+    Authorization,
+    Conflict,
+    Internal,
+    RateLimited,
+    Validation,
+}
+impl RouteErrorStatus {
+    #[must_use]
+    pub const fn transport_status(self) -> TransportStatus {
+        TransportStatus(match self {
+            Self::Authentication => 401u16,
+            Self::Authorization => 403u16,
+            Self::Conflict => 409u16,
+            Self::Internal => 500u16,
+            Self::RateLimited => 429u16,
+            Self::Validation => 422u16,
+        })
+    }
+}
+pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const PUBLIC_REFRESH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHENTICATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHORIZED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::Authorization,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::Authorization,
+    RouteErrorStatus::Validation,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::Authorization,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::Authorization,
+    RouteErrorStatus::Conflict,
+    RouteErrorStatus::Validation,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
+pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Authentication,
+    RouteErrorStatus::Authorization,
+    RouteErrorStatus::Conflict,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
 impl SuccessStatus {
     #[must_use]
     pub const fn transport_status(self) -> TransportStatus {

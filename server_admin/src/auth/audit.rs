@@ -40,8 +40,8 @@ pub(super) async fn query_log(
         auth.state.as_ref(),
         super::rate_limit::AdminRateLimitScope::AuditRead,
         &rate_subject,
-        super::rate_limit::StdAdminRateLimitCount::from(60i64),
-        super::rate_limit::StdAdminRateLimitWindowSeconds::from(60i32),
+        auth.state.as_ref().policy.audit_limit,
+        auth.state.as_ref().policy.audit_window,
     )
     .await?;
     let action = query.0.action.map(super::super::AdminAuditAction::as_str);

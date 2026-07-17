@@ -2,14 +2,15 @@
 
 #[cfg(test)]
 mod tests {
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
     struct TestRequest;
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
     struct TestResponse;
 
     #[derive(frontend_contract::TypedRoute)]
     #[typed_route(
-        access = frontend_contract::RouteAccess::Public,
+        authentication = frontend_contract::AuthenticationRequirement::Public,
+        error_statuses = frontend_contract::PUBLIC_REFRESH_ROUTE_ERROR_STATUSES,
         method = frontend_contract::RouteMethod::Get,
         mutation = frontend_contract::RouteMutation::ReadOnly,
         obligations = &[
@@ -21,6 +22,7 @@ mod tests {
         path = str_constants::ROUTE,
         request = TestRequest,
         response = TestResponse,
+        success_status = frontend_contract::SuccessStatus::Code200,
         transport = frontend_contract::PublicTransport,
     )]
     struct TestRoute;

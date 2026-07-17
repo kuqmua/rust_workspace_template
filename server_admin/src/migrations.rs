@@ -63,16 +63,12 @@ pub(super) async fn bootstrap_admin(
     if user_exists {
         return Err(super::AdminBootstrapError::AlreadyInitialized);
     }
-    let user_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_INSERT_USER_SQL)
-        .bind(login.as_ref())
-        .bind(display_name.as_ref())
-        .bind(password_hash.0.as_ref())
-        .fetch_one(&mut *tx)
+    let user_id = super::repository::insert_user(&mut tx, &login, &display_name, &password_hash)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     let _role_link_result =
         sqlx::query(str_constants::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1)
-            .bind(user_id)
+            .bind(user_id.0)
             .execute(&mut *tx)
             .await
             .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;

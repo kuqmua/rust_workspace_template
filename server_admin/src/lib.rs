@@ -8,6 +8,7 @@ pub mod generated_tables;
 mod migrations;
 mod password;
 mod rbac;
+mod repository;
 mod token;
 pub use domain::{
     AdminAuditLogId, AdminPermissionId, AdminPermissionName, AdminRoleId, AdminUserId,
@@ -116,7 +117,11 @@ impl AdminRefreshToken {
 pub struct AdminTokenHash(SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
-    pub const fn new(value: SecrecyAdminString) -> Self {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the crate-private constructor is the invariant boundary for SHA-256 token hashes"
+    )]
+    pub(crate) const fn new(value: SecrecyAdminString) -> Self {
         Self(value)
     }
     #[must_use]
@@ -244,36 +249,12 @@ pub struct AdminUnixTokenStream(u64);
     newtype::FromInner,
 )]
 pub struct AdminSessionId(UuidAdminValue);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-)]
-#[bounded_string(max = 256, description = "administrator access token issuer")]
-pub struct AdminTokenIssuer(String);
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    newtype::BoundedString,
-    newtype::AsRefOwned,
-)]
-#[bounded_string(max = 256, description = "administrator access token audience")]
-pub struct AdminTokenAudience(String);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AdminAccessClaims {
-    aud: AdminTokenAudience,
+    aud: config_lib::AdminTokenAudience,
     exp: AdminUnixTokenStream,
     iat: AdminUnixTokenStream,
-    iss: AdminTokenIssuer,
+    iss: config_lib::AdminTokenIssuer,
     jti: AdminSessionId,
     sub: AdminUserId,
 }
@@ -284,8 +265,8 @@ impl AdminAccessClaims {
         session_id: AdminSessionId,
         issued_at: AdminUnixTokenStream,
         expires_at: AdminUnixTokenStream,
-        issuer: AdminTokenIssuer,
-        audience: AdminTokenAudience,
+        issuer: config_lib::AdminTokenIssuer,
+        audience: config_lib::AdminTokenAudience,
     ) -> Self {
         Self {
             aud: audience,
@@ -337,8 +318,8 @@ pub fn encode_access_token(
 pub fn decode_access_token(
     token: &StdAdminAccessToken,
     secret: &AdminJwtSecret,
-    issuer: &AdminTokenIssuer,
-    audience: &AdminTokenAudience,
+    issuer: &config_lib::AdminTokenIssuer,
+    audience: &config_lib::AdminTokenAudience,
 ) -> Result<AdminAccessClaims, AdminAccessTokenError> {
     token::decode_access_token(token, secret, issuer, audience)
 }
@@ -761,17 +742,18 @@ mod tests {
             )),
             super::AdminUnixTokenStream::from(1),
             super::AdminUnixTokenStream::from(4_102_444_800),
-            super::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
+            config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
                 .expect("fd6a65b0"),
-            super::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
+            config_lib::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
                 .expect("6e423e16"),
         );
         let secret = jwt_secret();
         let token = super::encode_access_token(&claims, &secret).expect("b41052bc");
-        let issuer = super::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
+        let issuer = config_lib::AdminTokenIssuer::try_from(str_constants::TEST_ISSUER.to_owned())
             .expect("5edc807f");
-        let audience = super::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
-            .expect("0c3975a1");
+        let audience =
+            config_lib::AdminTokenAudience::try_from(str_constants::TEST_AUDIENCE.to_owned())
+                .expect("0c3975a1");
         let decoded =
             super::decode_access_token(&token, &secret, &issuer, &audience).expect("0ed905ff");
         assert_eq!(decoded.user_id(), super::AdminUserId::from(7));
@@ -781,7 +763,7 @@ mod tests {
                 &token,
                 &secret,
                 &issuer,
-                &super::AdminTokenAudience::try_from(str_constants::WRONG_AUDIENCE.to_owned())
+                &config_lib::AdminTokenAudience::try_from(str_constants::WRONG_AUDIENCE.to_owned())
                     .expect("92f9c5ec"),
             )
             .expect_err(str_constants::A82438CC),

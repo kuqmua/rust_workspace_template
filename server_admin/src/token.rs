@@ -32,8 +32,8 @@ pub(super) fn encode_access_token(
 pub(super) fn decode_access_token(
     token: &super::StdAdminAccessToken,
     secret: &super::AdminJwtSecret,
-    issuer: &super::AdminTokenIssuer,
-    audience: &super::AdminTokenAudience,
+    issuer: &config_lib::AdminTokenIssuer,
+    audience: &config_lib::AdminTokenAudience,
 ) -> Result<super::AdminAccessClaims, super::AdminAccessTokenError> {
     let mut validation = jsonwebtoken::Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.set_issuer(&[issuer.as_ref()]);

@@ -799,15 +799,15 @@ str_constants_macros::define_str_constants! {
         pub(crate) SHARED_VALUES_VIEW = ["view"];
         pub(crate) SHARED_VALUES_WARN_SPAN = ["warn_span"];
         pub(crate) SHARED_VALUES_WRITELN = ["writeln"];
-        pub(crate) SHARED_VALUES_LOGIN_2 = ["Login"];
-        pub(crate) SHARED_VALUES_DISPLAY_NAME_2 = ["Display ", WORD_NAME_2];
-        pub(crate) SHARED_VALUES_STATUS_2 = ["Status"];
-        pub(crate) SHARED_VALUES_NAME_2 = [WORD_NAME];
-        pub(crate) SHARED_VALUES_SYSTEM_2 = ["System"];
-        pub(crate) SHARED_VALUES_TIME = ["Time"];
-        pub(crate) SHARED_VALUES_USER = [WORD_USER];
-        pub(crate) SHARED_VALUES_ACTION_2 = ["Action"];
-        pub(crate) SHARED_VALUES_RESOURCE_2 = ["Resource"];
+        pub SHARED_VALUES_LOGIN_2 = ["Login"];
+        pub SHARED_VALUES_DISPLAY_NAME_2 = ["Display ", WORD_NAME_2];
+        pub SHARED_VALUES_STATUS_2 = ["Status"];
+        pub SHARED_VALUES_NAME_2 = [WORD_NAME];
+        pub SHARED_VALUES_SYSTEM_2 = ["System"];
+        pub SHARED_VALUES_TIME = ["Time"];
+        pub SHARED_VALUES_USER = [WORD_USER];
+        pub SHARED_VALUES_ACTION_2 = ["Action"];
+        pub SHARED_VALUES_RESOURCE_2 = ["Resource"];
         pub(crate) SHARED_VALUES_LOCKED = ["--", WORD_LOCKED];
         pub(crate) SHARED_VALUES_CHECK_2 = ["--", WORD_CHECK_2];
         pub(crate) SHARED_VALUES_FEATURES = ["--", WORD_FEATURES];
@@ -1030,13 +1030,6 @@ str_constants_macros::define_str_constants! {
         pub RUNTIME_FORWARDED_FOR_HEADER_NAME = [WORD_X, "-", WORD_FORWARDED, "-", WORD_FOR_2];
         pub RUNTIME_REAL_IP_HEADER_NAME = [WORD_X, "-real-", WORD_IP];
         pub SERVER_ADMIN_ACCESS_COOKIE_NAME = [WORD_ADMIN_ACCESS_TOKEN];
-        pub SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL = [WORD_SELECT, " ", WORD_COUNT, "(", WORD_DISTINCT, " ", WORD_USERS_2, ".", WORD_ID, ") ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_USERS_2, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = ", WORD_USERS_2, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_ON, " ", WORD_ROLE, ".", WORD_ID, " = ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_ROLE, ".", WORD_NAME_2, " = \'", WORD_ADMIN_2, "\' ", WORD_AND, " ", WORD_USERS_2, ".", WORD_IS_BANNED, " = ", WORD_FALSE];
-        pub SERVER_ADMIN_INSERT_USER_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_USERS, " (", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, ", ", WORD_PASSWORD_HASH, ") ", WORD_VALUES, " ($1, $2, $3) ", WORD_RETURNING, " ", WORD_ID];
-        pub SERVER_ADMIN_LOCK_LAST_ADMIN_SQL = [WORD_SELECT, " pg_advisory_xact_lock(hashtext(\'admin_last_active_administrator\'))"];
-        pub SERVER_ADMIN_REVOKE_ACCESS_SESSION_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW, "() ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
-        pub SERVER_ADMIN_REVOKE_USER_ACCESS_SESSIONS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
-        pub SERVER_ADMIN_REVOKE_USER_REFRESH_TOKENS_SQL = [WORD_UPDATE, " ", WORD_ADMIN_REFRESH_TOKENS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW, "() ", WORD_WHERE, " ", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
-        pub SERVER_ADMIN_USER_IS_ADMIN_SQL = [WORD_SELECT, " ", WORD_EXISTS, " (", WORD_SELECT, " 1 ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_ON, " ", WORD_ROLE, ".", WORD_ID, " = ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_AND, " ", WORD_ROLE, ".", WORD_NAME_2, " = \'", WORD_ADMIN_2, "\')"];
         pub SERVER_ADMIN_RATE_LIMIT_AUDIT_READ = ["audit_read"];
         pub SERVER_ADMIN_RATE_LIMIT_MUTATION = ["mutation"];
         pub SERVER_ADMIN_RATE_LIMIT_REFRESH_IP = ["refresh_ip"];
@@ -3257,27 +3250,6 @@ pub const CODE_STYLE_STRING_LITERAL_MACRO_BOUNDARIES: &[&str] = &[
     WRITE_ALT,
     SHARED_VALUES_WRITELN,
 ];
-pub const ADMIN_TABLE_USER_SORTS: [(&str, &str); 4] = [
-    (LOGIN, SHARED_VALUES_LOGIN_2),
-    (DISPLAY_NAME, SHARED_VALUES_DISPLAY_NAME_2),
-    (SQL_NAMES_ID, ID),
-    (STATUS_ALT, SHARED_VALUES_STATUS_2),
-];
-pub const ADMIN_TABLE_ROLE_SORTS: [(&str, &str); 3] = [
-    (NAME, SHARED_VALUES_NAME_2),
-    (SQL_NAMES_ID, ID),
-    (SYSTEM, SHARED_VALUES_SYSTEM_2),
-];
-pub const ADMIN_TABLE_PERMISSION_SORTS: [(&str, &str); 2] =
-    [(NAME, SHARED_VALUES_NAME_2), (SQL_NAMES_ID, ID)];
-pub const ADMIN_TABLE_AUDIT_SORTS: [(&str, &str); 5] = [
-    (CREATED_AT, SHARED_VALUES_TIME),
-    (USER_ID, SHARED_VALUES_USER),
-    (ACTION, SHARED_VALUES_ACTION_2),
-    (RESOURCE, SHARED_VALUES_RESOURCE_2),
-    (SUCCEEDED, RESULT),
-];
-
 pub const WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS: [&str; 7] = [
     CLIPPY,
     SHARED_VALUES_LOCKED,

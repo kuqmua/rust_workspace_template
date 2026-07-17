@@ -384,6 +384,8 @@ impl TryFromStdEnvVarOk for HttpGzipEnabled {
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    serde::Deserialize,
+    serde::Serialize,
     newtype::BoundedString,
     newtype::AsRefOwned,
 )]
@@ -395,6 +397,8 @@ pub struct AdminTokenIssuer(String);
     PartialEq,
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
+    serde::Deserialize,
+    serde::Serialize,
     newtype::BoundedString,
     newtype::AsRefOwned,
 )]

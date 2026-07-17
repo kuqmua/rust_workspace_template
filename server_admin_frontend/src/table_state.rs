@@ -27,12 +27,12 @@ pub(crate) struct TableState {
     page: AdminFrontendTableIndex,
     page_size: AdminFrontendTableIndex,
     search: AdminFrontendTableText,
-    sort: AdminFrontendTableText,
+    sort: server_admin_contract::AdminTableSortField,
     sort_dir: SortDir,
 }
 
 impl TableState {
-    pub(crate) fn new(sort: AdminFrontendTableText) -> Self {
+    pub(crate) fn new(sort: server_admin_contract::AdminTableSortField) -> Self {
         Self {
             page: AdminFrontendTableIndex::from(0usize),
             page_size: AdminFrontendTableIndex::from(20usize),
@@ -52,8 +52,8 @@ impl TableState {
         self.page = AdminFrontendTableIndex::from(0usize);
     }
 
-    pub(crate) fn apply_sort(&mut self, value: AdminFrontendTableText) {
-        if self.sort.0 == value.0 {
+    pub(crate) fn apply_sort(&mut self, value: server_admin_contract::AdminTableSortField) {
+        if self.sort == value {
             self.sort_dir = match self.sort_dir {
                 SortDir::Asc => SortDir::Desc,
                 SortDir::Desc => SortDir::Asc,
@@ -96,8 +96,8 @@ impl TableState {
         AdminFrontendTableTextRef::from(self.search.0.as_str())
     }
 
-    pub(crate) fn sort(&self) -> AdminFrontendTableTextRef<'_> {
-        AdminFrontendTableTextRef::from(self.sort.0.as_str())
+    pub(crate) fn sort(&self) -> server_admin_contract::AdminTableSortField {
+        self.sort
     }
 
     pub(crate) fn sort_dir(&self) -> SortDir {
@@ -109,10 +109,8 @@ impl TableState {
 mod tests {
     #[test]
     fn search_and_sort_reset_paging_and_sort_toggles_direction() {
-        let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from(str_constants::LOGIN.to_owned())
-                .expect("3f98f927"),
-        );
+        let mut state =
+            super::TableState::new(server_admin_contract::AdminTableSortField::UserLogin);
         state.next(super::AdminFrontendTableIndex::from(50usize));
         assert_eq!(state.page_number().0, 2usize);
         state.apply_search(
@@ -121,25 +119,20 @@ mod tests {
         );
         assert_eq!(state.page_number().0, 1usize);
         assert_eq!(state.search().0, "root");
-        state.apply_sort(
-            super::AdminFrontendTableText::try_from(str_constants::LOGIN.to_owned())
-                .expect("7c2035b3"),
-        );
+        state.apply_sort(server_admin_contract::AdminTableSortField::UserLogin);
         assert_eq!(state.sort_dir(), super::SortDir::Desc);
-        state.apply_sort(
-            super::AdminFrontendTableText::try_from(str_constants::DISPLAY_NAME.to_owned())
-                .expect("8215b5f6"),
+        state.apply_sort(server_admin_contract::AdminTableSortField::UserDisplayName);
+        assert_eq!(
+            state.sort(),
+            server_admin_contract::AdminTableSortField::UserDisplayName
         );
-        assert_eq!(state.sort().0, "display_name");
         assert_eq!(state.sort_dir(), super::SortDir::Asc);
     }
 
     #[test]
     fn paging_is_bounded_and_page_size_is_validated() {
-        let mut state = super::TableState::new(
-            super::AdminFrontendTableText::try_from(str_constants::NAME.to_owned())
-                .expect("fe54b186"),
-        );
+        let mut state =
+            super::TableState::new(server_admin_contract::AdminTableSortField::RoleName);
         state.apply_page_size(super::AdminFrontendTableIndex::from(1usize));
         assert_eq!(
             state.end(super::AdminFrontendTableIndex::from(100usize)).0,

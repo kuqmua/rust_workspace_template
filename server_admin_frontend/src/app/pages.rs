@@ -10,7 +10,7 @@ pub(super) fn Shell(
 ) -> impl IntoView {
     let auth = Some(auth);
     let loader = super::PageLoader::new();
-    let nav = server_admin_contract::AdminPage::ALL;
+    let nav = server_admin_contract::AdminPage::all().collect::<Vec<_>>();
     let initial_path = super::path();
     let current_path = RwSignal::new(
         if initial_path == server_admin_contract::AdminFrontendPath::Root.get() {

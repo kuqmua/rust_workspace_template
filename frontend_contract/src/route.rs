@@ -35,9 +35,13 @@ impl RouteMethod {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteMetadata {
+    authentication: crate::AuthenticationRequirement,
+    error_statuses: &'static [crate::RouteErrorStatus],
     method: RouteMethod,
+    mutation: crate::RouteMutation,
     openapi_operation_id: crate::ContractStr,
     path: crate::ContractStr,
+    success_status: crate::SuccessStatus,
 }
 impl RouteMetadata {
     #[must_use]
@@ -46,10 +50,50 @@ impl RouteMetadata {
         openapi_operation_id: crate::ContractStr,
         path: crate::ContractStr,
     ) -> Self {
-        Self {
+        Self::new_with_policy(
+            crate::AuthenticationRequirement::Public,
+            &[],
             method,
+            crate::RouteMutation::ReadOnly,
             openapi_operation_id,
             path,
+            crate::SuccessStatus::Code200,
+        )
+    }
+    #[must_use]
+    pub const fn new_with_policy(
+        authentication: crate::AuthenticationRequirement,
+        error_statuses: &'static [crate::RouteErrorStatus],
+        method: RouteMethod,
+        mutation: crate::RouteMutation,
+        openapi_operation_id: crate::ContractStr,
+        path: crate::ContractStr,
+        success_status: crate::SuccessStatus,
+    ) -> Self {
+        Self {
+            authentication,
+            error_statuses,
+            method,
+            mutation,
+            openapi_operation_id,
+            path,
+            success_status,
+        }
+    }
+    #[must_use]
+    pub const fn authentication(self) -> crate::AuthenticationRequirement {
+        self.authentication
+    }
+    #[must_use]
+    pub const fn error_statuses(self) -> &'static [crate::RouteErrorStatus] {
+        self.error_statuses
+    }
+    #[must_use]
+    pub const fn access(self) -> crate::RouteAccess {
+        match self.authentication {
+            crate::AuthenticationRequirement::Public => crate::RouteAccess::Public,
+            crate::AuthenticationRequirement::Authenticated
+            | crate::AuthenticationRequirement::Permission(_) => crate::RouteAccess::Authenticated,
         }
     }
     #[must_use]
@@ -68,15 +112,54 @@ impl RouteMetadata {
     pub const fn path(self) -> crate::ContractStr {
         self.path
     }
+    #[must_use]
+    pub const fn mutation(self) -> crate::RouteMutation {
+        self.mutation
+    }
+    #[must_use]
+    pub const fn success_status(self) -> crate::SuccessStatus {
+        self.success_status
+    }
+    #[must_use]
+    pub const fn contract(self) -> crate::RouteContract {
+        crate::RouteContract::new(
+            self.authentication,
+            match self.method {
+                RouteMethod::Connect => crate::HttpMethod::Connect,
+                RouteMethod::Delete => crate::HttpMethod::Delete,
+                RouteMethod::Get => crate::HttpMethod::Get,
+                RouteMethod::Head => crate::HttpMethod::Head,
+                RouteMethod::Options => crate::HttpMethod::Options,
+                RouteMethod::Patch => crate::HttpMethod::Patch,
+                RouteMethod::Post => crate::HttpMethod::Post,
+                RouteMethod::Put => crate::HttpMethod::Put,
+                RouteMethod::Trace => crate::HttpMethod::Trace,
+            },
+            match self.mutation {
+                crate::RouteMutation::ReadOnly => crate::MutationKind::ReadOnly,
+                crate::RouteMutation::Mutating => crate::MutationKind::Mutating,
+            },
+            self.path,
+            self.success_status,
+        )
+    }
 }
 pub trait TypedRoute: Sized {
     type Request: serde::Serialize + serde::de::DeserializeOwned;
     type Response: serde::Serialize + serde::de::DeserializeOwned;
     type Transport: RouteTransport;
     fn metadata() -> RouteMetadata;
+    #[must_use]
+    fn openapi_response_schema() -> Option<utoipa::openapi::RefOr<utoipa::openapi::Schema>> {
+        None
+    }
 }
 pub trait CoveredRoute: TypedRoute {
     fn coverage_descriptor() -> crate::RouteCoverageDescriptor;
+}
+pub trait ParameterizedRoute: TypedRoute {
+    type Parameter;
+    fn path(parameter: &Self::Parameter) -> String;
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteBodyLimit(usize);
@@ -175,12 +258,100 @@ where
 {
     Route::metadata()
 }
+pub fn apply_openapi_success_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
+where
+    Route: TypedRoute,
+{
+    let metadata = Route::metadata();
+    operation
+        .responses
+        .responses
+        .retain(|status, _response| !status.starts_with('2'));
+    let status = metadata.success_status().transport_status().to_string();
+    let mut response = utoipa::openapi::response::Response::new(status.clone());
+    if metadata.success_status() != crate::SuccessStatus::Code204
+        && let Some(schema) = Route::openapi_response_schema()
+    {
+        let _previous_content = response.content.insert(
+            str_constants::APPLICATION_JSON.to_owned(),
+            utoipa::openapi::Content::new(schema),
+        );
+    }
+    let _previous_response = operation
+        .responses
+        .responses
+        .insert(status, utoipa::openapi::RefOr::T(response));
+}
+pub fn apply_openapi_security_contract<Route>(
+    operation: &mut utoipa::openapi::path::Operation,
+    authenticated_scheme: &str,
+    csrf_scheme: &str,
+) where
+    Route: TypedRoute,
+{
+    let metadata = Route::metadata();
+    operation.security = match metadata.authentication() {
+        crate::AuthenticationRequirement::Public => None,
+        crate::AuthenticationRequirement::Authenticated
+        | crate::AuthenticationRequirement::Permission(_) => {
+            let requirement = utoipa::openapi::security::SecurityRequirement::new(
+                authenticated_scheme,
+                std::iter::empty::<&str>(),
+            );
+            let complete_requirement = if metadata.mutation() == crate::RouteMutation::Mutating {
+                requirement.add(csrf_scheme, std::iter::empty::<&str>())
+            } else {
+                requirement
+            };
+            Some(vec![complete_requirement])
+        }
+    };
+}
+pub fn apply_openapi_error_contract<Route>(operation: &mut utoipa::openapi::path::Operation)
+where
+    Route: TypedRoute,
+{
+    operation
+        .responses
+        .responses
+        .retain(|status, _response| !status.starts_with('4') && !status.starts_with('5'));
+    Route::metadata()
+        .error_statuses()
+        .iter()
+        .copied()
+        .for_each(|error_status| {
+            let status = error_status.transport_status().to_string();
+            let mut response = utoipa::openapi::response::Response::new(status.clone());
+            let (_schema_name, schema) = <crate::ApiProblem as utoipa::ToSchema>::schema();
+            let _previous_content = response.content.insert(
+                str_constants::APPLICATION_JSON.to_owned(),
+                utoipa::openapi::Content::new(schema),
+            );
+            if error_status == crate::RouteErrorStatus::RateLimited {
+                let _previous_header = response.headers.insert(
+                    str_constants::RETRY_AFTER.to_owned(),
+                    utoipa::openapi::header::Header::default(),
+                );
+            }
+            let _previous_response = operation
+                .responses
+                .responses
+                .insert(status, utoipa::openapi::RefOr::T(response));
+        });
+}
 #[must_use]
 pub fn typed_route_path<Route>() -> crate::ContractStr
 where
     Route: TypedRoute,
 {
     Route::metadata().path()
+}
+#[must_use]
+pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> String
+where
+    Route: ParameterizedRoute,
+{
+    Route::path(parameter)
 }
 #[cfg(test)]
 mod tests {
