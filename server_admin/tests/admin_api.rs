@@ -1254,6 +1254,18 @@ async fn postgresql_generated_mutation_idempotency_contract() {
         .connect(database_url.as_str())
         .await
         .expect("cb6830bc");
+    let mut idempotency_test_isolation = pool.begin().await.expect("ea1d891d");
+    pg_crud_common::lock_pg_relation_resources(
+        pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
+        &pg_crud_common::PgRelationLockNamespace::try_from(str_constants::ACTOR_ATOMIC.to_owned())
+            .expect("136c5acc"),
+        &pg_crud_common::PgRelationResourceIds::try_from(vec![
+            pg_crud_common::PgRelationResourceId::from(1i64),
+        ])
+        .expect("8b0c7ae1"),
+    )
+    .await
+    .expect("508db033");
     pg_table::ensure_pg_table_idempotency_schema(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("6c338824");
@@ -1441,8 +1453,8 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     .expect("2c080f6d");
     let cleaned = pg_table::cleanup_pg_table_idempotency(
         app_state::SqlxPgPoolRef::from(&pool),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(1i64),
-        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(1i64),
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(3_600i64),
+        pg_table::PgTableIdempotencyCleanupRetentionSeconds::from(3_600i64),
         pg_table::PgTableIdempotencyCleanupBatchSize::from(2i64),
     )
     .await
@@ -1540,6 +1552,18 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         .connect(database_url.as_str())
         .await
         .expect("f6a51733");
+    let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85");
+    pg_crud_common::lock_pg_relation_resources(
+        pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
+        &pg_crud_common::PgRelationLockNamespace::try_from(str_constants::ACTOR_ATOMIC.to_owned())
+            .expect("861fe23d"),
+        &pg_crud_common::PgRelationResourceIds::try_from(vec![
+            pg_crud_common::PgRelationResourceId::from(1i64),
+        ])
+        .expect("a18f804c"),
+    )
+    .await
+    .expect("fab61374");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool))
         .await
         .expect("029cb682");
@@ -1564,7 +1588,8 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     .execute(&pool)
     .await
     .expect("f50ef817");
-    let retention = server_admin::AdminCleanupRetentionSeconds::try_from(1i64).expect("ab892fc5");
+    let retention =
+        server_admin::AdminCleanupRetentionSeconds::try_from(3_600i64).expect("ab892fc5");
     let config = server_admin::AdminCleanupCfg::new(
         server_admin::AdminCleanupBatchSize::try_from(2i64).expect("1d97b31c"),
         retention,
