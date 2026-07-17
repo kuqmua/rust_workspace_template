@@ -235,10 +235,13 @@ fn mk_api_routes(
                 std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
             ))
             .nest(
-                str_constants::ADMIN_PAGE_PATHS_ROOT,
+                server_admin_contract::AdminFrontendPath::Root.get(),
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
             )
-            .nest(str_constants::ADMIN_PAGE_PATHS_ROOT, secured_admin_routes),
+            .nest(
+                server_admin_contract::AdminFrontendPath::Root.get(),
+                secured_admin_routes,
+            ),
     )
 }
 #[allow(clippy::single_call_fn)] // keeps state creation shape reusable and type-stable in one place

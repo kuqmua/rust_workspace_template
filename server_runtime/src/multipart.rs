@@ -293,16 +293,15 @@ pub struct StoragePathSegmentError;
 impl TryFrom<String> for StoragePathSegment {
     type Error = StoragePathSegmentError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > 1024usize
-            || value.is_empty()
-            || !value
-                .bytes()
-                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
-        {
-            Err(StoragePathSegmentError)
-        } else {
-            Ok(Self(value))
+        if value.len() > 1024usize {
+            return Err(StoragePathSegmentError);
         }
+        text_policy::validate_url_safe_token_part(
+            text_policy::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::UrlSafeTokenPartMaximumBytes::from(1024usize),
+        )
+        .map_err(|_error| StoragePathSegmentError)?;
+        Ok(Self(value))
     }
 }
 impl AsRef<str> for StoragePathSegment {

@@ -40,6 +40,8 @@ mod tests {
     }
     const STRING_VALUE_MAX_LEN: usize = 1_048_576;
     const DESCRIBED_VALUE_MAX_LEN: usize = 2;
+    const VALIDATE_LOWERCASE_ASCII: fn(&str) -> bool =
+        |value| value.bytes().all(|byte| byte.is_ascii_lowercase());
     #[derive(
         Debug,
         Clone,
@@ -84,7 +86,7 @@ mod tests {
     #[bounded_string(max = 3usize, min = 1usize, chars, nul_free, serde, trim, utoipa)]
     struct RichValue(String);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
-    #[bounded_string(max = 3usize, validator = validate_lowercase_ascii)]
+    #[bounded_string(max = 3usize, validator = VALIDATE_LOWERCASE_ASCII)]
     struct ValidatedValue(String);
     #[derive(
         Debug, Clone, newtype::Display, newtype::FromInner, newtype::IntoInner, newtype::ToTokens,
@@ -127,9 +129,6 @@ mod tests {
         } else {
             Ok(())
         }
-    }
-    fn validate_lowercase_ascii(value: &str) -> bool {
-        value.bytes().all(|byte| byte.is_ascii_lowercase())
     }
     #[allow(dead_code)]
     fn dependency_markers(

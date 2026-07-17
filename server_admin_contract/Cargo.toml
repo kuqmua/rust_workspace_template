@@ -17,6 +17,8 @@ frontend_contract = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+strum_macros = { workspace = true }
+text_policy = { workspace = true }
 utoipa = { workspace = true }
 
 [lints]

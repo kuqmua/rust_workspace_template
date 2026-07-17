@@ -1,3 +1,12 @@
+//! Reusable messages, test text, macro diagnostics, and technical string fragments.
+//!
+//! Domain values are owned by typed APIs: administrator routes and frontend paths by
+//! `server_admin_contract` route/path types, permissions by `AdminPermission`, configuration keys
+//! by `server_config::Config` fields interpreted by `TryFromEnv`, and table column names by the
+//! generated table descriptors. The remaining `ENV_NAMES_*` constants support infrastructure and
+//! conformance tests; `SQL_NAMES_ID` is a documented generic SQL-protocol token validated through
+//! `pg_crud_common::PgSqlIdentifier`, not an application-schema declaration.
+
 str_constants_macros::define_str_constants! {
     fragments {
         WORD_A = "A";
@@ -333,6 +342,7 @@ str_constants_macros::define_str_constants! {
         WORD_LIBMEMUSAGE = "libmemusage";
         WORD_LIMIT = "LIMIT";
         WORD_LIMITED = "limited";
+        WORD_LIMITED_PASSWORD = "Limited-pass1";
         WORD_LIMITED_USER = "limited_user";
         WORD_LIMIT_2 = "limit";
         WORD_LINK = "link";
@@ -1021,7 +1031,6 @@ str_constants_macros::define_str_constants! {
         pub RUNTIME_REAL_IP_HEADER_NAME = [WORD_X, "-real-", WORD_IP];
         pub SERVER_ADMIN_ACCESS_COOKIE_NAME = [WORD_ADMIN_ACCESS_TOKEN];
         pub SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL = [WORD_SELECT, " ", WORD_COUNT, "(", WORD_DISTINCT, " ", WORD_USERS_2, ".", WORD_ID, ") ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_USERS_2, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = ", WORD_USERS_2, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_ON, " ", WORD_ROLE, ".", WORD_ID, " = ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_ROLE, ".", WORD_NAME_2, " = \'", WORD_ADMIN_2, "\' ", WORD_AND, " ", WORD_USERS_2, ".", WORD_IS_BANNED, " = ", WORD_FALSE];
-        pub SERVER_ADMIN_API_PREFIX = ["/", WORD_API_2, "/", WORD_V1, "/", WORD_ADMIN_2];
         pub SERVER_ADMIN_INSERT_USER_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_ADMIN_USERS, " (", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, ", ", WORD_PASSWORD_HASH, ") ", WORD_VALUES, " ($1, $2, $3) ", WORD_RETURNING, " ", WORD_ID];
         pub SERVER_ADMIN_LOCK_LAST_ADMIN_SQL = [WORD_SELECT, " pg_advisory_xact_lock(hashtext(\'admin_last_active_administrator\'))"];
         pub SERVER_ADMIN_REVOKE_ACCESS_SESSION_SQL = [WORD_UPDATE, " ", WORD_ADMIN_ACCESS_SESSIONS, " ", WORD_SET, " ", WORD_REVOKED_AT, " = ", WORD_NOW, "() ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_USER_ID, " = $2 ", WORD_AND, " ", WORD_REVOKED_AT, " ", WORD_IS, " ", WORD_NULL];
@@ -3040,8 +3049,8 @@ str_constants_macros::define_str_constants! {
         pub LOGIN_ALT = ["{\"", WORD_LOGIN, "\":"];
         pub LOGIN_ADMIN_PASSWORD_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_PASSWORD, "\"}"];
         pub LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_SECRET_2, "\",\"", WORD_UNKNOWN, "\":", WORD_TRUE_2, "}"];
-        pub LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_DISPLAY_NAME, "\":\"Limited ", WORD_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED, "-", WORD_PASSWORD, "\"}"];
-        pub LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED, "-", WORD_PASSWORD, "\"}"];
+        pub LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_DISPLAY_NAME, "\":\"Limited ", WORD_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
+        pub LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
         pub LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"locked_user\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
         pub LOGIN_ROOT_ADMIN_PASSWORD_CORRECT_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ROOT_ADMIN, "\",\"", WORD_PASSWORD, "\":\"", WORD_CORRECT, "-", WORD_PASSWORD, "\"}"];
         pub LOGIN_ROOT_ADMIN_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ROOT_ADMIN, "\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
@@ -3120,57 +3129,6 @@ str_constants_macros::define_str_constants! {
         pub COMMON_ROUTES_HEALTH_CHECK = ["/health_check"];
         pub COMMON_ROUTES_HEALTH_LIVE = ["/", WORD_HEALTH, "/live"];
         pub COMMON_ROUTES_HEALTH_READY = ["/", WORD_HEALTH, "/ready"];
-        pub ADMIN_API_PATHS_AUDIT = ["/", WORD_AUDIT_2, "-", WORD_LOG];
-        pub ADMIN_API_PATHS_AUTH_ME = ["/", WORD_AUTH, "/", WORD_ME];
-        pub ADMIN_API_PATHS_AUTH_REFRESH = ["/", WORD_AUTH, "/", WORD_REFRESH];
-        pub ADMIN_API_PATHS_AUTH_SESSION = ["/", WORD_AUTH, "/", WORD_SESSIONS, "/{session_id}"];
-        pub ADMIN_API_PATHS_AUTH_SESSIONS = ["/", WORD_AUTH, "/", WORD_SESSIONS];
-        pub ADMIN_API_PATHS_AUTH_SIGN_IN = ["/", WORD_AUTH, "/", WORD_SIGN, "-", WORD_IN_2];
-        pub ADMIN_API_PATHS_AUTH_SIGN_OUT = ["/", WORD_AUTH, "/", WORD_SIGN, "-", WORD_OUT];
-        pub ADMIN_API_PATHS_PERMISSIONS = ["/", WORD_PERMISSIONS_2];
-        pub ADMIN_API_PATHS_ROLE = ["/", WORD_ROLES_2, "/{", WORD_ROLE_ID, "}"];
-        pub ADMIN_API_PATHS_ROLE_PERMISSIONS = ["/", WORD_ROLES_2, "/{", WORD_ROLE_ID, "}/", WORD_PERMISSIONS_2];
-        pub ADMIN_API_PATHS_ROLES = ["/", WORD_ROLES_2];
-        pub ADMIN_API_PATHS_SETTINGS = ["/", WORD_SYSTEM, "-", WORD_SETTINGS_2];
-        pub ADMIN_API_PATHS_USER = ["/", WORD_USERS_2, "/{", WORD_USER_ID, "}"];
-        pub ADMIN_API_PATHS_USER_BAN = ["/", WORD_USERS_2, "/{", WORD_USER_ID, "}/ban"];
-        pub ADMIN_API_PATHS_USER_PASSWORD = ["/", WORD_USERS_2, "/{", WORD_USER_ID, "}/", WORD_PASSWORD];
-        pub ADMIN_API_PATHS_USER_ROLES = ["/", WORD_USERS_2, "/{", WORD_USER_ID, "}/", WORD_ROLES_2];
-        pub ADMIN_API_PATHS_USERS = ["/", WORD_USERS_2];
-        pub ADMIN_PAGE_PATHS_ASSETS = ["/", WORD_ADMIN_2, "/assets"];
-        pub ADMIN_PAGE_PATHS_AUDIT = ["/", WORD_ADMIN_2, "/", WORD_AUDIT_2, "-", WORD_LOG];
-        pub ADMIN_PAGE_PATHS_METRICS = ["/", WORD_ADMIN_2, "/", WORD_METRICS_2];
-        pub ADMIN_PAGE_PATHS_OPEN_API = ["/", WORD_ADMIN_2, "/", WORD_SWAGGER, "-", WORD_UI];
-        pub ADMIN_PAGE_PATHS_OPEN_API_DOCUMENT = ["/", WORD_ADMIN_2, "/", WORD_OPENAPI, ".", WORD_JSON];
-        pub ADMIN_PAGE_PATHS_PERMISSIONS = ["/", WORD_ADMIN_2, "/", WORD_PERMISSIONS_2];
-        pub ADMIN_PAGE_PATHS_ROLES = ["/", WORD_ADMIN_2, "/", WORD_ROLES_2];
-        pub ADMIN_PAGE_PATHS_ROOT = ["/", WORD_ADMIN_2];
-        pub ADMIN_PAGE_PATHS_SETTINGS = ["/", WORD_ADMIN_2, "/", WORD_SYSTEM, "-", WORD_SETTINGS_2];
-        pub ADMIN_PAGE_PATHS_SIGN_IN = ["/", WORD_ADMIN_2, "/", WORD_SIGN, "-", WORD_IN_2];
-        pub ADMIN_PAGE_PATHS_USERS = ["/", WORD_ADMIN_2, "/", WORD_USERS_2];
-        pub ADMIN_PAGE_PATHS_VERSION = ["/", WORD_ADMIN_2, "/", WORD_VERSION];
-        pub ADMIN_PERMISSION_VALUES_AUDIT_LOG_READ = [WORD_AUDIT_LOG, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_METRICS_READ = [WORD_METRICS_2, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_OPEN_API_READ = [WORD_OPENAPI, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_PERMISSIONS_READ = [WORD_PERMISSIONS_2, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_CREATE = [WORD_ROLE_PERMISSIONS, ":", WORD_CREATE_2];
-        pub ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_DELETE = [WORD_ROLE_PERMISSIONS, ":", WORD_DELETE_2];
-        pub ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_READ = [WORD_ROLE_PERMISSIONS, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_ROLE_PERMISSIONS_UPDATE = [WORD_ROLE_PERMISSIONS, ":", WORD_UPDATE_2];
-        pub ADMIN_PERMISSION_VALUES_ROLES_CREATE = [WORD_ROLES_2, ":", WORD_CREATE_2];
-        pub ADMIN_PERMISSION_VALUES_ROLES_DELETE = [WORD_ROLES_2, ":", WORD_DELETE_2];
-        pub ADMIN_PERMISSION_VALUES_ROLES_READ = [WORD_ROLES_2, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_ROLES_UPDATE = [WORD_ROLES_2, ":", WORD_UPDATE_2];
-        pub ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_READ = [WORD_SYSTEM_SETTINGS, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_SYSTEM_SETTINGS_UPDATE = [WORD_SYSTEM_SETTINGS, ":", WORD_UPDATE_2];
-        pub ADMIN_PERMISSION_VALUES_USER_ROLES_CREATE = [WORD_USER_ROLES, ":", WORD_CREATE_2];
-        pub ADMIN_PERMISSION_VALUES_USER_ROLES_DELETE = [WORD_USER_ROLES, ":", WORD_DELETE_2];
-        pub ADMIN_PERMISSION_VALUES_USER_ROLES_READ = [WORD_USER_ROLES, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_USER_ROLES_UPDATE = [WORD_USER_ROLES, ":", WORD_UPDATE_2];
-        pub ADMIN_PERMISSION_VALUES_USERS_CREATE = [WORD_USERS_2, ":", WORD_CREATE_2];
-        pub ADMIN_PERMISSION_VALUES_USERS_DELETE = [WORD_USERS_2, ":", WORD_DELETE_2];
-        pub ADMIN_PERMISSION_VALUES_USERS_READ = [WORD_USERS_2, ":", WORD_READ];
-        pub ADMIN_PERMISSION_VALUES_USERS_UPDATE = [WORD_USERS_2, ":", WORD_UPDATE_2];
         pub CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CREATE_SCHEMA_ADMIN_MIGRATION_UPGRADE_TEST = [WORD_CREATE, " ", WORD_SCHEMA, " ", WORD_ADMIN_MIGRATION_FRESH_TEST, "; ", WORD_CREATE, " ", WORD_SCHEMA, " ", WORD_ADMIN_MIGRATION_UPGRADE_TEST];
         pub TRUNCATE_ADMIN_ACCESS_SESSIONS_ADMIN_REFRESH_TOKENS_ADMIN_LOGIN_ATTEMPTS_ADMIN_RATE = [WORD_TRUNCATE, " ", WORD_ADMIN_ACCESS_SESSIONS, ", ", WORD_ADMIN_REFRESH_TOKENS, ", ", WORD_ADMIN_LOGIN_ATTEMPTS, ", ", WORD_ADMIN_RATE_LIMITS, ", ", WORD_ADMIN_AUDIT_LOG, ", ", WORD_PG_TABLE_IDEMPOTENCY];
         pub NEWLINE_STRUCT_HELPERSTATE_NEWLINE_NAMES_VEC_STRING_NEWLINE_SEEN_STD_PATH_COLLECTIONS = ["\n", WORD_STRUCT, " HelperState {\n    ", WORD_NAMES, ": ", WORD_VEC, "<", WORD_STRING, ">,\n    seen: ", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_BTREESET, "<", WORD_STRING, ">,\n    refs: ", WORD_OPTION, "<", WORD_STD, "::", WORD_COLLECTIONS, "::", WORD_HASHSET, "<&\'", WORD_STATIC, " ", WORD_STR, ">>,\n    wrapped: ", WORD_TYPES, "::", WORD_SOURCETEXTLIST, ",\n}\n", WORD_STRUCT, " ", WORD_SOURCETEXTLIST, "(", WORD_VEC, "<", WORD_STRING, ">);\n"];
@@ -3219,19 +3177,6 @@ pub const MACRO_CLIPPY_CARGO_TEST_LIB_ARGS: [&str; 2] = [TEST_ALT_3, SHARED_VALU
 
 pub const PG_CRUD_SERDE_BETWEEN_FIELDS: &[&str] = &[PG_CRUD_START_FIELD, PG_CRUD_END_FIELD];
 pub const PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[PG_CRUD_OPERATOR_FIELD, PG_CRUD_V_FIELD];
-
-pub const ADMIN_PAGE_PATHS_ALL: [&str; 10] = [
-    ADMIN_PAGE_PATHS_ROOT,
-    ADMIN_PAGE_PATHS_SIGN_IN,
-    ADMIN_PAGE_PATHS_USERS,
-    ADMIN_PAGE_PATHS_ROLES,
-    ADMIN_PAGE_PATHS_PERMISSIONS,
-    ADMIN_PAGE_PATHS_AUDIT,
-    ADMIN_PAGE_PATHS_SETTINGS,
-    ADMIN_PAGE_PATHS_METRICS,
-    ADMIN_PAGE_PATHS_VERSION,
-    ADMIN_PAGE_PATHS_OPEN_API,
-];
 
 pub const CODE_STYLE_CLIPPY_LINT_EXCEPTIONS: [&str; 22] = [
     SHARED_VALUES_DISALLOWED_FIELDS,
@@ -3493,6 +3438,7 @@ pub const TEST_PROXY_PREFIX: &str = "safe";
 pub const TEST_PROXY_USERS_PATH: &str = "safe/users";
 pub const TEST_BEARER_AUTHORIZATION: &str = "Bearer secret";
 pub const TEST_STRONG_PASSWORD: &str = "Strong-pass1";
+pub const TEST_PASSWORD_WITH_WHITESPACE: &str = "Strong pass1";
 pub const HTTP_NORMALIZED_IDENTIFIER_SEGMENT: &str = ":id";
 pub const HTTP_NORMALIZED_UUID_SEGMENT: &str = ":uuid";
 pub const TEST_DYNAMIC_IDENTIFIER_PATH: &str =
@@ -3645,12 +3591,27 @@ pub const TYPED_ROUTE_REQUIRES_TRANSPORT: &str = "typed_route requires transport
 pub const TYPED_ROUTE_METHOD_MUST_BE_STANDARD_HTTP_METHOD: &str =
     "typed_route method must be a standard HTTP method path";
 pub const ROUTE_FAMILY_BODY_LIMIT: &str = "route_family_body_limit";
+pub const OPENAPI_REQUEST_BODY_MAXIMUM_BYTES_PREFIX: &str =
+    "maximum encoded request body size in bytes: ";
+pub const OPENAPI_REQUEST_BODY_DESCRIPTION_POINTER: &str = "/requestBody/description";
 pub const RECONCILE_ADMIN_PERMISSIONS_SQL: &str =
     "insert into admin_permissions (name) select unnest($1::text[]) on conflict (name) do nothing";
 pub const RECONCILE_ADMIN_ROLE_PERMISSIONS_SQL: &str = "insert into admin_role_permissions (role_id, permission_id) select admin_roles.id, admin_permissions.id from admin_roles cross join admin_permissions where admin_roles.name = 'admin' on conflict (role_id, permission_id) do nothing";
 pub const DELETE_ADMIN_PERMISSION_BY_NAME: &str = "delete from admin_permissions where name = $1";
 pub const SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME: &str =
     "select name from admin_permissions order by name";
+pub const ADMIN_FIXTURE_ALPHA_DISPLAY_NAME: &str = "Alpha Operator";
+pub const ADMIN_FIXTURE_ALPHA_LOGIN: &str = "alpha";
+pub const ADMIN_FIXTURE_ROLE_NAME: &str = "administrator";
+pub const ADMIN_PERMISSIONS_ALT: &str = "admin permissions";
+pub const VALUE_5FA1C6E2: &str = "5fa1c6e2";
+pub const VALUE_B78D42A9: &str = "b78d42a9";
+pub const ROUTE_REGISTRY_REQUIRES_BINDING: &str = "route_registry requires a route binding";
+pub const ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE: &str =
+    "route_registry requires #[openapi(...)]";
+pub const ROUTE_REGISTRY_REQUIRES_STATE: &str = "route_registry requires state = Type";
+pub const OPENAPI: &str = "openapi";
+pub const STATE: &str = "state";
 pub const TYPED_ROUTE_DERIVE_REQUIRES_ATTRIBUTE: &str = "TypedRoute requires #[typed_route(...)]";
 pub const APPLICATION_JSON_FIELD: &str = "content";
 pub const COLUMN_DEFAULT: &str = "column_default";
@@ -3664,7 +3625,7 @@ pub const DB_CONSTRAINT_FOREIGN_KEY: &str = "FOREIGN KEY";
 pub const DB_CONSTRAINT_PRIMARY_KEY: &str = "PRIMARY KEY";
 pub const DB_CONSTRAINT_UNIQUE: &str = "UNIQUE";
 pub const DB_SCHEMA_COLUMN_QUERY: &str = "select column_name, data_type, is_nullable, column_default from information_schema.columns where table_schema = $1 and table_name = $2";
-pub const DB_SCHEMA_COLUMN_CONTRACT_QUERY: &str = "select column_name, udt_name as data_type, is_nullable, column_default is not null as has_server_default from information_schema.columns where table_schema = $1 and table_name = $2";
+pub const DB_SCHEMA_COLUMN_CONTRACT_QUERY: &str = "select column_name, udt_name as data_type, is_nullable, column_default is not null or is_identity = 'YES' as has_server_default from information_schema.columns where table_schema = $1 and table_name = $2";
 pub const HAS_SERVER_DEFAULT: &str = "has_server_default";
 pub const GENERATE_PG_TABLE_DB_DEFAULT: &str = "generate_pg_table_db_default";
 pub const DB_SCHEMA_CONSTRAINT_QUERY: &str = "select constraint_name, constraint_type, pg_get_constraintdef(pc.oid) as definition from information_schema.table_constraints tc join pg_namespace pn on pn.nspname = tc.constraint_schema join pg_constraint pc on pc.conname = tc.constraint_name and pc.connamespace = pn.oid where tc.table_schema = $1 and tc.table_name = $2";
@@ -3685,6 +3646,25 @@ pub const TRIGGER: &str = "trigger";
 pub const VIEW: &str = "view";
 pub const DB_SCHEMA_INDEX_QUERY: &str =
     "select indexname, indexdef from pg_indexes where schemaname = $1 and tablename = $2";
+pub const DB_SCHEMA_KEY_CONTRACT_QUERY: &str = "select c.contype::text as constraint_type, array(select a.attname from unnest(c.conkey) with ordinality as key(attnum, ord) join pg_attribute a on a.attrelid = c.conrelid and a.attnum = key.attnum order by key.ord) as columns, referenced.relname as referenced_table, case when c.contype = 'f' then array(select a.attname from unnest(c.confkey) with ordinality as key(attnum, ord) join pg_attribute a on a.attrelid = c.confrelid and a.attnum = key.attnum order by key.ord) else array[]::text[] end as referenced_columns from pg_constraint c join pg_class relation on relation.oid = c.conrelid join pg_namespace namespace on namespace.oid = relation.relnamespace left join pg_class referenced on referenced.oid = c.confrelid where namespace.nspname = $1 and relation.relname = $2 and c.contype in ('p', 'u', 'f')";
+pub const DB_CONSTRAINT_FOREIGN_KEY_SHORT: &str = "f";
+pub const DB_CONSTRAINT_PRIMARY_KEY_SHORT: &str = "p";
+pub const DB_CONSTRAINT_UNIQUE_SHORT: &str = "u";
+pub const COLUMNS: &str = "columns";
+pub const REFERENCED_COLUMNS: &str = "referenced_columns";
+pub const REFERENCED_TABLE: &str = "referenced_table";
+pub const INSERT_ADMIN_USER_POLICY_PROBE: &str =
+    "insert into admin_users (login, display_name, password_hash) values ($1, $2, $3)";
+pub const INSERT_ADMIN_ROLE_POLICY_PROBE: &str = "insert into admin_roles (name) values ($1)";
+pub const SSOT_DISPLAY_NAME_PADDED: &str = " SSOT User ";
+pub const SSOT_DISPLAY_NAME_VALID: &str = "SSOT User";
+pub const SSOT_LOGIN_INVALID_CASE: &str = "SSOT.User";
+pub const SSOT_LOGIN_VALID: &str = "ssot.user-1";
+pub const SSOT_ROLE_INVALID_CASE: &str = "SSOT_role";
+pub const SSOT_ROLE_VALID: &str = "ssot_role";
+pub const DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API: &str =
+    "domain route, permission, and operation values must be declared by their owning typed API";
+pub const VALUE_6B7E02A4: &str = "6b7e02a4";
 pub const DOT_DOT: &str = "..";
 pub const GET_LOWERCASE: &str = "get";
 pub const HEAD: &str = "HEAD";
@@ -3803,29 +3783,6 @@ pub const ROUTE_FAMILY: &str = "route_family";
 pub const ROUTE_FAMILY_DERIVE_REQUIRES_ATTRIBUTE: &str =
     "RouteFamily derive requires #[route_family(...)]";
 pub const ROUTE_FAMILY_REQUIRES_ROUTE: &str = "RouteFamily requires at least one route";
-pub const ADMIN_OPERATION_ME: &str = "me";
-pub const ADMIN_OPERATION_REFRESH: &str = "refresh";
-pub const ADMIN_OPERATION_SIGN_IN: &str = "sign_in";
-pub const ADMIN_OPERATION_AUDIT_LOG: &str = "audit_log";
-pub const ADMIN_OPERATION_CREATE_ROLE: &str = "create_role";
-pub const ADMIN_OPERATION_CREATE_USER: &str = "create_user";
-pub const ADMIN_OPERATION_DELETE_ROLE: &str = "delete_role";
-pub const ADMIN_OPERATION_DELETE_USER: &str = "delete_user";
-pub const ADMIN_OPERATION_LIST_PERMISSIONS: &str = "list_permissions";
-pub const ADMIN_OPERATION_LIST_ROLES: &str = "list_roles";
-pub const ADMIN_OPERATION_LIST_USERS: &str = "list_users";
-pub const ADMIN_OPERATION_REVOKE_ALL_SESSIONS: &str = "revoke_all_sessions";
-pub const ADMIN_OPERATION_REVOKE_SESSION: &str = "revoke_session";
-pub const ADMIN_OPERATION_SESSIONS: &str = "sessions";
-pub const ADMIN_OPERATION_SETTINGS: &str = "settings";
-pub const ADMIN_OPERATION_SET_ROLE_PERMISSIONS: &str = "set_role_permissions";
-pub const ADMIN_OPERATION_SET_USER_BAN: &str = "set_user_ban";
-pub const ADMIN_OPERATION_SET_USER_PASSWORD: &str = "set_user_password";
-pub const ADMIN_OPERATION_SET_USER_ROLES: &str = "set_user_roles";
-pub const ADMIN_OPERATION_SIGN_OUT: &str = "sign_out";
-pub const ADMIN_OPERATION_UPDATE_ROLE: &str = "update_role";
-pub const ADMIN_OPERATION_UPDATE_SETTINGS: &str = "update_settings";
-pub const ADMIN_OPERATION_UPDATE_USER: &str = "update_user";
 pub const ADMIN_OPENAPI_ME_OPERATION_ID_POINTER: &str = "/paths/~1auth~1me/get/operationId";
 pub const ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER: &str =
     "/paths/~1auth~1refresh/post/operationId";

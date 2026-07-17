@@ -66,6 +66,11 @@ impl std::fmt::Debug for AdminUsers {
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
+    "db_foreign_keys": [
+        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "admin_users"},
+        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "admin_roles"}
+    ],
+    "db_unique_keys": [["user_id", "role_id"]],
     "permission_prefix": "user_roles",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
@@ -103,6 +108,11 @@ pub struct AdminUserRoles {
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
+    "db_foreign_keys": [
+        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "admin_roles"},
+        {"columns": ["permission_id"], "referenced_columns": ["id"], "referenced_table": "admin_permissions"}
+    ],
+    "db_unique_keys": [["role_id", "permission_id"]],
     "permission_prefix": "role_permissions",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
@@ -140,6 +150,7 @@ pub struct AdminRolePermissions {
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at", "updated_at"],
+    "db_unique_keys": [["name"]],
     "permission_prefix": "roles",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
@@ -181,6 +192,7 @@ pub struct AdminRoles {
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "create_exclude_fields": ["created_at"],
+    "db_unique_keys": [["name"]],
     "permission_prefix": "permissions",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",

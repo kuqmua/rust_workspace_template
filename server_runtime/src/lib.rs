@@ -26,7 +26,6 @@ mod multipart;
 mod notification;
 mod origin;
 mod outbound_url;
-mod password_policy;
 mod path_policy;
 mod pg_rate_limit;
 mod redacted_url;
@@ -39,7 +38,6 @@ mod secure_cookie;
 mod service_bootstrap;
 mod single_flight;
 mod source_selection;
-mod text_policy;
 mod wire_token;
 pub use background_job::BackgroundJob;
 pub use batched_cleanup::{
@@ -150,10 +148,6 @@ pub use outbound_url::{
     OutboundUrlError, OutboundUrlPolicy, OutboundUrlScheme, OutboundUrlTextRef, ReqwestOutboundUrl,
     StdOutboundIpAddr,
 };
-pub use password_policy::{
-    PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
-    PasswordTextRef, validate_password_policy,
-};
 pub use path_policy::{
     HttpAllowedPathPrefixRef, HttpNormalizedPath, HttpNormalizedPathError, HttpProxyPath,
     HttpProxyPathError, HttpProxyPathPrefixMatch, HttpProxyPathRef, HttpRequestPathRef,
@@ -205,6 +199,10 @@ pub use text_policy::{
     BoundedTextPolicyError, FixedLengthAsciiHexText, FixedLengthAsciiHexTextError,
     NonEmptyTrimmedText, RequiredNulFreeBoundedText, UrlSafeTokenPartText,
     UrlSafeTokenPartTextError,
+};
+pub use text_policy::{
+    PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
+    PasswordTextRef, validate_password_policy,
 };
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
 #[derive(Debug)]

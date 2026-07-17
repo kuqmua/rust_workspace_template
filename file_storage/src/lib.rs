@@ -68,16 +68,15 @@ pub struct StdStorageOperationId(String);
 impl TryFrom<String> for StdStorageOperationId {
     type Error = FileStoragePathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let valid = !value.is_empty()
-            && value.len() <= MAXIMUM_OPERATION_ID_BYTES
-            && value
-                .bytes()
-                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'));
-        if valid {
-            Ok(Self(value))
-        } else {
-            Err(FileStoragePathError::OperationIdInvalid)
+        if value.len() > MAXIMUM_OPERATION_ID_BYTES {
+            return Err(FileStoragePathError::OperationIdInvalid);
         }
+        text_policy::validate_url_safe_token_part(
+            text_policy::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::UrlSafeTokenPartMaximumBytes::from(MAXIMUM_OPERATION_ID_BYTES),
+        )
+        .map_err(|_error| FileStoragePathError::OperationIdInvalid)?;
+        Ok(Self(value))
     }
 }
 

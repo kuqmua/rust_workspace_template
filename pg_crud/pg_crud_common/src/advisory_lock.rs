@@ -34,14 +34,14 @@ pub struct PgRelationLockNamespace(String);
 impl TryFrom<String> for PgRelationLockNamespace {
     type Error = PgRelationLockError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty()
-            || value.len() > 128usize
-            || !value
-                .bytes()
-                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
-        {
+        if value.len() > 128usize {
             return Err(PgRelationLockError::InvalidNamespace);
         }
+        text_policy::validate_url_safe_token_part(
+            text_policy::UrlSafeTokenPartRef::from(value.as_str()),
+            text_policy::UrlSafeTokenPartMaximumBytes::from(128usize),
+        )
+        .map_err(|_error| PgRelationLockError::InvalidNamespace)?;
         Ok(Self(value))
     }
 }

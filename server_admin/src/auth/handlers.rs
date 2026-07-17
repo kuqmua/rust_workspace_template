@@ -526,7 +526,7 @@ pub(super) async fn update_settings(
     let route_is_valid = default_admin_route.as_ref().is_none_or(|value| {
         value
             .as_ref()
-            .starts_with(str_constants::ADMIN_PAGE_PATHS_ROOT)
+            .starts_with(server_admin_contract::AdminFrontendPath::Root.get())
     });
     if !has_field || !site_name_is_valid || !route_is_valid {
         return Err(super::AdminApiError::Validation);
@@ -593,7 +593,7 @@ pub(super) async fn create_user(
         .map_err(|_error| super::AdminApiError::Validation)?;
     let login = super::super::AdminLogin::try_from(contract_login.into_inner())
         .map_err(|_error| super::AdminApiError::Validation)?;
-    let password = super::admin_new_password_from_contract(contract_password)?;
+    let password = super::admin_new_password_from_contract(contract_password);
     let password_hash = auth
         .state
         .as_ref()
@@ -698,7 +698,7 @@ pub(super) async fn set_user_password(
     request: super::AxumAdminJson<server_admin_contract::AdminSetUserPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let actor = super::authorize_custom(&auth, super::super::AdminPermission::UsersUpdate).await?;
-    let password = super::admin_new_password_from_contract(request.0.into_password())?;
+    let password = super::admin_new_password_from_contract(request.0.into_password());
     let password_hash = auth
         .state
         .as_ref()

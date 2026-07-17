@@ -19,8 +19,8 @@ pub enum RouteMethod {
 }
 impl RouteMethod {
     #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
+    pub fn as_str(self) -> crate::ContractStr {
+        crate::ContractStr::from(match self {
             Self::Connect => str_constants::CONNECT,
             Self::Delete => str_constants::DELETE,
             Self::Get => str_constants::GET,
@@ -30,7 +30,7 @@ impl RouteMethod {
             Self::Post => str_constants::POST,
             Self::Put => str_constants::PUT,
             Self::Trace => str_constants::TRACE,
-        }
+        })
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -54,7 +54,7 @@ impl RouteMetadata {
     }
     #[must_use]
     pub fn method(self) -> crate::ContractStr {
-        crate::ContractStr::from(self.method.as_str())
+        self.method.as_str()
     }
     #[must_use]
     pub const fn route_method(self) -> RouteMethod {

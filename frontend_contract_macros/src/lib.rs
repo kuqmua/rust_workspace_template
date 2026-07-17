@@ -1,3 +1,7 @@
+#![allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
+)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
     fn from(value: syn::Expr) -> Self {
@@ -20,6 +24,204 @@ struct TypedRouteArgs {
     request: SynType,
     response: SynType,
     transport: SynType,
+}
+
+struct RouteRegistryBinding {
+    handler: SynRouteRegistryHandler,
+    route: SynRouteRegistryRoute,
+}
+struct SynRouteRegistryHandler(syn::Path);
+struct SynRouteRegistryRoute(syn::Type);
+struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
+struct SynRouteRegistryState(syn::Type);
+impl syn::parse::Parse for RouteRegistryBinding {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let content;
+        let _parenthesis = syn::parenthesized!(content in input);
+        let route = SynRouteRegistryRoute(content.parse::<syn::Type>()?);
+        let _comma = content.parse::<syn::Token![,]>()?;
+        let handler = SynRouteRegistryHandler(content.parse::<syn::Path>()?);
+        Ok(Self { handler, route })
+    }
+}
+struct RouteRegistryArgs {
+    bindings: SynRouteRegistryBindings,
+    state: SynRouteRegistryState,
+}
+
+#[proc_macro_attribute]
+pub fn route_openapi(
+    attribute_args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let function = match syn::parse::<syn::ItemFn>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let metadata = proc_macro2::TokenStream::from(attribute_args);
+    let dummy_path = syn::LitStr::new(
+        format!("/__typed_route_{}", function.sig.ident).as_str(),
+        proc_macro2::Span::call_site(),
+    );
+    quote::quote! {
+        #[utoipa::path(get, path = #dummy_path, #metadata)]
+        #function
+    }
+    .into()
+}
+impl syn::parse::Parse for RouteRegistryArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let state_name = input.parse::<syn::Ident>()?;
+        if state_name != str_constants::STATE {
+            return Err(syn::Error::new_spanned(
+                state_name,
+                str_constants::ROUTE_REGISTRY_REQUIRES_STATE,
+            ));
+        }
+        let _equals = input.parse::<syn::Token![=]>()?;
+        let state = SynRouteRegistryState(input.parse::<syn::Type>()?);
+        let _semicolon = input.parse::<syn::Token![;]>()?;
+        let bindings =
+            syn::punctuated::Punctuated::<RouteRegistryBinding, syn::Token![,]>::parse_terminated(
+                input,
+            )?;
+        if bindings.is_empty() {
+            return Err(input.error(str_constants::ROUTE_REGISTRY_REQUIRES_BINDING));
+        }
+        Ok(Self {
+            bindings: SynRouteRegistryBindings(bindings),
+            state,
+        })
+    }
+}
+
+#[proc_macro_attribute]
+pub fn route_registry(
+    attribute_args: proc_macro::TokenStream,
+    input: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let parsed_args = match syn::parse::<RouteRegistryArgs>(attribute_args) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let mut item = match syn::parse::<syn::ItemStruct>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let Some(openapi_attribute_index) = item
+        .attrs
+        .iter()
+        .position(|attribute| attribute.path().is_ident(str_constants::OPENAPI))
+    else {
+        return syn::Error::new_spanned(
+            item.ident,
+            str_constants::ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let openapi_attribute = item.attrs.remove(openapi_attribute_index);
+    let openapi_metadata = match openapi_attribute.meta {
+        syn::Meta::List(value) => value.tokens,
+        value @ (syn::Meta::Path(_) | syn::Meta::NameValue(_)) => {
+            return syn::Error::new_spanned(
+                value,
+                str_constants::ROUTE_REGISTRY_REQUIRES_OPENAPI_ATTRIBUTE,
+            )
+            .to_compile_error()
+            .into();
+        }
+    };
+    let identifier = &item.ident;
+    let openapi_identifier = quote::format_ident!("{}OpenApi", identifier);
+    let state = parsed_args.state.0;
+    let routes = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| &binding.route.0)
+        .collect::<Vec<_>>();
+    let handlers = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| &binding.handler.0)
+        .collect::<Vec<_>>();
+    let openapi_paths = parsed_args
+        .bindings
+        .0
+        .iter()
+        .map(|binding| {
+            let mut path = binding.handler.0.clone();
+            if let Some(last_segment) = path.segments.last_mut() {
+                last_segment.ident = quote::format_ident!("__path_{}", last_segment.ident);
+            }
+            path
+        })
+        .collect::<Vec<_>>();
+    quote::quote! {
+        #item
+        #[allow(clippy::needless_for_each)]
+        #[derive(utoipa::OpenApi)]
+        #[openapi(paths(#(#handlers),*), #openapi_metadata)]
+        struct #openapi_identifier;
+        impl #identifier {
+            fn open_api() -> utoipa::openapi::OpenApi {
+                let mut document = <#openapi_identifier as utoipa::OpenApi>::openapi();
+                document.paths = utoipa::openapi::path::Paths::new();
+                #({
+                    let metadata = <#routes as frontend_contract::TypedRoute>::metadata();
+                    let mut source_path_item = <#openapi_paths as utoipa::Path>::path_item(None);
+                    if let Some(mut operation) = source_path_item
+                        .operations
+                        .remove(&utoipa::openapi::path::PathItemType::Get)
+                    {
+                        operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
+                        let path_item_type = match metadata.route_method() {
+                            frontend_contract::RouteMethod::Connect => utoipa::openapi::path::PathItemType::Connect,
+                            frontend_contract::RouteMethod::Delete => utoipa::openapi::path::PathItemType::Delete,
+                            frontend_contract::RouteMethod::Get => utoipa::openapi::path::PathItemType::Get,
+                            frontend_contract::RouteMethod::Head => utoipa::openapi::path::PathItemType::Head,
+                            frontend_contract::RouteMethod::Options => utoipa::openapi::path::PathItemType::Options,
+                            frontend_contract::RouteMethod::Patch => utoipa::openapi::path::PathItemType::Patch,
+                            frontend_contract::RouteMethod::Post => utoipa::openapi::path::PathItemType::Post,
+                            frontend_contract::RouteMethod::Put => utoipa::openapi::path::PathItemType::Put,
+                            frontend_contract::RouteMethod::Trace => utoipa::openapi::path::PathItemType::Trace,
+                        };
+                        let mut path_item = utoipa::openapi::path::PathItem::new(path_item_type, operation);
+                        document
+                            .paths
+                            .paths
+                            .entry(metadata.path().as_ref().to_owned())
+                            .and_modify(|existing| existing.operations.extend(path_item.operations.clone()))
+                            .or_insert(path_item);
+                    }
+                })*
+                document
+            }
+            fn router() -> axum::Router<#state> {
+                axum::Router::new()
+                    #(.route(
+                        frontend_contract::typed_route_path::<#routes>().as_ref(),
+                        axum::routing::on(
+                            match <#routes as frontend_contract::TypedRoute>::metadata().route_method() {
+                                frontend_contract::RouteMethod::Connect => axum::routing::MethodFilter::CONNECT,
+                                frontend_contract::RouteMethod::Delete => axum::routing::MethodFilter::DELETE,
+                                frontend_contract::RouteMethod::Get => axum::routing::MethodFilter::GET,
+                                frontend_contract::RouteMethod::Head => axum::routing::MethodFilter::HEAD,
+                                frontend_contract::RouteMethod::Options => axum::routing::MethodFilter::OPTIONS,
+                                frontend_contract::RouteMethod::Patch => axum::routing::MethodFilter::PATCH,
+                                frontend_contract::RouteMethod::Post => axum::routing::MethodFilter::POST,
+                                frontend_contract::RouteMethod::Put => axum::routing::MethodFilter::PUT,
+                                frontend_contract::RouteMethod::Trace => axum::routing::MethodFilter::TRACE,
+                            },
+                            #handlers,
+                        ),
+                    ))*
+            }
+        }
+    }
+    .into()
 }
 
 impl syn::parse::Parse for TypedRouteArgs {

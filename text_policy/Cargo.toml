@@ -1,0 +1,20 @@
+[package]
+name = "text_policy"
+version = "0.1.0"
+publish = false
+description = "Shared validation policies for bounded textual domain values"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["validation", "text"]
+categories = ["data-structures"]
+edition = "2024"
+
+[dependencies]
+thiserror = { workspace = true }
+
+[dev-dependencies]
+str_constants = { workspace = true }
+
+[lints]
+workspace = true

@@ -409,6 +409,10 @@ pub fn generate_pg_table(
         #[serde(default)]
         create_exclude_fields: StdCreateExcludeFields,
         #[serde(default)]
+        db_foreign_keys: Vec<GeneratePgTableDbForeignKey>,
+        #[serde(default)]
+        db_unique_keys: Vec<Vec<String>>,
+        #[serde(default)]
         read_exclude_fields: StdReadExcludeFields,
         #[serde(default)]
         permission_prefix: Option<String>,
@@ -423,6 +427,20 @@ pub fn generate_pg_table(
         idempotent_mutations: bool,
         #[serde(default)]
         api_mode: GeneratePgTableApiMode,
+    }
+    #[derive(Debug, serde::Deserialize)]
+    struct GeneratePgTableDbForeignKey {
+        columns: GeneratePgTableDbColumns,
+        referenced_columns: GeneratePgTableDbColumns,
+        referenced_table: String,
+    }
+    #[derive(Debug, serde::Deserialize)]
+    struct GeneratePgTableDbColumns(Vec<String>);
+    impl std::ops::Deref for GeneratePgTableDbColumns {
+        type Target = Vec<String>;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
     }
     #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
     enum GeneratePgTableApiMode {
@@ -9569,17 +9587,87 @@ pub fn generate_pg_table(
             .any(|field_idx| field_idx.get() == index);
         quote::quote! {
             pg_crud_common::DbColumnSpec::new(
-                #field_name,
-                <#field_type as pg_crud_common::PgColumnSchema>::DATA_TYPE,
-                <#field_type as pg_crud_common::PgColumnSchema>::NULLABLE,
-                <#field_type as pg_crud_common::PgColumnSchema>::HAS_SERVER_DEFAULT || #has_explicit_default,
+                pg_crud_common::DbStaticSchemaText::from(#field_name),
+                pg_crud_common::DbStaticSchemaText::from(<#field_type as pg_crud_common::PgColumnSchema>::DATA_TYPE),
+                pg_crud_common::DbColumnNullable::from(<#field_type as pg_crud_common::PgColumnSchema>::NULLABLE),
+                pg_crud_common::DbColumnHasServerDefault::from(<#field_type as pg_crud_common::PgColumnSchema>::HAS_SERVER_DEFAULT || #has_explicit_default),
             )
         }
     });
+    let primary_key_field_name = generate_quotes::dq_token_stream(&primary_key_field.identifier);
+    let create_excluded_column_token_stream = generate_pg_table_input_model
+        .config
+        .create_exclude_fields
+        .iter()
+        .map(generate_quotes::dq_token_stream);
+    let read_excluded_column_token_stream = generate_pg_table_input_model
+        .config
+        .read_exclude_fields
+        .iter()
+        .map(generate_quotes::dq_token_stream);
+    let db_unique_key_token_stream = generate_pg_table_input_model
+        .config
+        .db_unique_keys
+        .iter()
+        .map(|columns| {
+            let column_token_stream = columns.iter().map(generate_quotes::dq_token_stream);
+            quote::quote! {
+                pg_crud_common::DbKeySpec::Unique(vec![
+                    #(pg_crud_common::DbStaticSchemaText::from(#column_token_stream)),*
+                ])
+            }
+        });
+    let db_foreign_key_token_stream = generate_pg_table_input_model
+        .config
+        .db_foreign_keys
+        .iter()
+        .map(|foreign_key| {
+            let column_token_stream = foreign_key
+                .columns
+                .iter()
+                .map(generate_quotes::dq_token_stream);
+            let referenced_column_token_stream = foreign_key
+                .referenced_columns
+                .iter()
+                .map(generate_quotes::dq_token_stream);
+            let referenced_table_token_stream =
+                generate_quotes::dq_token_stream(&foreign_key.referenced_table);
+            quote::quote! {
+                pg_crud_common::DbKeySpec::ForeignKey {
+                    columns: vec![
+                        #(pg_crud_common::DbStaticSchemaText::from(#column_token_stream)),*
+                    ],
+                    referenced_columns: vec![
+                        #(pg_crud_common::DbStaticSchemaText::from(#referenced_column_token_stream)),*
+                    ],
+                    referenced_table: pg_crud_common::DbStaticSchemaText::from(#referenced_table_token_stream),
+                }
+            }
+        });
     let db_table_schema_token_stream = quote::quote! {
         impl pg_crud_common::DbTableSchema for #identifier {
-            const COLUMNS: &'static [pg_crud_common::DbColumnSpec] = &[#(#db_column_specs_token_stream),*];
             const TABLE_NAME: &'static str = #identifier_snake_case_double_quoted_token_stream;
+            fn columns() -> Vec<pg_crud_common::DbColumnSpec> {
+                vec![#(#db_column_specs_token_stream),*]
+            }
+            fn create_excluded_columns() -> Vec<pg_crud_common::DbStaticSchemaText> {
+                vec![#(pg_crud_common::DbStaticSchemaText::from(#create_excluded_column_token_stream)),*]
+            }
+            fn keys() -> Vec<pg_crud_common::DbKeySpec> {
+                vec![
+                    pg_crud_common::DbKeySpec::PrimaryKey(vec![
+                        pg_crud_common::DbStaticSchemaText::from(#primary_key_field_name)
+                    ])
+                    #(, #db_unique_key_token_stream)*
+                    #(, #db_foreign_key_token_stream)*
+                ]
+            }
+            fn primary_key_column() -> pg_crud_common::DbStaticSchemaText {
+                pg_crud_common::DbStaticSchemaText::from(#primary_key_field_name)
+            }
+            fn read_excluded_columns() -> Vec<pg_crud_common::DbStaticSchemaText> {
+                vec![#(pg_crud_common::DbStaticSchemaText::from(#read_excluded_column_token_stream)),*]
+            }
         }
     };
     let common_token_stream = quote::quote! {

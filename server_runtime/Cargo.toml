@@ -12,6 +12,7 @@ edition = "2024"
 
 [dependencies]
 str_constants = { workspace = true }
+text_policy = { workspace = true }
 axum = { workspace = true }
 http = { workspace = true }
 metrics = { workspace = true }

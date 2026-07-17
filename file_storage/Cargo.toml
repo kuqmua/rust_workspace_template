@@ -12,6 +12,7 @@ edition = "2024"
 
 [dependencies]
 str_constants = { workspace = true }
+text_policy = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 

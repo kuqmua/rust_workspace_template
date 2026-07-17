@@ -12,6 +12,7 @@ keywords = ["admin", "frontend"]
 categories = ["web-programming"]
 
 [dependencies]
+server_admin_contract = { workspace = true }
 str_constants = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -28,7 +29,6 @@ git_info = { workspace = true }
 newtype = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-server_admin_contract = { workspace = true }
 thiserror = { workspace = true }
 wasm-bindgen = { workspace = true }
 web-sys = { workspace = true }

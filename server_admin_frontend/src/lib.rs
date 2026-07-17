@@ -26,18 +26,20 @@ pub fn routes_without_swagger() -> AxumAdminFrontendRouter {
 #[cfg(not(target_arch = "wasm32"))]
 fn routes_with_swagger(swagger_enabled: AdminSwaggerEnabled) -> AxumAdminFrontendRouter {
     let index_path = concat!(env!("CARGO_MANIFEST_DIR"), "/dist/index.html");
-    let page_routes = str_constants::ADMIN_PAGE_PATHS_ALL
+    let page_routes = server_admin_contract::AdminFrontendPath::ALL_PAGES
         .into_iter()
-        .filter(|path| swagger_enabled.0 || *path != str_constants::ADMIN_PAGE_PATHS_OPEN_API)
+        .filter(|path| {
+            swagger_enabled.0 || *path != server_admin_contract::AdminFrontendPath::OpenApi
+        })
         .fold(axum::Router::new(), |router, path| {
-            router.route_service(path, tower_http::services::ServeFile::new(index_path))
+            router.route_service(path.get(), tower_http::services::ServeFile::new(index_path))
         })
         .layer(tower_http::set_header::SetResponseHeaderLayer::overriding(
             axum::http::header::CACHE_CONTROL,
             axum::http::HeaderValue::from_static(str_constants::NO_CACHE_NO_STORE_MUST_REVALIDATE),
         ));
     AxumAdminFrontendRouter(page_routes.nest_service(
-        str_constants::ADMIN_PAGE_PATHS_ASSETS,
+        server_admin_contract::AdminFrontendPath::Assets.get(),
         tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/dist")).fallback(
             tower_http::services::ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/static")),
         ),
@@ -55,16 +57,20 @@ mod tests {
     #[test]
     fn page_inventory_contains_auth_and_operations() {
         assert!(
-            str_constants::ADMIN_PAGE_PATHS_ALL.contains(&str_constants::ADMIN_PAGE_PATHS_SIGN_IN)
+            server_admin_contract::AdminFrontendPath::ALL_PAGES
+                .contains(&server_admin_contract::AdminFrontendPath::SignIn)
         );
         assert!(
-            str_constants::ADMIN_PAGE_PATHS_ALL.contains(&str_constants::ADMIN_PAGE_PATHS_USERS)
+            server_admin_contract::AdminFrontendPath::ALL_PAGES
+                .contains(&server_admin_contract::AdminFrontendPath::Users)
         );
         assert!(
-            str_constants::ADMIN_PAGE_PATHS_ALL.contains(&str_constants::ADMIN_PAGE_PATHS_AUDIT)
+            server_admin_contract::AdminFrontendPath::ALL_PAGES
+                .contains(&server_admin_contract::AdminFrontendPath::Audit)
         );
         assert!(
-            str_constants::ADMIN_PAGE_PATHS_ALL.contains(&str_constants::ADMIN_PAGE_PATHS_OPEN_API)
+            server_admin_contract::AdminFrontendPath::ALL_PAGES
+                .contains(&server_admin_contract::AdminFrontendPath::OpenApi)
         );
     }
     #[test]

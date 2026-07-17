@@ -1,7 +1,6 @@
 const BASE_GIT_COMMIT_LINK_LEN: usize =
     str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
-const GIT_COMMIT_HASH_LENGTH: usize = 40usize;
 pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
     commit: GitCommitIdRef(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID),
 };
@@ -45,15 +44,17 @@ impl AsRef<str> for GitCommitHash {
 impl TryFrom<String> for GitCommitHash {
     type Error = GitCommitHashError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() != GIT_COMMIT_HASH_LENGTH {
-            Err(Self::Error::InvalidLength)
-        } else if value
-            .bytes()
-            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-        {
-            Ok(Self(value))
-        } else {
-            Err(Self::Error::InvalidSymbol)
+        if value.len() != 40usize {
+            return Err(Self::Error::InvalidLength);
+        }
+        match text_policy::FixedLengthAsciiHexText::try_from(value) {
+            Ok(validated) => Ok(Self(validated.into_inner())),
+            Err(text_policy::FixedLengthAsciiHexTextError::InvalidLength) => {
+                Err(Self::Error::InvalidLength)
+            }
+            Err(text_policy::FixedLengthAsciiHexTextError::InvalidSymbol) => {
+                Err(Self::Error::InvalidSymbol)
+            }
         }
     }
 }

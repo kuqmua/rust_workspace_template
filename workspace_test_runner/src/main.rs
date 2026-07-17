@@ -1,9 +1,6 @@
 mod discovery;
 mod execution;
 mod reporting;
-const ADMIN_FIXTURE_ALPHA_DISPLAY_NAME: &str = "Alpha Operator";
-const ADMIN_FIXTURE_ALPHA_LOGIN: &str = "alpha";
-const ADMIN_FIXTURE_ROLE_NAME: &str = "administrator";
 const DIRECT_GENERATION_REPEAT_COUNT: usize = 5;
 const MEASURE_REPEAT_COUNT: usize = 1000;
 const SQL_BUILDER_MEASURE_SERIES_COUNT: usize = 5;
@@ -749,13 +746,6 @@ where
     reason = "the command-mode facade keeps fixture generation out of main dispatch"
 )]
 fn write_admin_contract_fixture() -> Result<(), ()> {
-    macro_rules! fixture_json {
-        ($value:expr) => {
-            serde_json::to_value($value).map_err(|error| {
-                eprintln!("{error}");
-            })
-        };
-    }
     let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
         .into_iter()
         .map(|metadata| {
@@ -789,7 +779,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         permission_values.clone(),
         vec![
             admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
-                ADMIN_FIXTURE_ROLE_NAME,
+                str_constants::ADMIN_FIXTURE_ROLE_NAME,
             ))?,
         ],
     );
@@ -801,14 +791,14 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             let is_alpha = index == 24i64;
             Ok(server_admin_contract::AdminUserSummary::new(
                 admin_fixture_string::<server_admin_contract::AdminDisplayName>(if is_alpha {
-                    String::from(ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
+                    String::from(str_constants::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME)
                 } else {
                     format!("User {number:02}")
                 })?,
                 server_admin_contract::AdminUserId::from(number),
                 server_admin_contract::AdminBool::from(index & 1i64 == 0i64),
                 admin_fixture_string::<server_admin_contract::AdminLogin>(if is_alpha {
-                    String::from(ADMIN_FIXTURE_ALPHA_LOGIN)
+                    String::from(str_constants::ADMIN_FIXTURE_ALPHA_LOGIN)
                 } else {
                     format!("user_{number:02}")
                 })?,
@@ -832,14 +822,31 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         })
         .collect::<Result<Vec<_>, ()>>()?;
     let audit = Vec::<server_admin_contract::AdminAuditView>::new();
+    let authenticated_admin_json = serde_json::to_value(&authenticated_admin).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let users_json = serde_json::to_value(&users).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let permission_summaries_json =
+        serde_json::to_value(&permission_summaries).map_err(|error| {
+            eprintln!("{error}");
+        })?;
+    let audit_json = serde_json::to_value(&audit).map_err(|error| {
+        eprintln!("{error}");
+    })?;
+    let no_body_json =
+        serde_json::to_value(server_admin_contract::AdminNoBody).map_err(|error| {
+            eprintln!("{error}");
+        })?;
     let fixture = serde_json::to_vec_pretty(&serde_json::json!([
         routes,
         permissions,
-        fixture_json!(&authenticated_admin)?,
-        fixture_json!(&users)?,
-        fixture_json!(&permission_summaries)?,
-        fixture_json!(&audit)?,
-        fixture_json!(&server_admin_contract::AdminNoBody)?,
+        authenticated_admin_json,
+        users_json,
+        permission_summaries_json,
+        audit_json,
+        no_body_json,
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
             .map(frontend_contract::RouteBodyLimit::get),
     ]))
@@ -1144,257 +1151,6 @@ fn main() {
                     .3
                     .saturating_sub(generate_pg_table_measurement.3)
             );
-            let generate_pg_table_src_text = std::fs::read_to_string(
-                str_constants::PG_CRUD_PG_TABLE_GENERATE_PG_TABLE_SRC_SRC_LIB_RS,
-            )
-            .unwrap_or_default();
-            let generate_pg_table_concurrency_constants_found = [
-                str_constants::CM_CHUNK_SIZE_2EE9377B,
-                str_constants::CM_CONCURRENCY_7CCFD82D,
-                str_constants::CM_CHUNK_SIZE_A13F7C92,
-                str_constants::TEST_FUTURE_CONCURRENCY_D281414B,
-            ]
-            .into_iter()
-            .all(|pattern| generate_pg_table_src_text.contains(pattern));
-            println!(
-                "measurement=generate_pg_table_generated_test_concurrency cm_chunk_2ee9377b=25 cm_concurrency_7ccfd82d=5 cm_chunk_a13f7c92=10 test_future_concurrency_d281414b=100 source_detected={generate_pg_table_concurrency_constants_found}"
-            );
-            let generate_pg_table_box_future_push_sites = generate_pg_table_src_text
-                .matches(str_constants::ACCUMULATOR_9189F86E_PUSH)
-                .count();
-            let generate_pg_table_old_chunk_vec_from_absent =
-                !generate_pg_table_src_text.contains(str_constants::MAP_VEC_PATH_FROM);
-            let generate_pg_table_old_collect_flatten_absent =
-                !generate_pg_table_src_text.contains(str_constants::FLATTEN_COLLECT);
-            let generate_pg_table_table_names_cloned_vec_absent = !generate_pg_table_src_text
-                .contains(str_constants::TABLE_NAMES_CLONED_TABLE_NAMES_ITER_MAP);
-            println!(
-                "measurement=generate_pg_table_generated_test_concurrency_shape box_future_push_sites={generate_pg_table_box_future_push_sites} old_chunk_vec_from_absent={generate_pg_table_old_chunk_vec_from_absent} old_collect_flatten_absent={generate_pg_table_old_collect_flatten_absent} table_names_cloned_vec_absent={generate_pg_table_table_names_cloned_vec_absent}"
-            );
-            let generate_pg_table_pipeline_stage_source_found = [
-                str_constants::PARSE_GENERATE_PG_TABLE_INPUT_STAGE,
-                str_constants::BUILD_GENERATE_PG_TABLE_INPUT_MODEL_STAGE,
-                str_constants::VALIDATE_GENERATE_PG_TABLE_FIELDS_MODEL_STAGE,
-                str_constants::EMIT_GENERATE_PG_TABLE_TESTS_STAGE,
-                str_constants::EMIT_GENERATE_PG_TABLE_FINAL_STAGE,
-            ]
-            .into_iter()
-            .all(|pattern| generate_pg_table_src_text.contains(pattern));
-            println!(
-                "measurement=generate_pg_table_pipeline_shape parse=true build_model=true validate=true emit_tests=true emit_final=true source_detected={generate_pg_table_pipeline_stage_source_found}"
-            );
-            let generate_pg_table_pipeline_stage_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (
-                    u128::MAX, 0u128, 0u128, u128::MAX, 0u128, 0u128, u128::MAX, 0u128,
-                    0u128, u128::MAX, 0u128, 0u128, u128::MAX, 0u128, 0u128, 0usize,
-                    0usize, 0usize, 0usize, 0usize,
-                ),
-                |(
-                    parse_min_us,
-                    parse_max_us,
-                    parse_total_us,
-                    config_min_us,
-                    config_max_us,
-                    config_total_us,
-                    model_min_us,
-                    model_max_us,
-                    model_total_us,
-                    fields_min_us,
-                    fields_max_us,
-                    fields_total_us,
-                    validate_min_us,
-                    validate_max_us,
-                    validate_total_us,
-                    _,
-                    _,
-                    _,
-                    _,
-                    _,
-                ),
-                 _| {
-                    let parse_started = std::time::Instant::now();
-                    let parsed =
-                        match syn::parse2::<syn::DeriveInput>(generate_pg_table_input_token_stream.as_ref().clone())
-                        {
-                        Ok(value) => value,
-                        Err(error) => {
-                            eprintln!(
-                                "measurement=generate_pg_table_pipeline_stages status=parse_failed error={error}"
-                            );
-                            std::process::exit(1);
-                        }
-                    };
-                    let parse_wall_us = parse_started.elapsed().as_micros();
-                    let config_started = std::time::Instant::now();
-                    let config_attr_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
-                        &parsed.attrs,
-                        str_constants::PG_CRUD_GENERATE_PG_TABLE_CONFIG_PATH,
-                    );
-                    let config_value =
-                        match serde_json::from_str::<serde_json::Value>(&config_attr_token_stream.to_string())
-                        {
-                            Ok(value) => value,
-                            Err(error) => {
-                                eprintln!(
-                                    "measurement=generate_pg_table_pipeline_stages status=config_parse_failed error={error}"
-                                );
-                                std::process::exit(1);
-                            }
-                        };
-                    let config_wall_us = config_started.elapsed().as_micros();
-                    let config_key_count = config_value.as_object().map_or(0usize, |value| {
-                        value.len()
-                    });
-                    let model_started = std::time::Instant::now();
-                    let error_variant_count = [
-                        (str_constants::GENERATE_PG_TABLE_PATH_CM_ERROR_VARIANTS, str_constants::CMERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_CO_ERROR_VARIANTS, str_constants::COERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_RM_ERROR_VARIANTS, str_constants::RMERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_RO_ERROR_VARIANTS, str_constants::ROERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_UM_ERROR_VARIANTS, str_constants::UMERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_UO_ERROR_VARIANTS, str_constants::UOERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_DM_ERROR_VARIANTS, str_constants::DMERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_DLO_ERROR_VARIANTS, str_constants::DLOERRORVARIANTS),
-                        (str_constants::GENERATE_PG_TABLE_PATH_COMMON_ERROR_VARIANTS, str_constants::COMMONERRORVARIANTS),
-                    ]
-                    .into_iter()
-                    .fold(0usize, |accumulator, (attr_path, expected_identifier)| {
-                        let attr_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
-                            &parsed.attrs,
-                            attr_path,
-                        );
-                        let Ok(parsed_attr) = syn::parse2::<syn::DeriveInput>((*attr_token_stream).clone())
-                        else {
-                            return accumulator;
-                        };
-                        if parsed_attr.ident != expected_identifier {
-                            eprintln!(
-                                "measurement=generate_pg_table_pipeline_stages status=model_identifier_mismatch attr={attr_path}"
-                            );
-                            std::process::exit(1);
-                        }
-                        match parsed_attr.data {
-                            syn::Data::Enum(data_enum) => {
-                                accumulator.saturating_add(data_enum.variants.len())
-                            }
-                            syn::Data::Struct(_) | syn::Data::Union(_) => accumulator,
-                        }
-                    });
-                    let logic_attr_token_bytes = [
-                        str_constants::GENERATE_PG_TABLE_PATH_CM_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_CO_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_RM_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_RO_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_UM_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_UO_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_DM_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_DLO_LOGIC,
-                        str_constants::GENERATE_PG_TABLE_PATH_COMMON_LOGIC,
-                    ]
-                    .into_iter()
-                    .fold(0usize, |accumulator, attr_path| {
-                        let logic_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
-                            &parsed.attrs,
-                            attr_path,
-                        );
-                        accumulator.saturating_add(logic_token_stream.to_string().len())
-                    });
-                    let model_wall_us = model_started.elapsed().as_micros();
-                    let fields_started = std::time::Instant::now();
-                    let (field_count, primary_key_attr_count) = match &parsed.data {
-                        syn::Data::Struct(data_struct) => match &data_struct.fields {
-                            syn::Fields::Named(fields_named) => fields_named.named.iter().fold(
-                                (0usize, 0usize),
-                                |(field_accumulator, primary_key_accumulator), field| {
-                                    let field_primary_key_attr_count = field
-                                        .attrs
-                                        .iter()
-                                        .filter(|attr| attr.path().segments.len() == 1)
-                                        .filter(|attr| {
-                                            attr.path()
-                                                .segments
-                                                .first()
-                                                .is_some_and(|segment| {
-                                                    segment.ident == str_constants::GENERATE_PG_TABLE_PRIMARY_KEY
-                                                })
-                                        })
-                                        .count();
-                                    (
-                                        field_accumulator.saturating_add(1),
-                                        primary_key_accumulator.saturating_add(field_primary_key_attr_count),
-                                    )
-                                },
-                            ),
-                            syn::Fields::Unnamed(_) | syn::Fields::Unit => {
-                                eprintln!(
-                                    "measurement=generate_pg_table_pipeline_stages status=fields_not_named"
-                                );
-                                std::process::exit(1);
-                            }
-                        },
-                        syn::Data::Enum(_) | syn::Data::Union(_) => {
-                            eprintln!(
-                                "measurement=generate_pg_table_pipeline_stages status=input_not_struct"
-                            );
-                            std::process::exit(1);
-                        }
-                    };
-                    let fields_wall_us = fields_started.elapsed().as_micros();
-                    let validate_started = std::time::Instant::now();
-                    if field_count == 0usize || primary_key_attr_count != 1usize {
-                        eprintln!(
-                            "measurement=generate_pg_table_pipeline_stages status=validation_failed fields={field_count} primary_key_attrs={primary_key_attr_count}"
-                        );
-                        std::process::exit(1);
-                    }
-                    let validate_wall_us = validate_started.elapsed().as_micros();
-                    (
-                        parse_min_us.min(parse_wall_us),
-                        parse_max_us.max(parse_wall_us),
-                        parse_total_us.saturating_add(parse_wall_us),
-                        config_min_us.min(config_wall_us),
-                        config_max_us.max(config_wall_us),
-                        config_total_us.saturating_add(config_wall_us),
-                        model_min_us.min(model_wall_us),
-                        model_max_us.max(model_wall_us),
-                        model_total_us.saturating_add(model_wall_us),
-                        fields_min_us.min(fields_wall_us),
-                        fields_max_us.max(fields_wall_us),
-                        fields_total_us.saturating_add(fields_wall_us),
-                        validate_min_us.min(validate_wall_us),
-                        validate_max_us.max(validate_wall_us),
-                        validate_total_us.saturating_add(validate_wall_us),
-                        config_key_count,
-                        field_count,
-                        primary_key_attr_count,
-                        error_variant_count,
-                        logic_attr_token_bytes,
-                    )
-                },
-            );
-            println!(
-                "measurement=generate_pg_table_pipeline_stages repeat_count={DIRECT_GENERATION_REPEAT_COUNT} parse_min_us={} parse_total_us={} parse_max_us={} config_min_us={} config_total_us={} config_max_us={} model_min_us={} model_total_us={} model_max_us={} fields_min_us={} fields_total_us={} fields_max_us={} validate_min_us={} validate_total_us={} validate_max_us={} config_keys={} fields={} primary_key_attrs={} error_variants={} logic_attr_token_bytes={}",
-                generate_pg_table_pipeline_stage_measurement.0,
-                generate_pg_table_pipeline_stage_measurement.2,
-                generate_pg_table_pipeline_stage_measurement.1,
-                generate_pg_table_pipeline_stage_measurement.3,
-                generate_pg_table_pipeline_stage_measurement.5,
-                generate_pg_table_pipeline_stage_measurement.4,
-                generate_pg_table_pipeline_stage_measurement.6,
-                generate_pg_table_pipeline_stage_measurement.8,
-                generate_pg_table_pipeline_stage_measurement.7,
-                generate_pg_table_pipeline_stage_measurement.9,
-                generate_pg_table_pipeline_stage_measurement.11,
-                generate_pg_table_pipeline_stage_measurement.10,
-                generate_pg_table_pipeline_stage_measurement.12,
-                generate_pg_table_pipeline_stage_measurement.14,
-                generate_pg_table_pipeline_stage_measurement.13,
-                generate_pg_table_pipeline_stage_measurement.15,
-                generate_pg_table_pipeline_stage_measurement.16,
-                generate_pg_table_pipeline_stage_measurement.17,
-                generate_pg_table_pipeline_stage_measurement.18,
-                generate_pg_table_pipeline_stage_measurement.19
-            );
             let generate_pg_types_input_token_stream = quote::quote! {
                 {
                     "pg_table_cols_write_into_file": "False",
@@ -1430,111 +1186,6 @@ fn main() {
                 generate_pg_types_measurement.3,
                 generate_pg_types_measurement.4
             );
-            let generate_pg_types_shape_output = generate_pg_types_src::generate_pg_types(
-                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(
-                    &generate_pg_types_input_token_stream,
-                ),
-            )
-            .to_string();
-            let generate_pg_types_write_fmt_found = generate_pg_types_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_STD_FMT_WRITE_CALL);
-            let generate_pg_types_with_capacity_found = generate_pg_types_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_STRING_WITH_CAPACITY_CALL);
-            let generate_pg_types_old_format_absent = !generate_pg_types_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_FORMAT_QUERY_PART_FRAGMENT);
-            println!(
-                "measurement=generate_pg_types_generated_query_part_shape write_fmt_found={generate_pg_types_write_fmt_found} with_capacity_found={generate_pg_types_with_capacity_found} old_format_absent={generate_pg_types_old_format_absent}"
-            );
-            let generate_pg_types_pipeline_stage_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (
-                    u128::MAX,
-                    0u128,
-                    0u128,
-                    u128::MAX,
-                    0u128,
-                    0u128,
-                    u128::MAX,
-                    0u128,
-                    0u128,
-                    0usize,
-                    false,
-                    0usize,
-                ),
-                |(
-                    stringify_min_us,
-                    stringify_max_us,
-                    stringify_total_us,
-                    config_min_us,
-                    config_max_us,
-                    config_total_us,
-                    inspect_min_us,
-                    inspect_max_us,
-                    inspect_total_us,
-                    _,
-                    _,
-                    _,
-                ),
-                 _| {
-                    let stringify_started = std::time::Instant::now();
-                    let config_string = generate_pg_types_input_token_stream.to_string();
-                    let stringify_wall_us = stringify_started.elapsed().as_micros();
-                    let config_started = std::time::Instant::now();
-                    let config_value = match serde_json::from_str::<serde_json::Value>(
-                        config_string.as_str(),
-                    ) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            eprintln!(
-                                "measurement=generate_pg_types_pipeline_stages status=config_parse_failed error={error}"
-                            );
-                            std::process::exit(1);
-                        }
-                    };
-                    let config_wall_us = config_started.elapsed().as_micros();
-                    let inspect_started = std::time::Instant::now();
-                    let config_key_count = config_value.as_object().map_or(0usize, |value| {
-                        value.len()
-                    });
-                    let variant_is_all = config_value
-                        .get(str_constants::VARIANT)
-                        .and_then(serde_json::Value::as_str)
-                        .is_some_and(|value| value == str_constants::ALL);
-                    let concrete_or_subset_len = config_value
-                        .get(str_constants::VARIANT)
-                        .and_then(serde_json::Value::as_array)
-                        .map_or(0usize, Vec::len);
-                    let inspect_wall_us = inspect_started.elapsed().as_micros();
-                    (
-                        stringify_min_us.min(stringify_wall_us),
-                        stringify_max_us.max(stringify_wall_us),
-                        stringify_total_us.saturating_add(stringify_wall_us),
-                        config_min_us.min(config_wall_us),
-                        config_max_us.max(config_wall_us),
-                        config_total_us.saturating_add(config_wall_us),
-                        inspect_min_us.min(inspect_wall_us),
-                        inspect_max_us.max(inspect_wall_us),
-                        inspect_total_us.saturating_add(inspect_wall_us),
-                        config_key_count,
-                        variant_is_all,
-                        concrete_or_subset_len,
-                    )
-                },
-            );
-            println!(
-                "measurement=generate_pg_types_pipeline_stages repeat_count={DIRECT_GENERATION_REPEAT_COUNT} stringify_min_us={} stringify_total_us={} stringify_max_us={} config_min_us={} config_total_us={} config_max_us={} inspect_min_us={} inspect_total_us={} inspect_max_us={} config_keys={} variant_is_all={} concrete_or_subset_len={}",
-                generate_pg_types_pipeline_stage_measurement.0,
-                generate_pg_types_pipeline_stage_measurement.2,
-                generate_pg_types_pipeline_stage_measurement.1,
-                generate_pg_types_pipeline_stage_measurement.3,
-                generate_pg_types_pipeline_stage_measurement.5,
-                generate_pg_types_pipeline_stage_measurement.4,
-                generate_pg_types_pipeline_stage_measurement.6,
-                generate_pg_types_pipeline_stage_measurement.8,
-                generate_pg_types_pipeline_stage_measurement.7,
-                generate_pg_types_pipeline_stage_measurement.9,
-                generate_pg_types_pipeline_stage_measurement.10,
-                generate_pg_types_pipeline_stage_measurement.11
-            );
             let generate_where_filters_input_token_stream = quote::quote! {
                 {
                     "pg_types_write_into_file": "False",
@@ -1568,86 +1219,6 @@ fn main() {
                 generate_where_filters_measurement.1,
                 generate_where_filters_measurement.3,
                 generate_where_filters_measurement.4
-            );
-            let generate_where_filters_shape_output =
-                generate_where_filters_src::generate_where_filters(
-                    generate_where_filters_src::ProcMacro2GenerateWhereFiltersInput::from(
-                        &generate_where_filters_input_token_stream,
-                    ),
-                )
-                .to_string();
-            let generate_where_filters_write_fmt_found = generate_where_filters_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_STD_FMT_WRITE_CALL);
-            let generate_where_filters_with_capacity_found = generate_where_filters_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_STRING_WITH_CAPACITY_CALL);
-            let generate_where_filters_old_format_absent = !generate_where_filters_shape_output
-                .contains(str_constants::WORKSPACE_TEST_RUNNER_FORMAT_QUERY_PART_FRAGMENT);
-            println!(
-                "measurement=generate_where_filters_generated_query_part_shape write_fmt_found={generate_where_filters_write_fmt_found} with_capacity_found={generate_where_filters_with_capacity_found} old_format_absent={generate_where_filters_old_format_absent}"
-            );
-            let generate_where_filters_pipeline_stage_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
-                (u128::MAX, 0u128, 0u128, u128::MAX, 0u128, 0u128, u128::MAX, 0u128, 0u128, 0usize, 0usize),
-                |(
-                    stringify_min_wall_us,
-                    stringify_max_wall_us,
-                    stringify_total_wall_us,
-                    config_min_wall_us,
-                    config_max_wall_us,
-                    config_total_wall_us,
-                    inspect_min_wall_us,
-                    inspect_max_wall_us,
-                    inspect_total_wall_us,
-                    _,
-                    _,
-                ), _| {
-                    let stringify_started = std::time::Instant::now();
-                    let input_as_string = generate_where_filters_input_token_stream.to_string();
-                    let stringify_wall_us = stringify_started.elapsed().as_micros();
-                    let config_started = std::time::Instant::now();
-                    let config_result =
-                        serde_json::from_str::<serde_json::Value>(input_as_string.as_str());
-                    let config_wall_us = config_started.elapsed().as_micros();
-                    let config = match config_result {
-                        Ok(value) => value,
-                        Err(error) => {
-                            eprintln!(
-                                "measurement=generate_where_filters_pipeline_stages status=config_parse_failed error={error}"
-                            );
-                            std::process::exit(1);
-                        }
-                    };
-                    let inspect_started = std::time::Instant::now();
-                    let config_keys = config.as_object().map_or(0usize, serde_json::Map::len);
-                    let input_token_trees = generate_where_filters_input_token_stream.clone().into_iter().count();
-                    let inspect_wall_us = inspect_started.elapsed().as_micros();
-                    (
-                        stringify_min_wall_us.min(stringify_wall_us),
-                        stringify_max_wall_us.max(stringify_wall_us),
-                        stringify_total_wall_us.saturating_add(stringify_wall_us),
-                        config_min_wall_us.min(config_wall_us),
-                        config_max_wall_us.max(config_wall_us),
-                        config_total_wall_us.saturating_add(config_wall_us),
-                        inspect_min_wall_us.min(inspect_wall_us),
-                        inspect_max_wall_us.max(inspect_wall_us),
-                        inspect_total_wall_us.saturating_add(inspect_wall_us),
-                        config_keys,
-                        input_token_trees,
-                    )
-                },
-            );
-            println!(
-                "measurement=generate_where_filters_pipeline_stages repeat_count={DIRECT_GENERATION_REPEAT_COUNT} stringify_min_us={} stringify_total_us={} stringify_max_us={} config_min_us={} config_total_us={} config_max_us={} inspect_min_us={} inspect_total_us={} inspect_max_us={} config_keys={} input_token_trees={}",
-                generate_where_filters_pipeline_stage_measurement.0,
-                generate_where_filters_pipeline_stage_measurement.2,
-                generate_where_filters_pipeline_stage_measurement.1,
-                generate_where_filters_pipeline_stage_measurement.3,
-                generate_where_filters_pipeline_stage_measurement.5,
-                generate_where_filters_pipeline_stage_measurement.4,
-                generate_where_filters_pipeline_stage_measurement.6,
-                generate_where_filters_pipeline_stage_measurement.8,
-                generate_where_filters_pipeline_stage_measurement.7,
-                generate_where_filters_pipeline_stage_measurement.9,
-                generate_where_filters_pipeline_stage_measurement.10
             );
             let pg_crud_common_query_part: Result<
                 (u128, u128, u128, usize),

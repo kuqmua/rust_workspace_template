@@ -1,3 +1,7 @@
+//! PostgreSQL migrations are the runtime authority for database structure.
+//! Generated Rust table descriptors are compile-time expectations and must be
+//! checked against a database with all migrations applied before deployment.
+
 const DB_SCHEMA_TEXT_MAX_LEN: usize = 1_048_576usize;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::BoundedString)]
@@ -27,19 +31,40 @@ pub trait PgColumnSchema {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DbStaticSchemaText(&'static str);
+impl AsRef<str> for DbStaticSchemaText {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+impl From<&'static str> for DbStaticSchemaText {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct DbColumnHasServerDefault(bool);
+impl From<bool> for DbColumnHasServerDefault {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbColumnSpec {
-    data_type: &'static str,
-    has_server_default: bool,
-    name: &'static str,
-    nullable: bool,
+    data_type: DbStaticSchemaText,
+    has_server_default: DbColumnHasServerDefault,
+    name: DbStaticSchemaText,
+    nullable: DbColumnNullable,
 }
 impl DbColumnSpec {
     #[must_use]
     pub const fn new(
-        name: &'static str,
-        data_type: &'static str,
-        nullable: bool,
-        has_server_default: bool,
+        name: DbStaticSchemaText,
+        data_type: DbStaticSchemaText,
+        nullable: DbColumnNullable,
+        has_server_default: DbColumnHasServerDefault,
     ) -> Self {
         Self {
             data_type,
@@ -51,14 +76,40 @@ impl DbColumnSpec {
 }
 
 pub trait DbTableSchema {
-    const COLUMNS: &'static [DbColumnSpec];
     const TABLE_NAME: &'static str;
+    fn columns() -> Vec<DbColumnSpec>;
+    fn create_excluded_columns() -> Vec<DbStaticSchemaText>;
+    fn keys() -> Vec<DbKeySpec>;
+    fn primary_key_column() -> DbStaticSchemaText;
+    fn read_excluded_columns() -> Vec<DbStaticSchemaText>;
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum DbKeySpec {
+    ForeignKey {
+        columns: Vec<DbStaticSchemaText>,
+        referenced_columns: Vec<DbStaticSchemaText>,
+        referenced_table: DbStaticSchemaText,
+    },
+    PrimaryKey(Vec<DbStaticSchemaText>),
+    Unique(Vec<DbStaticSchemaText>),
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum DbKeyContractSnapshot {
+    ForeignKey {
+        columns: Vec<DbSchemaText>,
+        referenced_columns: Vec<DbSchemaText>,
+        referenced_table: DbSchemaText,
+    },
+    PrimaryKey(Vec<DbSchemaText>),
+    Unique(Vec<DbSchemaText>),
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct DbColumnContractSnapshot {
     data_type: DbSchemaText,
-    has_server_default: bool,
+    has_server_default: DbColumnHasServerDefault,
     name: DbSchemaText,
     nullable: DbColumnNullable,
 }
@@ -68,7 +119,7 @@ impl DbColumnContractSnapshot {
         name: DbSchemaText,
         data_type: DbSchemaText,
         nullable: DbColumnNullable,
-        has_server_default: bool,
+        has_server_default: DbColumnHasServerDefault,
     ) -> Self {
         Self {
             data_type,
@@ -203,8 +254,15 @@ pub enum DbSchemaConformanceError {
         expected: Vec<DbColumnContractSnapshot>,
         observed: Vec<DbColumnContractSnapshot>,
     },
+    #[error("generated CRUD configuration refers to a column absent from its table descriptor")]
+    DescriptorFieldMismatch(DbSchemaText),
     #[error("failed to inspect PostgreSQL schema: {0}")]
     Inspection(SqlxDbSchemaInspectionError),
+    #[error("PostgreSQL key constraints differ from the generated table descriptor")]
+    KeyContractMismatch {
+        expected: Vec<DbKeyContractSnapshot>,
+        observed: Vec<DbKeyContractSnapshot>,
+    },
     #[error("PostgreSQL table schema differs from the expected snapshot")]
     Mismatch {
         expected: DbTableSnapshot,
@@ -223,21 +281,59 @@ pub async fn validate_generated_postgres_table<Table>(
 where
     Table: DbTableSchema,
 {
-    let mut expected = Table::COLUMNS
+    fn static_schema_text(
+        value: DbStaticSchemaText,
+    ) -> Result<DbSchemaText, DbSchemaConformanceError> {
+        DbSchemaText::try_from(value.0.to_owned())
+            .map_err(|error| DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error)))
+    }
+    fn static_schema_texts(
+        values: Vec<DbStaticSchemaText>,
+    ) -> Result<Vec<DbSchemaText>, DbSchemaConformanceError> {
+        values.into_iter().map(static_schema_text).collect()
+    }
+    fn schema_text(value: String) -> Result<DbSchemaText, DbSchemaConformanceError> {
+        DbSchemaText::try_from(value)
+            .map_err(|error| DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error)))
+    }
+    fn schema_texts(values: Vec<String>) -> Result<Vec<DbSchemaText>, DbSchemaConformanceError> {
+        values.into_iter().map(schema_text).collect()
+    }
+    let table_columns = Table::columns();
+    let mut expected = table_columns
         .iter()
         .map(|column| {
             Ok(DbColumnContractSnapshot::new(
-                DbSchemaText::try_from(column.name.to_owned()).map_err(|error| {
+                DbSchemaText::try_from(column.name.0.to_owned()).map_err(|error| {
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
                 })?,
-                DbSchemaText::try_from(column.data_type.to_owned()).map_err(|error| {
+                DbSchemaText::try_from(column.data_type.0.to_owned()).map_err(|error| {
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
                 })?,
-                DbColumnNullable::from(column.nullable),
+                column.nullable,
                 column.has_server_default,
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    Table::create_excluded_columns()
+        .into_iter()
+        .chain(Table::read_excluded_columns())
+        .chain(std::iter::once(Table::primary_key_column()))
+        .chain(Table::keys().into_iter().flat_map(|key| match key {
+            DbKeySpec::ForeignKey { columns, .. }
+            | DbKeySpec::PrimaryKey(columns)
+            | DbKeySpec::Unique(columns) => columns,
+        }))
+        .try_for_each(|field| {
+            if table_columns.iter().any(|column| column.name == field) {
+                Ok(())
+            } else {
+                let name = DbSchemaText::try_from(field.0.to_owned()).map_err(|error| {
+                    DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
+                })?;
+                Err(DbSchemaConformanceError::DescriptorFieldMismatch(name))
+            }
+        })?;
     let rows = sqlx::query(str_constants::DB_SCHEMA_COLUMN_CONTRACT_QUERY)
         .bind(schema.0)
         .bind(Table::TABLE_NAME)
@@ -275,20 +371,106 @@ where
                     DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error))
                 })?,
                 DbColumnNullable::from(nullable == str_constants::YES),
-                sqlx::Row::try_get::<bool, _>(&row, str_constants::HAS_SERVER_DEFAULT).map_err(
-                    |error| {
-                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
-                    },
-                )?,
+                DbColumnHasServerDefault::from(
+                    sqlx::Row::try_get::<bool, _>(&row, str_constants::HAS_SERVER_DEFAULT)
+                        .map_err(|error| {
+                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                        })?,
+                ),
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
     expected.sort_unstable();
     observed.sort_unstable();
-    if expected == observed {
+    if expected != observed {
+        return Err(DbSchemaConformanceError::ColumnContractMismatch { expected, observed });
+    }
+    let mut expected_keys = Table::keys()
+        .into_iter()
+        .map(|key| match key {
+            DbKeySpec::ForeignKey {
+                columns,
+                referenced_columns,
+                referenced_table,
+            } => Ok(DbKeyContractSnapshot::ForeignKey {
+                columns: static_schema_texts(columns)?,
+                referenced_columns: static_schema_texts(referenced_columns)?,
+                referenced_table: static_schema_text(referenced_table)?,
+            }),
+            DbKeySpec::PrimaryKey(columns) => Ok(DbKeyContractSnapshot::PrimaryKey(
+                static_schema_texts(columns)?,
+            )),
+            DbKeySpec::Unique(columns) => {
+                Ok(DbKeyContractSnapshot::Unique(static_schema_texts(columns)?))
+            }
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    let key_rows = sqlx::query(str_constants::DB_SCHEMA_KEY_CONTRACT_QUERY)
+        .bind(schema.0)
+        .bind(Table::TABLE_NAME)
+        .fetch_all(pool.0)
+        .await
+        .map_err(|error| {
+            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+        })?;
+    let mut observed_keys = key_rows
+        .into_iter()
+        .map(|row| {
+            let kind = sqlx::Row::try_get::<String, _>(&row, str_constants::CONSTRAINT_TYPE)
+                .map_err(|error| {
+                    DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                })?;
+            let columns = schema_texts(
+                sqlx::Row::try_get::<Vec<String>, _>(&row, str_constants::COLUMNS).map_err(
+                    |error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    },
+                )?,
+            )?;
+            match kind.as_str() {
+                str_constants::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
+                    let referenced_columns = schema_texts(
+                        sqlx::Row::try_get::<Vec<String>, _>(
+                            &row,
+                            str_constants::REFERENCED_COLUMNS,
+                        )
+                        .map_err(|error| {
+                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                        })?,
+                    )?;
+                    let referenced_table = schema_text(
+                        sqlx::Row::try_get::<String, _>(&row, str_constants::REFERENCED_TABLE)
+                            .map_err(|error| {
+                                DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(
+                                    error,
+                                ))
+                            })?,
+                    )?;
+                    Ok(DbKeyContractSnapshot::ForeignKey {
+                        columns,
+                        referenced_columns,
+                        referenced_table,
+                    })
+                }
+                str_constants::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
+                    Ok(DbKeyContractSnapshot::PrimaryKey(columns))
+                }
+                str_constants::DB_CONSTRAINT_UNIQUE_SHORT => {
+                    Ok(DbKeyContractSnapshot::Unique(columns))
+                }
+                _ => Err(DbSchemaConformanceError::UnknownObjectKind),
+            }
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    expected_keys.sort_unstable();
+    observed_keys.sort_unstable();
+    if expected_keys == observed_keys {
         Ok(())
     } else {
-        Err(DbSchemaConformanceError::ColumnContractMismatch { expected, observed })
+        Err(DbSchemaConformanceError::KeyContractMismatch {
+            expected: expected_keys,
+            observed: observed_keys,
+        })
     }
 }
 

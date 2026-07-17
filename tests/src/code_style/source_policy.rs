@@ -307,7 +307,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     });
     let expected = std::collections::BTreeMap::from([(
         str_constants::STR_CONSTANTS_SRC_LIB_RS.to_owned(),
-        12usize,
+        7usize,
     )]);
     assert_eq!(observed, expected, "raw SQL identifier baseline changed");
 }
@@ -721,6 +721,29 @@ fn string_constants_are_declared_only_in_str_constants() {
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+
+#[test]
+fn str_constants_does_not_own_typed_domain_values() {
+    let source =
+        std::fs::read_to_string(str_constants::STR_CONSTANTS_SRC_LIB_RS).expect("3caa56a9");
+    let ers = [
+        concat!("ADMIN_API_", "PATHS_"),
+        concat!("ADMIN_", "OPERATION_"),
+        concat!("ADMIN_PAGE_", "PATHS_"),
+        concat!("ADMIN_PERMISSION_", "VALUES_"),
+    ]
+    .into_iter()
+    .filter(|prefix| source.contains(prefix))
+    .map(str::to_owned)
+    .collect::<Vec<_>>();
+    super::assert_joined_ers_empty_with_ctx(
+        super::types::SourceTextListRef::from(ers.as_slice()),
+        super::types::StaticStr(str_constants::VALUE_6B7E02A4),
+        super::types::SourceTextRef::from(
+            str_constants::DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API,
+        ),
     );
 }
 #[test]

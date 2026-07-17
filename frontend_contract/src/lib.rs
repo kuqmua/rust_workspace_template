@@ -12,7 +12,7 @@ pub use auth_session_keep_alive::{
     AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
     StdAuthSessionRefreshInterval,
 };
-pub use frontend_contract_macros::{RouteFamily, TypedRoute};
+pub use frontend_contract_macros::{RouteFamily, TypedRoute, route_openapi, route_registry};
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
     canonical_json_contract_snapshot,
@@ -879,7 +879,7 @@ mod tests {
     fn route_contract_keeps_transport_policy_together() {
         let route = super::RouteContract::new(
             super::AuthenticationRequirement::Permission(super::ContractStr::from(
-                str_constants::ADMIN_PERMISSION_VALUES_USERS_UPDATE,
+                str_constants::PERMISSION,
             )),
             super::HttpMethod::Patch,
             super::MutationKind::Mutating,

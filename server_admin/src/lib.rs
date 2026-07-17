@@ -10,12 +10,14 @@ mod password;
 mod rbac;
 mod token;
 pub use domain::{
-    AdminAuditLogId, AdminDisplayName, AdminLogin, AdminPermissionId, AdminPermissionName,
-    AdminRoleId, AdminRoleName, AdminUserId, SecrecyAdminString, StdAdminBool,
-    StdAdminNonZeroUsize, StdAdminSocketAddr, StdAdminStrRef, StdAdminString, UuidAdminValue,
+    AdminAuditLogId, AdminPermissionId, AdminPermissionName, AdminRoleId, AdminUserId,
+    SecrecyAdminString, StdAdminBool, StdAdminNonZeroUsize, StdAdminSocketAddr, StdAdminStrRef,
+    StdAdminString, UuidAdminValue,
 };
 pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
-pub use server_admin_contract::{AdminPermission, AdminPermissionTryFromStrError};
+pub use server_admin_contract::{
+    AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
+};
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
@@ -650,7 +652,7 @@ mod tests {
     fn permission_seed_contains_the_complete_typed_catalog() {
         let migration = super::migrations::migrator()
             .iter()
-            .find(|migration| migration.description == "admin permissions")
+            .find(|migration| migration.description == str_constants::ADMIN_PERMISSIONS_ALT)
             .expect("c5f1d8a4");
         assert!(
             super::AdminPermission::ALL
@@ -744,10 +746,10 @@ mod tests {
         let valid =
             super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("078c759d");
         assert_eq!(valid.as_ref(), str_constants::ADMIN_USER_1);
-        let _uppercase_error =
-            super::AdminLogin::try_from(str_constants::ADMIN.to_owned()).expect_err("5fa1c6e2");
-        let _short_error =
-            super::AdminLogin::try_from(str_constants::AB.to_owned()).expect_err("b78d42a9");
+        let _uppercase_error = super::AdminLogin::try_from(str_constants::ADMIN.to_owned())
+            .expect_err(str_constants::VALUE_5FA1C6E2);
+        let _short_error = super::AdminLogin::try_from(str_constants::AB.to_owned())
+            .expect_err(str_constants::VALUE_B78D42A9);
     }
     #[test]
     fn access_token_round_trip_checks_issuer_and_audience() {
