@@ -1,4 +1,73 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling emitters read the private descriptor directly while it remains hidden outside the generator
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct GeneratePgTableFieldCount(usize);
+impl From<GeneratePgTableFieldCount> for usize {
+    fn from(value: GeneratePgTableFieldCount) -> Self {
+        value.0
+    }
+}
+
+#[derive(Debug)]
+pub struct GeneratePgTableModel {
+    field_count: GeneratePgTableFieldCount,
+    input: SynGeneratePgTableModelInput,
+}
+#[derive(Debug)]
+pub(super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
+impl From<syn::DeriveInput> for SynGeneratePgTableModelInput {
+    fn from(value: syn::DeriveInput) -> Self {
+        Self(value)
+    }
+}
+impl From<SynGeneratePgTableModelInput> for syn::DeriveInput {
+    fn from(value: SynGeneratePgTableModelInput) -> Self {
+        value.0
+    }
+}
+#[derive(Debug)]
+pub(super) struct SynGeneratePgTableModelError(syn::Error);
+impl From<SynGeneratePgTableModelError> for syn::Error {
+    fn from(value: SynGeneratePgTableModelError) -> Self {
+        value.0
+    }
+}
+impl GeneratePgTableModel {
+    #[must_use]
+    pub const fn field_count(&self) -> GeneratePgTableFieldCount {
+        self.field_count
+    }
+    #[allow(clippy::single_call_fn)] // construction is isolated as the typed build-stage boundary
+    pub(super) fn from_struct(input: SynGeneratePgTableModelInput) -> Self {
+        let field_count = match &input.0.data {
+            syn::Data::Struct(data) => data.fields.iter().count(),
+            syn::Data::Enum(_) | syn::Data::Union(_) => 0usize,
+        };
+        Self {
+            field_count: GeneratePgTableFieldCount(field_count),
+            input,
+        }
+    }
+    pub(super) fn into_input(self) -> SynGeneratePgTableModelInput {
+        self.input
+    }
+    pub(super) fn validate(self) -> Result<Self, SynGeneratePgTableModelError> {
+        if self.field_count.0 == 0usize {
+            Err(syn::Error::new_spanned(
+                &self.input.0.ident,
+                str_constants::GENERATE_PG_TABLE_REQUIRES_FIELD,
+            )
+            .into())
+        } else {
+            Ok(self)
+        }
+    }
+}
+impl From<syn::Error> for SynGeneratePgTableModelError {
+    fn from(value: syn::Error) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Clone, Copy)]
 pub(super) struct OperationDsc<
     Capability,

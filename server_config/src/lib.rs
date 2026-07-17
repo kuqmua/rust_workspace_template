@@ -4,7 +4,9 @@ pub struct Config {
     //todo maybe auto generate .env and docker-compose environment variables. and maybe write in directly into files
     pub cors_allow_origin: config_lib::CorsAllowOrigin,
     pub content_security_policy: config_lib::ContentSecurityPolicy,
+    #[config(secret)]
     pub database_url: config_lib::DatabaseUrl,
+    #[config(secret)]
     pub admin_jwt_secret: config_lib::AdminJwtSecret,
     pub admin_token_audience: config_lib::AdminTokenAudience,
     pub admin_token_issuer: config_lib::AdminTokenIssuer,
@@ -24,6 +26,7 @@ pub struct Config {
     pub timezone: config_lib::ChronoTimezone,
     pub src_place_type: config_lib::SrcPlaceType,
     pub tracing_level: config_lib::TracingLevel,
+    pub tracing_format: config_lib::types::TracingFormat,
     pub enable_api_git_commit_check: config_lib::EnableApiGitCommitCheck,
     pub admin_cookie_secure: config_lib::AdminCookieSecure,
     pub admin_swagger_enabled: config_lib::AdminSwaggerEnabled,
@@ -239,6 +242,7 @@ mod tests {
                 .expect("50e91ec9"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+                tracing_format: config_lib::types::TracingFormat::Text,
                 trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
                     str_constants::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
                 ),

@@ -193,6 +193,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             .expect("e3e42aa5"),
             src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
             tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+            tracing_format: config_lib::types::TracingFormat::Text,
             trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
                 str_constants::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
             ),
@@ -272,6 +273,7 @@ mod tests {
                 .expect("e8714250"),
                 src_place_type: config_lib::SrcPlaceType(config_lib::types::SrcPlaceType::Github),
                 tracing_level: config_lib::TracingLevel(config_lib::types::TracingLevel::Info),
+                tracing_format: config_lib::types::TracingFormat::Text,
                 trusted_proxy_ranges_text: config_lib::TrustedProxyRangesText(
                     str_constants::VALUE_127_0_0_1_32_PATH_1_128.to_owned(),
                 ),

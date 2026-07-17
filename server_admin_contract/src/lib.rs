@@ -438,10 +438,17 @@ pub enum AdminTableSortField {
 pub struct AdminTableSortFieldTryFromKeyError;
 impl std::fmt::Display for AdminTableSortFieldTryFromKeyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("unknown admin table sort field")
+        f.write_str(str_constants::UNKNOWN_ADMIN_TABLE_SORT_FIELD)
     }
 }
 impl std::error::Error for AdminTableSortFieldTryFromKeyError {}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for AdminTableSortKeyRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
+}
 impl AdminTableSortField {
     pub const USER: [Self; 4] = [
         Self::UserLogin,
@@ -492,12 +499,12 @@ impl AdminTableSortField {
     }
     pub fn try_from_key(
         options: &[Self],
-        key: &str,
+        key: AdminTableSortKeyRef<'_>,
     ) -> Result<Self, AdminTableSortFieldTryFromKeyError> {
         options
             .iter()
             .copied()
-            .find(|option| option.key().as_ref() == key)
+            .find(|option| option.key().as_ref() == key.0)
             .ok_or(AdminTableSortFieldTryFromKeyError)
     }
 }
@@ -1069,6 +1076,19 @@ impl AdminUpdateSettingsReq {
             self.tab_title,
         )
     }
+    #[must_use]
+    pub fn has_fields(&self) -> AdminBool {
+        AdminBool::from(
+            self.default_admin_route.is_some()
+                || self.main_logo.is_some()
+                || self.organization_contacts.is_some()
+                || self.organization_name.is_some()
+                || self.primary_color.is_some()
+                || self.site_name.is_some()
+                || self.support_url.is_some()
+                || self.tab_title.is_some(),
+        )
+    }
 }
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema,
@@ -1449,12 +1469,23 @@ pub enum AdminPageCapability {
     Swagger,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AdminPageTitle {
+    Api,
+    AuditLog,
+    Metrics,
+    Permissions,
+    Roles,
+    Settings,
+    Users,
+    Version,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AdminPageSpec {
     capability: AdminPageCapability,
     page: AdminPage,
     path: AdminFrontendPath,
     route: AdminRoute,
-    title: &'static str,
+    title: AdminPageTitle,
 }
 impl AdminPageSpec {
     #[must_use]
@@ -1475,7 +1506,16 @@ impl AdminPageSpec {
     }
     #[must_use]
     pub fn title(self) -> frontend_contract::ContractStr {
-        frontend_contract::ContractStr::from(self.title)
+        frontend_contract::ContractStr::from(match self.title {
+            AdminPageTitle::Api => str_constants::API_ALT,
+            AdminPageTitle::AuditLog => str_constants::AUDIT_LOG,
+            AdminPageTitle::Metrics => str_constants::METRICS_ALT,
+            AdminPageTitle::Permissions => str_constants::PERMISSIONS,
+            AdminPageTitle::Roles => str_constants::ROLES,
+            AdminPageTitle::Settings => str_constants::SETTINGS,
+            AdminPageTitle::Users => str_constants::USERS,
+            AdminPageTitle::Version => str_constants::VERSION_ALT,
+        })
     }
 }
 const ADMIN_PAGE_SPECS: [AdminPageSpec; 8] = [
@@ -1484,56 +1524,56 @@ const ADMIN_PAGE_SPECS: [AdminPageSpec; 8] = [
         page: AdminPage::Users,
         path: AdminFrontendPath::Users,
         route: AdminRoute::Users,
-        title: str_constants::USERS,
+        title: AdminPageTitle::Users,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Roles,
         path: AdminFrontendPath::Roles,
         route: AdminRoute::Roles,
-        title: str_constants::ROLES,
+        title: AdminPageTitle::Roles,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Permissions,
         path: AdminFrontendPath::Permissions,
         route: AdminRoute::Permissions,
-        title: str_constants::PERMISSIONS,
+        title: AdminPageTitle::Permissions,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Audit,
         path: AdminFrontendPath::Audit,
         route: AdminRoute::Audit,
-        title: str_constants::AUDIT_LOG,
+        title: AdminPageTitle::AuditLog,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Settings,
         path: AdminFrontendPath::Settings,
         route: AdminRoute::Settings,
-        title: str_constants::SETTINGS,
+        title: AdminPageTitle::Settings,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Metrics,
         path: AdminFrontendPath::Metrics,
         route: AdminRoute::Metrics,
-        title: str_constants::METRICS_ALT,
+        title: AdminPageTitle::Metrics,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Always,
         page: AdminPage::Version,
         path: AdminFrontendPath::Version,
         route: AdminRoute::Version,
-        title: str_constants::VERSION_ALT,
+        title: AdminPageTitle::Version,
     },
     AdminPageSpec {
         capability: AdminPageCapability::Swagger,
         page: AdminPage::OpenApi,
         path: AdminFrontendPath::OpenApi,
         route: AdminRoute::OpenApi,
-        title: str_constants::API_ALT,
+        title: AdminPageTitle::Api,
     },
 ];
 impl AdminPage {
@@ -1641,28 +1681,44 @@ impl AdminRoute {
     pub fn path(self) -> AdminRoutePath {
         let suffix = match self {
             Self::DeleteRole(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminDeleteRoleRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminDeleteRoleRoute,
+                >(&id))
             }
             Self::UpdateRole(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminUpdateRoleRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminUpdateRoleRoute,
+                >(&id))
             }
-            Self::SetRolePermissions(id) => frontend_contract::typed_parameterized_route_path::<
-                AdminSetRolePermissionsRoute,
-            >(&id),
+            Self::SetRolePermissions(id) => {
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminSetRolePermissionsRoute,
+                >(&id))
+            }
             Self::DeleteUser(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminDeleteUserRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminDeleteUserRoute,
+                >(&id))
             }
             Self::UpdateUser(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminUpdateUserRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminUpdateUserRoute,
+                >(&id))
             }
             Self::SetUserBan(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminSetUserBanRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminSetUserBanRoute,
+                >(&id))
             }
             Self::SetUserPassword(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminSetUserPasswordRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminSetUserPasswordRoute,
+                >(&id))
             }
             Self::SetUserRoles(id) => {
-                frontend_contract::typed_parameterized_route_path::<AdminSetUserRolesRoute>(&id)
+                String::from(frontend_contract::typed_parameterized_route_path::<
+                    AdminSetUserRolesRoute,
+                >(&id))
             }
             Self::RevokeSession => {
                 String::from(frontend_contract::typed_route_path::<AdminRevokeSessionRoute>())
@@ -1721,18 +1777,43 @@ mod tests {
     }
     #[test]
     fn system_setting_types_match_database_constraints() {
-        let _empty_site_name_error =
-            super::AdminSiteName::try_from(String::new()).expect_err("4cfb6820");
-        let _blank_site_name_error =
-            super::AdminSiteName::try_from(str_constants::SPACE.to_owned()).expect_err("b5fba19e");
+        let Err(_empty_site_name_error) = super::AdminSiteName::try_from(String::new()) else {
+            panic!("4cfb6820");
+        };
+        let Err(_blank_site_name_error) =
+            super::AdminSiteName::try_from(str_constants::SPACE.to_owned())
+        else {
+            panic!("b5fba19e");
+        };
         let _site_name =
             super::AdminSiteName::try_from(str_constants::ADMIN.to_owned()).expect("adb58327");
         let _default_route =
             super::AdminDefaultRoute::try_from(super::AdminFrontendPath::Users.get().to_owned())
                 .expect("3582a0ec");
-        let _invalid_route_error =
+        let Err(_invalid_route_error) =
             super::AdminDefaultRoute::try_from(str_constants::ROUTE.to_owned())
-                .expect_err("bb0d454a");
+        else {
+            panic!("bb0d454a");
+        };
+    }
+    #[test]
+    fn update_settings_reports_whether_it_contains_a_field() {
+        let empty =
+            super::AdminUpdateSettingsReq::new(None, None, None, None, None, None, None, None);
+        assert!(!bool::from(empty.has_fields()));
+        let with_site_name = super::AdminUpdateSettingsReq::new(
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(
+                super::AdminSiteName::try_from(str_constants::ADMIN.to_owned()).expect("5db76a91"),
+            ),
+            None,
+            None,
+        );
+        assert!(bool::from(with_site_name.has_fields()));
     }
     #[test]
     fn request_payloads_reject_unknown_fields() {
@@ -1881,14 +1962,14 @@ mod tests {
         assert_eq!(
             super::AdminTableSortField::try_from_key(
                 &super::AdminTableSortField::USER,
-                str_constants::LOGIN,
+                super::AdminTableSortKeyRef::from(str_constants::LOGIN),
             ),
             Ok(super::AdminTableSortField::UserLogin)
         );
         assert_eq!(
             super::AdminTableSortField::try_from_key(
                 &super::AdminTableSortField::USER,
-                str_constants::CREATED_AT,
+                super::AdminTableSortKeyRef::from(str_constants::CREATED_AT),
             ),
             Err(super::AdminTableSortFieldTryFromKeyError)
         );

@@ -7,20 +7,19 @@ pub(super) async fn record_success_in_connection(
         serde_json::json!({ "operation": event.action.as_str().as_ref(), "target_id": event.resource_id.value().as_ref() }),
     )
     .map_err(|_error| super::AdminApiError::Validation)?;
-    let _result = sqlx::query(
-        str_constants::INSERT_INTO_ADMIN_AUDIT_LOG_USER_ID_USER_LOGIN_ACTION_RESOURCE_RESOURCE,
+    let resource_id = event.resource_id.value();
+    super::super::repository::audit::insert_audit_success(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
+        event.user_id,
+        event.login,
+        event.action,
+        event.resource,
+        &resource_id,
+        super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        &details,
     )
-    .bind(event.user_id.0)
-    .bind(event.login.as_ref())
-    .bind(event.action.as_str().as_ref())
-    .bind(event.resource.as_str().as_ref())
-    .bind(event.resource_id.value().as_ref())
-    .bind(uuid::Uuid::new_v4())
-    .bind(details.as_ref())
-    .execute(connection.as_mut())
     .await
-    .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
-    Ok(())
+    .map_err(super::AdminApiError::Pg)
 }
 pub(super) async fn query_log(
     auth: super::AdminAuthReq,
@@ -44,75 +43,21 @@ pub(super) async fn query_log(
         auth.state.as_ref().policy.audit_window,
     )
     .await?;
-    let action = query.0.action.map(super::super::AdminAuditAction::as_str);
-    let resource = query
-        .0
-        .resource
-        .map(super::super::AdminAuditResource::as_str);
-    let rows = sqlx::query_as::<
-        _,
-        (
-            i64,
-            Option<i64>,
-            Option<String>,
-            String,
-            String,
-            Option<String>,
-            bool,
-            Option<serde_json::Value>,
-            String,
+    let views = super::super::repository::audit::query_audit_log(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
         ),
-    >(
-        str_constants::SELECT_ID_USER_ID_USER_LOGIN_ACTION_RESOURCE_RESOURCE_ID_SUCCEEDED_DETAILS,
+        query.0,
     )
-    .bind(query.0.user_id.map(|user_id| user_id.0))
-    .bind(action.map(|value| value.as_ref().to_owned()))
-    .bind(resource.map(|value| value.as_ref().to_owned()))
-    .bind(
-        query
-            .0
-            .created_after
-            .as_ref()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .bind(
-        query
-            .0
-            .created_before
-            .as_ref()
-            .map(|value| value.as_ref().as_str()),
-    )
-    .fetch_all(auth.state.as_ref().pool.as_ref())
     .await
-    .map_err(|error| super::AdminApiError::Pg(super::super::SqlxAdminError::from(error)))?;
-    let views = rows
-        .into_iter()
-        .map(|row| {
-            Ok(server_admin_contract::AdminAuditView::new(
-                server_admin_contract::AdminText::try_from(row.3)
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-                server_admin_contract::AdminAuditTimestamp::try_from(row.8)
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-                row.7
-                    .map(server_admin_contract::SerdeJsonAdminAuditDetails::try_from)
-                    .transpose()
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-                server_admin_contract::AdminAuditLogId::from(row.0),
-                server_admin_contract::AdminText::try_from(row.4)
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-                row.5
-                    .map(server_admin_contract::AdminText::try_from)
-                    .transpose()
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-                server_admin_contract::AdminBool::from(row.6),
-                row.1.map(server_admin_contract::AdminUserId::from),
-                row.2
-                    .map(server_admin_contract::AdminLogin::try_from)
-                    .transpose()
-                    .map_err(|_error| super::AdminApiError::Validation)?,
-            ))
-        })
-        .collect::<Result<Vec<server_admin_contract::AdminAuditView>, super::AdminApiError>>()?;
+    .map_err(|repository_error| match repository_error {
+        super::super::repository::AdminRepositoryError::InvalidStoredValue => {
+            super::AdminApiError::Validation
+        }
+        super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
+            super::AdminApiError::Pg(sqlx_error)
+        }
+    })?;
     Ok(super::AxumAdminResponse(
         axum::response::IntoResponse::into_response(axum::Json(views)),
     ))

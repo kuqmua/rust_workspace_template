@@ -29,41 +29,33 @@ impl AdminRateLimitScope {
         }
     }
 }
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
-pub(super) struct StdAdminRateLimitCount(pub(super) i64);
-#[derive(Debug, Clone, Copy, newtype::FromInner)]
-pub(super) struct StdAdminRateLimitWindowSeconds(i32);
 pub(super) async fn enforce_rate_limit(
     state: &super::AdminAuthSvcState,
     scope: AdminRateLimitScope,
     subject: &super::super::StdAdminString,
-    limit: StdAdminRateLimitCount,
-    window_seconds: StdAdminRateLimitWindowSeconds,
+    limit: super::StdAdminRateLimitCount,
+    window_seconds: super::StdAdminRateLimitWindowSeconds,
 ) -> Result<(), super::AdminApiError> {
     let scope_text = scope.as_str();
-    let decision = server_runtime::enforce_pg_rate_limit(
-        server_runtime::SqlxPgRateLimitPoolRef::from(state.pool.as_ref()),
-        server_runtime::PgRateLimitQueryRef::from(
-            str_constants::INSERT_INTO_ADMIN_RATE_LIMITS_SCOPE_SUBJECT_WINDOW_STARTED_AT_REQUEST_COUNT,
-        ),
-        server_runtime::PgRateLimitScopeRef::try_from(scope_text.as_ref())
-            .map_err(|_error| super::AdminApiError::Validation)?,
-        server_runtime::PgRateLimitSubjectRef::try_from(subject.as_ref().as_str())
-            .map_err(|_error| super::AdminApiError::Validation)?,
-        server_runtime::PgRateLimitMaximum::try_from(limit.0)
-            .map_err(|_error| super::AdminApiError::Validation)?,
-        server_runtime::PgRateLimitWindowSeconds::try_from(window_seconds.0)
-            .map_err(|_error| super::AdminApiError::Validation)?,
+    let decision = super::super::repository::rate_limits::enforce_rate_limit(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
+        scope_text,
+        subject,
+        limit,
+        window_seconds,
     )
     .await
-    .map_err(|error| match error {
-        server_runtime::PgRateLimitError::Sqlx(source) => super::AdminApiError::Pg(
-            super::super::SqlxAdminError::from(sqlx::Error::from(source)),
-        ),
+    .map_err(|repository_error| match repository_error {
+        super::super::repository::AdminRateLimitRepositoryError::InvalidPolicy => {
+            super::AdminApiError::Validation
+        }
+        super::super::repository::AdminRateLimitRepositoryError::Sqlx(sqlx_error) => {
+            super::AdminApiError::Pg(sqlx_error)
+        }
     })?;
     match decision {
-        server_runtime::PgRateLimitDecision::Allowed => Ok(()),
-        server_runtime::PgRateLimitDecision::Limited(_retry_after) => {
+        super::super::repository::AdminRateLimitOutcome::Allowed => Ok(()),
+        super::super::repository::AdminRateLimitOutcome::Limited => {
             Err(super::AdminApiError::RateLimited)
         }
     }

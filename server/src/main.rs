@@ -267,16 +267,14 @@ fn mk_app_state(
     })
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
-fn initialization_tracing() {
+fn initialization_tracing(format: config_lib::types::TracingFormat) {
     let subscriber = tracing_subscriber::layer::SubscriberExt::with(
         tracing_subscriber::registry(),
         tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             tracing_subscriber::EnvFilter::new(str_constants::CONFIG_TRACING_INFO)
         }),
     );
-    if config_lib::types::TracingFormat::from_env_or_default()
-        == config_lib::types::TracingFormat::Json
-    {
+    if format == config_lib::types::TracingFormat::Json {
         tracing_subscriber::util::SubscriberInitExt::init(
             tracing_subscriber::layer::SubscriberExt::with(
                 subscriber,
@@ -340,9 +338,7 @@ async fn mk_pg_pool(
         .map_err(|error| RunServerError::PgConnect(SqlxServerPgConnectError(error)))
 }
 #[allow(clippy::single_call_fn)] // startup flow is grouped for separation from process/bootstrap concerns
-async fn run_server() -> Result<(), RunServerError> {
-    let config = server_config::Config::try_from_env()
-        .map_err(|error| RunServerError::Config(ServerConfigError(error)))?;
+async fn run_server(config: server_config::Config) -> Result<(), RunServerError> {
     let pg_pool = mk_pg_pool(&config).await?;
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
         .await
@@ -571,8 +567,16 @@ async fn shutdown_signal() {
     }
 }
 fn main() -> StdServerExitCode {
-    initialization_tracing();
-    match mk_runtime().and_then(|runtime| runtime.0.block_on(run_server())) {
+    let config = match server_config::Config::try_from_env() {
+        Ok(config) => config,
+        Err(config_error) => {
+            let startup_error = RunServerError::Config(ServerConfigError(config_error));
+            eprintln!("{startup_error}");
+            return StdServerExitCode(std::process::ExitCode::FAILURE);
+        }
+    };
+    initialization_tracing(config.tracing_format);
+    match mk_runtime().and_then(|runtime| runtime.0.block_on(run_server(config))) {
         Ok(()) => StdServerExitCode(std::process::ExitCode::SUCCESS),
         Err(error) => {
             eprintln!("{error}");

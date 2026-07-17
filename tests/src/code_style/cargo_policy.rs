@@ -66,10 +66,11 @@ fn check_workspace_dependencies_having_exact_version() {
     .for_each(|dep| super::validate_workspace_dep_spec(super::types::TomlValueRef::from(dep)));
 }
 #[test]
-fn env_and_envexample_have_same_keys() {
+fn env_and_env_example_have_same_keys() {
     let env_keys = super::env_keys_from_file(super::types::StaticStr(str_constants::SERVER_ENV));
-    let example_keys =
-        super::env_keys_from_file(super::types::StaticStr(str_constants::SERVER_ENVEXAMPLE));
+    let example_keys = super::env_keys_from_file(super::types::StaticStr(
+        str_constants::SERVER_DOT_ENV_EXAMPLE,
+    ));
     let env_keys_set = super::str_set(super::types::SourceTextListRef::from(env_keys.as_slice()));
     let example_keys_set = super::str_set(super::types::SourceTextListRef::from(
         example_keys.as_slice(),
@@ -78,12 +79,12 @@ fn env_and_envexample_have_same_keys() {
         super::types::SourceTextListRef::from(env_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(example_keys_set.as_ref()),
         super::types::StaticStr(str_constants::ENV),
-        super::types::StaticStr(str_constants::ENVEXAMPLE),
+        super::types::StaticStr(str_constants::ENV_EXAMPLE),
     );
     ers.extend(super::collect_missing_key_ers(
         super::types::SourceTextListRef::from(example_keys.as_slice()),
         super::types::StdSourceTextRefSet::from(env_keys_set.as_ref()),
-        super::types::StaticStr(str_constants::ENVEXAMPLE),
+        super::types::StaticStr(str_constants::ENV_EXAMPLE),
         super::types::StaticStr(str_constants::ENV),
     ));
     super::assert_joined_ers_empty_sorted(

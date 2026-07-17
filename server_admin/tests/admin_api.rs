@@ -157,7 +157,7 @@ fn cookie_value(
 }
 async fn validate_generated_admin_table<Table>(pool: &SqlxAdminApiTestPool)
 where
-    Table: pg_crud_common::DbTableSchema,
+    Table: pg_crud_common::DbExtendedTableSchema,
 {
     pg_crud_common::validate_generated_postgres_table::<Table>(
         pg_crud_common::SqlxPgPoolRef::from(&pool.0),
@@ -165,6 +165,12 @@ where
     )
     .await
     .expect("c8629e14");
+    pg_crud_common::validate_postgres_table_extensions::<Table>(
+        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+    )
+    .await
+    .expect("141e9df6");
 }
 async fn postgres_accepts_admin_user_policy_values(
     pool: &SqlxAdminApiTestPool,
@@ -563,16 +569,12 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     validate_generated_admin_table::<server_admin::generated_tables::AdminPermissions>(&pool).await;
     validate_generated_admin_table::<server_admin::generated_tables::AdminSystemSettings>(&pool)
         .await;
-    let permission_rows = sqlx::query_as::<_, (i64, String)>(
-        str_constants::SELECT_ID_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+    let observed_permissions = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
     )
     .fetch_all(&pool.0)
     .await
     .expect("db765f20");
-    let observed_permissions = permission_rows
-        .into_iter()
-        .map(|(_id, name)| name)
-        .collect::<Vec<_>>();
     let expected_permissions = server_admin::AdminPermission::ALL
         .into_iter()
         .map(|permission| permission.as_str().as_ref().to_owned())
@@ -1623,6 +1625,18 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     ));
     let full = sqlx::migrate!("./migrations");
     full.run(&fresh_pool).await.expect("4b6c3bd6");
+    let expected_fresh_catalog = server_admin::admin_catalog_snapshot(
+        server_admin::StdAdminStrRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
+    )
+    .expect("6ea048db");
+    let observed_fresh_catalog = pg_crud_common::inspect_postgres_catalog(
+        pg_crud_common::SqlxPgPoolRef::from(&fresh_pool),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_FRESH_TEST),
+    )
+    .await
+    .expect("7b2057bf");
+    pg_crud_common::validate_postgres_catalog(expected_fresh_catalog, observed_fresh_catalog)
+        .expect("ac91d742");
     let baseline = sqlx::migrate::Migrator {
         migrations: std::borrow::Cow::Owned(full.migrations.iter().take(3usize).cloned().collect()),
         ignore_missing: false,
@@ -1638,6 +1652,18 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     .expect("17862da9");
     assert_eq!(baseline_version, 3i64);
     full.run(&upgrade_pool).await.expect("3664ecff");
+    let expected_upgrade_catalog = server_admin::admin_catalog_snapshot(
+        server_admin::StdAdminStrRef::from(str_constants::ADMIN_MIGRATION_UPGRADE_TEST),
+    )
+    .expect("1e4a8d90");
+    let observed_upgrade_catalog = pg_crud_common::inspect_postgres_catalog(
+        pg_crud_common::SqlxPgPoolRef::from(&upgrade_pool),
+        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_UPGRADE_TEST),
+    )
+    .await
+    .expect("f2053e69");
+    pg_crud_common::validate_postgres_catalog(expected_upgrade_catalog, observed_upgrade_catalog)
+        .expect("cf47a283");
     let versions = sqlx::query_as::<_, (i64, i64)>(str_constants::SELECT_SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE)
         .fetch_one(&base_pool)
         .await

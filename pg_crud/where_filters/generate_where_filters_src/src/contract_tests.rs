@@ -1,3 +1,4 @@
+#[allow(clippy::single_call_fn)] // validation remains an independently testable typed pipeline stage
 pub(super) fn filter_spec_contract_is_valid(
     spec: crate::model::FilterSpec,
 ) -> crate::model::FilterSpecValid {

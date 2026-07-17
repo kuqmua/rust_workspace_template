@@ -150,8 +150,52 @@ pub trait TypedRoute: Sized {
     type Transport: RouteTransport;
     fn metadata() -> RouteMetadata;
     #[must_use]
-    fn openapi_response_schema() -> Option<utoipa::openapi::RefOr<utoipa::openapi::Schema>> {
+    fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> {
         None
+    }
+}
+#[derive(Clone)]
+pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
+impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(str_constants::OPEN_API_ROUTE_SCHEMA)
+            .finish_non_exhaustive()
+    }
+}
+impl From<utoipa::openapi::RefOr<utoipa::openapi::Schema>> for UtoipaOpenApiRouteSchema {
+    fn from(value: utoipa::openapi::RefOr<utoipa::openapi::Schema>) -> Self {
+        Self(value)
+    }
+}
+impl From<UtoipaOpenApiRouteSchema> for utoipa::openapi::RefOr<utoipa::openapi::Schema> {
+    fn from(value: UtoipaOpenApiRouteSchema) -> Self {
+        value.0
+    }
+}
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ParameterizedRoutePath(String);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ParameterizedRoutePathTryFromStringError;
+impl TryFrom<String> for ParameterizedRoutePath {
+    type Error = ParameterizedRoutePathTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > 8192usize {
+            Err(ParameterizedRoutePathTryFromStringError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl From<ParameterizedRoutePath> for String {
+    fn from(value: ParameterizedRoutePath) -> Self {
+        value.0
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct OpenApiSecuritySchemeRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for OpenApiSecuritySchemeRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
     }
 }
 pub trait CoveredRoute: TypedRoute {
@@ -159,7 +203,7 @@ pub trait CoveredRoute: TypedRoute {
 }
 pub trait ParameterizedRoute: TypedRoute {
     type Parameter;
-    fn path(parameter: &Self::Parameter) -> String;
+    fn path(parameter: &Self::Parameter) -> ParameterizedRoutePath;
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RouteBodyLimit(usize);
@@ -274,7 +318,9 @@ where
     {
         let _previous_content = response.content.insert(
             str_constants::APPLICATION_JSON.to_owned(),
-            utoipa::openapi::Content::new(schema),
+            utoipa::openapi::Content::new::<utoipa::openapi::RefOr<utoipa::openapi::Schema>>(
+                schema.into(),
+            ),
         );
     }
     let _previous_response = operation
@@ -284,8 +330,8 @@ where
 }
 pub fn apply_openapi_security_contract<Route>(
     operation: &mut utoipa::openapi::path::Operation,
-    authenticated_scheme: &str,
-    csrf_scheme: &str,
+    authenticated_scheme: OpenApiSecuritySchemeRef<'_>,
+    csrf_scheme: OpenApiSecuritySchemeRef<'_>,
 ) where
     Route: TypedRoute,
 {
@@ -295,11 +341,11 @@ pub fn apply_openapi_security_contract<Route>(
         crate::AuthenticationRequirement::Authenticated
         | crate::AuthenticationRequirement::Permission(_) => {
             let requirement = utoipa::openapi::security::SecurityRequirement::new(
-                authenticated_scheme,
+                authenticated_scheme.0,
                 std::iter::empty::<&str>(),
             );
             let complete_requirement = if metadata.mutation() == crate::RouteMutation::Mutating {
-                requirement.add(csrf_scheme, std::iter::empty::<&str>())
+                requirement.add(csrf_scheme.0, std::iter::empty::<&str>())
             } else {
                 requirement
             };
@@ -347,7 +393,7 @@ where
     Route::metadata().path()
 }
 #[must_use]
-pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> String
+pub fn typed_parameterized_route_path<Route>(parameter: &Route::Parameter) -> ParameterizedRoutePath
 where
     Route: ParameterizedRoute,
 {

@@ -56,21 +56,6 @@ pub enum TracingFormat {
     #[default]
     Text,
 }
-impl TracingFormat {
-    #[must_use]
-    pub fn from_env_or_default() -> Self {
-        std::env::var(str_constants::ENV_NAMES_TRACING_FORMAT)
-            .ok()
-            .as_deref()
-            .map_or(Self::Text, |value| {
-                if value.eq_ignore_ascii_case(str_constants::JSON) {
-                    Self::Json
-                } else {
-                    Self::Text
-                }
-            })
-    }
-}
 impl TracingLevel {
     const fn as_str(self) -> TracingLevelName {
         TracingLevelName(match self {

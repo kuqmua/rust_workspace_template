@@ -71,7 +71,13 @@ async fn create_session_with_refresh_in_connection(
                             .to_owned(),
                     ))),
                 ));
-            (refresh_token, Some((uuid::Uuid::new_v4(), refresh_hash)))
+            (
+                refresh_token,
+                Some((
+                    super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+                    refresh_hash,
+                )),
+            )
         }
     };
     let csrf_generated = super::super::AdminGeneratedToken::generate();
@@ -99,57 +105,37 @@ async fn create_session_with_refresh_in_connection(
             super::super::JsonwebtokenAdminError::from(error),
         ))
     })?;
-    let session_offset =
-        i64::try_from(state.session_limit.0.saturating_sub(1usize)).unwrap_or(i64::MAX);
-    let _expired_access = sqlx::query(
-        str_constants::UPDATE_ADMIN_ACCESS_SESSIONS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR,
+    super::super::repository::sessions::enforce_session_limit(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
+        user_id,
+        state.session_limit,
+        super::super::StdAdminBool::from(refresh_record.is_some()),
     )
-    .bind(user_id.0)
-    .bind(session_offset)
-    .execute(connection.as_mut())
     .await
-    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    if refresh_record.is_some() {
-        let _expired_refresh = sqlx::query(
-            str_constants::UPDATE_ADMIN_REFRESH_TOKENS_SET_REVOKED_AT_NOW_WHERE_USER_ID_DOLLAR,
-        )
-        .bind(user_id.0)
-        .bind(session_offset)
-        .execute(connection.as_mut())
-        .await
-        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
-    }
-    let _access_result = sqlx::query(
-        str_constants::INSERT_INTO_ADMIN_ACCESS_SESSIONS_ID_USER_ID_TOKEN_IDENTIFIER_HASH_TOKEN,
+    .map_err(super::AdminSessionError::Pg)?;
+    super::super::repository::sessions::insert_access_session(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(connection.as_mut()),
+        session_id,
+        user_id,
+        &token_identifier_hash,
+        context_hash,
+        csrf_generated.hash(),
+        state.access_ttl,
     )
-    .bind(session_uuid)
-    .bind(user_id.0)
-    .bind(secrecy::ExposeSecret::expose_secret(
-        token_identifier_hash.0.as_ref(),
-    ))
-    .bind(secrecy::ExposeSecret::expose_secret(
-        context_hash.0.as_ref(),
-    ))
-    .bind(secrecy::ExposeSecret::expose_secret(
-        csrf_generated.hash().0.as_ref(),
-    ))
-    .bind(i64::try_from(state.access_ttl.0).unwrap_or(i64::MAX))
-    .execute(connection.as_mut())
     .await
-    .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+    .map_err(super::AdminSessionError::Pg)?;
     if let Some((refresh_id, refresh_hash)) = refresh_record {
-        let _refresh_result = sqlx::query(
-            str_constants::INSERT_INTO_ADMIN_REFRESH_TOKENS_ID_USER_ID_TOKEN_HASH_EXPIRES_AT,
+        super::super::repository::sessions::insert_refresh_token(
+            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(
+                connection.as_mut(),
+            ),
+            refresh_id,
+            user_id,
+            &refresh_hash,
+            state.refresh_ttl,
         )
-        .bind(refresh_id)
-        .bind(user_id.0)
-        .bind(secrecy::ExposeSecret::expose_secret(
-            refresh_hash.0.as_ref(),
-        ))
-        .bind(i64::try_from(state.refresh_ttl.0).unwrap_or(i64::MAX))
-        .execute(connection.as_mut())
         .await
-        .map_err(|error| super::AdminSessionError::Pg(super::super::SqlxAdminError::from(error)))?;
+        .map_err(super::AdminSessionError::Pg)?;
     }
     Ok(super::AdminSessionBundle {
         access_token,

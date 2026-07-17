@@ -196,8 +196,8 @@ pub fn route_registry(
                         frontend_contract::apply_openapi_error_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_security_contract::<#routes>(
                             &mut operation,
-                            #authenticated_security,
-                            #csrf_security,
+                            frontend_contract::OpenApiSecuritySchemeRef::from(#authenticated_security),
+                            frontend_contract::OpenApiSecuritySchemeRef::from(#csrf_security),
                         );
                         let path_item_type = match metadata.route_method() {
                             frontend_contract::RouteMethod::Connect => utoipa::openapi::path::PathItemType::Connect,
@@ -264,10 +264,10 @@ impl syn::parse::Parse for TypedRouteArgs {
             let name: syn::Ident = input.parse()?;
             let _equals: syn::Token![=] = input.parse()?;
             match name.to_string().as_str() {
-                "authentication" => {
+                str_constants::TYPED_ROUTE_FIELD_AUTHENTICATION => {
                     authentication = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                "error_statuses" => {
+                str_constants::TYPED_ROUTE_FIELD_ERROR_STATUSES => {
                     error_statuses = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 str_constants::METHOD => {
@@ -285,7 +285,7 @@ impl syn::parse::Parse for TypedRouteArgs {
                 str_constants::TYPED_ROUTE_FIELD_PATH => {
                     path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
-                "path_parameter" => {
+                str_constants::TYPED_ROUTE_FIELD_PATH_PARAMETER => {
                     path_parameter = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
                 str_constants::REQUEST => {
@@ -294,7 +294,7 @@ impl syn::parse::Parse for TypedRouteArgs {
                 str_constants::RESPONSE => {
                     response = Some(SynType::from(input.parse::<syn::Type>()?));
                 }
-                "success_status" => {
+                str_constants::TYPED_ROUTE_FIELD_SUCCESS_STATUS => {
                     success_status = Some(SynExpr::from(input.parse::<syn::Expr>()?));
                 }
                 str_constants::TRANSPORT => {
@@ -313,9 +313,9 @@ impl syn::parse::Parse for TypedRouteArgs {
         }
         Ok(Self {
             authentication: authentication
-                .ok_or_else(|| input.error("typed_route requires authentication"))?,
+                .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_AUTHENTICATION))?,
             error_statuses: error_statuses
-                .ok_or_else(|| input.error("typed_route requires error_statuses"))?,
+                .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_ERROR_STATUSES))?,
             method: method
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_METHOD))?,
             mutation,
@@ -329,7 +329,7 @@ impl syn::parse::Parse for TypedRouteArgs {
             response: response
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_RESPONSE))?,
             success_status: success_status
-                .ok_or_else(|| input.error("typed_route requires success_status"))?,
+                .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS))?,
             transport: transport
                 .ok_or_else(|| input.error(str_constants::TYPED_ROUTE_REQUIRES_TRANSPORT))?,
         })
@@ -433,7 +433,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let syn::Expr::Lit(path_expression) = &args.path.0 else {
                 return syn::Error::new_spanned(
                     &args.path.0,
-                    "parameterized typed route path must be a string literal",
+                    str_constants::TYPED_ROUTE_PARAMETER_PATH_MUST_BE_STRING_LITERAL,
                 )
                 .to_compile_error()
                 .into();
@@ -441,7 +441,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let syn::Lit::Str(path_literal) = &path_expression.lit else {
                 return syn::Error::new_spanned(
                     &path_expression.lit,
-                    "parameterized typed route path must be a string literal",
+                    str_constants::TYPED_ROUTE_PARAMETER_PATH_MUST_BE_STRING_LITERAL,
                 )
                 .to_compile_error()
                 .into();
@@ -450,7 +450,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let Some((prefix_value, placeholder_and_suffix)) = path_value.split_once('{') else {
                 return syn::Error::new_spanned(
                     path_literal,
-                    "parameterized typed route path requires one placeholder",
+                    str_constants::TYPED_ROUTE_PARAMETER_PATH_REQUIRES_PLACEHOLDER,
                 )
                 .to_compile_error()
                 .into();
@@ -458,7 +458,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             let Some((placeholder, suffix_value)) = placeholder_and_suffix.split_once('}') else {
                 return syn::Error::new_spanned(
                     path_literal,
-                    "parameterized typed route path requires a closed placeholder",
+                    str_constants::TYPED_ROUTE_PARAMETER_PATH_REQUIRES_CLOSED_PLACEHOLDER,
                 )
                 .to_compile_error()
                 .into();
@@ -470,7 +470,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             {
                 return syn::Error::new_spanned(
                     path_literal,
-                    "parameterized typed route supports one placeholder",
+                    str_constants::TYPED_ROUTE_PARAMETER_PATH_SUPPORTS_ONE_PLACEHOLDER,
                 )
                 .to_compile_error()
                 .into();
@@ -481,8 +481,8 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             quote::quote! {
                 impl frontend_contract::ParameterizedRoute for #identifier {
                     type Parameter = #parameter_path;
-                    fn path(parameter: &Self::Parameter) -> String {
-                        format!("{}{}{}", #prefix, parameter, #suffix)
+                    fn path(parameter: &Self::Parameter) -> frontend_contract::ParameterizedRoutePath {
+                        frontend_contract::ParameterizedRoutePath::try_from(format!("{}{}{}", #prefix, parameter, #suffix)).unwrap_or_default()
                     }
                 }
             }
@@ -498,14 +498,14 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 .path
                 .segments
                 .last()
-                .is_some_and(|segment| segment.ident == "Vec") =>
+                .is_some_and(|segment| segment.ident == str_constants::VEC) =>
         {
             quote::quote! {
-                Some(<#response as utoipa::PartialSchema>::schema())
+                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::PartialSchema>::schema()))
             }
         }
         _ => quote::quote! {
-            Some(<#response as utoipa::ToSchema>::schema().1)
+            Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#response as utoipa::ToSchema>::schema().1))
         },
     };
     let success_status = args.success_status.0;
@@ -526,7 +526,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                     #success_status,
                 )
             }
-            fn openapi_response_schema() -> Option<utoipa::openapi::RefOr<utoipa::openapi::Schema>> {
+            fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 #response_schema
             }
         }

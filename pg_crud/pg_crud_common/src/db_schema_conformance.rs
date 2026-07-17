@@ -83,6 +83,41 @@ pub trait DbTableSchema {
     fn primary_key_column() -> DbStaticSchemaText;
     fn read_excluded_columns() -> Vec<DbStaticSchemaText>;
 }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DbDefaultSpec {
+    column: DbStaticSchemaText,
+    expression: DbStaticSchemaText,
+}
+impl DbDefaultSpec {
+    #[must_use]
+    pub const fn new(column: DbStaticSchemaText, expression: DbStaticSchemaText) -> Self {
+        Self { column, expression }
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DbObjectSpec {
+    definition: DbStaticSchemaText,
+    kind: DbObjectKind,
+    name: DbStaticSchemaText,
+}
+impl DbObjectSpec {
+    #[must_use]
+    pub const fn new(
+        name: DbStaticSchemaText,
+        kind: DbObjectKind,
+        definition: DbStaticSchemaText,
+    ) -> Self {
+        Self {
+            definition,
+            kind,
+            name,
+        }
+    }
+}
+pub trait DbExtendedTableSchema: DbTableSchema {
+    fn checks_and_indexes() -> Vec<DbObjectSpec>;
+    fn exact_defaults() -> Vec<DbDefaultSpec>;
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DbKeySpec {
@@ -181,6 +216,7 @@ impl DbColumnSnapshot {
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum DbObjectKind {
     Check,
+    Default,
     Extension,
     ForeignKey,
     Function,
@@ -254,8 +290,18 @@ pub enum DbSchemaConformanceError {
         expected: Vec<DbColumnContractSnapshot>,
         observed: Vec<DbColumnContractSnapshot>,
     },
+    #[error("PostgreSQL exact defaults differ from the reviewed table contract")]
+    DefaultContractMismatch {
+        expected: Vec<DbObjectSnapshot>,
+        observed: Vec<DbObjectSnapshot>,
+    },
     #[error("generated CRUD configuration refers to a column absent from its table descriptor")]
     DescriptorFieldMismatch(DbSchemaText),
+    #[error("PostgreSQL CHECK/index objects differ from the reviewed table contract")]
+    ExtendedObjectContractMismatch {
+        expected: Vec<DbObjectSnapshot>,
+        observed: Vec<DbObjectSnapshot>,
+    },
     #[error("failed to inspect PostgreSQL schema: {0}")]
     Inspection(SqlxDbSchemaInspectionError),
     #[error("PostgreSQL key constraints differ from the generated table descriptor")]
@@ -272,6 +318,121 @@ pub enum DbSchemaConformanceError {
     SchemaTextTooLong(DbSchemaTextError),
     #[error("PostgreSQL returned an unsupported catalog object kind")]
     UnknownObjectKind,
+}
+
+pub async fn validate_postgres_table_extensions<Table>(
+    pool: SqlxPgPoolRef<'_>,
+    schema: DbSchemaNameRef<'_>,
+) -> Result<(), DbSchemaConformanceError>
+where
+    Table: DbExtendedTableSchema,
+{
+    fn schema_text(value: String) -> Result<DbSchemaText, DbSchemaConformanceError> {
+        DbSchemaText::try_from(value)
+            .map_err(|error| DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error)))
+    }
+    let mut expected_defaults = Table::exact_defaults()
+        .into_iter()
+        .map(|spec| {
+            Ok(DbObjectSnapshot::new(
+                schema_text(spec.column.0.to_owned())?,
+                DbObjectKind::Default,
+                schema_text(spec.expression.0.to_owned())?,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    let default_rows = sqlx::query(str_constants::DB_SCHEMA_EXACT_DEFAULT_QUERY)
+        .bind(schema.0)
+        .bind(Table::TABLE_NAME)
+        .fetch_all(pool.0)
+        .await
+        .map_err(|error| {
+            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+        })?;
+    let mut observed_defaults = default_rows
+        .into_iter()
+        .map(|row| {
+            Ok(DbObjectSnapshot::new(
+                schema_text(
+                    sqlx::Row::try_get(&row, str_constants::COLUMN_NAME).map_err(|error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    })?,
+                )?,
+                DbObjectKind::Default,
+                schema_text(
+                    sqlx::Row::try_get(&row, str_constants::COLUMN_DEFAULT).map_err(|error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    })?,
+                )?,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    expected_defaults.sort_unstable();
+    observed_defaults.sort_unstable();
+    if expected_defaults != observed_defaults {
+        return Err(DbSchemaConformanceError::DefaultContractMismatch {
+            expected: expected_defaults,
+            observed: observed_defaults,
+        });
+    }
+    let mut expected_objects = Table::checks_and_indexes()
+        .into_iter()
+        .map(|spec| {
+            Ok(DbObjectSnapshot::new(
+                schema_text(spec.name.0.to_owned())?,
+                spec.kind,
+                schema_text(spec.definition.0.to_owned())?,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    let rows = sqlx::query(str_constants::DB_SCHEMA_CHECK_AND_NON_CONSTRAINT_INDEX_QUERY)
+        .bind(schema.0)
+        .bind(Table::TABLE_NAME)
+        .fetch_all(pool.0)
+        .await
+        .map_err(|error| {
+            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+        })?;
+    let mut observed_objects = rows
+        .into_iter()
+        .map(|row| {
+            let kind = match sqlx::Row::try_get::<String, _>(&row, str_constants::OBJECT_KIND)
+                .map_err(|error| {
+                    DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                })?
+                .as_str()
+            {
+                str_constants::CHECK => DbObjectKind::Check,
+                str_constants::INDEX => DbObjectKind::Index,
+                _ => return Err(DbSchemaConformanceError::UnknownObjectKind),
+            };
+            Ok(DbObjectSnapshot::new(
+                schema_text(
+                    sqlx::Row::try_get(&row, str_constants::OBJECT_NAME).map_err(|error| {
+                        DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                    })?,
+                )?,
+                kind,
+                schema_text(
+                    sqlx::Row::try_get(&row, str_constants::OBJECT_DEFINITION).map_err(
+                        |error| {
+                            DbSchemaConformanceError::Inspection(SqlxDbSchemaInspectionError(error))
+                        },
+                    )?,
+                )?,
+            ))
+        })
+        .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
+    expected_objects.sort_unstable();
+    observed_objects.sort_unstable();
+    if expected_objects == observed_objects {
+        Ok(())
+    } else {
+        Err(DbSchemaConformanceError::ExtendedObjectContractMismatch {
+            expected: expected_objects,
+            observed: observed_objects,
+        })
+    }
 }
 
 pub async fn validate_generated_postgres_table<Table>(
@@ -698,6 +859,7 @@ pub async fn inspect_postgres_table(
 }
 
 #[cfg(test)]
+#[allow(clippy::needless_for_each)] // repository policy requires iterator traversal in source tests
 mod tests {
     fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
         super::DbCatalogSnapshot::new(vec![super::DbObjectSnapshot::new(
@@ -744,20 +906,32 @@ mod tests {
     }
 
     #[test]
-    fn catalog_object_kind_difference_is_reported() {
-        assert!(matches!(
-            super::validate_postgres_catalog(
-                catalog_snapshot(super::DbObjectKind::Trigger),
-                catalog_snapshot(super::DbObjectKind::Trigger),
-            ),
-            Ok(())
-        ));
-        assert!(matches!(
-            super::validate_postgres_catalog(
-                catalog_snapshot(super::DbObjectKind::Trigger),
+    fn every_catalog_object_kind_difference_is_reported() {
+        let kinds = [
+            super::DbObjectKind::Check,
+            super::DbObjectKind::Default,
+            super::DbObjectKind::Extension,
+            super::DbObjectKind::ForeignKey,
+            super::DbObjectKind::Function,
+            super::DbObjectKind::Index,
+            super::DbObjectKind::PrimaryKey,
+            super::DbObjectKind::Trigger,
+            super::DbObjectKind::Unique,
+            super::DbObjectKind::View,
+        ];
+        kinds.into_iter().for_each(|kind| {
+            let result = super::validate_postgres_catalog(
                 catalog_snapshot(super::DbObjectKind::Function),
-            ),
-            Err(super::DbSchemaConformanceError::CatalogMismatch { .. })
-        ));
+                catalog_snapshot(kind),
+            );
+            if kind == super::DbObjectKind::Function {
+                assert!(matches!(result, Ok(())));
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(super::DbSchemaConformanceError::CatalogMismatch { .. })
+                ));
+            }
+        });
     }
 }

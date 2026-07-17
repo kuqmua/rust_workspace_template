@@ -1,5 +1,11 @@
 #![allow(clippy::single_call_fn)] // stable root migration/bootstrap API delegates to the private persistence module
 static ADMIN_MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
+const RECONCILE_PERMISSIONS: &str =
+    "insert into admin_permissions (name) select unnest($1::text[]) on conflict (name) do nothing";
+const RECONCILE_ROLE_PERMISSIONS: &str = "insert into admin_role_permissions (role_id, permission_id) select admin_roles.id, admin_permissions.id from admin_roles cross join admin_permissions where admin_roles.name = 'admin' on conflict (role_id, permission_id) do nothing";
+const LOCK_USERS: &str = "LOCK TABLE admin_users IN EXCLUSIVE MODE";
+const USERS_EXIST: &str = "SELECT EXISTS (SELECT 1 FROM admin_users)";
+const INSERT_ADMIN_ROLE: &str = "INSERT INTO admin_user_roles (user_id, role_id) SELECT $1, id FROM admin_roles WHERE name = 'admin'";
 #[cfg(test)]
 pub(super) const fn migrator() -> &'static sqlx::migrate::Migrator {
     &ADMIN_MIGRATOR
@@ -16,7 +22,7 @@ pub(super) async fn prep_pg(
         .into_iter()
         .map(|permission| permission.as_str().as_ref().to_owned())
         .collect::<Vec<_>>();
-    let _permission_result = sqlx::query(str_constants::RECONCILE_ADMIN_PERMISSIONS_SQL)
+    let _permission_result = sqlx::query(RECONCILE_PERMISSIONS)
         .bind(permission_names)
         .execute(pool.as_ref())
         .await
@@ -25,7 +31,7 @@ pub(super) async fn prep_pg(
                 super::SqlxAdminError::from(error),
             ))
         })?;
-    let _role_permission_result = sqlx::query(str_constants::RECONCILE_ADMIN_ROLE_PERMISSIONS_SQL)
+    let _role_permission_result = sqlx::query(RECONCILE_ROLE_PERMISSIONS)
         .execute(pool.as_ref())
         .await
         .map_err(|error| {
@@ -51,29 +57,32 @@ pub(super) async fn bootstrap_admin(
         .begin()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _lock_result = sqlx::query(str_constants::LOCK_TABLE_ADMIN_USERS_IN_EXCLUSIVE_MODE)
+    let _lock_result = sqlx::query(LOCK_USERS)
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let user_exists =
-        sqlx::query_scalar::<_, bool>(str_constants::SELECT_EXISTS_SELECT_1_FROM_ADMIN_USERS)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
+    let user_exists = sqlx::query_scalar::<_, bool>(USERS_EXIST)
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     if user_exists {
         return Err(super::AdminBootstrapError::AlreadyInitialized);
     }
-    let user_id = super::repository::insert_user(&mut tx, &login, &display_name, &password_hash)
+    let user_id = super::repository::users::insert_user(
+        super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        &login,
+        &display_name,
+        &password_hash,
+    )
+    .await
+    .map_err(super::AdminBootstrapError::Pg)?;
+    let _role_link_result = sqlx::query(INSERT_ADMIN_ROLE)
+        .bind(user_id.0)
+        .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    let _role_link_result =
-        sqlx::query(str_constants::INSERT_INTO_ADMIN_USER_ROLES_USER_ID_ROLE_ID_SELECT_DOLLAR_1)
-            .bind(user_id.0)
-            .execute(&mut *tx)
-            .await
-            .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
     tx.commit()
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;
-    Ok(super::AdminUserId::from(user_id))
+    Ok(user_id)
 }

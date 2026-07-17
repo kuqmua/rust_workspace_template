@@ -70,11 +70,15 @@ impl frontend_contract::Transport for GlooTransport {
 }
 fn http_method(method: frontend_contract::HttpMethod) -> GlooNetHttpMethod {
     GlooNetHttpMethod::from(match method {
+        frontend_contract::HttpMethod::Connect => gloo_net::http::Method::CONNECT,
         frontend_contract::HttpMethod::Delete => gloo_net::http::Method::DELETE,
         frontend_contract::HttpMethod::Get => gloo_net::http::Method::GET,
+        frontend_contract::HttpMethod::Head => gloo_net::http::Method::HEAD,
+        frontend_contract::HttpMethod::Options => gloo_net::http::Method::OPTIONS,
         frontend_contract::HttpMethod::Patch => gloo_net::http::Method::PATCH,
         frontend_contract::HttpMethod::Post => gloo_net::http::Method::POST,
         frontend_contract::HttpMethod::Put => gloo_net::http::Method::PUT,
+        frontend_contract::HttpMethod::Trace => gloo_net::http::Method::TRACE,
     })
 }
 fn csrf_token() -> Option<BrowserCsrfToken> {

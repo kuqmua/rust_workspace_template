@@ -1025,6 +1025,29 @@ fn main() {
                 generate_pg_table_measure_input_token_stream(&quote::quote! {"False"});
             let generate_pg_table_input_with_tests_token_stream =
                 generate_pg_table_measure_input_token_stream(&quote::quote! {"True"});
+            let parse_started = std::time::Instant::now();
+            let parsed = generate_pg_table_src::parse_generate_pg_table(
+                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(
+                    generate_pg_table_input_token_stream.as_ref(),
+                ),
+            )
+            .unwrap_or_else(|error| panic!("d6399cbf: {error}"));
+            let parse_us = parse_started.elapsed().as_micros();
+            let build_started = std::time::Instant::now();
+            let built = generate_pg_table_src::build_generate_pg_table(parsed)
+                .unwrap_or_else(|error| panic!("6acb4e92: {error}"));
+            let build_us = build_started.elapsed().as_micros();
+            let validate_started = std::time::Instant::now();
+            let validated = generate_pg_table_src::validate_generate_pg_table(built)
+                .unwrap_or_else(|error| panic!("4533a758: {error}"));
+            let validate_us = validate_started.elapsed().as_micros();
+            let emit_started = std::time::Instant::now();
+            let staged_output = generate_pg_table_src::emit_generate_pg_table(validated);
+            let emit_us = emit_started.elapsed().as_micros();
+            println!(
+                "measurement=generate_pg_table_typed_stages parse_us={parse_us} build_us={build_us} validate_us={validate_us} emit_us={emit_us} output_bytes={}",
+                staged_output.to_string().len()
+            );
             let generate_pg_table_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
                 (u128::MAX, 0u128, 0u128, 0usize, 0usize),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
@@ -1158,6 +1181,30 @@ fn main() {
                     "variant": "All"
                 }
             };
+            let pg_types_parse_started = std::time::Instant::now();
+            let parsed_pg_types = generate_pg_types_src::parse_generate_pg_types(
+                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(
+                    &generate_pg_types_input_token_stream,
+                ),
+            )
+            .unwrap_or_else(|error| panic!("a19c725e: {error}"));
+            let pg_types_parse_us = pg_types_parse_started.elapsed().as_micros();
+            let pg_types_build_started = std::time::Instant::now();
+            let built_pg_types = generate_pg_types_src::build_generate_pg_types(parsed_pg_types)
+                .unwrap_or_else(|error| panic!("c47612bd: {error}"));
+            let pg_types_build_us = pg_types_build_started.elapsed().as_micros();
+            let pg_types_validate_started = std::time::Instant::now();
+            let validated_pg_types =
+                generate_pg_types_src::validate_generate_pg_types(built_pg_types)
+                    .unwrap_or_else(|error| panic!("d3e581a4: {error}"));
+            let pg_types_validate_us = pg_types_validate_started.elapsed().as_micros();
+            let pg_types_emit_started = std::time::Instant::now();
+            let staged_pg_types = generate_pg_types_src::emit_generate_pg_types(validated_pg_types);
+            let pg_types_emit_us = pg_types_emit_started.elapsed().as_micros();
+            println!(
+                "measurement=generate_pg_types_typed_stages parse_us={pg_types_parse_us} build_us={pg_types_build_us} validate_us={pg_types_validate_us} emit_us={pg_types_emit_us} output_bytes={}",
+                staged_pg_types.to_string().len()
+            );
             let generate_pg_types_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
                 (u128::MAX, 0u128, 0u128, 0usize, 0usize),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
@@ -1192,6 +1239,32 @@ fn main() {
                     "whole_write_into_file": "False"
                 }
             };
+            let where_filters_parse_started = std::time::Instant::now();
+            let parsed_where_filters = generate_where_filters_src::parse_generate_where_filters(
+                generate_where_filters_src::ProcMacro2GenerateWhereFiltersInput::from(
+                    &generate_where_filters_input_token_stream,
+                ),
+            )
+            .unwrap_or_else(|error| panic!("8f246dc1: {error}"));
+            let where_filters_parse_us = where_filters_parse_started.elapsed().as_micros();
+            let where_filters_build_started = std::time::Instant::now();
+            let built_where_filters =
+                generate_where_filters_src::build_generate_where_filters(parsed_where_filters)
+                    .unwrap_or_else(|error| panic!("912f6bce: {error}"));
+            let where_filters_build_us = where_filters_build_started.elapsed().as_micros();
+            let where_filters_validate_started = std::time::Instant::now();
+            let validated_where_filters =
+                generate_where_filters_src::validate_generate_where_filters(built_where_filters)
+                    .unwrap_or_else(|error| panic!("54b73a29: {error}"));
+            let where_filters_validate_us = where_filters_validate_started.elapsed().as_micros();
+            let where_filters_emit_started = std::time::Instant::now();
+            let staged_where_filters =
+                generate_where_filters_src::emit_generate_where_filters(validated_where_filters);
+            let where_filters_emit_us = where_filters_emit_started.elapsed().as_micros();
+            println!(
+                "measurement=generate_where_filters_typed_stages parse_us={where_filters_parse_us} build_us={where_filters_build_us} validate_us={where_filters_validate_us} emit_us={where_filters_emit_us} output_bytes={}",
+                staged_where_filters.to_string().len()
+            );
             let generate_where_filters_measurement = (0..DIRECT_GENERATION_REPEAT_COUNT).fold(
                 (u128::MAX, 0u128, 0u128, 0usize, 0usize),
                 |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {

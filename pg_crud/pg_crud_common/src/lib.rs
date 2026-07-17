@@ -53,12 +53,13 @@ pub use date_sql_filter::{
 };
 pub use db_schema_conformance::{
     DbCatalogSnapshot, DbColumnContractSnapshot, DbColumnHasServerDefault, DbColumnNullable,
-    DbColumnSnapshot, DbColumnSpec, DbKeyContractSnapshot, DbKeySpec, DbObjectKind,
-    DbObjectSnapshot, DbSchemaConformanceError, DbSchemaNameRef, DbSchemaText, DbSchemaTextError,
-    DbSchemaTextTryFromStringError, DbStaticSchemaText, DbTableNameRef, DbTableSchema,
-    DbTableSnapshot, PgColumnSchema, SqlxDbSchemaInspectionError, SqlxPgPoolRef,
-    inspect_postgres_catalog, inspect_postgres_table, validate_generated_postgres_table,
-    validate_postgres_catalog, validate_postgres_table_schema,
+    DbColumnSnapshot, DbColumnSpec, DbDefaultSpec, DbExtendedTableSchema, DbKeyContractSnapshot,
+    DbKeySpec, DbObjectKind, DbObjectSnapshot, DbObjectSpec, DbSchemaConformanceError,
+    DbSchemaNameRef, DbSchemaText, DbSchemaTextError, DbSchemaTextTryFromStringError,
+    DbStaticSchemaText, DbTableNameRef, DbTableSchema, DbTableSnapshot, PgColumnSchema,
+    SqlxDbSchemaInspectionError, SqlxPgPoolRef, inspect_postgres_catalog, inspect_postgres_table,
+    validate_generated_postgres_table, validate_postgres_catalog,
+    validate_postgres_table_extensions, validate_postgres_table_schema,
 };
 pub use errors::{
     PgCrudStringWrapperTryFromStringError, QueryPartError, QueryPartErrorWithSerde,
@@ -92,7 +93,7 @@ pub use order_preserving_deduplication::{
     SliceOrdering, classify_slice_ordering, deduplicate_preserving_order_by_key,
 };
 pub use pagination::{
-    DEFAULT_PAGINATION_LIMIT, PaginationEnd, PaginationLimit, PaginationOffset, PaginationStart,
+    PaginationEnd, PaginationLimit, PaginationOffset, PaginationPolicy, PaginationStart,
 };
 pub use patch_field::PatchField;
 pub use pg_error::{PgErrorKind, SqlxPgErrorRef, classify_pg_error};
@@ -1109,7 +1110,7 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationBase {
 }
 impl Default for PaginationBase {
     fn default() -> Self {
-        Self::new_unchecked(DEFAULT_PAGINATION_LIMIT, 0)
+        Self::new_unchecked(PaginationPolicy::DEFAULT.default_limit().get(), 0)
     }
 }
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
@@ -1226,7 +1227,10 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationStartsWithZero {
 impl DefaultSomeOneElement for PaginationStartsWithZero {
     #[inline]
     fn default_some_one_element() -> Self {
-        Self(PaginationBase::new_unchecked(DEFAULT_PAGINATION_LIMIT, 0))
+        Self(PaginationBase::new_unchecked(
+            PaginationPolicy::DEFAULT.default_limit().get(),
+            0,
+        ))
     }
 }
 impl DefaultSomeOneElementMaxPageSize for PaginationStartsWithZero {

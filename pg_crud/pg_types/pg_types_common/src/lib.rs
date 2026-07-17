@@ -144,7 +144,9 @@ impl pg_crud_common::DefaultSomeOneElement for PaginationStartsWithOne {
     #[inline]
     fn default_some_one_element() -> Self {
         Self(pg_crud_common::PaginationBase::new_unchecked(
-            pg_crud_common::DEFAULT_PAGINATION_LIMIT,
+            pg_crud_common::PaginationPolicy::DEFAULT
+                .default_limit()
+                .get(),
             1,
         ))
     }

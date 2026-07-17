@@ -1,38 +1,34 @@
-#[must_use]
-#[allow(clippy::unreachable, clippy::wildcard_enum_match_arm)] // schema branches are guarded by the PostgreSQL type category selected immediately before each match
-pub fn generate_pg_types(
-    input_token_stream: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, strum_macros::Display, optml::Optml)]
-    enum RustTypeName {
-        I16,
-        I32,
-        I64,
-        F32,
-        F64,
-        SqlxPgTypesPgMoney,
-        Bool,
-        String,
-        StdVecVecU8,
-        SqlxTypesChronoNaiveTime,
-        SqlxTypesTimeTime,
-        SqlxPgTypesPgInterval,
-        SqlxTypesChronoNaiveDate,
-        SqlxTypesChronoNaiveDateTime,
-        SqlxTypesChronoDateTimeSqlxTypesChronoUtc,
-        SqlxTypesUuidUuid,
-        SqlxTypesIpnetworkIpNetwork,
-        SqlxTypesMacAddressMacAddress,
-        SqlxPgTypesPgRangeI32,
-        SqlxPgTypesPgRangeI64,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDate,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTime,
-        SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtc,
-    }
-    impl From<&PgType> for RustTypeName {
-        fn from(v: &PgType) -> Self {
-            match &v {
+#![allow(clippy::unreachable, clippy::wildcard_enum_match_arm)] // schema branches are guarded by the PostgreSQL type category selected immediately before each match
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, strum_macros::Display, optml::Optml)]
+enum RustTypeName {
+    I16,
+    I32,
+    I64,
+    F32,
+    F64,
+    SqlxPgTypesPgMoney,
+    Bool,
+    String,
+    StdVecVecU8,
+    SqlxTypesChronoNaiveTime,
+    SqlxTypesTimeTime,
+    SqlxPgTypesPgInterval,
+    SqlxTypesChronoNaiveDate,
+    SqlxTypesChronoNaiveDateTime,
+    SqlxTypesChronoDateTimeSqlxTypesChronoUtc,
+    SqlxTypesUuidUuid,
+    SqlxTypesIpnetworkIpNetwork,
+    SqlxTypesMacAddressMacAddress,
+    SqlxPgTypesPgRangeI32,
+    SqlxPgTypesPgRangeI64,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDate,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTime,
+    SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtc,
+}
+impl From<&PgType> for RustTypeName {
+    fn from(v: &PgType) -> Self {
+        match &v {
                 PgType::F32AsFloat4 => Self::F32,
                 PgType::F64AsFloat8 => Self::F64,
                 PgType::I16AsInt2 | PgType::I16AsSmallSerialInitializationByPg => Self::I16,
@@ -57,41 +53,41 @@ pub fn generate_pg_types(
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTime,
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtc,
             }
-        }
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, strum_macros::Display, optml::Optml)]
-    enum PgTypeName {
-        Int2,
-        Int4,
-        Int8,
-        Float4,
-        Float8,
-        SmallSerialInitializationByPg,
-        SerialInitializationByPg,
-        BigSerialInitializationByPg,
-        Money,
-        Bool,
-        Text,
-        Bytea,
-        Time,
-        Interval,
-        Date,
-        Timestamp,
-        TimestampTz,
-        UuidV4InitializationByPg,
-        UuidInitializationByClient,
-        Inet,
-        MacAddr,
-        Int4Range,
-        Int8Range,
-        DateRange,
-        TimestampRange,
-        TimestampTzRange,
-    }
-    impl From<&PgType> for PgTypeName {
-        fn from(v: &PgType) -> Self {
-            match &v {
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, strum_macros::Display, optml::Optml)]
+enum PgTypeName {
+    Int2,
+    Int4,
+    Int8,
+    Float4,
+    Float8,
+    SmallSerialInitializationByPg,
+    SerialInitializationByPg,
+    BigSerialInitializationByPg,
+    Money,
+    Bool,
+    Text,
+    Bytea,
+    Time,
+    Interval,
+    Date,
+    Timestamp,
+    TimestampTz,
+    UuidV4InitializationByPg,
+    UuidInitializationByClient,
+    Inet,
+    MacAddr,
+    Int4Range,
+    Int8Range,
+    DateRange,
+    TimestampRange,
+    TimestampTzRange,
+}
+impl From<&PgType> for PgTypeName {
+    fn from(v: &PgType) -> Self {
+        match &v {
                 PgType::I16AsInt2 => Self::Int2,
                 PgType::I32AsInt4 => Self::Int4,
                 PgType::I64AsInt8 => Self::Int8,
@@ -119,179 +115,356 @@ pub fn generate_pg_types(
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Self::TimestampRange,
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::TimestampTzRange,
             }
-        }
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(
-        Debug,
-        Clone,
-        Copy,
-        PartialEq,
-        Eq,
-        std::hash::Hash,
-        serde::Serialize,
-        serde::Deserialize,
-        strum_macros::Display,
-        strum_macros::EnumIter,
-        optml::Optml,
-    )]
-    enum PgType {
-        I16AsInt2,
-        I32AsInt4,
-        I64AsInt8,
-        F32AsFloat4,
-        F64AsFloat8,
-        I16AsSmallSerialInitializationByPg,
-        I32AsSerialInitializationByPg,
-        I64AsBigSerialInitializationByPg,
-        SqlxPgTypesPgMoneyAsMoney,
-        // SqlxTypesBigDecimalAsNumeric, remove coz dont know how to deserialize with scale i64
-        BoolAsBool,
-        StringAsText,
-        StdVecVecU8AsBytea,
-        SqlxTypesChronoNaiveTimeAsTime,
-        SqlxTypesTimeTimeAsTime,
-        SqlxPgTypesPgIntervalAsInterval,
-        SqlxTypesChronoNaiveDateAsDate,
-        SqlxTypesChronoNaiveDateTimeAsTimestamp,
-        SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
-        SqlxTypesUuidUuidAsUuidV4InitializationByPg,
-        SqlxTypesUuidUuidAsUuidInitializationByClient,
-        SqlxTypesIpnetworkIpNetworkAsInet,
-        SqlxTypesMacAddressMacAddressAsMacAddr,
-        SqlxPgTypesPgRangeI32AsInt4Range,
-        SqlxPgTypesPgRangeI64AsInt8Range,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
-        SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    std::hash::Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    optml::Optml,
+)]
+enum PgType {
+    I16AsInt2,
+    I32AsInt4,
+    I64AsInt8,
+    F32AsFloat4,
+    F64AsFloat8,
+    I16AsSmallSerialInitializationByPg,
+    I32AsSerialInitializationByPg,
+    I64AsBigSerialInitializationByPg,
+    SqlxPgTypesPgMoneyAsMoney,
+    // SqlxTypesBigDecimalAsNumeric, remove coz dont know how to deserialize with scale i64
+    BoolAsBool,
+    StringAsText,
+    StdVecVecU8AsBytea,
+    SqlxTypesChronoNaiveTimeAsTime,
+    SqlxTypesTimeTimeAsTime,
+    SqlxPgTypesPgIntervalAsInterval,
+    SqlxTypesChronoNaiveDateAsDate,
+    SqlxTypesChronoNaiveDateTimeAsTimestamp,
+    SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
+    SqlxTypesUuidUuidAsUuidV4InitializationByPg,
+    SqlxTypesUuidUuidAsUuidInitializationByClient,
+    SqlxTypesIpnetworkIpNetworkAsInet,
+    SqlxTypesMacAddressMacAddressAsMacAddr,
+    SqlxPgTypesPgRangeI32AsInt4Range,
+    SqlxPgTypesPgRangeI64AsInt8Range,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
+    SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
+}
+#[derive(Clone, Copy)]
+enum WireKind {
+    Bool,
+    Bytes,
+    Date,
+    Float32,
+    Float64,
+    Inet,
+    Int16,
+    Int32,
+    Int64,
+    Interval,
+    Mac,
+    RangeDate,
+    RangeInt32,
+    RangeInt64,
+    RangeTimestamp,
+    RangeTimestampTz,
+    String,
+    TimeChrono,
+    TimeTime,
+    Timestamp,
+    TimestampTz,
+    Uuid,
+}
+#[derive(Clone, Copy)]
+enum FilterKind {
+    Bool,
+    Bytes,
+    Date,
+    IntervalOrInet,
+    Mac,
+    Money,
+    Number,
+    Range,
+    String,
+    Time,
+    Timestamp,
+    TimestampTz,
+    Uuid,
+}
+#[derive(Clone, Copy)]
+enum CanBePrimaryKey {
+    False,
+    True,
+}
+#[derive(Clone, Copy)]
+struct PgSqlName(&'static str);
+impl AsRef<str> for PgSqlName {
+    fn as_ref(&self) -> &str {
+        self.0
     }
-    #[derive(Clone, Copy)]
-    enum WireKind {
-        Bool,
-        Bytes,
-        Date,
-        Float32,
-        Float64,
-        Inet,
-        Int16,
-        Int32,
-        Int64,
-        Interval,
-        Mac,
-        RangeDate,
-        RangeInt32,
-        RangeInt64,
-        RangeTimestamp,
-        RangeTimestampTz,
-        String,
-        TimeChrono,
-        TimeTime,
-        Timestamp,
-        TimestampTz,
-        Uuid,
+}
+impl quote::ToTokens for PgSqlName {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        self.0.to_tokens(tokens);
     }
-    #[derive(Clone, Copy)]
-    enum FilterKind {
-        Bool,
-        Bytes,
-        Date,
-        IntervalOrInet,
-        Mac,
-        Money,
-        Number,
-        Range,
-        String,
-        Time,
-        Timestamp,
-        TimestampTz,
-        Uuid,
+}
+impl PgType {
+    fn can_be_nullable(self) -> CanBeNullable {
+        crate::sqlx::can_be_nullable(self.spec())
     }
-    #[derive(Clone, Copy)]
-    enum CanBePrimaryKey {
-        False,
-        True,
-    }
-    impl PgType {
-        fn can_be_nullable(self) -> CanBeNullable {
-            crate::sqlx::can_be_nullable(self.spec())
-        }
-        const fn spec(
-            self,
-        ) -> crate::model::PgTypeSpec<
-            CanBeNullable,
-            CanBePrimaryKey,
-            FilterKind,
-            &'static str,
-            WireKind,
-        > {
-            match self {
-                Self::I16AsInt2 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT2, wire_kind: WireKind::Int16 },
-                Self::I32AsInt4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT4, wire_kind: WireKind::Int32 },
-                Self::I64AsInt8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_INT8, wire_kind: WireKind::Int64 },
-                Self::F32AsFloat4 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_FLOAT4, wire_kind: WireKind::Float32 },
-                Self::F64AsFloat8 => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_FLOAT8, wire_kind: WireKind::Float64 },
-                Self::I16AsSmallSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_SMALLSERIAL, wire_kind: WireKind::Int16 },
-                Self::I32AsSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_SERIAL, wire_kind: WireKind::Int32 },
-                Self::I64AsBigSerialInitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Number, pg_name: str_constants::PG_CRUD_PG_BIGSERIAL, wire_kind: WireKind::Int64 },
-                Self::SqlxPgTypesPgMoneyAsMoney => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Money, pg_name: str_constants::PG_CRUD_PG_MONEY, wire_kind: WireKind::Int64 },
-                Self::BoolAsBool => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bool, pg_name: str_constants::PG_CRUD_PG_BOOL, wire_kind: WireKind::Bool },
-                Self::StringAsText => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::String, pg_name: str_constants::PG_CRUD_PG_TEXT, wire_kind: WireKind::String },
-                Self::StdVecVecU8AsBytea => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Bytes, pg_name: str_constants::PG_CRUD_PG_BYTEA, wire_kind: WireKind::Bytes },
-                Self::SqlxTypesChronoNaiveTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::PG_CRUD_PG_TIME, wire_kind: WireKind::TimeChrono },
-                Self::SqlxTypesTimeTimeAsTime => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Time, pg_name: str_constants::PG_CRUD_PG_TIME, wire_kind: WireKind::TimeTime },
-                Self::SqlxPgTypesPgIntervalAsInterval => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::PG_CRUD_PG_INTERVAL, wire_kind: WireKind::Interval },
-                Self::SqlxTypesChronoNaiveDateAsDate => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Date, pg_name: str_constants::PG_CRUD_PG_DATE, wire_kind: WireKind::Date },
-                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Timestamp, pg_name: str_constants::PG_CRUD_PG_TIMESTAMP, wire_kind: WireKind::Timestamp },
-                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::TimestampTz, pg_name: str_constants::PG_CRUD_PG_TIMESTAMPTZ, wire_kind: WireKind::TimestampTz },
-                Self::SqlxTypesUuidUuidAsUuidV4InitializationByPg => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::True, can_be_nullable: CanBeNullable::False, filter_kind: FilterKind::Uuid, pg_name: str_constants::PG_CRUD_PG_UUID, wire_kind: WireKind::Uuid },
-                Self::SqlxTypesUuidUuidAsUuidInitializationByClient => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Uuid, pg_name: str_constants::PG_CRUD_PG_UUID, wire_kind: WireKind::Uuid },
-                Self::SqlxTypesIpnetworkIpNetworkAsInet => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::IntervalOrInet, pg_name: str_constants::PG_CRUD_PG_INET, wire_kind: WireKind::Inet },
-                Self::SqlxTypesMacAddressMacAddressAsMacAddr => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Mac, pg_name: str_constants::PG_CRUD_PG_MACADDR, wire_kind: WireKind::Mac },
-                Self::SqlxPgTypesPgRangeI32AsInt4Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_INT4RANGE, wire_kind: WireKind::RangeInt32 },
-                Self::SqlxPgTypesPgRangeI64AsInt8Range => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_INT8RANGE, wire_kind: WireKind::RangeInt64 },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_DATERANGE, wire_kind: WireKind::RangeDate },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_TSRANGE, wire_kind: WireKind::RangeTimestamp },
-                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => crate::model::PgTypeSpec { can_be_primary_key: CanBePrimaryKey::False, can_be_nullable: CanBeNullable::True, filter_kind: FilterKind::Range, pg_name: str_constants::PG_CRUD_PG_TSTZRANGE, wire_kind: WireKind::RangeTimestampTz },
+    const fn spec(
+        self,
+    ) -> crate::model::PgTypeSpec<CanBeNullable, CanBePrimaryKey, FilterKind, PgSqlName, WireKind>
+    {
+        match self {
+            Self::I16AsInt2 => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INT2),
+                wire_kind: WireKind::Int16,
+            },
+            Self::I32AsInt4 => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INT4),
+                wire_kind: WireKind::Int32,
+            },
+            Self::I64AsInt8 => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INT8),
+                wire_kind: WireKind::Int64,
+            },
+            Self::F32AsFloat4 => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_FLOAT4),
+                wire_kind: WireKind::Float32,
+            },
+            Self::F64AsFloat8 => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_FLOAT8),
+                wire_kind: WireKind::Float64,
+            },
+            Self::I16AsSmallSerialInitializationByPg => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::True,
+                can_be_nullable: CanBeNullable::False,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_SMALLSERIAL),
+                wire_kind: WireKind::Int16,
+            },
+            Self::I32AsSerialInitializationByPg => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::True,
+                can_be_nullable: CanBeNullable::False,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_SERIAL),
+                wire_kind: WireKind::Int32,
+            },
+            Self::I64AsBigSerialInitializationByPg => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::True,
+                can_be_nullable: CanBeNullable::False,
+                filter_kind: FilterKind::Number,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_BIGSERIAL),
+                wire_kind: WireKind::Int64,
+            },
+            Self::SqlxPgTypesPgMoneyAsMoney => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Money,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_MONEY),
+                wire_kind: WireKind::Int64,
+            },
+            Self::BoolAsBool => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Bool,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_BOOL),
+                wire_kind: WireKind::Bool,
+            },
+            Self::StringAsText => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::String,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_TEXT),
+                wire_kind: WireKind::String,
+            },
+            Self::StdVecVecU8AsBytea => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Bytes,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_BYTEA),
+                wire_kind: WireKind::Bytes,
+            },
+            Self::SqlxTypesChronoNaiveTimeAsTime => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Time,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_TIME),
+                wire_kind: WireKind::TimeChrono,
+            },
+            Self::SqlxTypesTimeTimeAsTime => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Time,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_TIME),
+                wire_kind: WireKind::TimeTime,
+            },
+            Self::SqlxPgTypesPgIntervalAsInterval => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::IntervalOrInet,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INTERVAL),
+                wire_kind: WireKind::Interval,
+            },
+            Self::SqlxTypesChronoNaiveDateAsDate => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Date,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_DATE),
+                wire_kind: WireKind::Date,
+            },
+            Self::SqlxTypesChronoNaiveDateTimeAsTimestamp => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Timestamp,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_TIMESTAMP),
+                wire_kind: WireKind::Timestamp,
+            },
+            Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => {
+                crate::model::PgTypeSpec {
+                    can_be_primary_key: CanBePrimaryKey::False,
+                    can_be_nullable: CanBeNullable::True,
+                    filter_kind: FilterKind::TimestampTz,
+                    pg_name: PgSqlName(str_constants::PG_CRUD_PG_TIMESTAMPTZ),
+                    wire_kind: WireKind::TimestampTz,
+                }
+            }
+            Self::SqlxTypesUuidUuidAsUuidV4InitializationByPg => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::True,
+                can_be_nullable: CanBeNullable::False,
+                filter_kind: FilterKind::Uuid,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_UUID),
+                wire_kind: WireKind::Uuid,
+            },
+            Self::SqlxTypesUuidUuidAsUuidInitializationByClient => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Uuid,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_UUID),
+                wire_kind: WireKind::Uuid,
+            },
+            Self::SqlxTypesIpnetworkIpNetworkAsInet => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::IntervalOrInet,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INET),
+                wire_kind: WireKind::Inet,
+            },
+            Self::SqlxTypesMacAddressMacAddressAsMacAddr => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Mac,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_MACADDR),
+                wire_kind: WireKind::Mac,
+            },
+            Self::SqlxPgTypesPgRangeI32AsInt4Range => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Range,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INT4RANGE),
+                wire_kind: WireKind::RangeInt32,
+            },
+            Self::SqlxPgTypesPgRangeI64AsInt8Range => crate::model::PgTypeSpec {
+                can_be_primary_key: CanBePrimaryKey::False,
+                can_be_nullable: CanBeNullable::True,
+                filter_kind: FilterKind::Range,
+                pg_name: PgSqlName(str_constants::PG_CRUD_PG_INT8RANGE),
+                wire_kind: WireKind::RangeInt64,
+            },
+            Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => {
+                crate::model::PgTypeSpec {
+                    can_be_primary_key: CanBePrimaryKey::False,
+                    can_be_nullable: CanBeNullable::True,
+                    filter_kind: FilterKind::Range,
+                    pg_name: PgSqlName(str_constants::PG_CRUD_PG_DATERANGE),
+                    wire_kind: WireKind::RangeDate,
+                }
+            }
+            Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => {
+                crate::model::PgTypeSpec {
+                    can_be_primary_key: CanBePrimaryKey::False,
+                    can_be_nullable: CanBeNullable::True,
+                    filter_kind: FilterKind::Range,
+                    pg_name: PgSqlName(str_constants::PG_CRUD_PG_TSRANGE),
+                    wire_kind: WireKind::RangeTimestamp,
+                }
+            }
+            Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => {
+                crate::model::PgTypeSpec {
+                    can_be_primary_key: CanBePrimaryKey::False,
+                    can_be_nullable: CanBeNullable::True,
+                    filter_kind: FilterKind::Range,
+                    pg_name: PgSqlName(str_constants::PG_CRUD_PG_TSTZRANGE),
+                    wire_kind: WireKind::RangeTimestampTz,
+                }
             }
         }
     }
-    #[derive(Clone, Copy)]
-    enum CanBeNullable {
-        False,
-        True,
+}
+#[derive(Clone, Copy)]
+enum CanBeNullable {
+    False,
+    True,
+}
+impl quote::ToTokens for PgType {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
     }
-    impl quote::ToTokens for PgType {
-        fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-            quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
-        }
-    }
-    impl From<&Range> for PgType {
-        fn from(v: &Range) -> Self {
-            match v {
-                Range::I32AsInt4 => Self::I32AsInt4,
-                Range::I64AsInt8 => Self::I64AsInt8,
-                Range::SqlxTypesChronoNaiveDateAsDate => Self::SqlxTypesChronoNaiveDateAsDate,
-                Range::SqlxTypesChronoNaiveDateTimeAsTimestamp => {
-                    Self::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                }
-                Range::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => {
-                    Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                }
+}
+impl From<&Range> for PgType {
+    fn from(v: &Range) -> Self {
+        match v {
+            Range::I32AsInt4 => Self::I32AsInt4,
+            Range::I64AsInt8 => Self::I64AsInt8,
+            Range::SqlxTypesChronoNaiveDateAsDate => Self::SqlxTypesChronoNaiveDateAsDate,
+            Range::SqlxTypesChronoNaiveDateTimeAsTimestamp => {
+                Self::SqlxTypesChronoNaiveDateTimeAsTimestamp
+            }
+            Range::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => {
+                Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
             }
         }
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    enum Range {
-        I32AsInt4,
-        I64AsInt8,
-        SqlxTypesChronoNaiveDateAsDate,
-        SqlxTypesChronoNaiveDateTimeAsTimestamp,
-        SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
-    }
-    impl TryFrom<&PgType> for Range {
-        type Error = ();
-        fn try_from(v: &PgType) -> Result<Self, Self::Error> {
-            match &v {
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+enum Range {
+    I32AsInt4,
+    I64AsInt8,
+    SqlxTypesChronoNaiveDateAsDate,
+    SqlxTypesChronoNaiveDateTimeAsTimestamp,
+    SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
+}
+impl TryFrom<&PgType> for Range {
+    type Error = ();
+    fn try_from(v: &PgType) -> Result<Self, Self::Error> {
+        match &v {
                 PgType::I16AsInt2
                 | PgType::I32AsInt4
                 | PgType::I64AsInt8
@@ -320,122 +493,125 @@ pub fn generate_pg_types(
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp),
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
             }
-        }
     }
-    impl std::fmt::Display for Range {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(
-                f,
-                "{}",
-                naming::parameter::SelfNonNullUpperCamelCase::from_display(&PgType::from(self))
-            )
-        }
+}
+impl std::fmt::Display for Range {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            naming::parameter::SelfNonNullUpperCamelCase::from_display(&PgType::from(self))
+        )
     }
-    impl quote::ToTokens for Range {
-        fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-            quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
-        }
+}
+impl quote::ToTokens for Range {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        quote::format_ident!("{}", self.to_string()).to_tokens(tokens);
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(
-        Debug,
-        Clone,
-        Copy,
-        PartialEq,
-        Eq,
-        std::hash::Hash,
-        serde::Serialize,
-        serde::Deserialize,
-        strum_macros::Display,
-        strum_macros::EnumIter,
-        optml::Optml,
-    )]
-    enum PgTypePattern {
-        Standard,
-    }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(
-        Debug,
-        Clone,
-        Copy,
-        PartialEq,
-        Eq,
-        std::hash::Hash,
-        serde::Serialize,
-        serde::Deserialize,
-        optml::Optml,
-    )]
-    #[serde(try_from = "PgTypeRecordRaw")]
-    struct PgTypeRecord {
-        pg_type: PgType,
-        is_nullable: pg_crud_macros_common::IsNullable,
-        pg_type_pattern: PgTypePattern,
-    }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, serde::Deserialize, optml::Optml)]
-    struct PgTypeRecordRaw {
-        pg_type: PgType,
-        is_nullable: pg_crud_macros_common::IsNullable,
-        pg_type_pattern: PgTypePattern,
-    }
-    impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
-        type Error = String;
-        fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
-            let cant_supp_nullable_variants_message = str_constants::CANT_SUPPORT_NULLABLE_VARIANTS;
-            match &v.pg_type.can_be_nullable() {
-                CanBeNullable::False => {
-                    if matches!(&v.is_nullable, pg_crud_macros_common::IsNullable::True) {
-                        return Err(format!("{cant_supp_nullable_variants_message}{v:#?}"));
-                    }
-                    Ok(Self {
-                        pg_type: v.pg_type,
-                        is_nullable: v.is_nullable,
-                        pg_type_pattern: v.pg_type_pattern,
-                    })
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    std::hash::Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    optml::Optml,
+)]
+enum PgTypePattern {
+    Standard,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    std::hash::Hash,
+    serde::Serialize,
+    serde::Deserialize,
+    optml::Optml,
+)]
+#[serde(try_from = "PgTypeRecordRaw")]
+struct PgTypeRecord {
+    pg_type: PgType,
+    is_nullable: pg_crud_macros_common::IsNullable,
+    pg_type_pattern: PgTypePattern,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, serde::Deserialize, optml::Optml)]
+struct PgTypeRecordRaw {
+    pg_type: PgType,
+    is_nullable: pg_crud_macros_common::IsNullable,
+    pg_type_pattern: PgTypePattern,
+}
+impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
+    type Error = String;
+    fn try_from(v: PgTypeRecordRaw) -> Result<Self, Self::Error> {
+        let cant_supp_nullable_variants_message = str_constants::CANT_SUPPORT_NULLABLE_VARIANTS;
+        match &v.pg_type.can_be_nullable() {
+            CanBeNullable::False => {
+                if matches!(&v.is_nullable, pg_crud_macros_common::IsNullable::True) {
+                    return Err(format!("{cant_supp_nullable_variants_message}{v:#?}"));
                 }
-                CanBeNullable::True => Ok(Self {
+                Ok(Self {
                     pg_type: v.pg_type,
                     is_nullable: v.is_nullable,
                     pg_type_pattern: v.pg_type_pattern,
-                }),
+                })
             }
+            CanBeNullable::True => Ok(Self {
+                pg_type: v.pg_type,
+                is_nullable: v.is_nullable,
+                pg_type_pattern: v.pg_type_pattern,
+            }),
         }
     }
-    #[derive(Debug, serde::Deserialize, optml::Optml)]
-    enum GeneratePgTypesConfigVariant {
-        All,
-        Concrete(Vec<PgTypeRecord>),
-        Subset(Vec<PgType>),
-    }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, serde::Deserialize, optml::Optml)]
-    struct GeneratePgTypesConfig {
-        variant: GeneratePgTypesConfigVariant,
-        pg_table_cols_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
-        whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
-        #[serde(default)]
-        generate_secret_text: bool,
-    }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, optml::Optml)]
-    enum PgTypeInitializationTryNew {
-        F64AsFloat8,
-        StringAsText,
-        SqlxTypesChronoNaiveTimeAsTime,
-        SqlxTypesTimeTimeAsTime,
-        SqlxTypesChronoNaiveDateAsDate,
-        SqlxTypesChronoNaiveDateTimeAsTimestamp,
-        SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
-        SqlxPgTypesPgRangeI32AsInt4Range,
-        SqlxPgTypesPgRangeI64AsInt8Range,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange,
-        SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
-        SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
-    }
-    impl TryFrom<&PgType> for PgTypeInitializationTryNew {
-        type Error = ();
-        fn try_from(v: &PgType) -> Result<Self, Self::Error> {
-            match v {
+}
+#[derive(Debug, serde::Deserialize, optml::Optml)]
+enum GeneratePgTypesConfigVariant {
+    All,
+    Concrete(Vec<PgTypeRecord>),
+    Subset(Vec<PgType>),
+}
+#[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
+#[serde(transparent)]
+struct GenerateSecretText(bool);
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, serde::Deserialize, optml::Optml)]
+struct GeneratePgTypesConfig {
+    variant: GeneratePgTypesConfigVariant,
+    pg_table_cols_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
+    whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
+    #[serde(default)]
+    generate_secret_text: GenerateSecretText,
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, optml::Optml)]
+enum PgTypeInitializationTryNew {
+    F64AsFloat8,
+    StringAsText,
+    SqlxTypesChronoNaiveTimeAsTime,
+    SqlxTypesTimeTimeAsTime,
+    SqlxTypesChronoNaiveDateAsDate,
+    SqlxTypesChronoNaiveDateTimeAsTimestamp,
+    SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
+    SqlxPgTypesPgRangeI32AsInt4Range,
+    SqlxPgTypesPgRangeI64AsInt8Range,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange,
+    SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
+    SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
+}
+impl TryFrom<&PgType> for PgTypeInitializationTryNew {
+    type Error = ();
+    fn try_from(v: &PgType) -> Result<Self, Self::Error> {
+        match v {
                 PgType::I16AsInt2
                 | PgType::I32AsInt4
                 | PgType::I64AsInt8
@@ -464,11 +640,11 @@ pub fn generate_pg_types(
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange),
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange),
             }
-        }
     }
-    impl From<&PgTypeInitializationTryNew> for PgType {
-        fn from(v: &PgTypeInitializationTryNew) -> Self {
-            match v {
+}
+impl From<&PgTypeInitializationTryNew> for PgType {
+    fn from(v: &PgTypeInitializationTryNew) -> Self {
+        match v {
                 PgTypeInitializationTryNew::F64AsFloat8 => Self::F64AsFloat8,
                 PgTypeInitializationTryNew::StringAsText => Self::StringAsText,
                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime => Self::SqlxTypesChronoNaiveTimeAsTime,
@@ -482,33 +658,33 @@ pub fn generate_pg_types(
                 PgTypeInitializationTryNew::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
                 PgTypeInitializationTryNew::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
             }
-        }
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, optml::Optml)]
-    enum PgTypeImplTryNewForDe {
-        StringAsText,
-        SqlxTypesChronoNaiveTimeAsTime,
-        SqlxTypesTimeTimeAsTime,
-        SqlxTypesChronoNaiveDateAsDate,
-        SqlxPgTypesPgRangeI32AsInt4Range,
-        SqlxPgTypesPgRangeI64AsInt8Range,
-        SqlxTypesUuidUuidAsUuidV4InitializationByPg,
-        SqlxTypesUuidUuidAsUuidInitializationByClient,
-    }
-    #[derive(Debug, optml::Optml)]
-    enum PgTypeImplNewForDeserializeOrTryNewForDe {
-        NewForDeserialize,
-        TryNewForDe(PgTypeImplTryNewForDe),
-    }
-    #[derive(Debug, optml::Optml)]
-    enum PgTypeDeserialize {
-        Derive,
-        ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe),
-    }
-    impl From<&PgType> for PgTypeDeserialize {
-        fn from(v: &PgType) -> Self {
-            match v {
+}
+#[allow(clippy::arbitrary_source_item_ordering)]
+#[derive(Debug, optml::Optml)]
+enum PgTypeImplTryNewForDe {
+    StringAsText,
+    SqlxTypesChronoNaiveTimeAsTime,
+    SqlxTypesTimeTimeAsTime,
+    SqlxTypesChronoNaiveDateAsDate,
+    SqlxPgTypesPgRangeI32AsInt4Range,
+    SqlxPgTypesPgRangeI64AsInt8Range,
+    SqlxTypesUuidUuidAsUuidV4InitializationByPg,
+    SqlxTypesUuidUuidAsUuidInitializationByClient,
+}
+#[derive(Debug, optml::Optml)]
+enum PgTypeImplNewForDeserializeOrTryNewForDe {
+    NewForDeserialize,
+    TryNewForDe(PgTypeImplTryNewForDe),
+}
+#[derive(Debug, optml::Optml)]
+enum PgTypeDeserialize {
+    Derive,
+    ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe),
+}
+impl From<&PgType> for PgTypeDeserialize {
+    fn from(v: &PgType) -> Self {
+        match v {
                 PgType::I16AsInt2
                 | PgType::I32AsInt4
                 | PgType::I64AsInt8
@@ -537,20 +713,98 @@ pub fn generate_pg_types(
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
                 PgType::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Self::ImplNewForDeserializeOrTryNewForDe(PgTypeImplNewForDeserializeOrTryNewForDe::NewForDeserialize),
             }
+    }
+}
+#[derive(Debug)]
+pub struct ParsedGeneratePgTypesConfig(GeneratePgTypesConfig);
+#[derive(Debug)]
+pub struct BuiltGeneratePgTypesModel {
+    config: GeneratePgTypesConfig,
+    entry_count: PgTypesModelEntryCount,
+}
+#[derive(Debug)]
+pub struct ValidatedGeneratePgTypesConfig {
+    config: GeneratePgTypesConfig,
+    entry_count: PgTypesModelEntryCount,
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PgTypesModelEntryCount(usize);
+impl From<PgTypesModelEntryCount> for usize {
+    fn from(value: PgTypesModelEntryCount) -> Self {
+        value.0
+    }
+}
+impl ValidatedGeneratePgTypesConfig {
+    #[must_use]
+    pub const fn entry_count(&self) -> PgTypesModelEntryCount {
+        self.entry_count
+    }
+}
+#[derive(Debug)]
+pub struct SerdeJsonGeneratePgTypesError(serde_json::Error);
+#[derive(Debug)]
+pub enum GeneratePgTypesPipelineError {
+    Parse(SerdeJsonGeneratePgTypesError),
+}
+impl std::fmt::Display for GeneratePgTypesPipelineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Parse(error) => error.0.fmt(f),
         }
     }
-    panic_location::panic_location();
-    let generate_pg_types_config = match serde_json::from_str::<GeneratePgTypesConfig>(
-        &input_token_stream.as_ref().to_string(),
-    ) {
-        Ok(v) => v,
+}
+impl std::error::Error for GeneratePgTypesPipelineError {}
+pub fn parse_generate_pg_types(
+    input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
+) -> Result<ParsedGeneratePgTypesConfig, GeneratePgTypesPipelineError> {
+    serde_json::from_str::<GeneratePgTypesConfig>(&input.as_ref().to_string())
+        .map(ParsedGeneratePgTypesConfig)
+        .map_err(|error| GeneratePgTypesPipelineError::Parse(SerdeJsonGeneratePgTypesError(error)))
+}
+pub fn validate_generate_pg_types(
+    built: BuiltGeneratePgTypesModel,
+) -> Result<ValidatedGeneratePgTypesConfig, GeneratePgTypesPipelineError> {
+    Ok(ValidatedGeneratePgTypesConfig {
+        config: built.config,
+        entry_count: built.entry_count,
+    })
+}
+pub fn build_generate_pg_types(
+    parsed: ParsedGeneratePgTypesConfig,
+) -> Result<BuiltGeneratePgTypesModel, GeneratePgTypesPipelineError> {
+    let entry_count = PgTypesModelEntryCount(match &parsed.0.variant {
+        GeneratePgTypesConfigVariant::All => <PgType as strum::IntoEnumIterator>::iter().count(),
+        GeneratePgTypesConfigVariant::Concrete(records) => records.len(),
+        GeneratePgTypesConfigVariant::Subset(types) => types.len(),
+    });
+    Ok(BuiltGeneratePgTypesModel {
+        config: parsed.0,
+        entry_count,
+    })
+}
+#[must_use]
+pub fn generate_pg_types(
+    input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
+) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    match parse_generate_pg_types(input)
+        .and_then(build_generate_pg_types)
+        .and_then(validate_generate_pg_types)
+    {
+        Ok(validated) => emit_generate_pg_types(validated),
         Err(error) => {
             let message = format!("failed to parse GeneratePgTypesConfig: {error}");
-            return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+            macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
                 quote::quote! { compile_error!(#message); },
-            );
+            )
         }
-    };
+    }
+}
+#[must_use]
+pub fn emit_generate_pg_types(
+    validated: ValidatedGeneratePgTypesConfig,
+) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    panic_location::panic_location();
+    let generate_pg_types_config = validated.config;
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
     let as_upper_camel_case = naming::AsUpperCamelCase;
@@ -5010,9 +5264,12 @@ pub fn generate_pg_types(
         };
         let db_nullable = matches!(is_nullable, pg_crud_macros_common::IsNullable::True);
         let db_data_type = match pg_type {
-            PgType::I16AsSmallSerialInitializationByPg => str_constants::PG_CRUD_PG_INT2,
-            PgType::I32AsSerialInitializationByPg => str_constants::PG_CRUD_PG_INT4,
-            PgType::I64AsBigSerialInitializationByPg => str_constants::PG_CRUD_PG_INT8,
+            PgType::I16AsSmallSerialInitializationByPg =>
+                PgSqlName(str_constants::PG_CRUD_PG_INT2),
+            PgType::I32AsSerialInitializationByPg =>
+                PgSqlName(str_constants::PG_CRUD_PG_INT4),
+            PgType::I64AsBigSerialInitializationByPg =>
+                PgSqlName(str_constants::PG_CRUD_PG_INT8),
             PgType::BoolAsBool
             | PgType::F32AsFloat4
             | PgType::F64AsFloat8
@@ -5220,7 +5477,7 @@ pub fn generate_pg_types(
         )
     })
     .collect::<(Vec<String>, Vec<String>)>();
-    if generate_pg_types_config.generate_secret_text {
+    if generate_pg_types_config.generate_secret_text.0 {
         pg_type_array.push(quote::quote! {
             /// Secret PostgreSQL text deliberately has no serialization contract.
             ///
@@ -5325,4 +5582,34 @@ pub fn generate_pg_types(
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     generated
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn model_can_be_parsed_and_validated_without_emitting_source() {
+        let input = quote::quote! {{
+            "pg_table_cols_write_into_file": "False",
+            "whole_write_into_file": "False",
+            "variant": {"Subset": ["I16AsInt2", "StringAsText"]}
+        }};
+        let parsed = super::parse_generate_pg_types(
+            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .expect("35a0f719");
+        let built = super::build_generate_pg_types(parsed).expect("3c8d514f");
+        let validated = super::validate_generate_pg_types(built).expect("b24816de");
+        assert_eq!(usize::from(validated.entry_count()), 2usize);
+    }
+
+    #[test]
+    fn malformed_config_is_a_typed_parse_error() {
+        let input = quote::quote! {{"variant": "MissingFields"}};
+        assert!(matches!(
+            super::parse_generate_pg_types(
+                macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+            ),
+            Err(super::GeneratePgTypesPipelineError::Parse(_error))
+        ));
+    }
 }

@@ -1,4 +1,4 @@
-#[proc_macro_derive(TryFromEnv)]
+#[proc_macro_derive(TryFromEnv, attributes(config))]
 pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     panic_location::panic_location();
     let dotenv_snake_case = naming::DotenvSnakeCase;
@@ -22,6 +22,39 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let field_identifier = |field: &syn::Field, exp_id: &'static str| {
         field.ident.clone().unwrap_or_else(|| panic!("{exp_id}"))
     };
+    let config_descriptors = fields_named.iter().map(|field| {
+        let descriptor_field_identifier =
+            field_identifier(field, str_constants::VALUE_8B79A379);
+        let field_type = &field.ty;
+        let env_name = syn::LitStr::new(
+            &naming_common::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
+            identifier.span(),
+        );
+        let sensitivity = if field.attrs.iter().any(|attribute| {
+            attribute.path().is_ident(str_constants::CONFIG)
+                && attribute
+                    .parse_args::<syn::Ident>()
+                    .is_ok_and(|value| value == str_constants::SECRET)
+        }) {
+            quote::quote!(config_lib::ConfigFieldSensitivity::Secret)
+        } else {
+            quote::quote!(config_lib::ConfigFieldSensitivity::Public)
+        };
+        quote::quote! {
+            config_lib::ConfigFieldDescriptor::new(
+                config_lib::EnvVarNameRef::from(#env_name),
+                |value| {
+                    if <#field_type as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok(value).is_ok() {
+                        config_lib::ConfigExampleValidity::Valid
+                    } else {
+                        config_lib::ConfigExampleValidity::Invalid
+                    }
+                },
+                config_lib::ConfigRustTypeName::from(stringify!(#field_type)),
+                #sensitivity,
+            )
+        }
+    });
     let error_token_stream = {
         let vrts_token_stream = fields_named.iter().map(|element| {
             let element_identifier = field_identifier(element, str_constants::VALUE_2ECB63C1);
@@ -103,6 +136,9 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
         let fields_token_stream = fields_named.iter().map(|element| &element.ident);
         quote::quote! {
             impl #identifier {
+                pub fn field_descriptors() -> Vec<config_lib::ConfigFieldDescriptor> {
+                    vec![#(#config_descriptors),*]
+                }
                 pub fn try_from_env() -> Result<Self, #identifier_try_from_env_error_upper_camel_case> {
                     if let Err(error) = dotenv::dotenv() {
                         return Err(#identifier_try_from_env_error_upper_camel_case::#dotenv_upper_camel_case {

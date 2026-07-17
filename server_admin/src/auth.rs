@@ -3,50 +3,52 @@
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
 #[derive(newtype::DebugTransparent)]
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAdminAccessTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAdminRefreshTtlSeconds(u64);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAdminSessionLimit(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAdminFailureThreshold(i64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct StdAdminFailureDelayMillis(u64);
+#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+pub(crate) struct StdAdminRateLimitCount(i64);
+#[derive(Debug, Clone, Copy, newtype::FromInner, newtype::IntoInnerFrom)]
+pub(crate) struct StdAdminRateLimitWindowSeconds(i32);
 #[derive(Debug, Clone, Copy)]
 pub struct AdminAuthPolicy {
-    audit_limit: rate_limit::StdAdminRateLimitCount,
-    audit_window: rate_limit::StdAdminRateLimitWindowSeconds,
+    audit_limit: StdAdminRateLimitCount,
+    audit_window: StdAdminRateLimitWindowSeconds,
     failure_delay: StdAdminFailureDelayMillis,
     failure_threshold: StdAdminFailureThreshold,
-    mutation_limit: rate_limit::StdAdminRateLimitCount,
-    mutation_window: rate_limit::StdAdminRateLimitWindowSeconds,
-    refresh_limit: rate_limit::StdAdminRateLimitCount,
-    refresh_window: rate_limit::StdAdminRateLimitWindowSeconds,
-    sign_in_ip_limit: rate_limit::StdAdminRateLimitCount,
-    sign_in_limit: rate_limit::StdAdminRateLimitCount,
-    sign_in_window: rate_limit::StdAdminRateLimitWindowSeconds,
+    mutation_limit: StdAdminRateLimitCount,
+    mutation_window: StdAdminRateLimitWindowSeconds,
+    refresh_limit: StdAdminRateLimitCount,
+    refresh_window: StdAdminRateLimitWindowSeconds,
+    sign_in_ip_limit: StdAdminRateLimitCount,
+    sign_in_limit: StdAdminRateLimitCount,
+    sign_in_window: StdAdminRateLimitWindowSeconds,
 }
 impl AdminAuthPolicy {
     #[allow(
         clippy::single_call_fn,
         reason = "keeps every administrator authentication threshold in one immutable policy constructor"
     )]
-    fn from_sign_in_limit(sign_in_limit: rate_limit::StdAdminRateLimitCount) -> Self {
+    fn from_sign_in_limit(sign_in_limit: StdAdminRateLimitCount) -> Self {
         Self {
-            audit_limit: rate_limit::StdAdminRateLimitCount::from(60i64),
-            audit_window: rate_limit::StdAdminRateLimitWindowSeconds::from(60i32),
+            audit_limit: StdAdminRateLimitCount::from(60i64),
+            audit_window: StdAdminRateLimitWindowSeconds::from(60i32),
             failure_delay: StdAdminFailureDelayMillis::from(200u64),
             failure_threshold: StdAdminFailureThreshold::from(10i64),
-            mutation_limit: rate_limit::StdAdminRateLimitCount::from(300i64),
-            mutation_window: rate_limit::StdAdminRateLimitWindowSeconds::from(60i32),
-            refresh_limit: rate_limit::StdAdminRateLimitCount::from(60i64),
-            refresh_window: rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
-            sign_in_ip_limit: rate_limit::StdAdminRateLimitCount::from(
-                sign_in_limit.0.saturating_mul(5i64),
-            ),
+            mutation_limit: StdAdminRateLimitCount::from(300i64),
+            mutation_window: StdAdminRateLimitWindowSeconds::from(60i32),
+            refresh_limit: StdAdminRateLimitCount::from(60i64),
+            refresh_window: StdAdminRateLimitWindowSeconds::from(900i32),
+            sign_in_ip_limit: StdAdminRateLimitCount::from(sign_in_limit.0.saturating_mul(5i64)),
             sign_in_limit,
-            sign_in_window: rate_limit::StdAdminRateLimitWindowSeconds::from(900i32),
+            sign_in_window: StdAdminRateLimitWindowSeconds::from(900i32),
         }
     }
 }
@@ -146,6 +148,25 @@ pub struct AdminAuditQuery {
     resource: Option<super::AdminAuditResource>,
     user_id: Option<super::AdminUserId>,
 }
+impl AdminAuditQuery {
+    pub(crate) fn into_parts(
+        self,
+    ) -> (
+        Option<super::AdminAuditAction>,
+        Option<server_admin_contract::AdminAuditTimestamp>,
+        Option<server_admin_contract::AdminAuditTimestamp>,
+        Option<super::AdminAuditResource>,
+        Option<super::AdminUserId>,
+    ) {
+        (
+            self.action,
+            self.created_after,
+            self.created_before,
+            self.resource,
+            self.user_id,
+        )
+    }
+}
 #[derive(Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
 #[derive(Debug)]
@@ -159,6 +180,11 @@ pub struct AdminPeerAddr(super::StdAdminSocketAddr);
 impl From<super::StdAdminSocketAddr> for AdminPeerAddr {
     fn from(value: super::StdAdminSocketAddr) -> Self {
         Self(value)
+    }
+}
+impl AdminPeerAddr {
+    pub(crate) const fn socket_addr(self) -> super::StdAdminSocketAddr {
+        self.0
     }
 }
 impl<State> axum::extract::FromRequestParts<State> for AdminPeerAddr
@@ -378,18 +404,15 @@ async fn authenticate(
         })
         .ok_or(AdminApiError::Authentication)?;
     let context_hash = session_context_hash(headers, peer);
-    let active = sqlx::query_scalar::<_, bool>(
-        str_constants::SELECT_EXISTS_SELECT_1_FROM_ADMIN_ACCESS_SESSIONS_SESSION_JOIN_ADMIN_USERS,
+    let active = super::repository::sessions::access_session_is_active(
+        super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
+        claims.session_id(),
+        claims.user_id(),
+        &context_hash,
     )
-    .bind(claims.session_id().0.0)
-    .bind(claims.user_id().0)
-    .bind(secrecy::ExposeSecret::expose_secret(
-        context_hash.0.as_ref(),
-    ))
-    .fetch_one(state.pool.as_ref())
     .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
-    if !active {
+    .map_err(AdminApiError::Pg)?;
+    if !active.0 {
         return Err(AdminApiError::Authentication);
     }
     load_authenticated_admin(state, claims.user_id(), claims.session_id()).await
@@ -413,16 +436,15 @@ async fn validate_csrf(
         secrecy::SecretBox::new(Box::new(provided.to_owned())),
     ));
     let provided_hash = super::hash_opaque_token(&provided_token);
-    let expected = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_CSRF_TOKEN_HASH_FROM_ADMIN_ACCESS_SESSIONS_WHERE_ID_DOLLAR_1,
+    let expected = super::repository::sessions::read_csrf_hash(
+        super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
+        authenticated.session_id,
+        authenticated.id,
     )
-    .bind(authenticated.session_id.0.0)
-    .bind(authenticated.id.0)
-    .fetch_optional(state.pool.as_ref())
     .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
+    .map_err(AdminApiError::Pg)?
     .ok_or(AdminApiError::Csrf)?;
-    if secrecy::ExposeSecret::expose_secret(provided_hash.0.as_ref()) != &expected {
+    if provided_hash.expose().as_ref() != expected.expose().as_ref() {
         return Err(AdminApiError::Csrf);
     }
     Ok(())
@@ -489,6 +511,11 @@ impl From<sqlx::Error> for AdminApiError {
         Self::Pg(super::SqlxAdminError::from(value))
     }
 }
+impl From<super::SqlxAdminError> for AdminApiError {
+    fn from(value: super::SqlxAdminError) -> Self {
+        Self::Pg(value)
+    }
+}
 #[derive(Debug, newtype::IntoInnerFrom)]
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
@@ -536,17 +563,15 @@ async fn record_login_attempt(
     peer: AdminPeerAddr,
     succeeded: super::StdAdminBool,
 ) -> Result<(), AdminApiError> {
-    let _result = sqlx::query(
-        str_constants::WITH_ATTEMPT_AS_INSERT_INTO_ADMIN_LOGIN_ATTEMPTS_LOGIN_IP_ADDRESS_SUCCEEDED,
+    super::repository::audit::record_login_attempt(
+        super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
+        login,
+        peer,
+        succeeded,
+        super::UuidAdminValue::from(uuid::Uuid::new_v4()),
     )
-    .bind(login.as_ref())
-    .bind(peer.0.0.ip())
-    .bind(succeeded.0)
-    .bind(uuid::Uuid::new_v4())
-    .execute(state.pool.as_ref())
     .await
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?;
-    Ok(())
+    .map_err(AdminApiError::Pg)
 }
 #[derive(Debug, Clone, Copy)]
 struct AdminAuditSuccessRef<'value_lt> {
@@ -588,67 +613,37 @@ impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
         Self(value)
     }
 }
-enum AdminAuthDbRef<'connection_lt, 'pool_lt> {
-    Connection(SqlxAdminPgConnectionRef<'connection_lt>),
-    Pool(app_state::SqlxPgPoolRef<'pool_lt>),
-}
 async fn load_authenticated_admin(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    let mut db = AdminAuthDbRef::Pool(app_state::SqlxPgPoolRef::from(state.pool.as_ref()));
+    let mut db = super::repository::AdminRepositoryDbRef::Pool(
+        super::repository::SqlxAdminRepositoryPoolRef::from(state.pool.as_ref()),
+    );
     load_authenticated_admin_from_db(&mut db, user_id, session_id).await
 }
 async fn load_authenticated_admin_from_db(
-    db: &mut AdminAuthDbRef<'_, '_>,
+    db: &mut super::repository::AdminRepositoryDbRef<'_, '_>,
     user_id: super::AdminUserId,
     session_id: super::AdminSessionId,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    let user_query = sqlx::query_as::<_, (String, String)>(
-        str_constants::SELECT_LOGIN_DISPLAY_NAME_FROM_ADMIN_USERS_WHERE_ID_DOLLAR_1_AND,
-    )
-    .bind(user_id.0);
-    let user = match db {
-        AdminAuthDbRef::Connection(connection) => {
-            user_query.fetch_optional(connection.as_mut()).await
-        }
-        AdminAuthDbRef::Pool(pool) => user_query.fetch_optional(pool.as_ref()).await,
-    }
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
-    .ok_or(AdminApiError::Authentication)?;
-    let roles_query = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_ROLE_NAME_FROM_ADMIN_ROLES_ROLE_JOIN_ADMIN_USER_ROLES_LINK,
-    )
-    .bind(user_id.0);
-    let roles = match db {
-        AdminAuthDbRef::Connection(connection) => roles_query.fetch_all(connection.as_mut()).await,
-        AdminAuthDbRef::Pool(pool) => roles_query.fetch_all(pool.as_ref()).await,
-    }
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
-    .into_iter()
-    .map(super::AdminRoleName::try_from)
-    .collect::<Result<Vec<super::AdminRoleName>, _>>()
-    .map_err(|_error| AdminApiError::Authentication)?;
-    let permissions_query =
-        sqlx::query_scalar::<_, String>(str_constants::SELECT_DISTINCT_PERMISSION_NAME_FROM_ADMIN_PERMISSIONS_PERMISSION_JOIN_ADMIN_ROLE_PERMISSIONS).bind(user_id.0);
-    let permissions = match db {
-        AdminAuthDbRef::Connection(connection) => {
-            permissions_query.fetch_all(connection.as_mut()).await
-        }
-        AdminAuthDbRef::Pool(pool) => permissions_query.fetch_all(pool.as_ref()).await,
-    }
-    .map_err(|error| AdminApiError::Pg(super::SqlxAdminError::from(error)))?
-    .into_iter()
-    .map(|permission| super::AdminPermission::try_from(permission.as_str()))
-    .collect::<Result<Vec<super::AdminPermission>, _>>()
-    .map_err(|_error| AdminApiError::Authentication)?;
+    let record = super::repository::users::read_authenticated_record(db, user_id)
+        .await
+        .map_err(|repository_error| match repository_error {
+            super::repository::AdminRepositoryError::InvalidStoredValue => {
+                AdminApiError::Authentication
+            }
+            super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
+                AdminApiError::Pg(sqlx_error)
+            }
+        })?
+        .ok_or(AdminApiError::Authentication)?;
+    let (display_name, login, permissions, roles) = record.into_parts();
     Ok(AuthenticatedAdmin {
-        display_name: super::AdminDisplayName::try_from(user.1)
-            .map_err(|_error| AdminApiError::Authentication)?,
+        display_name,
         id: user_id,
-        login: super::AdminLogin::try_from(user.0)
-            .map_err(|_error| AdminApiError::Authentication)?,
+        login,
         permissions,
         roles,
         session_id,
@@ -984,7 +979,7 @@ impl AdminAuthSvcState {
             pool,
             refresh_ttl: StdAdminRefreshTtlSeconds::from(refresh_ttl.get()),
             session_limit: StdAdminSessionLimit::from(session_limit.get()),
-            policy: AdminAuthPolicy::from_sign_in_limit(rate_limit::StdAdminRateLimitCount::from(
+            policy: AdminAuthPolicy::from_sign_in_limit(StdAdminRateLimitCount::from(
                 i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
             )),
         })

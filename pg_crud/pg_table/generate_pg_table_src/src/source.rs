@@ -1,5 +1,67 @@
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
+#[derive(Debug)]
+pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
+#[derive(Debug)]
+pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
+impl SynBuiltGeneratePgTableInput {
+    #[must_use]
+    pub const fn model(&self) -> &crate::model::GeneratePgTableModel {
+        &self.0
+    }
+}
+#[derive(Debug)]
+pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
+#[derive(Debug)]
+pub struct SynGeneratePgTablePipelineError(syn::Error);
+#[derive(Debug)]
+pub enum GeneratePgTablePipelineError {
+    Build(SynGeneratePgTablePipelineError),
+    Parse(SynGeneratePgTablePipelineError),
+    Validate(SynGeneratePgTablePipelineError),
+}
+impl std::fmt::Display for GeneratePgTablePipelineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Parse(error) | Self::Build(error) | Self::Validate(error) => error.0.fmt(f),
+        }
+    }
+}
+impl std::error::Error for GeneratePgTablePipelineError {}
+pub fn parse_generate_pg_table(
+    input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
+) -> Result<SynParsedGeneratePgTableInput, GeneratePgTablePipelineError> {
+    syn::parse2(input.as_ref().clone())
+        .map(SynParsedGeneratePgTableInput)
+        .map_err(|error| {
+            GeneratePgTablePipelineError::Parse(SynGeneratePgTablePipelineError(error))
+        })
+}
+pub fn build_generate_pg_table(
+    parsed: SynParsedGeneratePgTableInput,
+) -> Result<SynBuiltGeneratePgTableInput, GeneratePgTablePipelineError> {
+    let _shape =
+        crate::parse::struct_shape(workspace_macro_helpers::SynDeriveInputRef::from(&parsed.0))
+            .map_err(|error| {
+                GeneratePgTablePipelineError::Build(SynGeneratePgTablePipelineError(error))
+            })?;
+    Ok(SynBuiltGeneratePgTableInput(
+        crate::model::GeneratePgTableModel::from_struct(parsed.0.into()),
+    ))
+}
+pub fn validate_generate_pg_table(
+    built: SynBuiltGeneratePgTableInput,
+) -> Result<SynValidatedGeneratePgTableInput, GeneratePgTablePipelineError> {
+    built
+        .0
+        .validate()
+        .map(SynValidatedGeneratePgTableInput)
+        .map_err(|error| {
+            GeneratePgTablePipelineError::Validate(SynGeneratePgTablePipelineError(
+                syn::Error::from(error),
+            ))
+        })
+}
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
@@ -34,6 +96,32 @@ fn compile_error_token_stream(
 #[allow(unused_variables)]
 pub fn generate_pg_table(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
+) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+    let validated = match parse_generate_pg_table(input)
+        .and_then(build_generate_pg_table)
+        .and_then(validate_generate_pg_table)
+    {
+        Ok(validated) => validated,
+        Err(error) => {
+            return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
+                match error {
+                    GeneratePgTablePipelineError::Build(pipeline_error)
+                    | GeneratePgTablePipelineError::Parse(pipeline_error)
+                    | GeneratePgTablePipelineError::Validate(pipeline_error) => {
+                        pipeline_error.0.to_compile_error()
+                    }
+                },
+            );
+        }
+    };
+    emit_generate_pg_table(validated)
+}
+
+#[must_use]
+#[allow(non_snake_case)]
+#[allow(unused_variables)]
+pub fn emit_generate_pg_table(
+    validated: SynValidatedGeneratePgTableInput,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
@@ -469,10 +557,10 @@ pub fn generate_pg_table(
             &self.0
         }
     }
-    struct GeneratePgTableInputModel {
+    struct GeneratePgTableEmissionModel {
         config: GeneratePgTableConfig,
         error_variants_by_attr:
-            std::collections::BTreeMap<GeneratePgTableAttr, Vec<GeneratePgTableVariantModel>>,
+            std::collections::BTreeMap<GeneratePgTableAttr, Vec<GeneratePgTableVariantEmission>>,
         logic_token_stream_by_attr:
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
@@ -506,14 +594,14 @@ pub fn generate_pg_table(
             &self.0
         }
     }
-    struct GeneratePgTableFieldModel {
+    struct GeneratePgTableFieldEmissionModel {
         field: macros_helpers::field_data::SynField,
-        frontend: GeneratePgTableFrontendFieldConfig,
+        frontend: GeneratePgTableFrontendFieldEmission,
         has_db_default: bool,
         is_primary_key: bool,
     }
     #[derive(Clone, Debug, Default)]
-    struct GeneratePgTableFrontendFieldConfig {
+    struct GeneratePgTableFrontendFieldEmission {
         filterable: bool,
         hidden: bool,
         label: Option<String>,
@@ -527,21 +615,21 @@ pub fn generate_pg_table(
         Hidden,
         Sortable,
     }
-    struct GeneratePgTableVariantFieldModel {
+    struct GeneratePgTableVariantFieldEmission {
         identifier: syn::Ident,
         location_attr: Option<macros_helpers::location_data::LocationFieldAttr>,
         type0: syn::Type,
     }
-    struct GeneratePgTableVariantModel {
-        fields: Vec<GeneratePgTableVariantFieldModel>,
+    struct GeneratePgTableVariantEmission {
+        fields: Vec<GeneratePgTableVariantFieldEmission>,
         identifier: syn::Ident,
     }
     #[derive(Clone, Copy)]
-    enum GeneratePgTableVariantRef<'variant_lt> {
-        Model(&'variant_lt GeneratePgTableVariantModel),
+    enum GeneratePgTableVariantEmissionRef<'variant_lt> {
+        Model(&'variant_lt GeneratePgTableVariantEmission),
         Syn(&'variant_lt syn::Variant),
     }
-    impl<'variant_lt> GeneratePgTableVariantRef<'variant_lt> {
+    impl<'variant_lt> GeneratePgTableVariantEmissionRef<'variant_lt> {
         const fn identifier(self) -> &'variant_lt syn::Ident {
             match self {
                 Self::Model(v) => &v.identifier,
@@ -561,11 +649,11 @@ pub fn generate_pg_table(
             self.0
         }
     }
-    struct GeneratePgTableFieldsModel {
+    struct GeneratePgTableFieldsEmissionModel {
         db_default_field_idxs: Vec<GeneratePgTableFieldIdx>,
         fields: Vec<macros_helpers::field_data::SynField>,
         fields_without_primary_key_idxs: Vec<GeneratePgTableFieldIdx>,
-        frontend_fields: Vec<GeneratePgTableFrontendFieldConfig>,
+        frontend_fields: Vec<GeneratePgTableFrontendFieldEmission>,
         primary_key_field_idx: GeneratePgTableFieldIdx,
     }
     #[derive(Clone, Copy)]
@@ -630,27 +718,11 @@ pub fn generate_pg_table(
         }
     }
     #[allow(clippy::single_call_fn)]
-    fn parse_generate_pg_table_input_stage(
-        input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
-    ) -> Result<
-        SynGeneratePgTableDeriveInput,
-        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
-    > {
-        match syn::parse2(input.as_ref().clone()) {
-            Ok(v) => Ok(SynGeneratePgTableDeriveInput(v)),
-            Err(error) => Err(
-                macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
-                    error.to_compile_error(),
-                ),
-            ),
-        }
-    }
-    #[allow(clippy::single_call_fn)]
     fn generate_pg_table_field_model_stage(
         field_ref: SynGeneratePgTableFieldRef<'_>,
         primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
     ) -> Result<
-        GeneratePgTableFieldModel,
+        GeneratePgTableFieldEmissionModel,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         let syn_field = field_ref.get();
@@ -676,7 +748,7 @@ pub fn generate_pg_table(
                 .path()
                 .is_ident(str_constants::GENERATE_PG_TABLE_DB_DEFAULT)
         });
-        let mut frontend = GeneratePgTableFrontendFieldConfig::default();
+        let mut frontend = GeneratePgTableFrontendFieldEmission::default();
         let mut frontend_flags = workspace_macro_helpers::StdUniqueOptionSet::default();
         let mut frontend_attr_count = 0usize;
         syn_field
@@ -766,7 +838,7 @@ pub fn generate_pg_table(
                     .first()
                     .is_some_and(|first_segment| first_segment.ident == primary_key_attr_name.get())
             });
-        Ok(GeneratePgTableFieldModel {
+        Ok(GeneratePgTableFieldEmissionModel {
             field,
             frontend,
             has_db_default,
@@ -777,7 +849,7 @@ pub fn generate_pg_table(
     fn generate_pg_table_variant_field_model_stage(
         syn_field: syn::Field,
     ) -> Result<
-        GeneratePgTableVariantFieldModel,
+        GeneratePgTableVariantFieldEmission,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         let Some(identifier) = syn_field.ident else {
@@ -811,7 +883,7 @@ pub fn generate_pg_table(
             };
             Some(parsed_location_attr)
         };
-        Ok(GeneratePgTableVariantFieldModel {
+        Ok(GeneratePgTableVariantFieldEmission {
             identifier,
             location_attr: parsed_location_attr,
             type0: syn_field.ty,
@@ -854,7 +926,7 @@ pub fn generate_pg_table(
     fn generate_pg_table_variant_model_stage(
         syn_variant: syn::Variant,
     ) -> Result<
-        GeneratePgTableVariantModel,
+        GeneratePgTableVariantEmission,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         let syn::Fields::Named(fields_named) = syn_variant.fields else {
@@ -868,12 +940,12 @@ pub fn generate_pg_table(
             |mut accumulator, field| {
                 accumulator.push(generate_pg_table_variant_field_model_stage(field)?);
                 Ok::<
-                    Vec<GeneratePgTableVariantFieldModel>,
+                    Vec<GeneratePgTableVariantFieldEmission>,
                     macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
                 >(accumulator)
             },
         )?;
-        Ok(GeneratePgTableVariantModel {
+        Ok(GeneratePgTableVariantEmission {
             fields,
             identifier: syn_variant.ident,
         })
@@ -883,7 +955,7 @@ pub fn generate_pg_table(
         input: &SynGeneratePgTableDeriveInput,
         primary_key_attr_name: GeneratePgTablePrimaryKeyAttrName<'_>,
     ) -> Result<
-        GeneratePgTableFieldsModel,
+        GeneratePgTableFieldsEmissionModel,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         match crate::parse::struct_shape(workspace_macro_helpers::SynDeriveInputRef::from(
@@ -948,7 +1020,7 @@ pub fn generate_pg_table(
                         str_constants::COMPILE_ERROR_CE_015,
                     )));
                 };
-                Ok(GeneratePgTableFieldsModel {
+                Ok(GeneratePgTableFieldsEmissionModel {
                     db_default_field_idxs,
                     fields,
                     fields_without_primary_key_idxs,
@@ -971,7 +1043,7 @@ pub fn generate_pg_table(
     fn build_generate_pg_table_input_model_stage(
         input: &SynGeneratePgTableDeriveInput,
     ) -> Result<
-        GeneratePgTableInputModel,
+        GeneratePgTableEmissionModel,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         let di = input.get();
@@ -1049,7 +1121,7 @@ pub fn generate_pg_table(
                         |mut variants_accumulator, variant| {
                             variants_accumulator.push(generate_pg_table_variant_model_stage(variant)?);
                             Ok::<
-                                Vec<GeneratePgTableVariantModel>,
+                                Vec<GeneratePgTableVariantEmission>,
                                 macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
                             >(variants_accumulator)
                         },
@@ -1080,7 +1152,7 @@ pub fn generate_pg_table(
             (generate_pg_table_attr, (*logic_token_stream).clone())
         })
         .collect::<std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>>();
-        Ok(GeneratePgTableInputModel {
+        Ok(GeneratePgTableEmissionModel {
             config,
             error_variants_by_attr,
             logic_token_stream_by_attr,
@@ -1088,9 +1160,9 @@ pub fn generate_pg_table(
     }
     #[allow(clippy::single_call_fn)]
     fn validate_generate_pg_table_fields_model_stage(
-        model: GeneratePgTableFieldsModel,
+        model: GeneratePgTableFieldsEmissionModel,
     ) -> Result<
-        GeneratePgTableFieldsModel,
+        GeneratePgTableFieldsEmissionModel,
         macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
     > {
         if model
@@ -1165,10 +1237,7 @@ pub fn generate_pg_table(
         pg_crud_macros_common::generate_return_err_query_part_error_write_into_buffer_token_stream(
             import,
         );
-    let parsed_input = match parse_generate_pg_table_input_stage(input) {
-        Ok(v) => v,
-        Err(error) => return error,
-    };
+    let parsed_input = SynGeneratePgTableDeriveInput(validated.0.into_input().into());
     let di = parsed_input.get();
     let generate_pg_table_input_model =
         match build_generate_pg_table_input_model_stage(&parsed_input) {
@@ -1396,7 +1465,7 @@ pub fn generate_pg_table(
         Ok(v) => v,
         Err(error) => return error,
     };
-    let GeneratePgTableFieldsModel {
+    let GeneratePgTableFieldsEmissionModel {
         db_default_field_idxs,
         fields,
         fields_without_primary_key_idxs,
@@ -3927,10 +3996,14 @@ pub fn generate_pg_table(
     );
     let common_http_req_syn_variants = {
         vec![
-            GeneratePgTableVariantRef::Syn(serde_json_to_string_syn_variant.get_syn_variant()),
-            GeneratePgTableVariantRef::Syn(failed_to_get_res_text_syn_variant.get_syn_variant()),
-            GeneratePgTableVariantRef::Syn(deserialize_res_syn_variant.get_syn_variant()),
-            GeneratePgTableVariantRef::Syn(reqwest_syn_variant.get_syn_variant()),
+            GeneratePgTableVariantEmissionRef::Syn(
+                serde_json_to_string_syn_variant.get_syn_variant(),
+            ),
+            GeneratePgTableVariantEmissionRef::Syn(
+                failed_to_get_res_text_syn_variant.get_syn_variant(),
+            ),
+            GeneratePgTableVariantEmissionRef::Syn(deserialize_res_syn_variant.get_syn_variant()),
+            GeneratePgTableVariantEmissionRef::Syn(reqwest_syn_variant.get_syn_variant()),
         ]
     };
     let empty_logic_token_stream = proc_macro2::TokenStream::new();
@@ -3947,20 +4020,24 @@ pub fn generate_pg_table(
         let mut accumulator = Vec::with_capacity(
             4usize.saturating_add(optional_common_error_variants.map_or(0usize, Vec::len)),
         );
-        accumulator.push(GeneratePgTableVariantRef::Syn(
+        accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
             check_body_size_syn_variant.get_syn_variant(),
         ));
-        accumulator.push(GeneratePgTableVariantRef::Syn(
+        accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
             pg_syn_variant.get_syn_variant(),
         ));
-        accumulator.push(GeneratePgTableVariantRef::Syn(
+        accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
             serde_json_syn_variant.get_syn_variant(),
         ));
-        accumulator.push(GeneratePgTableVariantRef::Syn(
+        accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
             header_cnt_type_app_json_not_found_syn_variant.get_syn_variant(),
         ));
         if let Some(variants) = optional_common_error_variants {
-            accumulator.extend(variants.iter().map(GeneratePgTableVariantRef::Model));
+            accumulator.extend(
+                variants
+                    .iter()
+                    .map(GeneratePgTableVariantEmissionRef::Model),
+            );
         }
         accumulator
     };
@@ -4202,11 +4279,11 @@ pub fn generate_pg_table(
             }
         };
     let generate_location_variant_token_stream: &dyn Fn(
-        GeneratePgTableVariantRef<'_>,
+        GeneratePgTableVariantEmissionRef<'_>,
     ) -> proc_macro2::TokenStream = &|error_variant| -> proc_macro2::TokenStream {
         let variant_identifier = error_variant.identifier();
         match error_variant {
-            GeneratePgTableVariantRef::Syn(syn_variant) => {
+            GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                 let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                     return compile_error_token_stream(CompileErrorMessage(
                         str_constants::COMPILE_ERROR_CE_008,
@@ -4244,7 +4321,7 @@ pub fn generate_pg_table(
                     }
                 }
             }
-            GeneratePgTableVariantRef::Model(model_variant) => {
+            GeneratePgTableVariantEmissionRef::Model(model_variant) => {
                 let fields_mapped_into_token_stream = model_variant.fields.iter().map(|field| {
                     let field_identifier = &field.identifier;
                     let location_attr = generate_location_attr_view_token_stream(
@@ -4419,10 +4496,10 @@ pub fn generate_pg_table(
             )
         };
     let generate_serde_version_of_named_generate_pg_table_variant_token_stream =
-        |error_variant: GeneratePgTableVariantRef<'_>| -> proc_macro2::TokenStream {
+        |error_variant: GeneratePgTableVariantEmissionRef<'_>| -> proc_macro2::TokenStream {
             let variant_identifier = error_variant.identifier();
             match error_variant {
-                GeneratePgTableVariantRef::Syn(syn_variant) => {
+                GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                         return compile_error_token_stream(CompileErrorMessage(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
@@ -4453,7 +4530,7 @@ pub fn generate_pg_table(
                         }
                     }
                 }
-                GeneratePgTableVariantRef::Model(model_variant) => {
+                GeneratePgTableVariantEmissionRef::Model(model_variant) => {
                     let fields_with_serde_token_stream = model_variant.fields.iter().map(|field| {
                         generate_serde_field_token_stream(
                             SynGeneratePgTableIdentifierRef::from(&field.identifier),
@@ -4823,24 +4900,24 @@ pub fn generate_pg_table(
             );
             accumulator.extend_from_slice(common_route_syn_variants.as_slice());
             if let Operation::Rm | Operation::Ro = &operation {
-                accumulator.push(GeneratePgTableVariantRef::Syn(
+                accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     not_unique_field_syn_variant.get_syn_variant(),
                 ));
             }
             if let Operation::Cm | Operation::Rm | Operation::Ro | Operation::Co | Operation::Um | Operation::Uo | Operation::Dm = &operation {
-                accumulator.push(GeneratePgTableVariantRef::Syn(query_part_syn_variant.get_syn_variant()));
+                accumulator.push(GeneratePgTableVariantEmissionRef::Syn(query_part_syn_variant.get_syn_variant()));
             }
             if let Operation::Cm | Operation::Dlo | Operation::Co | Operation::Um | Operation::Uo | Operation::Dm = &operation {
-                accumulator.push(GeneratePgTableVariantRef::Syn(
+                accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     row_and_rollback_syn_variant.get_syn_variant(),
                 ));
             }
-            accumulator.push(GeneratePgTableVariantRef::Syn(try_bind_syn_variant.get_syn_variant()));
+            accumulator.push(GeneratePgTableVariantEmissionRef::Syn(try_bind_syn_variant.get_syn_variant()));
             if let Some(variants) = generate_pg_table_input_model
                 .error_variants_by_attr
                 .get(&operation.generate_pg_table_attr_error_variants())
             {
-                accumulator.extend(variants.iter().map(GeneratePgTableVariantRef::Model));
+                accumulator.extend(variants.iter().map(GeneratePgTableVariantEmissionRef::Model));
             }
             accumulator
         };
@@ -5049,7 +5126,7 @@ pub fn generate_pg_table(
                     let try_operation_logic_res_variants_to_try_operation_logic_error_with_serde = type_variants_from_req_res_syn_variants.iter().map(|element| {
                             let variant_identifier = element.identifier();
                             let fields_idents_token_stream = match *element {
-                                GeneratePgTableVariantRef::Syn(syn_variant) => {
+                                GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
                                             str_constants::COMPILE_ERROR_CE_025,
@@ -5059,7 +5136,7 @@ pub fn generate_pg_table(
                                     let fields_identifiers = fields_named.named.iter().map(|field| &field.ident);
                                     quote::quote! {#(#fields_identifiers),*}
                                 }
-                                GeneratePgTableVariantRef::Model(model_variant) => {
+                                GeneratePgTableVariantEmissionRef::Model(model_variant) => {
                                 let fields_identifiers = model_variant.fields.iter().map(|field| &field.identifier);
                                     quote::quote! {#(#fields_identifiers),*}
                                 }
@@ -6458,7 +6535,7 @@ pub fn generate_pg_table(
                         let vrts_token_stream = type_variants_from_req_res_syn_variants.iter().map(|element| {
                             let variant_identifier = element.identifier();
                             let fields_mapped_into_token_stream = match *element {
-                                GeneratePgTableVariantRef::Syn(syn_variant) => {
+                                GeneratePgTableVariantEmissionRef::Syn(syn_variant) => {
                                     let syn::Fields::Named(fields_named) = &syn_variant.fields else {
                                         return compile_error_token_stream(CompileErrorMessage(
                                             str_constants::COMPILE_ERROR_CE_000,
@@ -6467,7 +6544,7 @@ pub fn generate_pg_table(
                                     let fields_token_stream = fields_named.named.iter().map(|field| &field.ident);
                                     quote::quote! {#(#fields_token_stream),*}
                                 }
-                                GeneratePgTableVariantRef::Model(model_variant) => {
+                                GeneratePgTableVariantEmissionRef::Model(model_variant) => {
                                 let fields_token_stream = model_variant.fields.iter().map(|field| &field.identifier);
                                     quote::quote! {#(#fields_token_stream),*}
                                 }
@@ -6520,7 +6597,7 @@ pub fn generate_pg_table(
                         let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(1usize));
                         syn_variants.extend_from_slice(common_http_req_syn_variants.as_slice());
                         if let Operation::Rm | Operation::Ro = &operation {
-                            syn_variants.push(GeneratePgTableVariantRef::Syn(not_unique_field_syn_variant.get_syn_variant()));
+                            syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(not_unique_field_syn_variant.get_syn_variant()));
                         }
                         let identifier_operation_error_with_serde_upper_camel_case =
                             generate_identifier_operation_error_with_serde_upper_camel_case(operation);
@@ -6539,7 +6616,7 @@ pub fn generate_pg_table(
                         let vrts_token_stream = syn_variants
                             .iter()
                             .copied()
-                            .chain(std::iter::once(GeneratePgTableVariantRef::Syn(operation_error_with_serde_syn_variant.get_syn_variant())))
+                            .chain(std::iter::once(GeneratePgTableVariantEmissionRef::Syn(operation_error_with_serde_syn_variant.get_syn_variant())))
                             .map(generate_location_variant_token_stream);
                         quote::quote! {{#(#vrts_token_stream),*}}
                     });
@@ -9742,4 +9819,45 @@ pub fn generate_pg_table(
         &ProcMacro2GeneratePgTableCommonTokenStream(common_token_stream),
         ProcMacro2GeneratePgTableWholeTokenStream(gend),
     )
+}
+
+#[cfg(test)]
+mod pipeline_tests {
+    #[test]
+    fn validation_rejects_non_struct_input_without_emitting_source() {
+        let input = quote::quote! { enum NotATable { Value } };
+        let parsed = super::parse_generate_pg_table(
+            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .expect("5d4f86a1");
+        assert!(matches!(
+            super::build_generate_pg_table(parsed),
+            Err(super::GeneratePgTablePipelineError::Build(_error))
+        ));
+    }
+
+    #[test]
+    fn build_stage_exposes_typed_model_without_emitting_source() {
+        let input = quote::quote! { struct Table { id: i64, name: String } };
+        let parsed = super::parse_generate_pg_table(
+            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .expect("0f8b43d2");
+        let built = super::build_generate_pg_table(parsed).expect("a715e9c4");
+        assert_eq!(usize::from(built.model().field_count()), 2usize);
+    }
+
+    #[test]
+    fn validation_rejects_empty_table_model_without_emitting_source() {
+        let input = quote::quote! { struct EmptyTable; };
+        let parsed = super::parse_generate_pg_table(
+            macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .expect("67d029ab");
+        let built = super::build_generate_pg_table(parsed).expect("c15b8f34");
+        assert!(matches!(
+            super::validate_generate_pg_table(built),
+            Err(super::GeneratePgTablePipelineError::Validate(_error))
+        ));
+    }
 }

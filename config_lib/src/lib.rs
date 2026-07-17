@@ -75,6 +75,76 @@ pub trait TryFromStdEnvVarOk: Sized {
     type Error;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error>;
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ConfigFieldSensitivity {
+    Public,
+    Secret,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ConfigExampleValidity {
+    Invalid,
+    Valid,
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub struct ConfigRustTypeName(&'static str);
+#[derive(Clone, Copy)]
+pub struct ConfigFieldDescriptor {
+    env_name: EnvVarNameRef<'static>,
+    parser: fn(StdEnvVarOk) -> ConfigExampleValidity,
+    rust_type_name: ConfigRustTypeName,
+    sensitivity: ConfigFieldSensitivity,
+}
+impl std::fmt::Debug for ConfigFieldDescriptor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(str_constants::CONFIG_FIELD_DESCRIPTOR)
+            .field(str_constants::ENV_NAME, &self.env_name)
+            .field(str_constants::RUST_TYPE_NAME, &self.rust_type_name)
+            .field(str_constants::SENSITIVITY, &self.sensitivity)
+            .finish_non_exhaustive()
+    }
+}
+impl ConfigFieldDescriptor {
+    #[must_use]
+    pub const fn new(
+        env_name: EnvVarNameRef<'static>,
+        parser: fn(StdEnvVarOk) -> ConfigExampleValidity,
+        rust_type_name: ConfigRustTypeName,
+        sensitivity: ConfigFieldSensitivity,
+    ) -> Self {
+        Self {
+            env_name,
+            parser,
+            rust_type_name,
+            sensitivity,
+        }
+    }
+    #[must_use]
+    pub const fn env_name(self) -> EnvVarNameRef<'static> {
+        self.env_name
+    }
+    #[must_use]
+    pub const fn rust_type_name(self) -> ConfigRustTypeName {
+        self.rust_type_name
+    }
+    #[must_use]
+    pub const fn sensitivity(self) -> ConfigFieldSensitivity {
+        self.sensitivity
+    }
+    #[must_use]
+    pub fn validate_example(self, value: StdEnvVarOk) -> ConfigExampleValidity {
+        (self.parser)(value)
+    }
+}
+impl AsRef<str> for ConfigRustTypeName {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+impl AsRef<str> for EnvVarNameRef<'_> {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
 #[derive(newtype::AsRefOwned, newtype::FromInner)]
@@ -689,6 +759,16 @@ impl TryFromStdEnvVarOk for ChronoTimezone {
                 chrono_fixed_offset,
             })
             .map(|timezone| Self(timezone.0))
+    }
+}
+impl TryFromStdEnvVarOk for types::TracingFormat {
+    type Error = std::convert::Infallible;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        Ok(if v.0.eq_ignore_ascii_case(str_constants::JSON) {
+            Self::Json
+        } else {
+            Self::Text
+        })
     }
 }
 config_lib_macros::impl_try_from_parse_string_error!(

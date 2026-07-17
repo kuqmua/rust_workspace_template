@@ -15,7 +15,25 @@ pub(super) fn text_search_token_stream(
             .into();
     }
     quote::quote! {
-        pub const TEXT_SEARCH_MAXIMUM_INPUT_BYTES: usize = 1_024usize;
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub struct TextSearchMaximumInputBytes(usize);
+        impl From<TextSearchMaximumInputBytes> for usize {
+            fn from(value: TextSearchMaximumInputBytes) -> Self {
+                value.0
+            }
+        }
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub struct TextSearchPolicy {
+            maximum_input_bytes: TextSearchMaximumInputBytes,
+        }
+        impl TextSearchPolicy {
+            pub const DEFAULT: Self = Self {
+                maximum_input_bytes: TextSearchMaximumInputBytes(1_024usize),
+            };
+            pub const fn maximum_input_bytes(self) -> TextSearchMaximumInputBytes {
+                self.maximum_input_bytes
+            }
+        }
         #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
         #[serde(rename_all = "snake_case")]
         pub enum TextSearchMode {
@@ -53,10 +71,11 @@ pub(super) fn text_search_token_stream(
             if value.is_empty() {
                 return Err(TextSearchValueError::Empty);
             }
-            if value.len() > TEXT_SEARCH_MAXIMUM_INPUT_BYTES {
+            let maximum_input_bytes = usize::from(TextSearchPolicy::DEFAULT.maximum_input_bytes());
+            if value.len() > maximum_input_bytes {
                 return Err(TextSearchValueError::TooLong {
                     actual_bytes: value.len(),
-                    maximum_bytes: TEXT_SEARCH_MAXIMUM_INPUT_BYTES,
+                    maximum_bytes: maximum_input_bytes,
                 });
             }
             let wildcard_count = match mode {

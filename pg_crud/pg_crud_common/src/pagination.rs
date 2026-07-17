@@ -1,4 +1,3 @@
-pub const DEFAULT_PAGINATION_LIMIT: i64 = 5;
 #[derive(
     Debug,
     Default,
@@ -26,6 +25,27 @@ impl PaginationLimit {
 impl From<i32> for PaginationLimit {
     fn from(value: i32) -> Self {
         Self(value.into())
+    }
+}
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PaginationPolicy {
+    default_limit: PaginationLimit,
+}
+impl PaginationPolicy {
+    pub const DEFAULT: Self = Self {
+        default_limit: PaginationLimit(5i64),
+    };
+    #[must_use]
+    pub const fn default_limit(self) -> PaginationLimit {
+        self.default_limit
+    }
+}
+
+#[cfg(test)]
+mod policy_tests {
+    #[test]
+    fn default_limit_is_owned_by_typed_policy() {
+        assert_eq!(super::PaginationPolicy::DEFAULT.default_limit().get(), 5i64);
     }
 }
 #[derive(

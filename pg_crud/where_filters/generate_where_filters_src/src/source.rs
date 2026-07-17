@@ -4,9 +4,91 @@ pub struct ProcMacro2GenerateWhereFiltersInput<'input_lt>(&'input_lt proc_macro2
     Debug, newtype::AsRefOwned, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
 )]
 pub struct ProcMacro2GenerateWhereFiltersTokenStream(proc_macro2::TokenStream);
+#[derive(Clone, Copy, Debug, serde::Deserialize, optml::Optml)]
+pub struct ParsedGenerateWhereFiltersConfig {
+    pg_types_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
+    whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
+}
+#[derive(Clone, Copy, Debug)]
+pub struct BuiltGenerateWhereFiltersModel {
+    config: ParsedGenerateWhereFiltersConfig,
+    contract_valid: crate::model::FilterSpecValid,
+}
+#[derive(Clone, Copy, Debug)]
+pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
+#[derive(Debug)]
+pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
+#[derive(Debug)]
+pub enum GenerateWhereFiltersPipelineError {
+    InvalidContract,
+    Parse(SerdeJsonGenerateWhereFiltersError),
+}
+impl std::fmt::Display for GenerateWhereFiltersPipelineError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidContract => f.write_str(str_constants::INVALID_FILTER_SPECIFICATION),
+            Self::Parse(error) => error.0.fmt(f),
+        }
+    }
+}
+impl std::error::Error for GenerateWhereFiltersPipelineError {}
+pub fn parse_generate_where_filters(
+    input: ProcMacro2GenerateWhereFiltersInput<'_>,
+) -> Result<ParsedGenerateWhereFiltersConfig, GenerateWhereFiltersPipelineError> {
+    serde_json::from_str(&input.as_ref().to_string()).map_err(|error| {
+        GenerateWhereFiltersPipelineError::Parse(SerdeJsonGenerateWhereFiltersError(error))
+    })
+}
+pub fn build_generate_where_filters(
+    parsed: ParsedGenerateWhereFiltersConfig,
+) -> Result<BuiltGenerateWhereFiltersModel, GenerateWhereFiltersPipelineError> {
+    let valid = [
+        crate::model::FilterSpec::ADJACENT,
+        crate::model::FilterSpec::BEFORE,
+        crate::model::FilterSpec::CONTAINS,
+        crate::model::FilterSpec::EQUALITY,
+        crate::model::FilterSpec::LEFT_OF,
+        crate::model::FilterSpec::OVERLAPS,
+        crate::model::FilterSpec::RIGHT_OF,
+        crate::model::FilterSpec::TEXT_SEARCH,
+        crate::model::FilterSpec::WITHIN,
+    ]
+    .into_iter()
+    .all(|spec| crate::contract_tests::filter_spec_contract_is_valid(spec).get());
+    Ok(BuiltGenerateWhereFiltersModel {
+        config: parsed,
+        contract_valid: crate::model::FilterSpecValid::from(valid),
+    })
+}
+pub const fn validate_generate_where_filters(
+    built: BuiltGenerateWhereFiltersModel,
+) -> Result<ValidatedGenerateWhereFiltersConfig, GenerateWhereFiltersPipelineError> {
+    if built.contract_valid.get() {
+        Ok(ValidatedGenerateWhereFiltersConfig(built.config))
+    } else {
+        Err(GenerateWhereFiltersPipelineError::InvalidContract)
+    }
+}
 #[must_use]
 pub fn generate_where_filters(
     input_token_stream: ProcMacro2GenerateWhereFiltersInput<'_>,
+) -> ProcMacro2GenerateWhereFiltersTokenStream {
+    match parse_generate_where_filters(input_token_stream)
+        .and_then(build_generate_where_filters)
+        .and_then(validate_generate_where_filters)
+    {
+        Ok(validated) => emit_generate_where_filters(validated),
+        Err(error) => {
+            let message = error.to_string();
+            ProcMacro2GenerateWhereFiltersTokenStream::from(
+                quote::quote! { compile_error!(#message); },
+            )
+        }
+    }
+}
+#[must_use]
+pub fn emit_generate_where_filters(
+    validated: ValidatedGenerateWhereFiltersConfig,
 ) -> ProcMacro2GenerateWhereFiltersTokenStream {
     #[derive(Clone, optml::Optml)]
     enum Generic {
@@ -31,49 +113,8 @@ pub fn generate_where_filters(
             }
         }
     }
-    #[allow(clippy::arbitrary_source_item_ordering)]
-    #[derive(Debug, serde::Deserialize, optml::Optml)]
-    struct GenerateWhereFiltersConfig {
-        pg_types_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
-        whole_write_into_file: macros_helpers::ts_writer::ShouldWriteTokenStreamIntoFile,
-    }
     panic_location::panic_location();
-    let generate_where_filters_config = match serde_json::from_str::<GenerateWhereFiltersConfig>(
-        &input_token_stream.as_ref().to_string(),
-    ) {
-        Ok(v) => v,
-        Err(error) => {
-            let message = format!("failed to parse GenerateWhereFiltersConfig: {error}");
-            return ProcMacro2GenerateWhereFiltersTokenStream::from(
-                quote::quote! { compile_error!(#message); },
-            );
-        }
-    };
-    if !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::ADJACENT)
-        .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::BEFORE)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::CONTAINS)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::EQUALITY)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::LEFT_OF)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::OVERLAPS)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::RIGHT_OF)
-            .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(
-            crate::model::FilterSpec::TEXT_SEARCH,
-        )
-        .get()
-        || !crate::contract_tests::filter_spec_contract_is_valid(crate::model::FilterSpec::WITHIN)
-            .get()
-    {
-        return ProcMacro2GenerateWhereFiltersTokenStream::from(
-            quote::quote! { compile_error!("invalid filter specification"); },
-        );
-    }
+    let generate_where_filters_config = validated.0;
     let column_snake_case = naming::ColumnSnakeCase;
     let error_snake_case = naming::ErrorSnakeCase;
     let increment_snake_case = naming::IncrementSnakeCase;
@@ -999,4 +1040,21 @@ pub fn generate_where_filters(
         &macros_helpers::ts_writer::FormatWithCargofmt::True,
     );
     ProcMacro2GenerateWhereFiltersTokenStream::from(gend)
+}
+
+#[cfg(test)]
+mod pipeline_tests {
+    #[test]
+    fn config_builds_and_validates_without_emitting_source() {
+        let input = quote::quote! {{
+            "pg_types_write_into_file": "False",
+            "whole_write_into_file": "False"
+        }};
+        let parsed = super::parse_generate_where_filters(
+            super::ProcMacro2GenerateWhereFiltersInput::from(&input),
+        )
+        .expect("4fb319d6");
+        let built = super::build_generate_where_filters(parsed).expect("98c270ea");
+        let _validated = super::validate_generate_where_filters(built).expect("e61243af");
+    }
 }

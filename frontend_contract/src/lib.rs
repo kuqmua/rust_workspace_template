@@ -29,11 +29,13 @@ pub use problem::{
     ApiProblemStatus, ApiProblemViolation,
 };
 pub use route::{
-    AuthenticatedTransport, CoveredRoute, ParameterizedRoute, PublicTransport, RouteBodyLimit,
-    RouteFamily, RouteMetadata, RouteMethod, RouteRequest, RouteResponse, RouteTransport,
-    TypedRoute, apply_openapi_error_contract, apply_openapi_security_contract,
-    apply_openapi_success_contract, client_request, client_route_metadata, openapi_route_metadata,
-    server_response, server_route_metadata, typed_parameterized_route_path, typed_route_path,
+    AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
+    ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
+    RouteBodyLimit, RouteFamily, RouteMetadata, RouteMethod, RouteRequest, RouteResponse,
+    RouteTransport, TypedRoute, UtoipaOpenApiRouteSchema, apply_openapi_error_contract,
+    apply_openapi_security_contract, apply_openapi_success_contract, client_request,
+    client_route_metadata, openapi_route_metadata, server_response, server_route_metadata,
+    typed_parameterized_route_path, typed_route_path,
 };
 pub use route_contract_validation::{
     HttpContractBody, HttpContractBodyKind, HttpContractExpectation, HttpContractMismatch,

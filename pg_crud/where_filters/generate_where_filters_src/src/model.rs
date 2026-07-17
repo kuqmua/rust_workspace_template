@@ -29,7 +29,7 @@ impl quote::ToTokens for FilterSqlSuffix {
         self.0.to_tokens(tokens);
     }
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub(super) struct FilterSpecValid(bool);
 impl From<bool> for FilterSpecValid {
     fn from(value: bool) -> Self {

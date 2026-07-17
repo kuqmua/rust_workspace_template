@@ -41,8 +41,10 @@ mod tests {
             where_filters::build_text_search_pattern("", where_filters::TextSearchMode::Contains),
             Err(where_filters::TextSearchValueError::Empty)
         );
-        let oversized = str_constants::A_ALT
-            .repeat(where_filters::TEXT_SEARCH_MAXIMUM_INPUT_BYTES.saturating_add(1usize));
+        let oversized = str_constants::A_ALT.repeat(
+            usize::from(where_filters::TextSearchPolicy::DEFAULT.maximum_input_bytes())
+                .saturating_add(1usize),
+        );
         assert_eq!(
             where_filters::build_text_search_pattern(
                 oversized.as_str(),
@@ -50,7 +52,9 @@ mod tests {
             ),
             Err(where_filters::TextSearchValueError::TooLong {
                 actual_bytes: oversized.len(),
-                maximum_bytes: where_filters::TEXT_SEARCH_MAXIMUM_INPUT_BYTES,
+                maximum_bytes: usize::from(
+                    where_filters::TextSearchPolicy::DEFAULT.maximum_input_bytes(),
+                ),
             })
         );
     }
