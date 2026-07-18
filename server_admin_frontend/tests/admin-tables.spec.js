@@ -104,9 +104,27 @@ test.beforeEach(async ({ page }) => {
       active_sessions: 12,
       database_healthy: true,
       failed_sign_ins_24h: 3,
+      last_cleanup: { deleted_rows: 7, last_success_at: "2026-07-17T12:00:00Z" },
       recent_changes: auditLog.items,
       uptime_seconds: 3600,
       version: '0123456789abcdef',
+    }) });
+  });
+  await page.route(apiRouteGlob('mfa_status'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      enabled: false,
+      recovery_codes_remaining: 0,
+    }) });
+  });
+  await page.route(apiRouteGlob('mfa_enroll'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      secret: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNOPQRST',
+      uri: 'otpauth://totp/Admin%20Console:root?secret=ABCDEFGHIJKLMNOPQRSTUVWXYZ234567ABCDEFGHIJKLMNOPQRST&issuer=Admin%20Console&algorithm=SHA256&digits=6&period=30',
+    }) });
+  });
+  await page.route(apiRouteGlob('mfa_confirm'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      recovery_codes: ['abcd-1234-5678-90ef', '1111-2222-3333-4444'],
     }) });
   });
 });
@@ -151,6 +169,10 @@ test('settings validate and save branding with explicit optional clearing', asyn
   });
 
   await page.goto('/admin/system-settings');
+  await page.getByRole('button', { name: 'Restore defaults' }).click();
+  await expect(page.getByLabel('Site name')).toHaveValue('Admin Console');
+  await expect(page.getByLabel('Default admin route')).toHaveValue('/admin/dashboard');
+  await page.getByRole('button', { name: 'Reset unsaved changes' }).click();
   await page.getByLabel('Primary color').fill('red');
   await page.getByRole('button', { name: 'Save changes' }).click();
   await expect(page.getByRole('alert')).toContainText('#RRGGBB');
@@ -222,6 +244,7 @@ test('dashboard renders structured operational summary', async ({ page }) => {
   await expect(page.locator('.dashboard-grid')).toContainText('Healthy');
   await expect(page.locator('.dashboard-grid')).toContainText('12');
   await expect(page.locator('.dashboard-grid')).toContainText('3');
+  await expect(page.locator('.dashboard-grid')).toContainText('7 rows deleted');
   await expect(page.locator('.recent-changes')).toContainText('Recent administrative changes');
 });
 
@@ -279,6 +302,80 @@ test('role and permission editors show current named assignments', async ({ page
   await expect(roleRow.getByRole('button', { name: 'Save permissions' })).toBeEnabled();
 });
 
+test('role assignment sends the complete before-and-after sets', async ({ page }) => {
+  const viewer = { id: 2, is_system: false, name: 'viewer', permission_ids: [] };
+  let requestBody;
+  await page.unroute(apiRouteGlob('list_users'));
+  await page.route(apiRouteGlob('list_users'), async (route) => {
+    const response = usersPage(route.request().url());
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ ...response, roles: [...response.roles, viewer] }),
+    });
+  });
+  await page.route('**/*', async (route) => {
+    if (route.request().method() !== 'PUT' || !route.request().url().includes('/users/') || !route.request().url().endsWith('/roles')) {
+      await route.fallback();
+      return;
+    }
+    requestBody = route.request().postDataJSON();
+    await route.fulfill({ status: 204 });
+  });
+
+  await page.goto('/admin/users');
+  const row = page.locator('tbody tr').first();
+  await row.getByText('Roles', { exact: true }).click();
+  await row.getByRole('checkbox', { name: 'viewer' }).check();
+  await row.getByRole('button', { name: 'Save roles' }).click();
+  await expect(row.getByRole('button', { name: 'Saving...' })).toBeDisabled();
+  await expect(page.getByText('User roles updated')).toBeVisible();
+  expect(requestBody).toEqual({ expected_role_ids: [1], role_ids: [1, 2] });
+});
+
+test('role assignment preserves edits on stale and last-admin conflicts', async ({ page }) => {
+  const viewer = { id: 2, is_system: false, name: 'viewer', permission_ids: [] };
+  const responses = ['assignments changed by another administrator', 'cannot remove the last active administrator'];
+  const requests = [];
+  await page.unroute(apiRouteGlob('list_users'));
+  await page.route(apiRouteGlob('list_users'), async (route) => {
+    const response = usersPage(route.request().url());
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ ...response, roles: [...response.roles, viewer] }),
+    });
+  });
+  await page.route('**/*', async (route) => {
+    if (route.request().method() !== 'PUT' || !route.request().url().includes('/users/') || !route.request().url().endsWith('/roles')) {
+      await route.fallback();
+      return;
+    }
+    requests.push(route.request().postDataJSON());
+    const detail = responses.shift();
+    await route.fulfill({
+      status: 409,
+      contentType: 'application/problem+json',
+      body: JSON.stringify({ detail, kind: 'conflict', request_id: null, status: 409, violations: [] }),
+    });
+  });
+
+  await page.goto('/admin/users');
+  const row = page.locator('tbody tr').first();
+  await row.getByText('Roles', { exact: true }).click();
+  await row.getByRole('checkbox', { name: 'viewer' }).check();
+  await row.getByRole('button', { name: 'Save roles' }).click();
+  await expect(row.getByRole('alert')).toContainText('another administrator');
+  await expect(row.getByRole('checkbox', { name: 'viewer' })).toBeChecked();
+
+  await row.getByRole('checkbox', { name: 'viewer' }).uncheck();
+  await row.getByRole('checkbox', { name: 'administrator' }).uncheck();
+  await row.getByRole('button', { name: 'Save roles' }).click();
+  await expect(row.getByRole('alert')).toContainText('last active administrator');
+  expect(requests).toEqual([
+    { expected_role_ids: [1], role_ids: [1, 2] },
+    { expected_role_ids: [1], role_ids: [] },
+  ]);
+});
+
 test('user mutations use inline validated forms instead of browser prompts', async ({ page }) => {
   await page.goto('/admin/users');
   const createForm = page.locator('details.mutation-form').filter({ hasText: 'Create user' }).first();
@@ -291,11 +388,118 @@ test('user mutations use inline validated forms instead of browser prompts', asy
   await expect(createForm.getByLabel('New user login')).toHaveValue('invalid login');
 });
 
+test('edit, ban, password and destructive user flows reach their typed routes', async ({ page }) => {
+  const mutations = [];
+  await page.route('**/*', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (!/\/api\/v1\/admin\/users\/\d+(\/ban|\/password)?$/.test(path)) {
+      await route.fallback();
+      return;
+    }
+    mutations.push({ method: request.method(), path, body: request.postDataJSON() });
+    await route.fulfill({ status: 204 });
+  });
+
+  await page.goto('/admin/users');
+  let row = page.locator('tbody tr').first();
+  await row.getByText('Edit', { exact: true }).click();
+  await row.getByLabel('Edit user display name').fill('Updated Operator');
+  await row.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('User updated')).toBeVisible();
+
+  row = page.locator('tbody tr').first();
+  await row.getByRole('button', { name: 'Unban', exact: true }).click();
+  await expect(page.getByText('User unbanned')).toBeVisible();
+
+  row = page.locator('tbody tr').first();
+  await row.getByText('Password', { exact: true }).click();
+  await row.getByLabel('Change user password').fill('NewCorrectHorseBatteryStaple1!');
+  await row.getByRole('button', { name: 'Change password' }).click();
+  await expect(page.getByText('Password updated')).toBeVisible();
+
+  row = page.locator('tbody tr').first();
+  await row.getByText('Delete', { exact: true }).click();
+  await row.getByLabel('Confirm user deletion').fill('alpha');
+  await row.getByRole('button', { name: 'Delete permanently' }).click();
+  await expect(page.getByText('User deleted')).toBeVisible();
+
+  expect(mutations.map(({ method, path }) => [method, path.replace(/\/\d+/, '/{id}')])).toEqual([
+    ['PATCH', '/api/v1/admin/users/{id}'],
+    ['POST', '/api/v1/admin/users/{id}/ban'],
+    ['POST', '/api/v1/admin/users/{id}/password'],
+    ['DELETE', '/api/v1/admin/users/{id}'],
+  ]);
+  expect(mutations[0].body.display_name).toBe('Updated Operator');
+  expect(mutations[1].body).toEqual({ is_banned: false });
+});
+
+test('create, edit, permission assignment and destructive role flows reach typed routes', async ({ page }) => {
+  const mutations = [];
+  await page.route('**/*', async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const isCreate = request.method() === 'POST' && path === '/api/v1/admin/roles';
+    const isDynamic = /\/api\/v1\/admin\/roles\/\d+(\/permissions)?$/.test(path);
+    if (!isCreate && !isDynamic) {
+      await route.fallback();
+      return;
+    }
+    mutations.push({ method: request.method(), path, body: request.postDataJSON() });
+    await route.fulfill(isCreate
+      ? { status: 201, contentType: 'application/json', body: '{}' }
+      : { status: 204 });
+  });
+
+  await page.goto('/admin/roles');
+  const create = page.locator('details.mutation-form').filter({ hasText: 'Create role' }).first();
+  await create.locator('summary').click();
+  await create.getByLabel('New role name').fill('operators');
+  await create.getByRole('button', { name: 'Create role' }).click();
+  await expect(page.getByText('Role created')).toBeVisible();
+
+  let row = page.locator('tbody tr').first();
+  await row.getByText('Edit', { exact: true }).click();
+  await row.getByLabel('Edit role name').fill('renamed_role');
+  await row.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(page.getByText('Role updated')).toBeVisible();
+
+  row = page.locator('tbody tr').first();
+  await row.getByText('Permissions', { exact: true }).click();
+  await row.getByRole('checkbox').first().uncheck();
+  await row.getByRole('button', { name: 'Save permissions' }).click();
+  await expect(page.getByText('Role permissions updated')).toBeVisible();
+
+  row = page.locator('tbody tr').first();
+  await row.getByText('Delete', { exact: true }).click();
+  await row.getByLabel('Confirm role deletion').fill('administrator');
+  await row.getByRole('button', { name: 'Delete permanently' }).click();
+  await expect(page.getByText('Role deleted')).toBeVisible();
+
+  expect(mutations.map(({ method, path }) => [method, path.replace(/\/\d+/, '/{id}')])).toEqual([
+    ['POST', '/api/v1/admin/roles'],
+    ['PATCH', '/api/v1/admin/roles/{id}'],
+    ['PUT', '/api/v1/admin/roles/{id}/permissions'],
+    ['DELETE', '/api/v1/admin/roles/{id}'],
+  ]);
+  expect(mutations[2].body.expected_permission_ids.length).toBeGreaterThan(0);
+  expect(mutations[2].body.permission_ids.length).toBe(mutations[2].body.expected_permission_ids.length - 1);
+});
+
 test('sessions page lists and revokes current administrator sessions', async ({ page }) => {
   let revokedSessionRequests = 0;
+  let revokedAllRequests = 0;
   await page.route('**/api/v1/admin/auth/sessions/*', async (route) => {
     revokedSessionRequests += 1;
     await route.fulfill({ status: 204 });
+  });
+  await page.route(apiRouteGlob('sessions'), async (route) => {
+    if (route.request().method() === 'DELETE') {
+      revokedAllRequests += 1;
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fallback();
   });
 
   await page.goto('/admin/sessions');
@@ -311,6 +515,11 @@ test('sessions page lists and revokes current administrator sessions', async ({ 
   await page.getByRole('button', { name: 'Revoke', exact: true }).nth(1).click();
   await expect.poll(() => revokedSessionRequests).toBe(1);
   await expect(page.getByRole('heading', { name: 'Sessions' })).toBeVisible();
+  const revokeEverySession = page.locator('details.mutation-form').filter({ hasText: 'Revoke all sessions' });
+  await revokeEverySession.locator('summary').click();
+  await revokeEverySession.getByLabel('Confirm all session revocation').fill('REVOKE');
+  await revokeEverySession.getByRole('button', { name: 'Revoke every session' }).click();
+  await expect.poll(() => revokedAllRequests).toBe(1);
 });
 
 test('profile displays identity and changes the current administrator password', async ({ page }) => {
@@ -326,7 +535,7 @@ test('profile displays identity and changes the current administrator password',
   await expect(page.locator('.profile-details')).toContainText('root');
   await expect(page.locator('.profile-details')).toContainText('Root Admin');
   await expect(page.locator('.profile-details')).toContainText('administrator');
-  await page.getByLabel('Current password').fill('CorrectHorseBatteryStaple!');
+  await page.getByLabel('Current password', { exact: true }).fill('CorrectHorseBatteryStaple!');
   await page.getByLabel('Profile new password').fill('NewCorrectHorseBatteryStaple1!');
   await page.getByLabel('Revoke other sessions and all refresh tokens').check();
   await page.getByRole('button', { name: 'Change password' }).click();
@@ -336,6 +545,17 @@ test('profile displays identity and changes the current administrator password',
     revoke_other_sessions: true,
   });
   await expect(page.getByText('Password changed')).toBeVisible();
+});
+
+test('profile completes TOTP enrollment and reveals recovery codes once', async ({ page }) => {
+  await page.goto('/admin/profile');
+  await page.getByLabel('MFA current password').fill('CorrectHorseBatteryStaple!');
+  await page.getByRole('button', { name: 'Start new TOTP enrollment' }).click();
+  await expect(page.locator('.enrollment-secret')).toContainText('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+  await page.getByLabel('MFA proof').fill('123456');
+  await page.getByRole('button', { name: 'Confirm enrollment' }).click();
+  await expect(page.locator('.recovery-codes')).toContainText('Save these one-time recovery codes now');
+  await expect(page.locator('.recovery-codes')).toContainText('abcd-1234-5678-90ef');
 });
 
 test('users permissions and audit keep one header layout and session', async ({ page }) => {
@@ -435,4 +655,146 @@ test('concurrent unauthorized requests join one refresh without freezing', async
   expect(userRequests).toBe(2);
   expect(permissionRequests).toBe(2);
   expect(refreshRequests).toBe(1);
+});
+
+test('create user submits once, preserves typed data and reports success', async ({ page }) => {
+  let requests = 0;
+  let requestBody;
+  await page.route(apiRouteGlob('create_user'), async (route) => {
+    requests += 1;
+    requestBody = route.request().postDataJSON();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/admin/users');
+  const form = page.locator('details.mutation-form').filter({ hasText: 'Create user' }).first();
+  await form.locator('summary').click();
+  await form.getByLabel('New user login').fill('new_operator');
+  await form.getByLabel('New user display name').fill('New Operator');
+  await form.getByLabel('New user password').fill('CorrectHorseBatteryStaple1!');
+  const submit = form.locator('button[type="submit"]');
+  await submit.click();
+  await expect(submit).toBeDisabled();
+  await expect(submit).toHaveText('Creating...');
+  await expect.poll(() => requests).toBe(1);
+  expect(requestBody).toEqual({
+    display_name: 'New Operator',
+    login: 'new_operator',
+    password: 'CorrectHorseBatteryStaple1!',
+  });
+  await expect(page.getByText('User created')).toBeVisible();
+});
+
+test('permissions disable unavailable mutations and direct API returns 403', async ({ page }) => {
+  await page.unroute(apiRouteGlob('me'));
+  await page.route(apiRouteGlob('me'), async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      ...authenticatedAdmin,
+      permissions: authenticatedAdmin.permissions.filter((value) => value === 'users:read'),
+    }) });
+  });
+  await page.route(apiRouteGlob('create_user'), async (route) => {
+    await route.fulfill({
+      status: 403,
+      contentType: 'application/problem+json',
+      body: JSON.stringify({ detail: 'permission denied', status: 403, title: 'Forbidden', type: 'about:blank' }),
+    });
+  });
+
+  await page.goto('/admin/users');
+  const form = page.locator('details.mutation-form').filter({ hasText: 'Create user' }).first();
+  await form.locator('summary').click();
+  await expect(form.getByRole('button', { name: 'Create user' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Ban', exact: true }).first()).toBeDisabled();
+  const status = await page.evaluate(async (path) => (await fetch(path, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+  })).status, apiRoute('create_user'));
+  expect(status).toBe(403);
+});
+
+test('mutation errors expose conflict, validation and rate-limit details', async ({ page }) => {
+  const responses = [
+    [409, 'revision conflict'],
+    [422, 'display name is invalid'],
+    [429, 'rate limit exceeded; retry later'],
+  ];
+  await page.route(apiRouteGlob('create_user'), async (route) => {
+    const [status, detail] = responses.shift();
+    await route.fulfill({
+      status,
+      contentType: 'application/problem+json',
+      headers: status === 429 ? { 'retry-after': '30' } : {},
+      body: JSON.stringify({
+        detail,
+        kind: status === 409 ? 'conflict' : status === 422 ? 'validation' : 'rate_limited',
+        request_id: null,
+        status,
+        violations: [],
+      }),
+    });
+  });
+
+  await page.goto('/admin/users');
+  const form = page.locator('details.mutation-form').filter({ hasText: 'Create user' }).first();
+  await form.locator('summary').click();
+  await form.getByLabel('New user login').fill('new_operator');
+  await form.getByLabel('New user display name').fill('New Operator');
+  await form.getByLabel('New user password').fill('CorrectHorseBatteryStaple1!');
+  for (const detail of ['revision conflict', 'display name is invalid', 'rate limit exceeded']) {
+    await form.getByRole('button', { name: 'Create user' }).click();
+    await expect(form.getByRole('alert')).toContainText(detail);
+    await expect(form.getByLabel('New user login')).toHaveValue('new_operator');
+  }
+  await expect(form.getByRole('alert')).toContainText('Retry after: 30');
+});
+
+test('network failure preserves form values and allows an explicit retry', async ({ page }) => {
+  let requests = 0;
+  await page.route(apiRouteGlob('create_user'), async (route) => {
+    requests += 1;
+    if (requests === 1) {
+      await route.abort('connectionrefused');
+      return;
+    }
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/admin/users');
+  const form = page.locator('details.mutation-form').filter({ hasText: 'Create user' }).first();
+  await form.locator('summary').click();
+  await form.getByLabel('New user login').fill('retry_operator');
+  await form.getByLabel('New user display name').fill('Retry Operator');
+  await form.getByLabel('New user password').fill('CorrectHorseBatteryStaple1!');
+  await form.getByRole('button', { name: 'Create user' }).click();
+  await expect(form.getByRole('alert')).toContainText('Failed to fetch');
+  await expect(form.getByLabel('New user login')).toHaveValue('retry_operator');
+  await form.getByRole('button', { name: 'Create user' }).click();
+  await expect(page.getByText('User created')).toBeVisible();
+  expect(requests).toBe(2);
+});
+
+test('mobile layout and keyboard navigation keep basic accessibility invariants', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/admin/users');
+  await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
+  await page.keyboard.press('Tab');
+  await expect(page.locator(':focus')).toBeVisible();
+  const violations = await page.evaluate(() => {
+    const values = [];
+    document.querySelectorAll('input, select, textarea').forEach((element) => {
+      if (!element.getAttribute('aria-label') && !element.closest('label')) values.push('unlabelled field');
+    });
+    document.querySelectorAll('button, a').forEach((element) => {
+      if (!element.textContent.trim() && !element.getAttribute('aria-label')) values.push('unnamed action');
+    });
+    document.querySelectorAll('img').forEach((element) => {
+      if (!element.hasAttribute('alt')) values.push('image without alt');
+    });
+    if (document.documentElement.scrollWidth > document.documentElement.clientWidth) {
+      values.push('horizontal page overflow');
+    }
+    return values;
+  });
+  expect(violations).toEqual([]);
 });

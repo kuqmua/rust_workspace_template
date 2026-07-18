@@ -56,11 +56,18 @@ impl frontend_contract::Transport for GlooTransport {
                 frontend_contract::TransportError::try_from(error.to_string()).unwrap_or_default()
             })?;
             let status = frontend_contract::TransportStatus::from(response.status());
+            let retry_after = response
+                .headers()
+                .get(str_constants::RETRY_AFTER)
+                .and_then(|value| frontend_contract::TransportRetryAfter::try_from(value).ok());
             response
                 .binary()
                 .await
                 .map(frontend_contract::TransportBody::from)
-                .map(|body| frontend_contract::TransportResponse::new(body, status))
+                .map(|body| {
+                    frontend_contract::TransportResponse::new(body, status)
+                        .with_retry_after(retry_after)
+                })
                 .map_err(|error| {
                     frontend_contract::TransportError::try_from(error.to_string())
                         .unwrap_or_default()

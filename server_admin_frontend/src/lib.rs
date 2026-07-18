@@ -4,6 +4,7 @@ pub mod app;
 #[cfg(any(target_arch = "wasm32", test))]
 mod auth_keep_alive;
 #[cfg(any(target_arch = "wasm32", test))]
+#[path = "app/table_state.rs"]
 mod table_state;
 #[cfg(target_arch = "wasm32")]
 mod transport;

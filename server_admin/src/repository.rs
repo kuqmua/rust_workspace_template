@@ -22,6 +22,7 @@ pub(crate) enum AdminRepositoryError {
 pub(crate) enum ReplaceRolePermissionsOutcome {
     MissingRole,
     SystemRole,
+    StaleAssignment,
     UnknownPermission,
     Updated,
 }
@@ -29,6 +30,7 @@ pub(crate) enum ReplaceRolePermissionsOutcome {
 pub(crate) enum ReplaceUserRolesOutcome {
     LastActiveAdministrator,
     MissingUser,
+    StaleAssignment,
     UnknownRole,
     Updated,
 }
@@ -113,6 +115,13 @@ impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
 pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct AdminRecentLoginFailureCount(i64);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub(crate) struct AdminPageTotalCount(i64);
+impl AdminPageTotalCount {
+    pub(crate) const fn get(self) -> i64 {
+        self.0
+    }
+}
 impl AdminRecentLoginFailureCount {
     pub(crate) fn reached(
         self,

@@ -42,6 +42,7 @@ impl TableState {
         }
     }
 
+    #[allow(clippy::single_call_fn)] // called by the browser build and directly exercised by native contract tests
     pub(crate) fn from_query(
         default_sort: server_admin_contract::AdminTableSortField,
         options: &[server_admin_contract::AdminTableSortField],
@@ -50,43 +51,47 @@ impl TableState {
         let mut state = Self::new(default_sort);
         let mut offset = 0usize;
         query.trim_start_matches('?').split('&').for_each(|part| {
-            let Some((key, value)) = part.split_once('=') else {
+            let Some((key, encoded_value)) = part.split_once('=') else {
                 return;
             };
-            let decoded = percent_decode(value).unwrap_or_default();
+            let decoded = percent_decode(encoded_value).unwrap_or_default();
             match key {
-                "limit" => {
-                    if let Ok(value) = decoded.parse::<usize>() {
+                str_constants::LIMIT => {
+                    if let Ok(page_size) = decoded.parse::<usize>() {
                         state.page_size =
-                            AdminFrontendTableIndex::from(value.clamp(10usize, 100usize));
+                            AdminFrontendTableIndex::from(page_size.clamp(10usize, 100usize));
                     }
                 }
-                "offset" => offset = decoded.parse::<usize>().unwrap_or_default(),
-                "search" => {
-                    if let Ok(value) = AdminFrontendTableText::try_from(decoded) {
-                        state.search = value;
+                str_constants::OFFSET_ALT => offset = decoded.parse::<usize>().unwrap_or_default(),
+                str_constants::SEARCH_ALT => {
+                    if let Ok(search) = AdminFrontendTableText::try_from(decoded) {
+                        state.search = search;
                     }
                 }
-                "sort" => {
-                    if let Ok(value) = server_admin_contract::AdminTableSortField::try_from_key(
+                str_constants::SORT_ALT => {
+                    if let Ok(sort) = server_admin_contract::AdminTableSortField::try_from_key(
                         options,
                         server_admin_contract::AdminTableSortKeyRef::from(decoded.as_str()),
                     ) {
-                        state.sort = value;
+                        state.sort = sort;
                     }
                 }
-                "direction" if decoded == "desc" => state.sort_dir = SortDir::Desc,
+                str_constants::DIRECTION if decoded == str_constants::DESC_ALT => {
+                    state.sort_dir = SortDir::Desc;
+                }
                 _ => {}
             }
         });
-        state.page = AdminFrontendTableIndex::from(offset / state.page_size.0);
+        state.page = AdminFrontendTableIndex::from(
+            offset.checked_div(state.page_size.0).unwrap_or_default(),
+        );
         state
     }
 
     pub(crate) fn query(&self) -> String {
         let direction = match self.sort_dir {
-            SortDir::Asc => "asc",
-            SortDir::Desc => "desc",
+            SortDir::Asc => str_constants::ASC_ALT,
+            SortDir::Desc => str_constants::DESC_ALT,
         };
         format!(
             "limit={}&offset={}&search={}&sort={}&direction={direction}",
@@ -163,50 +168,76 @@ impl TableState {
     }
 }
 
+#[allow(clippy::single_call_fn)] // profile links provide a second browser-only caller
 pub(crate) fn percent_encode(value: &str) -> String {
     let mut encoded = String::with_capacity(value.len());
     value.bytes().for_each(|byte| {
         if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'~') {
             encoded.push(char::from(byte));
         } else {
-            use std::fmt::Write;
-            let _result = write!(encoded, "%{byte:02X}");
+            encoded.push('%');
+            encoded.push(hex_char(byte >> 4u8));
+            encoded.push(hex_char(byte & 0x0fu8));
         }
     });
     encoded
 }
 
+#[allow(clippy::single_call_fn)] // kept separate so URL decoding remains independently testable
 pub(crate) fn percent_decode(value: &str) -> Option<String> {
-    let bytes = value.as_bytes();
-    let mut decoded = Vec::with_capacity(bytes.len());
-    let mut index = 0usize;
-    while index < bytes.len() {
-        match bytes[index] {
-            b'%' if index.saturating_add(2usize) < bytes.len() => {
-                let high = hex(bytes[index + 1usize])?;
-                let low = hex(bytes[index + 2usize])?;
+    let mut bytes = value.bytes();
+    let mut decoded = Vec::with_capacity(value.len());
+    while let Some(byte) = bytes.next() {
+        match byte {
+            b'%' => {
+                let high = hex(bytes.next()?)?;
+                let low = hex(bytes.next()?)?;
                 decoded.push(high.saturating_mul(16u8).saturating_add(low));
-                index = index.saturating_add(3usize);
             }
             b'+' => {
                 decoded.push(b' ');
-                index = index.saturating_add(1usize);
             }
-            byte => {
-                decoded.push(byte);
-                index = index.saturating_add(1usize);
+            literal => {
+                decoded.push(literal);
             }
         }
     }
     String::from_utf8(decoded).ok()
 }
 
-const fn hex(value: u8) -> Option<u8> {
+fn hex(value: u8) -> Option<u8> {
     match value {
-        b'0'..=b'9' => Some(value - b'0'),
-        b'a'..=b'f' => Some(value - b'a' + 10u8),
-        b'A'..=b'F' => Some(value - b'A' + 10u8),
+        b'0'..=b'9' => value.checked_sub(b'0'),
+        b'a'..=b'f' => {
+            let digit = value.checked_sub(b'a')?;
+            digit.checked_add(10u8)
+        }
+        b'A'..=b'F' => {
+            let digit = value.checked_sub(b'A')?;
+            digit.checked_add(10u8)
+        }
         _ => None,
+    }
+}
+
+const fn hex_char(value: u8) -> char {
+    match value {
+        0u8 => '0',
+        1u8 => '1',
+        2u8 => '2',
+        3u8 => '3',
+        4u8 => '4',
+        5u8 => '5',
+        6u8 => '6',
+        7u8 => '7',
+        8u8 => '8',
+        9u8 => '9',
+        10u8 => 'A',
+        11u8 => 'B',
+        12u8 => 'C',
+        13u8 => 'D',
+        14u8 => 'E',
+        _ => 'F',
     }
 }
 
@@ -264,7 +295,7 @@ mod tests {
         let state = super::TableState::from_query(
             server_admin_contract::AdminTableSortField::UserLogin,
             &server_admin_contract::AdminTableSortField::USER,
-            "?limit=50&offset=100&search=Alpha%20Operator&sort=display_name&direction=desc",
+            str_constants::AUDIT_TABLE_QUERY_FIXTURE,
         );
         assert_eq!(state.page_number().0, 3usize);
         assert_eq!(state.search().0, "Alpha Operator");
@@ -275,7 +306,7 @@ mod tests {
         assert_eq!(state.sort_dir(), super::SortDir::Desc);
         assert_eq!(
             state.query(),
-            "limit=50&offset=100&search=Alpha%20Operator&sort=display_name&direction=desc"
+            str_constants::AUDIT_TABLE_QUERY_FIXTURE.trim_start_matches('?')
         );
     }
 }

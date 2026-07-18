@@ -59,3 +59,17 @@ pub(crate) async fn cleanup_admin_tables(
         refresh_tokens: crate::AdminCleanupRows::from(refresh_tokens),
     })
 }
+
+pub(crate) async fn record_success(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    rows: crate::AdminCleanupRows,
+) -> Result<(), crate::AdminCleanupError> {
+    let stored_rows = i64::try_from(rows.0).map_err(|_error| crate::AdminCleanupError::Count)?;
+    sqlx::query(str_constants::SERVER_ADMIN_RECORD_CLEANUP_STATUS_SQL)
+        .bind(stored_rows)
+        .execute(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map_err(crate::AdminCleanupError::Pg)
+        .map(drop)
+}

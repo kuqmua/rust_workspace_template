@@ -2,6 +2,30 @@
 
 Дата аудита: 2026-07-17
 
+## Статус реализации
+
+План выполнен для определения полноценной админки, сформулированного в конце документа: закрыты
+все P0 и основные P1-пункты. Текст разделов «Текущее состояние» ниже сохранён как исходный
+baseline аудита, а не как описание текущего кода.
+
+- назначения показывают полный именованный before/after набор, diff и атомарно отклоняют
+  устаревшее исходное состояние;
+- users, roles и permissions используют bounded server query/total pagination, audit — стабильный
+  keyset cursor; состояние поиска, сортировки, фильтров и страницы хранится в URL;
+- CRUD, destructive confirmations, sessions, audit investigation/export, profile, branding,
+  dashboard и TOTP MFA/step-up доступны через типизированный UI;
+- recovery codes хранятся как hashes, MFA secret шифруется AES-GCM с ротацией ключа, опасные
+  операции требуют step-up и пишутся в audit;
+- dashboard показывает database/session/sign-in/cleanup summary, а bootstrap, emergency access,
+  MFA recovery, retention и privacy правила описаны в `ADMIN_OPERATIONS_RUNBOOK.md`;
+- production Trunk/WASM и 25 Playwright-сценариев проверяют CRUD, assignments, permissions,
+  sessions, branding, audit, MFA, retry/error states, mobile layout и базовый a11y-контракт.
+
+Из условного P2 реализованы bounded audit CSV export с отдельным permission/rate limit, cleanup job
+status и runbook. Maintenance/read-only policy не была задана; feature flags, email, object storage и
+queue отсутствуют в host application, поэтому панели управления и фиктивные diagnostics для них не
+добавлялись. Backup/restore, SQL console, secrets и environment editing намеренно остаются вне UI.
+
 ## Цель и границы
 
 Документ отвечает на практический вопрос: чего не хватает текущей реализации, чтобы её можно

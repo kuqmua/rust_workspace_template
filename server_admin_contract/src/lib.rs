@@ -148,17 +148,28 @@ pub struct AdminPassword(String);
     description = "new administrator password"
 )]
 pub struct AdminNewPassword(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 6, min = 6, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_digit()), description = "six digit administrator TOTP code")]
+#[derive(
+    Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted,
+)]
+#[bounded_string(max = 6usize, min = 6usize, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_digit()), description = "six digit administrator TOTP code")]
 pub struct AdminMfaCode(String);
-#[derive(Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 19, min = 19, chars, serde, utoipa, validator = |value: &String| value.bytes().enumerate().all(|(index, byte)| if matches!(index, 4 | 9 | 14) { byte == b'-' } else { byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase() }), description = "administrator MFA recovery code")]
+#[derive(
+    Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted,
+)]
+#[bounded_string(max = 19usize, min = 19usize, chars, serde, utoipa, validator = |value: &String| value.bytes().enumerate().all(|(index, byte)| if matches!(index, 4 | 9 | 14) { byte == b'-' } else { byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase() }), description = "administrator MFA recovery code")]
 pub struct AdminRecoveryCode(String);
-#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 64, min = 32, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_uppercase() || (b'2'..=b'7').contains(&byte)), description = "base32 TOTP enrollment secret")]
+#[derive(Clone, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted)]
+#[bounded_string(max = 64usize, min = 32usize, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_uppercase() || (b'2'..=b'7').contains(&byte)), description = "base32 TOTP enrollment secret")]
 pub struct AdminMfaSecret(String);
-#[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 2048, min = 1, chars, serde, utoipa, description = "TOTP enrollment URI")]
+#[derive(Clone, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted)]
+#[bounded_string(
+    max = 2_048usize,
+    min = 1usize,
+    chars,
+    serde,
+    utoipa,
+    description = "TOTP enrollment URI"
+)]
 pub struct AdminMfaEnrollmentUri(String);
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
@@ -318,6 +329,17 @@ impl TryFrom<&str> for AdminPermission {
     description = "administrator audit timestamp"
 )]
 pub struct AdminAuditTimestamp(String);
+#[derive(
+    Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display,
+)]
+#[bounded_string(
+    max = 64usize,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator operational timestamp"
+)]
+pub struct AdminOperationalTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
@@ -369,26 +391,8 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
         Ok(Self(value))
     }
 }
-fn is_admin_page_path(value: &str) -> bool {
-    AdminPage::from_path(AdminPagePathRef::from(value)).is_some()
-}
-fn is_https_url(value: &str) -> bool {
-    value.strip_prefix("https://").is_some_and(|remainder| {
-        let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default();
-        !authority.is_empty()
-            && !authority.contains('@')
-            && !authority.starts_with('.')
-            && !authority.ends_with('.')
-            && authority.contains('.')
-    })
-}
-fn is_rgb_hex_color(value: &str) -> bool {
-    value.len() == 7usize
-        && value.starts_with('#')
-        && value[1usize..].bytes().all(|byte| byte.is_ascii_hexdigit())
-}
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 8192, chars, serde, utoipa, validator = |value: &String| is_admin_page_path(value), description = "administrator default route")]
+#[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| AdminPage::from_path(AdminPagePathRef::from(value.as_str())).is_some(), description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value
@@ -397,18 +401,18 @@ pub struct AdminDefaultRoute(String);
 pub struct AdminSiteName(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
-    min = 1,
+    max = 8_192usize,
+    min = 1usize,
     chars,
     serde,
     utoipa,
-    validator = |value: &String| is_https_url(value),
+    validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }),
     description = "administrator main logo"
 )]
 pub struct AdminMainLogo(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
+    max = 8_192usize,
     chars,
     serde,
     utoipa,
@@ -417,7 +421,7 @@ pub struct AdminMainLogo(String);
 pub struct AdminOrganizationContacts(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
+    max = 8_192usize,
     chars,
     serde,
     utoipa,
@@ -426,30 +430,30 @@ pub struct AdminOrganizationContacts(String);
 pub struct AdminOrganizationName(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
-    min = 7,
+    max = 8_192usize,
+    min = 7usize,
     chars,
     serde,
     utoipa,
-    validator = |value: &String| is_rgb_hex_color(value),
+    validator = |value: &String| value.len() == 7usize && value.bytes().next() == Some(b'#') && value.bytes().skip(1usize).all(|byte| byte.is_ascii_hexdigit()),
     description = "administrator primary color"
 )]
 pub struct AdminPrimaryColor(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
-    min = 1,
+    max = 8_192usize,
+    min = 1usize,
     chars,
     serde,
     utoipa,
-    validator = |value: &String| is_https_url(value),
+    validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }),
     description = "administrator support URL"
 )]
 pub struct AdminSupportUrl(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
-    max = 8192,
-    min = 1,
+    max = 8_192usize,
+    min = 1usize,
     chars,
     serde,
     utoipa,
@@ -658,8 +662,8 @@ impl<'de> serde::Deserialize<'de> for AdminPageLimit {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        u16::deserialize(deserializer)
-            .and_then(|value| Self::try_from(value).map_err(serde::de::Error::custom))
+        let value = u16::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 impl From<AdminPageLimit> for u16 {
@@ -670,8 +674,8 @@ impl From<AdminPageLimit> for u16 {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AdminPageLimitError;
 impl std::fmt::Display for AdminPageLimitError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str("administrator page limit must be between 1 and 100")
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::ADMIN_PAGE_LIMIT_ERROR)
     }
 }
 impl std::error::Error for AdminPageLimitError {}
@@ -764,12 +768,11 @@ pub enum AdminSortDirection {
     Asc,
     Desc,
 }
-impl AdminSortDirection {
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
+impl AsRef<str> for AdminSortDirection {
+    fn as_ref(&self) -> &str {
         match self {
-            Self::Asc => "asc",
-            Self::Desc => "desc",
+            Self::Asc => str_constants::ASC_ALT,
+            Self::Desc => str_constants::DESC_ALT,
         }
     }
 }
@@ -827,20 +830,37 @@ impl AdminTableQuery {
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
     login: AdminLogin,
+    mfa_proof: Option<AdminMfaProof>,
     password: AdminPassword,
 }
 impl AdminSignInReq {
     #[must_use]
     pub const fn new(login: AdminLogin, password: AdminPassword) -> Self {
-        Self { login, password }
+        Self {
+            login,
+            mfa_proof: None,
+            password,
+        }
+    }
+    #[must_use]
+    pub const fn with_mfa(
+        login: AdminLogin,
+        password: AdminPassword,
+        mfa_proof: AdminMfaProof,
+    ) -> Self {
+        Self {
+            login,
+            mfa_proof: Some(mfa_proof),
+            password,
+        }
     }
     #[must_use]
     pub const fn login(&self) -> &AdminLogin {
         &self.login
     }
     #[must_use]
-    pub fn into_parts(self) -> (AdminLogin, AdminPassword) {
-        (self.login, self.password)
+    pub fn into_parts(self) -> (AdminLogin, AdminPassword, Option<AdminMfaProof>) {
+        (self.login, self.password, self.mfa_proof)
     }
     #[must_use]
     pub const fn password(&self) -> &AdminPassword {
@@ -893,7 +913,7 @@ impl AuthenticatedAdmin {
 pub struct AdminSignInRes {
     user: AuthenticatedAdmin,
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminMfaStatus {
     enabled: AdminBool,
     recovery_codes_remaining: AdminOperationalCount,
@@ -901,21 +921,34 @@ pub struct AdminMfaStatus {
 impl AdminMfaStatus {
     #[must_use]
     pub const fn new(enabled: AdminBool, recovery_codes_remaining: AdminOperationalCount) -> Self {
-        Self { enabled, recovery_codes_remaining }
+        Self {
+            enabled,
+            recovery_codes_remaining,
+        }
     }
     #[must_use]
-    pub const fn enabled(&self) -> AdminBool { self.enabled }
+    pub const fn enabled(&self) -> AdminBool {
+        self.enabled
+    }
     #[must_use]
-    pub const fn recovery_codes_remaining(&self) -> AdminOperationalCount { self.recovery_codes_remaining }
+    pub const fn recovery_codes_remaining(&self) -> AdminOperationalCount {
+        self.recovery_codes_remaining
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
-pub struct AdminMfaEnrollReq { current_password: AdminPassword }
+pub struct AdminMfaEnrollReq {
+    current_password: AdminPassword,
+}
 impl AdminMfaEnrollReq {
     #[must_use]
-    pub const fn new(current_password: AdminPassword) -> Self { Self { current_password } }
+    pub const fn new(current_password: AdminPassword) -> Self {
+        Self { current_password }
+    }
     #[must_use]
-    pub fn into_current_password(self) -> AdminPassword { self.current_password }
+    pub fn into_current_password(self) -> AdminPassword {
+        self.current_password
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminMfaEnrollRes {
@@ -924,28 +957,46 @@ pub struct AdminMfaEnrollRes {
 }
 impl AdminMfaEnrollRes {
     #[must_use]
-    pub const fn new(secret: AdminMfaSecret, uri: AdminMfaEnrollmentUri) -> Self { Self { secret, uri } }
+    pub const fn new(secret: AdminMfaSecret, uri: AdminMfaEnrollmentUri) -> Self {
+        Self { secret, uri }
+    }
     #[must_use]
-    pub const fn secret(&self) -> &AdminMfaSecret { &self.secret }
+    pub const fn secret(&self) -> &AdminMfaSecret {
+        &self.secret
+    }
     #[must_use]
-    pub const fn uri(&self) -> &AdminMfaEnrollmentUri { &self.uri }
+    pub const fn uri(&self) -> &AdminMfaEnrollmentUri {
+        &self.uri
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
-pub struct AdminMfaConfirmReq { code: AdminMfaCode }
+pub struct AdminMfaConfirmReq {
+    code: AdminMfaCode,
+}
 impl AdminMfaConfirmReq {
     #[must_use]
-    pub const fn new(code: AdminMfaCode) -> Self { Self { code } }
+    pub const fn new(code: AdminMfaCode) -> Self {
+        Self { code }
+    }
     #[must_use]
-    pub fn into_code(self) -> AdminMfaCode { self.code }
+    pub fn into_code(self) -> AdminMfaCode {
+        self.code
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminMfaConfirmRes { recovery_codes: Vec<AdminRecoveryCode> }
+pub struct AdminMfaConfirmRes {
+    recovery_codes: Vec<AdminRecoveryCode>,
+}
 impl AdminMfaConfirmRes {
     #[must_use]
-    pub const fn new(recovery_codes: Vec<AdminRecoveryCode>) -> Self { Self { recovery_codes } }
+    pub const fn new(recovery_codes: Vec<AdminRecoveryCode>) -> Self {
+        Self { recovery_codes }
+    }
     #[must_use]
-    pub const fn recovery_codes(&self) -> &[AdminRecoveryCode] { self.recovery_codes.as_slice() }
+    pub const fn recovery_codes(&self) -> &[AdminRecoveryCode] {
+        self.recovery_codes.as_slice()
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
@@ -955,9 +1006,16 @@ pub struct AdminMfaDisableReq {
 }
 impl AdminMfaDisableReq {
     #[must_use]
-    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self { Self { current_password, proof } }
+    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self {
+        Self {
+            current_password,
+            proof,
+        }
+    }
     #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) { (self.current_password, self.proof) }
+    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) {
+        (self.current_password, self.proof)
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
@@ -967,9 +1025,16 @@ pub struct AdminMfaStepUpReq {
 }
 impl AdminMfaStepUpReq {
     #[must_use]
-    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self { Self { current_password, proof } }
+    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self {
+        Self {
+            current_password,
+            proof,
+        }
+    }
     #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) { (self.current_password, self.proof) }
+    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) {
+        (self.current_password, self.proof)
+    }
 }
 impl AdminSignInRes {
     #[must_use]
@@ -1137,31 +1202,42 @@ impl AdminUpdateRoleReq {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserRolesReq {
+    expected_role_ids: Vec<AdminRoleId>,
     role_ids: Vec<AdminRoleId>,
 }
 impl AdminSetUserRolesReq {
     #[must_use]
-    pub const fn from_ids(role_ids: Vec<AdminRoleId>) -> Self {
-        Self { role_ids }
+    pub const fn new(expected_role_ids: Vec<AdminRoleId>, role_ids: Vec<AdminRoleId>) -> Self {
+        Self {
+            expected_role_ids,
+            role_ids,
+        }
     }
     #[must_use]
-    pub fn into_ids(self) -> Vec<AdminRoleId> {
-        self.role_ids
+    pub fn into_parts(self) -> (Vec<AdminRoleId>, Vec<AdminRoleId>) {
+        (self.expected_role_ids, self.role_ids)
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetRolePermissionsReq {
+    expected_permission_ids: Vec<AdminPermissionId>,
     permission_ids: Vec<AdminPermissionId>,
 }
 impl AdminSetRolePermissionsReq {
     #[must_use]
-    pub const fn from_ids(permission_ids: Vec<AdminPermissionId>) -> Self {
-        Self { permission_ids }
+    pub const fn new(
+        expected_permission_ids: Vec<AdminPermissionId>,
+        permission_ids: Vec<AdminPermissionId>,
+    ) -> Self {
+        Self {
+            expected_permission_ids,
+            permission_ids,
+        }
     }
     #[must_use]
-    pub fn into_ids(self) -> Vec<AdminPermissionId> {
-        self.permission_ids
+    pub fn into_parts(self) -> (Vec<AdminPermissionId>, Vec<AdminPermissionId>) {
+        (self.expected_permission_ids, self.permission_ids)
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1469,7 +1545,7 @@ pub struct AdminAuditPage {
 }
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)]
 #[bounded_string(
-    max = 262144usize,
+    max = 262_144usize,
     chars,
     serde,
     utoipa,
@@ -1586,9 +1662,35 @@ pub struct AdminDashboardView {
     active_sessions: AdminOperationalCount,
     database_healthy: AdminBool,
     failed_sign_ins_24h: AdminOperationalCount,
+    last_cleanup: Option<AdminCleanupStatus>,
     recent_changes: Vec<AdminAuditView>,
     uptime_seconds: AdminUptimeSeconds,
     version: AdminText,
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminCleanupStatus {
+    deleted_rows: AdminOperationalCount,
+    last_success_at: AdminOperationalTimestamp,
+}
+impl AdminCleanupStatus {
+    #[must_use]
+    pub const fn new(
+        deleted_rows: AdminOperationalCount,
+        last_success_at: AdminOperationalTimestamp,
+    ) -> Self {
+        Self {
+            deleted_rows,
+            last_success_at,
+        }
+    }
+    #[must_use]
+    pub const fn deleted_rows(&self) -> AdminOperationalCount {
+        self.deleted_rows
+    }
+    #[must_use]
+    pub const fn last_success_at(&self) -> &AdminOperationalTimestamp {
+        &self.last_success_at
+    }
 }
 impl AdminDashboardView {
     #[must_use]
@@ -1596,6 +1698,7 @@ impl AdminDashboardView {
         active_sessions: AdminOperationalCount,
         database_healthy: AdminBool,
         failed_sign_ins_24h: AdminOperationalCount,
+        last_cleanup: Option<AdminCleanupStatus>,
         recent_changes: Vec<AdminAuditView>,
         uptime_seconds: AdminUptimeSeconds,
         version: AdminText,
@@ -1604,6 +1707,7 @@ impl AdminDashboardView {
             active_sessions,
             database_healthy,
             failed_sign_ins_24h,
+            last_cleanup,
             recent_changes,
             uptime_seconds,
             version,
@@ -1620,6 +1724,10 @@ impl AdminDashboardView {
     #[must_use]
     pub const fn failed_sign_ins_24h(&self) -> AdminOperationalCount {
         self.failed_sign_ins_24h
+    }
+    #[must_use]
+    pub const fn last_cleanup(&self) -> Option<&AdminCleanupStatus> {
+        self.last_cleanup.as_ref()
     }
     #[must_use]
     pub const fn recent_changes(&self) -> &[AdminAuditView] {
@@ -2574,7 +2682,7 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 27usize);
+        assert_eq!(descriptors.len(), 32usize);
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
@@ -2746,6 +2854,38 @@ mod tests {
         };
     }
     #[test]
+    fn mfa_codes_have_exact_transport_formats() {
+        let Ok(_valid_totp) = super::AdminMfaCode::try_from(str_constants::VALUE_123456.to_owned())
+        else {
+            panic!("7ca93c60");
+        };
+        let Err(_invalid_totp_character) =
+            super::AdminMfaCode::try_from(str_constants::VALUE_12345X.to_owned())
+        else {
+            panic!("cc8e4d7a");
+        };
+        let Err(_invalid_totp_length) =
+            super::AdminMfaCode::try_from(str_constants::VALUE_1234567.to_owned())
+        else {
+            panic!("6869189e");
+        };
+        let Ok(_valid_recovery) =
+            super::AdminRecoveryCode::try_from(str_constants::VALUE_ABCD_1234_5678_90EF.to_owned())
+        else {
+            panic!("e2014157");
+        };
+        let Err(_uppercase_recovery) = super::AdminRecoveryCode::try_from(
+            str_constants::VALUE_UPPER_ABCD_1234_5678_90EF.to_owned(),
+        ) else {
+            panic!("a71372e1");
+        };
+        let Err(_unseparated_recovery) =
+            super::AdminRecoveryCode::try_from(str_constants::VALUE_ABCD1234567890EF.to_owned())
+        else {
+            panic!("716f603f");
+        };
+    }
+    #[test]
     fn admin_domain_values_follow_database_compatible_policies() {
         let _valid_login =
             super::AdminLogin::try_from(str_constants::ADMIN_USER_1.to_owned()).expect("e1cddebc");
@@ -2811,8 +2951,16 @@ mod tests {
 
     #[test]
     fn page_limit_rejects_zero_and_values_above_server_maximum() {
-        assert!(serde_json::from_str::<super::AdminPageLimit>("0").is_err());
-        assert!(serde_json::from_str::<super::AdminPageLimit>("101").is_err());
+        let Err(_zero_error) =
+            serde_json::from_str::<super::AdminPageLimit>(str_constants::VALUE_0)
+        else {
+            panic!("e8fd3a29");
+        };
+        let Err(_above_maximum_error) =
+            serde_json::from_str::<super::AdminPageLimit>(str_constants::VALUE_101)
+        else {
+            panic!("36f08ad7");
+        };
         assert_eq!(
             u16::from(serde_json::from_str::<super::AdminPageLimit>("100").expect("d4d7c99a")),
             100u16

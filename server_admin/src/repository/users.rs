@@ -150,7 +150,13 @@ pub(crate) async fn delete_user(
 pub(crate) async fn list_users(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     query: &server_admin_contract::AdminTableQuery,
-) -> Result<(Vec<server_admin_contract::AdminUserSummary>, i64), super::AdminRepositoryError> {
+) -> Result<
+    (
+        Vec<server_admin_contract::AdminUserSummary>,
+        super::AdminPageTotalCount,
+    ),
+    super::AdminRepositoryError,
+> {
     let search = query.search().as_ref();
     let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_USERS_SQL)
         .bind(search)
@@ -162,7 +168,7 @@ pub(crate) async fn list_users(
     )
     .bind(search)
     .bind(query.sort().as_ref())
-    .bind(query.direction().as_str())
+    .bind(query.direction().as_ref())
     .bind(i64::from(u16::from(query.limit())))
     .bind(i64::from(u32::from(query.offset())))
     .fetch_all(pool.0)
@@ -174,14 +180,16 @@ pub(crate) async fn list_users(
         .fetch_all(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
-    let mut role_ids_by_user =
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::new();
-    links.into_iter().for_each(|(user_id, role_id)| {
-        role_ids_by_user
-            .entry(user_id)
-            .or_default()
-            .push(server_admin_contract::AdminRoleId::from(role_id));
-    });
+    let mut role_ids_by_user = links.into_iter().fold(
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminRoleId>>::new(),
+        |mut values, (user_id, role_id)| {
+            values
+                .entry(user_id)
+                .or_default()
+                .push(server_admin_contract::AdminRoleId::from(role_id));
+            values
+        },
+    );
     let items = rows
         .into_iter()
         .map(|(id, login, display_name, is_banned)| {
@@ -196,7 +204,7 @@ pub(crate) async fn list_users(
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items, total))
+    Ok((items, super::AdminPageTotalCount::from(total)))
 }
 
 pub(crate) async fn read_authenticated_record(

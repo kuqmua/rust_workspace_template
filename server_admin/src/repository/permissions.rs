@@ -21,8 +21,13 @@ pub(crate) async fn list_permission_catalog(
 pub(crate) async fn list_permissions(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     query: &server_admin_contract::AdminTableQuery,
-) -> Result<(Vec<server_admin_contract::AdminPermissionSummary>, i64), super::AdminRepositoryError>
-{
+) -> Result<
+    (
+        Vec<server_admin_contract::AdminPermissionSummary>,
+        super::AdminPageTotalCount,
+    ),
+    super::AdminRepositoryError,
+> {
     let search = query.search().as_ref();
     let total =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_PERMISSIONS_SQL)
@@ -34,7 +39,7 @@ pub(crate) async fn list_permissions(
         sqlx::query_as::<_, (i64, String)>(str_constants::SERVER_ADMIN_PAGE_PERMISSIONS_SQL)
             .bind(search)
             .bind(query.sort().as_ref())
-            .bind(query.direction().as_str())
+            .bind(query.direction().as_ref())
             .bind(i64::from(u16::from(query.limit())))
             .bind(i64::from(u32::from(query.offset())))
             .fetch_all(pool.0)
@@ -49,12 +54,13 @@ pub(crate) async fn list_permissions(
                 ))
             })
             .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items, total))
+    Ok((items, super::AdminPageTotalCount::from(total)))
 }
 
 pub(crate) async fn replace_role_permissions(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     role_id: crate::AdminRoleId,
+    expected_permission_ids: &[server_admin_contract::AdminPermissionId],
     permission_ids: &[server_admin_contract::AdminPermissionId],
 ) -> Result<super::ReplaceRolePermissionsOutcome, crate::SqlxAdminError> {
     let optional_is_system =
@@ -68,6 +74,21 @@ pub(crate) async fn replace_role_permissions(
     };
     if is_system {
         return Ok(super::ReplaceRolePermissionsOutcome::SystemRole);
+    }
+    let current_permission_ids =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+            .bind(role_id.0)
+            .fetch_all(&mut *connection.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
+    let mut expected_raw_ids = expected_permission_ids
+        .iter()
+        .copied()
+        .map(i64::from)
+        .collect::<Vec<_>>();
+    expected_raw_ids.sort_unstable();
+    if current_permission_ids != expected_raw_ids {
+        return Ok(super::ReplaceRolePermissionsOutcome::StaleAssignment);
     }
     let raw_ids = permission_ids
         .iter()

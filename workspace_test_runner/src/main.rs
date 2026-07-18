@@ -826,6 +826,11 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             .map(server_admin_contract::AdminPermissionSummary::id)
             .collect(),
     )];
+    let audit_details =
+        server_admin_contract::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
+            str_constants::FIELD: str_constants::DISPLAY_NAME
+        }))
+        .map_err(|error| eprintln!("{error}"))?;
     let audit = vec![server_admin_contract::AdminAuditView::new(
         admin_fixture_string::<server_admin_contract::AdminText>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_ACTION,
@@ -833,12 +838,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         admin_fixture_string::<server_admin_contract::AdminAuditTimestamp>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_CREATED_AT,
         ))?,
-        Some(
-            server_admin_contract::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
-                "field": "display_name"
-            }))
-            .map_err(|error| eprintln!("{error}"))?,
-        ),
+        Some(audit_details),
         server_admin_contract::AdminAuditLogId::from(1i64),
         admin_fixture_string::<server_admin_contract::AdminText>(String::from(
             str_constants::ADMIN_FIXTURE_AUDIT_RESOURCE,

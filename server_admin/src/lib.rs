@@ -95,6 +95,14 @@ impl AdminJwtSecret {
         Self(value)
     }
 }
+#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
+pub struct StdAdminMfaSecretBytes(Vec<u8>);
+#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
+pub struct StdAdminMfaEncryptedBytes(Vec<u8>);
+#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
+pub struct StdAdminMfaNonceBytes(Vec<u8>);
+#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
+pub struct StdAdminMfaRecoveryHashes(Vec<StdAdminString>);
 #[derive(newtype::DebugRedacted)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
@@ -441,12 +449,14 @@ impl std::fmt::Display for AdminCleanupCfgError {
 impl std::error::Error for AdminCleanupCfgError {}
 #[derive(Debug)]
 pub enum AdminCleanupError {
+    Count,
     Idempotency(pg_table::SqlxPgTableIdempotencyError),
     Pg(SqlxAdminError),
 }
 impl std::fmt::Display for AdminCleanupError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Count => f.write_str(str_constants::ADMIN_CLEANUP_ROWS_EXCEED_I64),
             Self::Idempotency(error) => write!(f, "idempotency cleanup failed: {error}"),
             Self::Pg(error) => write!(f, "administrator table cleanup failed: {error:?}"),
         }
@@ -455,6 +465,7 @@ impl std::fmt::Display for AdminCleanupError {
 impl std::error::Error for AdminCleanupError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
+            Self::Count => None,
             Self::Idempotency(error) => Some(error),
             Self::Pg(error) => Some(&error.0),
         }
@@ -610,7 +621,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 7usize);
+        assert_eq!(migrations.len(), 8usize);
         assert!(
             migrations
                 .iter()

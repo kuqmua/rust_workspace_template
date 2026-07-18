@@ -9,7 +9,7 @@ pub(super) struct GitInfo {
 pub(super) enum Page {
     Loading,
     Dashboard(server_admin_contract::AdminDashboardView),
-    Profile,
+    Profile(server_admin_contract::AdminMfaStatus),
     Users(
         Vec<server_admin_contract::AdminUserSummary>,
         Vec<server_admin_contract::AdminRoleSummary>,

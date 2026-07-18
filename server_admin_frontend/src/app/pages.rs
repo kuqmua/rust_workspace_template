@@ -52,7 +52,7 @@ pub(super) fn Shell(
     }
     let client_for_sign_out = client.clone();
     let site_name = branding.as_ref().map_or_else(
-        || "Admin".to_owned(),
+        || str_constants::ADMIN.to_owned(),
         |value| value.site_name().as_ref().to_owned(),
     );
     let logo = branding.and_then(|value| value.main_logo().cloned());
@@ -73,7 +73,7 @@ fn PageView(
         let content = match loader.page().get() {
         super::Page::Loading => super::tables::loading().into_any(),
         super::Page::Dashboard(value) => dashboard_view(&value).into_any(),
-        super::Page::Profile => super::forms::profile_view(client.clone(), loader, &auth).into_any(),
+        super::Page::Profile(value) => super::forms::profile_view(value, client.clone(), loader, &auth).into_any(),
         super::Page::Error(value) => super::tables::error(value).into_any(),
         super::Page::Text(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"System"</p><h1>"Runtime information"</h1></div></div><div class="code-card"><pre>{value.to_string()}</pre></div></section> }.into_any(),
         super::Page::OpenApi(value) => view! { <section><div class="page-heading"><div><p class="eyebrow">"Developer tools"</p><h1>"OpenAPI document"</h1></div></div><div class="code-card api-document"><pre id="openapi">{value.to_string()}</pre></div></section> }.into_any(),
@@ -91,14 +91,18 @@ fn PageView(
     }
 }
 fn dashboard_view(value: &server_admin_contract::AdminDashboardView) -> impl IntoView {
+    let cleanup_status = value.last_cleanup().map_or_else(
+        || view! { <article class="summary-card"><span>"Cleanup job"</span><strong>"No successful run recorded"</strong></article> }.into_any(),
+        |status| view! { <article class="summary-card"><span>"Last cleanup"</span><strong>{status.last_success_at().to_string()}</strong><small>{format!("{} rows deleted", status.deleted_rows())}</small></article> }.into_any(),
+    );
     let recent_changes = value
         .recent_changes()
         .iter()
         .map(|event| {
-            view! { <li><strong>{event.action().to_string()}</strong><span>{format!("{} · {}", event.resource(), event.created_at())}</span></li> }
+            view! { <li><strong>{event.action().to_string()}</strong><span>{format!("{} - {}", event.resource(), event.created_at())}</span></li> }
         })
         .collect_view();
-    view! { <section><div class="page-heading"><div><p class="eyebrow">"Operations"</p><h1>"Dashboard"</h1></div></div><div class="dashboard-grid"><article class="summary-card"><span>"Database"</span><strong>{if bool::from(value.database_healthy()) { "Healthy" } else { "Unavailable" }}</strong></article><article class="summary-card"><span>"Version"</span><strong>{value.version().to_string()}</strong></article><article class="summary-card"><span>"Uptime"</span><strong>{format!("{} seconds", value.uptime_seconds())}</strong></article><article class="summary-card"><span>"Active sessions"</span><strong>{value.active_sessions().to_string()}</strong></article><article class="summary-card"><span>"Failed sign-ins (24h)"</span><strong>{value.failed_sign_ins_24h().to_string()}</strong></article></div><article class="recent-changes"><h2>"Recent administrative changes"</h2><ul>{recent_changes}</ul><a href=server_admin_contract::AdminFrontendPath::Audit.get()>"Open audit log"</a></article></section> }
+    view! { <section><div class="page-heading"><div><p class="eyebrow">"Operations"</p><h1>"Dashboard"</h1></div></div><div class="dashboard-grid"><article class="summary-card"><span>"Database"</span><strong>{if bool::from(value.database_healthy()) { "Healthy" } else { "Unavailable" }}</strong></article><article class="summary-card"><span>"Version"</span><strong>{value.version().to_string()}</strong></article><article class="summary-card"><span>"Uptime"</span><strong>{format!("{} seconds", value.uptime_seconds())}</strong></article><article class="summary-card"><span>"Active sessions"</span><strong>{value.active_sessions().to_string()}</strong></article><article class="summary-card"><span>"Failed sign-ins (24h)"</span><strong>{value.failed_sign_ins_24h().to_string()}</strong></article>{cleanup_status}</div><article class="recent-changes"><h2>"Recent administrative changes"</h2><ul>{recent_changes}</ul><a href=server_admin_contract::AdminFrontendPath::Audit.get()>"Open audit log"</a></article></section> }
 }
 pub(super) fn has_page_permission(
     auth: &Option<server_admin_contract::AuthenticatedAdmin>,

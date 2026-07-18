@@ -41,6 +41,29 @@ pub(crate) async fn insert_audit_success(
         .map_err(crate::SqlxAdminError::from)
         .map(drop)
 }
+pub(crate) async fn insert_audit_failure(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+    user_id: crate::AdminUserId,
+    login: &server_admin_contract::AdminLogin,
+    action: crate::AdminAuditAction,
+    resource: crate::AdminAuditResource,
+    resource_id: &crate::StdAdminString,
+    request_id: crate::UuidAdminValue,
+    details: &server_admin_contract::SerdeJsonAdminAuditDetails,
+) -> Result<(), crate::SqlxAdminError> {
+    sqlx::query(str_constants::SERVER_ADMIN_INSERT_AUDIT_FAILURE_SQL)
+        .bind(user_id.0)
+        .bind(login.as_ref())
+        .bind(action.as_str().as_ref())
+        .bind(resource.as_str().as_ref())
+        .bind(resource_id.as_ref())
+        .bind(request_id.0)
+        .bind(details.as_ref())
+        .execute(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map(drop)
+}
 
 pub(crate) async fn query_audit_log(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,

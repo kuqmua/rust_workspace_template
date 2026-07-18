@@ -1122,6 +1122,65 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .fetch_one(&pool.0)
     .await
     .expect("1e53a0c7");
+    let assign_role_body =
+        serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
+            Vec::new(),
+            vec![server_admin_contract::AdminRoleId::from(role_id)],
+        ))
+        .expect("bf02e516");
+    let assign_role_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::PUT),
+            StdAdminApiTestStrRef(format!("/users/{limited_id}/roles").as_str()),
+            StdAdminApiTestStrRef(assign_role_body.as_str()),
+            Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("f74095eb");
+    assert_eq!(assign_role_response.status(), http::StatusCode::NO_CONTENT);
+    let stale_role_body = serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
+        Vec::new(),
+        Vec::new(),
+    ))
+    .expect("1fd845d3");
+    let stale_role_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::PUT),
+            StdAdminApiTestStrRef(format!("/users/{limited_id}/roles").as_str()),
+            StdAdminApiTestStrRef(stale_role_body.as_str()),
+            Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("170158fb");
+    assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
+    let remove_role_body =
+        serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
+            vec![server_admin_contract::AdminRoleId::from(role_id)],
+            Vec::new(),
+        ))
+        .expect("23c416a1");
+    let remove_role_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::PUT),
+            StdAdminApiTestStrRef(format!("/users/{limited_id}/roles").as_str()),
+            StdAdminApiTestStrRef(remove_role_body.as_str()),
+            Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("a895d91f");
+    assert_eq!(remove_role_response.status(), http::StatusCode::NO_CONTENT);
     let update_role_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
@@ -1164,6 +1223,34 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("c19be784");
     assert_eq!(delete_user_response.status(), http::StatusCode::NO_CONTENT);
+    let admin_role_id =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+            .fetch_one(&pool.0)
+            .await
+            .expect("20b5fb03");
+    let remove_last_admin_role_body =
+        serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
+            vec![server_admin_contract::AdminRoleId::from(admin_role_id)],
+            Vec::new(),
+        ))
+        .expect("1528b0d3");
+    let remove_last_admin_role_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::PUT),
+            StdAdminApiTestStrRef(format!("/users/{admin_id}/roles").as_str()),
+            StdAdminApiTestStrRef(remove_last_admin_role_body.as_str()),
+            Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+            Some(StdAdminApiTestStrRef(refreshed_csrf.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .expect("fe0db65c");
+    assert_eq!(
+        remove_last_admin_role_response.status(),
+        http::StatusCode::CONFLICT
+    );
     let last_admin_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

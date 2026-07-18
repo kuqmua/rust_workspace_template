@@ -61,13 +61,20 @@ pub struct AdminAuthSvcState {
     decoding_keys: Vec<JsonwebtokenAdminDecodingKey>,
     encoding_key: JsonwebtokenAdminEncodingKey,
     issuer: config_lib::AdminTokenIssuer,
-    mfa_cipher: mfa::AdminMfaCipher,
+    mfa_cipher: mfa::AesGcmAdminMfaCipher,
     password_hasher: super::AdminPasswordHasher,
     policy: AdminAuthPolicy,
     pool: app_state::SqlxPgPool,
     refresh_ttl: StdAdminRefreshTtlSeconds,
     session_limit: StdAdminSessionLimit,
-    started_at: std::time::Instant,
+    started_at: StdAdminAuthStartedAt,
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+struct StdAdminAuthStartedAt(std::time::Instant);
+impl StdAdminAuthStartedAt {
+    fn uptime_seconds(self) -> server_admin_contract::AdminUptimeSeconds {
+        server_admin_contract::AdminUptimeSeconds::from(self.0.elapsed().as_secs())
+    }
 }
 #[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
@@ -158,6 +165,7 @@ pub struct AdminAuditQuery {
     user_id: Option<super::AdminUserId>,
     user_login: Option<server_admin_contract::AdminLogin>,
 }
+#[allow(clippy::field_scoped_visibility_modifiers)] // repository query binding consumes this internal cross-module DTO field-by-field
 pub(crate) struct AdminAuditQueryParts {
     pub(crate) action: Option<super::AdminAuditAction>,
     pub(crate) created_after: Option<server_admin_contract::AdminAuditTimestamp>,
@@ -172,6 +180,7 @@ pub(crate) struct AdminAuditQueryParts {
     pub(crate) user_login: Option<server_admin_contract::AdminLogin>,
 }
 impl AdminAuditQuery {
+    #[allow(clippy::single_call_fn)] // dashboard owns a deliberately constrained audit query constructor
     pub(crate) fn dashboard() -> Self {
         Self {
             action: None,
@@ -187,8 +196,8 @@ impl AdminAuditQuery {
             user_login: None,
         }
     }
-    pub(crate) const fn cursor_is_complete(&self) -> bool {
-        self.cursor_created_at.is_some() == self.cursor_id.is_some()
+    pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
+        super::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
     pub(crate) fn into_parts(self) -> AdminAuditQueryParts {
         AdminAuditQueryParts {
@@ -626,11 +635,10 @@ enum AdminAuditResourceId {
 impl AdminAuditResourceId {
     fn value(self) -> super::StdAdminString {
         match self {
-            Self::Mfa(value) => super::StdAdminString(value.0.to_string()),
+            Self::Mfa(value) | Self::User(value) => super::StdAdminString(value.0.to_string()),
             Self::Role(value) => super::StdAdminString(value.0.to_string()),
             Self::Session(value) => super::StdAdminString(value.0.0.to_string()),
             Self::SystemSettings => super::StdAdminString(str_constants::VALUE_1.to_owned()),
-            Self::User(value) => super::StdAdminString(value.0.to_string()),
         }
     }
 }
@@ -784,6 +792,43 @@ async fn change_own_password(
 ) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::change_own_password(auth, request).await
 }
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(tag = "admin_mfa")]
+async fn mfa_status(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::mfa_status(auth).await
+}
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaEnrollReq, tag = "admin_mfa")]
+async fn mfa_enroll(
+    auth: AdminAuthReq,
+    request: AxumAdminJson<server_admin_contract::AdminMfaEnrollReq>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::mfa_enroll(auth, request).await
+}
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaConfirmReq, tag = "admin_mfa")]
+async fn mfa_confirm(
+    auth: AdminAuthReq,
+    request: AxumAdminJson<server_admin_contract::AdminMfaConfirmReq>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::mfa_confirm(auth, request).await
+}
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaDisableReq, tag = "admin_mfa")]
+async fn mfa_disable(
+    auth: AdminAuthReq,
+    request: AxumAdminJson<server_admin_contract::AdminMfaDisableReq>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::mfa_disable(auth, request).await
+}
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaStepUpReq, tag = "admin_mfa")]
+async fn mfa_step_up(
+    auth: AdminAuthReq,
+    request: AxumAdminJson<server_admin_contract::AdminMfaStepUpReq>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::mfa_step_up(auth, request).await
+}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(tag = "admin_auth")]
 async fn refresh(
@@ -819,14 +864,33 @@ async fn authorize_custom(
     auth: &AdminAuthReq,
     permission: super::AdminPermission,
 ) -> Result<AuthenticatedAdmin, AdminApiError> {
-    authorize_generated_request(
+    let authenticated = authorize_generated_request(
         auth.state.as_ref(),
         super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
         permission.as_str(),
         super::StdAdminBool::from(true),
     )
+    .await?;
+    if matches!(
+        permission,
+        super::AdminPermission::UsersDelete
+            | super::AdminPermission::UsersUpdate
+            | super::AdminPermission::UserRolesUpdate
+            | super::AdminPermission::RolePermissionsUpdate
+            | super::AdminPermission::SystemSettingsUpdate
+    ) && !super::repository::mfa::has_recent_step_up(
+        super::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
+        authenticated.session_id,
+        authenticated.id,
+    )
     .await
+    .map_err(AdminApiError::from)?
+    .0
+    {
+        return Err(AdminApiError::Conflict);
+    }
+    Ok(authenticated)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(request_body = server_admin_contract::AdminCreateUserReq, tag = "admin_users")]
@@ -1050,7 +1114,7 @@ impl AdminAuthSvcState {
                 secret.as_bytes(),
             )),
             issuer: issuer.clone(),
-            mfa_cipher: mfa::AdminMfaCipher::from_root_secret(secret),
+            mfa_cipher: mfa::AesGcmAdminMfaCipher::from_config(jwt_secret),
             password_hasher: super::AdminPasswordHasher::new(
                 super::AdminPasswordHashConcurrency::from(super::StdAdminNonZeroUsize::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
@@ -1060,7 +1124,7 @@ impl AdminAuthSvcState {
             pool,
             refresh_ttl: StdAdminRefreshTtlSeconds::from(refresh_ttl.get()),
             session_limit: StdAdminSessionLimit::from(session_limit.get()),
-            started_at: std::time::Instant::now(),
+            started_at: StdAdminAuthStartedAt::from(std::time::Instant::now()),
             policy: AdminAuthPolicy::from_sign_in_limit(StdAdminRateLimitCount::from(
                 i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
             )),
@@ -1230,7 +1294,7 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
-        assert_eq!(paths.len(), 21usize);
+        assert_eq!(paths.len(), 25usize);
         let documented_route_contracts = paths
             .iter()
             .flat_map(|(path, path_item)| {

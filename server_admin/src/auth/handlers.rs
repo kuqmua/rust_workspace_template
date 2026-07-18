@@ -24,8 +24,10 @@ fn map_repository_error(
         }
     }
 }
-fn page_total(value: i64) -> Result<server_admin_contract::AdminPageTotal, super::AdminApiError> {
-    u64::try_from(value)
+fn page_total(
+    value: super::super::repository::AdminPageTotalCount,
+) -> Result<server_admin_contract::AdminPageTotal, super::AdminApiError> {
+    u64::try_from(value.get())
         .map(server_admin_contract::AdminPageTotal::from)
         .map_err(|_error| super::AdminApiError::Validation)
 }
@@ -43,6 +45,126 @@ fn validate_table_sort(
     .map(drop)
     .map_err(|_error| super::AdminApiError::Validation)
 }
+async fn authenticate_mutation(
+    auth: &super::AdminAuthReq,
+) -> Result<super::AuthenticatedAdmin, super::AdminApiError> {
+    let actor = super::authenticate(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+    )
+    .await?;
+    let subject = super::super::StdAdminString::try_from(actor.id.0.to_string())
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    super::rate_limit::enforce_rate_limit(
+        auth.state.as_ref(),
+        super::rate_limit::AdminRateLimitScope::Mutation,
+        &subject,
+        auth.state.as_ref().policy.mutation_limit,
+        auth.state.as_ref().policy.mutation_window,
+    )
+    .await?;
+    super::validate_csrf(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        &actor,
+    )
+    .await?;
+    Ok(actor)
+}
+async fn verify_current_password(
+    auth: &super::AdminAuthReq,
+    user_id: super::super::AdminUserId,
+    password: server_admin_contract::AdminPassword,
+) -> Result<(), super::AdminApiError> {
+    let expected_hash = super::super::repository::users::read_password_hash(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        user_id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .ok_or(super::AdminApiError::Authentication)?;
+    let verified = auth
+        .state
+        .as_ref()
+        .password_hasher
+        .verify(super::admin_password_from_contract(password), expected_hash)
+        .await
+        .map_err(super::AdminApiError::PasswordHash)?;
+    if verified.0 {
+        Ok(())
+    } else {
+        Err(super::AdminApiError::Validation)
+    }
+}
+async fn record_mfa_failure(
+    auth: &super::AdminAuthSvcState,
+    user_id: super::super::AdminUserId,
+    login: &server_admin_contract::AdminLogin,
+) -> Result<(), super::AdminApiError> {
+    let details = server_admin_contract::SerdeJsonAdminAuditDetails::try_from(
+        serde_json::json!({ "operation": "mfa_challenge" }),
+    )
+    .map_err(|_error| super::AdminApiError::Validation)?;
+    super::super::repository::audit::insert_audit_failure(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(auth.pool.as_ref()),
+        user_id,
+        login,
+        super::super::AdminAuditAction::MfaChallengeFailed,
+        super::super::AdminAuditResource::Mfa,
+        &super::super::StdAdminString(user_id.0.to_string()),
+        super::super::UuidAdminValue::from(uuid::Uuid::new_v4()),
+        &details,
+    )
+    .await
+    .map_err(super::AdminApiError::from)
+}
+async fn verify_mfa_proof(
+    auth: &super::AdminAuthReq,
+    user_id: super::super::AdminUserId,
+    proof: server_admin_contract::AdminMfaProof,
+    connection: super::super::repository::SqlxAdminRepositoryConnectionMutRef<'_>,
+) -> Result<(), super::AdminApiError> {
+    let (encrypted, nonce, enabled) = super::super::repository::mfa::read_secret(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        user_id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .ok_or(super::AdminApiError::Validation)?;
+    if !enabled.0 {
+        return Err(super::AdminApiError::Validation);
+    }
+    let valid = match proof {
+        server_admin_contract::AdminMfaProof::Totp(code) => {
+            let secret = auth
+                .state
+                .as_ref()
+                .mfa_cipher
+                .decrypt(&encrypted, &nonce, user_id)
+                .map_err(|_error| super::AdminApiError::Validation)?;
+            super::mfa::verify_totp(&secret, &code)
+                .map_err(|_error| super::AdminApiError::Validation)?
+                .0
+        }
+        server_admin_contract::AdminMfaProof::Recovery(code) => {
+            let hash = super::mfa::recovery_hash(&code);
+            super::super::repository::mfa::consume_recovery(connection, user_id, &hash)
+                .await
+                .map_err(super::AdminApiError::from)?
+                .0
+        }
+    };
+    if valid {
+        Ok(())
+    } else {
+        Err(super::AdminApiError::Validation)
+    }
+}
 pub(super) async fn sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
@@ -59,7 +181,7 @@ pub(super) async fn sign_in(
         return Err(super::AdminApiError::Authentication);
     }
     let request = request_json.0;
-    let (contract_login, contract_password) = request.into_parts();
+    let (contract_login, contract_password, mfa_proof) = request.into_parts();
     let login = super::super::AdminLogin::try_from(contract_login.into_inner())
         .map_err(|_error| super::AdminApiError::Validation)?;
     let password = super::admin_password_from_contract(contract_password);
@@ -140,6 +262,65 @@ pub(super) async fn sign_in(
         .await?;
         return Err(super::AdminApiError::Authentication);
     }
+    let mut tx = state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    let mfa_record = super::super::repository::mfa::read_secret(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(state.as_ref().pool.as_ref()),
+        admin_user_id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?;
+    let mfa_verified = if let Some((encrypted, nonce, enabled)) = mfa_record {
+        if enabled.0 {
+            let valid = match mfa_proof {
+                Some(server_admin_contract::AdminMfaProof::Totp(code)) => {
+                    let secret = state
+                        .as_ref()
+                        .mfa_cipher
+                        .decrypt(&encrypted, &nonce, admin_user_id)
+                        .map_err(|_error| super::AdminApiError::Authentication)?;
+                    super::mfa::verify_totp(&secret, &code)
+                        .map_err(|_error| super::AdminApiError::Authentication)?
+                        .0
+                }
+                Some(server_admin_contract::AdminMfaProof::Recovery(code)) => {
+                    let hash = super::mfa::recovery_hash(&code);
+                    super::super::repository::mfa::consume_recovery(
+                        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(
+                            &mut *tx,
+                        ),
+                        admin_user_id,
+                        &hash,
+                    )
+                    .await
+                    .map_err(super::AdminApiError::from)?
+                    .0
+                }
+                None => false,
+            };
+            if !valid {
+                record_mfa_failure(state.as_ref(), admin_user_id, &login).await?;
+                super::record_login_attempt(
+                    state.as_ref(),
+                    &login,
+                    peer,
+                    super::super::StdAdminBool::from(false),
+                )
+                .await?;
+                return Err(super::AdminApiError::Authentication);
+            }
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
     super::record_login_attempt(
         state.as_ref(),
         &login,
@@ -151,13 +332,6 @@ pub(super) async fn sign_in(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         peer,
     );
-    let mut tx = state
-        .as_ref()
-        .pool
-        .as_ref()
-        .begin()
-        .await
-        .map_err(super::AdminApiError::from)?;
     let session = super::create_session_in_connection(
         state.as_ref(),
         admin_user_id,
@@ -166,6 +340,18 @@ pub(super) async fn sign_in(
     )
     .await
     .map_err(super::AdminApiError::Session)?;
+    if mfa_verified
+        && !super::super::repository::mfa::mark_step_up(
+            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+            session.session_id(),
+            admin_user_id,
+        )
+        .await
+        .map_err(super::AdminApiError::from)?
+        .0
+    {
+        return Err(super::AdminApiError::Conflict);
+    }
     super::record_audit_success_in_connection(
         super::SqlxAdminPgConnectionRef::from(&mut *tx),
         super::AdminAuditSuccessRef {
@@ -385,12 +571,7 @@ pub(super) async fn change_own_password(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::AdminChangeOwnPasswordReq>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    let actor = super::authenticate(
-        auth.state.as_ref(),
-        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
-        auth.peer,
-    )
-    .await?;
+    let actor = authenticate_mutation(&auth).await?;
     let (current_password, new_password, revoke_other_sessions) = request.0.into_parts();
     let expected_hash = super::super::repository::users::read_password_hash(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
@@ -462,6 +643,290 @@ pub(super) async fn change_own_password(
             login: &actor.login,
             resource: super::super::AdminAuditResource::User,
             resource_id: super::AdminAuditResourceId::User(actor.id),
+            user_id: actor.id,
+        },
+    )
+    .await?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
+    ))
+}
+pub(super) async fn mfa_status(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = super::authenticate(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+    )
+    .await?;
+    let (enabled, remaining) = super::super::repository::mfa::status(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        actor.id,
+    )
+    .await
+    .map_err(map_repository_error)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(
+            server_admin_contract::AdminMfaStatus::new(
+                server_admin_contract::AdminBool::from(enabled.0),
+                remaining,
+            ),
+        )),
+    ))
+}
+pub(super) async fn mfa_enroll(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaEnrollReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = authenticate_mutation(&auth).await?;
+    let (already_enabled, _remaining) = super::super::repository::mfa::status(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        actor.id,
+    )
+    .await
+    .map_err(map_repository_error)?;
+    if already_enabled.0 {
+        return Err(super::AdminApiError::Conflict);
+    }
+    verify_current_password(&auth, actor.id, request.0.into_current_password()).await?;
+    let secret_bytes = super::mfa::generate_secret();
+    let secret = super::mfa::base32_encode(&secret_bytes)
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    let uri = super::mfa::enrollment_uri(&secret, &actor.login)
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    let encrypted = auth
+        .state
+        .as_ref()
+        .mfa_cipher
+        .encrypt(&secret_bytes, actor.id)
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    let mut tx = auth
+        .state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    super::super::repository::mfa::upsert_pending(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+        encrypted.ciphertext(),
+        encrypted.nonce(),
+    )
+    .await
+    .map_err(super::AdminApiError::from)?;
+    super::record_audit_success_in_connection(
+        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::AdminAuditSuccessRef {
+            action: super::super::AdminAuditAction::MfaEnroll,
+            login: &actor.login,
+            resource: super::super::AdminAuditResource::Mfa,
+            resource_id: super::AdminAuditResourceId::Mfa(actor.id),
+            user_id: actor.id,
+        },
+    )
+    .await?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(
+            server_admin_contract::AdminMfaEnrollRes::new(secret, uri),
+        )),
+    ))
+}
+pub(super) async fn mfa_confirm(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaConfirmReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = authenticate_mutation(&auth).await?;
+    let (encrypted, nonce, enabled) = super::super::repository::mfa::read_secret(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .ok_or(super::AdminApiError::Validation)?;
+    if enabled.0 {
+        return Err(super::AdminApiError::Conflict);
+    }
+    let secret = auth
+        .state
+        .as_ref()
+        .mfa_cipher
+        .decrypt(&encrypted, &nonce, actor.id)
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    if !super::mfa::verify_totp(&secret, &request.0.into_code())
+        .map_err(|_error| super::AdminApiError::Validation)?
+        .0
+    {
+        record_mfa_failure(auth.state.as_ref(), actor.id, &actor.login).await?;
+        return Err(super::AdminApiError::Validation);
+    }
+    let recovery_codes = std::iter::repeat_with(super::mfa::recovery_code)
+        .take(10usize)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_error| super::AdminApiError::Validation)?;
+    let recovery_hashes = recovery_codes
+        .iter()
+        .map(super::mfa::recovery_hash)
+        .collect::<Vec<_>>();
+    let hashes = super::super::StdAdminMfaRecoveryHashes::from(recovery_hashes);
+    let mut tx = auth
+        .state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    if !super::super::repository::mfa::enable(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+        &hashes,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .0
+    {
+        return Err(super::AdminApiError::Conflict);
+    }
+    let marked = super::super::repository::mfa::mark_step_up(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.session_id,
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?;
+    if !marked.0 {
+        return Err(super::AdminApiError::Conflict);
+    }
+    super::record_audit_success_in_connection(
+        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::AdminAuditSuccessRef {
+            action: super::super::AdminAuditAction::MfaEnroll,
+            login: &actor.login,
+            resource: super::super::AdminAuditResource::Mfa,
+            resource_id: super::AdminAuditResourceId::Mfa(actor.id),
+            user_id: actor.id,
+        },
+    )
+    .await?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(axum::Json(
+            server_admin_contract::AdminMfaConfirmRes::new(recovery_codes),
+        )),
+    ))
+}
+pub(super) async fn mfa_disable(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaDisableReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = authenticate_mutation(&auth).await?;
+    let (password, proof) = request.0.into_parts();
+    verify_current_password(&auth, actor.id, password).await?;
+    let mut tx = auth
+        .state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    if let Err(error) = verify_mfa_proof(
+        &auth,
+        actor.id,
+        proof,
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    )
+    .await
+    {
+        record_mfa_failure(auth.state.as_ref(), actor.id, &actor.login).await?;
+        return Err(error);
+    }
+    if !super::super::repository::mfa::disable(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .0
+    {
+        return Err(super::AdminApiError::Conflict);
+    }
+    super::record_audit_success_in_connection(
+        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::AdminAuditSuccessRef {
+            action: super::super::AdminAuditAction::MfaDisable,
+            login: &actor.login,
+            resource: super::super::AdminAuditResource::Mfa,
+            resource_id: super::AdminAuditResourceId::Mfa(actor.id),
+            user_id: actor.id,
+        },
+    )
+    .await?;
+    tx.commit().await.map_err(super::AdminApiError::from)?;
+    Ok(super::AxumAdminResponse(
+        axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
+    ))
+}
+pub(super) async fn mfa_step_up(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaStepUpReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    let actor = authenticate_mutation(&auth).await?;
+    let (password, proof) = request.0.into_parts();
+    verify_current_password(&auth, actor.id, password).await?;
+    let mut tx = auth
+        .state
+        .as_ref()
+        .pool
+        .as_ref()
+        .begin()
+        .await
+        .map_err(super::AdminApiError::from)?;
+    let recovery = matches!(proof, server_admin_contract::AdminMfaProof::Recovery(_));
+    if let Err(error) = verify_mfa_proof(
+        &auth,
+        actor.id,
+        proof,
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+    )
+    .await
+    {
+        record_mfa_failure(auth.state.as_ref(), actor.id, &actor.login).await?;
+        return Err(error);
+    }
+    if !super::super::repository::mfa::mark_step_up(
+        super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+        actor.session_id,
+        actor.id,
+    )
+    .await
+    .map_err(super::AdminApiError::from)?
+    .0
+    {
+        return Err(super::AdminApiError::Conflict);
+    }
+    super::record_audit_success_in_connection(
+        super::SqlxAdminPgConnectionRef::from(&mut *tx),
+        super::AdminAuditSuccessRef {
+            action: if recovery {
+                super::super::AdminAuditAction::MfaRecovery
+            } else {
+                super::super::AdminAuditAction::MfaStepUp
+            },
+            login: &actor.login,
+            resource: super::super::AdminAuditResource::Mfa,
+            resource_id: super::AdminAuditResourceId::Mfa(actor.id),
             user_id: actor.id,
         },
     )
@@ -1043,12 +1508,17 @@ pub(super) async fn set_role_permissions(
     let actor =
         super::authorize_custom(&auth, super::super::AdminPermission::RolePermissionsUpdate)
             .await?;
-    let contract_permission_ids = request.0.into_ids();
-    if contract_permission_ids
+    let (expected_permission_ids, contract_permission_ids) = request.0.into_parts();
+    if expected_permission_ids
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != contract_permission_ids.len()
+        != expected_permission_ids.len()
+        || contract_permission_ids
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+            != contract_permission_ids.len()
     {
         return Err(super::AdminApiError::Validation);
     }
@@ -1063,6 +1533,7 @@ pub(super) async fn set_role_permissions(
     let outcome = super::super::repository::permissions::replace_role_permissions(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
+        expected_permission_ids.as_slice(),
         contract_permission_ids.as_slice(),
     )
     .await
@@ -1073,6 +1544,7 @@ pub(super) async fn set_role_permissions(
             return Err(super::AdminApiError::Validation);
         }
         super::super::repository::ReplaceRolePermissionsOutcome::MissingRole
+        | super::super::repository::ReplaceRolePermissionsOutcome::StaleAssignment
         | super::super::repository::ReplaceRolePermissionsOutcome::SystemRole => {
             return Err(super::AdminApiError::Conflict);
         }
@@ -1100,12 +1572,17 @@ pub(super) async fn set_user_roles(
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     let actor =
         super::authorize_custom(&auth, super::super::AdminPermission::UserRolesUpdate).await?;
-    let contract_role_ids = request.0.into_ids();
-    if contract_role_ids
+    let (expected_role_ids, contract_role_ids) = request.0.into_parts();
+    if expected_role_ids
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != contract_role_ids.len()
+        != expected_role_ids.len()
+        || contract_role_ids
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+            != contract_role_ids.len()
     {
         return Err(super::AdminApiError::Validation);
     }
@@ -1120,6 +1597,7 @@ pub(super) async fn set_user_roles(
     let outcome = super::super::repository::roles::replace_user_roles(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
+        expected_role_ids.as_slice(),
         contract_role_ids.as_slice(),
     )
     .await
@@ -1130,7 +1608,8 @@ pub(super) async fn set_user_roles(
             return Err(super::AdminApiError::Validation);
         }
         super::super::repository::ReplaceUserRolesOutcome::LastActiveAdministrator
-        | super::super::repository::ReplaceUserRolesOutcome::MissingUser => {
+        | super::super::repository::ReplaceUserRolesOutcome::MissingUser
+        | super::super::repository::ReplaceUserRolesOutcome::StaleAssignment => {
             return Err(super::AdminApiError::Conflict);
         }
     }
@@ -1288,13 +1767,14 @@ pub(super) async fn dashboard(
     let (active_sessions, failed_sign_ins_24h) = super::super::repository::dashboard::counts(pool)
         .await
         .map_err(map_repository_error)?;
+    let last_cleanup = super::super::repository::dashboard::cleanup_status(pool)
+        .await
+        .map_err(map_repository_error)?;
     let recent_changes =
         super::super::repository::audit::query_audit_log(pool, super::AdminAuditQuery::dashboard())
             .await
             .map_err(map_repository_error)?;
-    let uptime_seconds = server_admin_contract::AdminUptimeSeconds::from(
-        auth.state.as_ref().started_at.elapsed().as_secs(),
-    );
+    let uptime_seconds = auth.state.as_ref().started_at.uptime_seconds();
     let version =
         server_admin_contract::AdminText::try_from(git_info::PROJECT_GIT_INFO.commit.to_string())
             .map_err(|_error| super::AdminApiError::Validation)?;
@@ -1302,6 +1782,7 @@ pub(super) async fn dashboard(
         active_sessions,
         server_admin_contract::AdminBool::from(true),
         failed_sign_ins_24h,
+        last_cleanup,
         recent_changes.items().to_vec(),
         uptime_seconds,
         version,

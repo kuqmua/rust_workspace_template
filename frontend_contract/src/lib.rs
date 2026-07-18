@@ -694,15 +694,28 @@ pub struct TransportPath(String);
     Clone, Copy, Debug, PartialEq, Eq, newtype::Display, newtype::FromInner, newtype::IntoInnerFrom,
 )]
 pub struct TransportStatus(u16);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = 128usize, min = 1usize)]
+pub struct TransportRetryAfter(String);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportResponse {
     body: TransportBody,
+    retry_after: Option<TransportRetryAfter>,
     status: TransportStatus,
 }
 impl TransportResponse {
     #[must_use]
     pub const fn new(body: TransportBody, status: TransportStatus) -> Self {
-        Self { body, status }
+        Self {
+            body,
+            retry_after: None,
+            status,
+        }
+    }
+    #[must_use]
+    pub fn with_retry_after(mut self, retry_after: Option<TransportRetryAfter>) -> Self {
+        self.retry_after = retry_after;
+        self
     }
     #[must_use]
     pub const fn body(&self) -> &TransportBody {
@@ -711,6 +724,10 @@ impl TransportResponse {
     #[must_use]
     pub const fn status(&self) -> TransportStatus {
         self.status
+    }
+    #[must_use]
+    pub const fn retry_after(&self) -> Option<&TransportRetryAfter> {
+        self.retry_after.as_ref()
     }
     pub fn success_body(&self, expected: TransportStatus) -> Result<&TransportBody, ClientError> {
         if self.status == expected {
@@ -883,6 +900,21 @@ mod tests {
         assert_eq!(
             u16::from(super::SuccessStatus::Code201.transport_status()),
             201u16
+        );
+    }
+    #[test]
+    fn transport_response_preserves_retry_after() {
+        let response = super::TransportResponse::new(
+            super::TransportBody::from(Vec::new()),
+            super::TransportStatus::from(429u16),
+        )
+        .with_retry_after(Some(
+            super::TransportRetryAfter::try_from(str_constants::TEST_VALUE_30.to_owned())
+                .expect("9b6750d4"),
+        ));
+        assert_eq!(
+            response.retry_after().map(AsRef::as_ref),
+            Some(str_constants::TEST_VALUE_30)
         );
     }
 }

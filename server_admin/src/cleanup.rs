@@ -23,12 +23,18 @@ pub(super) async fn cleanup_admin_tables(
     .map_err(super::AdminCleanupError::Idempotency)?;
     let (access_sessions, audit_log, login_attempts, rate_limits, refresh_tokens) =
         repository_report.into_parts();
-    Ok(super::AdminCleanupReport {
+    let report = super::AdminCleanupReport {
         access_sessions,
         audit_log,
         idempotency: super::AdminCleanupRows::from(u64::from(idempotency)),
         login_attempts,
         rate_limits,
         refresh_tokens,
-    })
+    };
+    super::repository::cleanup::record_success(
+        super::repository::SqlxAdminRepositoryPoolRef::from(pool.as_ref()),
+        report.total_rows(),
+    )
+    .await?;
+    Ok(report)
 }

@@ -66,13 +66,15 @@ pub(crate) async fn list_role_catalog(
             .fetch_all(pool.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
-    let mut permission_ids_by_role =
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new();
-    links.into_iter().for_each(|(role_id, permission_id)| {
-        permission_ids_by_role.entry(role_id).or_default().push(
-            server_admin_contract::AdminPermissionId::from(permission_id),
-        );
-    });
+    let mut permission_ids_by_role = links.into_iter().fold(
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
+        |mut values, (role_id, permission_id)| {
+            values.entry(role_id).or_default().push(
+                server_admin_contract::AdminPermissionId::from(permission_id),
+            );
+            values
+        },
+    );
     rows.into_iter()
         .map(|(id, name, is_system)| {
             Ok(server_admin_contract::AdminRoleSummary::new(
@@ -89,7 +91,13 @@ pub(crate) async fn list_role_catalog(
 pub(crate) async fn list_roles(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     query: &server_admin_contract::AdminTableQuery,
-) -> Result<(Vec<server_admin_contract::AdminRoleSummary>, i64), super::AdminRepositoryError> {
+) -> Result<
+    (
+        Vec<server_admin_contract::AdminRoleSummary>,
+        super::AdminPageTotalCount,
+    ),
+    super::AdminRepositoryError,
+> {
     let search = query.search().as_ref();
     let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_ROLES_SQL)
         .bind(search)
@@ -99,7 +107,7 @@ pub(crate) async fn list_roles(
     let rows = sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_PAGE_ROLES_SQL)
         .bind(search)
         .bind(query.sort().as_ref())
-        .bind(query.direction().as_str())
+        .bind(query.direction().as_ref())
         .bind(i64::from(u16::from(query.limit())))
         .bind(i64::from(u32::from(query.offset())))
         .fetch_all(pool.0)
@@ -112,13 +120,15 @@ pub(crate) async fn list_roles(
             .fetch_all(pool.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
-    let mut permission_ids_by_role =
-        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new();
-    links.into_iter().for_each(|(role_id, permission_id)| {
-        permission_ids_by_role.entry(role_id).or_default().push(
-            server_admin_contract::AdminPermissionId::from(permission_id),
-        );
-    });
+    let mut permission_ids_by_role = links.into_iter().fold(
+        std::collections::HashMap::<i64, Vec<server_admin_contract::AdminPermissionId>>::new(),
+        |mut values, (role_id, permission_id)| {
+            values.entry(role_id).or_default().push(
+                server_admin_contract::AdminPermissionId::from(permission_id),
+            );
+            values
+        },
+    );
     let items = rows
         .into_iter()
         .map(|(id, name, is_system)| {
@@ -131,12 +141,13 @@ pub(crate) async fn list_roles(
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items, total))
+    Ok((items, super::AdminPageTotalCount::from(total)))
 }
 
 pub(crate) async fn replace_user_roles(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
+    expected_role_ids: &[server_admin_contract::AdminRoleId],
     role_ids: &[server_admin_contract::AdminRoleId],
 ) -> Result<super::ReplaceUserRolesOutcome, crate::SqlxAdminError> {
     lock_last_admin(super::SqlxAdminRepositoryConnectionMutRef::from(
@@ -152,6 +163,21 @@ pub(crate) async fn replace_user_roles(
     let Some(target_is_active) = optional_target_is_active else {
         return Ok(super::ReplaceUserRolesOutcome::MissingUser);
     };
+    let current_role_ids =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
+            .bind(user_id.0)
+            .fetch_all(&mut *connection.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
+    let mut expected_raw_ids = expected_role_ids
+        .iter()
+        .copied()
+        .map(i64::from)
+        .collect::<Vec<_>>();
+    expected_raw_ids.sort_unstable();
+    if current_role_ids != expected_raw_ids {
+        return Ok(super::ReplaceUserRolesOutcome::StaleAssignment);
+    }
     let raw_ids = role_ids.iter().copied().map(i64::from).collect::<Vec<_>>();
     let existing_count = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_ROLES_SQL)
         .bind(&raw_ids)

@@ -25,7 +25,7 @@ pub(super) async fn query_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    if !query.0.cursor_is_complete() {
+    if !query.0.cursor_is_complete().0 {
         return Err(super::AdminApiError::Validation);
     }
     let actor = super::authorize_generated_request(
@@ -69,7 +69,7 @@ pub(super) async fn export_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    if !query.0.cursor_is_complete() {
+    if !query.0.cursor_is_complete().0 {
         return Err(super::AdminApiError::Validation);
     }
     let actor = super::authorize_generated_request(
@@ -101,13 +101,11 @@ pub(super) async fn export_log(
         super::super::repository::AdminRepositoryError::InvalidStoredValue => {
             super::AdminApiError::Validation
         }
-        super::super::repository::AdminRepositoryError::Sqlx(error) => {
-            super::AdminApiError::Pg(error)
+        super::super::repository::AdminRepositoryError::Sqlx(sqlx_error) => {
+            super::AdminApiError::Pg(sqlx_error)
         }
     })?;
-    let mut csv = String::from(
-        "id,created_at,user_id,user_login,action,resource,resource_id,succeeded,details\n",
-    );
+    let mut csv = String::from(str_constants::AUDIT_CSV_HEADER);
     page.items().iter().for_each(|value| {
         let fields = [
             value.id().to_string(),
@@ -129,7 +127,7 @@ pub(super) async fn export_log(
         csv.push_str(
             fields
                 .map(|field| format!("\"{}\"", field.replace('"', "\"\"")))
-                .join(",")
+                .join(str_constants::TEXT_ALT_7)
                 .as_str(),
         );
         csv.push('\n');

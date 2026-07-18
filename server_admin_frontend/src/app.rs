@@ -133,6 +133,23 @@ impl AdminApiClient {
         let _response = self.transport_response(route, body).await?;
         Ok(())
     }
+    async fn send_json_response<Input, Output>(
+        &self,
+        route: server_admin_contract::AdminRoute,
+        input: Input,
+    ) -> Result<Output, ApiError>
+    where
+        Input: serde::Serialize,
+        Output: serde::de::DeserializeOwned,
+    {
+        let body = serde_json::to_vec(&input).map_err(|error| {
+            ApiError::Request(Text::try_from(error.to_string()).unwrap_or_default())
+        })?;
+        let response = self.transport_response(route, body).await?;
+        serde_json::from_slice(response.body().as_ref()).map_err(|error| {
+            ApiError::Request(Text::try_from(error.to_string()).unwrap_or_default())
+        })
+    }
     async fn send(self, route: server_admin_contract::AdminRoute) -> Result<(), ApiError> {
         let _response = self.transport_response(route, Vec::new()).await?;
         Ok(())
@@ -169,13 +186,21 @@ impl AdminApiClient {
                     if retried.status() == expected {
                         Ok(retried)
                     } else {
-                        Err(response_error(retried.status(), retried.body()))
+                        Err(response_error(
+                            retried.status(),
+                            retried.body(),
+                            retried.retry_after(),
+                        ))
                     }
                 });
         }
         let expected = route.contract().success_status().transport_status();
         if response.status() != expected {
-            return Err(response_error(response.status(), response.body()));
+            return Err(response_error(
+                response.status(),
+                response.body(),
+                response.retry_after(),
+            ));
         }
         Ok(response)
     }
@@ -259,7 +284,11 @@ impl AdminApiClient {
             if value.status() == expected {
                 Ok(())
             } else {
-                Err(response_error(value.status(), value.body()))
+                Err(response_error(
+                    value.status(),
+                    value.body(),
+                    value.retry_after(),
+                ))
             }
         });
         let outcome = match &result {
@@ -329,6 +358,9 @@ impl AdminApiClient {
     }
     async fn dashboard(&self) -> Result<server_admin_contract::AdminDashboardView, ApiError> {
         self.get(server_admin_contract::AdminRoute::Dashboard).await
+    }
+    async fn mfa_status(&self) -> Result<server_admin_contract::AdminMfaStatus, ApiError> {
+        self.get(server_admin_contract::AdminRoute::MfaStatus).await
     }
     async fn permissions(
         &self,
@@ -421,11 +453,18 @@ impl AdminApiClient {
 fn response_error(
     status: frontend_contract::TransportStatus,
     body: &frontend_contract::TransportBody,
+    retry_after: Option<&frontend_contract::TransportRetryAfter>,
 ) -> ApiError {
-    let detail = frontend_contract::decode_api_problem(body).map_or_else(
+    let mut detail = frontend_contract::decode_api_problem(body).map_or_else(
         || Text::try_from(str_constants::REQUEST_FAILED.to_owned()).unwrap_or_default(),
         |problem| Text::try_from(problem.detail().as_ref().to_owned()).unwrap_or_default(),
     );
+    if u16::from(status) == 429u16
+        && let Some(retry_after) = retry_after
+    {
+        detail = Text::try_from(format!("{} Retry after: {}.", detail, retry_after.as_ref()))
+            .unwrap_or(detail);
+    }
     ApiError::Status(u16::from(status), detail)
 }
 fn browser_window() -> Option<web_sys::Window> {
@@ -496,8 +535,10 @@ fn apply_branding(value: &server_admin_contract::AdminBrandingView) {
     {
         let color = value
             .primary_color()
-            .map_or("#6757e8", AsRef::<str>::as_ref);
-        let _result = html_root.style().set_property("--primary", color);
+            .map_or(str_constants::PRIMARY_COLOR_DEFAULT, AsRef::<str>::as_ref);
+        let _result = html_root
+            .style()
+            .set_property(str_constants::PRIMARY_CSS_VARIABLE, color);
     }
 }
 fn push_path(path: &str) {
@@ -567,7 +608,9 @@ fn load(client: AdminApiClient, loader: PageLoader) {
                 ))
                 .await
                 .map(|page| Page::Permissions(page.items().to_vec(), page.total())),
-            Some(server_admin_contract::AdminPage::Profile) => Ok(Page::Profile),
+            Some(server_admin_contract::AdminPage::Profile) => {
+                client.mfa_status().await.map(Page::Profile)
+            }
             Some(server_admin_contract::AdminPage::Audit) => client
                 .audit()
                 .await

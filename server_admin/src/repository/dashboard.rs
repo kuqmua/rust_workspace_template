@@ -25,3 +25,23 @@ pub(crate) async fn counts(
         ),
     ))
 }
+
+pub(crate) async fn cleanup_status(
+    pool: super::SqlxAdminRepositoryPoolRef<'_>,
+) -> Result<Option<server_admin_contract::AdminCleanupStatus>, super::AdminRepositoryError> {
+    sqlx::query_as::<_, (String, i64)>(str_constants::SERVER_ADMIN_READ_CLEANUP_STATUS_SQL)
+        .fetch_optional(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)?
+        .map(|(last_success_at, deleted_rows)| {
+            Ok(server_admin_contract::AdminCleanupStatus::new(
+                server_admin_contract::AdminOperationalCount::from(
+                    u64::try_from(deleted_rows)
+                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+                ),
+                server_admin_contract::AdminOperationalTimestamp::try_from(last_success_at)
+                    .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+            ))
+        })
+        .transpose()
+}
