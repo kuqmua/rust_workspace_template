@@ -68,10 +68,12 @@ pub(crate) async fn read_secret(
 pub(crate) async fn enable(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
     user_id: crate::AdminUserId,
+    counter: crate::StdAdminMfaTotpCounter,
     hashes: &crate::StdAdminMfaRecoveryHashes,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
     let enabled = sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_ENABLE_MFA_SQL)
         .bind(user_id.0)
+        .bind(counter.0)
         .fetch_optional(&mut *connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)?
@@ -97,6 +99,19 @@ pub(crate) async fn enable(
         .await
         .map_err(crate::SqlxAdminError::from)?;
     Ok(crate::StdAdminBool::from(true))
+}
+pub(crate) async fn claim_totp(
+    connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,
+    user_id: crate::AdminUserId,
+    counter: crate::StdAdminMfaTotpCounter,
+) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
+    sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_CLAIM_MFA_TOTP_SQL)
+        .bind(user_id.0)
+        .bind(counter.0)
+        .fetch_optional(connection.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)
+        .map(|value| crate::StdAdminBool::from(value.is_some()))
 }
 pub(crate) async fn consume_recovery(
     connection: super::SqlxAdminRepositoryConnectionMutRef<'_>,

@@ -147,9 +147,16 @@ async fn verify_mfa_proof(
                 .mfa_cipher
                 .decrypt(&encrypted, &nonce, user_id)
                 .map_err(|_error| super::AdminApiError::Validation)?;
-            super::mfa::verify_totp(&secret, &code)
+            if let Some(counter) = super::mfa::verify_totp(&secret, &code)
                 .map_err(|_error| super::AdminApiError::Validation)?
-                .0
+            {
+                super::super::repository::mfa::claim_totp(connection, user_id, counter)
+                    .await
+                    .map_err(super::AdminApiError::from)?
+                    .0
+            } else {
+                false
+            }
         }
         server_admin_contract::AdminMfaProof::Recovery(code) => {
             let hash = super::mfa::recovery_hash(&code);
@@ -284,9 +291,22 @@ pub(super) async fn sign_in(
                         .mfa_cipher
                         .decrypt(&encrypted, &nonce, admin_user_id)
                         .map_err(|_error| super::AdminApiError::Authentication)?;
-                    super::mfa::verify_totp(&secret, &code)
+                    if let Some(counter) = super::mfa::verify_totp(&secret, &code)
                         .map_err(|_error| super::AdminApiError::Authentication)?
+                    {
+                        super::super::repository::mfa::claim_totp(
+                            super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(
+                                &mut *tx,
+                            ),
+                            admin_user_id,
+                            counter,
+                        )
+                        .await
+                        .map_err(super::AdminApiError::from)?
                         .0
+                    } else {
+                        false
+                    }
                 }
                 Some(server_admin_contract::AdminMfaProof::Recovery(code)) => {
                     let hash = super::mfa::recovery_hash(&code);
@@ -763,13 +783,12 @@ pub(super) async fn mfa_confirm(
         .mfa_cipher
         .decrypt(&encrypted, &nonce, actor.id)
         .map_err(|_error| super::AdminApiError::Validation)?;
-    if !super::mfa::verify_totp(&secret, &request.0.into_code())
+    let Some(counter) = super::mfa::verify_totp(&secret, &request.0.into_code())
         .map_err(|_error| super::AdminApiError::Validation)?
-        .0
-    {
+    else {
         record_mfa_failure(auth.state.as_ref(), actor.id, &actor.login).await?;
         return Err(super::AdminApiError::Validation);
-    }
+    };
     let recovery_codes = std::iter::repeat_with(super::mfa::recovery_code)
         .take(10usize)
         .collect::<Result<Vec<_>, _>>()
@@ -790,6 +809,7 @@ pub(super) async fn mfa_confirm(
     if !super::super::repository::mfa::enable(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         actor.id,
+        counter,
         &hashes,
     )
     .await

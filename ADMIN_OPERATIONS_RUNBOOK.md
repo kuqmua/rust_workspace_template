@@ -1,5 +1,23 @@
 # Administrator operations runbook
 
+## Production deployment
+
+- Build the complete image from the repository `Dockerfile`; it builds the release WASM bundle and
+  copies both generated and static administrator assets into the runtime image. Do not deploy a
+  standalone server binary without those assets.
+- Terminate TLS at the application gateway, set `ADMIN_COOKIE_SECURE=true`, use an exact HTTPS
+  origin in `CORS_ALLOW_ORIGIN`, and disable Swagger with `ADMIN_SWAGGER_ENABLED=false` unless its
+  permission-protected UI is explicitly required.
+- Replace every development credential. Keep `ADMIN_JWT_SECRET` in the deployment secret store,
+  use a high-entropy primary value, and retain old values only during a planned rotation window.
+- Keep the service port private to the gateway. Configure HSTS at the TLS terminator, preserve the
+  restrictive content security policy, and expose health endpoints only to infrastructure that
+  needs them.
+- Apply and verify all database migrations before shifting traffic. The migration test exercises
+  both a fresh schema and the supported version-3 baseline upgrade against PostgreSQL.
+- Back up and restore-test PostgreSQL, alert on readiness failures and stale cleanup status, and
+  retain structured server logs according to the incident-response policy.
+
 ## Bootstrap
 
 Administrator bootstrap is deliberately available only through the server-side
@@ -30,7 +48,8 @@ through an administrator endpoint are not supported recovery procedures.
 
 ## MFA recovery
 
-Recovery codes are shown once and stored only as hashes. Each code is consumed atomically. If an
+Recovery codes are shown once and stored only as hashes. Each code is consumed atomically. A TOTP
+time step is also accepted only once per account, including across concurrent requests. If an
 administrator has neither a TOTP device nor an unused recovery code, another privileged
 administrator must restore access according to the deployment's identity policy. MFA enrollment,
 failed challenges, recovery-code use, step-up, and disable operations are audited.

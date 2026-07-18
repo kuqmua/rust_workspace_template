@@ -185,7 +185,7 @@ fn totp_at(
 pub(super) fn verify_totp(
     secret: &super::super::StdAdminMfaSecretBytes,
     code: &server_admin_contract::AdminMfaCode,
-) -> Result<super::super::StdAdminBool, AdminMfaError> {
+) -> Result<Option<super::super::StdAdminMfaTotpCounter>, AdminMfaError> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|_error| AdminMfaError::SystemClock)?
@@ -194,16 +194,20 @@ pub(super) fn verify_totp(
     let provided = code.as_ref().as_bytes();
     [now.saturating_sub(1u64), now, now.saturating_add(1u64)]
         .into_iter()
-        .try_fold(false, |matched, counter| {
+        .try_fold(None, |matched, counter| {
             totp_at(secret, AdminMfaTotpCounter::from(counter)).map(|expected| {
-                matched
-                    | bool::from(<[u8] as subtle::ConstantTimeEq>::ct_eq(
-                        expected.as_ref(),
-                        provided,
-                    ))
+                if bool::from(<[u8] as subtle::ConstantTimeEq>::ct_eq(
+                    expected.as_ref(),
+                    provided,
+                )) {
+                    i64::try_from(counter)
+                        .ok()
+                        .map(super::super::StdAdminMfaTotpCounter::from)
+                } else {
+                    matched
+                }
             })
         })
-        .map(super::super::StdAdminBool::from)
 }
 pub(super) fn recovery_code() -> Result<server_admin_contract::AdminRecoveryCode, AdminMfaError> {
     let compact = uuid::Uuid::new_v4().simple().to_string();

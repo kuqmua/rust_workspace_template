@@ -103,6 +103,8 @@ pub struct StdAdminMfaEncryptedBytes(Vec<u8>);
 pub struct StdAdminMfaNonceBytes(Vec<u8>);
 #[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdAdminMfaRecoveryHashes(Vec<StdAdminString>);
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub struct StdAdminMfaTotpCounter(i64);
 #[derive(newtype::DebugRedacted)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
@@ -621,7 +623,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 8usize);
+        assert_eq!(migrations.len(), 9usize);
         assert!(
             migrations
                 .iter()

@@ -449,11 +449,16 @@ async fn generated_admin_descriptors_match_applied_migrations() {
     };
     let pool = SqlxAdminApiTestPool(
         sqlx::postgres::PgPoolOptions::new()
-            .max_connections(1)
+            .max_connections(2)
             .connect(database_url.as_str())
             .await
             .expect("20250c41"),
     );
+    let mut admin_db_test_lock = pool.0.begin().await.expect("50eb5d64");
+    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *admin_db_test_lock)
+        .await
+        .expect("77883cf4");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("9eceddf1");
@@ -473,11 +478,16 @@ async fn admin_string_policies_match_postgresql_constraints() {
     };
     let pool = SqlxAdminApiTestPool(
         sqlx::postgres::PgPoolOptions::new()
-            .max_connections(1)
+            .max_connections(2)
             .connect(database_url.as_str())
             .await
             .expect("d48c868d"),
     );
+    let mut admin_db_test_lock = pool.0.begin().await.expect("99ced936");
+    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *admin_db_test_lock)
+        .await
+        .expect("168b689c");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("a453b862");
@@ -555,6 +565,11 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .await
             .expect("a3e1f57c"),
     );
+    let mut admin_db_test_lock = pool.0.begin().await.expect("4dfb6865");
+    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *admin_db_test_lock)
+        .await
+        .expect("693b147f");
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
         .await
         .expect("0ea8d516");
@@ -1000,6 +1015,34 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .fetch_one(&pool.0)
     .await
     .expect("10c8f7d2");
+    let _mfa_fixture = sqlx::query(str_constants::INSERT_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
+        .bind(admin_id)
+        .bind(vec![1u8])
+        .bind(vec![0u8; 12usize])
+        .execute(&pool.0)
+        .await
+        .expect("c30d43bd");
+    let _step_up_fixture = sqlx::query(str_constants::UPDATE_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
+        .bind(admin_id)
+        .execute(&pool.0)
+        .await
+        .expect("5a2952d3");
+    let first_totp_claim =
+        sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_CLAIM_MFA_TOTP_SQL)
+            .bind(admin_id)
+            .bind(42i64)
+            .fetch_optional(&pool.0)
+            .await
+            .expect("7b077486");
+    let replayed_totp_claim =
+        sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_CLAIM_MFA_TOTP_SQL)
+            .bind(admin_id)
+            .bind(42i64)
+            .fetch_optional(&pool.0)
+            .await
+            .expect("c09d8291");
+    assert_eq!(first_totp_claim, Some(true));
+    assert_eq!(replayed_totp_claim, None);
     let update_user_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
@@ -1635,10 +1678,15 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
         return;
     };
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(2u32)
+        .max_connections(3u32)
         .connect(database_url.as_str())
         .await
         .expect("f6a51733");
+    let mut admin_db_test_lock = pool.begin().await.expect("847caf57");
+    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *admin_db_test_lock)
+        .await
+        .expect("8c298fef");
     let mut idempotency_test_isolation = pool.begin().await.expect("f56c4c85");
     pg_crud_common::lock_pg_relation_resources(
         pg_crud_common::SqlxPgRelationLockConnectionRef::from(&mut *idempotency_test_isolation),
@@ -1780,17 +1828,20 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
         .fetch_one(&base_pool)
         .await
         .expect("5c10c931");
-    assert_eq!(versions, (5i64, 5i64));
+    assert_eq!(versions, (9i64, 9i64));
     let expected_tables = [
         str_constants::ADMIN_ACCESS_SESSIONS,
         str_constants::ADMIN_AUDIT_LOG,
+        str_constants::ADMIN_CLEANUP_STATUS,
         str_constants::ADMIN_LOGIN_ATTEMPTS,
+        str_constants::ADMIN_MFA_RECOVERY_CODES,
         str_constants::ADMIN_PERMISSIONS,
         str_constants::ADMIN_RATE_LIMITS,
         str_constants::ADMIN_REFRESH_TOKENS,
         str_constants::ADMIN_ROLE_PERMISSIONS,
         str_constants::ADMIN_ROLES,
         str_constants::ADMIN_SYSTEM_SETTINGS,
+        str_constants::ADMIN_USER_MFA,
         str_constants::ADMIN_USER_ROLES,
         str_constants::ADMIN_USERS,
     ];
