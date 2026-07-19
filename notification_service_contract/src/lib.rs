@@ -34,7 +34,17 @@ impl CreateNotificationRes {
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(transparent)]
 pub struct NotificationMessage(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 #[serde(transparent)]
 pub struct UuidNotificationId(uuid::Uuid);
 
@@ -62,17 +72,6 @@ impl AsRef<str> for NotificationMessage {
         self.0.as_str()
     }
 }
-impl From<uuid::Uuid> for UuidNotificationId {
-    fn from(value: uuid::Uuid) -> Self {
-        Self(value)
-    }
-}
-impl From<UuidNotificationId> for uuid::Uuid {
-    fn from(value: UuidNotificationId) -> Self {
-        value.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #[test]

@@ -1100,10 +1100,14 @@ pub fn emit_generate_pg_table(
             std::collections::BTreeMap::new(),
             |mut accumulator, generate_pg_table_attr| {
                 let generate_pg_table_attr_str = generate_pg_table_attr.to_string();
-                let common_error_variants_attr_token_stream = macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
-                    &di.attrs,
-                    &generate_pg_table_attr.generate_path_to_attr(),
-                );
+                let Ok(common_error_variants_attr_token_stream) =
+                    macros_helpers::attr_reader::try_get_macro_attr_meta_list_token_stream(
+                        &di.attrs,
+                        &generate_pg_table_attr.generate_path_to_attr(),
+                    )
+                else {
+                    return Ok(accumulator);
+                };
                 let Ok(parsed_di): Result<syn::DeriveInput, _> =
                     syn::parse2((*common_error_variants_attr_token_stream).clone())
                 else {
@@ -1145,11 +1149,15 @@ pub fn emit_generate_pg_table(
         .into_iter()
         .map(|generate_pg_table_attr| {
             let logic_token_stream =
-                macros_helpers::attr_reader::get_macro_attr_meta_list_token_stream(
+                macros_helpers::attr_reader::try_get_macro_attr_meta_list_token_stream(
                     &di.attrs,
                     &generate_pg_table_attr.generate_path_to_attr(),
+                )
+                .map_or_else(
+                    |_error| proc_macro2::TokenStream::new(),
+                    |value| (*value).clone(),
                 );
-            (generate_pg_table_attr, (*logic_token_stream).clone())
+            (generate_pg_table_attr, logic_token_stream)
         })
         .collect::<std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>>();
         Ok(GeneratePgTableEmissionModel {

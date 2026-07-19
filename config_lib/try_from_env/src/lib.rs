@@ -134,8 +134,27 @@ pub fn try_from_env(v: proc_macro::TokenStream) -> proc_macro::TokenStream {
             }
         });
         let fields_token_stream = fields_named.iter().map(|element| &element.ident);
+        let getters_token_stream = fields_named.iter().filter_map(|field| {
+            let has_getter = field.attrs.iter().any(|attribute| {
+                attribute.path().is_ident(str_constants::CONFIG)
+                    && attribute
+                        .parse_args::<syn::Ident>()
+                        .is_ok_and(|value| value == str_constants::GETTER)
+            });
+            has_getter.then(|| {
+                let getter_identifier = field_identifier(field, str_constants::VALUE_8B79A379);
+                let field_type = &field.ty;
+                quote::quote! {
+                    #[must_use]
+                    pub const fn #getter_identifier(&self) -> &#field_type {
+                        &self.#getter_identifier
+                    }
+                }
+            })
+        });
         quote::quote! {
             impl #identifier {
+                #(#getters_token_stream)*
                 pub fn field_descriptors() -> Vec<config_lib::ConfigFieldDescriptor> {
                     vec![#(#config_descriptors),*]
                 }

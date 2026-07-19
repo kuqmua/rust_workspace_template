@@ -15,24 +15,6 @@
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 #[allow(dead_code)] // private descriptor fields are consumed by proc-macro expansion and keep password hashes out of the public API
 pub struct AdminUsers {
     #[generate_pg_table_primary_key]
@@ -76,24 +58,6 @@ impl std::fmt::Debug for AdminUsers {
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 pub struct AdminUserRoles {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
@@ -118,24 +82,6 @@ pub struct AdminUserRoles {
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 pub struct AdminRolePermissions {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
@@ -156,24 +102,6 @@ pub struct AdminRolePermissions {
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 pub struct AdminRoles {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
@@ -198,24 +126,6 @@ pub struct AdminRoles {
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 pub struct AdminPermissions {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I64AsNonNullBigSerialInitializationByPg,
@@ -234,24 +144,6 @@ pub struct AdminPermissions {
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
-#[generate_pg_table::cm_error_variants{enum CmErrorVariants{}}]
-#[generate_pg_table::co_error_variants{enum CoErrorVariants{}}]
-#[generate_pg_table::rm_error_variants{enum RmErrorVariants{}}]
-#[generate_pg_table::ro_error_variants{enum RoErrorVariants{}}]
-#[generate_pg_table::um_error_variants{enum UmErrorVariants{}}]
-#[generate_pg_table::uo_error_variants{enum UoErrorVariants{}}]
-#[generate_pg_table::dm_error_variants{enum DmErrorVariants{}}]
-#[generate_pg_table::dlo_error_variants{enum DloErrorVariants{}}]
-#[generate_pg_table::common_error_variants{enum CommonErrorVariants{}}]
-#[generate_pg_table::cm_logic{}]
-#[generate_pg_table::co_logic{}]
-#[generate_pg_table::rm_logic{}]
-#[generate_pg_table::ro_logic{}]
-#[generate_pg_table::um_logic{}]
-#[generate_pg_table::uo_logic{}]
-#[generate_pg_table::dm_logic{}]
-#[generate_pg_table::dlo_logic{}]
-#[generate_pg_table::common_logic{}]
 pub struct AdminSystemSettings {
     #[generate_pg_table_primary_key]
     pub id: pg_types_numeric::I16AsNonNullSmallSerialInitializationByPg,

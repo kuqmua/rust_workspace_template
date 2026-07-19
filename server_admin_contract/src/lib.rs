@@ -203,113 +203,58 @@ impl<'value_lt> AdminPermissionStrRef<'value_lt> {
         self.0
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr, utoipa::ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::WireEnum, utoipa::ToSchema)]
+#[wire_enum(
+    ref_type = AdminPermissionStrRef,
+    error_message = str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION,
+)]
 pub enum AdminPermission {
-    #[strum(serialize = "audit_log:export")]
+    #[wire("audit_log:export")]
     AuditLogExport,
-    #[strum(serialize = "audit_log:read")]
+    #[wire("audit_log:read")]
     AuditLogRead,
-    #[strum(serialize = "metrics:read")]
+    #[wire("metrics:read")]
     MetricsRead,
-    #[strum(serialize = "openapi:read")]
+    #[wire("openapi:read")]
     OpenApiRead,
-    #[strum(serialize = "permissions:read")]
+    #[wire("permissions:read")]
     PermissionsRead,
-    #[strum(serialize = "role_permissions:create")]
+    #[wire("role_permissions:create")]
     RolePermissionsCreate,
-    #[strum(serialize = "role_permissions:delete")]
+    #[wire("role_permissions:delete")]
     RolePermissionsDelete,
-    #[strum(serialize = "role_permissions:read")]
+    #[wire("role_permissions:read")]
     RolePermissionsRead,
-    #[strum(serialize = "role_permissions:update")]
+    #[wire("role_permissions:update")]
     RolePermissionsUpdate,
-    #[strum(serialize = "roles:create")]
+    #[wire("roles:create")]
     RolesCreate,
-    #[strum(serialize = "roles:delete")]
+    #[wire("roles:delete")]
     RolesDelete,
-    #[strum(serialize = "roles:read")]
+    #[wire("roles:read")]
     RolesRead,
-    #[strum(serialize = "roles:update")]
+    #[wire("roles:update")]
     RolesUpdate,
-    #[strum(serialize = "system_settings:read")]
+    #[wire("system_settings:read")]
     SystemSettingsRead,
-    #[strum(serialize = "system_settings:update")]
+    #[wire("system_settings:update")]
     SystemSettingsUpdate,
-    #[strum(serialize = "user_roles:create")]
+    #[wire("user_roles:create")]
     UserRolesCreate,
-    #[strum(serialize = "user_roles:delete")]
+    #[wire("user_roles:delete")]
     UserRolesDelete,
-    #[strum(serialize = "user_roles:read")]
+    #[wire("user_roles:read")]
     UserRolesRead,
-    #[strum(serialize = "user_roles:update")]
+    #[wire("user_roles:update")]
     UserRolesUpdate,
-    #[strum(serialize = "users:create")]
+    #[wire("users:create")]
     UsersCreate,
-    #[strum(serialize = "users:delete")]
+    #[wire("users:delete")]
     UsersDelete,
-    #[strum(serialize = "users:read")]
+    #[wire("users:read")]
     UsersRead,
-    #[strum(serialize = "users:update")]
+    #[wire("users:update")]
     UsersUpdate,
-}
-impl AdminPermission {
-    pub const ALL: [Self; 23] = [
-        Self::AuditLogExport,
-        Self::AuditLogRead,
-        Self::MetricsRead,
-        Self::OpenApiRead,
-        Self::PermissionsRead,
-        Self::RolePermissionsCreate,
-        Self::RolePermissionsDelete,
-        Self::RolePermissionsRead,
-        Self::RolePermissionsUpdate,
-        Self::RolesCreate,
-        Self::RolesDelete,
-        Self::RolesRead,
-        Self::RolesUpdate,
-        Self::SystemSettingsRead,
-        Self::SystemSettingsUpdate,
-        Self::UserRolesCreate,
-        Self::UserRolesDelete,
-        Self::UserRolesRead,
-        Self::UserRolesUpdate,
-        Self::UsersCreate,
-        Self::UsersDelete,
-        Self::UsersRead,
-        Self::UsersUpdate,
-    ];
-    #[must_use]
-    pub fn as_str(self) -> AdminPermissionStrRef<'static> {
-        AdminPermissionStrRef::from(<&'static str>::from(self))
-    }
-}
-impl serde::Serialize for AdminPermission {
-    fn serialize<Serializer>(
-        &self,
-        serializer: Serializer,
-    ) -> Result<Serializer::Ok, Serializer::Error>
-    where
-        Serializer: serde::Serializer,
-    {
-        serializer.serialize_str(self.as_str().as_ref())
-    }
-}
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct AdminPermissionTryFromStrError;
-impl std::fmt::Display for AdminPermissionTryFromStrError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION)
-    }
-}
-impl std::error::Error for AdminPermissionTryFromStrError {}
-impl TryFrom<&str> for AdminPermission {
-    type Error = AdminPermissionTryFromStrError;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::ALL
-            .into_iter()
-            .find(|permission| permission.as_str().as_ref() == value)
-            .ok_or(AdminPermissionTryFromStrError)
-    }
 }
 #[derive(
     Clone,
@@ -2164,80 +2109,111 @@ pub struct AdminSettingsRoute;
 #[typed_route(error_statuses = frontend_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsUpdate), method = frontend_contract::RouteMethod::Patch, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "update_settings", path = "/system-settings", request = AdminUpdateSettingsReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminUpdateSettingsRoute;
 
-#[derive(Clone, Copy, Debug, frontend_contract::RouteFamily)]
-#[route_family_body_limit(ADMIN_API_BODY_MAX_BYTES.get())]
-#[route_family(
-    AdminSignInRoute,
-    AdminRefreshRoute,
-    AdminMeRoute,
-    AdminChangeOwnPasswordRoute,
-    AdminMfaStatusRoute,
-    AdminMfaEnrollRoute,
-    AdminMfaConfirmRoute,
-    AdminMfaDisableRoute,
-    AdminMfaStepUpRoute,
-    AdminSignOutRoute,
-    AdminSessionsRoute,
-    AdminRevokeSessionRoute,
-    AdminRevokeAllSessionsRoute,
-    AdminListUsersRoute,
-    AdminCreateUserRoute,
-    AdminUpdateUserRoute,
-    AdminDeleteUserRoute,
-    AdminSetUserPasswordRoute,
-    AdminSetUserBanRoute,
-    AdminSetUserRolesRoute,
-    AdminListRolesRoute,
-    AdminCreateRoleRoute,
-    AdminUpdateRoleRoute,
-    AdminDeleteRoleRoute,
-    AdminSetRolePermissionsRoute,
-    AdminListPermissionsRoute,
-    AdminAuditLogRoute,
-    AdminAuditExportRoute,
-    AdminBrandingRoute,
-    AdminDashboardRoute,
-    AdminSettingsRoute,
-    AdminUpdateSettingsRoute
+#[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::RouteCatalog)]
+#[route_catalog(
+    family = AdminAuthenticationRouteFamily,
+    body_limit = ADMIN_API_BODY_MAX_BYTES.get(),
 )]
-pub struct AdminAuthenticationRouteFamily;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AdminRoute {
+    #[route_catalog_route(AdminAuditLogRoute)]
     Audit,
+    #[route_catalog_route(AdminAuditExportRoute)]
     AuditExport,
+    #[route_catalog_route(AdminBrandingRoute)]
     Branding,
+    #[route_catalog_route(AdminDashboardRoute)]
     Dashboard,
+    #[route_catalog_route(AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
+    #[route_catalog_route(AdminMfaStatusRoute)]
     MfaStatus,
+    #[route_catalog_route(AdminMfaEnrollRoute)]
     MfaEnroll,
+    #[route_catalog_route(AdminMfaConfirmRoute)]
     MfaConfirm,
+    #[route_catalog_route(AdminMfaDisableRoute)]
     MfaDisable,
+    #[route_catalog_route(AdminMfaStepUpRoute)]
     MfaStepUp,
+    #[route_catalog_route(AdminCreateRoleRoute)]
     CreateRole,
+    #[route_catalog_route(AdminCreateUserRoute)]
     CreateUser,
+    #[route_catalog_route(AdminDeleteRoleRoute)]
     DeleteRole(AdminRoleId),
+    #[route_catalog_route(AdminDeleteUserRoute)]
     DeleteUser(AdminUserId),
+    #[route_catalog_route(AdminMeRoute)]
     Me,
+    #[route_catalog_route(
+        contract = frontend_contract::RouteContract::new(
+            admin_permission_requirement(AdminPermission::MetricsRead),
+            frontend_contract::HttpMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(str_constants::METRICS),
+            frontend_contract::SuccessStatus::Code200,
+        ),
+        path = str_constants::METRICS,
+        exclude_from_family,
+    )]
     Metrics,
+    #[route_catalog_route(
+        contract = frontend_contract::RouteContract::new(
+            admin_permission_requirement(AdminPermission::OpenApiRead),
+            frontend_contract::HttpMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(str_constants::OPENAPI_JSON),
+            frontend_contract::SuccessStatus::Code200,
+        ),
+        path = str_constants::OPENAPI_JSON,
+        exclude_from_family,
+    )]
     OpenApi,
+    #[route_catalog_route(AdminListPermissionsRoute)]
     Permissions,
+    #[route_catalog_route(AdminRefreshRoute)]
     Refresh,
+    #[route_catalog_route(AdminRevokeAllSessionsRoute)]
     RevokeAllSessions,
+    #[route_catalog_route(AdminRevokeSessionRoute)]
     RevokeSession,
+    #[route_catalog_route(AdminListRolesRoute)]
     Roles,
+    #[route_catalog_route(AdminSetRolePermissionsRoute)]
     SetRolePermissions(AdminRoleId),
+    #[route_catalog_route(AdminSetUserBanRoute)]
     SetUserBan(AdminUserId),
+    #[route_catalog_route(AdminSetUserPasswordRoute)]
     SetUserPassword(AdminUserId),
+    #[route_catalog_route(AdminSetUserRolesRoute)]
     SetUserRoles(AdminUserId),
+    #[route_catalog_route(AdminSettingsRoute)]
     Settings,
+    #[route_catalog_route(AdminSignInRoute)]
     SignIn,
+    #[route_catalog_route(AdminSignOutRoute)]
     SignOut,
+    #[route_catalog_route(AdminSessionsRoute)]
     Sessions,
+    #[route_catalog_route(AdminUpdateRoleRoute)]
     UpdateRole(AdminRoleId),
+    #[route_catalog_route(AdminUpdateSettingsRoute)]
     UpdateSettings,
+    #[route_catalog_route(AdminUpdateUserRoute)]
     UpdateUser(AdminUserId),
+    #[route_catalog_route(AdminListUsersRoute)]
     Users,
+    #[route_catalog_route(
+        contract = frontend_contract::RouteContract::new(
+            frontend_contract::AuthenticationRequirement::Public,
+            frontend_contract::HttpMethod::Get,
+            frontend_contract::MutationKind::ReadOnly,
+            frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO),
+            frontend_contract::SuccessStatus::Code200,
+        ),
+        path = str_constants::API_V1_GIT_INFO,
+        exclude_from_family,
+    )]
     Version,
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
@@ -2319,19 +2295,90 @@ impl AdminFrontendPath {
         <&'static str>::from(self)
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, frontend_contract::PageCatalog)]
+#[page_catalog(
+    spec = AdminPageSpec,
+    path_ref = AdminPagePathRef,
+    inventory = ADMIN_PAGE_SPECS,
+)]
 pub enum AdminPage {
-    Audit,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Dashboard,
+        route = AdminRoute::Dashboard,
+        title = AdminPageTitle::Dashboard,
+    )]
     Dashboard,
-    Metrics,
-    OpenApi,
-    Permissions,
-    Profile,
-    Roles,
-    Sessions,
-    Settings,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Users,
+        route = AdminRoute::Users,
+        title = AdminPageTitle::Users,
+    )]
     Users,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Roles,
+        route = AdminRoute::Roles,
+        title = AdminPageTitle::Roles,
+    )]
+    Roles,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Permissions,
+        route = AdminRoute::Permissions,
+        title = AdminPageTitle::Permissions,
+    )]
+    Permissions,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Audit,
+        route = AdminRoute::Audit,
+        title = AdminPageTitle::AuditLog,
+    )]
+    Audit,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Settings,
+        route = AdminRoute::Settings,
+        title = AdminPageTitle::Settings,
+    )]
+    Settings,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Sessions,
+        route = AdminRoute::Sessions,
+        title = AdminPageTitle::Sessions,
+    )]
+    Sessions,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Metrics,
+        route = AdminRoute::Metrics,
+        title = AdminPageTitle::Metrics,
+    )]
+    Metrics,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Version,
+        route = AdminRoute::Version,
+        title = AdminPageTitle::Version,
+    )]
     Version,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Profile,
+        route = AdminRoute::ChangeOwnPassword,
+        title = AdminPageTitle::Profile,
+    )]
+    Profile,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Swagger,
+        path = AdminFrontendPath::OpenApi,
+        route = AdminRoute::OpenApi,
+        title = AdminPageTitle::Api,
+    )]
+    OpenApi,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminPageCapability {
@@ -2361,6 +2408,21 @@ pub struct AdminPageSpec {
     title: AdminPageTitle,
 }
 impl AdminPageSpec {
+    const fn new(
+        capability: AdminPageCapability,
+        page: AdminPage,
+        path: AdminFrontendPath,
+        route: AdminRoute,
+        title: AdminPageTitle,
+    ) -> Self {
+        Self {
+            capability,
+            page,
+            path,
+            route,
+            title,
+        }
+    }
     #[must_use]
     pub const fn capability(self) -> AdminPageCapability {
         self.capability
@@ -2394,116 +2456,7 @@ impl AdminPageSpec {
         })
     }
 }
-const ADMIN_PAGE_SPECS: [AdminPageSpec; 11] = [
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Dashboard,
-        path: AdminFrontendPath::Dashboard,
-        route: AdminRoute::Dashboard,
-        title: AdminPageTitle::Dashboard,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Users,
-        path: AdminFrontendPath::Users,
-        route: AdminRoute::Users,
-        title: AdminPageTitle::Users,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Roles,
-        path: AdminFrontendPath::Roles,
-        route: AdminRoute::Roles,
-        title: AdminPageTitle::Roles,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Permissions,
-        path: AdminFrontendPath::Permissions,
-        route: AdminRoute::Permissions,
-        title: AdminPageTitle::Permissions,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Audit,
-        path: AdminFrontendPath::Audit,
-        route: AdminRoute::Audit,
-        title: AdminPageTitle::AuditLog,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Settings,
-        path: AdminFrontendPath::Settings,
-        route: AdminRoute::Settings,
-        title: AdminPageTitle::Settings,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Sessions,
-        path: AdminFrontendPath::Sessions,
-        route: AdminRoute::Sessions,
-        title: AdminPageTitle::Sessions,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Metrics,
-        path: AdminFrontendPath::Metrics,
-        route: AdminRoute::Metrics,
-        title: AdminPageTitle::Metrics,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Version,
-        path: AdminFrontendPath::Version,
-        route: AdminRoute::Version,
-        title: AdminPageTitle::Version,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Always,
-        page: AdminPage::Profile,
-        path: AdminFrontendPath::Profile,
-        route: AdminRoute::ChangeOwnPassword,
-        title: AdminPageTitle::Profile,
-    },
-    AdminPageSpec {
-        capability: AdminPageCapability::Swagger,
-        page: AdminPage::OpenApi,
-        path: AdminFrontendPath::OpenApi,
-        route: AdminRoute::OpenApi,
-        title: AdminPageTitle::Api,
-    },
-];
 impl AdminPage {
-    pub fn all() -> impl Iterator<Item = Self> {
-        ADMIN_PAGE_SPECS.iter().map(|spec| spec.page)
-    }
-    #[must_use]
-    pub const fn specs() -> &'static [AdminPageSpec] {
-        &ADMIN_PAGE_SPECS
-    }
-    #[must_use]
-    pub fn from_path(path: AdminPagePathRef<'_>) -> Option<Self> {
-        ADMIN_PAGE_SPECS
-            .iter()
-            .find(|spec| spec.path.get() == path.0)
-            .map(|spec| spec.page)
-    }
-    #[must_use]
-    pub const fn spec(self) -> AdminPageSpec {
-        match self {
-            Self::Dashboard => ADMIN_PAGE_SPECS[0],
-            Self::Users => ADMIN_PAGE_SPECS[1],
-            Self::Roles => ADMIN_PAGE_SPECS[2],
-            Self::Permissions => ADMIN_PAGE_SPECS[3],
-            Self::Audit => ADMIN_PAGE_SPECS[4],
-            Self::Settings => ADMIN_PAGE_SPECS[5],
-            Self::Sessions => ADMIN_PAGE_SPECS[6],
-            Self::Metrics => ADMIN_PAGE_SPECS[7],
-            Self::Version => ADMIN_PAGE_SPECS[8],
-            Self::Profile => ADMIN_PAGE_SPECS[9],
-            Self::OpenApi => ADMIN_PAGE_SPECS[10],
-        }
-    }
     #[must_use]
     pub fn path(self) -> frontend_contract::ContractStr {
         self.spec().path()
@@ -2523,142 +2476,8 @@ impl AdminPage {
 }
 impl AdminRoute {
     #[must_use]
-    pub fn contract(self) -> frontend_contract::RouteContract {
-        fn typed_contract<Route>() -> frontend_contract::RouteContract
-        where
-            Route: frontend_contract::TypedRoute,
-        {
-            Route::metadata().contract()
-        }
-        match self {
-            Self::Audit => typed_contract::<AdminAuditLogRoute>(),
-            Self::AuditExport => typed_contract::<AdminAuditExportRoute>(),
-            Self::Branding => typed_contract::<AdminBrandingRoute>(),
-            Self::Dashboard => typed_contract::<AdminDashboardRoute>(),
-            Self::ChangeOwnPassword => typed_contract::<AdminChangeOwnPasswordRoute>(),
-            Self::MfaStatus => typed_contract::<AdminMfaStatusRoute>(),
-            Self::MfaEnroll => typed_contract::<AdminMfaEnrollRoute>(),
-            Self::MfaConfirm => typed_contract::<AdminMfaConfirmRoute>(),
-            Self::MfaDisable => typed_contract::<AdminMfaDisableRoute>(),
-            Self::MfaStepUp => typed_contract::<AdminMfaStepUpRoute>(),
-            Self::CreateRole => typed_contract::<AdminCreateRoleRoute>(),
-            Self::CreateUser => typed_contract::<AdminCreateUserRoute>(),
-            Self::DeleteRole(_) => typed_contract::<AdminDeleteRoleRoute>(),
-            Self::DeleteUser(_) => typed_contract::<AdminDeleteUserRoute>(),
-            Self::Me => typed_contract::<AdminMeRoute>(),
-            Self::Permissions => typed_contract::<AdminListPermissionsRoute>(),
-            Self::Refresh => typed_contract::<AdminRefreshRoute>(),
-            Self::RevokeAllSessions => typed_contract::<AdminRevokeAllSessionsRoute>(),
-            Self::RevokeSession => typed_contract::<AdminRevokeSessionRoute>(),
-            Self::Roles => typed_contract::<AdminListRolesRoute>(),
-            Self::SetRolePermissions(_) => typed_contract::<AdminSetRolePermissionsRoute>(),
-            Self::SetUserBan(_) => typed_contract::<AdminSetUserBanRoute>(),
-            Self::SetUserPassword(_) => typed_contract::<AdminSetUserPasswordRoute>(),
-            Self::SetUserRoles(_) => typed_contract::<AdminSetUserRolesRoute>(),
-            Self::Settings => typed_contract::<AdminSettingsRoute>(),
-            Self::SignIn => typed_contract::<AdminSignInRoute>(),
-            Self::SignOut => typed_contract::<AdminSignOutRoute>(),
-            Self::Sessions => typed_contract::<AdminSessionsRoute>(),
-            Self::UpdateRole(_) => typed_contract::<AdminUpdateRoleRoute>(),
-            Self::UpdateSettings => typed_contract::<AdminUpdateSettingsRoute>(),
-            Self::UpdateUser(_) => typed_contract::<AdminUpdateUserRoute>(),
-            Self::Users => typed_contract::<AdminListUsersRoute>(),
-            Self::Metrics => frontend_contract::RouteContract::new(
-                admin_permission_requirement(AdminPermission::MetricsRead),
-                frontend_contract::HttpMethod::Get,
-                frontend_contract::MutationKind::ReadOnly,
-                frontend_contract::ContractStr::from(str_constants::METRICS),
-                frontend_contract::SuccessStatus::Code200,
-            ),
-            Self::OpenApi => frontend_contract::RouteContract::new(
-                admin_permission_requirement(AdminPermission::OpenApiRead),
-                frontend_contract::HttpMethod::Get,
-                frontend_contract::MutationKind::ReadOnly,
-                frontend_contract::ContractStr::from(str_constants::OPENAPI_JSON),
-                frontend_contract::SuccessStatus::Code200,
-            ),
-            Self::Version => frontend_contract::RouteContract::new(
-                frontend_contract::AuthenticationRequirement::Public,
-                frontend_contract::HttpMethod::Get,
-                frontend_contract::MutationKind::ReadOnly,
-                frontend_contract::ContractStr::from(str_constants::COMMON_ROUTES_GIT_INFO),
-                frontend_contract::SuccessStatus::Code200,
-            ),
-        }
-    }
-    #[must_use]
     pub fn path(self) -> AdminRoutePath {
-        let suffix = match self {
-            Self::DeleteRole(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminDeleteRoleRoute,
-                >(&id))
-            }
-            Self::UpdateRole(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminUpdateRoleRoute,
-                >(&id))
-            }
-            Self::SetRolePermissions(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminSetRolePermissionsRoute,
-                >(&id))
-            }
-            Self::DeleteUser(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminDeleteUserRoute,
-                >(&id))
-            }
-            Self::UpdateUser(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminUpdateUserRoute,
-                >(&id))
-            }
-            Self::SetUserBan(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminSetUserBanRoute,
-                >(&id))
-            }
-            Self::SetUserPassword(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminSetUserPasswordRoute,
-                >(&id))
-            }
-            Self::SetUserRoles(id) => {
-                String::from(frontend_contract::typed_parameterized_route_path::<
-                    AdminSetUserRolesRoute,
-                >(&id))
-            }
-            Self::RevokeSession => {
-                String::from(frontend_contract::typed_route_path::<AdminRevokeSessionRoute>())
-            }
-            Self::Version => String::from(str_constants::API_V1_GIT_INFO),
-            value @ (Self::Audit
-            | Self::AuditExport
-            | Self::Branding
-            | Self::Dashboard
-            | Self::ChangeOwnPassword
-            | Self::MfaStatus
-            | Self::MfaEnroll
-            | Self::MfaConfirm
-            | Self::MfaDisable
-            | Self::MfaStepUp
-            | Self::CreateRole
-            | Self::CreateUser
-            | Self::Me
-            | Self::Metrics
-            | Self::OpenApi
-            | Self::Permissions
-            | Self::Refresh
-            | Self::RevokeAllSessions
-            | Self::Roles
-            | Self::Settings
-            | Self::SignIn
-            | Self::SignOut
-            | Self::Sessions
-            | Self::UpdateSettings
-            | Self::Users) => value.contract().path().as_ref().to_owned(),
-        };
+        let suffix = String::from(self.catalog_path());
         if matches!(self, Self::Version) {
             AdminRoutePath::try_from(suffix).unwrap_or_default()
         } else {

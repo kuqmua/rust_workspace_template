@@ -3948,6 +3948,51 @@ pub const TEST_UNKNOWN_PG_SQLSTATE: &str = "ZZZZZ";
 pub const DATABASE_URL_FLAG: &str = "--database-url";
 pub const DATABASE_URL_MUST_NOT_BE_EMPTY: &str = "database URL must not be empty";
 pub const DATABASE_URL_EXCEEDS_MAXIMUM_LENGTH: &str = "database URL exceeds maximum length";
+pub const ROUTE_CATALOG: &str = "route_catalog";
+pub const ROUTE_CATALOG_ROUTE: &str = "route_catalog_route";
+pub const ROUTE_CATALOG_FAMILY: &str = "family";
+pub const ROUTE_CATALOG_BODY_LIMIT: &str = "body_limit";
+pub const ROUTE_CATALOG_CONTRACT: &str = "contract";
+pub const ROUTE_CATALOG_PATH: &str = "path";
+pub const ROUTE_CATALOG_EXCLUDE_FROM_FAMILY: &str = "exclude_from_family";
+pub const ROUTE_CATALOG_REQUIRES_ATTRIBUTE: &str =
+    "RouteCatalog requires #[route_catalog(family = ..., body_limit = ...)]";
+pub const ROUTE_CATALOG_REQUIRES_FAMILY: &str = "RouteCatalog requires a family type";
+pub const ROUTE_CATALOG_REQUIRES_BODY_LIMIT: &str = "RouteCatalog requires a body limit";
+pub const ROUTE_CATALOG_VARIANT_REQUIRES_ROUTE: &str =
+    "RouteCatalog variants require #[route_catalog_route(...)]";
+pub const ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES: &str =
+    "route_catalog_route requires a route type or both contract and path";
+pub const ROUTE_CATALOG_ROUTE_CANNOT_MIX_TYPE_AND_CUSTOM_VALUES: &str =
+    "route_catalog_route cannot mix a route type with contract or path";
+pub const ROUTE_CATALOG_ROUTE_SUPPORTS_UNIT_OR_SINGLE_FIELD_VARIANTS: &str =
+    "RouteCatalog supports only unit variants and single-field tuple variants";
+pub const ROUTE_CATALOG_CUSTOM_ROUTE_MUST_BE_UNIT: &str =
+    "custom RouteCatalog routes must be unit variants";
+pub const WIRE_ENUM: &str = "wire_enum";
+pub const WIRE_ENUM_WIRE: &str = "wire";
+pub const WIRE_ENUM_REF_TYPE: &str = "ref_type";
+pub const WIRE_ENUM_ERROR_MESSAGE: &str = "error_message";
+pub const WIRE_ENUM_REQUIRES_ATTRIBUTE: &str =
+    "WireEnum requires #[wire_enum(ref_type = ..., error_message = ...)]";
+pub const WIRE_ENUM_VARIANT_REQUIRES_WIRE: &str = "WireEnum variants require #[wire(\"...\")]";
+pub const WIRE_ENUM_SUPPORTS_UNIT_VARIANTS: &str = "WireEnum supports only unit variants";
+pub const WIRE_ENUM_DUPLICATE_VALUE: &str = "WireEnum wire values must be unique";
+pub const PAGE_CATALOG: &str = "page_catalog";
+pub const PAGE_CATALOG_PAGE: &str = "page_catalog_page";
+pub const PAGE_CATALOG_SPEC: &str = "spec";
+pub const PAGE_CATALOG_PATH_REF: &str = "path_ref";
+pub const PAGE_CATALOG_INVENTORY: &str = "inventory";
+pub const PAGE_CATALOG_CAPABILITY: &str = "capability";
+pub const PAGE_CATALOG_ROUTE: &str = "route";
+pub const PAGE_CATALOG_TITLE: &str = "title";
+pub const PAGE_CATALOG_REQUIRES_ATTRIBUTE: &str =
+    "PageCatalog requires spec, path_ref, and inventory arguments";
+pub const PAGE_CATALOG_VARIANT_REQUIRES_PAGE: &str =
+    "PageCatalog variants require #[page_catalog_page(...)]";
+pub const PAGE_CATALOG_PAGE_REQUIRES_FIELDS: &str =
+    "page_catalog_page requires capability, path, route, and title";
+pub const PAGE_CATALOG_SUPPORTS_UNIT_VARIANTS: &str = "PageCatalog supports only unit variants";
 pub const MIGRATIONS_SOURCE_EXCEEDS_MAXIMUM_LENGTH: &str =
     "migrations source exceeds maximum length";
 pub const SOURCE_FLAG: &str = "--source";

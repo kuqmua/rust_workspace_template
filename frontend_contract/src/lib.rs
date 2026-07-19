@@ -12,7 +12,9 @@ pub use auth_session_keep_alive::{
     AuthSessionPresence, AuthSessionRefreshOutcome, StdAuthSessionInstant,
     StdAuthSessionRefreshInterval,
 };
-pub use frontend_contract_macros::{RouteFamily, TypedRoute, route_openapi, route_registry};
+pub use frontend_contract_macros::{
+    PageCatalog, RouteCatalog, RouteFamily, TypedRoute, route_openapi, route_registry,
+};
 pub use json_snapshot::{
     JsonContractSnapshot, JsonContractSnapshotError, JsonSnapshotDynamicFieldRef,
     canonical_json_contract_snapshot,

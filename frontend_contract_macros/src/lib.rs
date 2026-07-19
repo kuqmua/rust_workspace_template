@@ -14,6 +14,184 @@ impl From<syn::Type> for SynType {
         Self(value)
     }
 }
+struct SynIdent(syn::Ident);
+impl From<syn::Ident> for SynIdent {
+    fn from(value: syn::Ident) -> Self {
+        Self(value)
+    }
+}
+struct StdBool(bool);
+struct RouteCatalogArgs {
+    body_limit: SynExpr,
+    family: SynIdent,
+}
+struct RouteCatalogRouteArgs {
+    contract: Option<SynExpr>,
+    exclude_from_family: StdBool,
+    path: Option<SynExpr>,
+    route: Option<SynType>,
+}
+struct PageCatalogArgs {
+    inventory: SynIdent,
+    path_ref: SynIdent,
+    spec: SynIdent,
+}
+struct PageCatalogPageArgs {
+    capability: SynExpr,
+    path: SynExpr,
+    route: SynExpr,
+    title: SynExpr,
+}
+impl syn::parse::Parse for PageCatalogArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut inventory = None;
+        let mut path_ref = None;
+        let mut spec = None;
+        while !input.is_empty() {
+            let name = input.parse::<syn::Ident>()?;
+            let _equals = input.parse::<syn::Token![=]>()?;
+            if name == str_constants::PAGE_CATALOG_INVENTORY {
+                inventory = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+            } else if name == str_constants::PAGE_CATALOG_PATH_REF {
+                path_ref = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+            } else if name == str_constants::PAGE_CATALOG_SPEC {
+                spec = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+            } else {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    str_constants::PAGE_CATALOG_REQUIRES_ATTRIBUTE,
+                ));
+            }
+            if !input.is_empty() {
+                let _comma = input.parse::<syn::Token![,]>()?;
+            }
+        }
+        Ok(Self {
+            inventory: inventory
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+            path_ref: path_ref
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+            spec: spec
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_REQUIRES_ATTRIBUTE))?,
+        })
+    }
+}
+impl syn::parse::Parse for PageCatalogPageArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut capability = None;
+        let mut path = None;
+        let mut route = None;
+        let mut title = None;
+        while !input.is_empty() {
+            let name = input.parse::<syn::Ident>()?;
+            let _equals = input.parse::<syn::Token![=]>()?;
+            if name == str_constants::PAGE_CATALOG_CAPABILITY {
+                capability = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else if name == str_constants::ROUTE_CATALOG_PATH {
+                path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else if name == str_constants::PAGE_CATALOG_ROUTE {
+                route = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else if name == str_constants::PAGE_CATALOG_TITLE {
+                title = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS,
+                ));
+            }
+            if !input.is_empty() {
+                let _comma = input.parse::<syn::Token![,]>()?;
+            }
+        }
+        Ok(Self {
+            capability: capability
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            path: path
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            route: route
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+            title: title
+                .ok_or_else(|| input.error(str_constants::PAGE_CATALOG_PAGE_REQUIRES_FIELDS))?,
+        })
+    }
+}
+impl syn::parse::Parse for RouteCatalogArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut body_limit = None;
+        let mut family = None;
+        while !input.is_empty() {
+            let name = input.parse::<syn::Ident>()?;
+            let _equals = input.parse::<syn::Token![=]>()?;
+            if name == str_constants::ROUTE_CATALOG_FAMILY {
+                family = Some(SynIdent::from(input.parse::<syn::Ident>()?));
+            } else if name == str_constants::ROUTE_CATALOG_BODY_LIMIT {
+                body_limit = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+            } else {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    str_constants::UNSUPPORTED_TYPED_ROUTE_FIELD,
+                ));
+            }
+            if !input.is_empty() {
+                let _comma = input.parse::<syn::Token![,]>()?;
+            }
+        }
+        Ok(Self {
+            body_limit: body_limit
+                .ok_or_else(|| input.error(str_constants::ROUTE_CATALOG_REQUIRES_BODY_LIMIT))?,
+            family: family
+                .ok_or_else(|| input.error(str_constants::ROUTE_CATALOG_REQUIRES_FAMILY))?,
+        })
+    }
+}
+impl syn::parse::Parse for RouteCatalogRouteArgs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        if input.peek(syn::Ident) && input.peek2(syn::Token![=]) {
+            let mut contract = None;
+            let mut exclude_from_family = StdBool(false);
+            let mut path = None;
+            while !input.is_empty() {
+                let name = input.parse::<syn::Ident>()?;
+                if name == str_constants::ROUTE_CATALOG_EXCLUDE_FROM_FAMILY {
+                    exclude_from_family = StdBool(true);
+                } else {
+                    let _equals = input.parse::<syn::Token![=]>()?;
+                    if name == str_constants::ROUTE_CATALOG_CONTRACT {
+                        contract = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    } else if name == str_constants::ROUTE_CATALOG_PATH {
+                        path = Some(SynExpr::from(input.parse::<syn::Expr>()?));
+                    } else {
+                        return Err(syn::Error::new_spanned(
+                            name,
+                            str_constants::UNSUPPORTED_TYPED_ROUTE_FIELD,
+                        ));
+                    }
+                }
+                if !input.is_empty() {
+                    let _comma = input.parse::<syn::Token![,]>()?;
+                }
+            }
+            if contract.is_none() || path.is_none() {
+                return Err(
+                    input.error(str_constants::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES)
+                );
+            }
+            Ok(Self {
+                contract,
+                exclude_from_family,
+                path,
+                route: None,
+            })
+        } else {
+            Ok(Self {
+                contract: None,
+                exclude_from_family: StdBool(false),
+                path: None,
+                route: Some(SynType::from(input.parse::<syn::Type>()?)),
+            })
+        }
+    }
+}
 struct TypedRouteArgs {
     authentication: SynExpr,
     error_statuses: SynExpr,
@@ -542,6 +720,296 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
         }
         #parameterized_route
+    }
+    .into()
+}
+
+#[proc_macro_derive(RouteCatalog, attributes(route_catalog, route_catalog_route))]
+pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let derive_input = match syn::parse::<syn::DeriveInput>(input) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let Some(catalog_attribute) = derive_input
+        .attrs
+        .iter()
+        .find(|attribute| attribute.path().is_ident(str_constants::ROUTE_CATALOG))
+    else {
+        return syn::Error::new_spanned(
+            derive_input.ident,
+            str_constants::ROUTE_CATALOG_REQUIRES_ATTRIBUTE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let args = match catalog_attribute.parse_args::<RouteCatalogArgs>() {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let syn::Data::Enum(data_enum) = derive_input.data else {
+        return syn::Error::new_spanned(
+            derive_input.ident,
+            str_constants::ROUTE_CATALOG_REQUIRES_ATTRIBUTE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let mut contract_arms = Vec::new();
+    let mut family_routes = Vec::new();
+    let mut path_arms = Vec::new();
+    let mut variants = data_enum.variants.into_iter();
+    loop {
+        let Some(variant) = variants.next() else {
+            break;
+        };
+        let Some(route_attribute) = variant.attrs.iter().find(|attribute| {
+            attribute
+                .path()
+                .is_ident(str_constants::ROUTE_CATALOG_ROUTE)
+        }) else {
+            return syn::Error::new_spanned(
+                variant.ident,
+                str_constants::ROUTE_CATALOG_VARIANT_REQUIRES_ROUTE,
+            )
+            .to_compile_error()
+            .into();
+        };
+        let route_args = match route_attribute.parse_args::<RouteCatalogRouteArgs>() {
+            Ok(value) => value,
+            Err(error) => return error.to_compile_error().into(),
+        };
+        let variant_identifier = variant.ident;
+        match (route_args.route, variant.fields) {
+            (Some(route), syn::Fields::Unit) => {
+                let route_type = route.0;
+                contract_arms.push(quote::quote! {
+                    Self::#variant_identifier => <#route_type as frontend_contract::TypedRoute>::metadata().contract()
+                });
+                path_arms.push(quote::quote! {
+                    Self::#variant_identifier => frontend_contract::ParameterizedRoutePath::try_from(
+                        String::from(frontend_contract::typed_route_path::<#route_type>())
+                    ).unwrap_or_default()
+                });
+                family_routes.push(route_type);
+            }
+            (Some(route), syn::Fields::Unnamed(fields)) if fields.unnamed.len() == 1usize => {
+                let route_type = route.0;
+                contract_arms.push(quote::quote! {
+                    Self::#variant_identifier(_value) => <#route_type as frontend_contract::TypedRoute>::metadata().contract()
+                });
+                path_arms.push(quote::quote! {
+                    Self::#variant_identifier(value) => frontend_contract::typed_parameterized_route_path::<#route_type>(&value)
+                });
+                family_routes.push(route_type);
+            }
+            (Some(_route), syn::Fields::Named(_) | syn::Fields::Unnamed(_)) => {
+                return syn::Error::new_spanned(
+                    variant_identifier,
+                    str_constants::ROUTE_CATALOG_ROUTE_SUPPORTS_UNIT_OR_SINGLE_FIELD_VARIANTS,
+                )
+                .to_compile_error()
+                .into();
+            }
+            (None, syn::Fields::Unit) => {
+                let Some(contract) = route_args.contract else {
+                    return syn::Error::new_spanned(
+                        variant_identifier,
+                        str_constants::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                let Some(path) = route_args.path else {
+                    return syn::Error::new_spanned(
+                        variant_identifier,
+                        str_constants::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
+                    )
+                    .to_compile_error()
+                    .into();
+                };
+                let contract_expression = contract.0;
+                let path_expression = path.0;
+                contract_arms.push(quote::quote! {
+                    Self::#variant_identifier => #contract_expression
+                });
+                path_arms.push(quote::quote! {
+                    Self::#variant_identifier => frontend_contract::ParameterizedRoutePath::try_from(
+                        String::from(#path_expression)
+                    ).unwrap_or_default()
+                });
+                if !route_args.exclude_from_family.0 {
+                    return syn::Error::new_spanned(
+                        variant_identifier,
+                        str_constants::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES,
+                    )
+                    .to_compile_error()
+                    .into();
+                }
+            }
+            (None, syn::Fields::Named(_) | syn::Fields::Unnamed(_)) => {
+                return syn::Error::new_spanned(
+                    variant_identifier,
+                    str_constants::ROUTE_CATALOG_CUSTOM_ROUTE_MUST_BE_UNIT,
+                )
+                .to_compile_error()
+                .into();
+            }
+        }
+    }
+    let identifier = derive_input.ident;
+    let family = args.family.0;
+    let body_limit = args.body_limit.0;
+    quote::quote! {
+        impl #identifier {
+            #[must_use]
+            pub fn contract(self) -> frontend_contract::RouteContract {
+                match self {
+                    #(#contract_arms),*
+                }
+            }
+            fn catalog_path(self) -> frontend_contract::ParameterizedRoutePath {
+                match self {
+                    #(#path_arms),*
+                }
+            }
+        }
+        #[derive(Clone, Copy, Debug)]
+        pub struct #family;
+        impl frontend_contract::RouteFamily for #family {
+            fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
+                Some(frontend_contract::RouteBodyLimit::from(#body_limit))
+            }
+            fn coverage_descriptors() -> Vec<frontend_contract::RouteCoverageDescriptor> {
+                vec![
+                    #(
+                        <#family_routes as frontend_contract::CoveredRoute>::coverage_descriptor()
+                    ),*
+                ]
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(PageCatalog, attributes(page_catalog, page_catalog_page))]
+pub fn derive_page_catalog(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let Some(attribute) = input
+        .attrs
+        .iter()
+        .find(|attribute| attribute.path().is_ident(str_constants::PAGE_CATALOG))
+    else {
+        return syn::Error::new_spanned(
+            input.ident,
+            str_constants::PAGE_CATALOG_REQUIRES_ATTRIBUTE,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let args = match attribute.parse_args::<PageCatalogArgs>() {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let syn::Data::Enum(data_enum) = &input.data else {
+        return syn::Error::new_spanned(
+            &input.ident,
+            str_constants::PAGE_CATALOG_SUPPORTS_UNIT_VARIANTS,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let pages = match data_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            if !matches!(variant.fields, syn::Fields::Unit) {
+                return Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    str_constants::PAGE_CATALOG_SUPPORTS_UNIT_VARIANTS,
+                ));
+            }
+            let page_attribute = variant
+                .attrs
+                .iter()
+                .find(|candidate| candidate.path().is_ident(str_constants::PAGE_CATALOG_PAGE))
+                .ok_or_else(|| {
+                    syn::Error::new_spanned(
+                        &variant.ident,
+                        str_constants::PAGE_CATALOG_VARIANT_REQUIRES_PAGE,
+                    )
+                })?;
+            page_attribute
+                .parse_args::<PageCatalogPageArgs>()
+                .map(|page| (&variant.ident, page))
+        })
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifiers = pages
+        .iter()
+        .map(|(identifier, _page)| *identifier)
+        .collect::<Vec<_>>();
+    let capabilities = pages
+        .iter()
+        .map(|(_identifier, page)| &page.capability.0)
+        .collect::<Vec<_>>();
+    let paths = pages
+        .iter()
+        .map(|(_identifier, page)| &page.path.0)
+        .collect::<Vec<_>>();
+    let routes = pages
+        .iter()
+        .map(|(_identifier, page)| &page.route.0)
+        .collect::<Vec<_>>();
+    let titles = pages
+        .iter()
+        .map(|(_identifier, page)| &page.title.0)
+        .collect::<Vec<_>>();
+    let identifier = &input.ident;
+    let inventory = args.inventory.0;
+    let path_ref = args.path_ref.0;
+    let spec = args.spec.0;
+    let indexes = (0..pages.len()).map(syn::Index::from);
+    let count = pages.len();
+    quote::quote! {
+        const #inventory: [#spec; #count] = [
+            #(
+                #spec::new(
+                    #capabilities,
+                    #identifier::#identifiers,
+                    #paths,
+                    #routes,
+                    #titles,
+                )
+            ),*
+        ];
+        impl #identifier {
+            pub fn all() -> impl Iterator<Item = Self> {
+                #inventory.iter().map(|spec| spec.page())
+            }
+            #[must_use]
+            pub const fn specs() -> &'static [#spec] {
+                &#inventory
+            }
+            #[must_use]
+            pub fn from_path(path: #path_ref<'_>) -> Option<Self> {
+                #inventory
+                    .iter()
+                    .find(|spec| spec.path().as_ref() == path.0)
+                    .map(|spec| spec.page())
+            }
+            #[must_use]
+            pub const fn spec(self) -> #spec {
+                match self {
+                    #(Self::#identifiers => #inventory[#indexes]),*
+                }
+            }
+        }
     }
     .into()
 }

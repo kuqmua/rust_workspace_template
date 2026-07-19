@@ -27,6 +27,39 @@ struct BoundedStringAttrs {
     options: workspace_macro_helpers::StdUniqueOptionSet<BoundedStringOption>,
     validator: Option<SynExpr>,
 }
+struct WireEnumAttrs {
+    error_message: SynExpr,
+    ref_type: SynIdentifier,
+}
+impl syn::parse::Parse for WireEnumAttrs {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+        let mut error_message = None;
+        let mut ref_type = None;
+        while !input.is_empty() {
+            let name = input.parse::<syn::Ident>()?;
+            let _equals = input.parse::<syn::Token![=]>()?;
+            if name == str_constants::WIRE_ENUM_REF_TYPE {
+                ref_type = Some(SynIdentifier(input.parse::<syn::Ident>()?));
+            } else if name == str_constants::WIRE_ENUM_ERROR_MESSAGE {
+                error_message = Some(SynExpr(input.parse::<syn::Expr>()?));
+            } else {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    str_constants::WIRE_ENUM_REQUIRES_ATTRIBUTE,
+                ));
+            }
+            if !input.is_empty() {
+                let _comma = input.parse::<syn::Token![,]>()?;
+            }
+        }
+        Ok(Self {
+            error_message: error_message
+                .ok_or_else(|| input.error(str_constants::WIRE_ENUM_REQUIRES_ATTRIBUTE))?,
+            ref_type: ref_type
+                .ok_or_else(|| input.error(str_constants::WIRE_ENUM_REQUIRES_ATTRIBUTE))?,
+        })
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum BoundedStringOption {
     Chars,
@@ -167,6 +200,7 @@ impl AsRef<syn::DeriveInput> for SynDeriveInputRef<'_> {
 }
 #[derive(Clone, Copy)]
 struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
+struct SynIdentifier(syn::Ident);
 impl<'syn_lt> From<&'syn_lt syn::Ident> for SynIdentifierRef<'syn_lt> {
     fn from(value: &'syn_lt syn::Ident) -> Self {
         Self(value)
@@ -528,6 +562,124 @@ pub fn enum_from_str(input_token_stream: proc_macro::TokenStream) -> proc_macro:
         Ok(v) => v.into(),
         Err(error) => error.into_compile_error().into(),
     }
+}
+#[proc_macro_derive(WireEnum, attributes(wire_enum, wire))]
+pub fn wire_enum(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let Some(attribute) = input
+        .attrs
+        .iter()
+        .find(|attribute| attribute.path().is_ident(str_constants::WIRE_ENUM))
+    else {
+        return syn::Error::new_spanned(input.ident, str_constants::WIRE_ENUM_REQUIRES_ATTRIBUTE)
+            .to_compile_error()
+            .into();
+    };
+    let attrs = match attribute.parse_args::<WireEnumAttrs>() {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let syn::Data::Enum(data_enum) = &input.data else {
+        return syn::Error::new_spanned(
+            &input.ident,
+            str_constants::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+        )
+        .to_compile_error()
+        .into();
+    };
+    let parsed_variants_result = data_enum.variants.iter().try_fold(
+        (
+            std::collections::BTreeSet::new(),
+            Vec::<(&syn::Ident, syn::LitStr)>::new(),
+        ),
+        |(mut unique_values, mut parsed), variant| {
+            if !matches!(variant.fields, syn::Fields::Unit) {
+                return Err(syn::Error::new_spanned(
+                    &variant.ident,
+                    str_constants::WIRE_ENUM_SUPPORTS_UNIT_VARIANTS,
+                ));
+            }
+            let wire_attribute = variant
+                .attrs
+                .iter()
+                .find(|candidate| candidate.path().is_ident(str_constants::WIRE_ENUM_WIRE))
+                .ok_or_else(|| {
+                    syn::Error::new_spanned(
+                        &variant.ident,
+                        str_constants::WIRE_ENUM_VARIANT_REQUIRES_WIRE,
+                    )
+                })?;
+            let value = wire_attribute.parse_args::<syn::LitStr>()?;
+            if !unique_values.insert(value.value()) {
+                return Err(syn::Error::new_spanned(
+                    value,
+                    str_constants::WIRE_ENUM_DUPLICATE_VALUE,
+                ));
+            }
+            parsed.push((&variant.ident, value));
+            Ok((unique_values, parsed))
+        },
+    );
+    let (_, parsed_variants) = match parsed_variants_result {
+        Ok(value) => value,
+        Err(error) => return error.to_compile_error().into(),
+    };
+    let identifiers = parsed_variants
+        .iter()
+        .map(|(identifier, _value)| *identifier)
+        .collect::<Vec<_>>();
+    let values = parsed_variants
+        .iter()
+        .map(|(_identifier, value)| value)
+        .collect::<Vec<_>>();
+    let identifier = &input.ident;
+    let error_identifier = quote::format_ident!("{}TryFromStrError", identifier);
+    let error_message = attrs.error_message.0;
+    let ref_type = attrs.ref_type.0;
+    let variant_count = identifiers.len();
+    quote::quote! {
+        impl #identifier {
+            pub const ALL: [Self; #variant_count] = [#(Self::#identifiers),*];
+            #[must_use]
+            pub fn as_str(self) -> #ref_type<'static> {
+                match self {
+                    #(Self::#identifiers => #ref_type::from(#values)),*
+                }
+            }
+        }
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub struct #error_identifier;
+        impl std::fmt::Display for #error_identifier {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(#error_message)
+            }
+        }
+        impl std::error::Error for #error_identifier {}
+        impl TryFrom<&str> for #identifier {
+            type Error = #error_identifier;
+            fn try_from(value: &str) -> Result<Self, Self::Error> {
+                match value {
+                    #(#values => Ok(Self::#identifiers),)*
+                    _value => Err(#error_identifier),
+                }
+            }
+        }
+        impl serde::Serialize for #identifier {
+            fn serialize<Serializer>(
+                &self,
+                serializer: Serializer,
+            ) -> Result<Serializer::Ok, Serializer::Error>
+            where
+                Serializer: serde::Serializer,
+            {
+                serializer.serialize_str(self.as_str().as_ref())
+            }
+        }
+    }
+    .into()
 }
 #[proc_macro_derive(BoundedString, attributes(bounded_string))]
 pub fn bounded_string(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {

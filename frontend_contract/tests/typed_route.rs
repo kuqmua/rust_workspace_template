@@ -31,6 +31,25 @@ mod tests {
     #[route_family(TestRoute)]
     struct TestRouteFamily;
 
+    #[derive(Clone, Copy, frontend_contract::RouteCatalog)]
+    #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
+    enum TestCatalog {
+        #[route_catalog_route(
+            contract = frontend_contract::RouteContract::new(
+                frontend_contract::AuthenticationRequirement::Public,
+                frontend_contract::HttpMethod::Get,
+                frontend_contract::MutationKind::ReadOnly,
+                frontend_contract::ContractStr::from(str_constants::ROUTE),
+                frontend_contract::SuccessStatus::Code200,
+            ),
+            path = str_constants::ROUTE,
+            exclude_from_family,
+        )]
+        Custom,
+        #[route_catalog_route(TestRoute)]
+        Read,
+    }
+
     #[test]
     fn derive_uses_one_declaration_for_types_and_metadata() {
         let metadata = frontend_contract::client_route_metadata::<TestRoute>();
@@ -56,6 +75,21 @@ mod tests {
         assert_eq!(
             metadata,
             vec![frontend_contract::client_route_metadata::<TestRoute>()]
+        );
+    }
+    #[test]
+    fn route_catalog_generates_contract_paths_and_family() {
+        assert_eq!(
+            TestCatalog::Read.contract(),
+            frontend_contract::client_route_metadata::<TestRoute>().contract()
+        );
+        assert_eq!(
+            String::from(TestCatalog::Custom.catalog_path()),
+            str_constants::ROUTE
+        );
+        assert_eq!(
+            <TestCatalogFamily as frontend_contract::RouteFamily>::coverage_descriptors().len(),
+            1usize
         );
     }
 }
