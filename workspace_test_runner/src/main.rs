@@ -739,17 +739,43 @@ where
     reason = "the command-mode facade keeps fixture generation out of main dispatch"
 )]
 fn write_admin_contract_fixture() -> Result<(), ()> {
-    let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+    let no_body_schema =
+        serde_json::to_value(<server_admin_contract::AdminNoBody as utoipa::ToSchema>::schema().1)
+            .map_err(|error| eprintln!("{error}"))?;
+    let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
         .into_iter()
-        .map(|metadata| {
-            serde_json::json!([
+        .map(|contract| {
+            let metadata = contract.metadata();
+            let request_schema = contract
+                .request_schema()
+                .cloned()
+                .map(|schema| {
+                    let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                    serde_json::to_value(openapi_schema)
+                })
+                .transpose()
+                .map_err(|error| eprintln!("{error}"))?
+                .filter(|schema| schema != &no_body_schema);
+            let response_schema = contract
+                .response_schema()
+                .cloned()
+                .map(|schema| {
+                    let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                    serde_json::to_value(openapi_schema)
+                })
+                .transpose()
+                .map_err(|error| eprintln!("{error}"))?
+                .filter(|_schema| metadata.success_status() != frontend_contract::SuccessStatus::Code204);
+            Ok(serde_json::json!([
                 metadata.openapi_operation_id().as_ref(),
                 metadata.method().as_ref(),
                 metadata.path().as_ref(),
-                u16::from(metadata.success_status().transport_status())
-            ])
+                u16::from(metadata.success_status().transport_status()),
+                request_schema,
+                response_schema,
+            ]))
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, ()>>()?;
     let permissions = server_admin_contract::AdminPermission::ALL
         .into_iter()
         .map(|permission| serde_json::Value::String(permission.as_str().as_ref().to_owned()))

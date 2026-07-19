@@ -91,5 +91,15 @@ mod tests {
             <TestCatalogFamily as frontend_contract::RouteFamily>::coverage_descriptors().len(),
             1usize
         );
+        let schema_contracts =
+            <TestCatalogFamily as frontend_contract::RouteFamily>::schema_contracts();
+        assert_eq!(schema_contracts.len(), 1usize);
+        let schema_contract = schema_contracts.first().expect("b4e9f1c3");
+        assert_eq!(
+            schema_contract.metadata(),
+            frontend_contract::client_route_metadata::<TestRoute>()
+        );
+        assert!(schema_contract.request_schema().is_some());
+        assert!(schema_contract.response_schema().is_some());
     }
 }

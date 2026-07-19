@@ -717,6 +717,9 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                     #success_status,
                 )
             }
+            fn openapi_request_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
+                Some(frontend_contract::UtoipaOpenApiRouteSchema::from(<#request as utoipa::ToSchema>::schema().1))
+            }
             fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 #response_schema
             }
@@ -899,6 +902,13 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
                 vec![
                     #(
                         <#family_routes as frontend_contract::CoveredRoute>::coverage_descriptor()
+                    ),*
+                ]
+            }
+            fn schema_contracts() -> Vec<frontend_contract::RouteSchemaContract> {
+                vec![
+                    #(
+                        frontend_contract::RouteSchemaContract::from_typed_route::<#family_routes>()
                     ),*
                 ]
             }
@@ -1090,6 +1100,13 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
                 vec![
                     #(
                         <#route_types as frontend_contract::CoveredRoute>::coverage_descriptor()
+                    ),*
+                ]
+            }
+            fn schema_contracts() -> Vec<frontend_contract::RouteSchemaContract> {
+                vec![
+                    #(
+                        frontend_contract::RouteSchemaContract::from_typed_route::<#route_types>()
                     ),*
                 ]
             }

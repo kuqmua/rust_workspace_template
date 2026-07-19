@@ -372,158 +372,79 @@ mod tests {
     }
 
     #[test]
-    fn every_typed_route_request_body_matches_open_api() {
+    fn proc_macro_generated_request_contracts_match_open_api_and_each_field() {
         let document =
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("40a639b7");
-        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+        let no_body_schema = serde_json::to_value(
+            <server_admin_contract::AdminNoBody as utoipa::ToSchema>::schema().1,
+        )
+        .expect("e185e575");
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
             .into_iter()
-            .for_each(|metadata| {
-                let expected_schema = match metadata.openapi_operation_id().as_ref() {
-                    "change_own_password" => Some("server_admin_contract.AdminChangeOwnPasswordReq"),
-                    "create_role" => Some("server_admin_contract.AdminCreateRoleReq"),
-                    "create_user" => Some("server_admin_contract.AdminCreateUserReq"),
-                    "mfa_confirm" => Some("server_admin_contract.AdminMfaConfirmReq"),
-                    "mfa_disable" => Some("server_admin_contract.AdminMfaDisableReq"),
-                    "mfa_enroll" => Some("server_admin_contract.AdminMfaEnrollReq"),
-                    "mfa_step_up" => Some("server_admin_contract.AdminMfaStepUpReq"),
-                    "set_role_permissions" => Some("server_admin_contract.AdminSetRolePermissionsReq"),
-                    "set_user_ban" => Some("server_admin_contract.AdminSetUserBanReq"),
-                    "set_user_password" => Some("server_admin_contract.AdminSetUserPasswordReq"),
-                    "set_user_roles" => Some("server_admin_contract.AdminSetUserRolesReq"),
-                    "sign_in" => Some("server_admin_contract.AdminSignInReq"),
-                    "update_role" => Some("server_admin_contract.AdminUpdateRoleReq"),
-                    "update_settings" => Some("server_admin_contract.AdminUpdateSettingsReq"),
-                    "update_user" => Some("server_admin_contract.AdminUpdateUserReq"),
-                    _ => None,
-                };
+            .for_each(|contract| {
+                let metadata = contract.metadata();
                 let operation = typed_operation(&document, metadata);
                 let request_body = operation.get("requestBody");
-                match expected_schema {
-                    Some(schema) => {
-                        let expected_reference = format!("#/components/schemas/{schema}");
-                        assert_eq!(
-                            request_body.and_then(|body| body.pointer("/content/application~1json/schema/$ref")).and_then(serde_json::Value::as_str),
-                            Some(expected_reference.as_str()),
-                            "request schema differs for {}",
-                            metadata.openapi_operation_id().as_ref(),
-                        );
-                    }
-                    None => assert!(request_body.is_none(), "unexpected request body for {}", metadata.openapi_operation_id().as_ref()),
+                let expected_schema = contract
+                    .request_schema()
+                    .cloned()
+                    .map(|schema| {
+                        let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                        serde_json::to_value(openapi_schema)
+                    })
+                    .transpose()
+                    .expect("506e754a")
+                    .expect("eb67c5a0");
+                if expected_schema == no_body_schema {
+                    assert!(request_body.is_none(), "unexpected request body for {}", metadata.openapi_operation_id().as_ref());
+                    return;
                 }
+                let reference = request_body
+                    .and_then(|body| body.pointer("/content/application~1json/schema/$ref"))
+                    .and_then(serde_json::Value::as_str)
+                    .expect("26d0f83b");
+                let actual_schema = document.pointer(reference.trim_start_matches('#')).expect("3754bca2");
+                assert_eq!(actual_schema, &expected_schema, "request schema differs for {}", metadata.openapi_operation_id().as_ref());
+                expected_schema
+                    .get(str_constants::PROPERTIES)
+                    .and_then(serde_json::Value::as_object)
+                    .into_iter()
+                    .flatten()
+                    .for_each(|(property, expected)| {
+                        assert_eq!(actual_schema.get(str_constants::PROPERTIES).and_then(|properties| properties.get(property)), Some(expected), "request field differs for {}.{property}", metadata.openapi_operation_id().as_ref());
+                    });
             });
     }
 
     #[test]
-    fn every_request_field_matches_open_api_individually() {
+    fn proc_macro_generated_response_contracts_match_open_api() {
         let document =
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
-                .expect("eb67c5a0");
-        let schemas = document
-            .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
-            .and_then(serde_json::Value::as_object)
-            .expect("26d0f83b");
-        [
-            (
-                "AdminChangeOwnPasswordReq",
-                &["current_password", "new_password", "revoke_other_sessions"][..],
-                &["current_password", "new_password", "revoke_other_sessions"][..],
-            ),
-            ("AdminCreateRoleReq", &["name"][..], &["name"][..]),
-            (
-                "AdminCreateUserReq",
-                &["display_name", "login", "password"][..],
-                &["display_name", "login", "password"][..],
-            ),
-            ("AdminMfaConfirmReq", &["code"][..], &["code"][..]),
-            (
-                "AdminMfaDisableReq",
-                &["current_password", "proof"][..],
-                &["current_password", "proof"][..],
-            ),
-            (
-                "AdminMfaEnrollReq",
-                &["current_password"][..],
-                &["current_password"][..],
-            ),
-            (
-                "AdminMfaStepUpReq",
-                &["current_password", "proof"][..],
-                &["current_password", "proof"][..],
-            ),
-            (
-                "AdminSetRolePermissionsReq",
-                &["expected_permission_ids", "permission_ids"][..],
-                &["expected_permission_ids", "permission_ids"][..],
-            ),
-            ("AdminSetUserBanReq", &["is_banned"][..], &["is_banned"][..]),
-            (
-                "AdminSetUserPasswordReq",
-                &["password"][..],
-                &["password"][..],
-            ),
-            (
-                "AdminSetUserRolesReq",
-                &["expected_role_ids", "role_ids"][..],
-                &["expected_role_ids", "role_ids"][..],
-            ),
-            (
-                "AdminSignInReq",
-                &["login", "mfa_proof", "password"][..],
-                &["login", "password"][..],
-            ),
-            ("AdminUpdateRoleReq", &["name"][..], &["name"][..]),
-            (
-                "AdminUpdateSettingsReq",
-                &[
-                    "clear",
-                    "default_admin_route",
-                    "main_logo",
-                    "organization_contacts",
-                    "organization_name",
-                    "primary_color",
-                    "site_name",
-                    "support_url",
-                    "tab_title",
-                ][..],
-                &["clear"][..],
-            ),
-            (
-                "AdminUpdateUserReq",
-                &["display_name", "login"][..],
-                &[][..],
-            ),
-        ]
-        .into_iter()
-        .for_each(|(schema_name, expected_properties, expected_required)| {
-            let schema = schemas.get(schema_name).expect("3754bca2");
-            let properties = schema
-                .get(str_constants::PROPERTIES)
-                .and_then(serde_json::Value::as_object)
-                .expect("bb0478fd");
-            let actual_properties = properties.keys().map(String::as_str).collect::<Vec<_>>();
-            assert_eq!(
-                actual_properties, expected_properties,
-                "properties differ for {schema_name}"
-            );
-            expected_properties.iter().for_each(|property| {
-                assert!(
-                    properties.get(*property).is_some(),
-                    "missing {schema_name}.{property}"
-                );
+                .expect("c4ddf19e");
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
+            .into_iter()
+            .for_each(|contract| {
+                let metadata = contract.metadata();
+                let status = u16::from(metadata.success_status().transport_status()).to_string();
+                let actual_schema = typed_operation(&document, metadata)
+                    .pointer(format!("/responses/{status}/content/application~1json/schema").as_str());
+                if metadata.success_status() == frontend_contract::SuccessStatus::Code204 {
+                    assert!(actual_schema.is_none(), "unexpected response body for {}", metadata.openapi_operation_id().as_ref());
+                    return;
+                }
+                let expected_schema = contract
+                    .response_schema()
+                    .cloned()
+                    .map(|schema| {
+                        let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                        serde_json::to_value(openapi_schema)
+                    })
+                    .transpose()
+                    .expect("2edb7155")
+                    .expect("54d97b5d");
+                assert_eq!(actual_schema, Some(&expected_schema), "response schema differs for {}", metadata.openapi_operation_id().as_ref());
             });
-            let actual_required = schema
-                .get("required")
-                .and_then(serde_json::Value::as_array)
-                .into_iter()
-                .flatten()
-                .filter_map(serde_json::Value::as_str)
-                .collect::<Vec<_>>();
-            assert_eq!(
-                actual_required, expected_required,
-                "required fields differ for {schema_name}"
-            );
-        });
     }
 
     #[test]

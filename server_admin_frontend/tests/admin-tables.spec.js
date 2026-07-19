@@ -44,25 +44,7 @@ const expectedQueryParameters = {
   list_roles: ['limit', 'offset', 'search', 'sort', 'direction'],
   list_users: ['limit', 'offset', 'search', 'sort', 'direction'],
 };
-const expectedRequestProperties = {
-  change_own_password: [['current_password', 'new_password', 'revoke_other_sessions'], ['current_password', 'new_password', 'revoke_other_sessions']],
-  create_role: [['name'], ['name']],
-  create_user: [['display_name', 'login', 'password'], ['display_name', 'login', 'password']],
-  mfa_confirm: [['code'], ['code']],
-  mfa_disable: [['current_password', 'proof'], ['current_password', 'proof']],
-  mfa_enroll: [['current_password'], ['current_password']],
-  mfa_step_up: [['current_password', 'proof'], ['current_password', 'proof']],
-  set_role_permissions: [['expected_permission_ids', 'permission_ids'], ['expected_permission_ids', 'permission_ids']],
-  set_user_ban: [['is_banned'], ['is_banned']],
-  set_user_password: [['password'], ['password']],
-  set_user_roles: [['expected_role_ids', 'role_ids'], ['expected_role_ids', 'role_ids']],
-  sign_in: [['login', 'mfa_proof', 'password'], ['login', 'password']],
-  update_role: [['name'], ['name']],
-  update_settings: [['clear', 'default_admin_route', 'main_logo', 'organization_contacts', 'organization_name', 'primary_color', 'site_name', 'support_url', 'tab_title'], ['clear']],
-  update_user: [['display_name', 'login'], []],
-};
-
-for (const [operationId, method, path, successStatus] of routeCatalog) {
+for (const [operationId, method, path, successStatus, generatedRequestSchema, generatedResponseSchema] of routeCatalog) {
   test(`frontend contract matches backend OpenAPI for ${operationId}`, async () => {
     const operation = openApi.paths[path]?.[method.toLowerCase()];
     expect(operation, `${method} ${path} is missing from backend OpenAPI`).toBeTruthy();
@@ -72,7 +54,7 @@ for (const [operationId, method, path, successStatus] of routeCatalog) {
     if (successStatus === 204) {
       expect(successResponse.content).toBeUndefined();
     } else {
-      expect(successResponse.content?.['application/json']?.schema).toBeTruthy();
+      expect(successResponse.content?.['application/json']?.schema).toEqual(generatedResponseSchema);
     }
 
     const parameters = operation.parameters || [];
@@ -94,21 +76,20 @@ for (const [operationId, method, path, successStatus] of routeCatalog) {
       });
     }
 
-    const expectedRequest = expectedRequestProperties[operationId];
-    if (!expectedRequest) {
+    if (!generatedRequestSchema) {
       expect(operation.requestBody).toBeUndefined();
       return;
     }
     const schemaReference = operation.requestBody?.content?.['application/json']?.schema?.$ref;
     expect(schemaReference).toBeTruthy();
     const schema = openApi.components.schemas[schemaReference.split('/').at(-1)];
-    expect(Object.keys(schema.properties || {}).sort()).toEqual([...expectedRequest[0]].sort());
-    for (const property of expectedRequest[0]) {
+    expect(schema).toEqual(generatedRequestSchema);
+    for (const property of Object.keys(generatedRequestSchema.properties || {})) {
       await test.step(`request property ${property}`, async () => {
         expect(schema.properties[property]).toBeTruthy();
       });
     }
-    expect([...(schema.required || [])].sort()).toEqual([...expectedRequest[1]].sort());
+    expect([...(schema.required || [])].sort()).toEqual([...(generatedRequestSchema.required || [])].sort());
   });
 }
 

@@ -150,12 +150,47 @@ pub trait TypedRoute: Sized {
     type Transport: RouteTransport;
     fn metadata() -> RouteMetadata;
     #[must_use]
+    fn openapi_request_schema() -> Option<UtoipaOpenApiRouteSchema> {
+        None
+    }
+    #[must_use]
     fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> {
         None
     }
     #[must_use]
     fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> {
         None
+    }
+}
+#[derive(Clone, Debug)]
+pub struct RouteSchemaContract {
+    metadata: RouteMetadata,
+    request_schema: Option<UtoipaOpenApiRouteSchema>,
+    response_schema: Option<UtoipaOpenApiRouteSchema>,
+}
+impl RouteSchemaContract {
+    #[must_use]
+    pub fn from_typed_route<Route>() -> Self
+    where
+        Route: TypedRoute,
+    {
+        Self {
+            metadata: Route::metadata(),
+            request_schema: Route::openapi_request_schema(),
+            response_schema: Route::openapi_response_schema(),
+        }
+    }
+    #[must_use]
+    pub const fn metadata(&self) -> RouteMetadata {
+        self.metadata
+    }
+    #[must_use]
+    pub const fn request_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
+        self.request_schema.as_ref()
+    }
+    #[must_use]
+    pub const fn response_schema(&self) -> Option<&UtoipaOpenApiRouteSchema> {
+        self.response_schema.as_ref()
     }
 }
 #[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -211,6 +246,10 @@ pub trait RouteFamily {
         None
     }
     fn coverage_descriptors() -> Vec<crate::RouteCoverageDescriptor>;
+    #[must_use]
+    fn schema_contracts() -> Vec<RouteSchemaContract> {
+        Vec::new()
+    }
     fn route_metadata() -> Vec<RouteMetadata> {
         Self::coverage_descriptors()
             .into_iter()
