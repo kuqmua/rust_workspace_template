@@ -1,182 +1,110 @@
-# Tufa Project
+# Rust microservice workspace template
 
-A comprehensive Rust-based project for building web applications with PostgreSQL integration.
+Production-oriented Rust workspace for starting a typed HTTP system composed of independently
+deployable microservices.
 
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Project Structure](#project-structure)
-- [Setup and Installation](#setup-and-installation)
-- [Usage](#usage)
-- [Modules](#modules)
-- [Contributing](#contributing)
-- [License](#license)
+## Included services
 
-## Project Overview
+| Service | Port | Persistence | Responsibility |
+|---|---:|---|---|
+| `server` | 8080 | application PostgreSQL | public API, generated CRUD and administrator console |
+| `notification_service` | 8081 | notification PostgreSQL | reference independently deployable notification API |
 
-Tufa Project is a Rust workspace containing multiple crates designed to facilitate the development of web applications with PostgreSQL database integration. The project includes various utilities, macros, and libraries to streamline common development tasks.
+The notification service deliberately owns a separate contract crate, configuration crate,
+migrations, database credentials, Dockerfile, health checks, and Kubernetes workload. It is the
+reference boundary to follow when adding another service.
 
-## What Was Fixed
+## Shared foundations
 
-- Clarified terminology in documentation by replacing inconsistent `er` wording with `error`.
-- Expanded wording around quality checks to make commands and expected outcomes easier to understand.
-- Added this section to explicitly describe what was improved in the project documentation.
+- `server_runtime`: lifecycle, graceful shutdown, health, limits, request metadata, retries,
+  outbound URL policy and metrics;
+- `frontend_contract` and service-owned contract crates: typed transport values;
+- `config_lib`: validated environment configuration with secret redaction;
+- `pg_crud`: generated PostgreSQL CRUD contracts, handlers, clients and OpenAPI metadata;
+- `server_admin`: sessions, RBAC, audit, rate limits, MFA and operational cleanup;
+- `text_policy` and `newtype`: reusable validation and domain-wrapper mechanics;
+- `external_service_emulators`: deterministic integration-test doubles.
 
-## Key Features
+See [microservice architecture](docs/architecture.md) for ownership and communication rules.
 
-- PostgreSQL CRUD ops with code generation
-- Advanced error handling with detailed context
-- Configuration management
-- Git information integration
-- Type-safe database interactions
-- Extensible macro system
-- JSON schema validation for PostgreSQL
+## Prerequisites
 
-## Project Structure
+- latest Rust nightly;
+- PostgreSQL 16 or Docker Compose;
+- Trunk and the `wasm32-unknown-unknown` target when building the administrator frontend.
 
-This is a Rust workspace project with the following main components:
+## Local development
 
-- `postgresql_crud`: Core crate for PostgreSQL CRUD ops
-- `config_lib`: Configuration management utilities
-- `git_info`: Git repository information tools
-- `location_lib`: Advanced er handling with context
-- `from_sqlx_postgres_er`: SQLx PostgreSQL er conversion
-- `from_str`: String parsing utilities
-- `generate_quotes`: Quote generation utilities
-- `macros_helpers`: Helper macros for code generation
-- And many more utility crates...
-
-### Architecture and shared logic ownership
-
-- `newtype` generates mechanical implementations for owned, borrowed, slice, and secret-aware domain wrappers. Validation and redaction policies remain with each domain type.
-- `generate_pg_table_src` owns the CRUD operation descriptor used by generated routes, clients, handlers, OpenAPI metadata, permissions, and negative tests.
-- `generate_pg_types_src` owns PostgreSQL type capabilities through its private `PgTypeSpec` pipeline. `generate_where_filters_src` similarly owns filter SQL, bind counts, and value shapes through private `FilterSpec` values.
-- `frontend_contract` owns transport-independent success and problem decoding. Native, generated, and browser clients consume that contract without introducing SQLx, Axum, Leptos, or Gloo dependencies into it.
-- `server_runtime` owns lifecycle, limits, CORS, health probing, and request metadata. The `server` executable remains the composition root.
-- `server_admin` keeps its public facade stable while private modules own domain wrappers, RBAC, password and token handling, migrations, cleanup, generated authentication, routing, sessions, rate limiting, audit persistence, and handlers.
-- `server_admin_frontend` keeps browser transport separate from authentication coordination and page composition.
-
-Implementation details stay in private modules unless another crate has a demonstrated consumer. PostgreSQL dependencies remain outside frontend and shared HTTP contract crates.
-
-## Setup and Installation
-
-## Toolchain
-
-This workspace is intended to be built and linted with the latest Rust nightly toolchain.
-
-
-### Prerequisites
-
-- Rust nightly (latest version)
-- PostgreSQL database
-- Docker (for containerized deployments)
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd rust_workspace_template
-   ```
-
-2. Init submodules:
-   ```bash
-   git submodule update --init --recursive --checkout
-   ```
-
-3. Build the project:
-   ```bash
-   cargo build
-   ```
-
-### Database Setup
-
-1. Start the database:
-   ```bash
-   cd server && sudo docker-compose up -d && cd ..
-   ```
-
-2. Run migrations:
-   ```bash
-   cd server && sqlx migrate run && cd ..
-   ```
-
-## Usage
-
-### Running Tests
+Initialize environment files and start both services with isolated databases:
 
 ```bash
-# Run all tests
-cargo test
-
-# Run tests with features
-cargo test --features test-utils -- --nocapture
-
-# Run with debug logging
-RUST_LOG=sqlx=debug cargo test --features test-utils -- --nocapture
+cargo run -p initialize_environment_files
+POSTGRES_PASSWORD=development-only \
+NOTIFICATION_POSTGRES_PASSWORD=development-only \
+docker compose up --build
 ```
 
-### Code Quality
+Health endpoints:
 
-```bash
-# Check for errors
-cargo check
-
-# Run clippy lints
-cargo clippy
-
-# Check with specific flags
-RUSTFLAGS="-Awarnings" cargo clippy --all-targets --all-features
+```text
+http://127.0.0.1:8080/health/live
+http://127.0.0.1:8080/health/ready
+http://127.0.0.1:8081/health/live
+http://127.0.0.1:8081/health/ready
 ```
 
-The administrator frontend is a Leptos CSR application built by Trunk. Build its assets before starting the server:
+Development credentials are not production defaults. Production deployments must supply secrets,
+exact allowed origins, secure cookies, immutable image tags and managed database URLs.
+
+## Build
 
 ```bash
+cargo build --workspace
 cd server_admin_frontend
 trunk build --release
 ```
 
-### Development
+Each backend can also be built independently:
 
 ```bash
-# Start development with file watching
-cargo watch -x check -x test -x "run"
+cargo build --release -p server
+cargo build --release -p notification_service
 ```
 
-## Modules
+## Quality gates
 
-### postgresql_crud
-Core functionality for PostgreSQL CRUD ops with automatic code generation for tables, types, and JSON objs.
+```bash
+cargo fmt
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test -p tests code_style
+cargo test --workspace
+```
 
-### config_lib
-Configuration management with environment variable parsing and type-safe accessors.
+CI additionally checks dependency policy, unused dependencies, coverage, documentation, secrets,
+container vulnerabilities, feature combinations and semantic-version compatibility.
 
-### git_info
-Compile-time and runtime Git repository information retrieval.
+## Deployment
 
-### location_lib
-Advanced error handling system with detailed context and src tracking.
+- Dockerfiles build non-root, read-only compatible runtime images.
+- `deploy/k8s/base` contains Kustomize-ready workloads, probes, resource budgets, disruption
+  budgets and default-deny networking.
+- Environment-specific overlays must supply ConfigMaps, Secrets, ingress, immutable images and
+  database endpoints.
+- Administrator bootstrap, recovery, rotation and retention procedures are documented in
+  [the operations runbook](ADMIN_OPERATIONS_RUNBOOK.md).
 
-### from_sqlx_postgres_er
-Utilities for converting SQLx PostgreSQL errors to application-specific errors.
+## Adding a service
 
-### from_str
-Safe string parsing with detailed error context.
+Until the scaffold command is finalized, copy the three-crate notification pattern:
 
-### generate_quotes
-Utilities for generating quotes and text content.
-
-### macros_helpers
-Collection of helper macros for code generation and boilerplate reduction.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a pull request
+1. create `<name>`, `<name>_config`, and `<name>_contract` crates;
+2. give the service its own database principal and migrations;
+3. expose separate live and ready probes;
+4. add a service Dockerfile and Compose entry;
+5. add Kubernetes workload and network access;
+6. add contract, migration, integration and graceful-shutdown tests;
+7. keep repository code private to the owning service.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT. See [LICENSE](LICENSE).

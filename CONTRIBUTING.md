@@ -1,0 +1,17 @@
+# Contributing
+
+Keep service ownership and public contracts explicit. Shared mechanics belong in a shared crate only
+after at least two consumers demonstrate the same requirement; service domain logic remains with its
+owner.
+
+Before submitting a change, run:
+
+```bash
+cargo fmt
+cargo clippy --all-targets --all-features -- -D warnings
+cargo test -p tests code_style
+cargo test --workspace
+```
+
+Database changes require forward migrations and fresh-schema plus supported-upgrade tests. Public
+HTTP or event changes require compatibility review and corresponding contract tests.

@@ -13,11 +13,9 @@ edition = "2024"
 
 [dependencies]
 str_constants = { workspace = true }
-text_policy = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
 newtype = { workspace = true }
 optml = { workspace = true }
-thiserror = { workspace = true }
 [lints]
 workspace = true

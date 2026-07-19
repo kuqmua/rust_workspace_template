@@ -40,32 +40,6 @@ impl PartialEq<&str> for GitCommitIdRef<'_> {
     }
 )]
 pub struct GitCommitId(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-pub enum GitCommitHashError {
-    #[error("Git commit hash must contain exactly 40 symbols")]
-    InvalidLength,
-    #[error("Git commit hash must contain lowercase ASCII hexadecimal symbols")]
-    InvalidSymbol,
-}
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::TryFrom)]
-#[try_from(
-    error = GitCommitHashError,
-    validator = |value: &String| if value.len() == 40usize {
-        text_policy::FixedLengthAsciiHexText::try_from(value.clone())
-            .map(|_validated| ())
-            .map_err(|error| match error {
-            text_policy::FixedLengthAsciiHexTextError::InvalidLength => {
-                GitCommitHashError::InvalidLength
-            }
-            text_policy::FixedLengthAsciiHexTextError::InvalidSymbol => {
-                GitCommitHashError::InvalidSymbol
-            }
-        })
-    } else {
-        Err(GitCommitHashError::InvalidLength)
-    }
-)]
-pub struct GitCommitHash(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GitInfoStringTryFromStringError {
     TooLong { len: usize, max: usize },
@@ -633,18 +607,6 @@ mod tests {
         assert_eq!(
             super::git_commit_link_capacity(""),
             str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len()
-        );
-    }
-    #[test]
-    fn git_commit_hash_requires_full_lowercase_hexadecimal_text() {
-        let value = super::GitCommitHash::try_from(str_constants::TEST_GIT_COMMIT_HASH.to_owned())
-            .expect("1a16925f");
-        assert_eq!(value.as_ref(), str_constants::TEST_GIT_COMMIT_HASH);
-        assert_eq!(
-            super::GitCommitHash::try_from(
-                str_constants::TEST_UPPERCASE_GIT_COMMIT_HASH.to_owned()
-            ),
-            Err(super::GitCommitHashError::InvalidSymbol)
         );
     }
 }

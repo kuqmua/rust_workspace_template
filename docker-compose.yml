@@ -16,6 +16,21 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  notification_database:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: notification_service
+      POSTGRES_PASSWORD: "${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}"
+      POSTGRES_USER: notification_service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_service"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - application
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
   server:
     build:
       context: .
@@ -42,7 +57,33 @@ services:
     restart: unless-stopped
     tmpfs:
       - /tmp:size=16m,mode=1777
+  notification_service:
+    build:
+      context: .
+      dockerfile: notification_service/Dockerfile
+    depends_on:
+      notification_database:
+        condition: service_healthy
+    environment:
+      NOTIFICATION_DATABASE_URL: "postgres://notification_service:${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}@notification_database:5432/notification_service"
+      NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
+      TRACING_FORMAT: text
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - application
+    ports:
+      - "127.0.0.1:8081:8081"
+    read_only: true
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=16m,mode=1777
 networks:
   application:
 volumes:
+  notification_postgres_data:
   postgres_data:

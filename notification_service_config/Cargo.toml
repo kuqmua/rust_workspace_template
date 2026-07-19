@@ -1,0 +1,21 @@
+[package]
+name = "notification_service_config"
+version = "0.1.0"
+publish = false
+description = "Validated environment configuration for the notification microservice"
+repository = "repository"
+readme = "readme"
+license = "license"
+keywords = ["notification", "configuration"]
+categories = ["config"]
+edition = "2024"
+
+[dependencies]
+config_lib = { workspace = true }
+dotenv = { workspace = true }
+optml = { workspace = true }
+thiserror = { workspace = true }
+try_from_env = { workspace = true }
+
+[lints]
+workspace = true

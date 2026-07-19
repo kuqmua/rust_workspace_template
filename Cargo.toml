@@ -26,6 +26,9 @@ members = [
   "naming/naming_common_macros",
   "naming/naming_macros",
   "newtype",
+  "notification_service",
+  "notification_service_config",
+  "notification_service_contract",
   "optml",
   "panic_location",
   "pg_crud",
@@ -304,6 +307,9 @@ naming_common = { path = "./naming/naming_common", version = "0.1.0" }
 naming_common_macros = { path = "./naming/naming_common_macros", version = "0.1.0" }
 naming_macros = { path = "./naming/naming_macros", version = "0.1.0" }
 newtype = { path = "./newtype", version = "0.1.0" }
+notification_service = { path = "./notification_service", version = "0.1.0" }
+notification_service_config = { path = "./notification_service_config", version = "0.1.0" }
+notification_service_contract = { path = "./notification_service_contract", version = "0.1.0" }
 optml = { path = "./optml", version = "0.1.0" }
 panic_location = { path = "./panic_location", version = "0.1.0" }
 pg_crud = { path = "./pg_crud", version = "0.1.0" }

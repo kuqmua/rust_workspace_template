@@ -389,6 +389,7 @@ str_constants_macros::define_str_constants! {
         WORD_METHODS = "methods";
         WORD_METRICS = "Metrics";
         WORD_METRICS_2 = "metrics";
+        WORD_MESSAGE = "message";
         WORD_MINUTES = "minutes";
         WORD_MISSING = "missing";
         WORD_MUST = "must";
@@ -405,6 +406,7 @@ str_constants_macros::define_str_constants! {
         WORD_NON = "non";
         WORD_NONE = "None";
         WORD_NOT = "NOT";
+        WORD_NOTIFICATIONS = "notifications";
         WORD_NOTEMPTYUNIQUEVEC = "NotEmptyUniqueVec";
         WORD_NOT_2 = "not";
         WORD_NOW = "NOW";
@@ -743,6 +745,8 @@ str_constants_macros::define_str_constants! {
         pub ADMIN_USERS = [WORD_ADMIN_USERS];
         pub ADMIN_USER_ROLES = [WORD_ADMIN_USER_ROLES];
         pub INDEX_HTML = [WORD_INDEX, ".", WORD_HTML];
+        pub NOTIFICATION_ROUTE_PATH = ["/v1/notifications"];
+        pub NOTIFICATION_INSERT_SQL = [WORD_INSERT, " ", WORD_INTO, " ", WORD_NOTIFICATIONS, " (", WORD_ID, ", ", WORD_MESSAGE, ") ", WORD_VALUES, " ($1, $2)"];
         pub(crate) SHARED_VALUES_CHECK = [WORD_CHECK_2];
         pub(crate) SHARED_VALUES_ALL_TARGETS = ["--", WORD_ALL, "-", WORD_TARGETS];
         pub(crate) SHARED_VALUES_ALL_FEATURES = ["--", WORD_ALL, "-", WORD_FEATURES];
