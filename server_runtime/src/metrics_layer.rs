@@ -10,6 +10,11 @@ impl MetricsResponseBody {
         self.0
     }
 }
+impl axum::response::IntoResponse for MetricsResponseBody {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::IntoResponse::into_response(self.0)
+    }
+}
 
 impl TryFrom<String> for MetricsResponseBody {
     type Error = MetricsResponseBodyError;

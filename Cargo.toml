@@ -73,9 +73,16 @@ members = [
   "token_patterns",
   "token_patterns/token_patterns_macros",
   "workspace_macro_helpers",
+  "workspace_scaffold",
   "workspace_test_runner",
 ]
 exclude = []
+
+[workspace.package]
+description = "Rust microservice workspace component"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+readme = "README.md"
+license = "MIT"
 
 [workspace.dependencies]
 aes-gcm = { version = "=0.11.0", default-features = false, features = [

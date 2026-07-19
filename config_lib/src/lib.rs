@@ -578,6 +578,8 @@ pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
 pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, newtype::DerefInner)]
 pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
+#[derive(Debug, Clone, Copy, newtype::DerefInner)]
+pub struct RequestTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum PgPoolConfigParseError {
     #[error("pg pool numeric configuration is invalid")]
@@ -616,6 +618,12 @@ impl TryFromStdEnvVarOk for PgPoolIdleTimeoutSeconds {
     }
 }
 impl TryFromStdEnvVarOk for PgPoolMaxLifetimeSeconds {
+    type Error = PgPoolConfigParseError;
+    fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
+        parse_pg_pool_non_zero_seconds(&v).map(Self)
+    }
+}
+impl TryFromStdEnvVarOk for RequestTimeoutSeconds {
     type Error = PgPoolConfigParseError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         parse_pg_pool_non_zero_seconds(&v).map(Self)

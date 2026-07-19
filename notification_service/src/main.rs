@@ -1,7 +1,10 @@
 #![allow(clippy::single_call_fn)] // binary composition functions intentionally have one startup or route registration owner
+#![allow(clippy::arbitrary_source_item_ordering)] // OpenAPI document stays next to its generated schema and operation marker
+#![allow(clippy::needless_for_each)] // utoipa OpenApi derive expands to an internal for_each
 
 #[derive(Clone, Debug)]
 struct NotificationState {
+    metrics: MetricsExporterPrometheusHandle,
     pool: app_state::SqlxPgPool,
 }
 #[derive(Clone, Debug)]
@@ -14,6 +17,12 @@ struct AxumNotificationResponse(axum::response::Response);
 struct AxumNotificationRouter(axum::Router);
 #[derive(Clone, Copy, Debug)]
 struct HttpNotificationStatusCode(http::StatusCode);
+#[derive(Debug)]
+struct HttpNotificationApiProblem(http::StatusCode);
+#[derive(Clone, Debug)]
+struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
+#[derive(Clone, Copy, Debug)]
+struct NotificationBodyMaximumBytes(usize);
 #[derive(Clone, Copy, Debug)]
 struct StdNotificationExitCode(std::process::ExitCode);
 
@@ -25,6 +34,17 @@ impl axum::response::IntoResponse for AxumNotificationResponse {
 impl axum::response::IntoResponse for HttpNotificationStatusCode {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(self.0)
+    }
+}
+impl axum::response::IntoResponse for HttpNotificationApiProblem {
+    fn into_response(self) -> axum::response::Response {
+        let status = self.0;
+        axum::response::IntoResponse::into_response((
+            status,
+            axum::Json(frontend_contract::ApiProblem::from_status(
+                frontend_contract::ApiProblemStatus::from(status.as_u16()),
+            )),
+        ))
     }
 }
 impl std::process::Termination for StdNotificationExitCode {
@@ -42,7 +62,7 @@ impl axum::extract::FromRequestParts<NotificationState> for AxumNotificationStat
     }
 }
 impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
-    type Rejection = HttpNotificationStatusCode;
+    type Rejection = HttpNotificationApiProblem;
     async fn from_request(
         req: axum::extract::Request,
         state: &NotificationState,
@@ -50,7 +70,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
         <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
-            .map_err(|_error| HttpNotificationStatusCode(http::StatusCode::UNPROCESSABLE_ENTITY))
+            .map_err(|_error| HttpNotificationApiProblem(http::StatusCode::UNPROCESSABLE_ENTITY))
     }
 }
 
@@ -60,6 +80,8 @@ enum NotificationServiceError {
     Config(NotificationConfigError),
     #[error("notification database connection failed: {0}")]
     Database(SqlxNotificationDatabaseError),
+    #[error("notification metrics recorder initialization failed: {0}")]
+    Metrics(MetricsExporterPrometheusNotificationBuildError),
     #[error("notification database migration failed: {0}")]
     Migration(SqlxNotificationMigrationError),
     #[error("notification service failed: {0}")]
@@ -79,6 +101,8 @@ struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
 struct StdNotificationIoError(std::io::Error);
 #[derive(Debug)]
 struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
+#[derive(Debug)]
+struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
 
 impl std::fmt::Display for NotificationConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -105,11 +129,16 @@ impl std::fmt::Display for NotificationServeError {
         self.0.fmt(f)
     }
 }
+impl std::fmt::Display for MetricsExporterPrometheusNotificationBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 async fn create_notification(
     state: AxumNotificationState,
     request: AxumNotificationJson,
-) -> Result<AxumNotificationResponse, HttpNotificationStatusCode> {
+) -> Result<AxumNotificationResponse, HttpNotificationApiProblem> {
     let id = uuid::Uuid::new_v4();
     let message = request.0.into_message();
     let _created = sqlx::query(str_constants::NOTIFICATION_INSERT_SQL)
@@ -119,7 +148,7 @@ async fn create_notification(
         .await
         .map_err(|error| {
             tracing::error!(error = %error, "notification persistence failed");
-            HttpNotificationStatusCode(http::StatusCode::INTERNAL_SERVER_ERROR)
+            HttpNotificationApiProblem(http::StatusCode::INTERNAL_SERVER_ERROR)
         })?;
     Ok(AxumNotificationResponse(
         axum::response::IntoResponse::into_response((
@@ -129,6 +158,13 @@ async fn create_notification(
             )),
         )),
     ))
+}
+
+async fn metrics(
+    state: AxumNotificationState,
+) -> Result<server_runtime::MetricsResponseBody, HttpNotificationApiProblem> {
+    server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render())
+        .map_err(|_error| HttpNotificationApiProblem(http::StatusCode::INTERNAL_SERVER_ERROR))
 }
 
 async fn readiness(state: AxumNotificationState) -> HttpNotificationStatusCode {
@@ -144,7 +180,10 @@ async fn readiness(state: AxumNotificationState) -> HttpNotificationStatusCode {
     }
 }
 
-fn router(state: NotificationState) -> AxumNotificationRouter {
+fn router(
+    state: NotificationState,
+    body_maximum_bytes: NotificationBodyMaximumBytes,
+) -> AxumNotificationRouter {
     AxumNotificationRouter(
         axum::Router::new()
             .route(
@@ -156,12 +195,57 @@ fn router(state: NotificationState) -> AxumNotificationRouter {
                 axum::routing::get(readiness),
             )
             .route(
-                str_constants::NOTIFICATION_ROUTE_PATH,
+                frontend_contract::typed_route_path::<
+                    notification_service_contract::CreateNotificationRoute,
+                >()
+                .as_ref(),
                 axum::routing::post(create_notification),
             )
+            .route(str_constants::METRICS, axum::routing::get(metrics))
+            .route(
+                str_constants::OPENAPI_JSON_PATH,
+                axum::routing::get(async || {
+                    axum::Json(<NotificationOpenApi as utoipa::OpenApi>::openapi())
+                }),
+            )
+            .layer(axum::extract::DefaultBodyLimit::max(body_maximum_bytes.0))
             .with_state(state),
     )
 }
+
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    clippy::needless_for_each,
+    reason = "utoipa derives operation iteration and the document remains next to its schema declaration"
+)]
+#[derive(utoipa::OpenApi)]
+#[openapi(
+    paths(create_notification_openapi),
+    components(schemas(
+        notification_service_contract::CreateNotificationReq,
+        notification_service_contract::CreateNotificationRes,
+        notification_service_contract::NotificationMessage,
+        notification_service_contract::UuidNotificationId,
+        frontend_contract::ApiProblem
+    ))
+)]
+struct NotificationOpenApi;
+
+#[utoipa::path(
+    post,
+    path = "/notifications",
+    request_body = notification_service_contract::CreateNotificationReq,
+    responses(
+        (status = 201, description = "Notification persisted", body = notification_service_contract::CreateNotificationRes),
+        (status = 422, description = "Invalid request", body = frontend_contract::ApiProblem),
+        (status = 500, description = "Persistence failure", body = frontend_contract::ApiProblem)
+    )
+)]
+#[allow(
+    dead_code,
+    reason = "utoipa references this operation through generated metadata"
+)]
+const fn create_notification_openapi() {}
 
 async fn shutdown_signal() {
     if let Err(error) = tokio::signal::ctrl_c().await {
@@ -170,8 +254,16 @@ async fn shutdown_signal() {
 }
 
 async fn run(config: notification_service_config::Config) -> Result<(), NotificationServiceError> {
+    let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
+        .install_recorder()
+        .map(MetricsExporterPrometheusHandle)
+        .map_err(|error| {
+            NotificationServiceError::Metrics(MetricsExporterPrometheusNotificationBuildError(
+                error,
+            ))
+        })?;
     let pool = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(10u32)
+        .max_connections(**config.pg_pool_max_connections())
         .connect(secrecy::ExposeSecret::expose_secret(
             &config.notification_database_url().0,
         ))
@@ -188,17 +280,26 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
     let listener = tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
         .await
         .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError(error)))?;
-    let timeout =
-        server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(30u64))
-            .map_err(|_error| NotificationServiceError::Timeout)?;
+    let timeout = server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(
+        config.request_timeout_seconds().get(),
+    ))
+    .map_err(|_error| NotificationServiceError::Timeout)?;
     let service_router = server_runtime::RequestIdLayer.apply(
         server_runtime::SecurityHeadersLayer::from(server_runtime::ForwardedProtoTrust::Ignore)
             .apply(
                 server_runtime::RequestTimeoutLayer::from(timeout).apply(
                     server_runtime::AxumRouter::from(
-                        router(NotificationState {
-                            pool: app_state::SqlxPgPool::from(pool),
-                        })
+                        router(
+                            NotificationState {
+                                metrics,
+                                pool: app_state::SqlxPgPool::from(pool),
+                            },
+                            NotificationBodyMaximumBytes(
+                                (**config.maximum_size_of_http_body_in_bytes()).min(
+                                    notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                                ),
+                            ),
+                        )
                         .0,
                     ),
                 ),
@@ -226,12 +327,15 @@ async fn main() -> StdNotificationExitCode {
             return StdNotificationExitCode(std::process::ExitCode::FAILURE);
         }
     };
-    tracing_subscriber::util::SubscriberInitExt::init(
-        tracing_subscriber::layer::SubscriberExt::with(
-            tracing_subscriber::registry(),
-            tracing_subscriber::fmt::layer().json(),
-        ),
-    );
+    let tracing_format = if *config.tracing_format() == config_lib::types::TracingFormat::Json {
+        server_runtime::ServiceTracingFormat::Json
+    } else {
+        server_runtime::ServiceTracingFormat::Text
+    };
+    if let Err(error) = server_runtime::initialize_service_tracing(tracing_format) {
+        eprintln!("notification service tracing initialization failed: {error}");
+        return StdNotificationExitCode(std::process::ExitCode::FAILURE);
+    }
     match run(config).await {
         Ok(()) => StdNotificationExitCode(std::process::ExitCode::SUCCESS),
         Err(error) => {
@@ -243,6 +347,17 @@ async fn main() -> StdNotificationExitCode {
 
 #[cfg(test)]
 mod tests {
+    fn state(pool: sqlx::PgPool) -> super::NotificationState {
+        super::NotificationState {
+            metrics: super::MetricsExporterPrometheusHandle(
+                metrics_exporter_prometheus::PrometheusBuilder::new()
+                    .build_recorder()
+                    .handle(),
+            ),
+            pool: app_state::SqlxPgPool::from(pool),
+        }
+    }
+
     #[tokio::test]
     async fn router_contains_service_owned_routes() {
         let pool = sqlx::postgres::PgPoolOptions::new()
@@ -250,8 +365,76 @@ mod tests {
                 str_constants::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION,
             )
             .expect("52a25be1");
-        let _router = super::router(super::NotificationState {
-            pool: app_state::SqlxPgPool::from(pool),
-        });
+        let _router = super::router(
+            state(pool),
+            super::NotificationBodyMaximumBytes(
+                notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+            ),
+        );
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn create_notification_persists_through_http_route() {
+        let database_url = config_lib::parse_required_env_var(
+            config_lib::EnvVarNameRef::from(str_constants::ENV_NAMES_DATABASE_URL),
+            |error, name| format!("{error} {name}"),
+            <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
+            |error| error.to_string(),
+        )
+        .expect("8bb0a12c");
+        let pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(2u32)
+            .connect(secrecy::ExposeSecret::expose_secret(&database_url.0).as_str())
+            .await
+            .expect("821a77ac");
+        sqlx::migrate!("./migrations")
+            .run(&pool)
+            .await
+            .expect("ad2eca40");
+        let message = notification_service_contract::NotificationMessage::try_from(
+            str_constants::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
+        )
+        .expect("364d5767");
+        let body = serde_json::to_vec(&notification_service_contract::CreateNotificationReq::new(
+            message,
+        ))
+        .expect("a9912dc2");
+        let request = http::Request::builder()
+            .method(http::Method::POST)
+            .uri(
+                frontend_contract::typed_route_path::<
+                    notification_service_contract::CreateNotificationRoute,
+                >()
+                .as_ref(),
+            )
+            .header(
+                http::header::CONTENT_TYPE,
+                str_constants::HTTP_APPLICATION_JSON,
+            )
+            .body(axum::body::Body::from(body))
+            .expect("ecb37508");
+        let response = tower::ServiceExt::oneshot(
+            super::router(
+                state(pool),
+                super::NotificationBodyMaximumBytes(
+                    notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
+                ),
+            )
+            .0,
+            request,
+        )
+        .await
+        .expect("d3b83fa0");
+        assert_eq!(response.status(), http::StatusCode::CREATED);
+        let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
+            .await
+            .expect("e80d67cb");
+        let created: notification_service_contract::CreateNotificationRes =
+            serde_json::from_slice(response_body.as_ref()).expect("a5cd681e");
+        assert_ne!(
+            created.id(),
+            notification_service_contract::UuidNotificationId::from(uuid::Uuid::nil())
+        );
     }
 }

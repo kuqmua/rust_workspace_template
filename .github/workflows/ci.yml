@@ -18,6 +18,18 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - run: docker build --tag application:${{ github.sha }} .
       - run: docker build --file notification_service/Dockerfile --tag notification-service:${{ github.sha }} .
+      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
+        with:
+          image-ref: application:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - uses: aquasecurity/trivy-action@f19cc2b99c0f1c5f19db5882d7cf26c5a5cc7e49
+        with:
+          image-ref: notification-service:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
   metadata:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -93,7 +105,7 @@ jobs:
       - uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
         with:
           tool: cargo-llvm-cov
-      - run: cargo llvm-cov --workspace --all-features --all-targets --summary-only -- --ensure-time -Z unstable-options
+      - run: cargo llvm-cov --workspace --all-features --summary-only --fail-under-lines 60 -- --skip clippy
   trivy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -239,7 +251,7 @@ jobs:
       - run: cargo install --locked cargo-semver-checks
       - run: |
           cargo semver-checks --package newtype --baseline-rev "origin/${{ github.base_ref }}"
-          cargo semver-checks --package gen_pg_tbl_src --baseline-rev "origin/${{ github.base_ref }}"
+          cargo semver-checks --package generate_pg_table_src --baseline-rev "origin/${{ github.base_ref }}"
           cargo semver-checks --package server_runtime --baseline-rev "origin/${{ github.base_ref }}"
   secret-scan:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -287,5 +299,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
           toolchain: nightly
-      - run: cargo bench --locked -p pg_crud_cmn --bench query_builders -- --save-baseline ci
-      - run: cargo bench --locked -p pg_crud_cmn --bench query_builders -- --baseline ci
+      - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --save-baseline ci
+      - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --baseline ci

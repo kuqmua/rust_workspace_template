@@ -3,9 +3,9 @@ name = "notification_service_config"
 version = "0.1.0"
 publish = false
 description = "Validated environment configuration for the notification microservice"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["notification", "configuration"]
 categories = ["config"]
 edition = "2024"

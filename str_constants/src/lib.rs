@@ -2181,7 +2181,7 @@ str_constants_macros::define_str_constants! {
         pub CALLOC = ["calloc|"];
         pub CANT_SUPPORT_NULLABLE_VARIANTS = ["cant ", WORD_SUPPORT, " ", WORD_NULLABLE, " ", WORD_VARIANTS, ": "];
         pub CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED = [WORD_CARGO_2, " +nightly ", WORD_UDEPS, " --", WORD_WORKSPACE, " --", WORD_ALL, "-", WORD_TARGETS, " --", WORD_ALL, "-", WORD_FEATURES, " --", WORD_LOCKED];
-        pub CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_ALL_TARGETS_SUMMARY_ONLY = [WORD_CARGO_2, " ", WORD_LLVM, "-", WORD_COV, " --", WORD_WORKSPACE, " --", WORD_ALL, "-", WORD_FEATURES, " --", WORD_ALL, "-", WORD_TARGETS, " --", WORD_SUMMARY, "-", WORD_ONLY];
+        pub CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY = [WORD_CARGO_2, " ", WORD_LLVM, "-", WORD_COV, " --", WORD_WORKSPACE, " --", WORD_ALL, "-", WORD_FEATURES, " --", WORD_SUMMARY, "-", WORD_ONLY];
         pub CARGO_MACHETE = [WORD_CARGO_2, " ", WORD_MACHETE];
         pub CB6830BC = ["cb6830bc"];
         pub CB693A3F = ["cb693a3f"];
@@ -4012,3 +4012,22 @@ pub const ADMIN_OPENAPI_REFRESH_OPERATION_ID_POINTER: &str =
 pub const ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER: &str =
     "/paths/~1auth~1sign-in/post/operationId";
 pub const MOCK_NOTIFICATION_PROVIDER_CLOSED: &str = "mock notification provider is closed";
+pub const TRACEPARENT: &str = "traceparent";
+pub const TRACESTATE: &str = "tracestate";
+pub const X_REQUEST_ID: &str = "x-request-id";
+pub const TRACEPARENT_W3C_VERSION_00_FORMAT: &str =
+    "traceparent must use the W3C version 00 format";
+pub const TRACEPARENT_PARENT_ID_NOT_ZERO: &str = "traceparent parent id must not be zero";
+pub const TRACEPARENT_TRACE_ID_NOT_ZERO: &str = "traceparent trace id must not be zero";
+pub const TRACESTATE_PRINTABLE_ASCII_MAX_512: &str =
+    "tracestate must be printable ASCII and at most 512 bytes";
+pub const TRACEPARENT_TEST_VALUE: &str = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+pub const TRACEPARENT_ZERO_TRACE_ID_TEST_VALUE: &str =
+    "00-00000000000000000000000000000000-00f067aa0ba902b7-01";
+pub const TRACESTATE_TEST_VALUE: &str = "vendor=value";
+pub const REQUEST_ID_TEST_VALUE: &str = "request-1";
+pub const OPENAPI_JSON_PATH: &str = "/openapi.json";
+pub const LOCALHOST_EPHEMERAL_SOCKET: &str = "127.0.0.1:0";
+pub const INTEGRATION_NOTIFICATION_MESSAGE: &str = "integration notification";
+pub const HTTP_APPLICATION_JSON: &str = "application/json";
+pub const WORKSPACE_SCAFFOLD_SRC: &str = "../workspace_scaffold/src/";

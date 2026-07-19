@@ -1,0 +1,52 @@
+name: Release service images
+on:
+  push:
+    tags:
+      - "v*"
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: application
+            dockerfile: Dockerfile
+          - name: notification-service
+            dockerfile: notification_service/Dockerfile
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Authenticate to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+      - name: Build and publish with SBOM and provenance
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ github.ref_name }}
+        run: |
+          docker buildx build \
+            --file "${{ matrix.dockerfile }}" \
+            --tag "${IMAGE}" \
+            --provenance=mode=max \
+            --sbom=true \
+            --push \
+            .
+      - name: Resolve immutable image digest
+        id: digest
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ github.ref_name }}
+        run: echo "value=$(docker buildx imagetools inspect "${IMAGE}" --format '{{.Manifest.Digest}}')" >> "${GITHUB_OUTPUT}"
+      - name: Sign immutable image
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}@${{ steps.digest.outputs.value }}
+        run: |
+          docker run --rm \
+            -e ACTIONS_ID_TOKEN_REQUEST_TOKEN \
+            -e ACTIONS_ID_TOKEN_REQUEST_URL \
+            ghcr.io/sigstore/cosign/cosign:v2.6.1@sha256:68839b7f13dac5a6744a5d8818e984dd39183374e37855c19e14d623d9bc9037 \
+            sign --yes "${IMAGE}"

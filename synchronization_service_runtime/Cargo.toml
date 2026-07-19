@@ -3,9 +3,9 @@ name = "synchronization_service_runtime"
 version = "0.1.0"
 publish = false
 description = "Shared synchronization service runtime facade"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["synchronization"]
 categories = ["web-programming"]
 edition = "2024"

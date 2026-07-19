@@ -443,10 +443,9 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
     );
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn generated_admin_descriptors_match_applied_migrations() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("7e62af41");
     let pool = SqlxAdminApiTestPool(
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(2)
@@ -472,10 +471,9 @@ async fn generated_admin_descriptors_match_applied_migrations() {
         .await;
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn admin_string_policies_match_postgresql_constraints() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("93fcb3de");
     let pool = SqlxAdminApiTestPool(
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(2)
@@ -554,10 +552,9 @@ async fn admin_string_policies_match_postgresql_constraints() {
     );
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("ac0cb9e3");
     let pool = SqlxAdminApiTestPool(
         sqlx::postgres::PgPoolOptions::new()
             .max_connections(5)
@@ -1375,10 +1372,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     );
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_generated_mutation_idempotency_contract() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("40c1e398");
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(4u32)
         .connect(database_url.as_str())
@@ -1602,10 +1598,9 @@ async fn postgresql_generated_mutation_idempotency_contract() {
     );
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("63a09eec");
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(4u32)
         .connect(database_url.as_str())
@@ -1673,10 +1668,9 @@ async fn postgresql_optimistic_revision_allows_one_concurrent_writer() {
         .expect("a4d77f54");
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("7316cf4d");
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(3u32)
         .connect(database_url.as_str())
@@ -1748,10 +1742,9 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
     assert!(matches!(ordinary_delete, Err(_error)));
 }
 #[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
-    let Ok(database_url) = std::env::var(str_constants::ENV_NAMES_DATABASE_URL) else {
-        return;
-    };
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("b65d1786");
     let base_pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(database_url.as_str())

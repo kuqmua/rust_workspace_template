@@ -1,0 +1,19 @@
+[package]
+name = "workspace_scaffold"
+version = "0.1.0"
+publish = false
+description = "Scaffold and project identity migration utility"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
+edition = "2024"
+
+[[bin]]
+name = "workspace-scaffold"
+path = "src/main.rs"
+
+[dependencies]
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

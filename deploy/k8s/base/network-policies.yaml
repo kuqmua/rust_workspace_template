@@ -10,7 +10,48 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-service-http
+  name: application-ingress
+  namespace: rust-workspace-template
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: application
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+  policyTypes: ["Ingress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: notification-service-ingress
+  namespace: rust-workspace-template
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: application
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8081
+  policyTypes: ["Ingress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: service-dns-egress
   namespace: rust-workspace-template
 spec:
   podSelector:
@@ -18,20 +59,68 @@ spec:
       - key: app.kubernetes.io/name
         operator: In
         values: ["application", "notification-service"]
-  ingress:
-    - from:
-        - namespaceSelector: {}
-      ports:
-        - protocol: TCP
-          port: 8080
-        - protocol: TCP
-          port: 8081
   egress:
     - to:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+  policyTypes: ["Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: application-service-egress
+  namespace: rust-workspace-template
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: application
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: notification-service
+      ports:
+        - protocol: TCP
+          port: 8081
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: database
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: application-postgresql
       ports:
         - protocol: TCP
           port: 5432
-        - protocol: UDP
-          port: 53
-  policyTypes: ["Ingress", "Egress"]
+  policyTypes: ["Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: notification-service-database-egress
+  namespace: rust-workspace-template
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: database
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: notification-postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+  policyTypes: ["Egress"]

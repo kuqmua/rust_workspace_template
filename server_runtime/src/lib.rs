@@ -38,6 +38,7 @@ mod secure_cookie;
 mod service_bootstrap;
 mod single_flight;
 mod source_selection;
+mod trace_context;
 mod wire_token;
 pub use background_job::BackgroundJob;
 pub use batched_cleanup::{
@@ -204,6 +205,10 @@ pub use text_policy::{
     PasswordLength, PasswordLengthRange, PasswordLengthRangeError, PasswordPolicyViolation,
     PasswordTextRef, validate_password_policy,
 };
+pub use trace_context::{
+    HttpTraceParent, HttpTraceParentError, HttpTraceState, HttpTraceStateError,
+    OutboundTraceContext, ReqwestRequestBuilder,
+};
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
 #[derive(Debug)]
 pub struct AxumRouter(axum::Router);
@@ -219,9 +224,76 @@ impl From<AxumRouter> for axum::Router {
 }
 #[derive(Clone, Debug)]
 pub struct ReqwestClient(reqwest::Client);
-impl Default for ReqwestClient {
-    fn default() -> Self {
-        Self(reqwest::Client::new())
+#[derive(Clone, Copy, Debug)]
+pub struct StdReqwestConnectTimeout(std::time::Duration);
+#[derive(Clone, Copy, Debug)]
+pub struct StdReqwestRequestTimeout(std::time::Duration);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("HTTP client timeout must be greater than zero")]
+pub struct StdReqwestTimeoutError;
+impl TryFrom<std::time::Duration> for StdReqwestConnectTimeout {
+    type Error = StdReqwestTimeoutError;
+    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
+        if value.is_zero() {
+            Err(StdReqwestTimeoutError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl TryFrom<std::time::Duration> for StdReqwestRequestTimeout {
+    type Error = StdReqwestTimeoutError;
+    fn try_from(value: std::time::Duration) -> Result<Self, Self::Error> {
+        if value.is_zero() {
+            Err(StdReqwestTimeoutError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+#[derive(Clone, Copy, Debug)]
+pub struct ReqwestClientPolicy {
+    connect_timeout: StdReqwestConnectTimeout,
+    request_timeout: StdReqwestRequestTimeout,
+}
+impl ReqwestClientPolicy {
+    #[must_use]
+    pub const fn new(
+        connect_timeout: StdReqwestConnectTimeout,
+        request_timeout: StdReqwestRequestTimeout,
+    ) -> Self {
+        Self {
+            connect_timeout,
+            request_timeout,
+        }
+    }
+}
+#[derive(Debug)]
+pub struct ReqwestClientBuildError(reqwest::Error);
+impl std::fmt::Display for ReqwestClientBuildError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+impl std::error::Error for ReqwestClientBuildError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
+    }
+}
+impl ReqwestClient {
+    pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
+        reqwest::Client::builder()
+            .connect_timeout(policy.connect_timeout.0)
+            .timeout(policy.request_timeout.0)
+            .redirect(reqwest::redirect::Policy::none())
+            .user_agent(concat!(
+                env!("CARGO_PKG_NAME"),
+                "/",
+                env!("CARGO_PKG_VERSION")
+            ))
+            .build()
+            .map(Self)
+            .map_err(ReqwestClientBuildError)
     }
 }
 impl From<ReqwestClient> for reqwest::Client {

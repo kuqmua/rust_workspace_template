@@ -5,9 +5,9 @@ name = "server_admin"
 version = "0.1.0"
 publish = false
 description = "Reusable administrative API and domain logic"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["admin"]
 categories = ["web-programming"]
 

@@ -3,9 +3,9 @@ name = "frontend_contract_macros"
 version = "0.1.0"
 publish = false
 description = "Derive macros for shared typed route contracts"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["frontend", "contract"]
 categories = ["web-programming"]
 edition = "2024"

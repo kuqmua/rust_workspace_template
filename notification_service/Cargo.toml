@@ -3,9 +3,9 @@ name = "notification_service"
 version = "0.1.0"
 publish = false
 description = "Independently deployable notification microservice reference implementation"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["notification", "microservice"]
 categories = ["web-programming"]
 edition = "2024"
@@ -17,7 +17,10 @@ path = "src/main.rs"
 [dependencies]
 app_state = { workspace = true }
 axum = { workspace = true }
+config_lib = { workspace = true }
+frontend_contract = { workspace = true }
 http = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
 notification_service_config = { workspace = true }
 notification_service_contract = { workspace = true }
 secrecy = { workspace = true }
@@ -27,8 +30,12 @@ str_constants = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
+utoipa = { workspace = true }
 uuid = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tower = { workspace = true }
 
 [lints]
 workspace = true

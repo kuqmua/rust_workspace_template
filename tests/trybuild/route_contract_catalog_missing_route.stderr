@@ -1,0 +1,5 @@
+error: RouteCatalog variants require #[route_catalog_route(...)]
+ --> trybuild/route_contract_catalog_missing_route.rs:4:5
+  |
+4 |     MissingRouteAttribute,
+  |     ^^^^^^^^^^^^^^^^^^^^^

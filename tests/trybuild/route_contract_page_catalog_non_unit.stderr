@@ -1,0 +1,5 @@
+error: PageCatalog supports only unit variants
+ --> trybuild/route_contract_page_catalog_non_unit.rs:9:5
+  |
+9 |     Broken(frontend_contract::ContractStr),
+  |     ^^^^^^

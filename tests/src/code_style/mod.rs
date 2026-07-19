@@ -3007,6 +3007,9 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
         .starts_with(str_constants::WORKSPACE_TEST_RUNNER_SRC)
         || path
             .as_ref()
+            .starts_with(str_constants::WORKSPACE_SCAFFOLD_SRC)
+        || path
+            .as_ref()
             .starts_with(str_constants::INITIALIZE_ENVIRONMENT_FILES_SRC)
         || path
             .as_ref()

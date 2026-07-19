@@ -95,7 +95,14 @@ container vulnerabilities, feature combinations and semantic-version compatibili
 
 ## Adding a service
 
-Until the scaffold command is finalized, copy the three-crate notification pattern:
+Create the three-crate service boundary from the maintained notification template:
+
+```bash
+cargo run -p workspace_scaffold -- service order_service 8082
+docker compose -f docker-compose.yml -f docker-compose.order_service.yml up --build
+```
+
+The command performs the following steps:
 
 1. create `<name>`, `<name>_config`, and `<name>_contract` crates;
 2. give the service its own database principal and migrations;
@@ -104,6 +111,14 @@ Until the scaffold command is finalized, copy the three-crate notification patte
 5. add Kubernetes workload and network access;
 6. add contract, migration, integration and graceful-shutdown tests;
 7. keep repository code private to the owning service.
+
+Before using the repository as a new project, replace its template identity in tracked text files:
+
+```bash
+cargo run -p workspace_scaffold -- project order_platform https://github.com/acme/order_platform
+cargo fmt
+cargo test -p tests code_style
+```
 
 ## License
 

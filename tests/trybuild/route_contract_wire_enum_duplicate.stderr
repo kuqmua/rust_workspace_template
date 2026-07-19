@@ -1,0 +1,5 @@
+error: WireEnum wire values must be unique
+ --> trybuild/route_contract_wire_enum_duplicate.rs:6:12
+  |
+6 |     #[wire("same")]
+  |            ^^^^^^

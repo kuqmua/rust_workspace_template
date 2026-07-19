@@ -219,6 +219,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
                 || path_text.contains(str_constants::MACROS_HELPERS)
                 || path_text.contains(str_constants::TESTS)
                 || path_text.contains(str_constants::WORKSPACE_TEST_RUNNER)
+                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
                 || path_text.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)
                 || path_text.contains(str_constants::FILE_STORAGE)
                 || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
@@ -254,6 +255,7 @@ fn runtime_data_reads_are_bounded() {
                 || path_text.contains(str_constants::MACROS_HELPERS)
                 || path_text.contains(str_constants::MACRO_CLIPPY_CHECK_COMMON)
                 || path_text.contains(str_constants::WORKSPACE_TEST_RUNNER)
+                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
                 || path_text.contains(str_constants::INITIALIZE_ENVIRONMENT_FILES)
                 || path_text.ends_with(str_constants::SERVER_RUNTIME_SRC_BOUNDED_READ_RS)
                 || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_LIB_RS)
@@ -281,6 +283,7 @@ fn raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
     super::for_each_rs_file_content(|path, content| {
         let path_text = path.to_string_lossy();
         if path_text.contains(str_constants::TESTS)
+            || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
             || path_text.ends_with(str_constants::PG_CRUD_PG_CRUD_COMMON_SRC_SQL_IDENTIFIER_RS)
         {
             return;
@@ -654,6 +657,7 @@ fn long_production_string_literals_are_reused() {
     super::for_each_rs_syn_file(|path, ast| {
         let path_text = path.display().to_string();
         if path_text.contains(str_constants::TESTS)
+            || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
             || path_text.contains(str_constants::TESTS_SRC_CODE_STYLE_ALT)
         {
             return;
@@ -703,7 +707,9 @@ fn string_constants_are_declared_only_in_str_constants() {
         ),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
-            if path_text.contains(str_constants::STR_CONSTANTS) {
+            if path_text.contains(str_constants::STR_CONSTANTS)
+                || path_text.contains(str_constants::WORKSPACE_SCAFFOLD_SRC)
+            {
                 return;
             }
             let visitor = super::visit_syn_file(

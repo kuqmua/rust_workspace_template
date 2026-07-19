@@ -1,67 +1,5 @@
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
-#[derive(Debug)]
-pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
-#[derive(Debug)]
-pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
-impl SynBuiltGeneratePgTableInput {
-    #[must_use]
-    pub const fn model(&self) -> &crate::model::GeneratePgTableModel {
-        &self.0
-    }
-}
-#[derive(Debug)]
-pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
-#[derive(Debug)]
-pub struct SynGeneratePgTablePipelineError(syn::Error);
-#[derive(Debug)]
-pub enum GeneratePgTablePipelineError {
-    Build(SynGeneratePgTablePipelineError),
-    Parse(SynGeneratePgTablePipelineError),
-    Validate(SynGeneratePgTablePipelineError),
-}
-impl std::fmt::Display for GeneratePgTablePipelineError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Parse(error) | Self::Build(error) | Self::Validate(error) => error.0.fmt(f),
-        }
-    }
-}
-impl std::error::Error for GeneratePgTablePipelineError {}
-pub fn parse_generate_pg_table(
-    input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
-) -> Result<SynParsedGeneratePgTableInput, GeneratePgTablePipelineError> {
-    syn::parse2(input.as_ref().clone())
-        .map(SynParsedGeneratePgTableInput)
-        .map_err(|error| {
-            GeneratePgTablePipelineError::Parse(SynGeneratePgTablePipelineError(error))
-        })
-}
-pub fn build_generate_pg_table(
-    parsed: SynParsedGeneratePgTableInput,
-) -> Result<SynBuiltGeneratePgTableInput, GeneratePgTablePipelineError> {
-    let _shape =
-        crate::parse::struct_shape(workspace_macro_helpers::SynDeriveInputRef::from(&parsed.0))
-            .map_err(|error| {
-                GeneratePgTablePipelineError::Build(SynGeneratePgTablePipelineError(error))
-            })?;
-    Ok(SynBuiltGeneratePgTableInput(
-        crate::model::GeneratePgTableModel::from_struct(parsed.0.into()),
-    ))
-}
-pub fn validate_generate_pg_table(
-    built: SynBuiltGeneratePgTableInput,
-) -> Result<SynValidatedGeneratePgTableInput, GeneratePgTablePipelineError> {
-    built
-        .0
-        .validate()
-        .map(SynValidatedGeneratePgTableInput)
-        .map_err(|error| {
-            GeneratePgTablePipelineError::Validate(SynGeneratePgTablePipelineError(
-                syn::Error::from(error),
-            ))
-        })
-}
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
@@ -97,18 +35,18 @@ fn compile_error_token_stream(
 pub fn generate_pg_table(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
-    let validated = match parse_generate_pg_table(input)
-        .and_then(build_generate_pg_table)
-        .and_then(validate_generate_pg_table)
+    let validated = match crate::pipeline::parse_generate_pg_table(input)
+        .and_then(crate::pipeline::build_generate_pg_table)
+        .and_then(crate::pipeline::validate_generate_pg_table)
     {
         Ok(validated) => validated,
         Err(error) => {
             return macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(
                 match error {
-                    GeneratePgTablePipelineError::Build(pipeline_error)
-                    | GeneratePgTablePipelineError::Parse(pipeline_error)
-                    | GeneratePgTablePipelineError::Validate(pipeline_error) => {
-                        pipeline_error.0.to_compile_error()
+                    crate::pipeline::GeneratePgTablePipelineError::Build(pipeline_error)
+                    | crate::pipeline::GeneratePgTablePipelineError::Parse(pipeline_error)
+                    | crate::pipeline::GeneratePgTablePipelineError::Validate(pipeline_error) => {
+                        syn::Error::from(pipeline_error).to_compile_error()
                     }
                 },
             );
@@ -121,7 +59,7 @@ pub fn generate_pg_table(
 #[allow(non_snake_case)]
 #[allow(unused_variables)]
 pub fn emit_generate_pg_table(
-    validated: SynValidatedGeneratePgTableInput,
+    validated: crate::pipeline::SynValidatedGeneratePgTableInput,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
     #[allow(clippy::arbitrary_source_item_ordering)]
     #[derive(Debug, optml::Optml)]
@@ -1245,7 +1183,7 @@ pub fn emit_generate_pg_table(
         pg_crud_macros_common::generate_return_err_query_part_error_write_into_buffer_token_stream(
             import,
         );
-    let parsed_input = SynGeneratePgTableDeriveInput(validated.0.into_input().into());
+    let parsed_input = SynGeneratePgTableDeriveInput(validated.into_model().into_input().into());
     let di = parsed_input.get();
     let generate_pg_table_input_model =
         match build_generate_pg_table_input_model_stage(&parsed_input) {
@@ -9834,38 +9772,40 @@ mod pipeline_tests {
     #[test]
     fn validation_rejects_non_struct_input_without_emitting_source() {
         let input = quote::quote! { enum NotATable { Value } };
-        let parsed = super::parse_generate_pg_table(
+        let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
         .expect("5d4f86a1");
         assert!(matches!(
-            super::build_generate_pg_table(parsed),
-            Err(super::GeneratePgTablePipelineError::Build(_error))
+            crate::pipeline::build_generate_pg_table(parsed),
+            Err(crate::pipeline::GeneratePgTablePipelineError::Build(_error))
         ));
     }
 
     #[test]
     fn build_stage_exposes_typed_model_without_emitting_source() {
         let input = quote::quote! { struct Table { id: i64, name: String } };
-        let parsed = super::parse_generate_pg_table(
+        let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
         .expect("0f8b43d2");
-        let built = super::build_generate_pg_table(parsed).expect("a715e9c4");
+        let built = crate::pipeline::build_generate_pg_table(parsed).expect("a715e9c4");
         assert_eq!(usize::from(built.model().field_count()), 2usize);
     }
 
     #[test]
     fn validation_rejects_empty_table_model_without_emitting_source() {
         let input = quote::quote! { struct EmptyTable; };
-        let parsed = super::parse_generate_pg_table(
+        let parsed = crate::pipeline::parse_generate_pg_table(
             macros_helpers::ts_writer::ProcMacro2TokenStreamRef::from(&input),
         )
         .expect("67d029ab");
-        let built = super::build_generate_pg_table(parsed).expect("c15b8f34");
+        let built = crate::pipeline::build_generate_pg_table(parsed).expect("c15b8f34");
         assert!(matches!(
-            super::validate_generate_pg_table(built),
-            Err(super::GeneratePgTablePipelineError::Validate(_error))
+            crate::pipeline::validate_generate_pg_table(built),
+            Err(crate::pipeline::GeneratePgTablePipelineError::Validate(
+                _error
+            ))
         ));
     }
 }

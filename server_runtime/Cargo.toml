@@ -3,9 +3,9 @@ name = "server_runtime"
 version = "0.1.0"
 publish = false
 description = "Shared HTTP server runtime primitives"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["server"]
 categories = ["web-programming"]
 edition = "2024"

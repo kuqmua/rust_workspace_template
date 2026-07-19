@@ -3,9 +3,9 @@ name = "text_policy"
 version = "0.1.0"
 publish = false
 description = "Shared validation policies for bounded textual domain values"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["validation", "text"]
 categories = ["data-structures"]
 edition = "2024"

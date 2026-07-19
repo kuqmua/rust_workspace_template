@@ -459,6 +459,11 @@ pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
 ];
 pub const PUBLIC_READ_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] =
     &[RouteErrorStatus::Internal, RouteErrorStatus::RateLimited];
+pub const PUBLIC_MUTATING_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
+    RouteErrorStatus::Validation,
+    RouteErrorStatus::RateLimited,
+    RouteErrorStatus::Internal,
+];
 pub const PUBLIC_REFRESH_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
     RouteErrorStatus::Authentication,
     RouteErrorStatus::RateLimited,

@@ -5,9 +5,9 @@ name = "server_admin_contract"
 version = "0.1.0"
 publish = false
 description = "Shared administrator HTTP contract"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["admin", "contract"]
 categories = ["web-programming"]
 

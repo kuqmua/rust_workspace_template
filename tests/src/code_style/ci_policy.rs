@@ -21,7 +21,7 @@ fn continuous_integration_contains_required_security_and_quality_commands() {
         str_constants::PERMISSIONS_NEWLINE_CONTENTS_READ,
         str_constants::RHYSD_ACTIONLINT,
         str_constants::CARGO_MACHETE,
-        str_constants::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_ALL_TARGETS_SUMMARY_ONLY,
+        str_constants::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY,
         str_constants::AQUASECURITY_TRIVY_ACTION,
         str_constants::CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED,
     ]

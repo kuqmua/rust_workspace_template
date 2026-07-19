@@ -1,6 +1,6 @@
 services:
   database:
-    image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema:latest
+    image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
     environment:
       POSTGRES_DB: rust_workspace_template
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}"
@@ -17,7 +17,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
   notification_database:
-    image: postgres:16
+    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
     environment:
       POSTGRES_DB: notification_service
       POSTGRES_PASSWORD: "${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}"
@@ -67,6 +67,9 @@ services:
     environment:
       NOTIFICATION_DATABASE_URL: "postgres://notification_service:${NOTIFICATION_POSTGRES_PASSWORD:?set NOTIFICATION_POSTGRES_PASSWORD}@notification_database:5432/notification_service"
       NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
+      MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES: "8192"
+      PG_POOL_MAX_CONNECTIONS: "10"
+      REQUEST_TIMEOUT_SECONDS: "30"
       TRACING_FORMAT: text
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]

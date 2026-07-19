@@ -3,9 +3,9 @@ name = "prepare_postgresql_databases"
 version = "0.1.0"
 publish = false
 description = "PostgreSQL database preparation command planner"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["postgresql", "migration"]
 categories = ["command-line-utilities"]
 edition = "2024"

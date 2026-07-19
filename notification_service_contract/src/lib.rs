@@ -1,6 +1,7 @@
+pub const NOTIFICATION_API_BODY_MAX_BYTES: usize = 8_192;
 const NOTIFICATION_MESSAGE_MAX_LEN: usize = 4_096;
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct CreateNotificationReq {
     message: NotificationMessage,
@@ -16,7 +17,9 @@ impl CreateNotificationReq {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
 pub struct CreateNotificationRes {
     id: UuidNotificationId,
 }
@@ -31,7 +34,7 @@ impl CreateNotificationRes {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 #[serde(transparent)]
 pub struct NotificationMessage(String);
 #[derive(
@@ -44,9 +47,36 @@ pub struct NotificationMessage(String);
     serde::Serialize,
     newtype::FromInner,
     newtype::IntoInnerFrom,
+    utoipa::ToSchema,
 )]
 #[serde(transparent)]
 pub struct UuidNotificationId(uuid::Uuid);
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(
+    authentication = frontend_contract::AuthenticationRequirement::Public,
+    error_statuses = frontend_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+    method = frontend_contract::RouteMethod::Post,
+    mutation = frontend_contract::RouteMutation::Mutating,
+    obligations = frontend_contract::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+    openapi_operation_id = "create_notification",
+    path = "/notifications",
+    request = CreateNotificationReq,
+    response = CreateNotificationRes,
+    success_status = frontend_contract::SuccessStatus::Code201,
+    transport = frontend_contract::PublicTransport
+)]
+pub struct CreateNotificationRoute;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, frontend_contract::RouteCatalog)]
+#[route_catalog(
+    family = NotificationRouteFamily,
+    body_limit = NOTIFICATION_API_BODY_MAX_BYTES,
+)]
+pub enum NotificationRoute {
+    #[route_catalog_route(CreateNotificationRoute)]
+    Create,
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum NotificationMessageTryFromStringError {

@@ -3,9 +3,9 @@ name = "file_storage"
 version = "0.1.0"
 publish = false
 description = "Symlink-resistant staged file storage"
-repository = "repository"
-readme = "readme"
-license = "license"
+repository = "https://github.com/kuqmua/rust_workspace_template"
+
+license = "MIT"
 keywords = ["file", "storage"]
 categories = ["filesystem"]
 edition = "2024"
