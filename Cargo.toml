@@ -134,26 +134,7 @@ reqwest = { version = "=0.13.4", default-features = false, features = [
   "native-tls",
   "http2",
 ] }
-leptos = { version = "=0.8.20", default-features = false, features = ["csr"] }
-gloo-net = { version = "=0.6.0", default-features = false, features = [
-  "http",
-  "json",
-] }
-wasm-bindgen = { version = "=0.2.114", default-features = false }
-web-sys = { version = "=0.3.91", default-features = false, features = [
-  "Document",
-  "CssStyleDeclaration",
-  "Element",
-  "Event",
-  "HtmlDocument",
-  "HtmlElement",
-  "HtmlInputElement",
-  "History",
-  "Location",
-  "Performance",
-  "RequestCredentials",
-  "Window",
-] }
+leptos = { version = "=0.8.20", default-features = false }
 tokio = { version = "=1.52.3", default-features = false, features = [
   "fs",
   "io-util",

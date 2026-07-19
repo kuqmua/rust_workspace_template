@@ -4032,3 +4032,14 @@ pub const LOCALHOST_EPHEMERAL_SOCKET: &str = "127.0.0.1:0";
 pub const INTEGRATION_NOTIFICATION_MESSAGE: &str = "integration notification";
 pub const HTTP_APPLICATION_JSON: &str = "application/json";
 pub const WORKSPACE_SCAFFOLD_SRC: &str = "../workspace_scaffold/src/";
+pub const ADMIN_HTML_FORM_TEXT_TOO_LONG: &str =
+    "administrator HTML form text exceeds the size limit";
+pub const ADMIN_HTML_FORM_KEY_TOO_LONG: &str = "administrator HTML form key exceeds the size limit";
+pub const ADMIN_SSR_TITLE_TOO_LONG: &str = "administrator SSR title exceeds the size limit";
+pub const ADMINISTRATOR_SIGN_IN: &str = "Administrator sign in";
+pub const NO_COMPLETED_CLEANUP_RECORDED: &str = "No completed cleanup recorded";
+pub const SIGN_IN_FAILED: &str = "Sign in failed";
+pub const OPENAPI_DOCUMENT: &str = "OpenAPI document";
+pub const COMMA_SPACE: &str = ", ";
+pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/ssr.rs";
+pub const APPLICATION_X_WWW_FORM_URLENCODED: &str = "application/x-www-form-urlencoded";

@@ -514,6 +514,7 @@ fn no_non_public_use_imports_in_rust_sources() {
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
             if path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_RS)
+                || path_text.ends_with(str_constants::SSR_SOURCE_PATH)
                 || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS)
                 || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS)
                 || path_text.ends_with(str_constants::SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS)

@@ -4,15 +4,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libssl-dev pkg-config \
     && rm -rf /var/lib/apt/lists/*
 COPY . .
-ENV ADMIN_FRONTEND_DIST_DIR=/application/admin/dist
 ENV ADMIN_FRONTEND_STATIC_DIR=/application/admin/static
 RUN rustup toolchain install nightly-2026-07-12 \
     && rustup default nightly-2026-07-12 \
-    && rustup target add --toolchain nightly-2026-07-12 wasm32-unknown-unknown \
-    && cargo install trunk --version 0.21.14 --locked \
-    && cd server_admin_frontend \
-    && trunk build --release \
-    && cd /workspace \
     && cargo build --locked --release --package server
 
 FROM debian:bookworm-slim@sha256:7b140f374b289a7c2befc338f42ebe6441b7ea838a042bbd5acbfca6ec875818
@@ -22,7 +16,6 @@ RUN apt-get update \
     && groupadd --system application \
     && useradd --system --gid application --home-dir /nonexistent application
 COPY --from=builder /workspace/target/release/server /application/server
-COPY --from=builder /workspace/server_admin_frontend/dist /application/admin/dist
 COPY --from=builder /workspace/server_admin_frontend/static /application/admin/static
 USER application
 EXPOSE 8080

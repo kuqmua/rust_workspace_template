@@ -571,9 +571,9 @@ pub(super) async fn sign_out(
     super::append_cleared_session_cookies(&mut response, state.as_ref())?;
     Ok(response)
 }
-pub(super) async fn me(
+pub(super) async fn me_view(
     auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AuthenticatedAdmin, super::AdminApiError> {
     super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -581,7 +581,11 @@ pub(super) async fn me(
     )
     .await
     .and_then(|authenticated| super::authenticated_admin_contract(&authenticated))
-    .map(|authenticated| {
+}
+pub(super) async fn me(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    me_view(auth).await.map(|authenticated| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             authenticated,
         )))
@@ -672,9 +676,9 @@ pub(super) async fn change_own_password(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }
-pub(super) async fn mfa_status(
+pub(super) async fn mfa_status_view(
     auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminMfaStatus, super::AdminApiError> {
     let actor = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -689,19 +693,24 @@ pub(super) async fn mfa_status(
     )
     .await
     .map_err(map_repository_error)?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminMfaStatus::new(
-                server_admin_contract::AdminBool::from(enabled.0),
-                remaining,
-            ),
-        )),
+    Ok(server_admin_contract::AdminMfaStatus::new(
+        server_admin_contract::AdminBool::from(enabled.0),
+        remaining,
     ))
 }
-pub(super) async fn mfa_enroll(
+pub(super) async fn mfa_status(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    mfa_status_view(auth).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
+}
+pub(super) async fn mfa_enroll_view(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::AdminMfaEnrollReq>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminMfaEnrollRes, super::AdminApiError> {
     let actor = authenticate_mutation(&auth).await?;
     let (already_enabled, _remaining) = super::super::repository::mfa::status(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
@@ -754,16 +763,22 @@ pub(super) async fn mfa_enroll(
     )
     .await?;
     tx.commit().await.map_err(super::AdminApiError::from)?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminMfaEnrollRes::new(secret, uri),
-        )),
-    ))
+    Ok(server_admin_contract::AdminMfaEnrollRes::new(secret, uri))
 }
-pub(super) async fn mfa_confirm(
+pub(super) async fn mfa_enroll(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaEnrollReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    mfa_enroll_view(auth, request).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
+}
+pub(super) async fn mfa_confirm_view(
     auth: super::AdminAuthReq,
     request: super::AxumAdminJson<server_admin_contract::AdminMfaConfirmReq>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminMfaConfirmRes, super::AdminApiError> {
     let actor = authenticate_mutation(&auth).await?;
     let (encrypted, nonce, enabled) = super::super::repository::mfa::read_secret(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
@@ -840,11 +855,19 @@ pub(super) async fn mfa_confirm(
     )
     .await?;
     tx.commit().await.map_err(super::AdminApiError::from)?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminMfaConfirmRes::new(recovery_codes),
-        )),
+    Ok(server_admin_contract::AdminMfaConfirmRes::new(
+        recovery_codes,
     ))
+}
+pub(super) async fn mfa_confirm(
+    auth: super::AdminAuthReq,
+    request: super::AxumAdminJson<server_admin_contract::AdminMfaConfirmReq>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    mfa_confirm_view(auth, request).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
 }
 pub(super) async fn mfa_disable(
     auth: super::AdminAuthReq,
@@ -956,9 +979,9 @@ pub(super) async fn mfa_step_up(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }
-pub(super) async fn sessions(
+pub(super) async fn sessions_view(
     auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<Vec<server_admin_contract::AdminSessionView>, super::AdminApiError> {
     let authenticated = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -974,7 +997,11 @@ pub(super) async fn sessions(
     )
     .await
     .map_err(map_repository_error)
-    .map(|sessions| {
+}
+pub(super) async fn sessions(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    sessions_view(auth).await.map(|sessions| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             sessions,
         )))
@@ -1649,10 +1676,10 @@ pub(super) async fn set_user_roles(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))
 }
-pub(super) async fn list_users(
+pub(super) async fn users_page(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminUsersPage, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -1671,15 +1698,26 @@ pub(super) async fn list_users(
     let roles = super::super::repository::roles::list_role_catalog(pool)
         .await
         .map_err(map_repository_error)?;
-    let page = server_admin_contract::AdminUsersPage::new(users, roles, page_total(total)?);
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(page)),
+    Ok(server_admin_contract::AdminUsersPage::new(
+        users,
+        roles,
+        page_total(total)?,
     ))
 }
-pub(super) async fn list_roles(
+pub(super) async fn list_users(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    users_page(auth, query).await.map(|page| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            page,
+        )))
+    })
+}
+pub(super) async fn roles_page(
+    auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+) -> Result<server_admin_contract::AdminRolesPage, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -1698,15 +1736,26 @@ pub(super) async fn list_roles(
     let permissions = super::super::repository::permissions::list_permission_catalog(pool)
         .await
         .map_err(map_repository_error)?;
-    let page = server_admin_contract::AdminRolesPage::new(roles, permissions, page_total(total)?);
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(page)),
+    Ok(server_admin_contract::AdminRolesPage::new(
+        roles,
+        permissions,
+        page_total(total)?,
     ))
 }
-pub(super) async fn list_permissions(
+pub(super) async fn list_roles(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    roles_page(auth, query).await.map(|page| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            page,
+        )))
+    })
+}
+pub(super) async fn permissions_page(
+    auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+) -> Result<server_admin_contract::AdminPermissionsPage, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -1727,14 +1776,24 @@ pub(super) async fn list_permissions(
     )
     .await
     .map_err(map_repository_error)?;
-    let page = server_admin_contract::AdminPermissionsPage::new(permissions, page_total(total)?);
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(page)),
+    Ok(server_admin_contract::AdminPermissionsPage::new(
+        permissions,
+        page_total(total)?,
     ))
 }
-pub(super) async fn settings(
+pub(super) async fn list_permissions(
     auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    permissions_page(auth, query).await.map(|page| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            page,
+        )))
+    })
+}
+pub(super) async fn settings_view(
+    auth: super::AdminAuthReq,
+) -> Result<server_admin_contract::AdminSettingsView, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -1743,16 +1802,22 @@ pub(super) async fn settings(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let view = super::super::repository::settings::read_settings(
+    super::super::repository::settings::read_settings(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
         ),
     )
     .await
-    .map_err(map_repository_error)?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(view)),
-    ))
+    .map_err(map_repository_error)
+}
+pub(super) async fn settings(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    settings_view(auth).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
 }
 pub(super) async fn branding(
     auth: super::AdminAuthReq,
@@ -1770,9 +1835,9 @@ pub(super) async fn branding(
         )),
     ))
 }
-pub(super) async fn dashboard(
+pub(super) async fn dashboard_view(
     auth: super::AdminAuthReq,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminDashboardView, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -1807,7 +1872,14 @@ pub(super) async fn dashboard(
         uptime_seconds,
         version,
     );
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(view)),
-    ))
+    Ok(view)
+}
+pub(super) async fn dashboard(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    dashboard_view(auth).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
 }

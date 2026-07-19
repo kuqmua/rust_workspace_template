@@ -21,10 +21,10 @@ pub(super) async fn record_success_in_connection(
     .await
     .map_err(super::AdminApiError::Pg)
 }
-pub(super) async fn query_log(
+pub(super) async fn query_page(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminAuditPage, super::AdminApiError> {
     if !query.0.cursor_is_complete().0 {
         return Err(super::AdminApiError::Validation);
     }
@@ -61,9 +61,17 @@ pub(super) async fn query_log(
             super::AdminApiError::Pg(sqlx_error)
         }
     })?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(page)),
-    ))
+    Ok(page)
+}
+pub(super) async fn query_log(
+    auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<super::AdminAuditQuery>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    query_page(auth, query).await.map(|page| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            page,
+        )))
+    })
 }
 pub(super) async fn export_log(
     auth: super::AdminAuthReq,

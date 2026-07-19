@@ -436,6 +436,54 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .map_err(|error| {
             RunServerError::MetricsRecorder(MetricsExporterPrometheusBuildError(error))
         })?;
+    let admin_html_routes = server_admin::auth::html_routes_with_swagger(
+        admin_auth_state.clone(),
+        server_admin::auth::AdminHtmlSwaggerEnabled::from(swagger_enabled),
+    );
+    let html_metrics_handle = metrics_handle.clone();
+    let admin_metrics_routes = axum::Router::new()
+        .route(
+            str_constants::METRICS,
+            axum::routing::get(async move || {
+                server_runtime::MetricsResponseBody::try_from(html_metrics_handle.0.render())
+                    .map_or_else(
+                        |_error| {
+                            axum::response::IntoResponse::into_response(
+                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                            )
+                        },
+                        |body| {
+                            let title_result = server_admin_frontend::ssr::AdminSsrText::try_from(
+                                str_constants::METRICS_ALT.to_owned(),
+                            );
+                            let text_result = server_admin_frontend::ssr::AdminSsrText::try_from(
+                                body.into_inner(),
+                            );
+                            match (title_result, text_result) {
+                                (Ok(title), Ok(text)) => {
+                                    axum::response::IntoResponse::into_response(
+                                        axum::response::Html(String::from(
+                                            server_admin_frontend::ssr::render_text_page(
+                                                server_admin_contract::AdminPage::Metrics,
+                                                title,
+                                                text,
+                                            ),
+                                        )),
+                                    )
+                                }
+                                (Err(_error), _) | (_, Err(_error)) => {
+                                    axum::response::IntoResponse::into_response(
+                                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                    )
+                                }
+                            }
+                        },
+                    )
+            }),
+        )
+        .route_layer(server_admin::AdminGeneratedAuthLayer::from(
+            admin_auth_state.clone(),
+        ));
     let api_routes = mk_api_routes(&app_state, admin_auth_state, metrics_handle);
     let operational_routes = axum::Router::from(common_routes::common_routes(
         common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
@@ -479,6 +527,11 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                             } else {
                                 server_admin_frontend::routes_without_swagger()
                             }))
+                            .merge(axum::Router::from(admin_html_routes))
+                            .nest(
+                                server_admin_contract::AdminFrontendPath::Root.get(),
+                                admin_metrics_routes,
+                            )
                             .layer(
                                 tower_http::compression::CompressionLayer::new()
                                     .gzip(http_gzip_enabled),

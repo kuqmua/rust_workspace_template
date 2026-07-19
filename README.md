@@ -31,7 +31,6 @@ See [microservice architecture](docs/architecture.md) for ownership and communic
 
 - latest Rust nightly;
 - PostgreSQL 16 or Docker Compose;
-- Trunk and the `wasm32-unknown-unknown` target when building the administrator frontend.
 
 ## Local development
 
@@ -60,8 +59,6 @@ exact allowed origins, secure cookies, immutable image tags and managed database
 
 ```bash
 cargo build --workspace
-cd server_admin_frontend
-trunk build --release
 ```
 
 Each backend can also be built independently:

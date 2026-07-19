@@ -2274,6 +2274,61 @@ pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/version")]
     Version,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)]
+pub enum AdminHtmlAction {
+    #[strum(serialize = "/admin/actions/profile/mfa/confirm")]
+    MfaConfirm,
+    #[strum(serialize = "/admin/actions/profile/mfa/disable/recovery")]
+    MfaDisableRecovery,
+    #[strum(serialize = "/admin/actions/profile/mfa/disable/totp")]
+    MfaDisableTotp,
+    #[strum(serialize = "/admin/actions/profile/mfa/enroll")]
+    MfaEnroll,
+    #[strum(serialize = "/admin/actions/profile/mfa/step-up/recovery")]
+    MfaStepUpRecovery,
+    #[strum(serialize = "/admin/actions/profile/mfa/step-up/totp")]
+    MfaStepUpTotp,
+    #[strum(serialize = "/admin/actions/profile/password")]
+    ProfilePassword,
+    #[strum(serialize = "/admin/actions/roles/create")]
+    RoleCreate,
+    #[strum(serialize = "/admin/actions/roles/delete")]
+    RoleDelete,
+    #[strum(serialize = "/admin/actions/roles/permissions")]
+    RolePermissions,
+    #[strum(serialize = "/admin/actions/roles/update")]
+    RoleUpdate,
+    #[strum(serialize = "/admin/actions/sessions/revoke")]
+    SessionRevoke,
+    #[strum(serialize = "/admin/actions/settings/update")]
+    SettingsUpdate,
+    #[strum(serialize = "/admin/actions/sign-in")]
+    SignIn,
+    #[strum(serialize = "/admin/actions/sign-in/recovery")]
+    SignInRecovery,
+    #[strum(serialize = "/admin/actions/sign-in/totp")]
+    SignInTotp,
+    #[strum(serialize = "/admin/actions/sign-out")]
+    SignOut,
+    #[strum(serialize = "/admin/actions/users/ban")]
+    UserBan,
+    #[strum(serialize = "/admin/actions/users/create")]
+    UserCreate,
+    #[strum(serialize = "/admin/actions/users/delete")]
+    UserDelete,
+    #[strum(serialize = "/admin/actions/users/password")]
+    UserPassword,
+    #[strum(serialize = "/admin/actions/users/roles")]
+    UserRoles,
+    #[strum(serialize = "/admin/actions/users/update")]
+    UserUpdate,
+}
+impl AdminHtmlAction {
+    #[must_use]
+    pub fn get(self) -> &'static str {
+        <&'static str>::from(self)
+    }
+}
 impl AdminFrontendPath {
     pub const ALL_PAGES: [Self; 13] = [
         Self::Root,

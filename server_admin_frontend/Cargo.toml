@@ -4,7 +4,7 @@ edition = "2024"
 name = "server_admin_frontend"
 version = "0.1.0"
 publish = false
-description = "Reusable administrative SPA router"
+description = "Reusable server-rendered administrative frontend"
 repository = "https://github.com/kuqmua/rust_workspace_template"
 
 license = "MIT"
@@ -12,26 +12,13 @@ keywords = ["admin", "frontend"]
 categories = ["web-programming"]
 
 [dependencies]
+axum = { workspace = true }
+leptos = { workspace = true, features = ["ssr"] }
+newtype = { workspace = true }
 server_admin_contract = { workspace = true }
 str_constants = { workspace = true }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-axum = { workspace = true }
-newtype = { workspace = true }
-tower-http = { workspace = true }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-leptos = { workspace = true }
-gloo-net = { workspace = true }
-frontend_contract = { workspace = true }
-futures = { workspace = true }
-git_info = { workspace = true }
-newtype = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
-wasm-bindgen = { workspace = true }
-web-sys = { workspace = true }
+tower-http = { workspace = true }
 
 [lints]
 workspace = true

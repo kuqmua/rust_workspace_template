@@ -1,4 +1,5 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
+mod html;
 #[derive(newtype::DebugTransparent)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
 #[derive(newtype::DebugTransparent)]
@@ -215,9 +216,9 @@ impl AdminAuditQuery {
         }
     }
 }
-#[derive(Debug, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AdminAuthReq {
     headers: HttpAdminHeaderMap,
     peer: AdminPeerAddr,
@@ -252,6 +253,8 @@ where
 pub struct AdminSignInJson(server_admin_contract::AdminSignInReq);
 #[derive(Debug)]
 pub struct AxumAdminJson<Value>(Value);
+#[derive(Debug)]
+pub struct AxumAdminForm<Value>(Value);
 #[derive(Debug)]
 pub struct AxumAdminPath<Value>(Value);
 #[derive(Debug)]
@@ -317,6 +320,25 @@ where
         axum::Json::<Value>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
+            .map_err(|error| {
+                if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
+                    AdminApiError::PayloadTooLarge
+                } else {
+                    AdminApiError::Validation
+                }
+            })
+    }
+}
+impl<S, Value> axum::extract::FromRequest<S> for AxumAdminForm<Value>
+where
+    S: Send + Sync,
+    Value: serde::de::DeserializeOwned + Send,
+{
+    type Rejection = AdminApiError;
+    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
+        axum::Form::<Value>::from_request(req, state)
+            .await
+            .map(|axum::Form(value)| Self(value))
             .map_err(|error| {
                 if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
                     AdminApiError::PayloadTooLarge
@@ -1066,6 +1088,19 @@ pub fn open_api() -> UtoipaAdminAuthOpenApi {
 #[must_use]
 pub fn routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
     routes::routes(state)
+}
+#[must_use]
+pub fn html_routes(state: StdSharedAdminAuthSvcState) -> AxumAdminAuthRouter {
+    html::routes(state, AdminHtmlSwaggerEnabled::from(true))
+}
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
+pub struct AdminHtmlSwaggerEnabled(bool);
+#[must_use]
+pub fn html_routes_with_swagger(
+    state: StdSharedAdminAuthSvcState,
+    swagger_enabled: AdminHtmlSwaggerEnabled,
+) -> AxumAdminAuthRouter {
+    html::routes(state, swagger_enabled)
 }
 impl AdminAuthSvcState {
     pub fn try_new(
