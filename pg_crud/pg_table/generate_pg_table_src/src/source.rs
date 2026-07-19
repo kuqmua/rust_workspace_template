@@ -4632,6 +4632,8 @@ pub fn emit_generate_pg_table(
             operation_snake_case_string
         );
         let open_api_path = format!("/{identifier_snake_case_string}/{operation_snake_case_string}");
+        let open_api_operation_id =
+            format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::dq_token_stream(&open_api_path);
         let open_api_tag_double_quoted_token_stream = generate_quotes::dq_token_stream(&identifier_snake_case_string);
         let open_api_method_token_stream = match crate::openapi::http_method(operation_dsc) {
@@ -4796,7 +4798,7 @@ pub fn emit_generate_pg_table(
             #[utoipa::path(
                 #open_api_method_token_stream,
                 path = #open_api_path_double_quoted_token_stream,
-                operation_id = #operation_snake_case_string,
+                operation_id = #open_api_operation_id,
                 tag = #open_api_tag_double_quoted_token_stream,
                 #open_api_security_token_stream
                 #open_api_extra_params_token_stream
@@ -7150,6 +7152,7 @@ pub fn emit_generate_pg_table(
             .filter(|operation_dsc| operation_is_enabled(&operation_dsc.operation))
             .map(|operation_dsc| {
             let operation = operation_dsc.operation.self_snake_case_str();
+            let open_api_operation_id = format!("{identifier_snake_case_string}_{operation}");
             let path = format!("/{identifier_snake_case_string}/{operation}");
             let method = match crate::contract_tests::http_method(operation_dsc) {
                 OperationHttpMethod::Post => str_constants::POST_ALT,
@@ -7172,7 +7175,7 @@ pub fn emit_generate_pg_table(
                 assert_eq!(route_contract.idempotency_required(), #idempotency_required);
                 assert_eq!(route_contract.optimistic_revision_required(), #optimistic_revision_required);
                 let operation_document = document.pointer(&format!("/paths/{}/{}", #path.replace('/', "~1"), #method)).expect("b822e594");
-                assert_eq!(operation_document.get("operationId").and_then(serde_json::Value::as_str), Some(#operation));
+                assert_eq!(operation_document.get("operationId").and_then(serde_json::Value::as_str), Some(#open_api_operation_id));
                 assert!(operation_document.pointer(&format!("/responses/{}", #success_status)).is_some());
                 assert!(operation_document.pointer("/requestBody/content/application~1json").is_some());
                 assert!(operation_document.pointer(&format!("/responses/{}/content/application~1json", #success_status)).is_some());

@@ -745,7 +745,8 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             serde_json::json!([
                 metadata.openapi_operation_id().as_ref(),
                 metadata.method().as_ref(),
-                metadata.path().as_ref()
+                metadata.path().as_ref(),
+                u16::from(metadata.success_status().transport_status())
             ])
         })
         .collect::<Vec<_>>();
@@ -925,6 +926,12 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         serde_json::to_value(server_admin_contract::AdminNoBody).map_err(|error| {
             eprintln!("{error}");
         })?;
+    let open_api_json = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        server_admin::generated_tables::generated_open_api(),
+    ))
+    .map_err(|error| {
+        eprintln!("{error}");
+    })?;
     let fixture = serde_json::to_vec_pretty(&serde_json::json!([
         routes,
         permissions,
@@ -937,6 +944,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         no_body_json,
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
             .map(frontend_contract::RouteBodyLimit::get),
+        open_api_json,
     ]))
     .map_err(|error| {
         eprintln!("{error}");

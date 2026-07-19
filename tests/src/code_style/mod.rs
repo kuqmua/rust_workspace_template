@@ -748,6 +748,15 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         syn::visit::visit_item_const(self, i);
     }
     fn visit_item_fn(&mut self, i: &'ast syn::ItemFn) {
+        if i.attrs.iter().any(|attribute| {
+            attribute
+                .path()
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == str_constants::TEST_ALT_3)
+        }) {
+            return;
+        }
         if i.sig.constness.is_some() {
             let mut literal_visitor = TestStringLiteralVisitor {
                 values: types::SourceTextList::default(),
@@ -761,6 +770,23 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
             }
         }
         syn::visit::visit_item_fn(self, i);
+    }
+    fn visit_item_mod(&mut self, i: &'ast syn::ItemMod) {
+        if i.attrs.iter().any(|attribute| {
+            matches!(
+                &attribute.meta,
+                syn::Meta::List(list)
+                    if list.path.is_ident(str_constants::CFG_ALT)
+                        && list
+                            .tokens
+                            .to_string()
+                            .split(|symbol: char| !symbol.is_ascii_alphanumeric() && symbol != '_')
+                            .any(|condition| condition == str_constants::TEST_ALT_3)
+            )
+        }) {
+            return;
+        }
+        syn::visit::visit_item_mod(self, i);
     }
     fn visit_item_static(&mut self, i: &'ast syn::ItemStatic) {
         let mut literal_visitor = TestStringLiteralVisitor {

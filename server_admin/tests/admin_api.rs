@@ -246,7 +246,11 @@ async fn protected_routes_reject_missing_authentication_without_database_io() {
     assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
 }
 #[tokio::test]
-async fn runtime_auth_router_contains_every_open_api_path() {
+#[allow(
+    clippy::needless_for_each,
+    reason = "repository policy requires iterator methods instead of for loops"
+)]
+async fn runtime_auth_router_contains_every_open_api_operation() {
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
         server_admin::auth::open_api(),
     ))
@@ -255,33 +259,59 @@ async fn runtime_auth_router_contains_every_open_api_path() {
         .get(str_constants::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect("d908872f");
-    let responses = futures::future::join_all(paths.keys().map(|documented_path| {
-        let runtime_path = documented_path
-            .replace(
-                str_constants::ADMIN_SESSION_ID_PLACEHOLDER,
-                str_constants::VALUE_1,
-            )
-            .replace(
-                str_constants::ADMIN_USER_ID_PLACEHOLDER,
-                str_constants::VALUE_1,
-            )
-            .replace(
-                str_constants::ADMIN_ROLE_ID_PLACEHOLDER,
-                str_constants::VALUE_1,
-            );
-        tower::ServiceExt::oneshot(
-            router().0,
-            http::Request::builder()
-                .method(http::Method::OPTIONS)
-                .uri(runtime_path)
-                .body(axum::body::Body::empty())
-                .expect("a3d6fb65"),
-        )
-    }))
+    let responses = futures::future::join_all(
+        paths
+            .iter()
+            .flat_map(|(documented_path, path_item)| {
+                path_item
+                    .as_object()
+                    .into_iter()
+                    .flat_map(|operation_map| operation_map.keys())
+                    .map(move |method| (documented_path, method))
+            })
+            .map(|(path, method)| (path.to_owned(), method.to_owned()))
+            .map(|(documented_path, documented_method)| {
+                let runtime_path = documented_path
+                    .replace(
+                        str_constants::ADMIN_SESSION_ID_PLACEHOLDER,
+                        str_constants::VALUE_1,
+                    )
+                    .replace(
+                        str_constants::ADMIN_USER_ID_PLACEHOLDER,
+                        str_constants::VALUE_1,
+                    )
+                    .replace(
+                        str_constants::ADMIN_ROLE_ID_PLACEHOLDER,
+                        str_constants::VALUE_1,
+                    );
+                let method =
+                    http::Method::from_bytes(documented_method.to_ascii_uppercase().as_bytes())
+                        .expect("9d31a7e4");
+                async move {
+                    (
+                        documented_method,
+                        documented_path,
+                        tower::ServiceExt::oneshot(
+                            router().0,
+                            http::Request::builder()
+                                .method(method)
+                                .uri(runtime_path)
+                                .body(axum::body::Body::empty())
+                                .expect("a3d6fb65"),
+                        )
+                        .await,
+                    )
+                }
+            }),
+    )
     .await;
-    assert!(responses.into_iter().all(
-        |response| response.expect("f7bd9f15").status() == http::StatusCode::METHOD_NOT_ALLOWED
-    ));
+    responses.into_iter().for_each(|(method, path, response)| {
+        let status = response.expect("f7bd9f15").status();
+        assert!(
+            status != http::StatusCode::METHOD_NOT_ALLOWED && status != http::StatusCode::NOT_FOUND,
+            "runtime router does not expose documented operation {method} {path}"
+        );
+    });
 }
 #[tokio::test]
 async fn invalid_access_cookie_is_rejected_before_database_io() {

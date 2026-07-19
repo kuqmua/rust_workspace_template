@@ -9,6 +9,8 @@ const [
   auditLog,
   sessions,
   noBody,
+  bodyLimit,
+  openApi,
 ] = require('../../target/admin_contract_fixture.json');
 
 const apiRoute = (operationId) => {
@@ -34,6 +36,132 @@ const usersPage = (requestUrl) => {
       .localeCompare(String(right[sort] ?? right.login)) * direction);
   return { ...users, items: items.slice(offset, offset + limit), total: items.length };
 };
+
+const expectedQueryParameters = {
+  audit_log: ['action', 'created_after', 'created_before', 'cursor_created_at', 'cursor_id', 'limit', 'resource', 'resource_id', 'succeeded', 'user_id', 'user_login'],
+  export_audit_log: ['action', 'created_after', 'created_before', 'cursor_created_at', 'cursor_id', 'limit', 'resource', 'resource_id', 'succeeded', 'user_id', 'user_login'],
+  list_permissions: ['limit', 'offset', 'search', 'sort', 'direction'],
+  list_roles: ['limit', 'offset', 'search', 'sort', 'direction'],
+  list_users: ['limit', 'offset', 'search', 'sort', 'direction'],
+};
+const expectedRequestProperties = {
+  change_own_password: [['current_password', 'new_password', 'revoke_other_sessions'], ['current_password', 'new_password', 'revoke_other_sessions']],
+  create_role: [['name'], ['name']],
+  create_user: [['display_name', 'login', 'password'], ['display_name', 'login', 'password']],
+  mfa_confirm: [['code'], ['code']],
+  mfa_disable: [['current_password', 'proof'], ['current_password', 'proof']],
+  mfa_enroll: [['current_password'], ['current_password']],
+  mfa_step_up: [['current_password', 'proof'], ['current_password', 'proof']],
+  set_role_permissions: [['expected_permission_ids', 'permission_ids'], ['expected_permission_ids', 'permission_ids']],
+  set_user_ban: [['is_banned'], ['is_banned']],
+  set_user_password: [['password'], ['password']],
+  set_user_roles: [['expected_role_ids', 'role_ids'], ['expected_role_ids', 'role_ids']],
+  sign_in: [['login', 'mfa_proof', 'password'], ['login', 'password']],
+  update_role: [['name'], ['name']],
+  update_settings: [['clear', 'default_admin_route', 'main_logo', 'organization_contacts', 'organization_name', 'primary_color', 'site_name', 'support_url', 'tab_title'], ['clear']],
+  update_user: [['display_name', 'login'], []],
+};
+
+for (const [operationId, method, path, successStatus] of routeCatalog) {
+  test(`frontend contract matches backend OpenAPI for ${operationId}`, async () => {
+    const operation = openApi.paths[path]?.[method.toLowerCase()];
+    expect(operation, `${method} ${path} is missing from backend OpenAPI`).toBeTruthy();
+    expect(operation.operationId).toBe(operationId);
+    const successResponse = operation.responses[String(successStatus)];
+    expect(successResponse, `missing success response ${successStatus}`).toBeTruthy();
+    if (successStatus === 204) {
+      expect(successResponse.content).toBeUndefined();
+    } else {
+      expect(successResponse.content?.['application/json']?.schema).toBeTruthy();
+    }
+
+    const parameters = operation.parameters || [];
+    const expectedPathParameters = [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
+    const pathParameters = parameters.filter((parameter) => parameter.in === 'path');
+    expect(pathParameters.map((parameter) => parameter.name)).toEqual(expectedPathParameters);
+    for (const parameter of pathParameters) {
+      await test.step(`path parameter ${parameter.name}`, async () => {
+        expect(parameter.required).toBe(true);
+        expect(parameter.schema).toBeTruthy();
+      });
+    }
+
+    const queryParameters = parameters.filter((parameter) => parameter.in === 'query');
+    expect(queryParameters.map((parameter) => parameter.name)).toEqual(expectedQueryParameters[operationId] || []);
+    for (const parameter of queryParameters) {
+      await test.step(`query parameter ${parameter.name}`, async () => {
+        expect(parameter.schema).toBeTruthy();
+      });
+    }
+
+    const expectedRequest = expectedRequestProperties[operationId];
+    if (!expectedRequest) {
+      expect(operation.requestBody).toBeUndefined();
+      return;
+    }
+    const schemaReference = operation.requestBody?.content?.['application/json']?.schema?.$ref;
+    expect(schemaReference).toBeTruthy();
+    const schema = openApi.components.schemas[schemaReference.split('/').at(-1)];
+    expect(Object.keys(schema.properties || {}).sort()).toEqual([...expectedRequest[0]].sort());
+    for (const property of expectedRequest[0]) {
+      await test.step(`request property ${property}`, async () => {
+        expect(schema.properties[property]).toBeTruthy();
+      });
+    }
+    expect([...(schema.required || [])].sort()).toEqual([...expectedRequest[1]].sort());
+  });
+}
+
+const auditParameterValues = {
+  action: 'user.updated',
+  created_after: '2026-07-17T09:00:00Z',
+  created_before: '2026-07-17T10:00:00Z',
+  cursor_created_at: '2026-07-17T09:30:00Z',
+  cursor_id: '1',
+  limit: '50',
+  resource: 'user',
+  resource_id: '25',
+  succeeded: 'true',
+  user_id: '25',
+  user_login: 'alpha',
+};
+for (const [parameter, value] of Object.entries(auditParameterValues)) {
+  test(`frontend sends audit query parameter ${parameter}`, async ({ page }) => {
+    const requestPromise = page.waitForRequest((request) => {
+      const url = new URL(request.url());
+      return url.pathname === apiRoute('audit_log') && url.searchParams.get(parameter) === value;
+    });
+    await page.goto(`/admin/audit-log?${parameter}=${encodeURIComponent(value)}`);
+    const request = await requestPromise;
+    expect(new URL(request.url()).searchParams.get(parameter)).toBe(value);
+  });
+}
+
+const tablePages = {
+  list_permissions: '/admin/permissions',
+  list_roles: '/admin/roles',
+  list_users: '/admin/users',
+};
+const tableParameterValues = {
+  direction: 'desc',
+  limit: '50',
+  offset: '20',
+  search: 'alpha beta',
+  sort: 'id',
+};
+for (const [operationId, pagePath] of Object.entries(tablePages)) {
+  for (const [parameter, value] of Object.entries(tableParameterValues)) {
+    test(`frontend sends ${operationId} query parameter ${parameter}`, async ({ page }) => {
+      const requestPromise = page.waitForRequest((request) => {
+        const url = new URL(request.url());
+        return url.pathname === apiRoute(operationId) && url.searchParams.get(parameter) === value;
+      });
+      await page.goto(`${pagePath}?${parameter}=${encodeURIComponent(value)}`);
+      const request = await requestPromise;
+      expect(new URL(request.url()).searchParams.get(parameter)).toBe(value);
+    });
+  }
+}
 
 test.beforeEach(async ({ page }) => {
   await page.route(apiRouteGlob('branding'), async (route) => {
@@ -61,7 +189,16 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/admin/openapi.json', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({ openapi: '3.1.0', paths: { '/users': { get: {} } } }),
+      body: JSON.stringify(openApi),
+    });
+  });
+  await page.route('**/api/v1/admin/metrics', async (route) => {
+    await route.fulfill({ contentType: 'text/plain', body: 'http_requests_total 42\n' });
+  });
+  await page.route('**/api/v1/git_info', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ commit: '0123456789abcdef' }),
     });
   });
   await page.route(apiRouteGlob('list_permissions'), async (route) => {
@@ -152,6 +289,73 @@ test('sign-in renders without starting authenticated resources', async ({ page }
   expect(pageErrors).toEqual([]);
 });
 
+test('sign-in sends every request field through the typed route', async ({ page }) => {
+  let requestBody;
+  await page.route(apiRouteGlob('sign_in'), async (route) => {
+    requestBody = route.request().postDataJSON();
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ user: authenticatedAdmin }),
+    });
+  });
+  await page.goto('/admin/sign-in');
+  await page.getByPlaceholder('Enter your login').fill('root');
+  await page.getByPlaceholder('Enter your password').fill('correct horse battery staple');
+  await page.getByPlaceholder('123456 or xxxx-xxxx-xxxx-xxxx').fill('123456');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect.poll(() => requestBody).toEqual({
+    login: 'root',
+    mfa_proof: { kind: 'totp', value: '123456' },
+    password: 'correct horse battery staple',
+  });
+});
+
+test('sign-out uses its typed route and returns to sign-in', async ({ page }) => {
+  let requests = 0;
+  await page.route(apiRouteGlob('sign_out'), async (route) => {
+    requests += 1;
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto('/admin/users');
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect.poll(() => requests).toBe(1);
+  await expect(page).toHaveURL('/admin/sign-in');
+});
+
+test('MFA step-up and disable send every typed request field', async ({ page }) => {
+  const requests = [];
+  await page.unroute(apiRouteGlob('mfa_status'));
+  await page.route(apiRouteGlob('mfa_status'), async (route) => {
+    if (route.request().method() === 'DELETE') {
+      requests.push(['mfa_disable', route.request().postDataJSON()]);
+      await route.fulfill({ status: 204 });
+      return;
+    }
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ enabled: true, recovery_codes_remaining: 4 }),
+    });
+  });
+  await page.route(apiRouteGlob('mfa_step_up'), async (route) => {
+    requests.push(['mfa_step_up', route.request().postDataJSON()]);
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto('/admin/profile');
+  await page.getByLabel('MFA current password').fill('correct horse battery staple');
+  await page.getByLabel('MFA proof').fill('123456');
+  await page.getByRole('button', { name: 'Verify step-up' }).click();
+  await expect.poll(() => requests.length).toBe(1);
+  await expect(page.getByText('Step-up authentication valid')).toBeVisible();
+  await page.getByLabel('MFA current password').fill('correct horse battery staple');
+  await page.getByLabel('MFA proof').fill('123456');
+  await page.getByRole('button', { name: 'Disable MFA' }).click();
+  await expect.poll(() => requests.length).toBe(2);
+  expect(requests).toEqual([
+    ['mfa_step_up', { current_password: 'correct horse battery staple', proof: { kind: 'totp', value: '123456' } }],
+    ['mfa_disable', { current_password: 'correct horse battery staple', proof: { kind: 'totp', value: '123456' } }],
+  ]);
+});
+
 test('settings validate and save branding with explicit optional clearing', async ({ page }) => {
   let settingsRequest;
   await page.unroute(apiRouteGlob('settings'));
@@ -233,9 +437,18 @@ test('temporary session check failure does not discard authentication', async ({
 test('OpenAPI page is rendered by the Leptos SPA', async ({ page }) => {
   await page.goto('/admin/swagger-ui');
   await expect(page.getByRole('heading', { name: 'OpenAPI document' })).toBeVisible();
-  await expect(page.locator('#openapi')).toContainText('"openapi": "3.1.0"');
+  await expect(page.locator('#openapi')).toContainText(`"openapi": "${openApi.openapi}"`);
   await expect(page.locator('#openapi')).toContainText('"/users"');
   await expect(page.locator('script[src$="swagger.js"]')).toHaveCount(0);
+});
+
+test('metrics and version pages use their operational API routes', async ({ page }) => {
+  await page.goto('/admin/metrics');
+  await expect(page.getByRole('heading', { name: 'Runtime information' })).toBeVisible();
+  await expect(page.locator('.code-card')).toContainText('http_requests_total 42');
+  await page.goto('/admin/version');
+  await expect(page.getByRole('heading', { name: 'Runtime information' })).toBeVisible();
+  await expect(page.locator('.code-card')).toContainText('0123456789abcdef');
 });
 
 test('dashboard renders structured operational summary', async ({ page }) => {
@@ -305,6 +518,8 @@ test('role and permission editors show current named assignments', async ({ page
 test('role assignment sends the complete before-and-after sets', async ({ page }) => {
   const viewer = { id: 2, is_system: false, name: 'viewer', permission_ids: [] };
   let requestBody;
+  let releaseResponse;
+  const responseGate = new Promise((resolve) => { releaseResponse = resolve; });
   await page.unroute(apiRouteGlob('list_users'));
   await page.route(apiRouteGlob('list_users'), async (route) => {
     const response = usersPage(route.request().url());
@@ -319,6 +534,7 @@ test('role assignment sends the complete before-and-after sets', async ({ page }
       return;
     }
     requestBody = route.request().postDataJSON();
+    await responseGate;
     await route.fulfill({ status: 204 });
   });
 
@@ -327,7 +543,9 @@ test('role assignment sends the complete before-and-after sets', async ({ page }
   await row.getByText('Roles', { exact: true }).click();
   await row.getByRole('checkbox', { name: 'viewer' }).check();
   await row.getByRole('button', { name: 'Save roles' }).click();
+  await expect.poll(() => requestBody).toBeTruthy();
   await expect(row.getByRole('button', { name: 'Saving...' })).toBeDisabled();
+  releaseResponse();
   await expect(page.getByText('User roles updated')).toBeVisible();
   expect(requestBody).toEqual({ expected_role_ids: [1], role_ids: [1, 2] });
 });
@@ -600,9 +818,11 @@ test('audit filters and keyset cursor are kept in the URL', async ({ page }) => 
   await page.goto('/admin/audit-log');
   await page.getByRole('button', { name: 'Prepare CSV' }).click();
   await expect(page.getByRole('link', { name: 'Download CSV' })).toHaveAttribute('download', 'admin-audit.csv');
+  await page.getByLabel('Audit user ID').fill('25');
   await page.getByLabel('Audit user login').fill('alpha');
   await page.getByRole('button', { name: 'Apply filters' }).click();
   await expect(page).toHaveURL(/user_login=alpha/);
+  await expect(page).toHaveURL(/user_id=25/);
   await expect(page.getByRole('heading', { name: 'Audit log' })).toBeVisible();
   await page.getByRole('button', { name: 'Older events' }).click();
   await expect(page).toHaveURL(/cursor_created_at=/);

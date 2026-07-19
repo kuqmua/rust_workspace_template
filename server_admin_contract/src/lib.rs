@@ -746,7 +746,7 @@ pub struct AdminTableQuery {
     #[param(value_type = String, max_length = 32)]
     sort: AdminTableSortKey,
     #[serde(default)]
-    #[param(value_type = String)]
+    #[param(inline)]
     direction: AdminSortDirection,
 }
 impl AdminTableQuery {

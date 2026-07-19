@@ -219,6 +219,31 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
 }
 #[cfg(test)]
 mod tests {
+    fn typed_operation(
+        document: &serde_json::Value,
+        metadata: frontend_contract::RouteMetadata,
+    ) -> &serde_json::Value {
+        document
+            .get(str_constants::PATHS)
+            .and_then(|paths| paths.get(metadata.path().as_ref()))
+            .and_then(|path| path.get(metadata.method().as_ref().to_ascii_lowercase()))
+            .expect("61b8f042")
+    }
+
+    fn parameter_names(operation: &serde_json::Value, location: &str) -> Vec<String> {
+        operation
+            .get("parameters")
+            .and_then(serde_json::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter(|parameter| {
+                parameter.get("in").and_then(serde_json::Value::as_str) == Some(location)
+            })
+            .filter_map(|parameter| parameter.get("name").and_then(serde_json::Value::as_str))
+            .map(str::to_owned)
+            .collect()
+    }
+
     fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_json::Value) {
         match value {
             serde_json::Value::Array(values) => values
@@ -255,6 +280,253 @@ mod tests {
     }
 
     #[test]
+    fn every_typed_route_path_and_each_path_parameter_match_open_api() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("ab2e610c");
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+            .into_iter()
+            .for_each(|metadata| {
+                let operation = typed_operation(&document, metadata);
+                assert_eq!(
+                    operation.get("operationId").and_then(serde_json::Value::as_str),
+                    Some(metadata.openapi_operation_id().as_ref()),
+                    "operation id differs for {} {}",
+                    metadata.method().as_ref(),
+                    metadata.path().as_ref(),
+                );
+                let success_status = u16::from(metadata.success_status().transport_status()).to_string();
+                let success_response = operation
+                    .get("responses")
+                    .and_then(|responses| responses.get(success_status.as_str()))
+                    .expect("021e4af7");
+                if success_status == "204" {
+                    assert!(success_response.get("content").is_none());
+                } else {
+                    assert!(success_response.pointer("/content/application~1json/schema").is_some());
+                }
+                let expected = metadata
+                    .path()
+                    .as_ref()
+                    .split('{')
+                    .skip(1)
+                    .filter_map(|suffix| suffix.split_once('}').map(|(name, _suffix)| name.to_owned()))
+                    .collect::<Vec<_>>();
+                let actual = parameter_names(operation, "path");
+                assert_eq!(actual, expected, "path parameters differ for {}", metadata.path().as_ref());
+                actual.iter().for_each(|name| {
+                    let parameter = operation
+                        .get("parameters")
+                        .and_then(serde_json::Value::as_array)
+                        .and_then(|parameters| parameters.iter().find(|parameter| {
+                            parameter.get("name").and_then(serde_json::Value::as_str) == Some(name)
+                                && parameter.get("in").and_then(serde_json::Value::as_str) == Some("path")
+                        }))
+                        .expect("7e45cd91");
+                    assert_eq!(parameter.get("required").and_then(serde_json::Value::as_bool), Some(true));
+                    assert!(parameter.get("schema").is_some(), "missing schema for path parameter {name}");
+                });
+            });
+    }
+
+    #[test]
+    fn every_typed_route_query_parameter_matches_open_api_individually() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("d083c1a9");
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+            .into_iter()
+            .for_each(|metadata| {
+                let expected: &[&str] = match metadata.openapi_operation_id().as_ref() {
+                    "audit_log" | "export_audit_log" => &["action", "created_after", "created_before", "cursor_created_at", "cursor_id", "limit", "resource", "resource_id", "succeeded", "user_id", "user_login"],
+                    "list_permissions" | "list_roles" | "list_users" => &["limit", "offset", "search", "sort", "direction"],
+                    _ => &[],
+                };
+                let operation = typed_operation(&document, metadata);
+                let actual = parameter_names(operation, "query");
+                assert_eq!(actual, expected, "query parameters differ for {}", metadata.openapi_operation_id().as_ref());
+                actual.iter().for_each(|name| {
+                    let parameter = operation
+                        .get("parameters")
+                        .and_then(serde_json::Value::as_array)
+                        .and_then(|parameters| parameters.iter().find(|parameter| parameter.get("name").and_then(serde_json::Value::as_str) == Some(name)))
+                        .expect("ba482f35");
+                    assert!(parameter.get("schema").is_some(), "missing schema for query parameter {name}");
+                    let schema = parameter.get("schema").expect("cf18a7d5");
+                    match name.as_str() {
+                        "direction" => assert_eq!(
+                            schema.get("enum"),
+                            Some(&serde_json::json!(["asc", "desc"])),
+                        ),
+                        "limit" => {
+                            assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(1));
+                            assert_eq!(schema.get("maximum").and_then(serde_json::Value::as_u64), Some(100));
+                        }
+                        "offset" => assert_eq!(schema.get("minimum").and_then(serde_json::Value::as_u64), Some(0)),
+                        "search" => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(128)),
+                        "sort" => assert_eq!(schema.get("maxLength").and_then(serde_json::Value::as_u64), Some(32)),
+                        _ => {}
+                    }
+                });
+            });
+    }
+
+    #[test]
+    fn every_typed_route_request_body_matches_open_api() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("40a639b7");
+        <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
+            .into_iter()
+            .for_each(|metadata| {
+                let expected_schema = match metadata.openapi_operation_id().as_ref() {
+                    "change_own_password" => Some("server_admin_contract.AdminChangeOwnPasswordReq"),
+                    "create_role" => Some("server_admin_contract.AdminCreateRoleReq"),
+                    "create_user" => Some("server_admin_contract.AdminCreateUserReq"),
+                    "mfa_confirm" => Some("server_admin_contract.AdminMfaConfirmReq"),
+                    "mfa_disable" => Some("server_admin_contract.AdminMfaDisableReq"),
+                    "mfa_enroll" => Some("server_admin_contract.AdminMfaEnrollReq"),
+                    "mfa_step_up" => Some("server_admin_contract.AdminMfaStepUpReq"),
+                    "set_role_permissions" => Some("server_admin_contract.AdminSetRolePermissionsReq"),
+                    "set_user_ban" => Some("server_admin_contract.AdminSetUserBanReq"),
+                    "set_user_password" => Some("server_admin_contract.AdminSetUserPasswordReq"),
+                    "set_user_roles" => Some("server_admin_contract.AdminSetUserRolesReq"),
+                    "sign_in" => Some("server_admin_contract.AdminSignInReq"),
+                    "update_role" => Some("server_admin_contract.AdminUpdateRoleReq"),
+                    "update_settings" => Some("server_admin_contract.AdminUpdateSettingsReq"),
+                    "update_user" => Some("server_admin_contract.AdminUpdateUserReq"),
+                    _ => None,
+                };
+                let operation = typed_operation(&document, metadata);
+                let request_body = operation.get("requestBody");
+                match expected_schema {
+                    Some(schema) => {
+                        let expected_reference = format!("#/components/schemas/{schema}");
+                        assert_eq!(
+                            request_body.and_then(|body| body.pointer("/content/application~1json/schema/$ref")).and_then(serde_json::Value::as_str),
+                            Some(expected_reference.as_str()),
+                            "request schema differs for {}",
+                            metadata.openapi_operation_id().as_ref(),
+                        );
+                    }
+                    None => assert!(request_body.is_none(), "unexpected request body for {}", metadata.openapi_operation_id().as_ref()),
+                }
+            });
+    }
+
+    #[test]
+    fn every_request_field_matches_open_api_individually() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("eb67c5a0");
+        let schemas = document
+            .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
+            .and_then(serde_json::Value::as_object)
+            .expect("26d0f83b");
+        [
+            (
+                "AdminChangeOwnPasswordReq",
+                &["current_password", "new_password", "revoke_other_sessions"][..],
+                &["current_password", "new_password", "revoke_other_sessions"][..],
+            ),
+            ("AdminCreateRoleReq", &["name"][..], &["name"][..]),
+            (
+                "AdminCreateUserReq",
+                &["display_name", "login", "password"][..],
+                &["display_name", "login", "password"][..],
+            ),
+            ("AdminMfaConfirmReq", &["code"][..], &["code"][..]),
+            (
+                "AdminMfaDisableReq",
+                &["current_password", "proof"][..],
+                &["current_password", "proof"][..],
+            ),
+            (
+                "AdminMfaEnrollReq",
+                &["current_password"][..],
+                &["current_password"][..],
+            ),
+            (
+                "AdminMfaStepUpReq",
+                &["current_password", "proof"][..],
+                &["current_password", "proof"][..],
+            ),
+            (
+                "AdminSetRolePermissionsReq",
+                &["expected_permission_ids", "permission_ids"][..],
+                &["expected_permission_ids", "permission_ids"][..],
+            ),
+            ("AdminSetUserBanReq", &["is_banned"][..], &["is_banned"][..]),
+            (
+                "AdminSetUserPasswordReq",
+                &["password"][..],
+                &["password"][..],
+            ),
+            (
+                "AdminSetUserRolesReq",
+                &["expected_role_ids", "role_ids"][..],
+                &["expected_role_ids", "role_ids"][..],
+            ),
+            (
+                "AdminSignInReq",
+                &["login", "mfa_proof", "password"][..],
+                &["login", "password"][..],
+            ),
+            ("AdminUpdateRoleReq", &["name"][..], &["name"][..]),
+            (
+                "AdminUpdateSettingsReq",
+                &[
+                    "clear",
+                    "default_admin_route",
+                    "main_logo",
+                    "organization_contacts",
+                    "organization_name",
+                    "primary_color",
+                    "site_name",
+                    "support_url",
+                    "tab_title",
+                ][..],
+                &["clear"][..],
+            ),
+            (
+                "AdminUpdateUserReq",
+                &["display_name", "login"][..],
+                &[][..],
+            ),
+        ]
+        .into_iter()
+        .for_each(|(schema_name, expected_properties, expected_required)| {
+            let schema = schemas.get(schema_name).expect("3754bca2");
+            let properties = schema
+                .get(str_constants::PROPERTIES)
+                .and_then(serde_json::Value::as_object)
+                .expect("bb0478fd");
+            let actual_properties = properties.keys().map(String::as_str).collect::<Vec<_>>();
+            assert_eq!(
+                actual_properties, expected_properties,
+                "properties differ for {schema_name}"
+            );
+            expected_properties.iter().for_each(|property| {
+                assert!(
+                    properties.get(*property).is_some(),
+                    "missing {schema_name}.{property}"
+                );
+            });
+            let actual_required = schema
+                .get("required")
+                .and_then(serde_json::Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(serde_json::Value::as_str)
+                .collect::<Vec<_>>();
+            assert_eq!(
+                actual_required, expected_required,
+                "required fields differ for {schema_name}"
+            );
+        });
+    }
+
+    #[test]
     fn generated_admin_open_api_combines_enabled_routes_only() {
         let document =
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
@@ -279,6 +551,31 @@ mod tests {
         assert!(paths.contains_key("/system-settings"));
         assert!(!paths.contains_key("/admin_system_settings/cm"));
         assert!(!paths.contains_key("/admin_system_settings/dm"));
+    }
+    #[test]
+    fn every_admin_open_api_operation_has_a_unique_identifier() {
+        let document =
+            serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
+                .expect("c731d604");
+        let operation_ids = document
+            .get(str_constants::PATHS)
+            .and_then(serde_json::Value::as_object)
+            .expect("f9b402ac")
+            .values()
+            .filter_map(serde_json::Value::as_object)
+            .flat_map(|operations| operations.values())
+            .map(|operation| {
+                operation
+                    .get("operationId")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("18f4ae63")
+            })
+            .collect::<Vec<_>>();
+        let unique = operation_ids
+            .iter()
+            .copied()
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(unique.len(), operation_ids.len());
     }
     #[test]
     fn generated_read_routes_expose_filter_sort_and_pagination_contract() {

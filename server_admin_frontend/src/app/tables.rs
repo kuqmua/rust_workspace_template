@@ -511,6 +511,7 @@ fn AuditFilters(
 ) -> impl IntoView {
     let created_after = RwSignal::new(super::query_value(str_constants::CREATED_AFTER));
     let created_before = RwSignal::new(super::query_value(str_constants::CREATED_BEFORE));
+    let user_id = RwSignal::new(super::query_value(str_constants::USER_ID));
     let user_login = RwSignal::new(super::query_value(str_constants::USER_LOGIN));
     let action = RwSignal::new(super::query_value(str_constants::ACTION));
     let resource = RwSignal::new(super::query_value(str_constants::RESOURCE));
@@ -533,6 +534,7 @@ fn AuditFilters(
             let values = [
                 ("created_after", created_after.get_untracked()),
                 ("created_before", created_before.get_untracked()),
+                ("user_id", user_id.get_untracked()),
                 ("user_login", user_login.get_untracked()),
                 ("action", action.get_untracked()),
                 ("resource", resource.get_untracked()),
@@ -546,6 +548,7 @@ fn AuditFilters(
         }>
             <label><span>"From"</span><input aria-label="Audit created after" placeholder="2026-07-17T09:00:00Z" prop:value=move || created_after.get() on:input=move |event| created_after.set(event_target_value(&event)) /></label>
             <label><span>"To"</span><input aria-label="Audit created before" placeholder="2026-07-17T10:00:00Z" prop:value=move || created_before.get() on:input=move |event| created_before.set(event_target_value(&event)) /></label>
+            <label><span>"User ID"</span><input type="number" min="1" aria-label="Audit user ID" prop:value=move || user_id.get() on:input=move |event| user_id.set(event_target_value(&event)) /></label>
             <label><span>"User login"</span><input aria-label="Audit user login" prop:value=move || user_login.get() on:input=move |event| user_login.set(event_target_value(&event)) /></label>
             <label><span>"Action"</span><input aria-label="Audit action" prop:value=move || action.get() on:input=move |event| action.set(event_target_value(&event)) /></label>
             <label><span>"Resource"</span><input aria-label="Audit resource" prop:value=move || resource.get() on:input=move |event| resource.set(event_target_value(&event)) /></label>

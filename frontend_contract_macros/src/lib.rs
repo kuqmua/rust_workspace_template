@@ -372,6 +372,7 @@ pub fn route_registry(
                         operation.operation_id = Some(metadata.openapi_operation_id().as_ref().to_owned());
                         frontend_contract::apply_openapi_success_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_error_contract::<#routes>(&mut operation);
+                        frontend_contract::apply_openapi_path_parameter_contract::<#routes>(&mut operation);
                         frontend_contract::apply_openapi_security_contract::<#routes>(
                             &mut operation,
                             frontend_contract::OpenApiSecuritySchemeRef::from(#authenticated_security),
@@ -606,6 +607,7 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         |value| quote::ToTokens::into_token_stream(&value.0),
     );
     let openapi_operation_id = args.openapi_operation_id.0;
+    let mut openapi_path_parameter = quote::quote!(None);
     let parameterized_route = match args.path_parameter {
         Some(parameter_type) => {
             let syn::Expr::Lit(path_expression) = &args.path.0 else {
@@ -655,7 +657,18 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
             let prefix = syn::LitStr::new(prefix_value, path_literal.span());
             let suffix = syn::LitStr::new(suffix_value, path_literal.span());
+            let parameter_name = syn::LitStr::new(placeholder, path_literal.span());
             let parameter_path = parameter_type.0;
+            openapi_path_parameter = quote::quote! {
+                Some(frontend_contract::UtoipaOpenApiPathParameter::from(
+                    utoipa::openapi::path::ParameterBuilder::new()
+                        .name(#parameter_name)
+                        .parameter_in(utoipa::openapi::path::ParameterIn::Path)
+                        .required(utoipa::openapi::Required::True)
+                        .schema(Some(<#parameter_path as utoipa::ToSchema>::schema().1))
+                        .build()
+                ))
+            };
             quote::quote! {
                 impl frontend_contract::ParameterizedRoute for #identifier {
                     type Parameter = #parameter_path;
@@ -706,6 +719,9 @@ pub fn derive_typed_route(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
             fn openapi_response_schema() -> Option<frontend_contract::UtoipaOpenApiRouteSchema> {
                 #response_schema
+            }
+            fn openapi_path_parameter() -> Option<frontend_contract::UtoipaOpenApiPathParameter> {
+                #openapi_path_parameter
             }
         }
         impl frontend_contract::CoveredRoute for #identifier {

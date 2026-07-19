@@ -1067,7 +1067,7 @@ str_constants_macros::define_str_constants! {
         pub CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME = ["generate_derive_token_stream_builder"];
         pub CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME = ["generate_pg_types"];
         pub CODE_STYLE_GENERATE_WHERE_FILTERS_MACRO_NAME = ["generate_where_filters"];
-        pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); }"];
+        pub CODE_STYLE_STRING_GUARD_ALLOWED_SYNTAX_FIXTURE = ["#[", WORD_PATH, " = \"", WORD_FIXTURE, ".", WORD_RS, "\"] mod ", WORD_FIXTURE, "; ", WORD_FN, " ", WORD_F_2, "() { ", WORD_VALUE, ".", WORD_EXPECT, "(\"12345678\"); } #[test] fn test_f() { \"test literal\"; } #[cfg(test)] mod tests { const VALUE: &str = \"test literal\"; }"];
         pub CODE_STYLE_STRING_GUARD_DETECTION_FIXTURE = [WORD_FN, " ", WORD_F_2, "() { consume(\"ordinary\"); outer!(", WORD_INNER, "(\"", WORD_MACRO, "\")); }"];
         pub CODE_STYLE_CI_WORKFLOW_PATH = [".", WORD_GITHUB, "/workflows/ci.", WORD_YML];
         pub CODE_STYLE_WORKSPACE_MANIFEST_PATH = ["../", WORD_CARGO, ".", WORD_TOML];
@@ -1948,6 +1948,7 @@ str_constants_macros::define_str_constants! {
         pub USERS = [WORD_USERS];
         pub UTOIPAADMINAUTHOPENAPI = ["UtoipaAdminAuthOpenApi"];
         pub UTOIPAADMINOPENAPI = ["UtoipaAdminOpenApi"];
+        pub UTOIPAOPENAPIPATHPARAMETER = ["UtoipaOpenApiPathParameter"];
         pub UTOIPACOMMONROUTESOPENAPIDOCUMENT = ["UtoipaCommonRoutesOpenApiDocument"];
         pub V = ["V"];
         pub VEC = [WORD_VEC];

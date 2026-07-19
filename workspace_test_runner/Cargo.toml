@@ -18,8 +18,10 @@ newtype = { workspace = true }
 pg_crud_common = { workspace = true }
 quote = { workspace = true }
 server_admin_contract = { workspace = true }
+server_admin = { workspace = true }
 serde_json = { workspace = true }
 token_patterns = { workspace = true }
+utoipa = { workspace = true }
 where_filters = { workspace = true }
 [lints]
 workspace = true

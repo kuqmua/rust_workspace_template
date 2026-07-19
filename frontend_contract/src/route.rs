@@ -153,12 +153,24 @@ pub trait TypedRoute: Sized {
     fn openapi_response_schema() -> Option<UtoipaOpenApiRouteSchema> {
         None
     }
+    #[must_use]
+    fn openapi_path_parameter() -> Option<UtoipaOpenApiPathParameter> {
+        None
+    }
 }
 #[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct UtoipaOpenApiRouteSchema(utoipa::openapi::RefOr<utoipa::openapi::Schema>);
 impl std::fmt::Debug for UtoipaOpenApiRouteSchema {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct(str_constants::OPEN_API_ROUTE_SCHEMA)
+            .finish_non_exhaustive()
+    }
+}
+#[derive(Clone, newtype::FromInner, newtype::IntoInnerFrom)]
+pub struct UtoipaOpenApiPathParameter(utoipa::openapi::path::Parameter);
+impl std::fmt::Debug for UtoipaOpenApiPathParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct(str_constants::UTOIPAOPENAPIPATHPARAMETER)
             .finish_non_exhaustive()
     }
 }
@@ -302,6 +314,18 @@ where
         .responses
         .responses
         .insert(status, utoipa::openapi::RefOr::T(response));
+}
+pub fn apply_openapi_path_parameter_contract<Route>(
+    operation: &mut utoipa::openapi::path::Operation,
+) where
+    Route: TypedRoute,
+{
+    if let Some(parameter) = Route::openapi_path_parameter() {
+        operation
+            .parameters
+            .get_or_insert_default()
+            .push(parameter.into());
+    }
 }
 pub fn apply_openapi_security_contract<Route>(
     operation: &mut utoipa::openapi::path::Operation,
