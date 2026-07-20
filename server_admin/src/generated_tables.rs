@@ -456,8 +456,9 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("274479a7");
-        assert_eq!(paths.len(), 37usize);
+        assert_eq!(paths.len(), 33usize);
         assert!(paths.contains_key("/auth/sign-in"));
+        assert!(!paths.contains_key("/auth/mfa"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));
         assert!(paths.contains_key("/users/{user_id}/password"));
         assert!(paths.contains_key("/admin_users/rm"));

@@ -522,7 +522,6 @@ str_constants_macros::define_str_constants! {
         WORD_ROLE_ID = "role_id";
         WORD_ROLE_PERMISSION = "role_permission";
         WORD_ROLE_PERMISSIONS = "role_permissions";
-        WORD_ROOT_ADMIN = "root_admin";
         WORD_ROUTE = "route";
         WORD_ROUTE_PATH = "route_path";
         WORD_ROUTE_VALIDATORS = "route_validators";
@@ -1158,7 +1157,6 @@ str_constants_macros::define_str_constants! {
         pub ADMIN_CONSOLE = [WORD_ADMIN, " Console"];
         pub ADMIN_PAGE_LIMIT_ERROR = [WORD_ADMINISTRATOR, " page limit must be between 1 and 100"];
         pub ADMIN_CLEANUP_ROWS_EXCEED_I64 = [WORD_ADMINISTRATOR, " cleanup row count exceeds i64"];
-        pub AES_GCM_ADMIN_MFA_CIPHER_REDACTED = ["AesGcmAdminMfaCipher([REDACTED])"];
         pub MFA_BASE32_TEST = ["GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA"];
         pub ASC_ALT = ["asc"];
         pub AUDIT_CSV_HEADER = ["id,created_at,user_id,user_login,action,resource,resource_id,succeeded,details\n"];
@@ -1896,7 +1894,6 @@ str_constants_macros::define_str_constants! {
         pub RMERRORVARIANTS = ["RmErrorVariants"];
         pub ROERRORVARIANTS = ["RoErrorVariants"];
         pub ROLES = [WORD_ROLES];
-        pub ROOT_ADMIN = ["Root ", WORD_ADMIN];
         pub SECRET_CUSTOM_NEWLINE = [WORD_SECRET, "=custom\n"];
         pub SELECT = [WORD_SELECT, " "];
         pub SELECT_SELECT_COUNT_ASTERISK_FROM_ADMIN_LOGIN_ATTEMPTS_SELECT_COUNT_ASTERISK_FROM = [WORD_SELECT, " (", WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_LOGIN_ATTEMPTS, "),(", WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_RATE_LIMITS, "),(", WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_AUDIT_LOG, ")"];
@@ -1910,8 +1907,8 @@ str_constants_macros::define_str_constants! {
         pub SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA = [WORD_SELECT, " ", WORD_TABLE_NAME_2, " ", WORD_FROM, " ", WORD_INFORMATION_SCHEMA, ".", WORD_TABLES, " ", WORD_WHERE, " ", WORD_TABLE_SCHEMA, " = $1 ", WORD_AND, " ", WORD_TABLE_NAME_2, " LIKE '", WORD_ADMIN_2, "\\_%' ", WORD_ORDER, " ", WORD_BY, " ", WORD_TABLE_NAME_2];
         pub SELECT_ID_FROM_ADMIN_ROLES_WHERE_NAME_TEMPORARY_ROLE = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_WHERE, " ", WORD_NAME_2, " = \'", WORD_TEMPORARY_ROLE, "\'"];
         pub SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_LIMITED_USER = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = \'", WORD_LIMITED_USER, "\'"];
-        pub SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = \'", WORD_ROOT_ADMIN, "\'"];
-        pub SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN = [WORD_SELECT, " ", WORD_PASSWORD_HASH, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = \'", WORD_ROOT_ADMIN, "\'"];
+        pub SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN = [WORD_SELECT, " ", WORD_ID, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = \'", WORD_ADMIN_2, "\'"];
+        pub SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN = [WORD_SELECT, " ", WORD_PASSWORD_HASH, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_LOGIN, " = \'", WORD_ADMIN_2, "\'"];
         pub SELECT_REQUEST_HASH_STATE_RESPONSE_STATUS_RESPONSE_BODY_FROM_PG_TABLE_IDEMPOTENCY = [WORD_SELECT, " ", WORD_REQUEST_HASH, ",", WORD_STATE, ",", WORD_RESPONSE_STATUS, ",", WORD_RESPONSE_BODY, " ", WORD_FROM, " ", WORD_PG_TABLE_IDEMPOTENCY, " ", WORD_WHERE, " ", WORD_ACTOR, "=$1 ", WORD_AND, " ", WORD_HTTP_METHOD, "=$2 ", WORD_AND, " ", WORD_ROUTE_PATH, "=$3 ", WORD_AND, " ", WORD_IDEMPOTENCY_KEY, "=$4"];
         pub SELECT_SUCCEEDED_COUNT_ASTERISK_FROM_ADMIN_AUDIT_LOG_GROUP_BY_SUCCEEDED_ORDER = [WORD_SELECT, " ", WORD_SUCCEEDED, ", ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_AUDIT_LOG, " GROUP ", WORD_BY, " ", WORD_SUCCEEDED, " ", WORD_ORDER, " ", WORD_BY, " ", WORD_SUCCEEDED];
         pub SELF = [WORD_SELF];
@@ -2772,7 +2769,6 @@ str_constants_macros::define_str_constants! {
         pub RO = ["ro"];
         pub ROLE = [WORD_ROLE];
         pub ROOT = ["root"];
-        pub ROOT_ADMIN_ALT = [WORD_ROOT_ADMIN];
         pub ROUTE_READ = ["route_read"];
         pub RS = [WORD_RS];
         pub RTY = ["rty"];
@@ -3064,8 +3060,8 @@ str_constants_macros::define_str_constants! {
         pub LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_DISPLAY_NAME, "\":\"Limited ", WORD_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
         pub LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_LIMITED_USER, "\",\"", WORD_PASSWORD, "\":\"", WORD_LIMITED_PASSWORD, "\"}"];
         pub LOGIN_LOCKED_USER_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"locked_user\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
-        pub LOGIN_ROOT_ADMIN_PASSWORD_CORRECT_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ROOT_ADMIN, "\",\"", WORD_PASSWORD, "\":\"", WORD_CORRECT, "-", WORD_PASSWORD, "\"}"];
-        pub LOGIN_ROOT_ADMIN_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ROOT_ADMIN, "\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
+        pub LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_CORRECT, "-", WORD_PASSWORD, "\"}"];
+        pub LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD = ["{\"", WORD_LOGIN, "\":\"", WORD_ADMIN_2, "\",\"", WORD_PASSWORD, "\":\"", WORD_WRONG, "-", WORD_PASSWORD, "\"}"];
         pub NAME_ADMINISTRATOR_UNKNOWN_TRUE = ["{\"", WORD_NAME_2, "\":\"", WORD_ADMINISTRATOR, "\",\"", WORD_UNKNOWN, "\":", WORD_TRUE_2, "}"];
         pub NAME_RENAMED_ROLE = ["{\"", WORD_NAME_2, "\":\"renamed_role\"}"];
         pub NAME_TEMPORARY_ROLE = ["{\"", WORD_NAME_2, "\":\"", WORD_TEMPORARY_ROLE, "\"}"];

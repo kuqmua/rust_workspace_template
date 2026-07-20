@@ -15,7 +15,6 @@ categories = ["web-programming"]
 test-utils = []
 
 [dependencies]
-aes-gcm = { workspace = true }
 app_state = { workspace = true }
 argon2 = { workspace = true }
 axum = { workspace = true }
@@ -24,7 +23,6 @@ futures = { workspace = true }
 frontend_contract = { workspace = true }
 generate_pg_table = { workspace = true }
 git_info = { workspace = true }
-hmac = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
 location_lib = { workspace = true }
@@ -49,7 +47,6 @@ server_runtime = { workspace = true }
 sha2 = { workspace = true }
 sqlx = { workspace = true, features = ["macros"] }
 str_constants = { workspace = true }
-subtle = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 to_err_string = { workspace = true }

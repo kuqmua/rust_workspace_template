@@ -149,35 +149,6 @@ pub struct AdminPassword(String);
 )]
 pub struct AdminNewPassword(String);
 #[derive(
-    Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted,
-)]
-#[bounded_string(max = 6usize, min = 6usize, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_digit()), description = "six digit administrator TOTP code")]
-pub struct AdminMfaCode(String);
-#[derive(
-    Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted,
-)]
-#[bounded_string(max = 19usize, min = 19usize, chars, serde, utoipa, validator = |value: &String| value.bytes().enumerate().all(|(index, byte)| if matches!(index, 4 | 9 | 14) { byte == b'-' } else { byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase() }), description = "administrator MFA recovery code")]
-pub struct AdminRecoveryCode(String);
-#[derive(Clone, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted)]
-#[bounded_string(max = 64usize, min = 32usize, chars, serde, utoipa, validator = |value: &String| value.bytes().all(|byte| byte.is_ascii_uppercase() || (b'2'..=b'7').contains(&byte)), description = "base32 TOTP enrollment secret")]
-pub struct AdminMfaSecret(String);
-#[derive(Clone, newtype::BoundedString, newtype::AsRefStr, newtype::DebugRedacted)]
-#[bounded_string(
-    max = 2_048usize,
-    min = 1usize,
-    chars,
-    serde,
-    utoipa,
-    description = "TOTP enrollment URI"
-)]
-pub struct AdminMfaEnrollmentUri(String);
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-#[serde(tag = "kind", content = "value", rename_all = "snake_case")]
-pub enum AdminMfaProof {
-    Totp(AdminMfaCode),
-    Recovery(AdminRecoveryCode),
-}
-#[derive(
     Clone,
     Debug,
     PartialEq,
@@ -775,37 +746,20 @@ impl AdminTableQuery {
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
     login: AdminLogin,
-    mfa_proof: Option<AdminMfaProof>,
     password: AdminPassword,
 }
 impl AdminSignInReq {
     #[must_use]
     pub const fn new(login: AdminLogin, password: AdminPassword) -> Self {
-        Self {
-            login,
-            mfa_proof: None,
-            password,
-        }
-    }
-    #[must_use]
-    pub const fn with_mfa(
-        login: AdminLogin,
-        password: AdminPassword,
-        mfa_proof: AdminMfaProof,
-    ) -> Self {
-        Self {
-            login,
-            mfa_proof: Some(mfa_proof),
-            password,
-        }
+        Self { login, password }
     }
     #[must_use]
     pub const fn login(&self) -> &AdminLogin {
         &self.login
     }
     #[must_use]
-    pub fn into_parts(self) -> (AdminLogin, AdminPassword, Option<AdminMfaProof>) {
-        (self.login, self.password, self.mfa_proof)
+    pub fn into_parts(self) -> (AdminLogin, AdminPassword) {
+        (self.login, self.password)
     }
     #[must_use]
     pub const fn password(&self) -> &AdminPassword {
@@ -877,129 +831,6 @@ impl AuthenticatedAdmin {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminSignInRes {
     user: AuthenticatedAdmin,
-}
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminMfaStatus {
-    enabled: AdminBool,
-    recovery_codes_remaining: AdminOperationalCount,
-}
-impl AdminMfaStatus {
-    #[must_use]
-    pub const fn new(enabled: AdminBool, recovery_codes_remaining: AdminOperationalCount) -> Self {
-        Self {
-            enabled,
-            recovery_codes_remaining,
-        }
-    }
-    #[must_use]
-    pub const fn enabled(&self) -> AdminBool {
-        self.enabled
-    }
-    #[must_use]
-    pub const fn recovery_codes_remaining(&self) -> AdminOperationalCount {
-        self.recovery_codes_remaining
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-#[serde(deny_unknown_fields)]
-pub struct AdminMfaEnrollReq {
-    current_password: AdminPassword,
-}
-impl AdminMfaEnrollReq {
-    #[must_use]
-    pub const fn new(current_password: AdminPassword) -> Self {
-        Self { current_password }
-    }
-    #[must_use]
-    pub fn into_current_password(self) -> AdminPassword {
-        self.current_password
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminMfaEnrollRes {
-    secret: AdminMfaSecret,
-    uri: AdminMfaEnrollmentUri,
-}
-impl AdminMfaEnrollRes {
-    #[must_use]
-    pub const fn new(secret: AdminMfaSecret, uri: AdminMfaEnrollmentUri) -> Self {
-        Self { secret, uri }
-    }
-    #[must_use]
-    pub const fn secret(&self) -> &AdminMfaSecret {
-        &self.secret
-    }
-    #[must_use]
-    pub const fn uri(&self) -> &AdminMfaEnrollmentUri {
-        &self.uri
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-#[serde(deny_unknown_fields)]
-pub struct AdminMfaConfirmReq {
-    code: AdminMfaCode,
-}
-impl AdminMfaConfirmReq {
-    #[must_use]
-    pub const fn new(code: AdminMfaCode) -> Self {
-        Self { code }
-    }
-    #[must_use]
-    pub fn into_code(self) -> AdminMfaCode {
-        self.code
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminMfaConfirmRes {
-    recovery_codes: Vec<AdminRecoveryCode>,
-}
-impl AdminMfaConfirmRes {
-    #[must_use]
-    pub const fn new(recovery_codes: Vec<AdminRecoveryCode>) -> Self {
-        Self { recovery_codes }
-    }
-    #[must_use]
-    pub const fn recovery_codes(&self) -> &[AdminRecoveryCode] {
-        self.recovery_codes.as_slice()
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-#[serde(deny_unknown_fields)]
-pub struct AdminMfaDisableReq {
-    current_password: AdminPassword,
-    proof: AdminMfaProof,
-}
-impl AdminMfaDisableReq {
-    #[must_use]
-    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self {
-        Self {
-            current_password,
-            proof,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) {
-        (self.current_password, self.proof)
-    }
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-#[serde(deny_unknown_fields)]
-pub struct AdminMfaStepUpReq {
-    current_password: AdminPassword,
-    proof: AdminMfaProof,
-}
-impl AdminMfaStepUpReq {
-    #[must_use]
-    pub const fn new(current_password: AdminPassword, proof: AdminMfaProof) -> Self {
-        Self {
-            current_password,
-            proof,
-        }
-    }
-    #[must_use]
-    pub fn into_parts(self) -> (AdminPassword, AdminMfaProof) {
-        (self.current_password, self.proof)
-    }
 }
 impl AdminSignInRes {
     #[must_use]
@@ -2022,22 +1853,6 @@ pub struct AdminMeRoute;
 pub struct AdminChangeOwnPasswordRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_status", path = "/auth/mfa", request = AdminNoBody, response = AdminMfaStatus, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminMfaStatusRoute;
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_enroll", path = "/auth/mfa/enroll", request = AdminMfaEnrollReq, response = AdminMfaEnrollRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminMfaEnrollRoute;
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_confirm", path = "/auth/mfa/confirm", request = AdminMfaConfirmReq, response = AdminMfaConfirmRes, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminMfaConfirmRoute;
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Delete, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_disable", path = "/auth/mfa", request = AdminMfaDisableReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminMfaDisableRoute;
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "mfa_step_up", path = "/auth/mfa/step-up", request = AdminMfaStepUpReq, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminMfaStepUpRoute;
-
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(error_statuses = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Post, mutation = frontend_contract::RouteMutation::Mutating, obligations = frontend_contract::AUTHENTICATED_MUTATING_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sign_out", path = "/auth/sign-out", request = AdminNoBody, response = AdminNoBody, success_status = frontend_contract::SuccessStatus::Code204, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSignOutRoute;
 
@@ -2145,16 +1960,6 @@ pub enum AdminRoute {
     Dashboard,
     #[route_catalog_route(AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
-    #[route_catalog_route(AdminMfaStatusRoute)]
-    MfaStatus,
-    #[route_catalog_route(AdminMfaEnrollRoute)]
-    MfaEnroll,
-    #[route_catalog_route(AdminMfaConfirmRoute)]
-    MfaConfirm,
-    #[route_catalog_route(AdminMfaDisableRoute)]
-    MfaDisable,
-    #[route_catalog_route(AdminMfaStepUpRoute)]
-    MfaStepUp,
     #[route_catalog_route(AdminCreateRoleRoute)]
     CreateRole,
     #[route_catalog_route(AdminCreateUserRoute)]
@@ -2296,18 +2101,6 @@ pub enum AdminFrontendPath {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, strum_macros::IntoStaticStr)]
 pub enum AdminHtmlAction {
-    #[strum(serialize = "/admin/actions/profile/mfa/confirm")]
-    MfaConfirm,
-    #[strum(serialize = "/admin/actions/profile/mfa/disable/recovery")]
-    MfaDisableRecovery,
-    #[strum(serialize = "/admin/actions/profile/mfa/disable/totp")]
-    MfaDisableTotp,
-    #[strum(serialize = "/admin/actions/profile/mfa/enroll")]
-    MfaEnroll,
-    #[strum(serialize = "/admin/actions/profile/mfa/step-up/recovery")]
-    MfaStepUpRecovery,
-    #[strum(serialize = "/admin/actions/profile/mfa/step-up/totp")]
-    MfaStepUpTotp,
     #[strum(serialize = "/admin/actions/profile/password")]
     ProfilePassword,
     #[strum(serialize = "/admin/actions/roles/create")]
@@ -2324,10 +2117,6 @@ pub enum AdminHtmlAction {
     SettingsUpdate,
     #[strum(serialize = "/admin/actions/sign-in")]
     SignIn,
-    #[strum(serialize = "/admin/actions/sign-in/recovery")]
-    SignInRecovery,
-    #[strum(serialize = "/admin/actions/sign-in/totp")]
-    SignInTotp,
     #[strum(serialize = "/admin/actions/sign-out")]
     SignOut,
     #[strum(serialize = "/admin/actions/users/ban")]
@@ -2344,13 +2133,7 @@ pub enum AdminHtmlAction {
     UserUpdate,
 }
 impl AdminHtmlAction {
-    pub const ALL: [Self; 23] = [
-        Self::MfaConfirm,
-        Self::MfaDisableRecovery,
-        Self::MfaDisableTotp,
-        Self::MfaEnroll,
-        Self::MfaStepUpRecovery,
-        Self::MfaStepUpTotp,
+    pub const ALL: [Self; 15] = [
         Self::ProfilePassword,
         Self::RoleCreate,
         Self::RoleDelete,
@@ -2359,8 +2142,6 @@ impl AdminHtmlAction {
         Self::SessionRevoke,
         Self::SettingsUpdate,
         Self::SignIn,
-        Self::SignInRecovery,
-        Self::SignInTotp,
         Self::SignOut,
         Self::UserBan,
         Self::UserCreate,
@@ -2625,7 +2406,7 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 32usize);
+        assert_eq!(descriptors.len(), 27usize);
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
@@ -2794,6 +2575,25 @@ mod tests {
         assert!(!format!("{password:?}").contains("secret"));
     }
     #[test]
+    fn sign_in_accepts_only_login_and_password() {
+        let basic = serde_json::json!({
+            "login": "admin",
+            "password": "correct_password"
+        });
+        let Ok(_basic_request) = serde_json::from_value::<super::AdminSignInReq>(basic) else {
+            panic!("af47412d");
+        };
+        let legacy_mfa = serde_json::json!({
+            "login": "admin",
+            "mfa_proof": { "kind": "totp", "value": "123456" },
+            "password": "correct_password"
+        });
+        let Err(_legacy_mfa_error) = serde_json::from_value::<super::AdminSignInReq>(legacy_mfa)
+        else {
+            panic!("89071e97");
+        };
+    }
+    #[test]
     fn new_password_uses_the_shared_password_policy() {
         let _password =
             super::AdminNewPassword::try_from(str_constants::TEST_STRONG_PASSWORD.to_owned())
@@ -2802,38 +2602,6 @@ mod tests {
             super::AdminNewPassword::try_from(str_constants::PASSWORD.to_owned())
         else {
             panic!("24900f2f");
-        };
-    }
-    #[test]
-    fn mfa_codes_have_exact_transport_formats() {
-        let Ok(_valid_totp) = super::AdminMfaCode::try_from(str_constants::VALUE_123456.to_owned())
-        else {
-            panic!("7ca93c60");
-        };
-        let Err(_invalid_totp_character) =
-            super::AdminMfaCode::try_from(str_constants::VALUE_12345X.to_owned())
-        else {
-            panic!("cc8e4d7a");
-        };
-        let Err(_invalid_totp_length) =
-            super::AdminMfaCode::try_from(str_constants::VALUE_1234567.to_owned())
-        else {
-            panic!("6869189e");
-        };
-        let Ok(_valid_recovery) =
-            super::AdminRecoveryCode::try_from(str_constants::VALUE_ABCD_1234_5678_90EF.to_owned())
-        else {
-            panic!("e2014157");
-        };
-        let Err(_uppercase_recovery) = super::AdminRecoveryCode::try_from(
-            str_constants::VALUE_UPPER_ABCD_1234_5678_90EF.to_owned(),
-        ) else {
-            panic!("a71372e1");
-        };
-        let Err(_unseparated_recovery) =
-            super::AdminRecoveryCode::try_from(str_constants::VALUE_ABCD1234567890EF.to_owned())
-        else {
-            panic!("716f603f");
         };
     }
     #[test]

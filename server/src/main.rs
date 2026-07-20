@@ -168,6 +168,12 @@ fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerErro
         retention(3_600i64)?,
     ))
 }
+#[allow(clippy::single_call_fn)] // isolates the fallback router for an end-to-end routing test
+fn frontend_fallback_routes() -> server_runtime::AxumRouter {
+    server_runtime::AxumRouter::from(axum::Router::new().fallback(async || {
+        axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::SignIn.get())
+    }))
+}
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
     app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
@@ -378,11 +384,12 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError),
         ));
     };
-    let tcp_listener = tokio::net::TcpListener::bind(
-        config_lib::GetServiceSocketAddress::get_service_socket_address(&config),
-    )
-    .await
-    .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError(error)))?;
+    let service_socket_address =
+        config_lib::GetServiceSocketAddress::get_service_socket_address(&config);
+    let tcp_listener = tokio::net::TcpListener::bind(service_socket_address)
+        .await
+        .map_err(|error| RunServerError::BindServiceSocket(StdServerIoError(error)))?;
+    tracing::info!(frontend = %service_socket_address);
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
         server_runtime::parse_cors_allow_origin(server_runtime::HttpCorsAllowOriginTextRef::from(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
@@ -528,6 +535,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                                 server_admin_contract::AdminFrontendPath::Root.get(),
                                 admin_metrics_routes,
                             )
+                            .merge(axum::Router::from(frontend_fallback_routes()))
                             .layer(
                                 tower_http::compression::CompressionLayer::new()
                                     .gzip(http_gzip_enabled),
@@ -635,6 +643,25 @@ fn main() -> StdServerExitCode {
 }
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn missing_page_redirects_to_default_authentication_page() {
+        let response = tower::ServiceExt::oneshot(
+            axum::Router::from(super::frontend_fallback_routes()),
+            axum::http::Request::builder()
+                .uri("/missing-page")
+                .body(axum::body::Body::empty())
+                .expect("cfe228d8"),
+        )
+        .await
+        .expect("bd9f2b00");
+        assert_eq!(response.status(), axum::http::StatusCode::SEE_OTHER);
+        assert_eq!(
+            response.headers().get(axum::http::header::LOCATION),
+            Some(&axum::http::HeaderValue::from_static(
+                server_admin_contract::AdminFrontendPath::SignIn.get()
+            ))
+        );
+    }
     #[test]
     fn rate_limit_key_uses_forwarded_client_only_for_trusted_proxy() {
         let trusted_proxy_range = server_runtime::TrustedProxyRange::try_from(

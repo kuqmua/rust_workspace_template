@@ -114,22 +114,6 @@ pub fn render_sign_in(
                         <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
                         <button type="submit">"Sign in"</button>
                     </form>
-                    <details><summary>"Sign in with TOTP"</summary>
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignInTotp.get()>
-                            <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
-                            <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
-                            <label><span>"TOTP code"</span><input name="code" autocomplete="one-time-code" required /></label>
-                            <button type="submit">"Sign in"</button>
-                        </form>
-                    </details>
-                    <details><summary>"Sign in with a recovery code"</summary>
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignInRecovery.get()>
-                            <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
-                            <label><span>"Password"</span><input name="password" type="password" autocomplete="current-password" required /></label>
-                            <label><span>"Recovery code"</span><input name="code" autocomplete="one-time-code" required /></label>
-                            <button type="submit">"Sign in"</button>
-                        </form>
-                    </details>
                 </section>
             </main>
         },
@@ -431,7 +415,6 @@ pub fn render_sessions(
 #[must_use]
 pub fn render_profile(
     admin: &server_admin_contract::AuthenticatedAdmin,
-    mfa: &server_admin_contract::AdminMfaStatus,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let roles = admin
@@ -442,14 +425,6 @@ pub fn render_profile(
         .join(str_constants::COMMA_SPACE);
     let content = leptos::view! {
         <section class="security-card"><h2>"Identity"</h2><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
-        <section class="security-card"><h2>"Multi-factor authentication"</h2><p>{format!("Enabled: {}", mfa.enabled())}</p><p>{format!("Recovery codes remaining: {}", mfa.recovery_codes_remaining())}</p></section>
-        <section class="security-card"><h2>"MFA actions"</h2>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaEnroll.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><button type="submit">"Start enrollment"</button></form>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaStepUpTotp.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"TOTP code"</span><input name="code" required /></label><button type="submit">"Verify TOTP"</button></form>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaStepUpRecovery.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"Recovery code"</span><input name="code" required /></label><button type="submit">"Verify recovery code"</button></form>
-            <details><summary>"Disable MFA with TOTP"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableTotp.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"TOTP code"</span><input name="code" required /></label><label><input type="checkbox" name="confirmation" value="true" required />"Confirm MFA removal"</label><button class="danger-button" type="submit">"Disable MFA"</button></form></details>
-            <details><summary>"Disable MFA with recovery code"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableRecovery.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"Recovery code"</span><input name="code" required /></label><label><input type="checkbox" name="confirmation" value="true" required />"Confirm MFA removal"</label><button class="danger-button" type="submit">"Disable MFA"</button></form></details>
-        </section>
         <section class="security-card"><h2>"Change password"</h2><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
             <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
             <label><span>"New password"</span><input name="new_password" type="password" required /></label>
@@ -462,25 +437,6 @@ pub fn render_profile(
         Some(admin),
         Some(branding),
     )
-}
-
-#[must_use]
-pub fn render_mfa_enrollment(view: &server_admin_contract::AdminMfaEnrollRes) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section class="security-card"><h2>"Add the TOTP secret to your authenticator"</h2>
-            <p><code>{AsRef::<str>::as_ref(view.secret()).to_owned()}</code></p><p><code>{AsRef::<str>::as_ref(view.uri()).to_owned()}</code></p>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaConfirm.get()><label><span>"TOTP code"</span><input name="code" required /></label><button type="submit">"Confirm enrollment"</button></form>
-        </section>
-    }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Profile, content)
-}
-
-#[must_use]
-pub fn render_mfa_recovery_codes(view: &server_admin_contract::AdminMfaConfirmRes) -> AdminSsrHtml {
-    let content = leptos::view! {
-        <section class="security-card"><h2>"Save these one-time recovery codes"</h2><ul>{view.recovery_codes().iter().map(|code| leptos::view! { <li><code>{AsRef::<str>::as_ref(code).to_owned()}</code></li> }).collect::<Vec<_>>()}</ul><a href=server_admin_contract::AdminFrontendPath::Profile.get()>"Return to profile"</a></section>
-    }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Profile, content)
 }
 
 #[must_use]
@@ -601,6 +557,12 @@ mod tests {
     fn server_rendered_pages_contain_forms_and_no_scripts() {
         let sign_in = super::render_sign_in(None, None);
         assert!(sign_in.as_ref().contains("<form method=\"post\""));
+        assert!(!sign_in.as_ref().contains("TOTP"));
+        assert!(!sign_in.as_ref().contains("recovery code"));
+        assert_eq!(
+            sign_in.as_ref().matches("<form method=\"post\"").count(),
+            1usize
+        );
         assert!(!sign_in.as_ref().contains("<script"));
         assert!(!sign_in.as_ref().contains(".wasm"));
 

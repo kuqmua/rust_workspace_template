@@ -298,11 +298,10 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
             std::num::NonZeroUsize::new(1usize).expect("560498ab"),
         )),
     );
-    let admin_id = server_admin::bootstrap_admin(
+    let _created_admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::ROOT_ADMIN_ALT.to_owned())
-            .expect("6a417bde"),
-        server_admin::AdminDisplayName::try_from(str_constants::ROOT_ADMIN.to_owned())
+        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned()).expect("6a417bde"),
+        server_admin::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
             .expect("703fc568"),
         password,
         &hasher,
@@ -345,7 +344,7 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("825e50c7");
     let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
         "login={}&password={correct_password}",
-        str_constants::ROOT_ADMIN_ALT,
+        str_constants::ADMIN_ALT,
     ))
     .expect("9df2164c");
     let sign_in_response = tower::ServiceExt::oneshot(
@@ -373,19 +372,6 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         HttpAdminApiTestResponseRef(&sign_in_response),
         StdAdminApiTestStrRef(str_constants::ADMIN_CSRF_TOKEN_ALT),
     );
-    let admin_id_value = admin_id.to_string().parse::<i64>().expect("2bf54a96");
-    let _mfa = sqlx::query(str_constants::INSERT_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
-        .bind(admin_id_value)
-        .bind(vec![1u8])
-        .bind(vec![0u8; 12usize])
-        .execute(&pool.0)
-        .await
-        .expect("3fd106a8");
-    let _step_up = sqlx::query(str_constants::UPDATE_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
-        .bind(admin_id_value)
-        .execute(&pool.0)
-        .await
-        .expect("526fa90b");
     AdminHtmlTestFixture {
         cookie: StdAdminApiTestCookie::try_from(format!(
             "{}{access}; {}{refresh}; {}{csrf}",
@@ -1444,10 +1430,9 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
     let profile_html = admin_html_body(profile_response).await;
-    assert!(profile_html.0.contains(str_constants::ROOT_ADMIN));
-    assert!(profile_html.0.contains(str_constants::ROOT_ADMIN_ALT));
-    assert!(profile_html.0.contains("Enabled: true"));
-    assert!(profile_html.0.contains("Recovery codes remaining: 0"));
+    assert!(profile_html.0.contains(str_constants::ADMIN));
+    assert!(profile_html.0.contains(str_constants::ADMIN_ALT));
+    assert!(!profile_html.0.contains("Multi-factor authentication"));
     assert!(
         profile_html
             .0
@@ -1455,7 +1440,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     );
 
     let original_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -1479,7 +1464,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
         http::StatusCode::SEE_OTHER
     );
     let changed_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&fixture.pool.0)
     .await
@@ -1506,12 +1491,11 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
 async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     let fixture = admin_html_test_fixture().await;
-    let admin_id = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
-    )
-    .fetch_one(&fixture.pool.0)
-    .await
-    .expect("7f0a7c64");
+    let admin_id =
+        sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("7f0a7c64");
     let (session_id, created_at, expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
@@ -1729,7 +1713,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     assert_eq!(filtered_response.status(), http::StatusCode::OK);
     let filtered_html = admin_html_body(filtered_response).await;
     assert!(filtered_html.0.contains(login));
-    assert!(!filtered_html.0.contains("<td>root_admin</td>"));
+    assert!(!filtered_html.0.contains("<td>admin</td>"));
 
     let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)
@@ -2018,9 +2002,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     );
     let _admin_id = server_admin::bootstrap_admin(
         app_state::SqlxPgPoolRef::from(&pool.0),
-        server_admin::AdminLogin::try_from(str_constants::ROOT_ADMIN_ALT.to_owned())
-            .expect("98c7e04a"),
-        server_admin::AdminDisplayName::try_from(str_constants::ROOT_ADMIN.to_owned())
+        server_admin::AdminLogin::try_from(str_constants::ADMIN_ALT.to_owned()).expect("98c7e04a"),
+        server_admin::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
             .expect("48efed01"),
         password,
         &hasher,
@@ -2028,7 +2011,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("e2c94d67");
     let original_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
@@ -2048,7 +2031,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         Err(server_admin::AdminBootstrapError::AlreadyInitialized)
     ));
     let preserved_password_hash = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
     )
     .fetch_one(&pool.0)
     .await
@@ -2060,12 +2043,11 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .await
             .expect("ae89c3bd");
     assert_eq!(administrator_count, 1i64);
-    let admin_id = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
-    )
-    .fetch_one(&pool.0)
-    .await
-    .expect("a61329bf");
+    let admin_id =
+        sqlx::query_scalar::<_, i64>(str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN)
+            .fetch_one(&pool.0)
+            .await
+            .expect("a61329bf");
     let dangling_role_links = sqlx::query_scalar::<_, i64>(
         str_constants::SELECT_COUNT_ASTERISK_FROM_ADMIN_USER_ROLES_LINK_LEFT_JOIN_ADMIN_USERS,
     )
@@ -2088,7 +2070,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef(str_constants::LOGIN_ROOT_ADMIN_PASSWORD_WRONG_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_ADMIN_PASSWORD_WRONG_PASSWORD),
             None,
             None,
         )
@@ -2105,7 +2087,7 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef(str_constants::LOGIN_ROOT_ADMIN_PASSWORD_CORRECT_PASSWORD),
+            StdAdminApiTestStrRef(str_constants::LOGIN_ADMIN_PASSWORD_CORRECT_PASSWORD),
             None,
             None,
         )
@@ -2401,34 +2383,6 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .fetch_one(&pool.0)
     .await
     .expect("10c8f7d2");
-    let _mfa_fixture = sqlx::query(str_constants::INSERT_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
-        .bind(admin_id)
-        .bind(vec![1u8])
-        .bind(vec![0u8; 12usize])
-        .execute(&pool.0)
-        .await
-        .expect("c30d43bd");
-    let _step_up_fixture = sqlx::query(str_constants::UPDATE_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
-        .bind(admin_id)
-        .execute(&pool.0)
-        .await
-        .expect("5a2952d3");
-    let first_totp_claim =
-        sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_CLAIM_MFA_TOTP_SQL)
-            .bind(admin_id)
-            .bind(42i64)
-            .fetch_optional(&pool.0)
-            .await
-            .expect("7b077486");
-    let replayed_totp_claim =
-        sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_CLAIM_MFA_TOTP_SQL)
-            .bind(admin_id)
-            .bind(42i64)
-            .fetch_optional(&pool.0)
-            .await
-            .expect("c09d8291");
-    assert_eq!(first_totp_claim, Some(true));
-    assert_eq!(replayed_totp_claim, None);
     let update_user_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

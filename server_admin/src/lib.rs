@@ -95,16 +95,6 @@ impl AdminJwtSecret {
         Self(value)
     }
 }
-#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
-pub struct StdAdminMfaSecretBytes(Vec<u8>);
-#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
-pub struct StdAdminMfaEncryptedBytes(Vec<u8>);
-#[derive(newtype::AsRefOwned, newtype::DebugRedacted, newtype::FromInner, newtype::IntoInner)]
-pub struct StdAdminMfaNonceBytes(Vec<u8>);
-#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
-pub struct StdAdminMfaRecoveryHashes(Vec<StdAdminString>);
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
-pub struct StdAdminMfaTotpCounter(i64);
 #[derive(newtype::DebugRedacted)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {

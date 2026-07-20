@@ -62,7 +62,6 @@ pub struct AdminAuthSvcState {
     decoding_keys: Vec<JsonwebtokenAdminDecodingKey>,
     encoding_key: JsonwebtokenAdminEncodingKey,
     issuer: config_lib::AdminTokenIssuer,
-    mfa_cipher: mfa::AesGcmAdminMfaCipher,
     password_hasher: super::AdminPasswordHasher,
     policy: AdminAuthPolicy,
     pool: app_state::SqlxPgPool,
@@ -648,7 +647,6 @@ struct AdminAuditSuccessRef<'value_lt> {
 }
 #[derive(Debug, Clone, Copy)]
 enum AdminAuditResourceId {
-    Mfa(super::AdminUserId),
     Role(super::AdminRoleId),
     Session(super::AdminSessionId),
     SystemSettings,
@@ -657,7 +655,7 @@ enum AdminAuditResourceId {
 impl AdminAuditResourceId {
     fn value(self) -> super::StdAdminString {
         match self {
-            Self::Mfa(value) | Self::User(value) => super::StdAdminString(value.0.to_string()),
+            Self::User(value) => super::StdAdminString(value.0.to_string()),
             Self::Role(value) => super::StdAdminString(value.0.to_string()),
             Self::Session(value) => super::StdAdminString(value.0.0.to_string()),
             Self::SystemSettings => super::StdAdminString(str_constants::VALUE_1.to_owned()),
@@ -814,43 +812,6 @@ async fn change_own_password(
 ) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::change_own_password(auth, request).await
 }
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_mfa")]
-async fn mfa_status(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::mfa_status(auth).await
-}
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaEnrollReq, tag = "admin_mfa")]
-async fn mfa_enroll(
-    auth: AdminAuthReq,
-    request: AxumAdminJson<server_admin_contract::AdminMfaEnrollReq>,
-) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::mfa_enroll(auth, request).await
-}
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaConfirmReq, tag = "admin_mfa")]
-async fn mfa_confirm(
-    auth: AdminAuthReq,
-    request: AxumAdminJson<server_admin_contract::AdminMfaConfirmReq>,
-) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::mfa_confirm(auth, request).await
-}
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaDisableReq, tag = "admin_mfa")]
-async fn mfa_disable(
-    auth: AdminAuthReq,
-    request: AxumAdminJson<server_admin_contract::AdminMfaDisableReq>,
-) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::mfa_disable(auth, request).await
-}
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(request_body = server_admin_contract::AdminMfaStepUpReq, tag = "admin_mfa")]
-async fn mfa_step_up(
-    auth: AdminAuthReq,
-    request: AxumAdminJson<server_admin_contract::AdminMfaStepUpReq>,
-) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::mfa_step_up(auth, request).await
-}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(tag = "admin_auth")]
 async fn refresh(
@@ -894,24 +855,6 @@ async fn authorize_custom(
         super::StdAdminBool::from(true),
     )
     .await?;
-    if matches!(
-        permission,
-        super::AdminPermission::UsersDelete
-            | super::AdminPermission::UsersUpdate
-            | super::AdminPermission::UserRolesUpdate
-            | super::AdminPermission::RolePermissionsUpdate
-            | super::AdminPermission::SystemSettingsUpdate
-    ) && !super::repository::mfa::has_recent_step_up(
-        super::repository::SqlxAdminRepositoryPoolRef::from(auth.state.as_ref().pool.as_ref()),
-        authenticated.session_id,
-        authenticated.id,
-    )
-    .await
-    .map_err(AdminApiError::from)?
-    .0
-    {
-        return Err(AdminApiError::Conflict);
-    }
     Ok(authenticated)
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
@@ -1149,7 +1092,6 @@ impl AdminAuthSvcState {
                 secret.as_bytes(),
             )),
             issuer: issuer.clone(),
-            mfa_cipher: mfa::AesGcmAdminMfaCipher::from_config(jwt_secret),
             password_hasher: super::AdminPasswordHasher::new(
                 super::AdminPasswordHashConcurrency::from(super::StdAdminNonZeroUsize::from(
                     std::num::NonZeroUsize::new(password_hash_concurrency.get())
@@ -1329,7 +1271,11 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
-        assert_eq!(paths.len(), 25usize);
+        assert_eq!(paths.len(), 21usize);
+        assert!(!paths.contains_key("/auth/mfa"));
+        assert!(!paths.contains_key("/auth/mfa/enroll"));
+        assert!(!paths.contains_key("/auth/mfa/confirm"));
+        assert!(!paths.contains_key("/auth/mfa/step-up"));
         let documented_route_contracts = paths
             .iter()
             .flat_map(|(path, path_item)| {
@@ -1442,7 +1388,6 @@ mod tests {
 }
 mod audit;
 mod handlers;
-mod mfa;
 mod rate_limit;
 mod routes;
 mod session;

@@ -13,22 +13,6 @@ struct SignInForm {
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
-struct TotpSignInForm {
-    code: server_admin_contract::AdminMfaCode,
-    login: server_admin_contract::AdminLogin,
-    password: server_admin_contract::AdminPassword,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct RecoverySignInForm {
-    code: server_admin_contract::AdminRecoveryCode,
-    login: server_admin_contract::AdminLogin,
-    password: server_admin_contract::AdminPassword,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
 struct ChangePasswordForm {
     current_password: server_admin_contract::AdminPassword,
     new_password: server_admin_contract::AdminNewPassword,
@@ -152,43 +136,6 @@ struct SettingsForm {
     site_name: server_admin_contract::AdminSiteName,
     support_url: AdminHtmlFormText,
     tab_title: AdminHtmlFormText,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaEnrollForm {
-    current_password: server_admin_contract::AdminPassword,
-}
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaConfirmForm {
-    code: server_admin_contract::AdminMfaCode,
-}
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaTotpForm {
-    code: server_admin_contract::AdminMfaCode,
-    current_password: server_admin_contract::AdminPassword,
-}
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaRecoveryForm {
-    code: server_admin_contract::AdminRecoveryCode,
-    current_password: server_admin_contract::AdminPassword,
-}
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaDisableTotpForm {
-    code: server_admin_contract::AdminMfaCode,
-    confirmation: server_admin_contract::AdminBool,
-    current_password: server_admin_contract::AdminPassword,
-}
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MfaDisableRecoveryForm {
-    code: server_admin_contract::AdminRecoveryCode,
-    confirmation: server_admin_contract::AdminBool,
-    current_password: server_admin_contract::AdminPassword,
 }
 
 fn html_response(html: server_admin_frontend::ssr::AdminSsrHtml) -> axum::response::Response {
@@ -398,13 +345,11 @@ async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
 }
 
 async fn profile(auth: super::AdminAuthReq) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let mfa_result = super::handlers::mfa_status_view(auth).await;
-    match (context_result, mfa_result) {
-        (Ok((admin, branding)), Ok(mfa)) => html_response(
-            server_admin_frontend::ssr::render_profile(&admin, &mfa, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
+    match page_context(&auth).await {
+        Ok((admin, branding)) => html_response(server_admin_frontend::ssr::render_profile(
+            &admin, &branding,
+        )),
+        Err(error) => html_page_error(error),
     }
 }
 
@@ -867,118 +812,6 @@ async fn update_settings(
     )
 }
 
-async fn mfa_enroll(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaEnrollForm>,
-) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    match super::handlers::mfa_enroll_view(
-        auth,
-        super::AxumAdminJson(server_admin_contract::AdminMfaEnrollReq::new(
-            form.current_password,
-        )),
-    )
-    .await
-    {
-        Ok(view) => html_response(server_admin_frontend::ssr::render_mfa_enrollment(&view)),
-        Err(error) => axum::response::IntoResponse::into_response(error),
-    }
-}
-
-async fn mfa_confirm(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaConfirmForm>,
-) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    match super::handlers::mfa_confirm_view(
-        auth,
-        super::AxumAdminJson(server_admin_contract::AdminMfaConfirmReq::new(form.code)),
-    )
-    .await
-    {
-        Ok(view) => html_response(server_admin_frontend::ssr::render_mfa_recovery_codes(&view)),
-        Err(error) => axum::response::IntoResponse::into_response(error),
-    }
-}
-
-async fn mfa_step_up_totp(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaTotpForm>,
-) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    let request = server_admin_contract::AdminMfaStepUpReq::new(
-        form.current_password,
-        server_admin_contract::AdminMfaProof::Totp(form.code),
-    );
-    action_result(
-        super::handlers::mfa_step_up(auth, super::AxumAdminJson(request)).await,
-        server_admin_contract::AdminFrontendPath::Profile,
-    )
-}
-
-async fn mfa_step_up_recovery(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaRecoveryForm>,
-) -> axum::response::Response {
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    let request = server_admin_contract::AdminMfaStepUpReq::new(
-        form.current_password,
-        server_admin_contract::AdminMfaProof::Recovery(form.code),
-    );
-    action_result(
-        super::handlers::mfa_step_up(auth, super::AxumAdminJson(request)).await,
-        server_admin_contract::AdminFrontendPath::Profile,
-    )
-}
-
-async fn mfa_disable_totp(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaDisableTotpForm>,
-) -> axum::response::Response {
-    if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
-    }
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    let request = server_admin_contract::AdminMfaDisableReq::new(
-        form.current_password,
-        server_admin_contract::AdminMfaProof::Totp(form.code),
-    );
-    action_result(
-        super::handlers::mfa_disable(auth, super::AxumAdminJson(request)).await,
-        server_admin_contract::AdminFrontendPath::Profile,
-    )
-}
-
-async fn mfa_disable_recovery(
-    auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaDisableRecoveryForm>,
-) -> axum::response::Response {
-    if !bool::from(form.confirmation) {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
-    }
-    let Ok(auth) = form_auth(auth) else {
-        return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
-    };
-    let request = server_admin_contract::AdminMfaDisableReq::new(
-        form.current_password,
-        server_admin_contract::AdminMfaProof::Recovery(form.code),
-    );
-    action_result(
-        super::handlers::mfa_disable(auth, super::AxumAdminJson(request)).await,
-        server_admin_contract::AdminFrontendPath::Profile,
-    )
-}
-
 async fn finish_sign_in(
     auth: super::AdminAuthReq,
     peer: super::AdminPeerAddr,
@@ -1031,40 +864,6 @@ async fn sign_in(
         auth,
         peer,
         server_admin_contract::AdminSignInReq::new(form.login, form.password),
-    )
-    .await
-}
-
-async fn sign_in_totp(
-    auth: super::AdminAuthReq,
-    peer: super::AdminPeerAddr,
-    super::AxumAdminForm(form): super::AxumAdminForm<TotpSignInForm>,
-) -> axum::response::Response {
-    finish_sign_in(
-        auth,
-        peer,
-        server_admin_contract::AdminSignInReq::with_mfa(
-            form.login,
-            form.password,
-            server_admin_contract::AdminMfaProof::Totp(form.code),
-        ),
-    )
-    .await
-}
-
-async fn sign_in_recovery(
-    auth: super::AdminAuthReq,
-    peer: super::AdminPeerAddr,
-    super::AxumAdminForm(form): super::AxumAdminForm<RecoverySignInForm>,
-) -> axum::response::Response {
-    finish_sign_in(
-        auth,
-        peer,
-        server_admin_contract::AdminSignInReq::with_mfa(
-            form.login,
-            form.password,
-            server_admin_contract::AdminMfaProof::Recovery(form.code),
-        ),
     )
     .await
 }
@@ -1133,14 +932,6 @@ pub(super) fn routes(
                 axum::routing::post(sign_in),
             )
             .route(
-                server_admin_contract::AdminHtmlAction::SignInTotp.get(),
-                axum::routing::post(sign_in_totp),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::SignInRecovery.get(),
-                axum::routing::post(sign_in_recovery),
-            )
-            .route(
                 server_admin_contract::AdminHtmlAction::SignOut.get(),
                 axum::routing::post(sign_out),
             )
@@ -1195,30 +986,6 @@ pub(super) fn routes(
             .route(
                 server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
                 axum::routing::post(update_settings),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaEnroll.get(),
-                axum::routing::post(mfa_enroll),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaConfirm.get(),
-                axum::routing::post(mfa_confirm),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaStepUpTotp.get(),
-                axum::routing::post(mfa_step_up_totp),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaStepUpRecovery.get(),
-                axum::routing::post(mfa_step_up_recovery),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaDisableTotp.get(),
-                axum::routing::post(mfa_disable_totp),
-            )
-            .route(
-                server_admin_contract::AdminHtmlAction::MfaDisableRecovery.get(),
-                axum::routing::post(mfa_disable_recovery),
             )
             .with_state(state),
     )

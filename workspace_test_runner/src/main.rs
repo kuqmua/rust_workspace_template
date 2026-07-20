@@ -790,7 +790,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         .collect::<Result<Vec<_>, ()>>()?;
     let authenticated_admin = server_admin_contract::AuthenticatedAdmin::new(
         admin_fixture_string::<server_admin_contract::AdminDisplayName>(String::from(
-            str_constants::ROOT_ADMIN,
+            str_constants::ADMIN,
         ))?,
         server_admin_contract::AdminUserId::from(1i64),
         admin_fixture_string::<server_admin_contract::AdminLogin>(String::from(
