@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo metadata --locked --format-version 1 --no-deps > /dev/null
   format:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
           components: rustfmt
       - run: cargo fmt --all -- --check
   repository-format:
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - uses: taiki-e/install-action@59979a424d2584f3cdeca89833d69ca54b72d84f
         with:
           tool: cargo-machete
@@ -100,7 +100,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
           components: llvm-tools-preview
       - uses: taiki-e/install-action@87d97b95c884523e049410b5322ea91b2acdbc89
         with:
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo test -p server_admin_frontend
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -144,7 +144,7 @@ jobs:
           key: ${{ runner.os }}-clippy-${{ hashFiles('**/Cargo.lock') }}
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
           components: clippy
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
   docs:
@@ -155,7 +155,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo doc --locked --workspace --all-features --no-deps
         env:
           RUSTDOCFLAGS: -D warnings
@@ -167,7 +167,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
           components: clippy,rustfmt
       - run: cargo test --locked -p tests code_style
       - run: cargo openapi-contract-suite
@@ -193,7 +193,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo run --locked -p workspace_test_runner -- database
         env:
           SERVICE_SOCKET_ADDRESS: 127.0.0.1:8080
@@ -211,7 +211,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo install --locked cargo-deny cargo-audit
       - run: cargo deny check
       - run: cargo audit
@@ -223,7 +223,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo install --locked cargo-hack
       - run: cargo hack check --workspace --feature-powerset --depth 1 --locked
   semver:
@@ -236,7 +236,7 @@ jobs:
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo install --locked cargo-semver-checks
       - run: |
           cargo semver-checks --package newtype --baseline-rev "origin/${{ github.base_ref }}"
@@ -263,7 +263,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo install --locked cargo-udeps
       - run: cargo udeps --workspace --all-targets --all-features --locked
   unused-dependencies:
@@ -274,7 +274,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - uses: taiki-e/install-action@b11d693c7febff734da6b5acd9cea3cbb8596ddd
         with:
           tool: cargo-udeps
@@ -287,6 +287,6 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-07-12
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --save-baseline ci
       - run: cargo bench --locked -p pg_crud_common --bench query_builders -- --baseline ci

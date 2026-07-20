@@ -3,7 +3,8 @@
     reason = "Leptos view macro expansion requires these attribute traits in lexical scope and repository policy forbids underscore import aliases"
 )]
 use leptos::prelude::{
-    AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes, InnerHtmlAttribute,
+    AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes, InnerHtmlAttribute, IntoAny,
+    StyleAttribute,
 };
 
 const SSR_TEXT_MAX_BYTES: usize = 16_777_216usize;
@@ -13,12 +14,12 @@ trait AdminSsrViewExt {
 }
 impl<View> AdminSsrViewExt for View
 where
-    View: leptos::prelude::IntoAny,
+    View: IntoAny,
 {
     fn render_admin_ssr(self) -> AdminSsrHtml {
-        AdminSsrHtml(leptos::prelude::RenderHtml::to_html(
-            leptos::prelude::IntoAny::into_any(self),
-        ))
+        AdminSsrHtml(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(
+            self,
+        )))
     }
 }
 
@@ -68,7 +69,7 @@ impl TryFrom<String> for AdminSsrHtml {
     }
 }
 
-fn render_document(title: &AdminSsrText, body: impl leptos::prelude::IntoAny) -> AdminSsrHtml {
+fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml(format!(
         "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body>{}</body></html>",
@@ -77,15 +78,34 @@ fn render_document(title: &AdminSsrText, body: impl leptos::prelude::IntoAny) ->
 }
 
 #[must_use]
-pub fn render_sign_in(error: Option<AdminSsrErrorMessage>) -> AdminSsrHtml {
+pub fn render_sign_in(
+    error: Option<AdminSsrErrorMessage>,
+    branding: Option<&server_admin_contract::AdminBrandingView>,
+) -> AdminSsrHtml {
+    let site_name = branding.map_or_else(
+        || String::from(str_constants::WORKSPACE_ADMIN),
+        |value| AsRef::<str>::as_ref(value.site_name()).to_owned(),
+    );
+    let tab_title = branding
+        .and_then(server_admin_contract::AdminBrandingView::tab_title)
+        .map_or_else(
+            || String::from(str_constants::ADMINISTRATOR_SIGN_IN),
+            |value| AsRef::<str>::as_ref(value).to_owned(),
+        );
+    let main_logo = branding
+        .and_then(server_admin_contract::AdminBrandingView::main_logo)
+        .map(|value| AsRef::<str>::as_ref(value).to_owned());
+    let primary_color = branding
+        .and_then(server_admin_contract::AdminBrandingView::primary_color)
+        .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
     render_document(
-        &AdminSsrText(str_constants::ADMINISTRATOR_SIGN_IN.to_owned()),
+        &AdminSsrText(tab_title),
         leptos::view! {
-            <main class="auth-layout">
+            <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
                     <div class="auth-brand">
-                        <span class="brand-mark" aria-hidden="true">"A"</span>
-                        <div><strong>"Workspace Admin"</strong><small>"Secure operations console"</small></div>
+                        {main_logo.map_or_else(|| leptos::view! { <span class="brand-mark" aria-hidden="true">"A"</span> }.into_any(), |source| leptos::view! { <img class="brand-logo" src=source alt="" /> }.into_any())}
+                        <div><strong>{site_name}</strong><small>"Secure operations console"</small></div>
                     </div>
                     <h1>"Sign in"</h1>
                     {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0}</p> })}
@@ -121,19 +141,47 @@ pub fn render_admin_page(
     page: server_admin_contract::AdminPage,
     content: AdminSsrHtml,
 ) -> AdminSsrHtml {
+    render_admin_page_with_access(page, content, None, None)
+}
+
+fn render_admin_page_with_access(
+    page: server_admin_contract::AdminPage,
+    content: AdminSsrHtml,
+    admin: Option<&server_admin_contract::AuthenticatedAdmin>,
+    branding: Option<&server_admin_contract::AdminBrandingView>,
+) -> AdminSsrHtml {
     let spec = page.spec();
     let title = spec.title();
+    let site_name = branding.map_or_else(
+        || String::from(str_constants::WORKSPACE_ADMIN),
+        |value| AsRef::<str>::as_ref(value.site_name()).to_owned(),
+    );
+    let document_title = branding
+        .and_then(server_admin_contract::AdminBrandingView::tab_title)
+        .map_or_else(
+            || title.as_ref().to_owned(),
+            |value| AsRef::<str>::as_ref(value).to_owned(),
+        );
+    let main_logo = branding
+        .and_then(server_admin_contract::AdminBrandingView::main_logo)
+        .map(|value| AsRef::<str>::as_ref(value).to_owned());
+    let primary_color = branding
+        .and_then(server_admin_contract::AdminBrandingView::primary_color)
+        .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
+    let support_url = branding
+        .and_then(server_admin_contract::AdminBrandingView::support_url)
+        .map(|value| AsRef::<str>::as_ref(value).to_owned());
     render_document(
-        &AdminSsrText(title.as_ref().to_owned()),
+        &AdminSsrText(document_title),
         leptos::view! {
-            <div class="app-shell">
+            <div class="app-shell" style=primary_color>
                 <header class="topbar">
                     <a class="brand" href=server_admin_contract::AdminFrontendPath::Dashboard.get()>
-                        <span class="brand-mark" aria-hidden="true">"A"</span>
-                        <div><strong>"Workspace Admin"</strong><small>"Secure operations console"</small></div>
+                        {main_logo.map_or_else(|| leptos::view! { <span class="brand-mark" aria-hidden="true">"A"</span> }.into_any(), |source| leptos::view! { <img class="brand-logo" src=source alt="" /> }.into_any())}
+                        <div><strong>{site_name}</strong><small>"Secure operations console"</small></div>
                     </a>
                     <nav aria-label="Admin sections">
-                        {server_admin_contract::AdminPage::specs().iter().copied().map(|item| {
+                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
                             let href = String::from(item.path());
                             let label = String::from(item.title());
@@ -144,16 +192,21 @@ pub fn render_admin_page(
                             }
                         }).collect::<Vec<_>>()}
                     </nav>
+                    {support_url.map(|href| leptos::view! { <a href=href>"Support"</a> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
                 </header>
-                <main class="main-content"><h1>{title.as_ref()}</h1><div inner_html=content.0></div></main>
+                <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><h1>{title.as_ref()}</h1><div inner_html=content.0></div></main>
             </div>
         },
     )
 }
 
 #[must_use]
-pub fn render_dashboard(view: &server_admin_contract::AdminDashboardView) -> AdminSsrHtml {
+pub fn render_dashboard(
+    view: &server_admin_contract::AdminDashboardView,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
     let cleanup = view.last_cleanup().map_or_else(
         || String::from(str_constants::NO_COMPLETED_CLEANUP_RECORDED),
         |value| {
@@ -179,96 +232,207 @@ pub fn render_dashboard(view: &server_admin_contract::AdminDashboardView) -> Adm
             }).collect::<Vec<_>>()}
         </ul></section>
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Dashboard, content_view)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Dashboard,
+        content_view,
+        Some(admin),
+        Some(branding),
+    )
 }
 
-fn table_filters(page: server_admin_contract::AdminPage) -> impl leptos::prelude::IntoView {
+fn table_filters(
+    page: server_admin_contract::AdminPage,
+    query: &server_admin_contract::AdminTableQuery,
+    sort_fields: &[server_admin_contract::AdminTableSortField],
+) -> impl leptos::prelude::IntoView {
     let action = String::from(page.path());
+    let search = query.search().as_ref().to_owned();
+    let selected_sort = query.sort().as_ref().to_owned();
+    let ascending = matches!(
+        query.direction(),
+        server_admin_contract::AdminSortDirection::Asc
+    );
+    let limit = u16::from(query.limit()).to_string();
     leptos::view! {
         <form class="table-tools" method="get" action=action>
-            <label><span>"Search"</span><input name="search" /></label>
-            <label><span>"Sort"</span><input name="sort" /></label>
-            <label><span>"Direction"</span><select name="direction"><option value="asc">"Ascending"</option><option value="desc">"Descending"</option></select></label>
-            <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value="20" /></label>
+            <label><span>"Search"</span><input name="search" value=search /></label>
+            <label><span>"Sort"</span><select name="sort">
+                <option value="" selected=selected_sort.is_empty()>"Default"</option>
+                {sort_fields.iter().copied().map(|field| { let key = field.key().as_ref().to_owned(); let selected = key == selected_sort; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}
+            </select></label>
+            <label><span>"Direction"</span><select name="direction"><option value="asc" selected=ascending>"Ascending"</option><option value="desc" selected=!ascending>"Descending"</option></select></label>
+            <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit /></label>
             <input name="offset" type="hidden" value="0" />
             <button type="submit">"Apply"</button>
         </form>
     }
 }
 
+fn table_pagination(
+    page: server_admin_contract::AdminPage,
+    query: &server_admin_contract::AdminTableQuery,
+    total: server_admin_contract::AdminPageTotal,
+) -> impl leptos::prelude::IntoView {
+    let action = String::from(page.path());
+    let search = query.search().as_ref().to_owned();
+    let sort = query.sort().as_ref().to_owned();
+    let direction = query.direction().as_ref().to_owned();
+    let limit = u16::from(query.limit());
+    let offset = u32::from(query.offset());
+    let previous_offset = offset.saturating_sub(u32::from(limit));
+    let next_offset = offset.saturating_add(u32::from(limit));
+    let previous_disabled = offset == 0u32;
+    let next_disabled = u64::from(next_offset) >= u64::from(total);
+    leptos::view! {
+        <nav class="table-pagination" aria-label="Table pages">
+            <form method="get" action=action.clone()>
+                <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
+                <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
+                <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
+            </form>
+            <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(u64::from(total)), u64::from(offset).saturating_add(u64::from(limit)).min(u64::from(total)), total)}</span>
+            <form method="get" action=action>
+                <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
+                <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
+                <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
+            </form>
+        </nav>
+    }
+}
+
 #[must_use]
-pub fn render_users(page: &server_admin_contract::AdminUsersPage) -> AdminSsrHtml {
+pub fn render_users(
+    page: &server_admin_contract::AdminUsersPage,
+    query: &server_admin_contract::AdminTableQuery,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    let can_create =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersCreate));
+    let can_delete =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersDelete));
+    let can_update =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersUpdate));
+    let can_update_roles =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
     let content = leptos::view! {
-        {table_filters(server_admin_contract::AdminPage::Users)}
-        <details class="mutation-form"><summary>"Create user"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserCreate.get()>
+        {table_filters(server_admin_contract::AdminPage::Users, query, &server_admin_contract::AdminTableSortField::USER)}
+        {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create user"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserCreate.get()>
             <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
             <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>
-        </form></details>
+        </form></details> })}
         <p>{format!("{} users", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Login"</th><th>"Display name"</th><th>"Banned"</th><th>"Roles"</th><th>"Actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_role_ids = item.role_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
             <tr><td>{item.id().to_string()}</td><td>{item.login().to_string()}</td><td>{item.display_name().to_string()}</td><td>{item.is_banned().to_string()}</td>
-            <td><form method="post" action=server_admin_contract::AdminHtmlAction::UserRoles.get()><input type="hidden" name="user_id" value=item.id().to_string() />
+            <td>{can_update_roles.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::UserRoles.get()><input type="hidden" name="user_id" value=item.id().to_string() />
                 <input type="hidden" name="expected_role_ids" value=expected_role_ids />
                 {page.roles().iter().map(|role| { let checked = item.role_ids().contains(&role.id()); let name = format!("role_{}", role.id()); leptos::view! { <label><input type="checkbox" name=name value=role.id().to_string() checked=checked />{role.name().to_string()}</label> } }).collect::<Vec<_>>()}
-                <button type="submit">"Save roles"</button></form></td>
-            <td><details><summary>"Edit"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserUpdate.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="login" value=item.login().to_string() required /><input name="display_name" value=item.display_name().to_string() required /><button type="submit">"Save"</button></form></details>
+                <button type="submit">"Save roles"</button></form> })}</td>
+            <td>{can_update.then(|| leptos::view! { <details><summary>"Edit"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserUpdate.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="login" value=item.login().to_string() required /><input name="display_name" value=item.display_name().to_string() required /><button type="submit">"Save"</button></form></details>
                 <details><summary>"Password"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserPassword.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="password" type="password" required /><button type="submit">"Change password"</button></form></details>
-                <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form>
-                <form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><button class="danger-button" type="submit">"Delete"</button></form></td></tr>
+                <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
+                {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table>
+        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total())}
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Users, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Users,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
-pub fn render_roles(page: &server_admin_contract::AdminRolesPage) -> AdminSsrHtml {
+pub fn render_roles(
+    page: &server_admin_contract::AdminRolesPage,
+    query: &server_admin_contract::AdminTableQuery,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    let can_create =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesCreate));
+    let can_delete =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesDelete));
+    let can_update =
+        bool::from(admin.has_permission(server_admin_contract::AdminPermission::RolesUpdate));
+    let can_update_permissions = bool::from(
+        admin.has_permission(server_admin_contract::AdminPermission::RolePermissionsUpdate),
+    );
     let content = leptos::view! {
-        {table_filters(server_admin_contract::AdminPage::Roles)}
-        <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details>
+        {table_filters(server_admin_contract::AdminPage::Roles, query, &server_admin_contract::AdminTableSortField::ROLE)}
+        {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
         <p>{format!("{} roles", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Name"</th><th>"System"</th><th>"Permissions"</th><th>"Actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
-            <tr><td>{item.id().to_string()}</td><td>{item.name().to_string()}</td><td>{item.is_system().to_string()}</td><td><form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
+            <tr><td>{item.id().to_string()}</td><td>{item.name().to_string()}</td><td>{item.is_system().to_string()}</td><td>{can_update_permissions.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
                 <input type="hidden" name="expected_permission_ids" value=expected_permission_ids />
                 {page.permissions().iter().map(|permission| { let checked = item.permission_ids().contains(&permission.id()); let name = format!("permission_{}", permission.id()); leptos::view! { <label><input type="checkbox" name=name value=permission.id().to_string() checked=checked />{permission.name().to_string()}</label> } }).collect::<Vec<_>>()}
-                <button type="submit">"Save permissions"</button></form></td><td>
-                <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form>
-                <form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete"</button></form></td></tr>
+                <button type="submit">"Save permissions"</button></form> })}</td><td>
+                {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
+                {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table>
+        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total())}
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Roles, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Roles,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
-pub fn render_permissions(page: &server_admin_contract::AdminPermissionsPage) -> AdminSsrHtml {
+pub fn render_permissions(
+    page: &server_admin_contract::AdminPermissionsPage,
+    query: &server_admin_contract::AdminTableQuery,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
     let content = leptos::view! {
-        {table_filters(server_admin_contract::AdminPage::Permissions)}
+        {table_filters(server_admin_contract::AdminPage::Permissions, query, &server_admin_contract::AdminTableSortField::PERMISSION)}
         <p>{format!("{} permissions", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Permission"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td>{item.id().to_string()}</td><td>{item.name().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
+        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total())}
     }
     .render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Permissions, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Permissions,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
-pub fn render_sessions(items: &[server_admin_contract::AdminSessionView]) -> AdminSsrHtml {
+pub fn render_sessions(
+    items: &[server_admin_contract::AdminSessionView],
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
     let content = leptos::view! {
         <table><thead><tr><th>"Session"</th><th>"Created"</th><th>"Expires"</th><th>"Current"</th></tr></thead>
         <tbody>{items.iter().map(|item| leptos::view! {
-            <tr><td>{item.id().to_string()}</td><td>{item.created_at().to_string()}</td><td>{item.expires_at().to_string()}</td><td>{item.is_current().to_string()}</td><td><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><button type="submit">"Revoke"</button></form></td></tr>
+            <tr><td>{item.id().to_string()}</td><td>{item.created_at().to_string()}</td><td>{item.expires_at().to_string()}</td><td>{item.is_current().to_string()}</td><td><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Sessions, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Sessions,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
 pub fn render_profile(
     admin: &server_admin_contract::AuthenticatedAdmin,
     mfa: &server_admin_contract::AdminMfaStatus,
+    branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let roles = admin
         .roles()
@@ -283,8 +447,8 @@ pub fn render_profile(
             <form method="post" action=server_admin_contract::AdminHtmlAction::MfaEnroll.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><button type="submit">"Start enrollment"</button></form>
             <form method="post" action=server_admin_contract::AdminHtmlAction::MfaStepUpTotp.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"TOTP code"</span><input name="code" required /></label><button type="submit">"Verify TOTP"</button></form>
             <form method="post" action=server_admin_contract::AdminHtmlAction::MfaStepUpRecovery.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"Recovery code"</span><input name="code" required /></label><button type="submit">"Verify recovery code"</button></form>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableTotp.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"TOTP code"</span><input name="code" required /></label><button class="danger-button" type="submit">"Disable MFA with TOTP"</button></form>
-            <form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableRecovery.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"Recovery code"</span><input name="code" required /></label><button class="danger-button" type="submit">"Disable MFA with recovery code"</button></form>
+            <details><summary>"Disable MFA with TOTP"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableTotp.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"TOTP code"</span><input name="code" required /></label><label><input type="checkbox" name="confirmation" value="true" required />"Confirm MFA removal"</label><button class="danger-button" type="submit">"Disable MFA"</button></form></details>
+            <details><summary>"Disable MFA with recovery code"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::MfaDisableRecovery.get()><label><span>"Current password"</span><input name="current_password" type="password" required /></label><label><span>"Recovery code"</span><input name="code" required /></label><label><input type="checkbox" name="confirmation" value="true" required />"Confirm MFA removal"</label><button class="danger-button" type="submit">"Disable MFA"</button></form></details>
         </section>
         <section class="security-card"><h2>"Change password"</h2><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
             <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
@@ -292,7 +456,12 @@ pub fn render_profile(
             <label><input name="revoke_other_sessions" type="checkbox" value="true" />"Revoke other sessions"</label><button type="submit">"Change password"</button>
         </form></section>
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Profile, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Profile,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
@@ -315,7 +484,11 @@ pub fn render_mfa_recovery_codes(view: &server_admin_contract::AdminMfaConfirmRe
 }
 
 #[must_use]
-pub fn render_settings(view: &server_admin_contract::AdminSettingsView) -> AdminSsrHtml {
+pub fn render_settings(
+    view: &server_admin_contract::AdminSettingsView,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
     let site_name = AsRef::<str>::as_ref(view.site_name()).to_owned();
     let default_admin_route = AsRef::<str>::as_ref(view.default_admin_route()).to_owned();
     let tab_title = view
@@ -342,8 +515,11 @@ pub fn render_settings(view: &server_admin_contract::AdminSettingsView) -> Admin
         .support_url()
         .map(|value| AsRef::<str>::as_ref(value).to_owned())
         .unwrap_or_default();
+    let can_update = bool::from(
+        admin.has_permission(server_admin_contract::AdminPermission::SystemSettingsUpdate),
+    );
     let content = leptos::view! {
-        <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
+        {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::AdminHtmlAction::SettingsUpdate.get()>
             <label><span>"Site name"</span><input name="site_name" value=site_name required /></label>
             <label><span>"Default route"</span><input name="default_admin_route" value=default_admin_route required /></label>
             <label><span>"Tab title"</span><input name="tab_title" value=tab_title /></label>
@@ -353,13 +529,23 @@ pub fn render_settings(view: &server_admin_contract::AdminSettingsView) -> Admin
             <label><span>"Organization contacts"</span><textarea name="organization_contacts">{organization_contacts}</textarea></label>
             <label><span>"Support URL"</span><input name="support_url" value=support_url /></label>
             <button type="submit">"Save settings"</button>
-        </form>
+        </form> })}
+        {(!can_update).then(|| leptos::view! { <p>"Settings are read-only for this account."</p> })}
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Settings, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Settings,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
-pub fn render_audit(page: &server_admin_contract::AdminAuditPage) -> AdminSsrHtml {
+pub fn render_audit(
+    page: &server_admin_contract::AdminAuditPage,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
     let content = leptos::view! {
         <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
             <label><span>"Action"</span><input name="action" /></label><label><span>"Resource"</span><input name="resource" /></label><label><span>"Resource ID"</span><input name="resource_id" /></label>
@@ -369,7 +555,12 @@ pub fn render_audit(page: &server_admin_contract::AdminAuditPage) -> AdminSsrHtm
             <tr><td>{item.created_at().to_string()}</td><td>{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td>{item.action().to_string()}</td><td>{item.resource().to_string()}</td><td>{item.succeeded().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
     }.render_admin_ssr();
-    render_admin_page(server_admin_contract::AdminPage::Audit, content)
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Audit,
+        content,
+        Some(admin),
+        Some(branding),
+    )
 }
 
 #[must_use]
@@ -386,11 +577,29 @@ pub fn render_text_page(
     render_admin_page(page, content)
 }
 
+#[must_use]
+pub fn render_text_page_with_access(
+    page: server_admin_contract::AdminPage,
+    title: AdminSsrText,
+    text: AdminSsrText,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    let content = leptos::view! {
+        <section><div class="page-heading"><h1>{title.0}</h1></div>
+        <div class="code-card"><pre>{text.0}</pre></div></section>
+    }
+    .render_admin_ssr();
+    render_admin_page_with_access(page, content, Some(admin), Some(branding))
+}
+
 #[cfg(test)]
 mod tests {
+    use super::AdminSsrViewExt;
+
     #[test]
     fn server_rendered_pages_contain_forms_and_no_scripts() {
-        let sign_in = super::render_sign_in(None);
+        let sign_in = super::render_sign_in(None, None);
         assert!(sign_in.as_ref().contains("<form method=\"post\""));
         assert!(!sign_in.as_ref().contains("<script"));
         assert!(!sign_in.as_ref().contains(".wasm"));
@@ -401,5 +610,86 @@ mod tests {
         );
         assert!(page.as_ref().contains("<p>ready</p>"));
         assert!(!page.as_ref().contains("<script"));
+    }
+
+    #[test]
+    fn pagination_preserves_server_side_navigation() {
+        let html = super::table_pagination(
+            server_admin_contract::AdminPage::Users,
+            &server_admin_contract::AdminTableQuery::default(),
+            server_admin_contract::AdminPageTotal::from(101u64),
+        )
+        .render_admin_ssr();
+        assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
+        assert!(html.as_ref().contains("disabled>Previous"));
+        assert!(!html.as_ref().contains("<script"));
+    }
+
+    #[test]
+    fn navigation_only_contains_accessible_pages() {
+        let admin = server_admin_contract::AuthenticatedAdmin::new(
+            server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
+                .expect("cdae3e58"),
+            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
+                .expect("9ae5b850"),
+            vec![
+                server_admin_contract::AdminPermissionValue::try_from(
+                    server_admin_contract::AdminPermission::UsersRead
+                        .as_str()
+                        .get()
+                        .to_owned(),
+                )
+                .expect("6afb4194"),
+            ],
+            Vec::new(),
+        );
+        let html = super::render_admin_page_with_access(
+            server_admin_contract::AdminPage::Users,
+            super::AdminSsrHtml::try_from(String::new()).expect("aa3fa21e"),
+            Some(&admin),
+            None,
+        );
+        assert!(
+            html.as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Users.get())
+        );
+        assert!(
+            !html
+                .as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Roles.get())
+        );
+        assert!(
+            html.as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Profile.get())
+        );
+    }
+
+    #[test]
+    fn sign_in_uses_server_side_branding_without_scripts() {
+        let settings = server_admin_contract::AdminSettingsView::new(
+            server_admin_contract::AdminDefaultRoute::try_from(
+                server_admin_contract::AdminFrontendPath::Dashboard
+                    .get()
+                    .to_owned(),
+            )
+            .expect("50ffe2fc"),
+            None,
+            None,
+            None,
+            Some(
+                server_admin_contract::AdminPrimaryColor::try_from(String::from("#123456"))
+                    .expect("9c08c954"),
+            ),
+            server_admin_contract::AdminSiteName::try_from(String::from("Custom Admin"))
+                .expect("0a28fdd7"),
+            None,
+            None,
+        );
+        let branding = server_admin_contract::AdminBrandingView::from_settings(&settings);
+        let html = super::render_sign_in(None, Some(&branding));
+        assert!(html.as_ref().contains("Custom Admin"));
+        assert!(html.as_ref().contains("--accent:#123456"));
+        assert!(!html.as_ref().contains("<script"));
     }
 }

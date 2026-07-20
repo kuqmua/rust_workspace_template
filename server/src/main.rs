@@ -522,11 +522,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                                     axum::extract::DefaultBodyLimit::max(maximum_http_body_bytes),
                                 ),
                             )
-                            .merge(axum::Router::from(if swagger_enabled {
-                                server_admin_frontend::routes()
-                            } else {
-                                server_admin_frontend::routes_without_swagger()
-                            }))
+                            .merge(axum::Router::from(server_admin_frontend::routes()))
                             .merge(axum::Router::from(admin_html_routes))
                             .nest(
                                 server_admin_contract::AdminFrontendPath::Root.get(),

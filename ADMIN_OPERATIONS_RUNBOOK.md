@@ -2,9 +2,10 @@
 
 ## Production deployment
 
-- Build the complete image from the repository `Dockerfile`; it builds the release WASM bundle and
-  copies both generated and static administrator assets into the runtime image. Do not deploy a
-  standalone server binary without those assets.
+- Build the complete image from the repository `Dockerfile`; it builds the Rust server and copies
+  the administrator stylesheet into the runtime image. The administrator UI is rendered on the
+  server and does not ship a JavaScript, TypeScript, or client-side WASM bundle. Do not deploy a
+  standalone server binary without the static stylesheet.
 - Terminate TLS at the application gateway, set `ADMIN_COOKIE_SECURE=true`, use an exact HTTPS
   origin in `CORS_ALLOW_ORIGIN`, and disable Swagger with `ADMIN_SWAGGER_ENABLED=false` unless its
   permission-protected UI is explicitly required.

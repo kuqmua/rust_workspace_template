@@ -959,7 +959,8 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     assert_eq!(roles_clear_response.status(), http::StatusCode::SEE_OTHER);
 
     let delete_body =
-        AdminHtmlTestFormBody::try_from(format!("user_id={}", created.0)).expect("d4fe3069");
+        AdminHtmlTestFormBody::try_from(format!("user_id={}&confirmation=true", created.0))
+            .expect("d4fe3069");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),
@@ -1091,7 +1092,8 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     );
 
     let delete_body =
-        AdminHtmlTestFormBody::try_from(format!("role_id={}", created.0)).expect("e1547a60");
+        AdminHtmlTestFormBody::try_from(format!("role_id={}&confirmation=true", created.0))
+            .expect("e1547a60");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),
@@ -1532,7 +1534,8 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     assert!(sessions_html.0.contains("<td>true</td>"));
 
     let revoke_body =
-        AdminHtmlTestFormBody::try_from(format!("session_id={session_id}")).expect("2f8bea59");
+        AdminHtmlTestFormBody::try_from(format!("session_id={session_id}&confirmation=true"))
+            .expect("2f8bea59");
     let revoke_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),
@@ -1791,7 +1794,8 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
         http::StatusCode::CONFLICT
     );
     let delete_role_body =
-        AdminHtmlTestFormBody::try_from(format!("role_id={created_role_id}")).expect("f1c637d8");
+        AdminHtmlTestFormBody::try_from(format!("role_id={created_role_id}&confirmation=true"))
+            .expect("f1c637d8");
     let delete_role_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),
@@ -1801,9 +1805,10 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     .await;
     assert_eq!(delete_role_response.status(), http::StatusCode::SEE_OTHER);
 
-    let unknown_delete_body =
-        AdminHtmlTestFormBody::try_from(String::from("user_id=9223372036854775807"))
-            .expect("d96b20e4");
+    let unknown_delete_body = AdminHtmlTestFormBody::try_from(String::from(
+        "user_id=9223372036854775807&confirmation=true",
+    ))
+    .expect("d96b20e4");
     let unknown_delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),
@@ -1814,7 +1819,8 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     assert_eq!(unknown_delete_response.status(), http::StatusCode::CONFLICT);
 
     let delete_body =
-        AdminHtmlTestFormBody::try_from(format!("user_id={created_id}")).expect("4cf9072d");
+        AdminHtmlTestFormBody::try_from(format!("user_id={created_id}&confirmation=true"))
+            .expect("4cf9072d");
     let delete_response = admin_html_response(
         &fixture,
         HttpAdminApiTestMethod(http::Method::POST),

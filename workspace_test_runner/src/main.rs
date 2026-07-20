@@ -1534,3 +1534,19 @@ fn main() {
         std::process::exit(1);
     }
 }
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn database_mode_runs_the_workspace_ignored_suite() {
+        assert!(
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--workspace")
+        );
+        assert!(
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS
+                .contains(&"--all-features")
+        );
+        assert!(
+            str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS.contains(&"--ignored")
+        );
+    }
+}

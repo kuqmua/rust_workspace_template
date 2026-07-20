@@ -414,6 +414,7 @@ str_constants_macros::define_str_constants! {
         WORD_NULL = "NULL";
         WORD_NULLABLE = "nullable";
         WORD_OFFSET = "OFFSET";
+        WORD_OFFLINE = "offline";
         WORD_OK = "Ok";
         WORD_OK_2 = "ok";
         WORD_OLD = "old";
@@ -834,6 +835,7 @@ str_constants_macros::define_str_constants! {
         pub SHARED_VALUES_ACTION_2 = ["Action"];
         pub SHARED_VALUES_RESOURCE_2 = ["Resource"];
         pub(crate) SHARED_VALUES_LOCKED = ["--", WORD_LOCKED];
+        pub(crate) SHARED_VALUES_OFFLINE = ["--", WORD_OFFLINE];
         pub(crate) SHARED_VALUES_CHECK_2 = ["--", WORD_CHECK_2];
         pub(crate) SHARED_VALUES_FEATURES = ["--", WORD_FEATURES];
         pub(crate) SHARED_VALUES_WORKSPACE = ["--", WORD_WORKSPACE];
@@ -1061,6 +1063,7 @@ str_constants_macros::define_str_constants! {
         pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP = [WORD_SIGN_IN, "_", WORD_IP];
         pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP_LOGIN = [WORD_SIGN_IN, "_", WORD_IP, "_", WORD_LOGIN];
         pub TEST_VALUES_COMMIT = ["abc123"];
+        pub TEST_VALUES_TABLE_EXAMPLE_OPERATION_ID_PREFIX = [WORD_TABLE_EXAMPLE, "_"];
         pub TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX = ["/", WORD_PATHS, "/~1", WORD_TABLE_EXAMPLE, "~1"];
         pub TEST_VALUES_UNREACHABLE_DATABASE_URL = [WORD_POSTGRES, "://", WORD_USR, ":", WORD_PWD, "@127.0.0.1:1/", WORD_UNREACHABLE];
         pub TEST_VALUES_WRONG_COMMIT = ["deadbeef"];
@@ -1808,6 +1811,7 @@ str_constants_macros::define_str_constants! {
         pub CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION = [WORD_CSRF, " ", WORD_TOKEN, " ", WORD_BOUND, " ", WORD_TO, " ", WORD_THE, " ", WORD_ADMINISTRATOR, " ", WORD_ACCESS, " ", WORD_SESSION];
         pub CSRF_VALIDATION_FAILED = [WORD_CSRF, " ", WORD_VALIDATION, " ", WORD_FAILED_2];
         pub CARGO_TOML = [WORD_CARGO, ".", WORD_TOML];
+        pub CARGO_LOCK = [WORD_CARGO, ".lock"];
         pub CFG = ["Cfg"];
         pub CLIENT = ["Client"];
         pub CMERRORVARIANTS = ["CmErrorVariants"];
@@ -3302,15 +3306,18 @@ pub const GIT_INFO_PROJECT_GIT_COMMIT_LINK: &str = git_version::git_version!(
     prefix = "https://github.com/kuqmua/rust_workspace_template/tree/"
 );
 
-pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 3] = [
+pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 4] = [
     SHARED_VALUES_CHECK,
     SHARED_VALUES_ALL_TARGETS,
     SHARED_VALUES_ALL_FEATURES,
+    SHARED_VALUES_OFFLINE,
 ];
-pub const MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = [
+pub const MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 24] = [
     CLIPPY,
     SHARED_VALUES_ALL_TARGETS,
     SHARED_VALUES_ALL_FEATURES,
+    SHARED_VALUES_LOCKED,
+    SHARED_VALUES_OFFLINE,
     SHARED_VALUES_EMPTY,
     SHARED_VALUES_D,
     SHARED_VALUES_WARNINGS,
@@ -3332,7 +3339,12 @@ pub const MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 22] = 
     SHARED_VALUES_CLIPPY_WRITE_LITERAL,
 ];
 pub const MACRO_CLIPPY_CARGO_FMT_ARGS: [&str; 1] = [SHARED_VALUES_FMT];
-pub const MACRO_CLIPPY_CARGO_TEST_LIB_ARGS: [&str; 2] = [TEST_ALT_3, SHARED_VALUES_LIB];
+pub const MACRO_CLIPPY_CARGO_TEST_LIB_ARGS: [&str; 4] = [
+    TEST_ALT_3,
+    SHARED_VALUES_LIB,
+    SHARED_VALUES_LOCKED,
+    SHARED_VALUES_OFFLINE,
+];
 
 pub const PG_CRUD_SERDE_BETWEEN_FIELDS: &[&str] = &[PG_CRUD_START_FIELD, PG_CRUD_END_FIELD];
 pub const PG_CRUD_SERDE_PG_TYPE_WHERE_FIELDS: &[&str] = &[PG_CRUD_OPERATOR_FIELD, PG_CRUD_V_FIELD];
@@ -3427,12 +3439,22 @@ pub const WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS: [&str; 7] = [
 ];
 pub const WORKSPACE_TEST_RUNNER_CARGO_FMT_CHECK_ARGS: [&str; 2] =
     [SHARED_VALUES_FMT, SHARED_VALUES_CHECK_2];
-pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS: [&str; 4] = [
+pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS: [&str; 7] = [
     TEST_ALT_3,
     SHARED_VALUES_LOCKED,
-    SHARED_VALUES_FEATURES,
-    TEST_UTILS,
+    SHARED_VALUES_WORKSPACE,
+    SHARED_VALUES_ALL_FEATURES,
+    SHARED_VALUES_NO_FAIL_FAST,
+    SHARED_VALUES_EMPTY,
+    SHARED_VALUES_IGNORED,
 ];
+pub const NOTIFICATION_SERVICE_TEST_SCHEMA: &str = "notification_service_test";
+pub const NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL: [&str; 2] = [
+    "CREATE SCHEMA IF NOT EXISTS ",
+    NOTIFICATION_SERVICE_TEST_SCHEMA,
+];
+pub const ADMIN_HTML_SAVED_FRAGMENT: &str = "#saved";
+pub const WORKSPACE_ADMIN: &str = "Workspace Admin";
 pub const WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS: [&str; 5] = [
     TEST_ALT_3,
     SHARED_VALUES_LOCKED,

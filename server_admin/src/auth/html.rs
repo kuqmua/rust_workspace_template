@@ -39,6 +39,7 @@ struct ChangePasswordForm {
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RevokeSessionForm {
+    confirmation: server_admin_contract::AdminBool,
     session_id: server_admin_contract::AdminSessionIdentifier,
 }
 
@@ -71,6 +72,7 @@ struct UserBanForm {
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct UserIdForm {
+    confirmation: server_admin_contract::AdminBool,
     user_id: server_admin_contract::AdminUserId,
 }
 #[derive(Debug, serde::Deserialize)]
@@ -94,6 +96,7 @@ struct UpdateRoleForm {
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RoleIdForm {
+    confirmation: server_admin_contract::AdminBool,
     role_id: server_admin_contract::AdminRoleId,
 }
 #[derive(Debug, serde::Deserialize)]
@@ -173,6 +176,20 @@ struct MfaRecoveryForm {
     code: server_admin_contract::AdminRecoveryCode,
     current_password: server_admin_contract::AdminPassword,
 }
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MfaDisableTotpForm {
+    code: server_admin_contract::AdminMfaCode,
+    confirmation: server_admin_contract::AdminBool,
+    current_password: server_admin_contract::AdminPassword,
+}
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MfaDisableRecoveryForm {
+    code: server_admin_contract::AdminRecoveryCode,
+    confirmation: server_admin_contract::AdminBool,
+    current_password: server_admin_contract::AdminPassword,
+}
 
 fn html_response(html: server_admin_frontend::ssr::AdminSsrHtml) -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Html(String::from(html)))
@@ -186,6 +203,20 @@ fn html_page_error(error: super::AdminApiError) -> axum::response::Response {
     } else {
         axum::response::IntoResponse::into_response(error)
     }
+}
+
+async fn page_context(
+    auth: &super::AdminAuthReq,
+) -> Result<
+    (
+        server_admin_contract::AuthenticatedAdmin,
+        server_admin_contract::AdminBrandingView,
+    ),
+    super::AdminApiError,
+> {
+    let admin = super::handlers::me_view(auth.clone()).await?;
+    let branding = super::handlers::branding_view(auth.clone()).await?;
+    Ok((admin, branding))
 }
 
 fn form_auth(mut auth: super::AdminAuthReq) -> Result<super::AdminAuthReq, super::AdminApiError> {
@@ -222,6 +253,12 @@ fn redirect_with_headers(
     target
 }
 
+fn success_redirect(path: server_admin_contract::AdminFrontendPath) -> axum::response::Response {
+    axum::response::IntoResponse::into_response(axum::response::Redirect::to(
+        format!("{}{}", path.get(), str_constants::ADMIN_HTML_SAVED_FRAGMENT).as_str(),
+    ))
+}
+
 fn user_path(value: server_admin_contract::AdminUserId) -> super::super::AdminUserId {
     super::super::AdminUserId::from(i64::from(value))
 }
@@ -235,9 +272,7 @@ fn action_result(
     path: server_admin_contract::AdminFrontendPath,
 ) -> axum::response::Response {
     match result {
-        Ok(_response) => {
-            axum::response::IntoResponse::into_response(axum::response::Redirect::to(path.get()))
-        }
+        Ok(_response) => success_redirect(path),
         Err(error) => axum::response::IntoResponse::into_response(error),
     }
 }
@@ -287,14 +322,24 @@ fn permission_ids(
         .collect()
 }
 
-async fn sign_in_page() -> axum::response::Response {
-    html_response(server_admin_frontend::ssr::render_sign_in(None))
+async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
+    match super::handlers::branding_view(auth).await {
+        Ok(branding) => html_response(server_admin_frontend::ssr::render_sign_in(
+            None,
+            Some(&branding),
+        )),
+        Err(error) => html_page_error(error),
+    }
 }
 
 async fn dashboard(auth: super::AdminAuthReq) -> axum::response::Response {
-    match super::handlers::dashboard_view(auth).await {
-        Ok(view) => html_response(server_admin_frontend::ssr::render_dashboard(&view)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let view_result = super::handlers::dashboard_view(auth).await;
+    match (context_result, view_result) {
+        (Ok((admin, branding)), Ok(view)) => html_response(
+            server_admin_frontend::ssr::render_dashboard(&view, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
@@ -302,9 +347,13 @@ async fn users(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> axum::response::Response {
-    match super::handlers::users_page(auth, super::AxumAdminQuery(query)).await {
-        Ok(page) => html_response(server_admin_frontend::ssr::render_users(&page)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let page_result = super::handlers::users_page(auth, super::AxumAdminQuery(query.clone())).await;
+    match (context_result, page_result) {
+        (Ok((admin, branding)), Ok(page)) => html_response(
+            server_admin_frontend::ssr::render_users(&page, &query, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
@@ -312,9 +361,13 @@ async fn roles(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> axum::response::Response {
-    match super::handlers::roles_page(auth, super::AxumAdminQuery(query)).await {
-        Ok(page) => html_response(server_admin_frontend::ssr::render_roles(&page)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let page_result = super::handlers::roles_page(auth, super::AxumAdminQuery(query.clone())).await;
+    match (context_result, page_result) {
+        (Ok((admin, branding)), Ok(page)) => html_response(
+            server_admin_frontend::ssr::render_roles(&page, &query, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
@@ -322,34 +375,47 @@ async fn permissions(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> axum::response::Response {
-    match super::handlers::permissions_page(auth, super::AxumAdminQuery(query)).await {
-        Ok(page) => html_response(server_admin_frontend::ssr::render_permissions(&page)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let page_result =
+        super::handlers::permissions_page(auth, super::AxumAdminQuery(query.clone())).await;
+    match (context_result, page_result) {
+        (Ok((admin, branding)), Ok(page)) => html_response(
+            server_admin_frontend::ssr::render_permissions(&page, &query, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
 async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
-    match super::handlers::sessions_view(auth).await {
-        Ok(items) => html_response(server_admin_frontend::ssr::render_sessions(&items)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let items_result = super::handlers::sessions_view(auth).await;
+    match (context_result, items_result) {
+        (Ok((admin, branding)), Ok(items)) => html_response(
+            server_admin_frontend::ssr::render_sessions(&items, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
 async fn profile(auth: super::AdminAuthReq) -> axum::response::Response {
-    let admin_result = super::handlers::me_view(auth.clone()).await;
+    let context_result = page_context(&auth).await;
     let mfa_result = super::handlers::mfa_status_view(auth).await;
-    match (admin_result, mfa_result) {
-        (Ok(admin), Ok(mfa)) => {
-            html_response(server_admin_frontend::ssr::render_profile(&admin, &mfa))
-        }
+    match (context_result, mfa_result) {
+        (Ok((admin, branding)), Ok(mfa)) => html_response(
+            server_admin_frontend::ssr::render_profile(&admin, &mfa, &branding),
+        ),
         (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
 async fn settings(auth: super::AdminAuthReq) -> axum::response::Response {
-    match super::handlers::settings_view(auth).await {
-        Ok(view) => html_response(server_admin_frontend::ssr::render_settings(&view)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let view_result = super::handlers::settings_view(auth).await;
+    match (context_result, view_result) {
+        (Ok((admin, branding)), Ok(view)) => html_response(
+            server_admin_frontend::ssr::render_settings(&view, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
@@ -357,15 +423,19 @@ async fn audit(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> axum::response::Response {
-    match super::audit::query_page(auth, super::AxumAdminQuery(query)).await {
-        Ok(page) => html_response(server_admin_frontend::ssr::render_audit(&page)),
-        Err(error) => html_page_error(error),
+    let context_result = page_context(&auth).await;
+    let page_result = super::audit::query_page(auth, super::AxumAdminQuery(query)).await;
+    match (context_result, page_result) {
+        (Ok((admin, branding)), Ok(page)) => html_response(
+            server_admin_frontend::ssr::render_audit(&page, &admin, &branding),
+        ),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
 async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
-    match super::handlers::me_view(auth).await {
-        Ok(_admin) => match (
+    match page_context(&auth).await {
+        Ok((admin, branding)) => match (
             server_admin_frontend::ssr::AdminSsrText::try_from(
                 str_constants::VERSION_ALT.to_owned(),
             ),
@@ -373,11 +443,15 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
                 git_info::PROJECT_GIT_INFO.commit.to_string(),
             ),
         ) {
-            (Ok(title), Ok(text)) => html_response(server_admin_frontend::ssr::render_text_page(
-                server_admin_contract::AdminPage::Version,
-                title,
-                text,
-            )),
+            (Ok(title), Ok(text)) => {
+                html_response(server_admin_frontend::ssr::render_text_page_with_access(
+                    server_admin_contract::AdminPage::Version,
+                    title,
+                    text,
+                    &admin,
+                    &branding,
+                ))
+            }
             (Err(_error), _) | (_, Err(_error)) => {
                 axum::response::IntoResponse::into_response(http::StatusCode::INTERNAL_SERVER_ERROR)
             }
@@ -387,6 +461,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
 }
 
 async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
+    let branding_result = super::handlers::branding_view(auth.clone()).await;
     let authorized = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -395,8 +470,12 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
         super::super::StdAdminBool::from(false),
     )
     .await;
-    match authorized {
-        Ok(_admin) => {
+    match (authorized, branding_result) {
+        (Ok(admin), Ok(branding)) => {
+            let admin = match super::authenticated_admin_contract(&admin) {
+                Ok(value) => value,
+                Err(error) => return html_page_error(error),
+            };
             let document = utoipa::openapi::OpenApi::from(
                 super::super::generated_tables::generated_open_api(),
             );
@@ -408,10 +487,12 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
                     server_admin_frontend::ssr::AdminSsrText::try_from(text),
                 ) {
                     (Ok(title), Ok(text)) => {
-                        html_response(server_admin_frontend::ssr::render_text_page(
+                        html_response(server_admin_frontend::ssr::render_text_page_with_access(
                             server_admin_contract::AdminPage::OpenApi,
                             title,
                             text,
+                            &admin,
+                            &branding,
                         ))
                     }
                     (Err(_error), _) | (_, Err(_error)) => {
@@ -425,7 +506,7 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
                 ),
             }
         }
-        Err(error) => html_page_error(error),
+        (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }
 
@@ -460,9 +541,7 @@ async fn change_password(
             );
             match super::handlers::change_own_password(auth, super::AxumAdminJson(request)).await {
                 Ok(_response) => {
-                    axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-                        server_admin_contract::AdminFrontendPath::Profile.get(),
-                    ))
+                    success_redirect(server_admin_contract::AdminFrontendPath::Profile)
                 }
                 Err(error) => axum::response::IntoResponse::into_response(error),
             }
@@ -475,6 +554,9 @@ async fn revoke_session(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RevokeSessionForm>,
 ) -> axum::response::Response {
+    if !bool::from(form.confirmation) {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    }
     let session_id = form
         .session_id
         .to_string()
@@ -488,9 +570,7 @@ async fn revoke_session(
         Ok(auth) => {
             match super::handlers::revoke_session(auth, super::AdminSessionPath(session_id)).await {
                 Ok(_response) => {
-                    axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-                        server_admin_contract::AdminFrontendPath::Sessions.get(),
-                    ))
+                    success_redirect(server_admin_contract::AdminFrontendPath::Sessions)
                 }
                 Err(error) => axum::response::IntoResponse::into_response(error),
             }
@@ -581,6 +661,9 @@ async fn delete_user(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<UserIdForm>,
 ) -> axum::response::Response {
+    if !bool::from(form.confirmation) {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    }
     let Ok(auth) = form_auth(auth) else {
         return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
     };
@@ -663,6 +746,9 @@ async fn delete_role(
     auth: super::AdminAuthReq,
     super::AxumAdminForm(form): super::AxumAdminForm<RoleIdForm>,
 ) -> axum::response::Response {
+    if !bool::from(form.confirmation) {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    }
     let Ok(auth) = form_auth(auth) else {
         return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
     };
@@ -855,8 +941,11 @@ async fn mfa_step_up_recovery(
 
 async fn mfa_disable_totp(
     auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaTotpForm>,
+    super::AxumAdminForm(form): super::AxumAdminForm<MfaDisableTotpForm>,
 ) -> axum::response::Response {
+    if !bool::from(form.confirmation) {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    }
     let Ok(auth) = form_auth(auth) else {
         return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
     };
@@ -872,8 +961,11 @@ async fn mfa_disable_totp(
 
 async fn mfa_disable_recovery(
     auth: super::AdminAuthReq,
-    super::AxumAdminForm(form): super::AxumAdminForm<MfaRecoveryForm>,
+    super::AxumAdminForm(form): super::AxumAdminForm<MfaDisableRecoveryForm>,
 ) -> axum::response::Response {
+    if !bool::from(form.confirmation) {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    }
     let Ok(auth) = form_auth(auth) else {
         return axum::response::IntoResponse::into_response(super::AdminApiError::Csrf);
     };
@@ -892,6 +984,7 @@ async fn finish_sign_in(
     peer: super::AdminPeerAddr,
     request: server_admin_contract::AdminSignInReq,
 ) -> axum::response::Response {
+    let branding = super::handlers::branding_view(auth.clone()).await.ok();
     match super::handlers::sign_in(auth, peer, super::AdminSignInJson(request)).await {
         Ok(response) => {
             let source = response.0;
@@ -918,6 +1011,7 @@ async fn finish_sign_in(
                     http::StatusCode::UNAUTHORIZED,
                     axum::response::Html(String::from(server_admin_frontend::ssr::render_sign_in(
                         Some(error_message),
+                        branding.as_ref(),
                     ))),
                 )),
                 Err(_message_error) => axum::response::IntoResponse::into_response(
@@ -1132,6 +1226,16 @@ pub(super) fn routes(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn successful_mutation_redirects_to_visible_server_feedback() {
+        let response = super::success_redirect(server_admin_contract::AdminFrontendPath::Users);
+        assert_eq!(response.status(), http::StatusCode::SEE_OTHER);
+        assert_eq!(
+            response.headers().get(http::header::LOCATION),
+            Some(&http::HeaderValue::from_static("/admin/users#saved"))
+        );
+    }
+
     #[tokio::test]
     async fn role_assignment_form_accepts_dynamic_checkbox_fields() {
         let request = http::Request::builder()

@@ -18,8 +18,10 @@ baseline аудита, а не как описание текущего кода
   операции требуют step-up и пишутся в audit;
 - dashboard показывает database/session/sign-in/cleanup summary, а bootstrap, emergency access,
   MFA recovery, retention и privacy правила описаны в `ADMIN_OPERATIONS_RUNBOOK.md`;
-- production Trunk/WASM и 25 Playwright-сценариев проверяют CRUD, assignments, permissions,
-  sessions, branding, audit, MFA, retry/error states, mobile layout и базовый a11y-контракт.
+- production UI теперь рендерится Leptos на сервере и работает через обычные ссылки и формы без
+  JavaScript/TypeScript и клиентского WASM; Rust unit/integration tests проверяют CRUD,
+  permissions, sessions, branding, audit и MFA. Упоминания Trunk/Playwright ниже относятся к
+  историческому baseline и не описывают текущую архитектуру.
 
 Из условного P2 реализованы bounded audit CSV export с отдельным permission/rate limit, cleanup job
 status и runbook. Maintenance/read-only policy не была задана; feature flags, email, object storage и

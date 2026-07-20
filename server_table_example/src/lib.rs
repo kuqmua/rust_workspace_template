@@ -278,7 +278,14 @@ mod tests {
                     str_constants::TEST_VALUES_OPEN_API_TABLE_EXAMPLE_PATH_PREFIX
                 ))
                 .expect("8ba5f1e7");
-            assert_eq!(operation_doc["operationId"], operation);
+            assert_eq!(
+                operation_doc["operationId"],
+                format!(
+                    "{}{}",
+                    str_constants::TEST_VALUES_TABLE_EXAMPLE_OPERATION_ID_PREFIX,
+                    operation
+                )
+            );
             assert!(operation_doc["responses"].get("400").is_some());
             assert!(operation_doc["responses"].get("413").is_some());
             assert!(operation_doc["responses"].get("401").is_some());

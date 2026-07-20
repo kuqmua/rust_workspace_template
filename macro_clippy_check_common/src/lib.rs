@@ -197,6 +197,11 @@ categories = ["category"]
         .unwrap_or_else(|error| panic!("3757da9b: {error}"));
     std::fs::write(path_lib_rs, content_to_generate)
         .unwrap_or_else(|error| panic!("55124f90: {error}"));
+    let _copied_lock_bytes = std::fs::copy(
+        root.join(str_constants::CARGO_LOCK),
+        crate_path.join(str_constants::CARGO_LOCK),
+    )
+    .unwrap_or_else(|error| panic!("1dda80f9: {error}"));
     GENERATED_CRATE_STEPS.iter().fold((), |(), step| {
         let status = macros_helpers::tool_command::ToolCommand::new(
             macros_helpers::tool_command::ToolProgramRef::from(
@@ -280,5 +285,20 @@ mod tests {
             phases.map(|phase| phase.to_string()),
             ["compilation", "clippy", "formatting", "test"]
         );
+    }
+    #[test]
+    fn generated_crate_compilation_is_offline_and_follow_up_steps_are_locked() {
+        assert!(
+            str_constants::MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS
+                .contains(&"--offline")
+        );
+        [
+            str_constants::MACRO_CLIPPY_CARGO_CLIPPY_ALL_TARGETS_ALL_FEATURES_ARGS.as_slice(),
+            str_constants::MACRO_CLIPPY_CARGO_TEST_LIB_ARGS.as_slice(),
+        ]
+        .into_iter()
+        .all(|args| args.contains(&"--locked") && args.contains(&"--offline"))
+        .then_some(())
+        .expect("3f63f262");
     }
 }

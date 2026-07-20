@@ -1822,6 +1822,15 @@ pub(super) async fn settings(
 pub(super) async fn branding(
     auth: super::AdminAuthReq,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    branding_view(auth).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
+}
+pub(super) async fn branding_view(
+    auth: super::AdminAuthReq,
+) -> Result<server_admin_contract::AdminBrandingView, super::AdminApiError> {
     let settings = super::super::repository::settings::read_settings(
         super::super::repository::SqlxAdminRepositoryPoolRef::from(
             auth.state.as_ref().pool.as_ref(),
@@ -1829,10 +1838,8 @@ pub(super) async fn branding(
     )
     .await
     .map_err(map_repository_error)?;
-    Ok(super::AxumAdminResponse(
-        axum::response::IntoResponse::into_response(axum::Json(
-            server_admin_contract::AdminBrandingView::from_settings(&settings),
-        )),
+    Ok(server_admin_contract::AdminBrandingView::from_settings(
+        &settings,
     ))
 }
 pub(super) async fn dashboard_view(

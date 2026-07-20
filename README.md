@@ -29,7 +29,7 @@ See [microservice architecture](docs/architecture.md) for ownership and communic
 
 ## Prerequisites
 
-- latest Rust nightly;
+- the Rust nightly pinned in `rust-toolchain.toml`;
 - PostgreSQL 16 or Docker Compose;
 
 ## Local development

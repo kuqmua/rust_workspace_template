@@ -853,6 +853,26 @@ impl AuthenticatedAdmin {
     pub const fn roles(&self) -> &[AdminRoleName] {
         self.roles.as_slice()
     }
+    #[must_use]
+    pub fn has_permission(&self, permission: AdminPermission) -> AdminBool {
+        let required = permission.as_str();
+        AdminBool::from(
+            self.permissions
+                .iter()
+                .any(|value| value.as_ref() == required.get()),
+        )
+    }
+    #[must_use]
+    pub fn can_access(&self, page: AdminPage) -> AdminBool {
+        AdminBool::from(match page.authentication() {
+            frontend_contract::AuthenticationRequirement::Authenticated
+            | frontend_contract::AuthenticationRequirement::Public => true,
+            frontend_contract::AuthenticationRequirement::Permission(required) => self
+                .permissions
+                .iter()
+                .any(|value| value.as_ref() == required.as_ref()),
+        })
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminSignInRes {
@@ -2577,6 +2597,30 @@ mod tests {
         Value: serde::de::DeserializeOwned,
     {
         assert!(serde_json::from_str::<Value>(json).is_err());
+    }
+    #[test]
+    fn authenticated_admin_checks_permissions_and_page_access() {
+        let admin = super::AuthenticatedAdmin::new(
+            super::AdminDisplayName::try_from(str_constants::ADMIN.to_owned()).expect("67f10787"),
+            super::AdminUserId::from(1i64),
+            super::AdminLogin::try_from(str_constants::ROOT.to_owned()).expect("ced445ee"),
+            vec![
+                super::AdminPermissionValue::try_from(
+                    super::AdminPermission::UsersRead.as_str().get().to_owned(),
+                )
+                .expect("837c99bb"),
+            ],
+            Vec::new(),
+        );
+        assert!(bool::from(
+            admin.has_permission(super::AdminPermission::UsersRead)
+        ));
+        assert!(!bool::from(
+            admin.has_permission(super::AdminPermission::UsersUpdate)
+        ));
+        assert!(bool::from(admin.can_access(super::AdminPage::Users)));
+        assert!(!bool::from(admin.can_access(super::AdminPage::Roles)));
+        assert!(bool::from(admin.can_access(super::AdminPage::Profile)));
     }
     #[test]
     fn authentication_route_family_has_valid_coverage() {

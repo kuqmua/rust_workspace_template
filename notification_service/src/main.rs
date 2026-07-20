@@ -382,24 +382,46 @@ mod tests {
             <config_lib::DatabaseUrl as config_lib::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
             |error| error.to_string(),
         )
-        .expect("8bb0a12c");
+        .expect("b3aacb7e");
+        let exposed_database_url = secrecy::ExposeSecret::expose_secret(&database_url.0).as_str();
+        let setup_pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(1u32)
+            .connect(exposed_database_url)
+            .await
+            .expect("ceff90ad");
+        let _schema_result = sqlx::query(
+            str_constants::NOTIFICATION_SERVICE_CREATE_TEST_SCHEMA_SQL
+                .concat()
+                .as_str(),
+        )
+        .execute(&setup_pool)
+        .await
+        .expect("59114ac3");
+        setup_pool.close().await;
+        let connect_options =
+            <sqlx::postgres::PgConnectOptions as std::str::FromStr>::from_str(exposed_database_url)
+                .expect("2145d54a")
+                .options([(
+                    str_constants::SEARCH_PATH,
+                    str_constants::NOTIFICATION_SERVICE_TEST_SCHEMA,
+                )]);
         let pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(2u32)
-            .connect(secrecy::ExposeSecret::expose_secret(&database_url.0).as_str())
+            .connect_with(connect_options)
             .await
-            .expect("821a77ac");
+            .expect("5344bc9e");
         sqlx::migrate!("./migrations")
             .run(&pool)
             .await
-            .expect("ad2eca40");
+            .expect("128c46f1");
         let message = notification_service_contract::NotificationMessage::try_from(
             str_constants::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
-        .expect("364d5767");
+        .expect("f9605432");
         let body = serde_json::to_vec(&notification_service_contract::CreateNotificationReq::new(
             message,
         ))
-        .expect("a9912dc2");
+        .expect("3daa1ab0");
         let request = http::Request::builder()
             .method(http::Method::POST)
             .uri(
@@ -413,7 +435,7 @@ mod tests {
                 str_constants::HTTP_APPLICATION_JSON,
             )
             .body(axum::body::Body::from(body))
-            .expect("ecb37508");
+            .expect("f8d2ab0b");
         let response = tower::ServiceExt::oneshot(
             super::router(
                 state(pool),
@@ -425,13 +447,13 @@ mod tests {
             request,
         )
         .await
-        .expect("d3b83fa0");
+        .expect("c46bf92a");
         assert_eq!(response.status(), http::StatusCode::CREATED);
         let response_body = axum::body::to_bytes(response.into_body(), 16_384usize)
             .await
-            .expect("e80d67cb");
+            .expect("0aace9dd");
         let created: notification_service_contract::CreateNotificationRes =
-            serde_json::from_slice(response_body.as_ref()).expect("a5cd681e");
+            serde_json::from_slice(response_body.as_ref()).expect("e5352eef");
         assert_ne!(
             created.id(),
             notification_service_contract::UuidNotificationId::from(uuid::Uuid::nil())
