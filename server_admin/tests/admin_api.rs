@@ -5,13 +5,67 @@
 struct StdAdminApiTestStrRef<'value_lt>(&'value_lt str);
 struct AxumAdminApiTestRouter(axum::Router);
 struct SqlxAdminApiTestPool(sqlx::PgPool);
+struct SqlxAdminHtmlTestTransaction(sqlx::Transaction<'static, sqlx::Postgres>);
 struct HttpAdminApiTestMethod(http::Method);
 struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
+struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
 #[derive(Clone, Copy)]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = 16384)]
 struct StdAdminApiTestCookie(String);
+#[derive(newtype::BoundedString)]
+#[bounded_string(max = 1_048_576)]
+struct AdminHtmlTestBody(String);
+#[derive(newtype::BoundedString)]
+#[bounded_string(max = 65_536)]
+struct AdminHtmlTestFormBody(String);
+struct AdminHtmlTestFixture {
+    cookie: StdAdminApiTestCookie,
+    csrf: StdAdminApiTestCookie,
+    lock: SqlxAdminHtmlTestTransaction,
+    pool: SqlxAdminApiTestPool,
+    router: AxumAdminApiTestRouter,
+}
+#[derive(Clone, Copy)]
+struct AdminHtmlSettingsTestValues<'value_lt> {
+    default_admin_route: StdAdminApiTestStrRef<'value_lt>,
+    main_logo: StdAdminApiTestStrRef<'value_lt>,
+    organization_contacts: StdAdminApiTestStrRef<'value_lt>,
+    organization_name: StdAdminApiTestStrRef<'value_lt>,
+    primary_color: StdAdminApiTestStrRef<'value_lt>,
+    site_name: StdAdminApiTestStrRef<'value_lt>,
+    support_url: StdAdminApiTestStrRef<'value_lt>,
+    tab_title: StdAdminApiTestStrRef<'value_lt>,
+}
+impl From<http::Response<axum::body::Body>> for HttpAdminHtmlTestResponse {
+    fn from(value: http::Response<axum::body::Body>) -> Self {
+        Self(value)
+    }
+}
+impl std::ops::Deref for HttpAdminHtmlTestResponse {
+    type Target = http::Response<axum::body::Body>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl AdminHtmlSettingsTestValues<'_> {
+    fn form_body(self) -> AdminHtmlTestFormBody {
+        AdminHtmlTestFormBody::try_from(format!(
+            "default_admin_route={}&main_logo={}&organization_contacts={}&organization_name={}&primary_color={}&site_name={}&support_url={}&tab_title={}",
+            self.default_admin_route.0,
+            self.main_logo.0,
+            self.organization_contacts.0,
+            self.organization_name.0,
+            self.primary_color.0,
+            self.site_name.0,
+            self.support_url.0,
+            self.tab_title.0,
+        ))
+        .expect("c2af6158")
+    }
+}
 impl std::fmt::Display for StdAdminApiTestCookie {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -135,6 +189,33 @@ fn request_with_peer_at(
     ));
     HttpAdminApiTestRequest(request)
 }
+fn html_request_with_peer(
+    method: HttpAdminApiTestMethod,
+    uri: StdAdminApiTestStrRef<'_>,
+    body: StdAdminApiTestStrRef<'_>,
+    cookie: Option<StdAdminApiTestStrRef<'_>>,
+) -> HttpAdminApiTestRequest {
+    let mut builder = http::Request::builder()
+        .method(method.0)
+        .uri(uri.0)
+        .header(
+            http::header::CONTENT_TYPE,
+            str_constants::APPLICATION_X_WWW_FORM_URLENCODED,
+        )
+        .header(http::header::ORIGIN, str_constants::HTTP_LOCALHOST);
+    if let Some(value) = cookie {
+        builder = builder.header(http::header::COOKIE, value.0);
+    }
+    let mut request = builder
+        .body(axum::body::Body::from(body.0.to_owned()))
+        .expect("9f211b84");
+    let _previous_peer = request.extensions_mut().insert(axum::extract::ConnectInfo(
+        str_constants::VALUE_127_0_0_1_43210
+            .parse::<std::net::SocketAddr>()
+            .expect("bcd41a67"),
+    ));
+    HttpAdminApiTestRequest(request)
+}
 fn cookie_value(
     response: HttpAdminApiTestResponseRef<'_>,
     name: StdAdminApiTestStrRef<'_>,
@@ -154,6 +235,170 @@ fn cookie_value(
         })
         .map(|value| StdAdminApiTestCookie::try_from(value).expect("b9a203e6"))
         .expect("360de719")
+}
+async fn admin_html_response(
+    fixture: &AdminHtmlTestFixture,
+    method: HttpAdminApiTestMethod,
+    uri: StdAdminApiTestStrRef<'_>,
+    body: StdAdminApiTestStrRef<'_>,
+) -> HttpAdminHtmlTestResponse {
+    tower::ServiceExt::oneshot(
+        fixture.router.0.clone(),
+        html_request_with_peer(
+            method,
+            uri,
+            body,
+            Some(StdAdminApiTestStrRef(fixture.cookie.0.as_str())),
+        )
+        .0,
+    )
+    .await
+    .map(HttpAdminHtmlTestResponse::from)
+    .expect("3cb98672")
+}
+async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBody {
+    axum::body::to_bytes(response.0.into_body(), 1_048_576usize)
+        .await
+        .map(|bytes| String::from_utf8(bytes.to_vec()).expect("86547438"))
+        .map(|body| AdminHtmlTestBody::try_from(body).expect("ec7261cd"))
+        .expect("8b54de37")
+}
+#[expect(
+    clippy::missing_assert_message,
+    reason = "the asserted status identifies the failed fixture stage"
+)]
+async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
+    let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("fbe54d19");
+    let pool = SqlxAdminApiTestPool(
+        sqlx::postgres::PgPoolOptions::new()
+            .max_connections(5u32)
+            .connect(database_url.as_str())
+            .await
+            .expect("ac089d31"),
+    );
+    let mut lock = pool.0.begin().await.expect("37480e56");
+    let _locked = sqlx::query(str_constants::SELECT_PG_ADVISORY_XACT_LOCK_ADMIN_TESTS)
+        .execute(&mut *lock)
+        .await
+        .expect("a6b7c8d9");
+    server_admin::prep_pg(app_state::SqlxPgPoolRef::from(&pool.0))
+        .await
+        .expect("45de3a61");
+    let _truncated = sqlx::query(
+        str_constants::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
+    )
+    .execute(&pool.0)
+    .await
+    .expect("cf37a9e2");
+    let password =
+        serde_json::from_str::<server_admin::AdminPassword>(str_constants::CORRECT_PASSWORD)
+            .expect("d20a35e4");
+    let hasher = server_admin::AdminPasswordHasher::new(
+        server_admin::AdminPasswordHashConcurrency::from(server_admin::StdAdminNonZeroUsize::from(
+            std::num::NonZeroUsize::new(1usize).expect("560498ab"),
+        )),
+    );
+    let admin_id = server_admin::bootstrap_admin(
+        app_state::SqlxPgPoolRef::from(&pool.0),
+        server_admin::AdminLogin::try_from(str_constants::ROOT_ADMIN_ALT.to_owned())
+            .expect("6a417bde"),
+        server_admin::AdminDisplayName::try_from(str_constants::ROOT_ADMIN.to_owned())
+            .expect("703fc568"),
+        password,
+        &hasher,
+    )
+    .await
+    .expect("1e29c87f");
+    let state = server_admin::auth::AdminAuthSvcState::try_new(
+        app_state::SqlxPgPool::from(pool.0.clone()),
+        &env::<config_lib::AdminJwtSecret>(StdAdminApiTestStrRef(
+            str_constants::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
+        )),
+        &env::<config_lib::AdminAccessTokenTtlSeconds>(StdAdminApiTestStrRef(
+            str_constants::VALUE_900,
+        )),
+        &env::<config_lib::AdminRefreshTokenTtlSeconds>(StdAdminApiTestStrRef(
+            str_constants::VALUE_3600,
+        )),
+        &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef(str_constants::VALUE_20)),
+        &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef(
+            str_constants::VALUE_1,
+        )),
+        &env::<config_lib::AdminCookieSecure>(StdAdminApiTestStrRef(str_constants::FALSE)),
+        &env::<config_lib::AdminTokenIssuer>(StdAdminApiTestStrRef(
+            str_constants::INTEGRATION_TEST,
+        )),
+        &env::<config_lib::AdminTokenAudience>(StdAdminApiTestStrRef(
+            str_constants::INTEGRATION_TEST_ADMIN,
+        )),
+        &config_lib::CorsAllowOrigin(str_constants::HTTP_LOCALHOST.to_owned()),
+    )
+    .expect("ec39b61d");
+    let router = AxumAdminApiTestRouter(axum::Router::from(
+        server_admin::auth::html_routes_with_swagger(
+            server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(state)),
+            server_admin::auth::AdminHtmlSwaggerEnabled::from(true),
+        ),
+    ));
+    let correct_password =
+        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("825e50c7");
+    let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
+        "login={}&password={correct_password}",
+        str_constants::ROOT_ADMIN_ALT,
+    ))
+    .expect("9df2164c");
+    let sign_in_response = tower::ServiceExt::oneshot(
+        router.0.clone(),
+        html_request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::SignIn.get()),
+            StdAdminApiTestStrRef(sign_in_body.0.as_str()),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("68a2cb40");
+    assert_eq!(sign_in_response.status(), http::StatusCode::SEE_OTHER);
+    let access = cookie_value(
+        HttpAdminApiTestResponseRef(&sign_in_response),
+        StdAdminApiTestStrRef(str_constants::ADMIN_ACCESS_TOKEN),
+    );
+    let refresh = cookie_value(
+        HttpAdminApiTestResponseRef(&sign_in_response),
+        StdAdminApiTestStrRef(str_constants::ADMIN_REFRESH_TOKEN_ALT),
+    );
+    let csrf = cookie_value(
+        HttpAdminApiTestResponseRef(&sign_in_response),
+        StdAdminApiTestStrRef(str_constants::ADMIN_CSRF_TOKEN_ALT),
+    );
+    let admin_id_value = admin_id.to_string().parse::<i64>().expect("2bf54a96");
+    let _mfa = sqlx::query(str_constants::INSERT_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
+        .bind(admin_id_value)
+        .bind(vec![1u8])
+        .bind(vec![0u8; 12usize])
+        .execute(&pool.0)
+        .await
+        .expect("3fd106a8");
+    let _step_up = sqlx::query(str_constants::UPDATE_ADMIN_MFA_STEP_UP_TEST_FIXTURE)
+        .bind(admin_id_value)
+        .execute(&pool.0)
+        .await
+        .expect("526fa90b");
+    AdminHtmlTestFixture {
+        cookie: StdAdminApiTestCookie::try_from(format!(
+            "{}{access}; {}{refresh}; {}{csrf}",
+            str_constants::ADMIN_ACCESS_TOKEN,
+            str_constants::ADMIN_REFRESH_TOKEN_ALT,
+            str_constants::ADMIN_CSRF_TOKEN_ALT,
+        ))
+        .expect("a4df94d1"),
+        csrf,
+        lock: SqlxAdminHtmlTestTransaction(lock),
+        pool,
+        router,
+    }
 }
 async fn validate_generated_admin_table<Table>(pool: &SqlxAdminApiTestPool)
 where
@@ -471,6 +716,1114 @@ async fn sign_in_requires_trusted_origin_without_database_io() {
         blocked_origin_response.status(),
         http::StatusCode::UNAUTHORIZED
     );
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
+    let fixture = admin_html_test_fixture().await;
+    assert!(fixture.cookie.0.contains(fixture.csrf.0.as_str()));
+    let login = "html_crud_user";
+    let updated_login = "html_crud_user_updated";
+    let display_name = "HTML CRUD User";
+    let updated_display_name = "HTML CRUD User Updated";
+    let password = "Html-crud-pass1";
+    let updated_password = "Html-crud-pass2";
+    let create_body = AdminHtmlTestFormBody::try_from(format!(
+        "login={login}&display_name=HTML+CRUD+User&password={password}"
+    ))
+    .expect("801d9a43");
+    let create_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef(create_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
+    let created = sqlx::query_as::<_, (i64, String, String, bool)>(
+        "SELECT id, login, display_name, is_banned FROM admin_users WHERE login = $1",
+    )
+    .bind(login)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("5de4fc12");
+    assert_eq!(created.1, login);
+    assert_eq!(created.2, display_name);
+    assert!(!created.3);
+    let users_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(users_response.status(), http::StatusCode::OK);
+    let users_html = admin_html_body(users_response).await;
+    assert!(users_html.0.contains(created.0.to_string().as_str()));
+    assert!(users_html.0.contains(login));
+    assert!(users_html.0.contains(display_name));
+    assert!(users_html.0.contains("<td>false</td>"));
+    assert!(
+        users_html
+            .0
+            .contains("name=\"expected_role_ids\" value=\"\"")
+    );
+
+    let login_update_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={}&login={updated_login}&display_name=HTML+CRUD+User",
+        created.0
+    ))
+    .expect("b0714f29");
+    let login_update_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserUpdate.get()),
+        StdAdminApiTestStrRef(login_update_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(login_update_response.status(), http::StatusCode::SEE_OTHER);
+    let login_update = sqlx::query_as::<_, (String, String)>(
+        "SELECT login, display_name FROM admin_users WHERE id = $1",
+    )
+    .bind(created.0)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("68fae270");
+    assert_eq!(
+        login_update,
+        (updated_login.to_owned(), display_name.to_owned())
+    );
+
+    let display_update_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={}&login={updated_login}&display_name=HTML+CRUD+User+Updated",
+        created.0
+    ))
+    .expect("9a6eb324");
+    let display_update_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserUpdate.get()),
+        StdAdminApiTestStrRef(display_update_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        display_update_response.status(),
+        http::StatusCode::SEE_OTHER
+    );
+    let display_update = sqlx::query_as::<_, (String, String)>(
+        "SELECT login, display_name FROM admin_users WHERE id = $1",
+    )
+    .bind(created.0)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("10df386a");
+    assert_eq!(
+        display_update,
+        (updated_login.to_owned(), updated_display_name.to_owned())
+    );
+
+    let password_update_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={}&password={updated_password}",
+        created.0
+    ))
+    .expect("cd82f375");
+    let password_update_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserPassword.get()),
+        StdAdminApiTestStrRef(password_update_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        password_update_response.status(),
+        http::StatusCode::SEE_OTHER
+    );
+    let old_sign_in_body =
+        AdminHtmlTestFormBody::try_from(format!("login={updated_login}&password={password}"))
+            .expect("8c42d7e1");
+    let old_sign_in_response = tower::ServiceExt::oneshot(
+        fixture.router.0.clone(),
+        html_request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::SignIn.get()),
+            StdAdminApiTestStrRef(old_sign_in_body.0.as_str()),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("26ab3584");
+    assert_eq!(
+        old_sign_in_response.status(),
+        http::StatusCode::UNAUTHORIZED
+    );
+    let new_sign_in_body = AdminHtmlTestFormBody::try_from(format!(
+        "login={updated_login}&password={updated_password}"
+    ))
+    .expect("ef05a691");
+    let new_sign_in_response = tower::ServiceExt::oneshot(
+        fixture.router.0.clone(),
+        html_request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::SignIn.get()),
+            StdAdminApiTestStrRef(new_sign_in_body.0.as_str()),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("b9306c2e");
+    assert_eq!(new_sign_in_response.status(), http::StatusCode::SEE_OTHER);
+
+    let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect("f1674ab9");
+    let roles_update_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={}&expected_role_ids=&role_{role_id}={role_id}",
+        created.0
+    ))
+    .expect("410e6a8c");
+    let roles_update_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef(roles_update_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(roles_update_response.status(), http::StatusCode::SEE_OTHER);
+    let assigned_roles =
+        sqlx::query_scalar::<_, i64>("SELECT role_id FROM admin_user_roles WHERE user_id = $1")
+            .bind(created.0)
+            .fetch_all(&fixture.pool.0)
+            .await
+            .expect("739cb4f5");
+    assert_eq!(assigned_roles, vec![role_id]);
+
+    let ban_body = AdminHtmlTestFormBody::try_from(format!("user_id={}&is_banned=true", created.0))
+        .expect("a17fdc64");
+    let ban_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserBan.get()),
+        StdAdminApiTestStrRef(ban_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(ban_response.status(), http::StatusCode::SEE_OTHER);
+    let final_users_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    let final_users_html = admin_html_body(final_users_response).await;
+    assert!(final_users_html.0.contains(updated_login));
+    assert!(final_users_html.0.contains(updated_display_name));
+    assert!(final_users_html.0.contains("<td>true</td>"));
+    assert!(
+        final_users_html
+            .0
+            .contains(format!("value=\"{role_id}\" checked").as_str())
+    );
+    let unban_body =
+        AdminHtmlTestFormBody::try_from(format!("user_id={}&is_banned=false", created.0))
+            .expect("9d304db3");
+    let unban_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserBan.get()),
+        StdAdminApiTestStrRef(unban_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(unban_response.status(), http::StatusCode::SEE_OTHER);
+    let is_banned =
+        sqlx::query_scalar::<_, bool>("SELECT is_banned FROM admin_users WHERE id = $1")
+            .bind(created.0)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("55208887");
+    assert!(!is_banned);
+    let roles_clear_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={}&expected_role_ids={role_id}",
+        created.0
+    ))
+    .expect("04b638dc");
+    let roles_clear_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef(roles_clear_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(roles_clear_response.status(), http::StatusCode::SEE_OTHER);
+
+    let delete_body =
+        AdminHtmlTestFormBody::try_from(format!("user_id={}", created.0)).expect("d4fe3069");
+    let delete_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef(delete_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
+    let deleted_count =
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM admin_users WHERE id = $1")
+            .bind(created.0)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("72c950ea");
+    assert_eq!(deleted_count, 0i64);
+    let deleted_users_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Users.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    let deleted_users_html = admin_html_body(deleted_users_response).await;
+    assert!(!deleted_users_html.0.contains(updated_login));
+    fixture.lock.0.rollback().await.expect("93db561a");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
+    let fixture = admin_html_test_fixture().await;
+    let role_name = "html_crud_role";
+    let updated_role_name = "html_crud_role_updated";
+    let create_body =
+        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("c593e840");
+    let create_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef(create_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
+    let created = sqlx::query_as::<_, (i64, String, bool)>(
+        "SELECT id, name, is_system FROM admin_roles WHERE name = $1",
+    )
+    .bind(role_name)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("196fbd27");
+    assert_eq!(created.1, role_name);
+    assert!(!created.2);
+    let roles_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(roles_response.status(), http::StatusCode::OK);
+    let roles_html = admin_html_body(roles_response).await;
+    assert!(roles_html.0.contains(created.0.to_string().as_str()));
+    assert!(roles_html.0.contains(role_name));
+    assert!(roles_html.0.contains("<td>false</td>"));
+    assert!(
+        roles_html
+            .0
+            .contains("name=\"expected_permission_ids\" value=\"\"")
+    );
+
+    let update_body =
+        AdminHtmlTestFormBody::try_from(format!("role_id={}&name={updated_role_name}", created.0))
+            .expect("7ea84503");
+    let update_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleUpdate.get()),
+        StdAdminApiTestStrRef(update_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(update_response.status(), http::StatusCode::SEE_OTHER);
+    let updated = sqlx::query_scalar::<_, String>("SELECT name FROM admin_roles WHERE id = $1")
+        .bind(created.0)
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect("43f81d69");
+    assert_eq!(updated, updated_role_name);
+
+    let permission = sqlx::query_as::<_, (i64, String)>(
+        "SELECT id, name FROM admin_permissions ORDER BY id LIMIT 1",
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("ba920f54");
+    let permissions_body = AdminHtmlTestFormBody::try_from(format!(
+        "role_id={}&expected_permission_ids=&permission_{}={}",
+        created.0, permission.0, permission.0
+    ))
+    .expect("0d476c31");
+    let permissions_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RolePermissions.get()),
+        StdAdminApiTestStrRef(permissions_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(permissions_response.status(), http::StatusCode::SEE_OTHER);
+    let assigned_permissions = sqlx::query_scalar::<_, i64>(
+        "SELECT permission_id FROM admin_role_permissions WHERE role_id = $1",
+    )
+    .bind(created.0)
+    .fetch_all(&fixture.pool.0)
+    .await
+    .expect("82b0d9f3");
+    assert_eq!(assigned_permissions, vec![permission.0]);
+    let final_roles_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    let final_roles_html = admin_html_body(final_roles_response).await;
+    assert!(final_roles_html.0.contains(updated_role_name));
+    assert!(final_roles_html.0.contains(permission.1.as_str()));
+    assert!(
+        final_roles_html
+            .0
+            .contains(format!("value=\"{}\" checked", permission.0).as_str())
+    );
+
+    let delete_body =
+        AdminHtmlTestFormBody::try_from(format!("role_id={}", created.0)).expect("e1547a60");
+    let delete_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleDelete.get()),
+        StdAdminApiTestStrRef(delete_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
+    let deleted_count =
+        sqlx::query_scalar::<_, i64>("SELECT count(*) FROM admin_roles WHERE id = $1")
+            .bind(created.0)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("2db479f8");
+    assert_eq!(deleted_count, 0i64);
+    let deleted_roles_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Roles.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    let deleted_roles_html = admin_html_body(deleted_roles_response).await;
+    assert!(!deleted_roles_html.0.contains(updated_role_name));
+    fixture.lock.0.rollback().await.expect("674dc2a9");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
+    let fixture = admin_html_test_fixture().await;
+    let site_name_a = StdAdminApiTestStrRef("HtmlSiteA");
+    let site_name_b = StdAdminApiTestStrRef("HtmlSiteB");
+    let route_a = StdAdminApiTestStrRef("/admin/dashboard");
+    let route_b = StdAdminApiTestStrRef("/admin/roles");
+    let tab_title_a = StdAdminApiTestStrRef("HtmlTabA");
+    let tab_title_b = StdAdminApiTestStrRef("HtmlTabB");
+    let main_logo_a = StdAdminApiTestStrRef("https://example.com/logo-a.png");
+    let main_logo_b = StdAdminApiTestStrRef("https://example.com/logo-b.png");
+    let primary_color_a = StdAdminApiTestStrRef("#112233");
+    let primary_color_b = StdAdminApiTestStrRef("#445566");
+    let organization_name_a = StdAdminApiTestStrRef("HtmlOrgA");
+    let organization_name_b = StdAdminApiTestStrRef("HtmlOrgB");
+    let organization_contacts_a = StdAdminApiTestStrRef("ops-a@example.com");
+    let organization_contacts_b = StdAdminApiTestStrRef("ops-b@example.com");
+    let support_url_a = StdAdminApiTestStrRef("https://example.com/support-a");
+    let support_url_b = StdAdminApiTestStrRef("https://example.com/support-b");
+    let states = [
+        AdminHtmlSettingsTestValues {
+            default_admin_route: route_a,
+            main_logo: main_logo_a,
+            organization_contacts: organization_contacts_a,
+            organization_name: organization_name_a,
+            primary_color: primary_color_a,
+            site_name: site_name_a,
+            support_url: support_url_a,
+            tab_title: tab_title_a,
+        },
+        AdminHtmlSettingsTestValues {
+            site_name: site_name_b,
+            ..AdminHtmlSettingsTestValues {
+                default_admin_route: route_a,
+                main_logo: main_logo_a,
+                organization_contacts: organization_contacts_a,
+                organization_name: organization_name_a,
+                primary_color: primary_color_a,
+                site_name: site_name_a,
+                support_url: support_url_a,
+                tab_title: tab_title_a,
+            }
+        },
+        AdminHtmlSettingsTestValues {
+            default_admin_route: route_b,
+            main_logo: main_logo_a,
+            organization_contacts: organization_contacts_a,
+            organization_name: organization_name_a,
+            primary_color: primary_color_a,
+            site_name: site_name_b,
+            support_url: support_url_a,
+            tab_title: tab_title_a,
+        },
+        AdminHtmlSettingsTestValues {
+            tab_title: tab_title_b,
+            ..AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: main_logo_a,
+                organization_contacts: organization_contacts_a,
+                organization_name: organization_name_a,
+                primary_color: primary_color_a,
+                site_name: site_name_b,
+                support_url: support_url_a,
+                tab_title: tab_title_a,
+            }
+        },
+        AdminHtmlSettingsTestValues {
+            main_logo: main_logo_b,
+            default_admin_route: route_b,
+            organization_contacts: organization_contacts_a,
+            organization_name: organization_name_a,
+            primary_color: primary_color_a,
+            site_name: site_name_b,
+            support_url: support_url_a,
+            tab_title: tab_title_b,
+        },
+        AdminHtmlSettingsTestValues {
+            primary_color: primary_color_b,
+            default_admin_route: route_b,
+            main_logo: main_logo_b,
+            organization_contacts: organization_contacts_a,
+            organization_name: organization_name_a,
+            site_name: site_name_b,
+            support_url: support_url_a,
+            tab_title: tab_title_b,
+        },
+        AdminHtmlSettingsTestValues {
+            organization_name: organization_name_b,
+            default_admin_route: route_b,
+            main_logo: main_logo_b,
+            organization_contacts: organization_contacts_a,
+            primary_color: primary_color_b,
+            site_name: site_name_b,
+            support_url: support_url_a,
+            tab_title: tab_title_b,
+        },
+        AdminHtmlSettingsTestValues {
+            organization_contacts: organization_contacts_b,
+            default_admin_route: route_b,
+            main_logo: main_logo_b,
+            organization_name: organization_name_b,
+            primary_color: primary_color_b,
+            site_name: site_name_b,
+            support_url: support_url_a,
+            tab_title: tab_title_b,
+        },
+        AdminHtmlSettingsTestValues {
+            support_url: support_url_b,
+            default_admin_route: route_b,
+            main_logo: main_logo_b,
+            organization_contacts: organization_contacts_b,
+            organization_name: organization_name_b,
+            primary_color: primary_color_b,
+            site_name: site_name_b,
+            tab_title: tab_title_b,
+        },
+    ];
+    let fixture_ref = &fixture;
+    futures::StreamExt::fold(futures::stream::iter(states), (), async |(), values| {
+        let form_body = values.form_body();
+        let update_response = admin_html_response(
+            fixture_ref,
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::SettingsUpdate.get()),
+            StdAdminApiTestStrRef(form_body.0.as_str()),
+        )
+        .await;
+        assert_eq!(update_response.status(), http::StatusCode::SEE_OTHER);
+        let read_response = admin_html_response(
+            fixture_ref,
+            HttpAdminApiTestMethod(http::Method::GET),
+            StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Settings.get()),
+            StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        )
+        .await;
+        assert_eq!(read_response.status(), http::StatusCode::OK);
+        let read_html = admin_html_body(read_response).await;
+        assert!(
+            [
+                values.default_admin_route,
+                values.main_logo,
+                values.organization_contacts,
+                values.organization_name,
+                values.primary_color,
+                values.site_name,
+                values.support_url,
+                values.tab_title,
+            ]
+            .into_iter()
+            .all(|value| read_html.0.contains(value.0))
+        );
+    })
+    .await;
+    let stored = sqlx::query_as::<
+        _,
+        (
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+        ),
+    >(
+        "SELECT site_name, default_admin_route, tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM admin_system_settings WHERE id = 1",
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("a8f201de");
+    assert_eq!(stored.0, site_name_b.0);
+    assert_eq!(stored.1, route_b.0);
+    assert_eq!(stored.2.as_deref(), Some(tab_title_b.0));
+    assert_eq!(stored.3.as_deref(), Some(main_logo_b.0));
+    assert_eq!(stored.4.as_deref(), Some(primary_color_b.0));
+    assert_eq!(stored.5.as_deref(), Some(organization_name_b.0));
+    assert_eq!(stored.6.as_deref(), Some(organization_contacts_b.0));
+    assert_eq!(stored.7.as_deref(), Some(support_url_b.0));
+    let empty = StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX);
+    let clear_states = [
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: main_logo_b,
+                organization_contacts: organization_contacts_b,
+                organization_name: organization_name_b,
+                primary_color: primary_color_b,
+                site_name: site_name_b,
+                support_url: support_url_b,
+                tab_title: empty,
+            },
+            1usize,
+        ),
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: empty,
+                organization_contacts: organization_contacts_b,
+                organization_name: organization_name_b,
+                primary_color: primary_color_b,
+                site_name: site_name_b,
+                support_url: support_url_b,
+                tab_title: empty,
+            },
+            2usize,
+        ),
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: empty,
+                organization_contacts: organization_contacts_b,
+                organization_name: organization_name_b,
+                primary_color: empty,
+                site_name: site_name_b,
+                support_url: support_url_b,
+                tab_title: empty,
+            },
+            3usize,
+        ),
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: empty,
+                organization_contacts: organization_contacts_b,
+                organization_name: empty,
+                primary_color: empty,
+                site_name: site_name_b,
+                support_url: support_url_b,
+                tab_title: empty,
+            },
+            4usize,
+        ),
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: empty,
+                organization_contacts: empty,
+                organization_name: empty,
+                primary_color: empty,
+                site_name: site_name_b,
+                support_url: support_url_b,
+                tab_title: empty,
+            },
+            5usize,
+        ),
+        (
+            AdminHtmlSettingsTestValues {
+                default_admin_route: route_b,
+                main_logo: empty,
+                organization_contacts: empty,
+                organization_name: empty,
+                primary_color: empty,
+                site_name: site_name_b,
+                support_url: empty,
+                tab_title: empty,
+            },
+            6usize,
+        ),
+    ];
+    futures::StreamExt::fold(
+        futures::stream::iter(clear_states),
+        (),
+        async |(), (values, expected_cleared)| {
+            let form_body = values.form_body();
+            let clear_response = admin_html_response(
+                fixture_ref,
+                HttpAdminApiTestMethod(http::Method::POST),
+                StdAdminApiTestStrRef(
+                    server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
+                ),
+                StdAdminApiTestStrRef(form_body.0.as_str()),
+            )
+            .await;
+            assert_eq!(clear_response.status(), http::StatusCode::SEE_OTHER);
+            let optional_values = sqlx::query_as::<
+                _,
+                (
+                    Option<String>,
+                    Option<String>,
+                    Option<String>,
+                    Option<String>,
+                    Option<String>,
+                    Option<String>,
+                ),
+            >(
+                "SELECT tab_title, main_logo, primary_color, organization_name, organization_contacts, support_url FROM admin_system_settings WHERE id = 1",
+            )
+            .fetch_one(&fixture_ref.pool.0)
+            .await
+            .expect("d418f9c0");
+            assert_eq!(
+                [
+                    optional_values.0,
+                    optional_values.1,
+                    optional_values.2,
+                    optional_values.3,
+                    optional_values.4,
+                    optional_values.5,
+                ]
+                .iter()
+                .filter(|value| value.is_none())
+                .count(),
+                expected_cleared,
+            );
+        },
+    )
+    .await;
+    fixture.lock.0.rollback().await.expect("c7659b40");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
+    let fixture = admin_html_test_fixture().await;
+    let profile_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(profile_response.status(), http::StatusCode::OK);
+    let profile_html = admin_html_body(profile_response).await;
+    assert!(profile_html.0.contains(str_constants::ROOT_ADMIN));
+    assert!(profile_html.0.contains(str_constants::ROOT_ADMIN_ALT));
+    assert!(profile_html.0.contains("Enabled: true"));
+    assert!(profile_html.0.contains("Recovery codes remaining: 0"));
+    assert!(
+        profile_html
+            .0
+            .contains(server_admin_contract::AdminHtmlAction::ProfilePassword.get())
+    );
+
+    let original_password_hash = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("c09b5e4e");
+    let correct_password =
+        serde_json::from_str::<String>(str_constants::CORRECT_PASSWORD).expect("c59b011a");
+    let change_password_body = AdminHtmlTestFormBody::try_from(format!(
+        "current_password={correct_password}&new_password=Html-profile-pass2&revoke_other_sessions={}",
+        str_constants::TRUE,
+    ))
+    .expect("c93d69e3");
+    let change_password_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::ProfilePassword.get()),
+        StdAdminApiTestStrRef(change_password_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        change_password_response.status(),
+        http::StatusCode::SEE_OTHER
+    );
+    let changed_password_hash = sqlx::query_scalar::<_, String>(
+        str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("696330ca");
+    assert_ne!(changed_password_hash, original_password_hash);
+    let active_session_count = sqlx::query_scalar::<_, i64>(
+        "SELECT COUNT(*) FROM admin_access_sessions WHERE revoked_at IS NULL",
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("38923e84");
+    assert_eq!(active_session_count, 1i64);
+    let authenticated_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Profile.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(authenticated_response.status(), http::StatusCode::OK);
+    fixture.lock.0.rollback().await.expect("737bbbe6");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
+    let fixture = admin_html_test_fixture().await;
+    let admin_id = sqlx::query_scalar::<_, i64>(
+        str_constants::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ROOT_ADMIN,
+    )
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("7f0a7c64");
+    let (session_id, created_at, expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
+        str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+    )
+    .bind(admin_id)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("32e44a86");
+    let sessions_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Sessions.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(sessions_response.status(), http::StatusCode::OK);
+    let sessions_html = admin_html_body(sessions_response).await;
+    assert!(sessions_html.0.contains(session_id.to_string().as_str()));
+    assert!(sessions_html.0.contains(created_at.as_str()));
+    assert!(sessions_html.0.contains(expires_at.as_str()));
+    assert!(sessions_html.0.contains("<td>true</td>"));
+
+    let revoke_body =
+        AdminHtmlTestFormBody::try_from(format!("session_id={session_id}")).expect("2f8bea59");
+    let revoke_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::SessionRevoke.get()),
+        StdAdminApiTestStrRef(revoke_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(revoke_response.status(), http::StatusCode::SEE_OTHER);
+    let revoked = sqlx::query_scalar::<_, bool>(
+        "SELECT revoked_at IS NOT NULL FROM admin_access_sessions WHERE id = $1",
+    )
+    .bind(session_id)
+    .fetch_one(&fixture.pool.0)
+    .await
+    .expect("e443902e");
+    assert!(revoked);
+    let rejected_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Sessions.get()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(rejected_response.status(), http::StatusCode::SEE_OTHER);
+    fixture.lock.0.rollback().await.expect("9f41b8bd");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_router_registers_every_owned_page_and_action() {
+    let fixture = admin_html_test_fixture().await;
+    let fixture_ref = &fixture;
+    futures::StreamExt::fold(
+        futures::StreamExt::filter(
+            futures::stream::iter(server_admin_contract::AdminFrontendPath::ALL_PAGES),
+            |path| {
+                std::future::ready(!matches!(
+                    path,
+                    server_admin_contract::AdminFrontendPath::Metrics
+                ))
+            },
+        ),
+        (),
+        async |(), path| {
+            let response = admin_html_response(
+                fixture_ref,
+                HttpAdminApiTestMethod(http::Method::GET),
+                StdAdminApiTestStrRef(path.get()),
+                StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            )
+            .await;
+            assert!(
+                !matches!(
+                    response.status(),
+                    http::StatusCode::NOT_FOUND
+                        | http::StatusCode::METHOD_NOT_ALLOWED
+                        | http::StatusCode::INTERNAL_SERVER_ERROR
+                ),
+                "frontend page {} returned {}",
+                path.get(),
+                response.status()
+            );
+        },
+    )
+    .await;
+    futures::StreamExt::fold(
+        futures::stream::iter(server_admin_contract::AdminHtmlAction::ALL),
+        (),
+        async |(), action| {
+            let response = tower::ServiceExt::oneshot(
+                fixture_ref.router.0.clone(),
+                html_request_with_peer(
+                    HttpAdminApiTestMethod(http::Method::POST),
+                    StdAdminApiTestStrRef(action.get()),
+                    StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    None,
+                )
+                .0,
+            )
+            .await
+            .expect("d9567273");
+            assert!(
+                !matches!(
+                    response.status(),
+                    http::StatusCode::NOT_FOUND
+                        | http::StatusCode::METHOD_NOT_ALLOWED
+                        | http::StatusCode::INTERNAL_SERVER_ERROR
+                ),
+                "HTML action {} returned {}",
+                action.get(),
+                response.status()
+            );
+        },
+    )
+    .await;
+    fixture.lock.0.rollback().await.expect("c0c53cdc");
+}
+#[tokio::test]
+#[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_filtering() {
+    let fixture = admin_html_test_fixture().await;
+    let unauthenticated_response = tower::ServiceExt::oneshot(
+        fixture.router.0.clone(),
+        html_request_with_peer(
+            HttpAdminApiTestMethod(http::Method::GET),
+            StdAdminApiTestStrRef(server_admin_contract::AdminFrontendPath::Users.get()),
+            StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("184ec7b2");
+    assert_eq!(
+        unauthenticated_response.status(),
+        http::StatusCode::SEE_OTHER
+    );
+    assert_eq!(
+        unauthenticated_response
+            .headers()
+            .get(http::header::LOCATION),
+        Some(&http::HeaderValue::from_static(
+            server_admin_contract::AdminFrontendPath::SignIn.get(),
+        )),
+    );
+
+    let login = "html_form_contract_user";
+    let valid_body = AdminHtmlTestFormBody::try_from(format!(
+        "login={login}&display_name=HTML+Form+Contract+User&password=Html-form-pass1"
+    ))
+    .expect("94b36ec1");
+    let missing_csrf_response = tower::ServiceExt::oneshot(
+        fixture.router.0.clone(),
+        html_request_with_peer(
+            HttpAdminApiTestMethod(http::Method::POST),
+            StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+            StdAdminApiTestStrRef(valid_body.0.as_str()),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("e6013d7a");
+    assert_eq!(missing_csrf_response.status(), http::StatusCode::FORBIDDEN);
+    let unknown_field_body =
+        AdminHtmlTestFormBody::try_from(format!("{}&unknown_field=true", valid_body.0))
+            .expect("af2948d3");
+    let unknown_field_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef(unknown_field_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        unknown_field_response.status(),
+        http::StatusCode::UNPROCESSABLE_ENTITY
+    );
+    let create_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef(valid_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(create_response.status(), http::StatusCode::SEE_OTHER);
+    let duplicate_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserCreate.get()),
+        StdAdminApiTestStrRef(valid_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(duplicate_response.status(), http::StatusCode::CONFLICT);
+    let created_id = sqlx::query_scalar::<_, i64>("SELECT id FROM admin_users WHERE login = $1")
+        .bind(login)
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect("378a4e50");
+    let filtered_path = AdminHtmlTestFormBody::try_from(format!(
+        "{}?search={login}",
+        server_admin_contract::AdminFrontendPath::Users.get()
+    ))
+    .expect("60bf2c91");
+    let filtered_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::GET),
+        StdAdminApiTestStrRef(filtered_path.0.as_str()),
+        StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+    )
+    .await;
+    assert_eq!(filtered_response.status(), http::StatusCode::OK);
+    let filtered_html = admin_html_body(filtered_response).await;
+    assert!(filtered_html.0.contains(login));
+    assert!(!filtered_html.0.contains("<td>root_admin</td>"));
+
+    let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect("bc10a764");
+    let stale_roles_body = AdminHtmlTestFormBody::try_from(format!(
+        "user_id={created_id}&expected_role_ids={role_id}"
+    ))
+    .expect("1934ad6f");
+    let stale_roles_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserRoles.get()),
+        StdAdminApiTestStrRef(stale_roles_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(stale_roles_response.status(), http::StatusCode::CONFLICT);
+
+    let role_name = "html_form_contract_role";
+    let create_role_body =
+        AdminHtmlTestFormBody::try_from(format!("name={role_name}")).expect("8cf4260d");
+    let create_role_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef(create_role_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(create_role_response.status(), http::StatusCode::SEE_OTHER);
+    let duplicate_role_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleCreate.get()),
+        StdAdminApiTestStrRef(create_role_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(duplicate_role_response.status(), http::StatusCode::CONFLICT);
+    let created_role_id =
+        sqlx::query_scalar::<_, i64>("SELECT id FROM admin_roles WHERE name = $1")
+            .bind(role_name)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("2643be19");
+    let permission_id =
+        sqlx::query_scalar::<_, i64>("SELECT id FROM admin_permissions ORDER BY id LIMIT 1")
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect("d8134c5b");
+    let stale_permissions_body = AdminHtmlTestFormBody::try_from(format!(
+        "role_id={created_role_id}&expected_permission_ids={permission_id}"
+    ))
+    .expect("49fac702");
+    let stale_permissions_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RolePermissions.get()),
+        StdAdminApiTestStrRef(stale_permissions_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(
+        stale_permissions_response.status(),
+        http::StatusCode::CONFLICT
+    );
+    let delete_role_body =
+        AdminHtmlTestFormBody::try_from(format!("role_id={created_role_id}")).expect("f1c637d8");
+    let delete_role_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::RoleDelete.get()),
+        StdAdminApiTestStrRef(delete_role_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(delete_role_response.status(), http::StatusCode::SEE_OTHER);
+
+    let unknown_delete_body =
+        AdminHtmlTestFormBody::try_from(String::from("user_id=9223372036854775807"))
+            .expect("d96b20e4");
+    let unknown_delete_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef(unknown_delete_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(unknown_delete_response.status(), http::StatusCode::CONFLICT);
+
+    let delete_body =
+        AdminHtmlTestFormBody::try_from(format!("user_id={created_id}")).expect("4cf9072d");
+    let delete_response = admin_html_response(
+        &fixture,
+        HttpAdminApiTestMethod(http::Method::POST),
+        StdAdminApiTestStrRef(server_admin_contract::AdminHtmlAction::UserDelete.get()),
+        StdAdminApiTestStrRef(delete_body.0.as_str()),
+    )
+    .await;
+    assert_eq!(delete_response.status(), http::StatusCode::SEE_OTHER);
+    fixture.lock.0.rollback().await.expect("7361eb5c");
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]

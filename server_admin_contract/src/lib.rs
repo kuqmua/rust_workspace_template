@@ -2324,6 +2324,31 @@ pub enum AdminHtmlAction {
     UserUpdate,
 }
 impl AdminHtmlAction {
+    pub const ALL: [Self; 23] = [
+        Self::MfaConfirm,
+        Self::MfaDisableRecovery,
+        Self::MfaDisableTotp,
+        Self::MfaEnroll,
+        Self::MfaStepUpRecovery,
+        Self::MfaStepUpTotp,
+        Self::ProfilePassword,
+        Self::RoleCreate,
+        Self::RoleDelete,
+        Self::RolePermissions,
+        Self::RoleUpdate,
+        Self::SessionRevoke,
+        Self::SettingsUpdate,
+        Self::SignIn,
+        Self::SignInRecovery,
+        Self::SignInTotp,
+        Self::SignOut,
+        Self::UserBan,
+        Self::UserCreate,
+        Self::UserDelete,
+        Self::UserPassword,
+        Self::UserRoles,
+        Self::UserUpdate,
+    ];
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
@@ -2684,6 +2709,14 @@ mod tests {
                 )
             )
         );
+    }
+    #[test]
+    fn html_action_inventory_has_unique_paths() {
+        let paths = super::AdminHtmlAction::ALL
+            .into_iter()
+            .map(super::AdminHtmlAction::get)
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(paths.len(), super::AdminHtmlAction::ALL.len());
     }
     #[test]
     fn open_api_page_uses_the_typed_authenticated_api_route() {
