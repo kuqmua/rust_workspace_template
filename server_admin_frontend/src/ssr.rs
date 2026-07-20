@@ -179,7 +179,7 @@ fn render_admin_page_with_access(
                     {support_url.map(|href| leptos::view! { <a href=href>"Support"</a> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
                 </header>
-                <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><h1>{title.as_ref()}</h1><div inner_html=content.0></div></main>
+                <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
             </div>
         },
     )
@@ -522,12 +522,11 @@ pub fn render_audit(
 #[must_use]
 pub fn render_text_page(
     page: server_admin_contract::AdminPage,
-    title: AdminSsrText,
+    _title: AdminSsrText,
     text: AdminSsrText,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
-        <section><div class="page-heading"><h1>{title.0}</h1></div>
-        <div class="code-card"><pre>{text.0}</pre></div></section>
+        <section><div class="code-card"><pre>{text.0}</pre></div></section>
     }
     .render_admin_ssr();
     render_admin_page(page, content)
@@ -536,14 +535,13 @@ pub fn render_text_page(
 #[must_use]
 pub fn render_text_page_with_access(
     page: server_admin_contract::AdminPage,
-    title: AdminSsrText,
+    _title: AdminSsrText,
     text: AdminSsrText,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
-        <section><div class="page-heading"><h1>{title.0}</h1></div>
-        <div class="code-card"><pre>{text.0}</pre></div></section>
+        <section><div class="code-card"><pre>{text.0}</pre></div></section>
     }
     .render_admin_ssr();
     render_admin_page_with_access(page, content, Some(admin), Some(branding))
@@ -571,6 +569,7 @@ mod tests {
             super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect("c78bd3a1"),
         );
         assert!(page.as_ref().contains("<p>ready</p>"));
+        assert!(!page.as_ref().contains("<h1"));
         assert!(!page.as_ref().contains("<script"));
     }
 

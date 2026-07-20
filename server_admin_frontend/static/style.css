@@ -287,7 +287,7 @@ h2 {
   width: calc(100% - var(--sidebar-width));
   min-height: 100vh;
   margin-left: var(--sidebar-width);
-  padding: 48px clamp(24px, 4vw, 64px) 64px;
+  padding: 30px clamp(24px, 4vw, 64px) 64px;
 }
 
 .main-content > div {
@@ -875,7 +875,7 @@ pre {
   .main-content {
     width: 100%;
     margin-left: 0;
-    padding: calc(var(--mobile-header-height) + 28px) 16px 42px;
+    padding: calc(var(--mobile-header-height) + 18px) 16px 42px;
   }
 
   .dashboard-grid {
