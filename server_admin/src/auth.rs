@@ -67,14 +67,6 @@ pub struct AdminAuthSvcState {
     pool: app_state::SqlxPgPool,
     refresh_ttl: StdAdminRefreshTtlSeconds,
     session_limit: StdAdminSessionLimit,
-    started_at: StdAdminAuthStartedAt,
-}
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
-struct StdAdminAuthStartedAt(std::time::Instant);
-impl StdAdminAuthStartedAt {
-    fn uptime_seconds(self) -> server_admin_contract::AdminUptimeSeconds {
-        server_admin_contract::AdminUptimeSeconds::from(self.0.elapsed().as_secs())
-    }
 }
 #[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdSharedAdminAuthSvcState(std::sync::Arc<AdminAuthSvcState>);
@@ -180,22 +172,6 @@ pub(crate) struct AdminAuditQueryParts {
     pub(crate) user_login: Option<server_admin_contract::AdminLogin>,
 }
 impl AdminAuditQuery {
-    #[allow(clippy::single_call_fn)] // dashboard owns a deliberately constrained audit query constructor
-    pub(crate) fn dashboard() -> Self {
-        Self {
-            action: None,
-            created_after: None,
-            created_before: None,
-            cursor_created_at: None,
-            cursor_id: None,
-            limit: server_admin_contract::AdminPageLimit::default(),
-            resource: None,
-            resource_id: None,
-            succeeded: Some(server_admin_contract::AdminBool::from(true)),
-            user_id: None,
-            user_login: None,
-        }
-    }
     pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
         super::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
@@ -964,11 +940,6 @@ async fn export_audit_log(
 async fn branding(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::branding(auth).await
 }
-#[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_operations")]
-async fn dashboard(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::dashboard(auth).await
-}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateSettingsReq, tag = "admin_settings")]
 async fn update_settings(
@@ -1101,7 +1072,6 @@ impl AdminAuthSvcState {
             pool,
             refresh_ttl: StdAdminRefreshTtlSeconds::from(refresh_ttl.get()),
             session_limit: StdAdminSessionLimit::from(session_limit.get()),
-            started_at: StdAdminAuthStartedAt::from(std::time::Instant::now()),
             policy: AdminAuthPolicy::from_sign_in_limit(StdAdminRateLimitCount::from(
                 i64::try_from(sign_in_rate_limit.get()).unwrap_or(i64::MAX),
             )),
@@ -1271,7 +1241,7 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
-        assert_eq!(paths.len(), 21usize);
+        assert_eq!(paths.len(), 20usize);
         assert!(!paths.contains_key("/auth/mfa"));
         assert!(!paths.contains_key("/auth/mfa/enroll"));
         assert!(!paths.contains_key("/auth/mfa/confirm"));

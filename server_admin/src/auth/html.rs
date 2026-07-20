@@ -279,17 +279,6 @@ async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
-async fn dashboard(auth: super::AdminAuthReq) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let view_result = super::handlers::dashboard_view(auth).await;
-    match (context_result, view_result) {
-        (Ok((admin, branding)), Ok(view)) => html_response(
-            server_admin_frontend::ssr::render_dashboard(&view, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
-}
-
 async fn users(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
@@ -457,7 +446,7 @@ async fn open_api(auth: super::AdminAuthReq) -> axum::response::Response {
 
 async fn root() -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-        server_admin_contract::AdminFrontendPath::Dashboard.get(),
+        server_admin_contract::AdminFrontendPath::Audit.get(),
     ))
 }
 
@@ -821,10 +810,9 @@ async fn finish_sign_in(
     match super::handlers::sign_in(auth, peer, super::AdminSignInJson(request)).await {
         Ok(response) => {
             let source = response.0;
-            let mut target =
-                axum::response::IntoResponse::into_response(axum::response::Redirect::to(
-                    server_admin_contract::AdminFrontendPath::Dashboard.get(),
-                ));
+            let mut target = axum::response::IntoResponse::into_response(
+                axum::response::Redirect::to(server_admin_contract::AdminFrontendPath::Audit.get()),
+            );
             source
                 .headers()
                 .get_all(http::header::SET_COOKIE)
@@ -890,10 +878,6 @@ pub(super) fn routes(
             .route(
                 server_admin_contract::AdminFrontendPath::SignIn.get(),
                 axum::routing::get(sign_in_page),
-            )
-            .route(
-                server_admin_contract::AdminFrontendPath::Dashboard.get(),
-                axum::routing::get(dashboard),
             )
             .route(
                 server_admin_contract::AdminFrontendPath::Users.get(),

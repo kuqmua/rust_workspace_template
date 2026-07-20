@@ -437,6 +437,8 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         db_foreign_keys: Vec<GeneratePgTableDbForeignKey>,
         #[serde(default)]
+        db_table_name: Option<String>,
+        #[serde(default)]
         db_unique_keys: Vec<Vec<String>>,
         #[serde(default)]
         read_exclude_fields: StdReadExcludeFields,
@@ -1022,6 +1024,16 @@ pub fn emit_generate_pg_table(
                 str_constants::COMPILE_ERROR_CE_051,
             )));
         }
+        if config.db_table_name.as_ref().is_some_and(|table_name| {
+            table_name.is_empty()
+                || !table_name
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+        }) {
+            return Err(compile_error_token_stream(CompileErrorMessage(
+                str_constants::COMPILE_ERROR_CE_083,
+            )));
+        }
         let error_variants_by_attr = [
             GeneratePgTableAttr::CmErrorVariants,
             GeneratePgTableAttr::CoErrorVariants,
@@ -1389,6 +1401,13 @@ pub fn emit_generate_pg_table(
     let identifier_snake_case_string = naming_common::ToTokensToSnakeCaseStr::case(&identifier);
     let identifier_snake_case_double_quoted_token_stream =
         generate_quotes::dq_token_stream(&identifier_snake_case_string);
+    let db_table_name_double_quoted_token_stream = generate_quotes::dq_token_stream(
+        generate_pg_table_input_model
+            .config
+            .db_table_name
+            .as_deref()
+            .unwrap_or(identifier_snake_case_string.as_str()),
+    );
     let identifier_auth_requirement_upper_camel_case =
         quote::format_ident!("{}AuthenticationRequirement", identifier);
     let identifier_http_method_upper_camel_case = quote::format_ident!("{}HttpMethod", identifier);
@@ -1398,6 +1417,9 @@ pub fn emit_generate_pg_table(
     let identifier_success_status_upper_camel_case =
         quote::format_ident!("{}SuccessStatus", identifier);
     let self_table_name_call_token_stream = quote::quote! {Self::#TableNameSnakeCase()};
+    let db_table_name_snake_case = quote::format_ident!("db_table_name");
+    let self_db_table_name_call_token_stream = quote::quote! {Self::#db_table_name_snake_case()};
+    let db_table_snake_case = quote::format_ident!("db_table");
     let generate_pg_table_primary_key_snake_case_str =
         GeneratePgTablePrimaryKeySnakeCase.to_string();
     let fields_model = match build_generate_pg_table_fields_model_stage(
@@ -2055,6 +2077,9 @@ pub fn emit_generate_pg_table(
             pub const fn #TableNameSnakeCase() -> &'static str {
                 #identifier_snake_case_double_quoted_token_stream
             }
+            const fn #db_table_name_snake_case() -> &'static str {
+                #db_table_name_double_quoted_token_stream
+            }
         };
         let pub_fn_frontend_fields_token_stream = quote::quote! {
             #[must_use]
@@ -2151,7 +2176,7 @@ pub fn emit_generate_pg_table(
         let pub_async_fn_prep_pg_token_stream = quote::quote! {
             pub async fn #PrepPgSnakeCase(#PoolSnakeCase: &sqlx::Pool<sqlx::Postgres>) -> Result<(), #identifier_prep_pg_error_upper_camel_case> {
                 Self::#PrepExtensionsSnakeCase(#PoolSnakeCase).await?;
-                Self::#PrepPgTableSnakeCase(#PoolSnakeCase, #identifier_snake_case_double_quoted_token_stream).await?;
+                Self::#PrepPgTableSnakeCase(#PoolSnakeCase, #db_table_name_double_quoted_token_stream).await?;
                 #prep_idempotency_token_stream
                 Ok(())
             }
@@ -4892,7 +4917,7 @@ pub fn emit_generate_pg_table(
             };
             quote::quote! {
                 .route(#slash_operation_double_quoted_token_stream, axum::routing::#method_token_stream({
-                    let table_owned = table.to_owned();
+                    let table_owned = #db_table_snake_case.to_owned();
                     let requests_metric = metrics::counter!("pg_table_requests_total", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string);
                     let duration_metric = metrics::histogram!("pg_table_request_duration_seconds", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string);
                     let response_200_metric = metrics::counter!("pg_table_responses_total", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string, "status" => "200");
@@ -7337,7 +7362,11 @@ pub fn emit_generate_pg_table(
     };
     impl_identifier_vec_token_stream.push(quote::quote! {
         pub fn #RoutesSnakeCase(#AppStateSnakeCase: #std_sync_arc_combination_of_app_state_logic_traits_token_stream) -> axum::Router {
-            Self::#RoutesHSnakeCase(#AppStateSnakeCase, #self_table_name_call_token_stream)
+            Self::#RoutesHSnakeCase(
+                #AppStateSnakeCase,
+                #self_table_name_call_token_stream,
+                #self_db_table_name_call_token_stream,
+            )
         }
     });
     let (operator_or_token_stream, operator_and_token_stream) = {
@@ -9672,7 +9701,7 @@ pub fn emit_generate_pg_table(
         });
     let db_table_schema_token_stream = quote::quote! {
         impl pg_crud_common::DbTableSchema for #identifier {
-            const TABLE_NAME: &'static str = #identifier_snake_case_double_quoted_token_stream;
+            const TABLE_NAME: &'static str = #db_table_name_double_quoted_token_stream;
             fn columns() -> Vec<pg_crud_common::DbColumnSpec> {
                 vec![#(#db_column_specs_token_stream),*]
             }
@@ -9715,7 +9744,11 @@ pub fn emit_generate_pg_table(
                 impl #identifier {
                     #(#impl_identifier_vec_token_stream)*
                     #[allow(clippy::single_call_fn)]
-                    fn #RoutesHSnakeCase(#AppStateSnakeCase: #std_sync_arc_combination_of_app_state_logic_traits_token_stream, #TableSnakeCase: &str) -> axum::Router {
+                    fn #RoutesHSnakeCase(
+                        #AppStateSnakeCase: #std_sync_arc_combination_of_app_state_logic_traits_token_stream,
+                        #TableSnakeCase: &str,
+                        #db_table_snake_case: &str,
+                    ) -> axum::Router {
                         axum::Router::new().nest(
                             &format!("/{table}"),
                             axum::Router::new()

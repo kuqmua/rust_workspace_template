@@ -8,6 +8,7 @@
 #[derive(Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "users",
     "create_exclude_fields": ["password_hash", "created_at", "updated_at"],
     "read_exclude_fields": ["password_hash"],
     "permission_prefix": "users",
@@ -47,10 +48,11 @@ impl std::fmt::Debug for AdminUsers {
 #[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "user_roles",
     "create_exclude_fields": ["created_at"],
     "db_foreign_keys": [
-        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "admin_users"},
-        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "admin_roles"}
+        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"},
+        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "roles"}
     ],
     "db_unique_keys": [["user_id", "role_id"]],
     "permission_prefix": "user_roles",
@@ -71,10 +73,11 @@ pub struct AdminUserRoles {
 #[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "role_permissions",
     "create_exclude_fields": ["created_at"],
     "db_foreign_keys": [
-        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "admin_roles"},
-        {"columns": ["permission_id"], "referenced_columns": ["id"], "referenced_table": "admin_permissions"}
+        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "roles"},
+        {"columns": ["permission_id"], "referenced_columns": ["id"], "referenced_table": "permissions"}
     ],
     "db_unique_keys": [["role_id", "permission_id"]],
     "permission_prefix": "role_permissions",
@@ -95,6 +98,7 @@ pub struct AdminRolePermissions {
 #[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "roles",
     "create_exclude_fields": ["created_at", "updated_at"],
     "db_unique_keys": [["name"]],
     "permission_prefix": "roles",
@@ -119,6 +123,7 @@ pub struct AdminRoles {
 #[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "permissions",
     "create_exclude_fields": ["created_at"],
     "db_unique_keys": [["name"]],
     "permission_prefix": "permissions",
@@ -138,6 +143,7 @@ pub struct AdminPermissions {
 #[derive(Debug, Clone, Copy, generate_pg_table::GeneratePgTable, optml::Optml)]
 #[generate_pg_table::generate_pg_table_config{{
     "api_mode": "ReadOnly",
+    "db_table_name": "system_settings",
     "create_exclude_fields": ["updated_at"],
     "permission_prefix": "system_settings",
     "tests_write_into_file": "False",
@@ -456,7 +462,7 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("274479a7");
-        assert_eq!(paths.len(), 33usize);
+        assert_eq!(paths.len(), 32usize);
         assert!(paths.contains_key("/auth/sign-in"));
         assert!(!paths.contains_key("/auth/mfa"));
         assert!(paths.contains_key("/auth/sessions/{session_id}"));

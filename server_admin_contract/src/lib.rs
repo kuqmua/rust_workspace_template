@@ -245,17 +245,6 @@ pub enum AdminPermission {
     description = "administrator audit timestamp"
 )]
 pub struct AdminAuditTimestamp(String);
-#[derive(
-    Clone, Debug, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::Display,
-)]
-#[bounded_string(
-    max = 64usize,
-    chars,
-    serde,
-    utoipa,
-    description = "administrator operational timestamp"
-)]
-pub struct AdminOperationalTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
@@ -612,40 +601,6 @@ impl std::error::Error for AdminPageLimitError {}
 )]
 #[serde(transparent)]
 pub struct AdminPageTotal(u64);
-
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Display,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminOperationalCount(u64);
-
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::Display,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminUptimeSeconds(u64);
 
 #[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(
@@ -1453,91 +1408,6 @@ pub struct AdminBrandingView {
     support_url: Option<AdminSupportUrl>,
     tab_title: Option<AdminTabTitle>,
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminDashboardView {
-    active_sessions: AdminOperationalCount,
-    database_healthy: AdminBool,
-    failed_sign_ins_24h: AdminOperationalCount,
-    last_cleanup: Option<AdminCleanupStatus>,
-    recent_changes: Vec<AdminAuditView>,
-    uptime_seconds: AdminUptimeSeconds,
-    version: AdminText,
-}
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
-pub struct AdminCleanupStatus {
-    deleted_rows: AdminOperationalCount,
-    last_success_at: AdminOperationalTimestamp,
-}
-impl AdminCleanupStatus {
-    #[must_use]
-    pub const fn new(
-        deleted_rows: AdminOperationalCount,
-        last_success_at: AdminOperationalTimestamp,
-    ) -> Self {
-        Self {
-            deleted_rows,
-            last_success_at,
-        }
-    }
-    #[must_use]
-    pub const fn deleted_rows(&self) -> AdminOperationalCount {
-        self.deleted_rows
-    }
-    #[must_use]
-    pub const fn last_success_at(&self) -> &AdminOperationalTimestamp {
-        &self.last_success_at
-    }
-}
-impl AdminDashboardView {
-    #[must_use]
-    pub const fn new(
-        active_sessions: AdminOperationalCount,
-        database_healthy: AdminBool,
-        failed_sign_ins_24h: AdminOperationalCount,
-        last_cleanup: Option<AdminCleanupStatus>,
-        recent_changes: Vec<AdminAuditView>,
-        uptime_seconds: AdminUptimeSeconds,
-        version: AdminText,
-    ) -> Self {
-        Self {
-            active_sessions,
-            database_healthy,
-            failed_sign_ins_24h,
-            last_cleanup,
-            recent_changes,
-            uptime_seconds,
-            version,
-        }
-    }
-    #[must_use]
-    pub const fn active_sessions(&self) -> AdminOperationalCount {
-        self.active_sessions
-    }
-    #[must_use]
-    pub const fn database_healthy(&self) -> AdminBool {
-        self.database_healthy
-    }
-    #[must_use]
-    pub const fn failed_sign_ins_24h(&self) -> AdminOperationalCount {
-        self.failed_sign_ins_24h
-    }
-    #[must_use]
-    pub const fn last_cleanup(&self) -> Option<&AdminCleanupStatus> {
-        self.last_cleanup.as_ref()
-    }
-    #[must_use]
-    pub const fn recent_changes(&self) -> &[AdminAuditView] {
-        self.recent_changes.as_slice()
-    }
-    #[must_use]
-    pub const fn uptime_seconds(&self) -> AdminUptimeSeconds {
-        self.uptime_seconds
-    }
-    #[must_use]
-    pub const fn version(&self) -> &AdminText {
-        &self.version
-    }
-}
 impl AdminBrandingView {
     #[must_use]
     pub fn from_settings(value: &AdminSettingsView) -> Self {
@@ -1933,10 +1803,6 @@ pub struct AdminAuditExportRoute;
 pub struct AdminBrandingRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::MetricsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "dashboard", path = "/dashboard", request = AdminNoBody, response = AdminDashboardView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
-pub struct AdminDashboardRoute;
-
-#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system-settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSettingsRoute;
 
@@ -1956,8 +1822,6 @@ pub enum AdminRoute {
     AuditExport,
     #[route_catalog_route(AdminBrandingRoute)]
     Branding,
-    #[route_catalog_route(AdminDashboardRoute)]
-    Dashboard,
     #[route_catalog_route(AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
     #[route_catalog_route(AdminCreateRoleRoute)]
@@ -2072,8 +1936,6 @@ pub enum AdminFrontendPath {
     Assets,
     #[strum(serialize = "/admin/audit-log")]
     Audit,
-    #[strum(serialize = "/admin/dashboard")]
-    Dashboard,
     #[strum(serialize = "/admin/metrics")]
     Metrics,
     #[strum(serialize = "/admin/openapi.json")]
@@ -2156,10 +2018,9 @@ impl AdminHtmlAction {
     }
 }
 impl AdminFrontendPath {
-    pub const ALL_PAGES: [Self; 13] = [
+    pub const ALL_PAGES: [Self; 12] = [
         Self::Root,
         Self::SignIn,
-        Self::Dashboard,
         Self::Users,
         Self::Roles,
         Self::Sessions,
@@ -2183,13 +2044,6 @@ impl AdminFrontendPath {
     inventory = ADMIN_PAGE_SPECS,
 )]
 pub enum AdminPage {
-    #[page_catalog_page(
-        capability = AdminPageCapability::Always,
-        path = AdminFrontendPath::Dashboard,
-        route = AdminRoute::Dashboard,
-        title = AdminPageTitle::Dashboard,
-    )]
-    Dashboard,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
         path = AdminFrontendPath::Users,
@@ -2270,7 +2124,6 @@ pub enum AdminPageCapability {
 enum AdminPageTitle {
     Api,
     AuditLog,
-    Dashboard,
     Metrics,
     Permissions,
     Profile,
@@ -2325,7 +2178,6 @@ impl AdminPageSpec {
         frontend_contract::ContractStr::from(match self.title {
             AdminPageTitle::Api => str_constants::API_ALT,
             AdminPageTitle::AuditLog => str_constants::AUDIT_LOG,
-            AdminPageTitle::Dashboard => str_constants::DASHBOARD,
             AdminPageTitle::Metrics => str_constants::METRICS_ALT,
             AdminPageTitle::Permissions => str_constants::PERMISSIONS,
             AdminPageTitle::Profile => str_constants::PROFILE,
@@ -2406,7 +2258,7 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 27usize);
+        assert_eq!(descriptors.len(), 26usize);
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())

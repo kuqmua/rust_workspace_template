@@ -2,7 +2,6 @@
 
 pub(crate) mod audit;
 pub(crate) mod cleanup;
-pub(crate) mod dashboard;
 pub(crate) mod permissions;
 pub(crate) mod rate_limits;
 pub(crate) mod roles;

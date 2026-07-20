@@ -136,34 +136,20 @@ fn render_admin_page_with_access(
 ) -> AdminSsrHtml {
     let spec = page.spec();
     let title = spec.title();
-    let site_name = branding.map_or_else(
-        || String::from(str_constants::WORKSPACE_ADMIN),
-        |value| AsRef::<str>::as_ref(value.site_name()).to_owned(),
-    );
     let document_title = branding
         .and_then(server_admin_contract::AdminBrandingView::tab_title)
         .map_or_else(
             || title.as_ref().to_owned(),
             |value| AsRef::<str>::as_ref(value).to_owned(),
         );
-    let main_logo = branding
-        .and_then(server_admin_contract::AdminBrandingView::main_logo)
-        .map(|value| AsRef::<str>::as_ref(value).to_owned());
     let primary_color = branding
         .and_then(server_admin_contract::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
-    let support_url = branding
-        .and_then(server_admin_contract::AdminBrandingView::support_url)
-        .map(|value| AsRef::<str>::as_ref(value).to_owned());
     render_document(
         &AdminSsrText(document_title),
         leptos::view! {
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
-                    <a class="brand" href=server_admin_contract::AdminFrontendPath::Dashboard.get()>
-                        {main_logo.map_or_else(|| leptos::view! { <span class="brand-mark" aria-hidden="true">"A"</span> }.into_any(), |source| leptos::view! { <img class="brand-logo" src=source alt="" /> }.into_any())}
-                        <div><strong>{site_name}</strong><small>"Secure operations console"</small></div>
-                    </a>
                     <nav aria-label="Admin sections">
                         {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
@@ -176,51 +162,11 @@ fn render_admin_page_with_access(
                             }
                         }).collect::<Vec<_>>()}
                     </nav>
-                    {support_url.map(|href| leptos::view! { <a href=href>"Support"</a> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
                 </header>
                 <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
             </div>
         },
-    )
-}
-
-#[must_use]
-pub fn render_dashboard(
-    view: &server_admin_contract::AdminDashboardView,
-    admin: &server_admin_contract::AuthenticatedAdmin,
-    branding: &server_admin_contract::AdminBrandingView,
-) -> AdminSsrHtml {
-    let cleanup = view.last_cleanup().map_or_else(
-        || String::from(str_constants::NO_COMPLETED_CLEANUP_RECORDED),
-        |value| {
-            format!(
-                "{} rows at {}",
-                value.deleted_rows(),
-                value.last_success_at()
-            )
-        },
-    );
-    let content_view = leptos::view! {
-        <section class="dashboard-grid">
-            <article class="summary-card"><span>"Active sessions"</span><strong>{view.active_sessions().to_string()}</strong></article>
-            <article class="summary-card"><span>"Failed sign-ins (24h)"</span><strong>{view.failed_sign_ins_24h().to_string()}</strong></article>
-            <article class="summary-card"><span>"Database healthy"</span><strong>{view.database_healthy().to_string()}</strong></article>
-            <article class="summary-card"><span>"Uptime seconds"</span><strong>{view.uptime_seconds().to_string()}</strong></article>
-            <article class="summary-card"><span>"Version"</span><strong>{view.version().to_string()}</strong></article>
-            <article class="summary-card"><span>"Last cleanup"</span><strong>{cleanup}</strong></article>
-        </section>
-        <section class="recent-changes"><h2>"Recent changes"</h2><ul>
-            {view.recent_changes().iter().map(|item| leptos::view! {
-                <li><strong>{item.action().to_string()}</strong><span>{format!("{} - {}", item.resource(), item.created_at())}</span></li>
-            }).collect::<Vec<_>>()}
-        </ul></section>
-    }.render_admin_ssr();
-    render_admin_page_with_access(
-        server_admin_contract::AdminPage::Dashboard,
-        content_view,
-        Some(admin),
-        Some(branding),
     )
 }
 
@@ -565,11 +511,12 @@ mod tests {
         assert!(!sign_in.as_ref().contains(".wasm"));
 
         let page = super::render_admin_page(
-            server_admin_contract::AdminPage::Dashboard,
+            server_admin_contract::AdminPage::Audit,
             super::AdminSsrHtml::try_from(String::from("<p>ready</p>")).expect("c78bd3a1"),
         );
         assert!(page.as_ref().contains("<p>ready</p>"));
         assert!(!page.as_ref().contains("<h1"));
+        assert!(!page.as_ref().contains("class=\"brand\""));
         assert!(!page.as_ref().contains("<script"));
     }
 
@@ -630,7 +577,7 @@ mod tests {
     fn sign_in_uses_server_side_branding_without_scripts() {
         let settings = server_admin_contract::AdminSettingsView::new(
             server_admin_contract::AdminDefaultRoute::try_from(
-                server_admin_contract::AdminFrontendPath::Dashboard
+                server_admin_contract::AdminFrontendPath::Audit
                     .get()
                     .to_owned(),
             )

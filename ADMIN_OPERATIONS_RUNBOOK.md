@@ -22,7 +22,7 @@
 ## Bootstrap
 
 Administrator bootstrap is deliberately available only through the server-side
-`server_admin::bootstrap_admin` API. It succeeds only while `admin_users` is empty and creates the
+`server_admin::bootstrap_admin` API. It succeeds only while `users` is empty and creates the
 first user and its administrator role assignment in one transaction. Do not expose this operation
 through HTTP or leave bootstrap credentials in environment files.
 
@@ -58,10 +58,10 @@ failed challenges, recovery-code use, step-up, and disable operations are audite
 ## Cleanup job
 
 The server runs bounded cleanup using the configured retention periods and batch size. Every fully
-successful run updates the singleton `admin_cleanup_status` row with its completion time and total
-deleted rows. The dashboard reports this value; an absent or stale value should alert operators to
-inspect server logs and the cleanup-task configuration. Cleanup never bypasses the audit append-only
-guard except inside its scoped database transaction.
+successful run updates the singleton `cleanup_status` row with its completion time and total
+deleted rows. An absent or stale value should alert operators to inspect server logs and the
+cleanup-task configuration. Cleanup never bypasses the audit append-only guard except inside its
+scoped database transaction.
 
 ## Session and audit data policy
 
