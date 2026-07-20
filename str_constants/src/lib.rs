@@ -1915,6 +1915,7 @@ str_constants_macros::define_str_constants! {
         pub SELF_V = [WORD_SELF, "{", WORD_V, "}"];
         pub SETTINGS = [WORD_SETTINGS];
         pub SESSIONS = [WORD_SESSIONS];
+        pub SESSIONS_ALT = ["Sessions"];
         pub SHARED = ["Shared"];
         pub SNAKECASE = ["SnakeCase"];
         pub SOME_7 = [WORD_SOME, "(7)"];
@@ -2783,6 +2784,7 @@ str_constants_macros::define_str_constants! {
         pub RUSTFMT = [WORD_RUSTFMT];
         pub RUSTFMT_TOML = [WORD_RUSTFMT, ".", WORD_TOML];
         pub SAME = [WORD_SAME];
+        pub SAME_ORIGIN = [WORD_SAME, "-origin"];
         pub SCHEMAS = [WORD_SCHEMAS];
         pub SEARCH_PATH = ["search_path"];
         pub SEC = ["sec"];

@@ -609,7 +609,7 @@ where
             );
             let _referrer_policy = response.headers_mut().insert(
                 http::HeaderName::from_static(str_constants::REFERRER_POLICY),
-                http::HeaderValue::from_static(str_constants::NO_REFERRER),
+                http::HeaderValue::from_static(str_constants::SAME_ORIGIN),
             );
             if let Some(resolved_content_security_policy) = content_security_policy {
                 let _previous_content_security_policy = response.headers_mut().insert(
@@ -1027,6 +1027,12 @@ mod tests {
         assert_eq!(
             trusted_response.headers().get("x-content-type-options"),
             Some(&http::HeaderValue::from_static("nosniff"))
+        );
+        assert_eq!(
+            trusted_response
+                .headers()
+                .get(str_constants::REFERRER_POLICY),
+            Some(&http::HeaderValue::from_static(str_constants::SAME_ORIGIN))
         );
         assert_eq!(
             trusted_response

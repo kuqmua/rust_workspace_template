@@ -2330,7 +2330,7 @@ impl AdminPageSpec {
             AdminPageTitle::Permissions => str_constants::PERMISSIONS,
             AdminPageTitle::Profile => str_constants::PROFILE,
             AdminPageTitle::Roles => str_constants::ROLES,
-            AdminPageTitle::Sessions => str_constants::SESSIONS,
+            AdminPageTitle::Sessions => str_constants::SESSIONS_ALT,
             AdminPageTitle::Settings => str_constants::SETTINGS,
             AdminPageTitle::Users => str_constants::USERS,
             AdminPageTitle::Version => str_constants::VERSION_ALT,
