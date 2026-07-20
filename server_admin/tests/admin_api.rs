@@ -3211,7 +3211,7 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_one(&base_pool)
     .await
     .expect("5c10c931");
-    assert_eq!(version, 1i64);
+    assert_eq!(version, 11i64);
     let expected_tables = [
         str_constants::ACCESS_SESSIONS,
         str_constants::AUDIT_LOG_ALT,
