@@ -322,14 +322,9 @@ async fn data_tables(
         None => Ok(None),
     };
     match (context_result, catalog_result, view_result) {
-        (Ok((admin, branding)), Ok(catalog), Ok(view)) => {
-            html_response(server_admin_frontend::ssr::render_data_tables(
-                &catalog,
-                view.as_ref(),
-                &admin,
-                &branding,
-            ))
-        }
+        (Ok((admin, branding)), Ok(_catalog), Ok(view)) => html_response(
+            server_admin_frontend::ssr::render_data_tables(view.as_ref(), &admin, &branding),
+        ),
         (Err(error), _, _) | (_, Err(error), _) | (_, _, Err(error)) => html_page_error(error),
     }
 }

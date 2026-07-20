@@ -134,6 +134,16 @@ fn render_admin_page_with_access(
     admin: Option<&server_admin_contract::AuthenticatedAdmin>,
     branding: Option<&server_admin_contract::AdminBrandingView>,
 ) -> AdminSsrHtml {
+    render_admin_page_with_table_access(page, content, admin, branding, None)
+}
+
+fn render_admin_page_with_table_access(
+    page: server_admin_contract::AdminPage,
+    content: AdminSsrHtml,
+    admin: Option<&server_admin_contract::AuthenticatedAdmin>,
+    branding: Option<&server_admin_contract::AdminBrandingView>,
+    active_table: Option<server_admin_contract::AdminDataTable>,
+) -> AdminSsrHtml {
     let spec = page.spec();
     let title = spec.title();
     let document_title = branding
@@ -151,7 +161,7 @@ fn render_admin_page_with_access(
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
                     <nav aria-label="Admin sections">
-                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
+                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| item.page() != server_admin_contract::AdminPage::Tables && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
                             let href = String::from(item.path());
                             let label = String::from(item.title());
@@ -159,6 +169,13 @@ fn render_admin_page_with_access(
                                 <a class=(item_page == page).then_some("active") href=href>
                                     <span class="nav-dot" aria-hidden="true"></span>{label}
                                 </a>
+                            }
+                        }).collect::<Vec<_>>()}
+                        {server_admin_contract::AdminDataTable::ALL.into_iter().filter(|table| admin.is_none_or(|value| bool::from(value.has_permission(server_admin_contract::AdminPermission::TablesRead)) && bool::from(value.has_permission(table.permission())))).map(|table| {
+                            let name = table.to_string();
+                            let href = format!("{}{}{}", server_admin_contract::AdminFrontendPath::Tables.get(), str_constants::ADMIN_TABLE_QUERY_PREFIX, name);
+                            leptos::view! {
+                                <a class=(active_table == Some(table)).then_some("active") href=href><span class="nav-dot" aria-hidden="true"></span>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
                     </nav>
@@ -340,19 +357,11 @@ pub fn render_permissions(
 
 #[must_use]
 pub fn render_data_tables(
-    catalog: &server_admin_contract::AdminDataTableCatalog,
     table: Option<&server_admin_contract::AdminDataTableView>,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
-        <nav class="table-tools" aria-label="Database tables">
-            {catalog.items().iter().copied().map(|item| {
-                let name = item.to_string();
-                let href = format!("{}?table={name}", server_admin_contract::AdminFrontendPath::Tables.get());
-                leptos::view! { <a href=href>{name}</a> }
-            }).collect::<Vec<_>>()}
-        </nav>
         {table.map(|view| leptos::view! {
             <section>
                 <h2>{view.table().to_string()}</h2>
@@ -370,11 +379,12 @@ pub fn render_data_tables(
         })}
     }
     .render_admin_ssr();
-    render_admin_page_with_access(
+    render_admin_page_with_table_access(
         server_admin_contract::AdminPage::Tables,
         content,
         Some(admin),
         Some(branding),
+        table.map(server_admin_contract::AdminDataTableView::table),
     )
 }
 
@@ -589,6 +599,20 @@ mod tests {
                         .to_owned(),
                 )
                 .expect("6afb4194"),
+                server_admin_contract::AdminPermissionValue::try_from(
+                    server_admin_contract::AdminPermission::TablesRead
+                        .as_str()
+                        .get()
+                        .to_owned(),
+                )
+                .expect("2c507520"),
+                server_admin_contract::AdminPermissionValue::try_from(
+                    server_admin_contract::AdminPermission::AccessSessionsRead
+                        .as_str()
+                        .get()
+                        .to_owned(),
+                )
+                .expect("7e7147f6"),
             ],
             Vec::new(),
         );
@@ -611,6 +635,18 @@ mod tests {
             html.as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Profile.get())
         );
+        assert!(
+            html.as_ref().contains(
+                format!(
+                    "{}{}{}",
+                    server_admin_contract::AdminFrontendPath::Tables.get(),
+                    str_constants::ADMIN_TABLE_QUERY_PREFIX,
+                    server_admin_contract::AdminDataTable::AccessSessions
+                )
+                .as_str()
+            )
+        );
+        assert!(!html.as_ref().contains("href=\"/admin/tables\""));
     }
 
     #[test]
