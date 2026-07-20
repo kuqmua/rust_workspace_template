@@ -14,11 +14,11 @@ pub fn admin_catalog_snapshot(
         ))
     }
     let updated_at_function = format!(
-        "CREATE OR REPLACE FUNCTION {}.admin_set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n",
+        "CREATE OR REPLACE FUNCTION {}.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n",
         schema.0
     );
     let audit_function = format!(
-        "CREATE OR REPLACE FUNCTION {}.admin_audit_log_append_only()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' AND current_setting('app.admin_audit_cleanup', TRUE) = 'on' THEN\n        RETURN OLD;\n    END IF;\n    RAISE EXCEPTION 'admin_audit_log is append-only';\nEND;\n$function$\n",
+        "CREATE OR REPLACE FUNCTION {}.audit_log_append_only()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' AND current_setting('app.admin_audit_cleanup', TRUE) = 'on' THEN\n        RETURN OLD;\n    END IF;\n    RAISE EXCEPTION 'audit_log is append-only';\nEND;\n$function$\n",
         schema.0
     );
     Ok(pg_crud_common::DbCatalogSnapshot::new(vec![

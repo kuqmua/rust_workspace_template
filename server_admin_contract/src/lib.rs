@@ -180,16 +180,28 @@ impl<'value_lt> AdminPermissionStrRef<'value_lt> {
     error_message = str_constants::UNKNOWN_ADMINISTRATOR_PERMISSION,
 )]
 pub enum AdminPermission {
+    #[wire("access_sessions:read")]
+    AccessSessionsRead,
     #[wire("audit_log:export")]
     AuditLogExport,
     #[wire("audit_log:read")]
     AuditLogRead,
+    #[wire("cleanup_status:read")]
+    CleanupStatusRead,
+    #[wire("login_attempts:read")]
+    LoginAttemptsRead,
     #[wire("metrics:read")]
     MetricsRead,
+    #[wire("mfa_recovery_codes:read")]
+    MfaRecoveryCodesRead,
     #[wire("openapi:read")]
     OpenApiRead,
     #[wire("permissions:read")]
     PermissionsRead,
+    #[wire("rate_limits:read")]
+    RateLimitsRead,
+    #[wire("refresh_tokens:read")]
+    RefreshTokensRead,
     #[wire("role_permissions:create")]
     RolePermissionsCreate,
     #[wire("role_permissions:delete")]
@@ -210,6 +222,10 @@ pub enum AdminPermission {
     SystemSettingsRead,
     #[wire("system_settings:update")]
     SystemSettingsUpdate,
+    #[wire("tables:read")]
+    TablesRead,
+    #[wire("user_mfa:read")]
+    UserMfaRead,
     #[wire("user_roles:create")]
     UserRolesCreate,
     #[wire("user_roles:delete")]
@@ -226,6 +242,85 @@ pub enum AdminPermission {
     UsersRead,
     #[wire("users:update")]
     UsersUpdate,
+}
+
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, newtype::WireEnum, serde::Deserialize, utoipa::ToSchema,
+)]
+#[serde(try_from = "String")]
+#[wire_enum(
+    ref_type = AdminDataTableStrRef,
+    error_message = str_constants::UNKNOWN_ADMINISTRATOR_DATA_TABLE,
+)]
+pub enum AdminDataTable {
+    #[wire("access_sessions")]
+    AccessSessions,
+    #[wire("audit_log")]
+    AuditLog,
+    #[wire("cleanup_status")]
+    CleanupStatus,
+    #[wire("login_attempts")]
+    LoginAttempts,
+    #[wire("mfa_recovery_codes")]
+    MfaRecoveryCodes,
+    #[wire("permissions")]
+    Permissions,
+    #[wire("rate_limits")]
+    RateLimits,
+    #[wire("refresh_tokens")]
+    RefreshTokens,
+    #[wire("role_permissions")]
+    RolePermissions,
+    #[wire("roles")]
+    Roles,
+    #[wire("system_settings")]
+    SystemSettings,
+    #[wire("user_mfa")]
+    UserMfa,
+    #[wire("user_roles")]
+    UserRoles,
+    #[wire("users")]
+    Users,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
+pub struct AdminDataTableStrRef<'value_lt>(&'value_lt str);
+impl<'value_lt> AdminDataTableStrRef<'value_lt> {
+    #[must_use]
+    pub const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}
+impl AdminDataTable {
+    #[must_use]
+    pub const fn permission(self) -> AdminPermission {
+        match self {
+            Self::AccessSessions => AdminPermission::AccessSessionsRead,
+            Self::AuditLog => AdminPermission::AuditLogRead,
+            Self::CleanupStatus => AdminPermission::CleanupStatusRead,
+            Self::LoginAttempts => AdminPermission::LoginAttemptsRead,
+            Self::MfaRecoveryCodes => AdminPermission::MfaRecoveryCodesRead,
+            Self::Permissions => AdminPermission::PermissionsRead,
+            Self::RateLimits => AdminPermission::RateLimitsRead,
+            Self::RefreshTokens => AdminPermission::RefreshTokensRead,
+            Self::RolePermissions => AdminPermission::RolePermissionsRead,
+            Self::Roles => AdminPermission::RolesRead,
+            Self::SystemSettings => AdminPermission::SystemSettingsRead,
+            Self::UserMfa => AdminPermission::UserMfaRead,
+            Self::UserRoles => AdminPermission::UserRolesRead,
+            Self::Users => AdminPermission::UsersRead,
+        }
+    }
+}
+impl std::fmt::Display for AdminDataTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str().get())
+    }
+}
+impl TryFrom<String> for AdminDataTable {
+    type Error = AdminDataTableTryFromStrError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
+    }
 }
 #[derive(
     Clone,
@@ -1294,6 +1389,66 @@ pub struct AdminAuditPage {
     #[schema(inline)]
     next_cursor: Option<AdminAuditCursor>,
 }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminDataRow {
+    values: Vec<AdminText>,
+}
+impl AdminDataRow {
+    #[must_use]
+    pub const fn new(values: Vec<AdminText>) -> Self {
+        Self { values }
+    }
+    #[must_use]
+    pub const fn values(&self) -> &[AdminText] {
+        self.values.as_slice()
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminDataTableView {
+    columns: Vec<AdminText>,
+    items: Vec<AdminDataRow>,
+    table: AdminDataTable,
+}
+impl AdminDataTableView {
+    #[must_use]
+    pub const fn new(
+        columns: Vec<AdminText>,
+        items: Vec<AdminDataRow>,
+        table: AdminDataTable,
+    ) -> Self {
+        Self {
+            columns,
+            items,
+            table,
+        }
+    }
+    #[must_use]
+    pub const fn columns(&self) -> &[AdminText] {
+        self.columns.as_slice()
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminDataRow] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn table(&self) -> AdminDataTable {
+        self.table
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminDataTableCatalog {
+    items: Vec<AdminDataTable>,
+}
+impl AdminDataTableCatalog {
+    #[must_use]
+    pub const fn new(items: Vec<AdminDataTable>) -> Self {
+        Self { items }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminDataTable] {
+        self.items.as_slice()
+    }
+}
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)]
 #[bounded_string(
     max = 262_144usize,
@@ -1803,6 +1958,14 @@ pub struct AdminAuditExportRoute;
 pub struct AdminBrandingRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::TablesRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "list_data_tables", path = "/tables", request = AdminNoBody, response = AdminDataTableCatalog, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminDataTablesRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
+#[typed_route(error_statuses = frontend_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "read_data_table", path = "/tables/{table}", path_parameter = AdminDataTable, request = AdminNoBody, response = AdminDataTableView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+pub struct AdminDataTableRoute;
+
+#[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
 #[typed_route(error_statuses = frontend_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES, authentication = admin_permission_requirement(AdminPermission::SystemSettingsRead), method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "settings", path = "/system-settings", request = AdminNoBody, response = AdminSettingsView, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSettingsRoute;
 
@@ -1822,6 +1985,10 @@ pub enum AdminRoute {
     AuditExport,
     #[route_catalog_route(AdminBrandingRoute)]
     Branding,
+    #[route_catalog_route(AdminDataTableRoute)]
+    DataTable(AdminDataTable),
+    #[route_catalog_route(AdminDataTablesRoute)]
+    DataTables,
     #[route_catalog_route(AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
     #[route_catalog_route(AdminCreateRoleRoute)]
@@ -1956,6 +2123,8 @@ pub enum AdminFrontendPath {
     SignIn,
     #[strum(serialize = "/admin/system-settings")]
     Settings,
+    #[strum(serialize = "/admin/tables")]
+    Tables,
     #[strum(serialize = "/admin/users")]
     Users,
     #[strum(serialize = "/admin/version")]
@@ -2018,7 +2187,7 @@ impl AdminHtmlAction {
     }
 }
 impl AdminFrontendPath {
-    pub const ALL_PAGES: [Self; 12] = [
+    pub const ALL_PAGES: [Self; 13] = [
         Self::Root,
         Self::SignIn,
         Self::Users,
@@ -2028,6 +2197,7 @@ impl AdminFrontendPath {
         Self::Profile,
         Self::Audit,
         Self::Settings,
+        Self::Tables,
         Self::Metrics,
         Self::Version,
         Self::OpenApi,
@@ -2081,6 +2251,13 @@ pub enum AdminPage {
     Settings,
     #[page_catalog_page(
         capability = AdminPageCapability::Always,
+        path = AdminFrontendPath::Tables,
+        route = AdminRoute::DataTables,
+        title = AdminPageTitle::Tables,
+    )]
+    Tables,
+    #[page_catalog_page(
+        capability = AdminPageCapability::Always,
         path = AdminFrontendPath::Sessions,
         route = AdminRoute::Sessions,
         title = AdminPageTitle::Sessions,
@@ -2130,6 +2307,7 @@ enum AdminPageTitle {
     Roles,
     Sessions,
     Settings,
+    Tables,
     Users,
     Version,
 }
@@ -2184,6 +2362,7 @@ impl AdminPageSpec {
             AdminPageTitle::Roles => str_constants::ROLES,
             AdminPageTitle::Sessions => str_constants::SESSIONS_ALT,
             AdminPageTitle::Settings => str_constants::SETTINGS,
+            AdminPageTitle::Tables => str_constants::TABLES,
             AdminPageTitle::Users => str_constants::USERS,
             AdminPageTitle::Version => str_constants::VERSION_ALT,
         })
@@ -2258,7 +2437,7 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 26usize);
+        assert_eq!(descriptors.len(), 28usize);
         assert_eq!(
             frontend_contract::validate_route_coverage(&descriptors),
             Ok(())
@@ -2518,6 +2697,22 @@ mod tests {
             ),
             Err(super::AdminTableSortFieldTryFromKeyError)
         );
+    }
+
+    #[test]
+    #[allow(
+        clippy::needless_for_each,
+        reason = "repository source policy requires iterator methods"
+    )]
+    fn data_tables_round_trip_and_require_read_permissions() {
+        assert_eq!(super::AdminDataTable::ALL.len(), 14usize);
+        super::AdminDataTable::ALL.into_iter().for_each(|table| {
+            assert_eq!(
+                super::AdminDataTable::try_from(table.to_string()).expect("0596134b"),
+                table
+            );
+            assert!(table.permission().as_str().get().ends_with(":read"));
+        });
     }
 
     #[test]

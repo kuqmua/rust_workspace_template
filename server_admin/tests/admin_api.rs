@@ -390,18 +390,30 @@ async fn validate_generated_admin_table<Table>(pool: &SqlxAdminApiTestPool)
 where
     Table: pg_crud_common::DbExtendedTableSchema,
 {
-    pg_crud_common::validate_generated_postgres_table::<Table>(
-        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
-        pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
+    validate_generated_admin_table_in_schema::<Table>(
+        pool,
+        StdAdminApiTestStrRef(str_constants::PUBLIC),
     )
-    .await
-    .expect("c8629e14");
+    .await;
     pg_crud_common::validate_postgres_table_extensions::<Table>(
         pg_crud_common::SqlxPgPoolRef::from(&pool.0),
         pg_crud_common::DbSchemaNameRef::from(str_constants::PUBLIC),
     )
     .await
     .expect("141e9df6");
+}
+async fn validate_generated_admin_table_in_schema<Table>(
+    pool: &SqlxAdminApiTestPool,
+    schema: StdAdminApiTestStrRef<'_>,
+) where
+    Table: pg_crud_common::DbExtendedTableSchema,
+{
+    pg_crud_common::validate_generated_postgres_table::<Table>(
+        pg_crud_common::SqlxPgPoolRef::from(&pool.0),
+        pg_crud_common::DbSchemaNameRef::from(schema.0),
+    )
+    .await
+    .expect("c8629e14");
 }
 async fn postgres_accepts_admin_user_policy_values(
     pool: &SqlxAdminApiTestPool,
@@ -748,7 +760,11 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     assert!(users_html.0.contains(created.0.to_string().as_str()));
     assert!(users_html.0.contains(login));
     assert!(users_html.0.contains(display_name));
-    assert!(users_html.0.contains("<td>false</td>"));
+    assert!(
+        users_html
+            .0
+            .contains("<td data-label=\"Banned\">false</td>")
+    );
     assert!(
         users_html
             .0
@@ -906,7 +922,11 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     let final_users_html = admin_html_body(final_users_response).await;
     assert!(final_users_html.0.contains(updated_login));
     assert!(final_users_html.0.contains(updated_display_name));
-    assert!(final_users_html.0.contains("<td>true</td>"));
+    assert!(
+        final_users_html
+            .0
+            .contains("<td data-label=\"Banned\">true</td>")
+    );
     assert!(
         final_users_html
             .0
@@ -1007,7 +1027,11 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     let roles_html = admin_html_body(roles_response).await;
     assert!(roles_html.0.contains(created.0.to_string().as_str()));
     assert!(roles_html.0.contains(role_name));
-    assert!(roles_html.0.contains("<td>false</td>"));
+    assert!(
+        roles_html
+            .0
+            .contains("<td data-label=\"System\">false</td>")
+    );
     assert!(
         roles_html
             .0
@@ -1511,7 +1535,11 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     assert!(sessions_html.0.contains(session_id.to_string().as_str()));
     assert!(sessions_html.0.contains(created_at.as_str()));
     assert!(sessions_html.0.contains(expires_at.as_str()));
-    assert!(sessions_html.0.contains("<td>true</td>"));
+    assert!(
+        sessions_html
+            .0
+            .contains("<td data-label=\"Current\">true</td>")
+    );
 
     let revoke_body =
         AdminHtmlTestFormBody::try_from(format!("session_id={session_id}&confirmation=true"))
@@ -1576,6 +1604,29 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 "frontend page {} returned {}",
                 path.get(),
                 response.status()
+            );
+        },
+    )
+    .await;
+    futures::StreamExt::fold(
+        futures::stream::iter(server_admin_contract::AdminDataTable::ALL),
+        (),
+        async |(), table| {
+            let uri = format!(
+                "{}?table={table}",
+                server_admin_contract::AdminFrontendPath::Tables.get()
+            );
+            let response = admin_html_response(
+                fixture_ref,
+                HttpAdminApiTestMethod(http::Method::GET),
+                StdAdminApiTestStrRef(uri.as_str()),
+                StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            )
+            .await;
+            assert_eq!(
+                response.status(),
+                http::StatusCode::OK,
+                "table view {table} failed"
             );
         },
     )
@@ -3081,20 +3132,19 @@ async fn postgresql_cleanup_is_batched_and_preserves_append_only_policy() {
 }
 #[tokio::test]
 #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
+async fn postgresql_migration_creates_complete_schema() {
     let database_url = std::env::var(str_constants::ENV_NAMES_DATABASE_URL).expect("b65d1786");
     let base_pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(1u32)
         .connect(database_url.as_str())
         .await
         .expect("0047f74e");
-    let _drop_schemas = sqlx::raw_sql(
-        str_constants::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_IF,
-    )
-    .execute(&base_pool)
-    .await
-    .expect("df91b04d");
-    let _create_schemas = sqlx::raw_sql(str_constants::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CREATE_SCHEMA_ADMIN_MIGRATION_UPGRADE_TEST)
+    let _drop_schema =
+        sqlx::raw_sql(str_constants::DROP_SCHEMA_IF_EXISTS_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
+            .execute(&base_pool)
+            .await
+            .expect("df91b04d");
+    let _create_schema = sqlx::raw_sql(str_constants::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST)
         .execute(&base_pool)
         .await
         .expect("02bcd1c2");
@@ -3111,9 +3161,6 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     let fresh_pool = connect(StdAdminApiTestStrRef(
         str_constants::ADMIN_MIGRATION_FRESH_TEST,
     ));
-    let upgrade_pool = connect(StdAdminApiTestStrRef(
-        str_constants::ADMIN_MIGRATION_UPGRADE_TEST,
-    ));
     let full = sqlx::migrate!("./migrations");
     full.run(&fresh_pool).await.expect("4b6c3bd6");
     let expected_fresh_catalog = server_admin::admin_catalog_snapshot(
@@ -3128,38 +3175,43 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     .expect("7b2057bf");
     pg_crud_common::validate_postgres_catalog(expected_fresh_catalog, observed_fresh_catalog)
         .expect("ac91d742");
-    let baseline = sqlx::migrate::Migrator {
-        migrations: std::borrow::Cow::Owned(full.migrations.iter().take(3usize).cloned().collect()),
-        ignore_missing: false,
-        locking: true,
-        no_tx: false,
-    };
-    baseline.run(&upgrade_pool).await.expect("2e03eccc");
-    let baseline_version = sqlx::query_scalar::<_, i64>(
-        str_constants::SELECT_MAX_VERSION_FROM_SQLX_MIGRATIONS_WHERE_SUCCESS_TRUE,
+    let fresh_admin_pool = SqlxAdminApiTestPool(fresh_pool.clone());
+    let fresh_schema = StdAdminApiTestStrRef(str_constants::ADMIN_MIGRATION_FRESH_TEST);
+    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminUsers>(
+        &fresh_admin_pool,
+        fresh_schema,
     )
-    .fetch_one(&upgrade_pool)
+    .await;
+    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminUserRoles>(
+        &fresh_admin_pool,
+        fresh_schema,
+    )
+    .await;
+    validate_generated_admin_table_in_schema::<
+        server_admin::generated_tables::AdminRolePermissions,
+    >(&fresh_admin_pool, fresh_schema)
+    .await;
+    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminRoles>(
+        &fresh_admin_pool,
+        fresh_schema,
+    )
+    .await;
+    validate_generated_admin_table_in_schema::<server_admin::generated_tables::AdminPermissions>(
+        &fresh_admin_pool,
+        fresh_schema,
+    )
+    .await;
+    validate_generated_admin_table_in_schema::<
+        server_admin::generated_tables::AdminSystemSettings,
+    >(&fresh_admin_pool, fresh_schema)
+    .await;
+    let version = sqlx::query_scalar::<_, i64>(
+        str_constants::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
+    )
+    .fetch_one(&base_pool)
     .await
-    .expect("17862da9");
-    assert_eq!(baseline_version, 3i64);
-    full.run(&upgrade_pool).await.expect("3664ecff");
-    let expected_upgrade_catalog = server_admin::admin_catalog_snapshot(
-        server_admin::StdAdminStrRef::from(str_constants::ADMIN_MIGRATION_UPGRADE_TEST),
-    )
-    .expect("1e4a8d90");
-    let observed_upgrade_catalog = pg_crud_common::inspect_postgres_catalog(
-        pg_crud_common::SqlxPgPoolRef::from(&upgrade_pool),
-        pg_crud_common::DbSchemaNameRef::from(str_constants::ADMIN_MIGRATION_UPGRADE_TEST),
-    )
-    .await
-    .expect("f2053e69");
-    pg_crud_common::validate_postgres_catalog(expected_upgrade_catalog, observed_upgrade_catalog)
-        .expect("cf47a283");
-    let versions = sqlx::query_as::<_, (i64, i64)>(str_constants::SELECT_SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE)
-        .fetch_one(&base_pool)
-        .await
-        .expect("5c10c931");
-    assert_eq!(versions, (10i64, 10i64));
+    .expect("5c10c931");
+    assert_eq!(version, 1i64);
     let expected_tables = [
         str_constants::ACCESS_SESSIONS,
         str_constants::AUDIT_LOG_ALT,
@@ -3183,21 +3235,12 @@ async fn postgresql_migrations_cover_fresh_and_supported_baseline_upgrade() {
     .fetch_all(&base_pool)
     .await
     .expect("ab254ff4");
-    let upgrade_tables = sqlx::query_scalar::<_, String>(
-        str_constants::SELECT_TABLE_NAME_FROM_INFORMATION_SCHEMA_TABLES_WHERE_TABLE_SCHEMA,
-    )
-    .bind(str_constants::ADMIN_MIGRATION_UPGRADE_TEST)
-    .fetch_all(&base_pool)
-    .await
-    .expect("d4ce6fc9");
     assert_eq!(
         fresh_tables.iter().map(String::as_str).collect::<Vec<_>>(),
         expected_tables
     );
-    assert_eq!(upgrade_tables, fresh_tables);
     fresh_pool.close().await;
-    upgrade_pool.close().await;
-    let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE_DROP_SCHEMA_ADMIN_MIGRATION_UPGRADE)
+    let _drop_after = sqlx::raw_sql(str_constants::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
         .execute(&base_pool)
         .await
         .expect("88dd90b8");

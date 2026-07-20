@@ -138,6 +138,12 @@ struct SettingsForm {
     tab_title: AdminHtmlFormText,
 }
 
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DataTablesQuery {
+    table: Option<AdminHtmlFormText>,
+}
+
 fn html_response(html: server_admin_frontend::ssr::AdminSsrHtml) -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Html(String::from(html)))
 }
@@ -290,6 +296,41 @@ async fn users(
             server_admin_frontend::ssr::render_users(&page, &query, &admin, &branding),
         ),
         (Err(error), _) | (_, Err(error)) => html_page_error(error),
+    }
+}
+
+async fn data_tables(
+    auth: super::AdminAuthReq,
+    super::AxumAdminQuery(query): super::AxumAdminQuery<DataTablesQuery>,
+) -> axum::response::Response {
+    let table = query
+        .table
+        .map(|value| server_admin_contract::AdminDataTable::try_from(value.0));
+    let table = match table {
+        Some(Ok(value)) => Some(value),
+        Some(Err(_error)) => {
+            return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+        }
+        None => None,
+    };
+    let context_result = page_context(&auth).await;
+    let catalog_result = super::handlers::data_table_catalog(auth.clone()).await;
+    let view_result = match table {
+        Some(value) => super::handlers::data_table_view(auth, value)
+            .await
+            .map(Some),
+        None => Ok(None),
+    };
+    match (context_result, catalog_result, view_result) {
+        (Ok((admin, branding)), Ok(catalog), Ok(view)) => {
+            html_response(server_admin_frontend::ssr::render_data_tables(
+                &catalog,
+                view.as_ref(),
+                &admin,
+                &branding,
+            ))
+        }
+        (Err(error), _, _) | (_, Err(error), _) | (_, _, Err(error)) => html_page_error(error),
     }
 }
 
@@ -890,6 +931,10 @@ pub(super) fn routes(
             .route(
                 server_admin_contract::AdminFrontendPath::Permissions.get(),
                 axum::routing::get(permissions),
+            )
+            .route(
+                server_admin_contract::AdminFrontendPath::Tables.get(),
+                axum::routing::get(data_tables),
             )
             .route(
                 server_admin_contract::AdminFrontendPath::Sessions.get(),

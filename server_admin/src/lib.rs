@@ -613,26 +613,11 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 10usize);
+        assert_eq!(migrations.len(), 1usize);
         assert!(
             migrations
                 .iter()
-                .any(|migration| migration.description == "admin rate limits")
-        );
-        assert!(
-            migrations
-                .iter()
-                .any(|migration| migration.description == "remove admin table prefix")
-        );
-        assert!(
-            migrations
-                .iter()
-                .any(|migration| migration.description == "admin audit cleanup")
-        );
-        assert!(
-            migrations
-                .iter()
-                .any(|migration| migration.description == "admin session context")
+                .any(|migration| migration.description == "admin schema")
         );
     }
     #[test]

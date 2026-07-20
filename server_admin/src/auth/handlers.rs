@@ -1348,6 +1348,64 @@ pub(super) async fn branding(
         )))
     })
 }
+pub(super) async fn data_tables(
+    auth: super::AdminAuthReq,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    data_table_catalog(auth).await.map(|catalog| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            catalog,
+        )))
+    })
+}
+pub(super) async fn data_table_catalog(
+    auth: super::AdminAuthReq,
+) -> Result<server_admin_contract::AdminDataTableCatalog, super::AdminApiError> {
+    let actor = super::authorize_generated_request(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+        super::super::AdminPermission::TablesRead.as_str(),
+        super::super::StdAdminBool::from(false),
+    )
+    .await?;
+    let admin = super::authenticated_admin_contract(&actor)?;
+    let items = server_admin_contract::AdminDataTable::ALL
+        .into_iter()
+        .filter(|table| bool::from(admin.has_permission(table.permission())))
+        .collect::<Vec<_>>();
+    Ok(server_admin_contract::AdminDataTableCatalog::new(items))
+}
+pub(super) async fn data_table_view(
+    auth: super::AdminAuthReq,
+    table: server_admin_contract::AdminDataTable,
+) -> Result<server_admin_contract::AdminDataTableView, super::AdminApiError> {
+    let _actor = super::authorize_generated_request(
+        auth.state.as_ref(),
+        super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
+        auth.peer,
+        table.permission().as_str(),
+        super::super::StdAdminBool::from(false),
+    )
+    .await?;
+    super::super::repository::data_tables::read(
+        super::super::repository::SqlxAdminRepositoryPoolRef::from(
+            auth.state.as_ref().pool.as_ref(),
+        ),
+        table,
+    )
+    .await
+    .map_err(map_repository_error)
+}
+pub(super) async fn data_table(
+    auth: super::AdminAuthReq,
+    super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
+) -> Result<super::AxumAdminResponse, super::AdminApiError> {
+    data_table_view(auth, table).await.map(|view| {
+        super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
+            view,
+        )))
+    })
+}
 pub(super) async fn branding_view(
     auth: super::AdminAuthReq,
 ) -> Result<server_admin_contract::AdminBrandingView, super::AdminApiError> {

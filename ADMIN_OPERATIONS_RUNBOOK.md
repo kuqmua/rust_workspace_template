@@ -14,8 +14,8 @@
 - Keep the service port private to the gateway. Configure HSTS at the TLS terminator, preserve the
   restrictive content security policy, and expose health endpoints only to infrastructure that
   needs them.
-- Apply and verify all database migrations before shifting traffic. The migration test exercises
-  both a fresh schema and the supported version-3 baseline upgrade against PostgreSQL.
+- Apply and verify the database migration before shifting traffic. The migration test creates and
+  validates the complete schema against PostgreSQL.
 - Back up and restore-test PostgreSQL, alert on readiness failures and stale cleanup status, and
   retain structured server logs according to the incident-response policy.
 

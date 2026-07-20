@@ -940,6 +940,19 @@ async fn export_audit_log(
 async fn branding(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::branding(auth).await
 }
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(tag = "admin_tables")]
+async fn data_tables(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::data_tables(auth).await
+}
+#[allow(clippy::single_call_fn)]
+#[frontend_contract::route_openapi(tag = "admin_tables")]
+async fn data_table(
+    auth: AdminAuthReq,
+    path: AxumAdminPath<server_admin_contract::AdminDataTable>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::data_table(auth, path).await
+}
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateSettingsReq, tag = "admin_settings")]
 async fn update_settings(
@@ -1241,7 +1254,7 @@ mod tests {
             .get(str_constants::PATHS)
             .and_then(serde_json::Value::as_object)
             .expect("6e15edec");
-        assert_eq!(paths.len(), 20usize);
+        assert_eq!(paths.len(), 22usize);
         assert!(!paths.contains_key("/auth/mfa"));
         assert!(!paths.contains_key("/auth/mfa/enroll"));
         assert!(!paths.contains_key("/auth/mfa/confirm"));

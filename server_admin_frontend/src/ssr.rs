@@ -339,6 +339,46 @@ pub fn render_permissions(
 }
 
 #[must_use]
+pub fn render_data_tables(
+    catalog: &server_admin_contract::AdminDataTableCatalog,
+    table: Option<&server_admin_contract::AdminDataTableView>,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    let content = leptos::view! {
+        <nav class="table-tools" aria-label="Database tables">
+            {catalog.items().iter().copied().map(|item| {
+                let name = item.to_string();
+                let href = format!("{}?table={name}", server_admin_contract::AdminFrontendPath::Tables.get());
+                leptos::view! { <a href=href>{name}</a> }
+            }).collect::<Vec<_>>()}
+        </nav>
+        {table.map(|view| leptos::view! {
+            <section>
+                <h2>{view.table().to_string()}</h2>
+                <p>{format!("{} rows (maximum 100)", view.items().len())}</p>
+                <div class="table-scroll"><table>
+                    <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
+                    <tbody>{view.items().iter().map(|row| leptos::view! {
+                        <tr>{row.values().iter().enumerate().map(|(index, value)| {
+                            let label = view.columns().get(index).map_or_else(String::new, ToString::to_string);
+                            leptos::view! { <td data-label=label>{value.to_string()}</td> }
+                        }).collect::<Vec<_>>()}</tr>
+                    }).collect::<Vec<_>>()}</tbody>
+                </table></div>
+            </section>
+        })}
+    }
+    .render_admin_ssr();
+    render_admin_page_with_access(
+        server_admin_contract::AdminPage::Tables,
+        content,
+        Some(admin),
+        Some(branding),
+    )
+}
+
+#[must_use]
 pub fn render_sessions(
     items: &[server_admin_contract::AdminSessionView],
     admin: &server_admin_contract::AuthenticatedAdmin,
