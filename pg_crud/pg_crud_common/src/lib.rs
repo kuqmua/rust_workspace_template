@@ -1373,6 +1373,12 @@ impl<T: PartialEq> NotEmptyUniqueVec<T> {
         Ok(Self::from(Vec::from(candidates)))
     }
 }
+impl<T: PartialEq> TryFrom<DuplicateCandidates<T>> for NotEmptyUniqueVec<T> {
+    type Error = NotEmptyUniqueVecTryNewError<T>;
+    fn try_from(value: DuplicateCandidates<T>) -> Result<Self, Self::Error> {
+        Self::try_new(value)
+    }
+}
 impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
     pub fn try_new_by_hash(
         values: DuplicateCandidates<T>,
@@ -1440,7 +1446,7 @@ const _: () = {
                     __E: serde::Deserializer<'de>,
                 {
                     let f0: Vec<T> = <Vec<T> as serde::Deserialize>::deserialize(__e)?;
-                    match NotEmptyUniqueVec::try_new(f0.into()) {
+                    match NotEmptyUniqueVec::try_from(DuplicateCandidates::from(f0)) {
                         Ok(v) => Ok(v),
                         Err(error) => Err(_serde::de::Error::custom(format!("{error:?}"))),
                     }
@@ -1457,7 +1463,7 @@ const _: () = {
                             &str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
-                    match NotEmptyUniqueVec::try_new(f0.into()) {
+                    match NotEmptyUniqueVec::try_from(DuplicateCandidates::from(f0)) {
                         Ok(v) => Ok(v),
                         Err(error) => Err(_serde::de::Error::custom(format!("{error:?}"))),
                     }

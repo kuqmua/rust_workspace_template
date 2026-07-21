@@ -145,9 +145,8 @@ impl<'de> serde::Deserialize<'de> for StdAdminHtmlSelected {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText> as serde::Deserialize>::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
+        let value = <std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
     }
 }
 

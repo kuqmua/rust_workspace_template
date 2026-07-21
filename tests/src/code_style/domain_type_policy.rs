@@ -204,19 +204,109 @@ fn tuple_wrapper_deserialization_uses_from_or_try_from() {
             "tuple wrapper Deserialize must initialize through From or TryFrom",
         ),
         |path, ast, ers| {
-            let visitor = super::visit_syn_file(
+            let collector = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::TupleWrapperConversionCollector {
+                    converted_names: super::types::StdSourceTextSet::default(),
+                    names: super::types::StdSourceTextSet::default(),
+                },
+            );
+            let derive_visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::DirectDeserializeTupleWrapperVisitor {
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );
             ers.extend(
-                visitor
+                derive_visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+            let manual_visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ManualDeserializeTupleWrapperVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    names: &collector.names,
+                },
+            );
+            ers.extend(
+                manual_visitor
                     .ers
                     .into_iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
         },
+    );
+}
+#[test]
+fn tuple_wrapper_deserialization_policy_rejects_direct_derive() {
+    let ast: syn::File = syn::parse_quote! {
+        #[derive(Deserialize)]
+        struct Rejected(u64);
+
+        #[derive(Deserialize)]
+        #[serde(from = "u64")]
+        struct AllowedFrom(u64);
+
+        #[derive(Deserialize)]
+        #[serde(try_from = "String")]
+        struct AllowedTryFrom(String);
+
+        #[derive(Deserialize)]
+        struct Named { value: u64 }
+
+        struct ManualRejected(u64);
+
+        impl<'de> Deserialize<'de> for ManualRejected {
+            fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error> {
+                loop {}
+            }
+        }
+
+        struct ManualAllowed(u64);
+
+        impl<'de> Deserialize<'de> for ManualAllowed {
+            fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error> {
+                Ok(Self::from(1))
+            }
+        }
+    };
+    let collector = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::TupleWrapperConversionCollector {
+            converted_names: super::types::StdSourceTextSet::default(),
+            names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    let derive_visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DirectDeserializeTupleWrapperVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(derive_visitor.ers.len(), 1, "b0406560");
+    assert!(
+        derive_visitor.ers.first().is_some_and(|error| {
+            error.contains("can bypass validation or other construction invariants")
+                && error.contains("#[serde(try_from = \"RawType\")]")
+        }),
+        "f103b2f0"
+    );
+    let manual_visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::ManualDeserializeTupleWrapperVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            names: &collector.names,
+        },
+    );
+    assert_eq!(manual_visitor.ers.len(), 1, "fbe61e18");
+    assert!(
+        manual_visitor.ers.first().is_some_and(|error| {
+            error.contains("without an explicit From/TryFrom call")
+                && error.contains("Self::try_from(raw)")
+        }),
+        "10fa222c"
     );
 }
 #[test]
@@ -230,8 +320,8 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
             let collector = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::TupleWrapperConversionCollector {
-                    names: super::types::StdSourceTextSet::default(),
                     converted_names: super::types::StdSourceTextSet::default(),
+                    names: super::types::StdSourceTextSet::default(),
                 },
             );
             ers.extend(
@@ -262,6 +352,60 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
             );
         },
     );
+}
+#[test]
+fn tuple_wrapper_initialization_policy_rejects_direct_constructors() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Allowed(u64);
+
+        impl From<u64> for Allowed {
+            fn from(value: u64) -> Self {
+                Self(value)
+            }
+        }
+
+        impl Allowed {
+            fn direct_self() -> Self {
+                Self(1)
+            }
+        }
+
+        fn direct() -> Allowed {
+            Allowed(1)
+        }
+
+        struct Missing(u64);
+        struct Named { value: u64 }
+        struct Pair(u64, u64);
+    };
+    let collector = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::TupleWrapperConversionCollector {
+            converted_names: super::types::StdSourceTextSet::default(),
+            names: super::types::StdSourceTextSet::default(),
+        },
+    );
+    assert_eq!(collector.names.len(), 2, "b058f76c");
+    assert_eq!(collector.converted_names.len(), 1, "70552188");
+    assert_eq!(
+        collector
+            .names
+            .difference(&collector.converted_names)
+            .count(),
+        1,
+        "5cbdfec2"
+    );
+
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DirectTupleWrapperConstructorVisitor {
+            names: &collector.names,
+            inside_conversion_impl: super::types::AnalyzerBool::default(),
+            current_wrapper_name: None,
+            ers: super::types::DiagnosticMsgs::default(),
+        },
+    );
+    assert_eq!(visitor.ers.len(), 2, "dd79f331");
 }
 #[test]
 fn domain_boundaries_use_repository_declared_types() {

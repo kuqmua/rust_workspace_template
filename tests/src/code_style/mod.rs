@@ -1084,6 +1084,13 @@ struct PublicTupleWrapperFieldVisitor {
 struct DirectDeserializeTupleWrapperVisitor {
     ers: types::DiagnosticMsgs,
 }
+struct DeserializeConversionCallVisitor {
+    found: types::AnalyzerBool,
+}
+struct ManualDeserializeTupleWrapperVisitor<'names> {
+    ers: types::DiagnosticMsgs,
+    names: &'names types::StdSourceTextSet,
+}
 struct TupleWrapperConversionCollector {
     converted_names: types::StdSourceTextSet,
     names: types::StdSourceTextSet,
@@ -1113,12 +1120,53 @@ impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
             && item_struct_derives_deserialize(types::SynItemStructRef::from(i)).get()
             && !item_struct_deserialize_uses_conversion(types::SynItemStructRef::from(i)).get()
         {
+            let start = syn::spanned::Spanned::span(i).start();
             self.ers.push(format!(
-                "tuple wrapper `{}` derives Deserialize directly; route deserialization through From/TryFrom with serde(from/try_from)",
-                i.ident
+                "tuple wrapper `{}` derives Deserialize directly at {}:{}; this lets serde construct the inner field without using the wrapper's required conversion path and can bypass validation or other construction invariants. Deserialize a raw value through `#[serde(from = \"RawType\")]` or `#[serde(try_from = \"RawType\")]` so construction finishes in From/TryFrom",
+                i.ident, start.line, start.column
             ));
         }
         syn::visit::visit_item_struct(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for DeserializeConversionCallVisitor {
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if let syn::Expr::Path(path) = i.func.as_ref()
+            && path.path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::FROM_ALT_4
+                    || segment.ident == str_constants::NEWTYPE_TRY_FROM
+            })
+        {
+            self.found.set_true();
+        }
+        syn::visit::visit_expr_call(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_deserialize_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_DESERIALIZE_DERIVE_NAME
+            })
+        });
+        let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i)) else {
+            syn::visit::visit_item_impl(self, i);
+            return;
+        };
+        if is_deserialize_impl && self.names.contains(name.as_ref()) {
+            let mut visitor = DeserializeConversionCallVisitor {
+                found: types::AnalyzerBool::default(),
+            };
+            syn::visit::visit_item_impl(&mut visitor, i);
+            if !visitor.found.get() {
+                let start = syn::spanned::Spanned::span(i).start();
+                self.ers.push(format!(
+                    "tuple wrapper `{}` implements Deserialize without an explicit From/TryFrom call at {}:{}; returning the wrapper through another construction path can bypass validation or other invariants. Deserialize into a raw type, then finish with `Self::from(raw)` or `Self::try_from(raw)` and map conversion errors with `serde::de::Error::custom`",
+                    name.as_ref(), start.line, start.column
+                ));
+            }
+        }
+        syn::visit::visit_item_impl(self, i);
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
