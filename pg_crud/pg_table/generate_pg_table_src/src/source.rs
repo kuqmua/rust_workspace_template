@@ -1720,6 +1720,9 @@ pub fn emit_generate_pg_table(
             } else {
                 quote::quote! {frontend_contract::FieldCapability::Disabled}
             };
+            let filters_token_stream = quote::quote! {
+                <#field_type as frontend_contract::HasFilterContracts>::filter_contracts()
+            };
             let sortable_token_stream = if frontend.sortable {
                 quote::quote! {frontend_contract::FieldCapability::Enabled}
             } else {
@@ -1746,6 +1749,7 @@ pub fn emit_generate_pg_table(
                 .with_primary_key(#primary_key_token_stream)
                 .with_creatable(#creatable_token_stream)
                 .with_filterable(#filterable_token_stream)
+                .with_filters(#filters_token_stream)
                 .with_order(frontend_contract::FieldOrder::from(#order))
                 .with_placeholder(#placeholder_token_stream)
                 .with_readable(#readable_token_stream)

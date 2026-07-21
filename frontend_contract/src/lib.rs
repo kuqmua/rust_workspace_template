@@ -110,6 +110,93 @@ pub enum CapabilitySupport {
     Supported,
     Unsupported,
 }
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum FilterOperation {
+    AdjacentWithRange,
+    Before,
+    Between,
+    CurrentDate,
+    CurrentTime,
+    CurrentTimestamp,
+    Eq,
+    EqToEncodedStringRepresentation,
+    ExcludedUpperBound,
+    FindRangesThatFullyContainTheGivenRange,
+    FindRangesWithinGivenRange,
+    GreaterThan,
+    GreaterThanCurrentDate,
+    GreaterThanCurrentTime,
+    GreaterThanCurrentTimestamp,
+    GreaterThanExcludedUpperBound,
+    GreaterThanIncludedLowerBound,
+    In,
+    IncludedLowerBound,
+    OverlapWithRange,
+    RangeLen,
+    Regex,
+    StrictlyToLeftOfRange,
+    StrictlyToRightOfRange,
+}
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum FilterValueShape {
+    EncodedText,
+    List,
+    None,
+    Range,
+    Regex,
+    Scalar,
+}
+impl FilterOperation {
+    #[must_use]
+    pub const fn value_shape(self) -> FilterValueShape {
+        match self {
+            Self::Between => FilterValueShape::Range,
+            Self::CurrentDate
+            | Self::CurrentTime
+            | Self::CurrentTimestamp
+            | Self::GreaterThanCurrentDate
+            | Self::GreaterThanCurrentTime
+            | Self::GreaterThanCurrentTimestamp => FilterValueShape::None,
+            Self::EqToEncodedStringRepresentation => FilterValueShape::EncodedText,
+            Self::In => FilterValueShape::List,
+            Self::Regex => FilterValueShape::Regex,
+            Self::AdjacentWithRange
+            | Self::Before
+            | Self::Eq
+            | Self::ExcludedUpperBound
+            | Self::FindRangesThatFullyContainTheGivenRange
+            | Self::FindRangesWithinGivenRange
+            | Self::GreaterThan
+            | Self::GreaterThanExcludedUpperBound
+            | Self::GreaterThanIncludedLowerBound
+            | Self::IncludedLowerBound
+            | Self::OverlapWithRange
+            | Self::RangeLen
+            | Self::StrictlyToLeftOfRange
+            | Self::StrictlyToRightOfRange => FilterValueShape::Scalar,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+pub struct FilterContracts(&'static [FilterOperation]);
+impl AsRef<[FilterOperation]> for FilterContracts {
+    fn as_ref(&self) -> &[FilterOperation] {
+        self.0
+    }
+}
+pub trait HasFilterContracts {
+    const FILTER_CONTRACTS: &'static [FilterOperation];
+    #[must_use]
+    fn filter_contracts() -> FilterContracts {
+        FilterContracts::from(Self::FILTER_CONTRACTS)
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InputStep {
     Any,
@@ -312,6 +399,7 @@ pub enum FieldPlaceholder {
 pub struct FieldContract {
     creatable: FieldCapability,
     filterable: FieldCapability,
+    filters: FilterContracts,
     label: ContractStr,
     name: ContractStr,
     order: FieldOrder,
@@ -325,12 +413,14 @@ pub struct FieldContract {
 }
 #[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct FieldContracts(Vec<FieldContract>);
+const EMPTY_FILTER_CONTRACTS: &[FilterOperation] = &[];
 impl FieldContract {
     #[must_use]
     pub fn new(name: ContractStr, label: ContractStr, type_contract: TypeContract) -> Self {
         Self {
             creatable: FieldCapability::Disabled,
             filterable: FieldCapability::Disabled,
+            filters: FilterContracts::from(EMPTY_FILTER_CONTRACTS),
             label,
             name,
             order: FieldOrder::from(0usize),
@@ -354,6 +444,10 @@ impl FieldContract {
     #[must_use]
     pub const fn filterable(self) -> FieldCapability {
         self.filterable
+    }
+    #[must_use]
+    pub fn filters(&self) -> &[FilterOperation] {
+        self.filters.as_ref()
     }
     #[must_use]
     pub const fn name(self) -> ContractStr {
@@ -399,6 +493,11 @@ impl FieldContract {
     #[must_use]
     pub const fn with_filterable(mut self, value: FieldCapability) -> Self {
         self.filterable = value;
+        self
+    }
+    #[must_use]
+    pub const fn with_filters(mut self, value: FilterContracts) -> Self {
+        self.filters = value;
         self
     }
     #[must_use]

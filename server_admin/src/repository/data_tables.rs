@@ -55,12 +55,22 @@ fn data_columns(
                         field.type_contract().input_kind(),
                     )
                 });
+            let raw_filters = generated_field.map_or_else(Vec::new, |field| {
+                field
+                    .filters()
+                    .iter()
+                    .copied()
+                    .map(server_admin_contract::AdminDataFilter::from)
+                    .collect::<Vec<_>>()
+            });
+            let filters = server_admin_contract::AdminDataFilters::try_from(raw_filters)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
             let label = server_admin_contract::AdminText::try_from(label_text)
                 .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
             let name = server_admin_contract::AdminText::try_from(raw_name.to_owned())
                 .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
             Ok(server_admin_contract::AdminDataColumn::new(
-                input_kind, label, name,
+                filters, input_kind, label, name,
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
@@ -188,5 +198,21 @@ mod tests {
         assert!(id.is_some_and(|column| {
             column.input_kind() == server_admin_contract::AdminDataInputKind::Number
         }));
+        let login = columns
+            .as_slice()
+            .iter()
+            .find(|column| column.name().as_ref() == str_constants::LOGIN)
+            .expect("7a340d1f");
+        assert_eq!(
+            login
+                .filters()
+                .iter()
+                .map(server_admin_contract::AdminDataFilter::operation)
+                .collect::<Vec<_>>(),
+            vec![
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::Regex,
+            ]
+        );
     }
 }

@@ -241,6 +241,31 @@ mod tests {
         );
     }
     #[test]
+    fn generated_frontend_filters_follow_the_same_descriptor_matrix() {
+        let number = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::HasFilterContracts>::filter_contracts();
+        assert_eq!(
+            number.as_ref().to_vec(),
+            vec![
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::GreaterThan,
+                frontend_contract::FilterOperation::Between,
+                frontend_contract::FilterOperation::In,
+            ]
+        );
+        let text = <pg_types_text_misc::StringAsNonNullText as frontend_contract::HasFilterContracts>::filter_contracts();
+        assert_eq!(
+            text.as_ref().to_vec(),
+            vec![
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::Regex,
+            ]
+        );
+        assert_eq!(
+            text.as_ref().get(1usize).map(|filter| filter.value_shape()),
+            Some(frontend_contract::FilterValueShape::Regex)
+        );
+    }
+    #[test]
     fn generated_schema_examples_deserialize_for_every_wire_kind() {
         assert_schema_example_deserializes::<pg_types_numeric::I16AsNonNullInt2Origin>();
         assert_schema_example_deserializes::<pg_types_numeric::I32AsNonNullInt4Origin>();

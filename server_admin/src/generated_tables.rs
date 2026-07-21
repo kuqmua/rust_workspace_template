@@ -573,4 +573,28 @@ mod tests {
             });
         });
     }
+    #[test]
+    fn generated_frontend_filter_metadata_matches_api_filter_schema() {
+        let fields = super::AdminUsers::frontend_fields();
+        let login = fields
+            .as_ref()
+            .iter()
+            .find(|field| field.name().as_ref() == str_constants::LOGIN)
+            .expect("c2a69d51");
+        assert_eq!(
+            login.filters().to_vec(),
+            vec![
+                frontend_contract::FilterOperation::Eq,
+                frontend_contract::FilterOperation::Regex,
+            ]
+        );
+        let (_, schema) =
+            <pg_types_text_misc::StringAsNonNullTextWhere as utoipa::ToSchema>::schema();
+        let variants = serde_json::to_value(schema)
+            .expect("84d658fc")
+            .get("oneOf")
+            .and_then(serde_json::Value::as_array)
+            .map(Vec::len);
+        assert_eq!(variants, Some(login.filters().len()));
+    }
 }

@@ -1816,18 +1816,29 @@ impl AdminAuditHtmlQuery {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataColumn {
+    filters: AdminDataFilters,
     input_kind: AdminDataInputKind,
     label: AdminText,
     name: AdminText,
 }
 impl AdminDataColumn {
     #[must_use]
-    pub const fn new(input_kind: AdminDataInputKind, label: AdminText, name: AdminText) -> Self {
+    pub const fn new(
+        filters: AdminDataFilters,
+        input_kind: AdminDataInputKind,
+        label: AdminText,
+        name: AdminText,
+    ) -> Self {
         Self {
+            filters,
             input_kind,
             label,
             name,
         }
+    }
+    #[must_use]
+    pub const fn filters(&self) -> &[AdminDataFilter] {
+        self.filters.as_slice()
     }
     #[must_use]
     pub const fn input_kind(&self) -> AdminDataInputKind {
@@ -1840,6 +1851,56 @@ impl AdminDataColumn {
     #[must_use]
     pub const fn name(&self) -> &AdminText {
         &self.name
+    }
+}
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+pub struct AdminDataFilter {
+    operation: frontend_contract::FilterOperation,
+    value_shape: frontend_contract::FilterValueShape,
+}
+impl From<frontend_contract::FilterOperation> for AdminDataFilter {
+    fn from(value: frontend_contract::FilterOperation) -> Self {
+        Self {
+            operation: value,
+            value_shape: value.value_shape(),
+        }
+    }
+}
+impl AdminDataFilter {
+    #[must_use]
+    pub const fn operation(&self) -> frontend_contract::FilterOperation {
+        self.operation
+    }
+    #[must_use]
+    pub const fn value_shape(&self) -> frontend_contract::FilterValueShape {
+        self.value_shape
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+#[serde(transparent)]
+pub struct AdminDataFilters(#[schema(max_items = 100)] Vec<AdminDataFilter>);
+impl TryFrom<Vec<AdminDataFilter>> for AdminDataFilters {
+    type Error = AdminCollectionError;
+    fn try_from(value: Vec<AdminDataFilter>) -> Result<Self, Self::Error> {
+        AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
+    }
+}
+impl AdminDataFilters {
+    #[must_use]
+    pub const fn as_slice(&self) -> &[AdminDataFilter] {
+        self.0.as_slice()
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminDataFilters {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let bounded =
+            <AdminBoundedVec<AdminDataFilter> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(

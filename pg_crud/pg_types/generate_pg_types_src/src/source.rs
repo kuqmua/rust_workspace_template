@@ -3787,7 +3787,7 @@ pub fn emit_generate_pg_types(
         };
         let identifier_read_upper_camel_case = naming::parameter::SelfReadUpperCamelCase::from_tokens(&identifier);
         let identifier_where_upper_camel_case = naming::parameter::SelfWhereUpperCamelCase::from_tokens(&identifier);
-        let identifier_where_token_stream = {
+        let (identifier_where_token_stream, frontend_filter_contracts_token_stream) = {
             let pg_type_filters = {
                 fn generate_flts_with<T>(
                     base: Vec<pg_crud_macros_common::filters::PgTypeFilter>,
@@ -3859,6 +3859,36 @@ pub fn emit_generate_pg_types(
                     }
                 }
             };
+            let frontend_filter_contracts_token_stream = pg_type_filters.iter().map(|filter| {
+                let operation = match filter {
+                    pg_crud_macros_common::filters::PgTypeFilter::Eq { .. } => quote::quote! {Eq},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThan { .. } => quote::quote! {GreaterThan},
+                    pg_crud_macros_common::filters::PgTypeFilter::Between { .. } => quote::quote! {Between},
+                    pg_crud_macros_common::filters::PgTypeFilter::In { .. } => quote::quote! {In},
+                    pg_crud_macros_common::filters::PgTypeFilter::Regex => quote::quote! {Regex},
+                    pg_crud_macros_common::filters::PgTypeFilter::Before { .. } => quote::quote! {Before},
+                    pg_crud_macros_common::filters::PgTypeFilter::CurrentDate => quote::quote! {CurrentDate},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentDate => quote::quote! {GreaterThanCurrentDate},
+                    pg_crud_macros_common::filters::PgTypeFilter::CurrentTimestamp => quote::quote! {CurrentTimestamp},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentTimestamp => quote::quote! {GreaterThanCurrentTimestamp},
+                    pg_crud_macros_common::filters::PgTypeFilter::CurrentTime => quote::quote! {CurrentTime},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThanCurrentTime => quote::quote! {GreaterThanCurrentTime},
+                    pg_crud_macros_common::filters::PgTypeFilter::EqToEncodedStringRepresentation => quote::quote! {EqToEncodedStringRepresentation},
+                    pg_crud_macros_common::filters::PgTypeFilter::FindRangesWithinGivenRange { .. } => quote::quote! {FindRangesWithinGivenRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::FindRangesThatFullyContainTheGivenRange { .. } => quote::quote! {FindRangesThatFullyContainTheGivenRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::StrictlyToLeftOfRange { .. } => quote::quote! {StrictlyToLeftOfRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::StrictlyToRightOfRange { .. } => quote::quote! {StrictlyToRightOfRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::IncludedLowerBound { .. } => quote::quote! {IncludedLowerBound},
+                    pg_crud_macros_common::filters::PgTypeFilter::ExcludedUpperBound { .. } => quote::quote! {ExcludedUpperBound},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => quote::quote! {GreaterThanIncludedLowerBound},
+                    pg_crud_macros_common::filters::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => quote::quote! {GreaterThanExcludedUpperBound},
+                    pg_crud_macros_common::filters::PgTypeFilter::OverlapWithRange { .. } => quote::quote! {OverlapWithRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::AdjacentWithRange { .. } => quote::quote! {AdjacentWithRange},
+                    pg_crud_macros_common::filters::PgTypeFilter::RangeLen => quote::quote! {RangeLen},
+                };
+                quote::quote! {frontend_contract::FilterOperation::#operation}
+            });
+            (
             pg_crud_macros_common::generate_pg_type_where_token_stream(
                 &allow_clippy_arbitrary_src_item_ordering,
                 pg_type_filters.as_slice(),
@@ -3866,6 +3896,8 @@ pub fn emit_generate_pg_types(
                 &pg_crud_macros_common::ShouldDeriveUtoipaToSchema::True,
                 &pg_crud_macros_common::ShouldDSchemarsJsonSchema::False,
                 &pg_crud_macros_common::IsQueryBindMut::False,
+            ),
+            quote::quote! {#(#frontend_filter_contracts_token_stream),*},
             )
         };
         let identifier_read_token_stream = {
@@ -5436,6 +5468,11 @@ pub fn emit_generate_pg_types(
                 }
             }
         };
+        let impl_frontend_filter_contracts_token_stream = quote::quote! {
+            impl frontend_contract::HasFilterContracts for #identifier {
+                const FILTER_CONTRACTS: &'static [frontend_contract::FilterOperation] = &[#frontend_filter_contracts_token_stream];
+            }
+        };
         let impl_pg_column_schema_token_stream = quote::quote! {
             impl pg_crud_common::PgColumnSchema for #identifier {
                 const DATA_TYPE: &'static str = #db_data_type;
@@ -5563,6 +5600,7 @@ pub fn emit_generate_pg_types(
             #maybe_impl_pg_type_primary_key_for_identifier_standard_non_null_if_can_be_primary_key_token_stream
             #maybe_impl_pg_type_not_primary_key_for_identifier_token_stream
             #impl_frontend_type_contract_token_stream
+            #impl_frontend_filter_contracts_token_stream
             #impl_pg_column_schema_token_stream
             #impl_frontend_form_value_contract_token_stream
         };

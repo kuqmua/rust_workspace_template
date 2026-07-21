@@ -290,7 +290,8 @@ fn data_table_grid(
         <div class="table-scroll"><table>
             <thead><tr>{view.columns().iter().map(|column| {
                 let field = column.name().to_string();
-                leptos::view! { <th data-field=field>{column.label().to_string()}</th> }
+                let filter_count = column.filters().len().to_string();
+                leptos::view! { <th data-field=field data-filter-count=filter_count>{column.label().to_string()}</th> }
             }).collect::<Vec<_>>()}</tr></thead>
             <tbody>{view.items().iter().map(|row| leptos::view! {
                 <tr>{row.values().iter().enumerate().map(|(index, value)| {
@@ -613,12 +614,14 @@ mod tests {
     fn generated_column_metadata_drives_data_table_markup() {
         let columns = server_admin_contract::AdminDataColumns::try_from(vec![
             server_admin_contract::AdminDataColumn::new(
+                server_admin_contract::AdminDataFilters::try_from(Vec::new()).expect("2239fb0a"),
                 server_admin_contract::AdminDataInputKind::Number,
                 server_admin_contract::AdminText::try_from(String::from("User identifier"))
                     .expect("f707908b"),
                 server_admin_contract::AdminText::try_from(String::from("id")).expect("694184c1"),
             ),
             server_admin_contract::AdminDataColumn::new(
+                server_admin_contract::AdminDataFilters::try_from(Vec::new()).expect("5ba25cf7"),
                 server_admin_contract::AdminDataInputKind::Text,
                 server_admin_contract::AdminText::try_from(String::from("Login name"))
                     .expect("0336b6ad"),
@@ -646,6 +649,7 @@ mod tests {
         let html = super::data_table_grid(&view).render_admin_ssr();
 
         assert!(html.as_ref().contains("data-field=\"id\""));
+        assert!(html.as_ref().contains("data-filter-count=\"0\""));
         assert!(html.as_ref().contains(">User identifier</th>"));
         assert!(html.as_ref().contains("class=\"numeric-cell\""));
         assert!(html.as_ref().contains("data-label=\"Login name\""));
