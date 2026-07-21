@@ -334,13 +334,11 @@ pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct AdminAuditDetailsTooLarge {
-    actual_bytes: AdminAuditDetailsBytes,
-}
+pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
 impl AdminAuditDetailsTooLarge {
     #[must_use]
     pub const fn actual_bytes(self) -> AdminAuditDetailsBytes {
-        self.actual_bytes
+        self.0
     }
     #[must_use]
     pub fn maximum_bytes(self) -> AdminAuditDetailsBytes {
@@ -352,7 +350,7 @@ impl std::fmt::Display for AdminAuditDetailsTooLarge {
         write!(
             f,
             "administrator audit details contain {} bytes, maximum is {} bytes",
-            self.actual_bytes.0, ADMIN_AUDIT_DETAILS_MAX_BYTES
+            self.0.0, ADMIN_AUDIT_DETAILS_MAX_BYTES
         )
     }
 }
@@ -374,9 +372,9 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
     fn try_from(value: serde_json::Value) -> Result<Self, Self::Error> {
         let actual_bytes = value.to_string().len();
         if actual_bytes > ADMIN_AUDIT_DETAILS_MAX_BYTES {
-            return Err(AdminAuditDetailsTooLarge {
-                actual_bytes: AdminAuditDetailsBytes::from(actual_bytes),
-            });
+            return Err(AdminAuditDetailsTooLarge(AdminAuditDetailsBytes::from(
+                actual_bytes,
+            )));
         }
         Ok(Self(value))
     }
@@ -3132,11 +3130,11 @@ mod tests {
         ));
         assert_eq!(
             oversized.err(),
-            Some(super::AdminAuditDetailsTooLarge {
-                actual_bytes: super::AdminAuditDetailsBytes::from(
+            Some(super::AdminAuditDetailsTooLarge(
+                super::AdminAuditDetailsBytes::from(
                     super::ADMIN_AUDIT_DETAILS_MAX_BYTES.saturating_add(2usize),
                 ),
-            })
+            ))
         );
     }
     #[test]

@@ -73,7 +73,7 @@ impl DevelopmentBootstrapSummary {
 #[must_use]
 pub fn summarize_identity_bootstrap<Reports>(reports: Reports) -> DevelopmentBootstrapSummary
 where
-    Reports: IntoIterator<Item = server_runtime::IdentityBootstrapReport>,
+    Reports: IntoIterator<Item = server_runtime::IdentityBootstrapDecision>,
 {
     reports.into_iter().fold(
         DevelopmentBootstrapSummary {
@@ -81,8 +81,8 @@ where
             create: DevelopmentIdentityCount(0usize),
             missing_role: DevelopmentIdentityCount(0usize),
         },
-        |mut summary, report| {
-            match report.decision() {
+        |mut summary, decision| {
+            match decision {
                 server_runtime::IdentityBootstrapDecision::AlreadyExists => {
                     summary.already_exists.0 = summary.already_exists.0.saturating_add(1usize);
                 }

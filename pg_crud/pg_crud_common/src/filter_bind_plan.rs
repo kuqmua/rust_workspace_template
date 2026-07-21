@@ -31,12 +31,7 @@ pub enum PgFilterBindValue {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-struct PgFilterBindValues(Vec<PgFilterBindValue>);
-
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct FilterBindPlan {
-    values: PgFilterBindValues,
-}
+pub struct FilterBindPlan(Vec<PgFilterBindValue>);
 impl FilterBindPlan {
     #[must_use]
     pub fn new() -> Self {
@@ -44,20 +39,20 @@ impl FilterBindPlan {
     }
 
     pub fn push_bool(&mut self, value: PgFilterBool) {
-        self.values.0.push(PgFilterBindValue::Bool(value));
+        self.0.push(PgFilterBindValue::Bool(value));
     }
 
     pub fn push_i64(&mut self, value: PgFilterI64) {
-        self.values.0.push(PgFilterBindValue::I64(value));
+        self.0.push(PgFilterBindValue::I64(value));
     }
 
     pub fn push_text(&mut self, value: PgFilterText) {
-        self.values.0.push(PgFilterBindValue::Text(value));
+        self.0.push(PgFilterBindValue::Text(value));
     }
 
     #[must_use]
     pub const fn values(&self) -> &[PgFilterBindValue] {
-        self.values.0.as_slice()
+        self.0.as_slice()
     }
 }
 

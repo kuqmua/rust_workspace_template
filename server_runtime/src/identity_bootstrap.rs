@@ -62,24 +62,12 @@ pub enum IdentityBootstrapDecision {
     MissingRole,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct IdentityBootstrapReport {
-    decision: IdentityBootstrapDecision,
-}
-
-impl IdentityBootstrapReport {
-    #[must_use]
-    pub const fn decision(self) -> IdentityBootstrapDecision {
-        self.decision
-    }
-}
-
 #[must_use]
 pub const fn plan_identity_bootstrap(
     identity: IdentityPresence,
     role: IdentityRolePresence,
-) -> IdentityBootstrapReport {
-    let decision = match (identity, role) {
+) -> IdentityBootstrapDecision {
+    match (identity, role) {
         (
             IdentityPresence::Present,
             IdentityRolePresence::Missing | IdentityRolePresence::Present,
@@ -90,8 +78,7 @@ pub const fn plan_identity_bootstrap(
         (IdentityPresence::Missing, IdentityRolePresence::Present) => {
             IdentityBootstrapDecision::Create
         }
-    };
-    IdentityBootstrapReport { decision }
+    }
 }
 
 #[cfg(test)]
@@ -102,24 +89,21 @@ mod tests {
             super::plan_identity_bootstrap(
                 super::IdentityPresence::Present,
                 super::IdentityRolePresence::Present,
-            )
-            .decision(),
+            ),
             super::IdentityBootstrapDecision::AlreadyExists
         );
         assert_eq!(
             super::plan_identity_bootstrap(
                 super::IdentityPresence::Missing,
                 super::IdentityRolePresence::Missing,
-            )
-            .decision(),
+            ),
             super::IdentityBootstrapDecision::MissingRole
         );
         assert_eq!(
             super::plan_identity_bootstrap(
                 super::IdentityPresence::Missing,
                 super::IdentityRolePresence::Present,
-            )
-            .decision(),
+            ),
             super::IdentityBootstrapDecision::Create
         );
     }

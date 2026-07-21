@@ -2,10 +2,8 @@
 pub struct StdBoundedBTreeMapLen(usize);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-#[error("bounded map length exceeds limit {max}")]
-pub struct BoundedBTreeMapError {
-    max: StdBoundedBTreeMapLen,
-}
+#[error("bounded map length exceeds limit {0}")]
+pub struct BoundedBTreeMapError(StdBoundedBTreeMapLen);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StdBoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);
@@ -24,9 +22,7 @@ impl<K, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
 
     fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
         if value.len() > MAX {
-            Err(BoundedBTreeMapError {
-                max: StdBoundedBTreeMapLen::from(MAX),
-            })
+            Err(BoundedBTreeMapError(StdBoundedBTreeMapLen::from(MAX)))
         } else {
             Ok(Self(value))
         }
@@ -62,9 +58,9 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
         let mut values = std::collections::BTreeMap::new();
         while let Some((key, value)) = map.next_entry()? {
             if values.len() == MAX {
-                return Err(serde::de::Error::custom(BoundedBTreeMapError {
-                    max: StdBoundedBTreeMapLen::from(MAX),
-                }));
+                return Err(serde::de::Error::custom(BoundedBTreeMapError(
+                    StdBoundedBTreeMapLen::from(MAX),
+                )));
             }
             let _previous = values.insert(key, value);
         }

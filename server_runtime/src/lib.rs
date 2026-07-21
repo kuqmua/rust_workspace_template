@@ -107,8 +107,8 @@ pub use http_policy::{
 };
 pub use http_status_error::{HttpErrorClass, HttpErrorStatus, classify_http_error_status};
 pub use identity_bootstrap::{
-    IdentityBootstrapDecision, IdentityBootstrapReport, IdentityPresence, IdentityRolePresence,
-    IdentitySpec, plan_identity_bootstrap,
+    IdentityBootstrapDecision, IdentityPresence, IdentityRolePresence, IdentitySpec,
+    plan_identity_bootstrap,
 };
 pub use lease_registry::{
     LeaseHeartbeat, LeaseId, LeaseIds, LeaseKey, LeaseRegistry, LeaseReservation, LeaseState,

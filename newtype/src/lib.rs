@@ -136,15 +136,13 @@ impl From<usize> for SnakeIdentifierifierLen {
     }
 }
 #[derive(Debug)]
-struct SnakeIdentifierifierTryFromStringError {
-    len: SnakeIdentifierifierLen,
-}
+struct SnakeIdentifierifierTryFromStringError(SnakeIdentifierifierLen);
 impl std::fmt::Display for SnakeIdentifierifierTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "snake identifier length {} exceeds maximum {SNAKE_IDENT_MAX_LEN}",
-            self.len.0
+            self.0.0
         )
     }
 }
@@ -152,9 +150,9 @@ impl TryFrom<String> for SnakeIdentifier {
     type Error = SnakeIdentifierifierTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > SNAKE_IDENT_MAX_LEN {
-            return Err(SnakeIdentifierifierTryFromStringError {
-                len: SnakeIdentifierifierLen::from(value.len()),
-            });
+            return Err(SnakeIdentifierifierTryFromStringError(
+                SnakeIdentifierifierLen::from(value.len()),
+            ));
         }
         Ok(Self(value))
     }
