@@ -975,13 +975,13 @@ async fn data_tables(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr
 }
 #[allow(clippy::single_call_fn)]
 #[frontend_contract::route_openapi(
-    params(server_admin_contract::AdminTableQuery),
+    params(server_admin_contract::AdminDataTableQuery),
     tag = "admin_tables"
 )]
 async fn data_table(
     auth: AdminAuthReq,
     path: AxumAdminPath<server_admin_contract::AdminDataTable>,
-    query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+    query: AxumAdminQuery<server_admin_contract::AdminDataTableQuery>,
 ) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::data_table(auth, path, query).await
 }

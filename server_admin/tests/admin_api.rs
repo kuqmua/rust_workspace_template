@@ -2830,6 +2830,69 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert!(
         u64::from(data_table.total()) >= u64::try_from(data_table.items().len()).expect("1440730f")
     );
+    let filtered_data_table_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::GET),
+            StdAdminApiTestStrRef::from(
+                format!(
+                    "/tables/users?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
+                    str_constants::ADMIN_ALT
+                )
+                .as_str(),
+            ),
+            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("766f5654");
+    assert_eq!(filtered_data_table_response.status(), http::StatusCode::OK);
+    let filtered_data_table =
+        axum::body::to_bytes(filtered_data_table_response.into_body(), 1_048_576usize)
+            .await
+            .map(|body| {
+                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+                    .expect("02d611ab")
+            })
+            .expect("6dfe8f37");
+    assert_eq!(u64::from(filtered_data_table.total()), 1u64);
+    assert_eq!(filtered_data_table.items().len(), 1usize);
+    assert!(
+        filtered_data_table
+            .items()
+            .first()
+            .expect("753fa97c")
+            .values()
+            .iter()
+            .any(|value| value.as_ref() == str_constants::ADMIN_ALT)
+    );
+    let empty_data_table_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::GET),
+            StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=eq&filter_value=missing_filter_user&limit=20&offset=0"),
+            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("1310e021");
+    assert_eq!(empty_data_table_response.status(), http::StatusCode::OK);
+    let empty_data_table =
+        axum::body::to_bytes(empty_data_table_response.into_body(), 1_048_576usize)
+            .await
+            .map(|body| {
+                serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+                    .expect("aa8376d3")
+            })
+            .expect("a98d6360");
+    assert_eq!(u64::from(empty_data_table.total()), 0u64);
+    assert!(empty_data_table.items().is_empty());
     let sign_out_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

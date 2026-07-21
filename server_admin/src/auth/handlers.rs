@@ -1386,7 +1386,7 @@ pub(super) async fn data_table_catalog(
 pub(super) async fn data_table_view(
     auth: super::AdminAuthReq,
     table: server_admin_contract::AdminDataTable,
-    query: &server_admin_contract::AdminTableQuery,
+    query: &server_admin_contract::AdminDataTableQuery,
 ) -> Result<server_admin_contract::AdminDataTableView, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -1409,7 +1409,7 @@ pub(super) async fn data_table_view(
 pub(super) async fn data_table(
     auth: super::AdminAuthReq,
     super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminDataTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
     data_table_view(auth, table, &query).await.map(|view| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(

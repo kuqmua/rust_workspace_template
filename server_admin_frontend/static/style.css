@@ -365,6 +365,49 @@ td details form button:hover {
   padding: 16px;
 }
 
+.table-filter-tools {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-heading,
+.table-filter-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-heading {
+  justify-content: space-between;
+}
+
+.table-filter-field {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.table-filter-operations {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.table-filter-form span {
+  min-width: 190px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.table-filter-form input[type="text"] {
+  min-width: 180px;
+}
+
 .audit-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;

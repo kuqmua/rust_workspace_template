@@ -218,6 +218,7 @@ fn table_pagination(
     query: &server_admin_contract::AdminTableQuery,
     total: server_admin_contract::AdminPageTotal,
     table: Option<server_admin_contract::AdminDataTable>,
+    table_filter: Option<&server_admin_contract::AdminDataTableFilterQuery>,
     audit: Option<&server_admin_contract::AdminAuditHtmlQuery>,
 ) -> impl leptos::prelude::IntoView {
     let action = String::from(page.path());
@@ -231,6 +232,19 @@ fn table_pagination(
     let previous_disabled = offset == 0u32;
     let next_disabled = u64::from(next_offset) >= u64::from(total);
     let table_name = table.map(|value| value.to_string());
+    let filter_field = table_filter
+        .and_then(server_admin_contract::AdminDataTableFilterQuery::field)
+        .map(ToString::to_string);
+    let filter_operation = table_filter
+        .and_then(server_admin_contract::AdminDataTableFilterQuery::operation)
+        .map(server_admin_contract::AdminFilterOperationKey::from)
+        .map(|value| value.to_string());
+    let filter_value = table_filter
+        .and_then(server_admin_contract::AdminDataTableFilterQuery::value)
+        .map(ToString::to_string);
+    let filter_end = table_filter
+        .and_then(server_admin_contract::AdminDataTableFilterQuery::end)
+        .map(ToString::to_string);
     let audit_action = audit
         .and_then(server_admin_contract::AdminAuditHtmlQuery::action)
         .map(ToString::to_string);
@@ -249,6 +263,10 @@ fn table_pagination(
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() />
                 {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {filter_field.clone().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
+                {filter_operation.clone().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
+                {filter_value.clone().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
+                {filter_end.clone().map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
                 {audit_action.clone().map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
                 {audit_resource.clone().map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
                 {audit_resource_id.clone().map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
@@ -261,6 +279,10 @@ fn table_pagination(
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
                 {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {filter_field.clone().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
+                {filter_operation.clone().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
+                {filter_value.clone().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
+                {filter_end.clone().map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
                 {audit_action.clone().map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
                 {audit_resource.clone().map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
                 {audit_resource_id.clone().map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
@@ -272,6 +294,10 @@ fn table_pagination(
                 <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
                 <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
                 {table_name.map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {filter_field.map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
+                {filter_operation.map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
+                {filter_value.map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
+                {filter_end.map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
                 {audit_action.map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
                 {audit_resource.map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
                 {audit_resource_id.map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
@@ -303,6 +329,73 @@ fn data_table_grid(
                 }).collect::<Vec<_>>()}</tr>
             }).collect::<Vec<_>>()}</tbody>
         </table></div>
+    }
+}
+
+#[allow(clippy::single_call_fn)] // metadata-driven filter controls stay isolated from table rendering
+fn data_table_filters(
+    view: &server_admin_contract::AdminDataTableView,
+    query: &server_admin_contract::AdminDataTableQuery,
+) -> impl leptos::prelude::IntoView {
+    let action = server_admin_contract::AdminFrontendPath::Tables.get();
+    let table = view.table().to_string();
+    let limit = u16::from(query.page().limit()).to_string();
+    let active_field = query.filter().field().map(ToString::to_string);
+    let active_operation = query.filter().operation();
+    let active_value = query.filter().value().map(ToString::to_string);
+    let active_end = query.filter().end().map(ToString::to_string);
+    let clear_href = format!(
+        "{}{}{}",
+        action,
+        str_constants::ADMIN_TABLE_QUERY_PREFIX,
+        table
+    );
+    leptos::view! {
+        <section class="table-filter-tools" aria-label="Table filters">
+            <div class="filter-heading"><strong>"Filters"</strong><a href=clear_href>"Clear"</a></div>
+            {view.columns().iter().filter(|column| !column.filters().is_empty()).map(|column| {
+                let field = column.name().to_string();
+                let label = column.label().to_string();
+                let input_type = match column.input_kind() {
+                    server_admin_contract::AdminDataInputKind::Date => "date",
+                    server_admin_contract::AdminDataInputKind::DateTime => "datetime-local",
+                    server_admin_contract::AdminDataInputKind::Number => "number",
+                    server_admin_contract::AdminDataInputKind::Time => "time",
+                    server_admin_contract::AdminDataInputKind::Checkbox
+                    | server_admin_contract::AdminDataInputKind::Text
+                    | server_admin_contract::AdminDataInputKind::Uuid => "text",
+                };
+                leptos::view! {
+                    <details class="table-filter-field">
+                        <summary>{label}</summary>
+                        <div class="table-filter-operations">
+                            {column.filters().iter().map(|filter| {
+                                let operation = filter.operation();
+                                let operation_key = server_admin_contract::AdminFilterOperationKey::from(operation).to_string();
+                                let is_active = active_field.as_deref() == Some(field.as_str()) && active_operation == Some(operation);
+                                let value = is_active.then(|| active_value.clone()).flatten().unwrap_or_default();
+                                let end = is_active.then(|| active_end.clone()).flatten().unwrap_or_default();
+                                let needs_value = bool::from(filter.requires_value());
+                                let needs_end = bool::from(filter.requires_end());
+                                leptos::view! {
+                                    <form class="table-filter-form" method="get" action=action>
+                                        <input type="hidden" name="table" value=table.clone() />
+                                        <input type="hidden" name="filter_field" value=field.clone() />
+                                        <input type="hidden" name="filter_operation" value=operation_key />
+                                        <input type="hidden" name="limit" value=limit.clone() />
+                                        <input type="hidden" name="offset" value="0" />
+                                        <span>{format!("{operation:?}")}</span>
+                                        {needs_value.then(|| leptos::view! { <input name="filter_value" type=input_type value=value required /> })}
+                                        {needs_end.then(|| leptos::view! { <input name="filter_end" type=input_type value=end required /> })}
+                                        <button type="submit">"Apply"</button>
+                                    </form>
+                                }
+                            }).collect::<Vec<_>>()}
+                        </div>
+                    </details>
+                }
+            }).collect::<Vec<_>>()}
+        </section>
     }
 }
 
@@ -340,7 +433,7 @@ pub fn render_users(
                 <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -380,7 +473,7 @@ pub fn render_roles(
                 {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -405,7 +498,7 @@ pub fn render_permissions(
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None, None)}
         </section>
     }
     .render_admin_ssr();
@@ -420,15 +513,16 @@ pub fn render_permissions(
 #[must_use]
 pub fn render_data_tables(
     table: Option<&server_admin_contract::AdminDataTableView>,
-    query: &server_admin_contract::AdminTableQuery,
+    query: &server_admin_contract::AdminDataTableQuery,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section class="table-page">
+                {data_table_filters(view, query)}
                 {data_table_grid(view)}
-                {table_pagination(server_admin_contract::AdminPage::Tables, query, view.total(), Some(view.table()), None)}
+                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), Some(query.filter()), None)}
             </section>
         })}
     }
@@ -455,7 +549,7 @@ pub fn render_sessions(
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="session">{item.id().to_string()}</td><td data-label="created">{item.created_at().to_string()}</td><td data-label="expires">{item.expires_at().to_string()}</td><td data-label="current">{item.is_current().to_string()}</td><td data-label="actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None)}
+        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None, None)}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -567,7 +661,7 @@ pub fn render_audit(
         <div class="table-scroll"><table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="time">{item.created_at().to_string()}</td><td data-label="user">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="action">{item.action().to_string()}</td><td data-label="resource">{item.resource().to_string()}</td><td data-label="result">{item.succeeded().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table></div>
-        {table_pagination(server_admin_contract::AdminPage::Audit, query, page.total(), None, Some(filters))}
+        {table_pagination(server_admin_contract::AdminPage::Audit, query, page.total(), None, None, Some(filters))}
         </section>
     }.render_admin_ssr();
     render_admin_page_with_access(
@@ -621,7 +715,15 @@ mod tests {
                 server_admin_contract::AdminText::try_from(String::from("id")).expect("694184c1"),
             ),
             server_admin_contract::AdminDataColumn::new(
-                server_admin_contract::AdminDataFilters::try_from(Vec::new()).expect("5ba25cf7"),
+                server_admin_contract::AdminDataFilters::try_from(vec![
+                    server_admin_contract::AdminDataFilter::from(
+                        frontend_contract::FilterOperation::Eq,
+                    ),
+                    server_admin_contract::AdminDataFilter::from(
+                        frontend_contract::FilterOperation::Regex,
+                    ),
+                ])
+                .expect("5ba25cf7"),
                 server_admin_contract::AdminDataInputKind::Text,
                 server_admin_contract::AdminText::try_from(String::from("Login name"))
                     .expect("0336b6ad"),
@@ -650,9 +752,42 @@ mod tests {
 
         assert!(html.as_ref().contains("data-field=\"id\""));
         assert!(html.as_ref().contains("data-filter-count=\"0\""));
+        assert!(html.as_ref().contains("data-filter-count=\"2\""));
         assert!(html.as_ref().contains(">User identifier</th>"));
         assert!(html.as_ref().contains("class=\"numeric-cell\""));
         assert!(html.as_ref().contains("data-label=\"Login name\""));
+
+        let query = server_admin_contract::AdminDataTableQuery::new(
+            server_admin_contract::AdminDataTableFilterQuery::new(
+                Some(
+                    server_admin_contract::AdminFilterField::try_from(String::from("login"))
+                        .expect("774bc583"),
+                ),
+                Some(frontend_contract::FilterOperation::Eq),
+                Some(
+                    server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
+                        .expect("63d17f8e"),
+                ),
+                None,
+            ),
+            server_admin_contract::AdminTableQuery::default(),
+        );
+        let filters_html = super::data_table_filters(&view, &query).render_admin_ssr();
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("name=\"filter_field\" value=\"login\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("name=\"filter_operation\" value=\"eq\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("name=\"filter_value\" type=\"text\" value=\"alice\"")
+        );
     }
 
     #[test]
@@ -701,6 +836,7 @@ mod tests {
             server_admin_contract::AdminPageTotal::from(101u64),
             None,
             None,
+            None,
         )
         .render_admin_ssr();
         assert!(html.as_ref().contains("class=\"table-page-size\""));
@@ -711,6 +847,49 @@ mod tests {
         assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
         assert!(html.as_ref().contains("disabled>Previous"));
         assert!(!html.as_ref().contains("<script"));
+
+        let table_filter = server_admin_contract::AdminDataTableFilterQuery::new(
+            Some(
+                server_admin_contract::AdminFilterField::try_from(String::from("login"))
+                    .expect("7eb9a214"),
+            ),
+            Some(frontend_contract::FilterOperation::Eq),
+            Some(
+                server_admin_contract::AdminFilterValue::try_from(String::from("alice"))
+                    .expect("2629c095"),
+            ),
+            None,
+        );
+        let filtered_html = super::table_pagination(
+            server_admin_contract::AdminPage::Tables,
+            &server_admin_contract::AdminTableQuery::default(),
+            server_admin_contract::AdminPageTotal::from(101u64),
+            Some(server_admin_contract::AdminDataTable::Users),
+            Some(&table_filter),
+            None,
+        )
+        .render_admin_ssr();
+        assert_eq!(
+            filtered_html
+                .as_ref()
+                .matches("name=\"filter_field\" value=\"login\"")
+                .count(),
+            3usize
+        );
+        assert_eq!(
+            filtered_html
+                .as_ref()
+                .matches("name=\"filter_operation\" value=\"eq\"")
+                .count(),
+            3usize
+        );
+        assert_eq!(
+            filtered_html
+                .as_ref()
+                .matches("name=\"filter_value\" value=\"alice\"")
+                .count(),
+            3usize
+        );
 
         let filters = server_admin_contract::AdminAuditHtmlQuery::new(
             Some(
@@ -727,6 +906,7 @@ mod tests {
             server_admin_contract::AdminPage::Audit,
             &server_admin_contract::AdminTableQuery::default(),
             server_admin_contract::AdminPageTotal::from(21u64),
+            None,
             None,
             Some(&filters),
         )

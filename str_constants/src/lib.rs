@@ -3229,6 +3229,16 @@ str_constants_macros::define_str_constants! {
         pub SERVER_ADMIN_DATA_COUNT_ROLES_SQL = [WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_ROLES];
         pub SERVER_ADMIN_DATA_COUNT_SYSTEM_SETTINGS_SQL = [WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_SYSTEM_SETTINGS];
         pub SERVER_ADMIN_DATA_COUNT_USER_ROLES_SQL = [WORD_SELECT, " ", WORD_COUNT, "(*) ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES];
+        pub SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD = ["encode_format"];
+        pub SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD = ["encoded_string_representation"];
+        pub SERVER_ADMIN_FILTER_REGEX_CASE_FIELD = ["regex_case"];
+        pub SERVER_ADMIN_FILTER_OPERATOR_AND = ["And"];
+        pub SERVER_ADMIN_FILTER_REGEX_SENSITIVE = ["Sensitive"];
+        pub SERVER_ADMIN_FILTER_ENCODE_BASE64 = ["Base64"];
+        pub SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR = [" ORDER BY "];
+        pub SERVER_ADMIN_FILTER_LIMIT_SEPARATOR = [" LIMIT $1 OFFSET $2"];
+        pub SERVER_ADMIN_FILTER_LIMIT_PREFIX = [" LIMIT $"];
+        pub SERVER_ADMIN_FILTER_OFFSET_PREFIX = [" OFFSET $"];
         pub SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS = ["id,user_id,user_login,action,resource,resource_id,request_id,succeeded,details,created_at"];
         pub SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS = ["singleton,last_success_at,last_deleted_rows"];
         pub SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS = ["id,login,ip_address,succeeded,attempted_at"];

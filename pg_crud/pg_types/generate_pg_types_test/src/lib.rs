@@ -139,6 +139,18 @@ mod tests {
         );
     }
     #[test]
+    fn generated_filter_form_values_preserve_json_wire_types() {
+        let integer = <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_42)).expect("12df8cb5");
+        assert_eq!(integer.as_ref(), "42");
+        let timestamp = <pg_types_chrono_net::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::VALUE_2026_07_13T12_30_00)).expect("98f3df36");
+        assert_eq!(
+            timestamp.as_ref(),
+            r#"{"date":"2026-07-13","time":{"hour":12,"min":30,"sec":0,"micro":0}}"#
+        );
+        let nullable = <pg_types_numeric::OptionalI16AsNullableInt2 as frontend_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::FormValueRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX)).expect("b5939e08");
+        assert_eq!(nullable.as_ref(), "null");
+    }
+    #[test]
     fn generated_nullable_open_api_schema_is_nullable() {
         let (_, schema) =
             <pg_types_numeric::OptionalI16AsNullableInt2Origin as utoipa::ToSchema>::schema();

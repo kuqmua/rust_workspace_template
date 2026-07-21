@@ -347,12 +347,20 @@ pub trait HasTypeContract {
 pub struct FormValue(String);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
 pub struct FormValueRef<'value_lt>(&'value_lt str);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::FromInner)]
+pub struct FormFieldNameRef<'field_lt>(&'field_lt str);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = 65536usize)]
 pub struct FormValueError(String);
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
+#[bounded_string(max = 1_048_576usize)]
+pub struct FilterWireJson(String);
 pub trait FormValueContract: Sized {
     fn format_form_value(&self) -> Result<FormValue, FormValueError>;
     fn parse_form_value(value: FormValueRef<'_>) -> Result<Self, FormValueError>;
+}
+pub trait FilterFormValueContract {
+    fn parse_filter_form_value(value: FormValueRef<'_>) -> Result<FilterWireJson, FormValueError>;
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FormFieldError {

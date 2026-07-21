@@ -5582,6 +5582,17 @@ pub fn emit_generate_pg_types(
                     serde_json::from_value(json_value).map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())
                 }
             }
+            impl frontend_contract::FilterFormValueContract for #identifier {
+                fn parse_filter_form_value(
+                    value: frontend_contract::FormValueRef<'_>,
+                ) -> Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError> {
+                    let parsed = <#identifier_origin_upper_camel_case as frontend_contract::FormValueContract>::parse_form_value(value)?;
+                    let json = serde_json::to_string(&parsed)
+                        .map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())?;
+                    frontend_contract::FilterWireJson::try_from(json)
+                        .map_err(|error| frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default())
+                }
+            }
         };
         let generated = quote::quote! {
             #identifier_token_stream

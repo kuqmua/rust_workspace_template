@@ -2160,6 +2160,28 @@ pub fn emit_generate_pg_table(
                 frontend_contract::FieldContracts::from(vec![#(#frontend_field_contracts_token_stream),*])
             }
         };
+        let frontend_filter_value_arms_token_stream = read_fields_iter().map(|field| {
+            let field_name = field.identifier.to_string();
+            let field_name_double_quoted_token_stream = generate_quotes::dq_token_stream(&field_name);
+            let field_type = &field.type0;
+            quote::quote! {
+                #field_name_double_quoted_token_stream => Some(
+                    <#field_type as frontend_contract::FilterFormValueContract>::parse_filter_form_value(value)
+                )
+            }
+        });
+        let pub_fn_frontend_filter_value_token_stream = quote::quote! {
+            #[must_use]
+            pub fn frontend_filter_value(
+                field: frontend_contract::FormFieldNameRef<'_>,
+                value: frontend_contract::FormValueRef<'_>,
+            ) -> Option<Result<frontend_contract::FilterWireJson, frontend_contract::FormValueError>> {
+                match field.as_ref() {
+                    #(#frontend_filter_value_arms_token_stream),*,
+                    _ => None,
+                }
+            }
+        };
         let pub_fn_frontend_page_token_stream = quote::quote! {
             #[must_use]
             pub fn frontend_page() -> frontend_contract::PageContract {
@@ -2306,6 +2328,7 @@ pub fn emit_generate_pg_table(
         quote::quote! {
             #pub_fn_table_token_stream
             #pub_fn_frontend_fields_token_stream
+            #pub_fn_frontend_filter_value_token_stream
             #pub_fn_frontend_page_token_stream
             #fn_primary_key_token_stream
             #pub_async_fn_prep_extensions_token_stream

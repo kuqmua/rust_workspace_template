@@ -167,7 +167,7 @@ struct SettingsForm {
 #[serde(deny_unknown_fields)]
 struct DataTablesQuery {
     #[serde(flatten)]
-    page: server_admin_contract::AdminTableQuery,
+    query: server_admin_contract::AdminDataTableQuery,
     table: Option<AdminHtmlFormText>,
 }
 
@@ -347,7 +347,7 @@ async fn data_tables(
     let context_result = page_context(&auth).await;
     let catalog_result = super::handlers::data_table_catalog(auth.clone()).await;
     let view_result = match table {
-        Some(value) => super::handlers::data_table_view(auth, value, &query.page)
+        Some(value) => super::handlers::data_table_view(auth, value, &query.query)
             .await
             .map(Some),
         None => Ok(None),
@@ -356,7 +356,7 @@ async fn data_tables(
         (Ok((admin, branding)), Ok(_catalog), Ok(view)) => {
             html_response(server_admin_frontend::ssr::render_data_tables(
                 view.as_ref(),
-                &query.page,
+                &query.query,
                 &admin,
                 &branding,
             ))

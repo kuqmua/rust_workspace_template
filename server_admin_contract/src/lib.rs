@@ -803,6 +803,159 @@ impl AdminTableQuery {
         self.direction
     }
 }
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::Display,
+)]
+#[bounded_string(
+    max = 63usize,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator filter field"
+)]
+pub struct AdminFilterField(String);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::Display,
+)]
+#[bounded_string(
+    max = 4096usize,
+    chars,
+    serde,
+    utoipa,
+    description = "administrator filter value"
+)]
+pub struct AdminFilterValue(String);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    newtype::AsRefStr,
+    newtype::BoundedString,
+    newtype::Display,
+)]
+#[bounded_string(max = 63usize)]
+pub struct AdminFilterOperationKey(String);
+impl From<frontend_contract::FilterOperation> for AdminFilterOperationKey {
+    fn from(value: frontend_contract::FilterOperation) -> Self {
+        let mut key = String::new();
+        format!("{value:?}")
+            .chars()
+            .enumerate()
+            .for_each(|(index, character)| {
+                if character.is_uppercase() && index > 0usize {
+                    key.push('_');
+                }
+                key.extend(character.to_lowercase());
+            });
+        Self::try_from(key).unwrap_or_default()
+    }
+}
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::IntoParams,
+    utoipa::ToSchema,
+)]
+#[into_params(parameter_in = Query)]
+pub struct AdminDataTableFilterQuery {
+    #[serde(default)]
+    #[param(value_type = Option<String>, max_length = 63)]
+    filter_field: Option<AdminFilterField>,
+    #[serde(default)]
+    #[param(inline)]
+    filter_operation: Option<frontend_contract::FilterOperation>,
+    #[serde(default)]
+    #[param(value_type = Option<String>, max_length = 4096)]
+    filter_value: Option<AdminFilterValue>,
+    #[serde(default)]
+    #[param(value_type = Option<String>, max_length = 4096)]
+    filter_end: Option<AdminFilterValue>,
+}
+impl AdminDataTableFilterQuery {
+    #[must_use]
+    pub const fn new(
+        filter_field: Option<AdminFilterField>,
+        filter_operation: Option<frontend_contract::FilterOperation>,
+        filter_value: Option<AdminFilterValue>,
+        filter_end: Option<AdminFilterValue>,
+    ) -> Self {
+        Self {
+            filter_field,
+            filter_operation,
+            filter_value,
+            filter_end,
+        }
+    }
+    #[must_use]
+    pub const fn field(&self) -> Option<&AdminFilterField> {
+        self.filter_field.as_ref()
+    }
+    #[must_use]
+    pub const fn operation(&self) -> Option<frontend_contract::FilterOperation> {
+        self.filter_operation
+    }
+    #[must_use]
+    pub const fn value(&self) -> Option<&AdminFilterValue> {
+        self.filter_value.as_ref()
+    }
+    #[must_use]
+    pub const fn end(&self) -> Option<&AdminFilterValue> {
+        self.filter_end.as_ref()
+    }
+}
+#[derive(Clone, Debug, Default, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct AdminDataTableQuery {
+    #[serde(flatten)]
+    filter: AdminDataTableFilterQuery,
+    #[serde(flatten)]
+    page: AdminTableQuery,
+}
+impl utoipa::IntoParams for AdminDataTableQuery {
+    fn into_params(
+        parameter_in_provider: impl Fn() -> Option<utoipa::openapi::path::ParameterIn>,
+    ) -> Vec<utoipa::openapi::path::Parameter> {
+        let parameter_in = parameter_in_provider();
+        let mut parameters =
+            <AdminDataTableFilterQuery as utoipa::IntoParams>::into_params(|| parameter_in.clone());
+        parameters.extend(<AdminTableQuery as utoipa::IntoParams>::into_params(|| {
+            parameter_in.clone()
+        }));
+        parameters
+    }
+}
+impl AdminDataTableQuery {
+    #[must_use]
+    pub const fn new(filter: AdminDataTableFilterQuery, page: AdminTableQuery) -> Self {
+        Self { filter, page }
+    }
+    #[must_use]
+    pub const fn filter(&self) -> &AdminDataTableFilterQuery {
+        &self.filter
+    }
+    #[must_use]
+    pub const fn page(&self) -> &AdminTableQuery {
+        &self.page
+    }
+}
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSignInReq {
@@ -1876,6 +2029,20 @@ impl AdminDataFilter {
     #[must_use]
     pub const fn value_shape(&self) -> frontend_contract::FilterValueShape {
         self.value_shape
+    }
+    #[must_use]
+    pub fn requires_value(&self) -> AdminBool {
+        AdminBool::from(!matches!(
+            self.value_shape,
+            frontend_contract::FilterValueShape::None
+        ))
+    }
+    #[must_use]
+    pub fn requires_end(&self) -> AdminBool {
+        AdminBool::from(matches!(
+            self.value_shape,
+            frontend_contract::FilterValueShape::Range
+        ))
     }
 }
 #[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
