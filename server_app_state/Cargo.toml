@@ -9,7 +9,7 @@ license = "MIT"
 edition = "2024"
 
 [dependencies]
-str_constants = { workspace = true }
+str_constants = { workspace = true, optional = true }
 chrono = { workspace = true }
 config_lib = { workspace = true }
 common_routes = { workspace = true }
@@ -17,14 +17,16 @@ git_info = { workspace = true }
 app_state = { workspace = true }
 server_config = { workspace = true }
 server_runtime = { workspace = true }
-sqlx = { workspace = true }
+sqlx = { workspace = true, optional = true }
 pg_table = { workspace = true, features = ["test-utils"] }
 optml = { workspace = true }
 server_app_state_macros = { workspace = true }
 [dev-dependencies]
 secrecy = { workspace = true }
+sqlx = { workspace = true }
+str_constants = { workspace = true }
 tokio = { workspace = true }
 [features]
-test-utils = []
+test-utils = ["dep:sqlx", "dep:str_constants"]
 [lints]
 workspace = true
