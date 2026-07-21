@@ -72,7 +72,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-6\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-9\"></head><body>{}</body></html>",
         rendered_body.0
     ))
 }
@@ -150,7 +150,7 @@ fn render_admin_page_with_table_access(
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
                     <nav aria-label="Admin sections">
-                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| item.page() != server_admin_contract::AdminPage::Tables && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
+                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| !matches!(item.page(), server_admin_contract::AdminPage::Audit | server_admin_contract::AdminPage::Permissions | server_admin_contract::AdminPage::Roles | server_admin_contract::AdminPage::Sessions | server_admin_contract::AdminPage::Settings | server_admin_contract::AdminPage::Tables | server_admin_contract::AdminPage::Users) && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
                             let href = String::from(item.path());
                             let label = String::from(item.title());
@@ -612,13 +612,34 @@ mod tests {
             None,
         );
         assert!(
-            html.as_ref()
+            !html
+                .as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Users.get())
         );
         assert!(
             !html
                 .as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Roles.get())
+        );
+        assert!(
+            !html
+                .as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Permissions.get())
+        );
+        assert!(
+            !html
+                .as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Audit.get())
+        );
+        assert!(
+            !html
+                .as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Settings.get())
+        );
+        assert!(
+            !html
+                .as_ref()
+                .contains(server_admin_contract::AdminFrontendPath::Sessions.get())
         );
         assert!(
             html.as_ref()
@@ -631,6 +652,17 @@ mod tests {
                     server_admin_contract::AdminFrontendPath::Tables.get(),
                     str_constants::ADMIN_TABLE_QUERY_PREFIX,
                     server_admin_contract::AdminDataTable::AccessSessions
+                )
+                .as_str()
+            )
+        );
+        assert!(
+            html.as_ref().contains(
+                format!(
+                    "{}{}{}",
+                    server_admin_contract::AdminFrontendPath::Tables.get(),
+                    str_constants::ADMIN_TABLE_QUERY_PREFIX,
+                    server_admin_contract::AdminDataTable::Users
                 )
                 .as_str()
             )

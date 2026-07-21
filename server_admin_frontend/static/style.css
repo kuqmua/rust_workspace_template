@@ -249,18 +249,18 @@ h2 {
   width: 100%;
   min-height: 100vh;
   margin-left: 0;
-  padding: calc(var(--header-height) + 24px) clamp(24px, 4vw, 64px) 64px;
+  padding: calc(var(--header-height) + 24px) 0 0;
 }
 
 .main-content > div {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .flash-success {
-  max-width: 1280px;
-  margin: 0 auto 22px;
+  max-width: none;
+  margin: 0 0 22px;
   border: 1px solid #b8e0c9;
   border-radius: var(--radius);
   background: var(--success-soft);
@@ -444,7 +444,7 @@ table {
   width: 100%;
   border: 1px solid var(--border);
   border-collapse: separate;
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   border-spacing: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -750,7 +750,7 @@ pre {
   .main-content {
     width: 100%;
     margin-left: 0;
-    padding: calc(var(--header-height) + 18px) 16px 42px;
+    padding: calc(var(--header-height) + 18px) 0 0;
   }
 
   .table-tools,
@@ -791,7 +791,7 @@ pre {
     display: grid;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 0;
     background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
@@ -847,10 +847,6 @@ pre {
 }
 
 @media (max-width: 420px) {
-  .main-content {
-    padding-inline: 12px;
-  }
-
   .table-pagination {
     justify-content: space-between;
   }
