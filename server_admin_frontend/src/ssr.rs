@@ -152,7 +152,7 @@ fn render_admin_page_with_table_access(
                         {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| !matches!(item.page(), server_admin_contract::AdminPage::Audit | server_admin_contract::AdminPage::Permissions | server_admin_contract::AdminPage::Roles | server_admin_contract::AdminPage::Sessions | server_admin_contract::AdminPage::Settings | server_admin_contract::AdminPage::Tables | server_admin_contract::AdminPage::Users) && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
                             let href = String::from(item.path());
-                            let label = item.title().as_ref().to_ascii_lowercase();
+                            let label = item.title().as_ref().to_ascii_lowercase().replace(' ', "_");
                             leptos::view! {
                                 <a class=(item_page == page).then_some("active") href=href>{label}</a>
                             }
@@ -164,7 +164,7 @@ fn render_admin_page_with_table_access(
                                 <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{str_constants::SIGN_OUT}</button></form>
+                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button></form>
                     </nav>
                 </header>
                 <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
@@ -291,14 +291,14 @@ pub fn render_users(
             <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
             <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>
         </form></details> })}
-        <table><thead><tr><th>"ID"</th><th>"Login"</th><th>"Display name"</th><th>"Banned"</th><th>"Roles"</th><th>"Actions"</th></tr></thead>
+        <table><thead><tr><th>"id"</th><th>"login"</th><th>"display_name"</th><th>"banned"</th><th>"roles"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_role_ids = item.role_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
-            <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Login">{item.login().to_string()}</td><td data-label="Display name">{item.display_name().to_string()}</td><td data-label="Banned">{item.is_banned().to_string()}</td>
-            <td data-label="Roles">{can_update_roles.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::UserRoles.get()><input type="hidden" name="user_id" value=item.id().to_string() />
+            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="login">{item.login().to_string()}</td><td data-label="display_name">{item.display_name().to_string()}</td><td data-label="banned">{item.is_banned().to_string()}</td>
+            <td data-label="roles">{can_update_roles.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::UserRoles.get()><input type="hidden" name="user_id" value=item.id().to_string() />
                 <input type="hidden" name="expected_role_ids" value=expected_role_ids />
                 {page.roles().iter().map(|role| { let checked = item.role_ids().contains(&role.id()); let name = format!("role_{}", role.id()); leptos::view! { <label><input type="checkbox" name=name value=role.id().to_string() checked=checked />{role.name().to_string()}</label> } }).collect::<Vec<_>>()}
                 <button type="submit">"Save roles"</button></form> })}</td>
-            <td data-label="Actions">{can_update.then(|| leptos::view! { <details><summary>"Edit"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserUpdate.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="login" value=item.login().to_string() required /><input name="display_name" value=item.display_name().to_string() required /><button type="submit">"Save"</button></form></details>
+            <td data-label="actions">{can_update.then(|| leptos::view! { <details><summary>"Edit"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserUpdate.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="login" value=item.login().to_string() required /><input name="display_name" value=item.display_name().to_string() required /><button type="submit">"Save"</button></form></details>
                 <details><summary>"Password"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserPassword.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input name="password" type="password" required /><button type="submit">"Change password"</button></form></details>
                 <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
@@ -332,12 +332,12 @@ pub fn render_roles(
     let content = leptos::view! {
         {table_filters(server_admin_contract::AdminPage::Roles, query, &server_admin_contract::AdminTableSortField::ROLE)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
-        <table><thead><tr><th>"ID"</th><th>"Name"</th><th>"System"</th><th>"Permissions"</th><th>"Actions"</th></tr></thead>
+        <table><thead><tr><th>"id"</th><th>"name"</th><th>"system"</th><th>"permissions"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
-            <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Name">{item.name().to_string()}</td><td data-label="System">{item.is_system().to_string()}</td><td data-label="Permissions">{can_update_permissions.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
+            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="name">{item.name().to_string()}</td><td data-label="system">{item.is_system().to_string()}</td><td data-label="permissions">{can_update_permissions.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
                 <input type="hidden" name="expected_permission_ids" value=expected_permission_ids />
                 {page.permissions().iter().map(|permission| { let checked = item.permission_ids().contains(&permission.id()); let name = format!("permission_{}", permission.id()); leptos::view! { <label><input type="checkbox" name=name value=permission.id().to_string() checked=checked />{permission.name().to_string()}</label> } }).collect::<Vec<_>>()}
-                <button type="submit">"Save permissions"</button></form> })}</td><td data-label="Actions">
+                <button type="submit">"Save permissions"</button></form> })}</td><td data-label="actions">
                 {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table>
@@ -360,9 +360,9 @@ pub fn render_permissions(
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         {table_filters(server_admin_contract::AdminPage::Permissions, query, &server_admin_contract::AdminTableSortField::PERMISSION)}
-        <table><thead><tr><th>"ID"</th><th>"Permission"</th></tr></thead>
+        <table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Permission">{item.name().to_string()}</td></tr>
+            <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
         {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
     }
@@ -416,9 +416,9 @@ pub fn render_sessions(
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
-        <table><thead><tr><th>"Session"</th><th>"Created"</th><th>"Expires"</th><th>"Current"</th><th>"Actions"</th></tr></thead>
+        <table><thead><tr><th>"session"</th><th>"created"</th><th>"expires"</th><th>"current"</th><th>"actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="Session">{item.id().to_string()}</td><td data-label="Created">{item.created_at().to_string()}</td><td data-label="Expires">{item.expires_at().to_string()}</td><td data-label="Current">{item.is_current().to_string()}</td><td data-label="Actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
+            <tr><td data-label="session">{item.id().to_string()}</td><td data-label="created">{item.created_at().to_string()}</td><td data-label="expires">{item.expires_at().to_string()}</td><td data-label="current">{item.is_current().to_string()}</td><td data-label="actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
         {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None)}
     }.render_admin_ssr();
@@ -527,8 +527,8 @@ pub fn render_audit(
             <label><span>"Action"</span><input name="action" value=filters.action().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource"</span><input name="resource" value=filters.resource().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource ID"</span><input name="resource_id" value=filters.resource_id().map(ToString::to_string).unwrap_or_default() /></label>
             <label><span>"User login"</span><input name="user_login" value=filters.user_login().map(ToString::to_string).unwrap_or_default() /></label><input name="limit" type="hidden" value=u16::from(query.limit()).to_string() /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
         </form>
-        <table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
-            <tr><td data-label="Time">{item.created_at().to_string()}</td><td data-label="User">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="Action">{item.action().to_string()}</td><td data-label="Resource">{item.resource().to_string()}</td><td data-label="Result">{item.succeeded().to_string()}</td></tr>
+        <table><thead><tr><th>"time"</th><th>"user"</th><th>"action"</th><th>"resource"</th><th>"result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
+            <tr><td data-label="time">{item.created_at().to_string()}</td><td data-label="user">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="action">{item.action().to_string()}</td><td data-label="resource">{item.resource().to_string()}</td><td data-label="result">{item.succeeded().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
         {table_pagination(server_admin_contract::AdminPage::Audit, query, page.total(), None, Some(filters))}
     }.render_admin_ssr();
@@ -597,8 +597,15 @@ mod tests {
         assert!(!page.as_ref().contains("class=\"brand\""));
         assert!(!page.as_ref().contains("nav-dot"));
         assert!(
-            page.as_ref()
-                .contains(format!("{}</button></form></nav>", str_constants::SIGN_OUT).as_str())
+            page.as_ref().contains(
+                format!(
+                    "{}</button></form></nav>",
+                    str_constants::SIGN_OUT
+                        .to_ascii_lowercase()
+                        .replace(' ', "_")
+                )
+                .as_str()
+            )
         );
         assert!(!page.as_ref().contains("<script"));
     }
