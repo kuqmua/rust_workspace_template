@@ -194,7 +194,7 @@ fn table_filters(
                 {sort_fields.iter().copied().map(|field| { let key = field.key().as_ref().to_owned(); let selected = key == selected_sort; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}
             </select></label>
             <label><span>"Direction"</span><select name="direction"><option value="asc" selected=ascending>"Ascending"</option><option value="desc" selected=!ascending>"Descending"</option></select></label>
-            <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit /></label>
+            <input name="limit" type="hidden" value=limit />
             <input name="offset" type="hidden" value="0" />
             <button type="submit">"Apply"</button>
         </form>
@@ -233,6 +233,18 @@ fn table_pagination(
         .map(ToString::to_string);
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
+            <form class="table-page-size" method="get" action=action.clone()>
+                <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
+                <input type="hidden" name="direction" value=direction.clone() />
+                {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {audit_action.clone().map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
+                {audit_resource.clone().map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
+                {audit_resource_id.clone().map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
+                {audit_user_login.clone().map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
+                <input type="hidden" name="offset" value="0" />
+                <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit.to_string() /></label>
+                <button type="submit">"Apply"</button>
+            </form>
             <form method="get" action=action.clone()>
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
@@ -255,21 +267,6 @@ fn table_pagination(
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
         </nav>
-    }
-}
-
-fn table_page_size(
-    page: server_admin_contract::AdminPage,
-    query: &server_admin_contract::AdminTableQuery,
-    table: Option<server_admin_contract::AdminDataTable>,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! {
-        <form class="table-tools" method="get" action=String::from(page.path())>
-            {table.map(|value| leptos::view! { <input type="hidden" name="table" value=value.to_string() /> })}
-            <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=u16::from(query.limit()).to_string() /></label>
-            <input name="offset" type="hidden" value="0" />
-            <button type="submit">"Apply"</button>
-        </form>
     }
 }
 
@@ -388,7 +385,6 @@ pub fn render_data_tables(
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section>
-                {table_page_size(server_admin_contract::AdminPage::Tables, query, Some(view.table()))}
                 <div class="table-scroll"><table>
                     <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
                     <tbody>{view.items().iter().map(|row| leptos::view! {
@@ -420,7 +416,6 @@ pub fn render_sessions(
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
-        {table_page_size(server_admin_contract::AdminPage::Sessions, query, None)}
         <table><thead><tr><th>"Session"</th><th>"Created"</th><th>"Expires"</th><th>"Current"</th><th>"Actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="Session">{item.id().to_string()}</td><td data-label="Created">{item.created_at().to_string()}</td><td data-label="Expires">{item.expires_at().to_string()}</td><td data-label="Current">{item.is_current().to_string()}</td><td data-label="Actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
@@ -530,7 +525,7 @@ pub fn render_audit(
     let content = leptos::view! {
         <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
             <label><span>"Action"</span><input name="action" value=filters.action().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource"</span><input name="resource" value=filters.resource().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource ID"</span><input name="resource_id" value=filters.resource_id().map(ToString::to_string).unwrap_or_default() /></label>
-            <label><span>"User login"</span><input name="user_login" value=filters.user_login().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Limit"</span><input name="limit" type="number" min="1" max="100" value=u16::from(query.limit()).to_string() /></label><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
+            <label><span>"User login"</span><input name="user_login" value=filters.user_login().map(ToString::to_string).unwrap_or_default() /></label><input name="limit" type="hidden" value=u16::from(query.limit()).to_string() /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
         </form>
         <table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="Time">{item.created_at().to_string()}</td><td data-label="User">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="Action">{item.action().to_string()}</td><td data-label="Resource">{item.resource().to_string()}</td><td data-label="Result">{item.succeeded().to_string()}</td></tr>
@@ -618,6 +613,11 @@ mod tests {
             None,
         )
         .render_admin_ssr();
+        assert!(html.as_ref().contains("class=\"table-page-size\""));
+        assert!(
+            html.as_ref()
+                .contains("<span>Rows</span><input name=\"limit\" type=\"number\"")
+        );
         assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
         assert!(html.as_ref().contains("disabled>Previous"));
         assert!(!html.as_ref().contains("<script"));

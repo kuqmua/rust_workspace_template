@@ -227,7 +227,7 @@ p {
   max-width: none;
   margin: 0 0 22px;
   border: 1px solid #b8e0c9;
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--success-soft);
   color: var(--success);
   padding: 11px 14px;
@@ -240,7 +240,7 @@ p {
 
 .security-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
@@ -320,14 +320,14 @@ td details form button:hover {
 .audit-filters,
 .settings-form {
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
 .table-tools {
   display: grid;
-  grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) 90px auto;
+  grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) auto;
   align-items: end;
   gap: 12px;
   margin-bottom: 16px;
@@ -336,7 +336,7 @@ td details form button:hover {
 
 .audit-filters {
   display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr)) 90px auto;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
   align-items: end;
   gap: 12px;
   margin-bottom: 16px;
@@ -398,7 +398,7 @@ td details > form {
   gap: 12px;
   margin-top: 8px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow);
   padding: 16px;
@@ -499,7 +499,7 @@ td details > form {
 .field-error {
   margin: 0;
   border: 1px solid #f0c5ca;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   background: var(--danger-soft);
   color: var(--danger);
   padding: 10px 12px;
@@ -508,6 +508,7 @@ td details > form {
 
 .table-pagination {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
@@ -518,6 +519,25 @@ td details > form {
 
 .table-pagination form {
   margin: 0;
+}
+
+.table-pagination .table-page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+}
+
+.table-page-size label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-page-size input {
+  width: 68px;
+  min-height: 32px;
+  padding: 5px 8px;
 }
 
 .table-pagination button {
@@ -546,7 +566,7 @@ td details > form {
 .code-card {
   max-width: 100%;
   border: 1px solid #283246;
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   background: #172033;
   box-shadow: var(--shadow);
   color: #d8deea;
@@ -578,7 +598,7 @@ pre {
   width: min(100%, 400px);
   gap: 24px;
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--surface);
   box-shadow: 0 20px 55px rgb(20 29 48 / 9%);
   padding: 34px;
@@ -625,7 +645,7 @@ pre {
   margin: 18px 0;
   border: 1px solid var(--border);
   border-left: 4px solid var(--preview-primary, var(--accent));
-  border-radius: var(--radius);
+  border-radius: 0;
   background: var(--surface);
   padding: 16px;
 }
@@ -813,6 +833,10 @@ pre {
 @media (max-width: 420px) {
   .table-pagination {
     justify-content: space-between;
+  }
+
+  .table-pagination .table-page-size {
+    width: 100%;
   }
 
   .auth-card {
