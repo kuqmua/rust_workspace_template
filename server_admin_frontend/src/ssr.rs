@@ -72,7 +72,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-9\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-11\"></head><body>{}</body></html>",
         rendered_body.0
     ))
 }
@@ -96,7 +96,6 @@ pub fn render_sign_in(
         leptos::view! {
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
-                    <h1>"Sign in"</h1>
                     {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0}</p> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
                         <label><span>"Login"</span><input name="login" autocomplete="username" required /></label>
@@ -351,7 +350,6 @@ pub fn render_data_tables(
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section>
-                <h2>{view.table().to_string()}</h2>
                 <p>{format!("{} rows (maximum 100)", view.items().len())}</p>
                 <div class="table-scroll"><table>
                     <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
@@ -407,8 +405,8 @@ pub fn render_profile(
         .collect::<Vec<_>>()
         .join(str_constants::COMMA_SPACE);
     let content = leptos::view! {
-        <section class="security-card"><h2>"Identity"</h2><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
-        <section class="security-card"><h2>"Change password"</h2><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
+        <section class="security-card"><p><strong>{admin.display_name().to_string()}</strong></p><p>{admin.login().to_string()}</p><p>{roles}</p></section>
+        <section class="security-card"><form method="post" action=server_admin_contract::AdminHtmlAction::ProfilePassword.get()>
             <label><span>"Current password"</span><input name="current_password" type="password" required /></label>
             <label><span>"New password"</span><input name="new_password" type="password" required /></label>
             <label><input name="revoke_other_sessions" type="checkbox" value="true" />"Revoke other sessions"</label><button type="submit">"Change password"</button>
@@ -544,6 +542,8 @@ mod tests {
             sign_in.as_ref().matches("<form method=\"post\"").count(),
             1usize
         );
+        assert!(!sign_in.as_ref().contains("<h1"));
+        assert!(!sign_in.as_ref().contains("<h2"));
         assert!(!sign_in.as_ref().contains("<script"));
         assert!(!sign_in.as_ref().contains(".wasm"));
 
@@ -553,6 +553,7 @@ mod tests {
         );
         assert!(page.as_ref().contains("<p>ready</p>"));
         assert!(!page.as_ref().contains("<h1"));
+        assert!(!page.as_ref().contains("<h2"));
         assert!(!page.as_ref().contains("class=\"brand\""));
         assert!(!page.as_ref().contains("nav-dot"));
         assert!(page.as_ref().contains("Sign out</button></form></nav>"));

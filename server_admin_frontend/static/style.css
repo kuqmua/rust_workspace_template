@@ -121,25 +121,8 @@ td details > summary:active {
   transform: translateY(1px);
 }
 
-h1,
-h2,
 p {
   overflow-wrap: anywhere;
-}
-
-h1 {
-  margin: 0 0 24px;
-  color: var(--text);
-  font-size: clamp(26px, 2.4vw, 34px);
-  font-weight: 760;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
-}
-
-h2 {
-  margin: 0 0 16px;
-  font-size: 18px;
-  letter-spacing: -0.02em;
 }
 
 .app-shell {
@@ -147,7 +130,7 @@ h2 {
 }
 
 .topbar {
-  position: fixed;
+  position: sticky;
   inset: 0 0 auto;
   z-index: 20;
   display: block;
@@ -247,9 +230,9 @@ h2 {
 
 .main-content {
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height));
   margin-left: 0;
-  padding: calc(var(--header-height) + 24px) 0 0;
+  padding: 0;
 }
 
 .main-content > div {
@@ -750,7 +733,7 @@ pre {
   .main-content {
     width: 100%;
     margin-left: 0;
-    padding: calc(var(--header-height) + 18px) 0 0;
+    padding: 0;
   }
 
   .table-tools,
