@@ -72,7 +72,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-6\"></head><body>{}</body></html>",
         rendered_body.0
     ))
 }
@@ -155,20 +155,18 @@ fn render_admin_page_with_table_access(
                             let href = String::from(item.path());
                             let label = String::from(item.title());
                             leptos::view! {
-                                <a class=(item_page == page).then_some("active") href=href>
-                                    <span class="nav-dot" aria-hidden="true"></span>{label}
-                                </a>
+                                <a class=(item_page == page).then_some("active") href=href>{label}</a>
                             }
                         }).collect::<Vec<_>>()}
                         {server_admin_contract::AdminDataTable::ALL.into_iter().filter(|table| admin.is_none_or(|value| bool::from(value.has_permission(server_admin_contract::AdminPermission::TablesRead)) && bool::from(value.has_permission(table.permission())))).map(|table| {
                             let name = table.to_string();
                             let href = format!("{}{}{}", server_admin_contract::AdminFrontendPath::Tables.get(), str_constants::ADMIN_TABLE_QUERY_PREFIX, name);
                             leptos::view! {
-                                <a class=(active_table == Some(table)).then_some("active") href=href><span class="nav-dot" aria-hidden="true"></span>{name}</a>
+                                <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
+                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
                     </nav>
-                    <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
                 </header>
                 <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
             </div>
@@ -556,6 +554,8 @@ mod tests {
         assert!(page.as_ref().contains("<p>ready</p>"));
         assert!(!page.as_ref().contains("<h1"));
         assert!(!page.as_ref().contains("class=\"brand\""));
+        assert!(!page.as_ref().contains("nav-dot"));
+        assert!(page.as_ref().contains("Sign out</button></form></nav>"));
         assert!(!page.as_ref().contains("<script"));
     }
 
