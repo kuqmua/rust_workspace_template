@@ -848,7 +848,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
-    let role_summaries = vec![server_admin_contract::AdminRoleSummary::new(
+    let role_summary = server_admin_contract::AdminRoleSummary::new(
         server_admin_contract::AdminRoleId::from(1i64),
         server_admin_contract::AdminBool::from(false),
         admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
@@ -861,7 +861,8 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
                 .collect::<Vec<_>>(),
         )
         .map_err(|error| eprintln!("{error}"))?,
-    )];
+    );
+    let role_summaries = vec![role_summary];
     let audit_details =
         server_admin_contract::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
             str_constants::FIELD: str_constants::DISPLAY_NAME

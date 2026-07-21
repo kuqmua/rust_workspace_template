@@ -63,8 +63,21 @@ impl From<GitInfoStringTryFromStringError> for GitCommitId {
         Self(value.to_string())
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::FromInner)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr)]
 pub struct StdGitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
+impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for StdGitCommitIdCow<'commit_lt> {
+    type Error = GitInfoStringTryFromStringError;
+    fn try_from(value: std::borrow::Cow<'commit_lt, str>) -> Result<Self, Self::Error> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            Err(GitInfoStringTryFromStringError::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            })
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::TryFrom)]
@@ -109,9 +122,21 @@ impl PartialEq<String> for GitCommitLink {
     optml::Optml,
     newtype::AsRefStr,
     newtype::Display,
-    newtype::FromInner,
 )]
 pub struct StdGitCommitLinkCow(std::borrow::Cow<'static, str>);
+impl TryFrom<std::borrow::Cow<'static, str>> for StdGitCommitLinkCow {
+    type Error = GitInfoStringTryFromStringError;
+    fn try_from(value: std::borrow::Cow<'static, str>) -> Result<Self, Self::Error> {
+        if value.len() > GIT_INFO_STRING_MAX_LEN {
+            Err(GitInfoStringTryFromStringError::TooLong {
+                len: value.len(),
+                max: GIT_INFO_STRING_MAX_LEN,
+            })
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -198,7 +223,7 @@ pub trait GetGitCommitId {
 }
 impl<T: ?Sized + AsRef<str>> GetGitCommitId for T {
     fn get_git_commit_id(&self) -> GitCommitId {
-        GitCommitId(self.as_ref().to_owned())
+        GitCommitId::try_from(self.as_ref().to_owned()).unwrap_or_else(GitCommitId::from)
     }
     fn get_git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
         Some(GitCommitIdRef(self.as_ref()))
@@ -260,6 +285,15 @@ where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
+    if commit_id_ref.0.len() > GIT_INFO_STRING_MAX_LEN.saturating_sub(BASE_GIT_COMMIT_LINK_LEN) {
+        return StdGitCommitLinkCow(std::borrow::Cow::Owned(
+            GitInfoStringTryFromStringError::TooLong {
+                len: BASE_GIT_COMMIT_LINK_LEN.saturating_add(commit_id_ref.0.len()),
+                max: GIT_INFO_STRING_MAX_LEN,
+            }
+            .to_string(),
+        ));
+    }
     if is_project_commit(commit_id_ref).0 {
         return StdGitCommitLinkCow(std::borrow::Cow::Borrowed(project_git_commit_link_ref().0));
     }
@@ -398,6 +432,24 @@ mod tests {
         let mut output_ref = super::GitCommitLinkOutputRefMut(&mut output);
         super::write_git_commit_link(&mut output_ref, commit_id);
         output
+    }
+    #[test]
+    fn owned_git_values_and_generated_links_enforce_length_limit() {
+        let oversized = "x".repeat(super::GIT_INFO_STRING_MAX_LEN + 1usize);
+        let Err(_commit_id_error) =
+            super::StdGitCommitIdCow::try_from(std::borrow::Cow::Owned(oversized.clone()))
+        else {
+            panic!("8c811508");
+        };
+        let Err(_commit_link_error) =
+            super::StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(oversized.clone()))
+        else {
+            panic!("69ee1326");
+        };
+        let commit = super::GetGitCommitId::get_git_commit_id(oversized.as_str());
+        assert!(commit.as_ref().len() <= super::GIT_INFO_STRING_MAX_LEN);
+        let link = super::git_commit_link_cow(oversized.as_str());
+        assert!(link.as_ref().len() <= super::GIT_INFO_STRING_MAX_LEN);
     }
     #[test]
     fn git_commit_link_builds_expected_url() {

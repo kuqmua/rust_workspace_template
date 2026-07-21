@@ -27,11 +27,6 @@ struct AdminHtmlTestFixture {
     pool: SqlxAdminApiTestPool,
     router: AxumAdminApiTestRouter,
 }
-fn admin_role_ids(
-    values: Vec<server_admin_contract::AdminRoleId>,
-) -> server_admin_contract::AdminRoleIds {
-    server_admin_contract::AdminRoleIds::try_from(values).expect("69bc51bc")
-}
 #[derive(Clone, Copy)]
 struct AdminHtmlSettingsTestValues<'value_lt> {
     default_admin_route: StdAdminApiTestStrRef<'value_lt>,
@@ -75,6 +70,14 @@ impl std::fmt::Display for StdAdminApiTestCookie {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
+}
+fn one_admin_role_id(
+    value: server_admin_contract::AdminRoleId,
+) -> server_admin_contract::AdminRoleIds {
+    server_admin_contract::AdminRoleIds::try_from(vec![value]).expect("69bc51bc")
+}
+fn empty_admin_role_ids() -> server_admin_contract::AdminRoleIds {
+    server_admin_contract::AdminRoleIds::try_from(Vec::new()).expect("d5ccd621")
 }
 fn env<T>(value: StdAdminApiTestStrRef<'_>) -> T
 where
@@ -2582,8 +2585,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("1e53a0c7");
     let assign_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            admin_role_ids(Vec::new()),
-            admin_role_ids(vec![server_admin_contract::AdminRoleId::from(role_id)]),
+            empty_admin_role_ids(),
+            one_admin_role_id(server_admin_contract::AdminRoleId::from(role_id)),
         ))
         .expect("bf02e516");
     let assign_role_response = tower::ServiceExt::oneshot(
@@ -2601,8 +2604,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("f74095eb");
     assert_eq!(assign_role_response.status(), http::StatusCode::NO_CONTENT);
     let stale_role_body = serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-        admin_role_ids(Vec::new()),
-        admin_role_ids(Vec::new()),
+        empty_admin_role_ids(),
+        empty_admin_role_ids(),
     ))
     .expect("1fd845d3");
     let stale_role_response = tower::ServiceExt::oneshot(
@@ -2621,8 +2624,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
     let remove_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            admin_role_ids(vec![server_admin_contract::AdminRoleId::from(role_id)]),
-            admin_role_ids(Vec::new()),
+            one_admin_role_id(server_admin_contract::AdminRoleId::from(role_id)),
+            empty_admin_role_ids(),
         ))
         .expect("23c416a1");
     let remove_role_response = tower::ServiceExt::oneshot(
@@ -2688,10 +2691,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("20b5fb03");
     let remove_last_admin_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            admin_role_ids(vec![server_admin_contract::AdminRoleId::from(
-                admin_role_id,
-            )]),
-            admin_role_ids(Vec::new()),
+            one_admin_role_id(server_admin_contract::AdminRoleId::from(admin_role_id)),
+            empty_admin_role_ids(),
         ))
         .expect("1528b0d3");
     let remove_last_admin_role_response = tower::ServiceExt::oneshot(

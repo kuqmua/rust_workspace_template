@@ -348,8 +348,8 @@ mod tests {
             .copied()
             .for_each(|metadata| {
                 let expected: &[&str] = match metadata.openapi_operation_id().as_ref() {
-                    "audit_log" | "export_audit_log" => &["action", "created_after", "created_before", "cursor_created_at", "cursor_id", "limit", "resource", "resource_id", "succeeded", "user_id", "user_login"],
-                    "list_permissions" | "list_roles" | "list_users" => &["limit", "offset", "search", "sort", "direction"],
+                    "audit_log" | "export_audit_log" => &["action", "created_after", "created_before", "cursor_created_at", "cursor_id", "limit", "offset", "resource", "resource_id", "succeeded", "user_id", "user_login"],
+                    "list_permissions" | "list_roles" | "list_users" | "read_data_table" | "sessions" => &["limit", "offset", "search", "sort", "direction"],
                     _ => &[],
                 };
                 let operation = typed_operation(&document, metadata);

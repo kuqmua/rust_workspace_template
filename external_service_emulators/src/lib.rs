@@ -106,7 +106,8 @@ mod tests {
     #[tokio::test]
     async fn remote_source_implements_synchronization_source_contract() {
         let mut source = super::RemoteSyncSource::new(
-            synchronization_service_runtime::SynchronizationPayload::from(vec![1u8, 2u8]),
+            synchronization_service_runtime::SynchronizationPayload::try_from(vec![1u8, 2u8])
+                .expect("de19443d"),
         );
         let payload = synchronization_service_runtime::SynchronizationSource::read(&mut source)
             .await

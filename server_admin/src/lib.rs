@@ -35,23 +35,24 @@ pub(crate) struct AdminRoleNames(Vec<AdminRoleName>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("administrator authorization collection exceeds maximum length")]
 pub(crate) struct AdminAuthCollectionError;
-fn validate_admin_auth_collection<T>(value: Vec<T>) -> Result<Vec<T>, AdminAuthCollectionError> {
-    if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
-        Err(AdminAuthCollectionError)
-    } else {
-        Ok(value)
-    }
-}
 impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminPermission>) -> Result<Self, Self::Error> {
-        validate_admin_auth_collection(value).map(Self)
+        if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
+            Err(AdminAuthCollectionError)
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     type Error = AdminAuthCollectionError;
     fn try_from(value: Vec<AdminRoleName>) -> Result<Self, Self::Error> {
-        validate_admin_auth_collection(value).map(Self)
+        if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
+            Err(AdminAuthCollectionError)
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 #[derive(Clone, Debug)]
@@ -640,7 +641,7 @@ mod tests {
     #[test]
     fn migration_inventory_is_not_empty() {
         let migrations = super::migrations::migrator().iter().collect::<Vec<_>>();
-        assert_eq!(migrations.len(), 11usize);
+        assert_eq!(migrations.len(), 12usize);
         assert!(
             migrations
                 .iter()

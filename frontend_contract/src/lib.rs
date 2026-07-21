@@ -1,4 +1,8 @@
 #![allow(clippy::arbitrary_source_item_ordering)] // contract implementations keep constructors before accessors and fluent modifiers
+const FRONTEND_CONTRACT_BODY_MAX_BYTES: usize = 16_777_216usize;
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("frontend contract body exceeds its maximum byte length")]
+pub struct FrontendContractBodyError;
 mod auth_session_keep_alive;
 mod json_snapshot;
 mod openapi_validation;
@@ -639,8 +643,18 @@ pub struct PageContract {
     routes: RouteContracts,
     title: ContractStr,
 }
-#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefTarget)]
 pub struct TransportBody(Vec<u8>);
+impl TryFrom<Vec<u8>> for TransportBody {
+    type Error = FrontendContractBodyError;
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() > FRONTEND_CONTRACT_BODY_MAX_BYTES {
+            Err(FrontendContractBodyError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TransportRequest {
     body: TransportBody,
@@ -834,6 +848,18 @@ impl PageContract {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn contract_bodies_reject_values_above_shared_limit() {
+        let oversized = vec![0u8; super::FRONTEND_CONTRACT_BODY_MAX_BYTES + 1usize];
+        assert_eq!(
+            super::TransportBody::try_from(oversized.clone()),
+            Err(super::FrontendContractBodyError)
+        );
+        assert_eq!(
+            super::HttpContractBody::try_from(oversized),
+            Err(super::FrontendContractBodyError)
+        );
+    }
     #[allow(clippy::needless_for_each)] // iterator form follows the workspace ban on explicit for loops
     #[test]
     fn api_problem_status_mapping_is_stable_and_redacted() {
@@ -897,7 +923,8 @@ mod tests {
     #[test]
     fn response_interpretation_uses_shared_success_and_problem_contract() {
         let problem = super::ApiProblem::from_status(super::ApiProblemStatus::from(401u16));
-        let body = super::TransportBody::from(serde_json::to_vec(&problem).expect("f542a3cb"));
+        let body = super::TransportBody::try_from(serde_json::to_vec(&problem).expect("f542a3cb"))
+            .expect("864276f2");
         let response = super::TransportResponse::new(body, super::TransportStatus::from(401u16));
         let error = response
             .success_body(super::SuccessStatus::Code200.transport_status())
@@ -915,7 +942,7 @@ mod tests {
     #[test]
     fn transport_response_preserves_retry_after() {
         let response = super::TransportResponse::new(
-            super::TransportBody::from(Vec::new()),
+            super::TransportBody::try_from(Vec::new()).expect("da32dc29"),
             super::TransportStatus::from(429u16),
         )
         .with_retry_after(Some(

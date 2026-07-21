@@ -125,6 +125,7 @@ pub struct ApiProblem {
     kind: ApiProblemKind,
     request_id: Option<ApiProblemRequestId>,
     status: ApiProblemStatus,
+    #[schema(inline)]
     violations: ApiProblemViolations,
 }
 impl ApiProblem {

@@ -20,8 +20,18 @@ pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpContractStatus(u16);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpContractBody(Vec<u8>);
+impl TryFrom<Vec<u8>> for HttpContractBody {
+    type Error = crate::FrontendContractBodyError;
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() > crate::FRONTEND_CONTRACT_BODY_MAX_BYTES {
+            Err(crate::FrontendContractBodyError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpContractBodyKind {
@@ -218,7 +228,8 @@ mod tests {
                 super::HttpContractObservation::new(
                     observed_metadata,
                     200u16.into(),
-                    br#"{"ok":true}"#.to_vec().into(),
+                    super::HttpContractBody::try_from(br#"{"ok":true}"#.to_vec())
+                        .expect("08bddb5e"),
                 )
             },
         ));

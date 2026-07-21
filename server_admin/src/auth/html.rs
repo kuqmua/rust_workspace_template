@@ -276,7 +276,7 @@ where
 fn role_ids(
     value: &AdminHtmlFormText,
 ) -> Result<server_admin_contract::AdminRoleIds, super::AdminApiError> {
-    value
+    let values = value
         .0
         .split(',')
         .filter(|item| !item.is_empty())
@@ -285,17 +285,15 @@ fn role_ids(
                 .map(server_admin_contract::AdminRoleId::from)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
-        .collect::<Result<Vec<_>, _>>()
-        .and_then(|values| {
-            server_admin_contract::AdminRoleIds::try_from(values)
-                .map_err(|_error| super::AdminApiError::Validation)
-        })
+        .collect::<Result<Vec<_>, _>>()?;
+    server_admin_contract::AdminRoleIds::try_from(values)
+        .map_err(|_error| super::AdminApiError::Validation)
 }
 
 fn permission_ids(
     value: &AdminHtmlFormText,
 ) -> Result<server_admin_contract::AdminPermissionIds, super::AdminApiError> {
-    value
+    let values = value
         .0
         .split(',')
         .filter(|item| !item.is_empty())
@@ -304,11 +302,9 @@ fn permission_ids(
                 .map(server_admin_contract::AdminPermissionId::from)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
-        .collect::<Result<Vec<_>, _>>()
-        .and_then(|values| {
-            server_admin_contract::AdminPermissionIds::try_from(values)
-                .map_err(|_error| super::AdminApiError::Validation)
-        })
+        .collect::<Result<Vec<_>, _>>()?;
+    server_admin_contract::AdminPermissionIds::try_from(values)
+        .map_err(|_error| super::AdminApiError::Validation)
 }
 
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
@@ -1142,6 +1138,8 @@ mod tests {
                 )
             })
             .collect::<std::collections::BTreeMap<_, _>>();
-        assert!(super::StdAdminHtmlSelected::try_from(values).is_err());
+        let Err(_error) = super::StdAdminHtmlSelected::try_from(values) else {
+            panic!("c86589e3");
+        };
     }
 }

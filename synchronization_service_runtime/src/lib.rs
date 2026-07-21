@@ -1,11 +1,36 @@
+const SYNCHRONIZATION_PAYLOAD_MAX_BYTES: usize = 16 * 1024 * 1024;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SynchronizationRuntimeConfiguration {
     execution_mode: server_runtime::ExecutionMode,
     retry_policy: server_runtime::RetryPolicy,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SynchronizationPayloadTooLarge;
+
+impl std::fmt::Display for SynchronizationPayloadTooLarge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(std::any::type_name::<Self>())
+    }
+}
+
+impl std::error::Error for SynchronizationPayloadTooLarge {}
+
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct SynchronizationPayload(Vec<u8>);
+
+impl TryFrom<Vec<u8>> for SynchronizationPayload {
+    type Error = SynchronizationPayloadTooLarge;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() > SYNCHRONIZATION_PAYLOAD_MAX_BYTES {
+            Err(SynchronizationPayloadTooLarge)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 
 pub trait SynchronizationSource {
     type Error: std::error::Error + Send + Sync + 'static;
@@ -53,5 +78,17 @@ mod tests {
             configuration.execution_mode(),
             server_runtime::ExecutionMode::DryRun
         );
+    }
+
+    #[test]
+    fn synchronization_payload_enforces_maximum_byte_length() {
+        let Ok(payload) = super::SynchronizationPayload::try_from(vec![0; 16 * 1024 * 1024]) else {
+            panic!("5c80aadf");
+        };
+        assert_eq!(payload.as_ref().len(), 16 * 1024 * 1024);
+        let Err(_error) = super::SynchronizationPayload::try_from(vec![0; 16 * 1024 * 1024 + 1])
+        else {
+            panic!("5e2a6145");
+        };
     }
 }

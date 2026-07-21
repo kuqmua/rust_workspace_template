@@ -30,8 +30,8 @@ pub struct PgTableIdempotencyBody(Vec<u8>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyBodyError;
 impl std::fmt::Display for PgTableIdempotencyBodyError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)
     }
 }
 impl std::error::Error for PgTableIdempotencyBodyError {}
@@ -343,12 +343,12 @@ pub async fn begin_pg_table_idempotency(
         return Ok(PgTableIdempotencyBegin::InProgress);
     }
     match (existing.2, existing.3) {
-        (Some(status), Some(response_body)) => {
+        (Some(status), Some(raw_response_body)) => {
             let response_status = match u16::try_from(status) {
                 Ok(value) => value,
                 Err(_error) => return Ok(PgTableIdempotencyBegin::InProgress),
             };
-            let response_body = match PgTableIdempotencyBody::try_from(response_body) {
+            let response_body = match PgTableIdempotencyBody::try_from(raw_response_body) {
                 Ok(value) => value,
                 Err(_error) => return Ok(PgTableIdempotencyBegin::InProgress),
             };

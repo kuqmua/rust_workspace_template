@@ -726,6 +726,7 @@ str_constants_macros::define_str_constants! {
         WORD_ZERO = "zero";
     }
     constants {
+        pub ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT = ["administrator collection exceeds maximum item count"];
         pub ACCESS_SESSIONS = [WORD_ADMIN_ACCESS_SESSIONS];
         pub CLEANUP_STATUS = [WORD_ADMIN_CLEANUP_STATUS];
         pub LOGIN_ATTEMPTS = [WORD_ADMIN_LOGIN_ATTEMPTS];

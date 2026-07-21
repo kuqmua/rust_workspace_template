@@ -586,7 +586,10 @@ const _: () = {
                     __E: _serde::Deserializer<'de>,
                 {
                     let f0: Vec<T> = <Vec<T> as _serde::Deserialize>::deserialize(__e)?;
-                    Ok(PgTypeNotEmptyUniqueVec(f0))
+                    match PgTypeNotEmptyUniqueVec::try_from(f0) {
+                        Ok(v) => Ok(v),
+                        Err(error) => Err(_serde::de::Error::custom(format!("{error:?}"))),
+                    }
                 }
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
@@ -819,6 +822,16 @@ mod tests {
         assert!(matches!(
             rslt,
             Err(pg_crud_common::NotEmptyUniqueVecTryNewError::NotUnique { v: 1i32, .. })
+        ));
+    }
+    #[test]
+    fn pg_type_not_empty_unique_vec_try_from_too_long() {
+        let rslt = super::PgTypeNotEmptyUniqueVec::<usize>::try_from(
+            (0usize..=10_000usize).collect::<Vec<_>>(),
+        );
+        assert!(matches!(
+            rslt,
+            Err(pg_crud_common::NotEmptyUniqueVecTryNewError::TooLong { .. })
         ));
     }
     #[test]

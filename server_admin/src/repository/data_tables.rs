@@ -87,19 +87,18 @@ pub(crate) async fn read(
     let items = rows
         .into_iter()
         .map(|row| {
-            row.into_iter()
+            let values = row
+                .into_iter()
                 .map(|value| {
                     server_admin_contract::AdminText::try_from(
                         value.unwrap_or_else(|| str_constants::SERVER_ADMIN_DATA_NULL.to_owned()),
                     )
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
                 })
-                .collect::<Result<Vec<_>, super::AdminRepositoryError>>()
-                .and_then(|values| {
-                    server_admin_contract::AdminTexts::try_from(values)
-                        .map(server_admin_contract::AdminDataRow::new)
-                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
-                })
+                .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+            server_admin_contract::AdminTexts::try_from(values)
+                .map(server_admin_contract::AdminDataRow::new)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok(server_admin_contract::AdminDataTableView::new(

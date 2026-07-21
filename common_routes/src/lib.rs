@@ -417,10 +417,11 @@ mod tests {
     }
     #[allow(clippy::single_call_fn)] // shared owned->Cow conversion keeps commit-link payload setup consistent across tests
     fn test_commit_link_cow() -> git_info::StdGitCommitLinkCow {
-        git_info::StdGitCommitLinkCow::from(std::borrow::Cow::Owned(test_commit_link()))
+        git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(test_commit_link()))
+            .expect("931b775c")
     }
     fn b_cow(v: &'static str) -> git_info::StdGitCommitLinkCow {
-        git_info::StdGitCommitLinkCow::from(std::borrow::Cow::Borrowed(v))
+        git_info::StdGitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(v)).expect("36301996")
     }
     const fn uri_ref(uri: &axum::http::Uri) -> super::AxumHttpUriRef<'_> {
         super::AxumHttpUriRef(uri)

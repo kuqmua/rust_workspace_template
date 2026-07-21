@@ -4803,8 +4803,9 @@ pub fn emit_generate_pg_table(
                         .into_iter()
                         .find(|route| route.operation() == #identifier_operation_upper_camel_case::#operation_identifier)
                         .ok_or(frontend_contract::ClientError::UnexpectedResponse)?;
-                    let body = serde_json::to_vec(&#ParametersSnakeCase.#PayloadSnakeCase)
-                        .map(frontend_contract::TransportBody::from)
+                    let body_bytes = serde_json::to_vec(&#ParametersSnakeCase.#PayloadSnakeCase)
+                        .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
+                    let body = frontend_contract::TransportBody::try_from(body_bytes)
                         .map_err(|error| frontend_contract::ClientError::Encode(frontend_contract::FormValueError::try_from(error.to_string()).unwrap_or_default()))?;
                     let request = frontend_contract::TransportRequest::new(
                         body,

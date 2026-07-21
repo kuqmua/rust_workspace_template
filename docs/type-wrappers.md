@@ -17,7 +17,7 @@ Borrowed-ссылки и массивы фиксированной длины н
 
 Всего структур-обёрток: **930**. **I:** 483 Да / 447 Нет. **D:** 96 Да / 834 Нет. **B:** 270 Да / 660 Нет. **DT:** 57 Да / 873 Нет. **FT:** 91 Да / 839 Нет.
 
-Проверено в коде: **714** типов; исправлено или уже было корректно ограничено: **147**; изменений не требуется: **567**; остальные **216**: **Не проверено**.
+Проверено в коде: **930** типов; исправлено или уже было корректно ограничено: **191**; изменений не требуется: **739**; типов со статусом **Не проверено** нет.
 
 ## Crate `app_state`
 
@@ -152,16 +152,16 @@ Borrowed-ссылки и массивы фиксированной длины н
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ActionContracts` | Да | Нет | Да | Нет | Да | Не проверено |
+| `ActionContracts` | Да | Нет | Да | Нет | Да | Не требуется |
 | `ContractI64` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 | `ContractStr` | Да | Нет | Нет | Нет | Нет | Не требуется |
-| `FieldContracts` | Да | Нет | Да | Нет | Да | Не проверено |
+| `FieldContracts` | Да | Нет | Да | Нет | Да | Не требуется |
 | `FieldOrder` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 | `FormValue` | Нет | Нет | Да | Нет | Нет | Сделано |
 | `FormValueError` | Нет | Нет | Да | Нет | Нет | Сделано |
 | `FormValueRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
-| `RouteContracts` | Да | Нет | Да | Нет | Да | Не проверено |
-| `TransportBody` | Да | Нет | Да | Нет | Да | Не проверено |
+| `RouteContracts` | Да | Нет | Да | Нет | Да | Не требуется |
+| `TransportBody` | Да | Нет | Да | Нет | Да | Сделано |
 | `TransportError` | Нет | Нет | Да | Нет | Нет | Сделано |
 | `TransportIdempotencyKey` | Да | Нет | Да | Нет | Нет | Сделано |
 | `TransportIfMatch` | Да | Нет | Да | Нет | Нет | Сделано |
@@ -205,9 +205,9 @@ Borrowed-ссылки и массивы фиксированной длины н
 | `OpenApiSecuritySchemeRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
 | `ParameterizedRoutePath` | Нет | Нет | Да | Нет | Нет | Сделано |
 | `RouteBodyLimit` | Да | Нет | Нет | Нет | Нет | Не требуется |
-| `RouteCoverageDescriptors` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `RouteMetadataList` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `RouteSchemaContracts` | Нет | Нет | Да | Нет | Да | Не проверено |
+| `RouteCoverageDescriptors` | Нет | Нет | Да | Нет | Да | Не требуется |
+| `RouteMetadataList` | Нет | Нет | Да | Нет | Да | Не требуется |
+| `RouteSchemaContracts` | Нет | Нет | Да | Нет | Да | Не требуется |
 | `UtoipaOpenApiPathParameter` | Да | Нет | Нет | Нет | Нет | Не требуется |
 | `UtoipaOpenApiRouteSchema` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `frontend_contract::route::tests`
@@ -220,14 +220,14 @@ Borrowed-ссылки и массивы фиксированной длины н
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpContractBody` | Да | Нет | Да | Нет | Да | Не проверено |
+| `HttpContractBody` | Да | Нет | Да | Нет | Да | Сделано |
 | `HttpContractStatus` | Да | Нет | Нет | Нет | Нет | Не требуется |
 | `RouteContractMismatches` | Нет | Нет | Да | Нет | Нет | Не требуется |
 ### Модуль `frontend_contract::route_coverage`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `RouteTestCategories` | Нет | Нет | Да | Нет | Да | Не проверено |
+| `RouteTestCategories` | Нет | Нет | Да | Нет | Да | Не требуется |
 ### Модуль `frontend_contract::url_builder`
 
 | Тип | I | D | B | DT | FT | Статус |
@@ -333,17 +333,17 @@ Borrowed-ссылки и массивы фиксированной длины н
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `GitCommitId` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `GitCommitIdFallback` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `GitCommitIdRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `GitCommitLink` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `GitCommitLinkCapacity` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `GitCommitLinkOutputRefMut` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `IsProjectCommit` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ProjectGitCommitLinkRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdGitCommitIdCow` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `StdGitCommitLinkCow` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `ValidateProjectCommitError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `GitCommitId` | Нет | Нет | Да | Нет | Да | Сделано |
+| `GitCommitIdFallback` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `GitCommitIdRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `GitCommitLink` | Нет | Нет | Да | Нет | Да | Сделано |
+| `GitCommitLinkCapacity` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `GitCommitLinkOutputRefMut` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `IsProjectCommit` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ProjectGitCommitLinkRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdGitCommitIdCow` | Нет | Нет | Да | Нет | Да | Сделано |
+| `StdGitCommitLinkCow` | Нет | Нет | Да | Нет | Да | Сделано |
+| `ValidateProjectCommitError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `location`
 
 ### Модуль `location`
@@ -1347,345 +1347,345 @@ Borrowed-ссылки и массивы фиксированной длины н
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `RetryAfterSecs` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdArcTokioSemaphore` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdPermitWaitTimeout` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSemaphorePermitCount` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `TokioAcquireError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TokioOwnedSemaphorePermit` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `RetryAfterSecs` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdArcTokioSemaphore` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdPermitWaitTimeout` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSemaphorePermitCount` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `TokioAcquireError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TokioOwnedSemaphorePermit` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::metrics_layer`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpMetricsPathCacheMaximum` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpMetricsPathText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpMetricsPathTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `MetricsResponseBody` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MetricsSharedString` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdHttpMetricsPathEntries` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `StdSharedHttpMetricsPathCache` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `HttpMetricsPathCacheMaximum` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpMetricsPathText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpMetricsPathTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `MetricsResponseBody` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MetricsSharedString` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdHttpMetricsPathEntries` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `StdSharedHttpMetricsPathCache` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::multipart`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `FileStagingDirectoryName` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartBytes` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartBytesParts` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartFieldName` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartFileName` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartPayloadMaximum` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `MultipartTextParts` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartTextValue` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `MultipartValueLength` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdStorageRelativePath` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `StoragePathSegment` | Да | Нет | Да | Нет | Нет | Не проверено |
+| `FileStagingDirectoryName` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MultipartBytes` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MultipartBytesParts` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `MultipartFieldName` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MultipartFileName` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MultipartPayloadMaximum` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `MultipartTextParts` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `MultipartTextValue` | Да | Нет | Да | Нет | Нет | Сделано |
+| `MultipartValueLength` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdStorageRelativePath` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `StoragePathSegment` | Да | Нет | Да | Нет | Нет | Сделано |
 ### Модуль `server_runtime::notification`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `AxumNotificationJson` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `AxumNotificationRouter` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpNotificationHeaderMap` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `NotificationApiToken` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `NotificationApiTokenAuthorized` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `NotificationApiTokenRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `NotificationMessage` | Да | Да | Да | Да | Нет | Не проверено |
+| `AxumNotificationJson` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `AxumNotificationRouter` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpNotificationHeaderMap` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `NotificationApiToken` | Да | Нет | Да | Нет | Нет | Сделано |
+| `NotificationApiTokenAuthorized` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `NotificationApiTokenRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `NotificationMessage` | Да | Да | Да | Да | Нет | Сделано |
 ### Модуль `server_runtime::origin`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `AllowOriginSuffix` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `AllowedOrigins` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpOriginAuthorityText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpOriginHeadersRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpOriginSchemeText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpOriginTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `RequestOriginAllowed` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `AllowOriginSuffix` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `AllowedOrigins` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpOriginAuthorityText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpOriginHeadersRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpOriginSchemeText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpOriginTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `RequestOriginAllowed` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::outbound_url`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `OutboundAllowedHost` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `OutboundHostAllowlist` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `OutboundUrlTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `ReqwestOutboundUrl` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdOutboundIpAddr` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `OutboundAllowedHost` | Да | Нет | Да | Нет | Нет | Сделано |
+| `OutboundHostAllowlist` | Да | Нет | Да | Нет | Нет | Сделано |
+| `OutboundUrlTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `ReqwestOutboundUrl` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdOutboundIpAddr` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::path_policy`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpAllowedPathPrefixRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpNormalizedPath` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpProxyPath` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpProxyPathPrefixMatch` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpProxyPathRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `HttpRequestPathRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `HttpAllowedPathPrefixRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpNormalizedPath` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpProxyPath` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpProxyPathPrefixMatch` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpProxyPathRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `HttpRequestPathRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::pg_rate_limit`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `PgRateLimitMaximum` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `PgRateLimitQueryRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `PgRateLimitScopeRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `PgRateLimitSubjectRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `PgRateLimitWindowSeconds` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SqlxPgRateLimitError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `SqlxPgRateLimitPoolRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `PgRateLimitMaximum` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `PgRateLimitQueryRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `PgRateLimitScopeRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `PgRateLimitSubjectRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `PgRateLimitWindowSeconds` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SqlxPgRateLimitError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `SqlxPgRateLimitPoolRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::redacted_url`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `RedactedUrl` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `RedactedUrlTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `RedactedUrl` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `RedactedUrlTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::request_id`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpHeaderToStrError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `RequestId` | Да | Нет | Да | Нет | Нет | Не проверено |
+| `HttpHeaderToStrError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `RequestId` | Да | Нет | Да | Нет | Нет | Сделано |
 ### Модуль `server_runtime::resource_budget`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ResourceBudgetAmount` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `ResourceBudgetMaximum` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdAtomicUsize` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSharedAtomicUsize` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `ResourceBudgetAmount` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `ResourceBudgetMaximum` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdAtomicUsize` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSharedAtomicUsize` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::resource_utilization`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ResourceAmount` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `ResourceUtilizationPercent` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `ResourceAmount` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `ResourceUtilizationPercent` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::retry`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `StdRetryAttempts` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdRetryDelay` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `StdRetryAttempts` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdRetryDelay` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::secret_text`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `BoundedSecretText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `SecretTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `BoundedSecretText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `SecretTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::secure_cookie`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpCookieName` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpCookieValue` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpSetCookieHeaderValue` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdCookieMaxAgeSeconds` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `HttpCookieName` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpCookieValue` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpSetCookieHeaderValue` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdCookieMaxAgeSeconds` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::service_bootstrap`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `StdServiceRuntimeIoError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TokioServiceRuntime` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TracingSubscriberInitError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `StdServiceRuntimeIoError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TokioServiceRuntime` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TracingSubscriberInitError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::single_flight`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `SingleFlightKey` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `SingleFlightWaiter` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdArcStdSingleFlightRwLock` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSingleFlightMaximum` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSingleFlightRwLock` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSingleFlightWriteGuard` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TokioSingleFlightReceiver` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TokioSingleFlightSender` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `SingleFlightKey` | Да | Нет | Да | Нет | Нет | Сделано |
+| `SingleFlightWaiter` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdArcStdSingleFlightRwLock` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSingleFlightMaximum` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSingleFlightRwLock` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSingleFlightWriteGuard` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TokioSingleFlightReceiver` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TokioSingleFlightSender` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `server_runtime::trace_context`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `HttpTraceParent` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `HttpTraceState` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `ReqwestRequestBuilder` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `HttpTraceParent` | Да | Нет | Да | Нет | Нет | Сделано |
+| `HttpTraceState` | Да | Нет | Да | Нет | Нет | Сделано |
+| `ReqwestRequestBuilder` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `str_constants_macros`
 
 ### Модуль `str_constants_macros`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `SynIdent` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `SynLitStr` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `SynVisibility` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `SynIdent` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `SynLitStr` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `SynVisibility` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `synchronization_service_runtime`
 
 ### Модуль `synchronization_service_runtime`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `SynchronizationPayload` | Да | Нет | Да | Нет | Да | Не проверено |
+| `SynchronizationPayload` | Да | Нет | Да | Нет | Да | Сделано |
 ## Crate `tests`
 
 ### Модуль `tests::code_style::types`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `AnalyzerBool` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `AnalyzerChar` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `AnalyzerCount` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `CargoMetadata` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `CargoMetadataRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `CargoTomlFileIdx` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `DiagnosticMsgs` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `DiagnosticMsgsMutRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SourceText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `SourceTextList` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `SourceTextListRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SourceTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StaticStr` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StaticStrSliceRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdCargoPackageIdRefSet` | Да | Нет | Да | Нет | Да | Не проверено |
-| `StdPathBuf` | Да | Нет | Да | Нет | Да | Не проверено |
-| `StdPathRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdProcessOutputRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSourceTextHashSet` | Да | Нет | Да | Нет | Да | Не проверено |
-| `StdSourceTextRefSet` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `StdSourceTextSet` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `StdStdSourceTextSetRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynAttributeListRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynAttributeRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynBlockRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynExprCallRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynFieldsRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynFile` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynFileRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynGenericsRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynIdentifierRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynItemFnRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynItemImplRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynItemRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynItemStructRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynPathArgumentsRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynPathRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynPathSegmentRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynSignatureRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynTypePathRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynTypeRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynUseTreeRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `TomlTable` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `TomlTableRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `TomlValue` | Да | Нет | Да | Нет | Да | Не проверено |
-| `TomlValueRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `WalkdirWalkDir` | Да | Нет | Нет | Нет | Нет | Не проверено |
+| `AnalyzerBool` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `AnalyzerChar` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `AnalyzerCount` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `CargoMetadata` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `CargoMetadataRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `CargoTomlFileIdx` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `DiagnosticMsgs` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `DiagnosticMsgsMutRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SourceText` | Да | Нет | Да | Нет | Нет | Не требуется |
+| `SourceTextList` | Нет | Нет | Да | Нет | Да | Не требуется |
+| `SourceTextListRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SourceTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StaticStr` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StaticStrSliceRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdCargoPackageIdRefSet` | Да | Нет | Да | Нет | Да | Не требуется |
+| `StdPathBuf` | Да | Нет | Да | Нет | Да | Не требуется |
+| `StdPathRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdProcessOutputRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSourceTextHashSet` | Да | Нет | Да | Нет | Да | Не требуется |
+| `StdSourceTextRefSet` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `StdSourceTextSet` | Нет | Нет | Да | Нет | Да | Не требуется |
+| `StdStdSourceTextSetRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynAttributeListRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynAttributeRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynBlockRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynExprCallRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynFieldsRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynFile` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynFileRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynGenericsRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynIdentifierRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynItemFnRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynItemImplRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynItemRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynItemStructRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynPathArgumentsRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynPathRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynPathSegmentRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynSignatureRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynTypePathRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynTypeRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynUseTreeRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `TomlTable` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `TomlTableRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `TomlValue` | Да | Нет | Да | Нет | Да | Не требуется |
+| `TomlValueRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `WalkdirWalkDir` | Да | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `tests::domain_type_policy_fixture`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `DomainEvents` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `DomainId` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `DomainName` | Да | Нет | Да | Нет | Да | Не проверено |
+| `DomainEvents` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `DomainId` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `DomainName` | Да | Нет | Да | Нет | Да | Не требуется |
 ## Crate `text_policy`
 
 ### Модуль `text_policy`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `FixedLengthAsciiHexText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `NonEmptyTrimmedText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `PasswordLength` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `PasswordTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `RequiredNulFreeBoundedText` | Да | Нет | Да | Нет | Нет | Не проверено |
-| `UrlSafeTokenPartMaximumBytes` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `UrlSafeTokenPartRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `UrlSafeTokenPartText` | Да | Нет | Да | Нет | Нет | Не проверено |
+| `FixedLengthAsciiHexText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `NonEmptyTrimmedText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `PasswordLength` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `PasswordTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `RequiredNulFreeBoundedText` | Да | Нет | Да | Нет | Нет | Сделано |
+| `UrlSafeTokenPartMaximumBytes` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `UrlSafeTokenPartRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `UrlSafeTokenPartText` | Да | Нет | Да | Нет | Нет | Сделано |
 ## Crate `to_err_string`
 
 ### Модуль `to_err_string`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `StaticStrToOwnedInput` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ToErrStringValue` | Да | Нет | Да | Нет | Нет | Не проверено |
+| `StaticStrToOwnedInput` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ToErrStringValue` | Да | Нет | Да | Нет | Нет | Сделано |
 ## Crate `token_patterns`
 
 ### Модуль `token_patterns`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ProcMacro2TokensMut` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `ProcMacro2TokensMut` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `token_patterns_macros`
 
 ### Модуль `token_patterns_macros`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ProcMacro2GenerateTpInput` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `ProcMacro2GenerateTpOutput` | Нет | Нет | Да | Нет | Нет | Не проверено |
+| `ProcMacro2GenerateTpInput` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `ProcMacro2GenerateTpOutput` | Нет | Нет | Да | Нет | Нет | Не требуется |
 ## Crate `where_filters`
 
 ### Модуль `where_filters`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `BoundedVec` | Нет | Да | Да | Да | Нет | Не проверено |
-| `BoundedVecLen` | Да | Да | Нет | Нет | Нет | Не проверено |
-| `PgTypeNotEmptyUniqueVec` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `RegexCasePostgreqlSyntax` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `RegexRegex` | Нет | Да | Нет | Нет | Нет | Не проверено |
+| `BoundedVec` | Нет | Да | Да | Да | Нет | Сделано |
+| `BoundedVecLen` | Да | Да | Нет | Нет | Нет | Не требуется |
+| `PgTypeNotEmptyUniqueVec` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `RegexCasePostgreqlSyntax` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `RegexRegex` | Нет | Да | Нет | Нет | Нет | Не требуется |
 ### Модуль `where_filters::tests`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `NonClone` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `NonClone` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `workspace_macro_helpers`
 
 ### Модуль `workspace_macro_helpers`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `FirstCommaStripped` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `FirstIdentifier` | Да | Нет | Да | Нет | Да | Не проверено |
-| `FirstIdentifierifierTryFromStringError` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `PartIndex` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `ProcMacro2MacroTokens` | Нет | Нет | Да | Нет | Да | Не проверено |
-| `ProcMacro2TopLevelCommaParts` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `StdUniqueOptionSet` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `StdUniqueOptionSetContains` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `StdUniqueOptionSetIsEmpty` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `SynDeriveInputRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `SynFieldsNamedRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `SynFieldsUnnamedRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `TopLevelCommaPart` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `FirstCommaStripped` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `FirstIdentifier` | Да | Нет | Да | Нет | Да | Сделано |
+| `FirstIdentifierifierTryFromStringError` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `PartIndex` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `ProcMacro2MacroTokens` | Нет | Нет | Да | Нет | Да | Не требуется |
+| `ProcMacro2TopLevelCommaParts` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `StdUniqueOptionSet` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `StdUniqueOptionSetContains` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `StdUniqueOptionSetIsEmpty` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `SynDeriveInputRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `SynFieldsNamedRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `SynFieldsUnnamedRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `TopLevelCommaPart` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `workspace_scaffold`
 
 ### Модуль `workspace_scaffold`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `ProjectNameRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `RepositoryUrlRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ServicePort` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `ProjectNameRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `RepositoryUrlRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ServicePort` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ## Crate `workspace_test_runner`
 
 ### Модуль `workspace_test_runner`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `AnsiTextRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `CargoArgs` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `CleanAnsiText` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `MeasurementName` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `MemusageColumnIdx` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `MemusageKey` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `MemusageProgNameRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `MemusageRowName` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `MemusageValueRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ProgramArgsRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ProgramPathRef` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `QuoteTokenStreamGeneratePgTableMeasureInputTokenStream` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `StderrTextRef` | Да | Нет | Нет | Нет | Нет | Не проверено |
-| `ToolName` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `ToolPath` | Нет | Нет | Нет | Нет | Нет | Не проверено |
+| `AnsiTextRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `CargoArgs` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `CleanAnsiText` | Нет | Нет | Да | Нет | Нет | Сделано |
+| `MeasurementName` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `MemusageColumnIdx` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `MemusageKey` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `MemusageProgNameRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `MemusageRowName` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `MemusageValueRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ProgramArgsRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ProgramPathRef` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `QuoteTokenStreamGeneratePgTableMeasureInputTokenStream` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `StderrTextRef` | Да | Нет | Нет | Нет | Нет | Не требуется |
+| `ToolName` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `ToolPath` | Нет | Нет | Нет | Нет | Нет | Не требуется |
 ### Модуль `workspace_test_runner::execution`
 
 | Тип | I | D | B | DT | FT | Статус |
 |---|:---:|:---:|:---:|:---:|:---:|---|
-| `CommandIdx` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `CommandStartedAt` | Нет | Нет | Нет | Нет | Нет | Не проверено |
-| `RunDir` | Нет | Нет | Да | Нет | Нет | Не проверено |
-| `SummaryText` | Нет | Нет | Да | Нет | Нет | Не проверено |
+| `CommandIdx` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `CommandStartedAt` | Нет | Нет | Нет | Нет | Нет | Не требуется |
+| `RunDir` | Нет | Нет | Да | Нет | Нет | Не требуется |
+| `SummaryText` | Нет | Нет | Да | Нет | Нет | Не требуется |
