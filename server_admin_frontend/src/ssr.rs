@@ -82,19 +82,12 @@ pub fn render_sign_in(
     error: Option<AdminSsrErrorMessage>,
     branding: Option<&server_admin_contract::AdminBrandingView>,
 ) -> AdminSsrHtml {
-    let site_name = branding.map_or_else(
-        || String::from(str_constants::WORKSPACE_ADMIN),
-        |value| AsRef::<str>::as_ref(value.site_name()).to_owned(),
-    );
     let tab_title = branding
         .and_then(server_admin_contract::AdminBrandingView::tab_title)
         .map_or_else(
             || String::from(str_constants::ADMINISTRATOR_SIGN_IN),
             |value| AsRef::<str>::as_ref(value).to_owned(),
         );
-    let main_logo = branding
-        .and_then(server_admin_contract::AdminBrandingView::main_logo)
-        .map(|value| AsRef::<str>::as_ref(value).to_owned());
     let primary_color = branding
         .and_then(server_admin_contract::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
@@ -103,10 +96,6 @@ pub fn render_sign_in(
         leptos::view! {
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
-                    <div class="auth-brand">
-                        {main_logo.map_or_else(|| leptos::view! { <span class="brand-mark" aria-hidden="true">"A"</span> }.into_any(), |source| leptos::view! { <img class="brand-logo" src=source alt="" /> }.into_any())}
-                        <div><strong>{site_name}</strong><small>"Secure operations console"</small></div>
-                    </div>
                     <h1>"Sign in"</h1>
                     {error.map(|message| leptos::view! { <p class="field-error" role="alert">{message.0}</p> })}
                     <form method="post" action=server_admin_contract::AdminHtmlAction::SignIn.get()>
@@ -650,7 +639,7 @@ mod tests {
     }
 
     #[test]
-    fn sign_in_uses_server_side_branding_without_scripts() {
+    fn sign_in_uses_server_side_color_without_logo() {
         let settings = server_admin_contract::AdminSettingsView::new(
             server_admin_contract::AdminDefaultRoute::try_from(
                 server_admin_contract::AdminFrontendPath::Audit
@@ -672,7 +661,10 @@ mod tests {
         );
         let branding = server_admin_contract::AdminBrandingView::from_settings(&settings);
         let html = super::render_sign_in(None, Some(&branding));
-        assert!(html.as_ref().contains("Custom Admin"));
+        assert!(!html.as_ref().contains("Custom Admin"));
+        assert!(!html.as_ref().contains("auth-brand"));
+        assert!(!html.as_ref().contains("brand-mark"));
+        assert!(!html.as_ref().contains("brand-logo"));
         assert!(html.as_ref().contains("--accent:#123456"));
         assert!(!html.as_ref().contains("<script"));
     }

@@ -162,59 +162,6 @@ h2 {
   padding: 9px clamp(18px, 4vw, 56px);
 }
 
-.brand,
-.auth-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.brand-mark,
-.brand-logo {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
-  border-radius: 11px;
-}
-
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 25%, transparent);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.brand-logo {
-  object-fit: contain;
-}
-
-.brand strong,
-.auth-brand strong {
-  display: block;
-  overflow: hidden;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 750;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.brand small,
-.auth-brand small {
-  display: block;
-  overflow: hidden;
-  margin-top: 1px;
-  color: var(--muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .topbar nav {
   grid-column: 1;
   grid-row: 1;
@@ -906,10 +853,6 @@ pre {
 }
 
 @media (max-width: 420px) {
-  .topbar .brand small {
-    display: none;
-  }
-
   .main-content {
     padding-inline: 12px;
   }
