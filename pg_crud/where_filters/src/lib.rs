@@ -497,7 +497,18 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
         Ok(pg_crud_common::QueryPartFragment::try_from(query_part)?)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, schemars::JsonSchema, optml::Optml)]
+#[derive(
+    Debug,
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    schemars::JsonSchema,
+    optml::Optml,
+    newtype::AsSlice,
+    newtype::IntoInnerFrom,
+)]
 pub struct PgTypeNotEmptyUniqueVec<T>(Vec<T>);
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
     for PgTypeNotEmptyUniqueVec<T>
@@ -514,13 +525,6 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
                 .build()
                 .into(),
         )
-    }
-}
-#[allow(clippy::arbitrary_source_item_ordering)]
-impl<T> PgTypeNotEmptyUniqueVec<T> {
-    #[must_use]
-    pub const fn as_slice(&self) -> &[T] {
-        self.0.as_slice()
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
@@ -622,16 +626,6 @@ impl<T: pg_crud_common::DefaultSomeOneElement> pg_crud_common::DefaultSomeOneEle
         ])
     }
 }
-impl<T> Default for PgTypeNotEmptyUniqueVec<T> {
-    fn default() -> Self {
-        Self(Vec::default())
-    }
-}
-impl<T> From<PgTypeNotEmptyUniqueVec<T>> for Vec<T> {
-    fn from(v: PgTypeNotEmptyUniqueVec<T>) -> Self {
-        v.0
-    }
-}
 #[derive(
     Debug,
     Default,
@@ -643,6 +637,8 @@ impl<T> From<PgTypeNotEmptyUniqueVec<T>> for Vec<T> {
     serde::Deserialize,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::AsSlice,
+    newtype::IntoInner,
 )]
 #[serde(try_from = "Vec<T>")]
 pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
@@ -703,14 +699,6 @@ impl<
     const LENGTH: usize,
 > BoundedVec<T, LENGTH>
 {
-    #[must_use]
-    pub const fn as_slice(&self) -> &[T] {
-        self.0.as_slice()
-    }
-    #[must_use]
-    pub fn into_inner(self) -> Vec<T> {
-        self.0
-    }
     pub fn pg_type_query_part(
         &self,
         increment: &mut dyn pg_crud_common::QueryPartIncrementMut,

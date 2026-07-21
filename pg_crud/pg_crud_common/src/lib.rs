@@ -113,18 +113,8 @@ pub use sql_like_pattern::{
     SqlLikeInputRef, SqlLikeMatchMode, SqlLikePattern, SqlLikePatternError, build_sql_like_pattern,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AllEnumVariants<T>(Vec<T>);
-impl<T> From<Vec<T>> for AllEnumVariants<T> {
-    fn from(value: Vec<T>) -> Self {
-        Self(value)
-    }
-}
-impl<T> From<AllEnumVariants<T>> for Vec<T> {
-    fn from(value: AllEnumVariants<T>) -> Self {
-        value.0
-    }
-}
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
     fn all_variants_default_some_one_element() -> AllEnumVariants<Self>;
 }

@@ -4,18 +4,8 @@ pub enum SliceOrdering {
     StrictlyIncreasing,
     Unordered,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct OrderPreservingValues<Value>(Vec<Value>);
-impl<Value> From<Vec<Value>> for OrderPreservingValues<Value> {
-    fn from(value: Vec<Value>) -> Self {
-        Self(value)
-    }
-}
-impl<Value> From<OrderPreservingValues<Value>> for Vec<Value> {
-    fn from(value: OrderPreservingValues<Value>) -> Self {
-        value.0
-    }
-}
 
 #[must_use]
 pub fn classify_slice_ordering<Value>(values: &[Value]) -> SliceOrdering

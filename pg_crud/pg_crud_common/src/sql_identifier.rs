@@ -25,13 +25,8 @@ pub struct SqlQualifiedIdentifier {
     schema: SqlIdentifier,
     table: SqlIdentifier,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct SqlIdentifiers(Vec<SqlIdentifier>);
-impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
-    fn from(value: Vec<SqlIdentifier>) -> Self {
-        Self(value)
-    }
-}
 #[derive(Debug)]
 struct SqlQueryText(String);
 impl TryFrom<String> for SqlQueryText {

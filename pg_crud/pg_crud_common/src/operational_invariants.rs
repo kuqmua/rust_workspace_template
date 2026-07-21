@@ -16,13 +16,8 @@ pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
     InvalidColumnCount,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgSqlIdentifiers(Vec<crate::SqlIdentifier>);
-impl From<Vec<crate::SqlIdentifier>> for PgSqlIdentifiers {
-    fn from(value: Vec<crate::SqlIdentifier>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgScopedForeignKey {

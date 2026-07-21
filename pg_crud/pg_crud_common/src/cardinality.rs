@@ -1,17 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::FromInner)]
 pub struct DuplicateIdx(usize);
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct DuplicateCandidates<T>(Vec<T>);
-impl<T> From<Vec<T>> for DuplicateCandidates<T> {
-    fn from(value: Vec<T>) -> Self {
-        Self(value)
-    }
-}
-impl<T> From<DuplicateCandidates<T>> for Vec<T> {
-    fn from(value: DuplicateCandidates<T>) -> Self {
-        value.0
-    }
-}
 impl DuplicateIdx {
     #[must_use]
     pub const fn get(self) -> usize {

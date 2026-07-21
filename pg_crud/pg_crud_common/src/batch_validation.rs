@@ -35,25 +35,10 @@ impl BatchStoppedEarly {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BatchInvalidItems<InvalidItem>(Vec<InvalidItem>);
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdBatchRecords<Key, Record>(std::collections::BTreeMap<Key, Record>);
-impl<InvalidItem> From<Vec<InvalidItem>> for BatchInvalidItems<InvalidItem> {
-    fn from(value: Vec<InvalidItem>) -> Self {
-        Self(value)
-    }
-}
-impl<Key, Record> From<std::collections::BTreeMap<Key, Record>> for StdBatchRecords<Key, Record> {
-    fn from(value: std::collections::BTreeMap<Key, Record>) -> Self {
-        Self(value)
-    }
-}
-impl<Key, Record> AsRef<std::collections::BTreeMap<Key, Record>> for StdBatchRecords<Key, Record> {
-    fn as_ref(&self) -> &std::collections::BTreeMap<Key, Record> {
-        &self.0
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BatchValidationReport<Key, Record, InvalidItem> {

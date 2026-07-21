@@ -48,13 +48,8 @@ impl TryFrom<i64> for ListTotal {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ListItems<Item>(Vec<Item>);
-impl<Item> From<Vec<Item>> for ListItems<Item> {
-    fn from(value: Vec<Item>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ListPage<Item> {
