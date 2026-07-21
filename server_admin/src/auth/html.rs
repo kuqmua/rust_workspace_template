@@ -141,6 +141,8 @@ struct SettingsForm {
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct DataTablesQuery {
+    #[serde(flatten)]
+    page: server_admin_contract::AdminTableQuery,
     table: Option<AdminHtmlFormText>,
 }
 
@@ -316,15 +318,20 @@ async fn data_tables(
     let context_result = page_context(&auth).await;
     let catalog_result = super::handlers::data_table_catalog(auth.clone()).await;
     let view_result = match table {
-        Some(value) => super::handlers::data_table_view(auth, value)
+        Some(value) => super::handlers::data_table_view(auth, value, &query.page)
             .await
             .map(Some),
         None => Ok(None),
     };
     match (context_result, catalog_result, view_result) {
-        (Ok((admin, branding)), Ok(_catalog), Ok(view)) => html_response(
-            server_admin_frontend::ssr::render_data_tables(view.as_ref(), &admin, &branding),
-        ),
+        (Ok((admin, branding)), Ok(_catalog), Ok(view)) => {
+            html_response(server_admin_frontend::ssr::render_data_tables(
+                view.as_ref(),
+                &query.page,
+                &admin,
+                &branding,
+            ))
+        }
         (Err(error), _, _) | (_, Err(error), _) | (_, _, Err(error)) => html_page_error(error),
     }
 }
@@ -358,12 +365,16 @@ async fn permissions(
     }
 }
 
-async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
+async fn sessions(
+    auth: super::AdminAuthReq,
+    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+) -> axum::response::Response {
     let context_result = page_context(&auth).await;
-    let items_result = super::handlers::sessions_view(auth).await;
-    match (context_result, items_result) {
-        (Ok((admin, branding)), Ok(items)) => html_response(
-            server_admin_frontend::ssr::render_sessions(&items, &admin, &branding),
+    let page_result =
+        super::handlers::sessions_view(auth, super::AxumAdminQuery(query.clone())).await;
+    match (context_result, page_result) {
+        (Ok((admin, branding)), Ok(page)) => html_response(
+            server_admin_frontend::ssr::render_sessions(&page, &query, &admin, &branding),
         ),
         (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
@@ -393,12 +404,42 @@ async fn audit(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> axum::response::Response {
+    let filters = match (
+        query
+            .action
+            .map(super::super::AdminAuditAction::as_str)
+            .map(|value| server_admin_contract::AdminText::try_from(value.as_ref().to_owned()))
+            .transpose(),
+        query
+            .resource
+            .map(super::super::AdminAuditResource::as_str)
+            .map(|value| server_admin_contract::AdminText::try_from(value.as_ref().to_owned()))
+            .transpose(),
+    ) {
+        (Ok(action), Ok(resource)) => server_admin_contract::AdminAuditHtmlQuery::new(
+            action,
+            resource,
+            query.resource_id.clone(),
+            query.user_login.clone(),
+        ),
+        (Err(_error), _) | (_, Err(_error)) => {
+            return html_page_error(super::AdminApiError::Validation);
+        }
+    };
     let context_result = page_context(&auth).await;
+    let pagination =
+        server_admin_contract::AdminTableQuery::pagination(query.limit(), query.offset());
     let page_result = super::audit::query_page(auth, super::AxumAdminQuery(query)).await;
     match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => html_response(
-            server_admin_frontend::ssr::render_audit(&page, &admin, &branding),
-        ),
+        (Ok((admin, branding)), Ok(page)) => {
+            html_response(server_admin_frontend::ssr::render_audit(
+                &page,
+                &pagination,
+                &filters,
+                &admin,
+                &branding,
+            ))
+        }
         (Err(error), _) | (_, Err(error)) => html_page_error(error),
     }
 }

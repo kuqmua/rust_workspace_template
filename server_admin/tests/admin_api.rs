@@ -1520,6 +1520,8 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
         str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(admin_id)
+    .bind(100i64)
+    .bind(0i64)
     .fetch_one(&fixture.pool.0)
     .await
     .expect("32e44a86");
@@ -1535,6 +1537,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     assert!(sessions_html.0.contains(session_id.to_string().as_str()));
     assert!(sessions_html.0.contains(created_at.as_str()));
     assert!(sessions_html.0.contains(expires_at.as_str()));
+    assert!(sessions_html.0.contains("class=\"table-pagination\""));
     assert!(
         sessions_html
             .0
@@ -1605,6 +1608,21 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 path.get(),
                 response.status()
             );
+            if matches!(
+                path,
+                server_admin_contract::AdminFrontendPath::Audit
+                    | server_admin_contract::AdminFrontendPath::Permissions
+                    | server_admin_contract::AdminFrontendPath::Roles
+                    | server_admin_contract::AdminFrontendPath::Sessions
+                    | server_admin_contract::AdminFrontendPath::Users
+            ) {
+                let html = admin_html_body(response).await;
+                assert!(
+                    html.0.contains("class=\"table-pagination\""),
+                    "table page {} has no pagination",
+                    path.get()
+                );
+            }
         },
     )
     .await;
@@ -1627,6 +1645,12 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 response.status(),
                 http::StatusCode::OK,
                 "table view {table} failed"
+            );
+            let html = admin_html_body(response).await;
+            assert!(html.0.contains("class=\"table-pagination\""));
+            assert!(
+                html.0
+                    .contains(format!("name=\"table\" value=\"{table}\"").as_str())
             );
         },
     )
@@ -2694,14 +2718,46 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .await
     .expect("e6175d82");
     assert_eq!(last_admin_response.status(), http::StatusCode::CONFLICT);
-    let audit_response = tower::ServiceExt::oneshot(
+    let audit_response =
+        tower::ServiceExt::oneshot(
+            router_with_pool(&pool).0,
+            request_with_peer(
+                HttpAdminApiTestMethod(http::Method::GET),
+                StdAdminApiTestStrRef(
+                    format!(
+                        "{}?limit=1&offset=1",
+                        frontend_contract::typed_route_path::<
+                            server_admin_contract::AdminAuditLogRoute,
+                        >()
+                    )
+                    .as_str(),
+                ),
+                StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect("8103cd5f");
+    assert_eq!(audit_response.status(), http::StatusCode::OK);
+    let audit_page = axum::body::to_bytes(audit_response.into_body(), 1_048_576usize)
+        .await
+        .map(|body| {
+            serde_json::from_slice::<server_admin_contract::AdminAuditPage>(&body)
+                .expect("ed125d4a")
+        })
+        .expect("50612a4d");
+    assert!(audit_page.items().len() <= 1usize);
+    assert!(
+        u64::from(audit_page.total()) >= u64::try_from(audit_page.items().len()).expect("03c133e9")
+    );
+
+    let sessions_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(
             HttpAdminApiTestMethod(http::Method::GET),
-            StdAdminApiTestStrRef(
-                frontend_contract::typed_route_path::<server_admin_contract::AdminAuditLogRoute>()
-                    .as_ref(),
-            ),
+            StdAdminApiTestStrRef("/auth/sessions?limit=1&offset=0"),
             StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             Some(StdAdminApiTestStrRef(active_cookie.as_str())),
             None,
@@ -2709,8 +2765,46 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
         .0,
     )
     .await
-    .expect("8103cd5f");
-    assert_eq!(audit_response.status(), http::StatusCode::OK);
+    .expect("449bf918");
+    assert_eq!(sessions_response.status(), http::StatusCode::OK);
+    let sessions_page = axum::body::to_bytes(sessions_response.into_body(), 1_048_576usize)
+        .await
+        .map(|body| {
+            serde_json::from_slice::<server_admin_contract::AdminSessionsPage>(&body)
+                .expect("e544366c")
+        })
+        .expect("141ddcdc");
+    assert!(sessions_page.items().len() <= 1usize);
+    assert!(
+        u64::from(sessions_page.total())
+            >= u64::try_from(sessions_page.items().len()).expect("701a7a79")
+    );
+
+    let data_table_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod(http::Method::GET),
+            StdAdminApiTestStrRef("/tables/users?limit=1&offset=0"),
+            StdAdminApiTestStrRef(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            Some(StdAdminApiTestStrRef(active_cookie.as_str())),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("ca94aec1");
+    assert_eq!(data_table_response.status(), http::StatusCode::OK);
+    let data_table = axum::body::to_bytes(data_table_response.into_body(), 1_048_576usize)
+        .await
+        .map(|body| {
+            serde_json::from_slice::<server_admin_contract::AdminDataTableView>(&body)
+                .expect("e16283f4")
+        })
+        .expect("3f927581");
+    assert!(data_table.items().len() <= 1usize);
+    assert!(
+        u64::from(data_table.total()) >= u64::try_from(data_table.items().len()).expect("1440730f")
+    );
     let sign_out_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

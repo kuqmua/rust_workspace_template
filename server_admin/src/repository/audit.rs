@@ -51,6 +51,39 @@ pub(crate) async fn query_audit_log(
     let limit = usize::from(u16::from(parts.limit));
     let fetch_limit = i64::try_from(limit.saturating_add(1usize))
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
+    let total =
+        sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
+            .bind(parts.user_id.map(|value| value.0))
+            .bind(action_text.map(|value| value.as_ref().to_owned()))
+            .bind(resource_text.map(|value| value.as_ref().to_owned()))
+            .bind(
+                parts
+                    .created_after
+                    .as_ref()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(
+                parts
+                    .created_before
+                    .as_ref()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(
+                parts
+                    .user_login
+                    .as_ref()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(
+                parts
+                    .resource_id
+                    .as_ref()
+                    .map(|value| value.as_ref().as_str()),
+            )
+            .bind(parts.succeeded.map(bool::from))
+            .fetch_one(pool.0)
+            .await
+            .map_err(crate::SqlxAdminError::from)?;
     let rows = sqlx::query_as::<
         _,
         (
@@ -101,6 +134,7 @@ pub(crate) async fn query_audit_log(
     )
     .bind(parts.succeeded.map(bool::from))
     .bind(fetch_limit)
+    .bind(i64::from(u32::from(parts.offset)))
     .fetch_all(pool.0)
     .await
     .map_err(crate::SqlxAdminError::from)?;
@@ -144,5 +178,6 @@ pub(crate) async fn query_audit_log(
     Ok(server_admin_contract::AdminAuditPage::new(
         views,
         next_cursor,
+        super::page_total(super::AdminPageTotalCount::from(total))?,
     ))
 }

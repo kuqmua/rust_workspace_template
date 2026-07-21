@@ -772,6 +772,14 @@ pub struct AdminTableQuery {
 }
 impl AdminTableQuery {
     #[must_use]
+    pub fn pagination(limit: AdminPageLimit, offset: AdminPageOffset) -> Self {
+        Self {
+            limit,
+            offset,
+            ..Self::default()
+        }
+    }
+    #[must_use]
     pub const fn limit(&self) -> AdminPageLimit {
         self.limit
     }
@@ -1388,6 +1396,47 @@ pub struct AdminAuditPage {
     items: Vec<AdminAuditView>,
     #[schema(inline)]
     next_cursor: Option<AdminAuditCursor>,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
+}
+#[derive(Clone, Debug)]
+pub struct AdminAuditHtmlQuery {
+    action: Option<AdminText>,
+    resource: Option<AdminText>,
+    resource_id: Option<AdminText>,
+    user_login: Option<AdminLogin>,
+}
+impl AdminAuditHtmlQuery {
+    #[must_use]
+    pub const fn new(
+        action: Option<AdminText>,
+        resource: Option<AdminText>,
+        resource_id: Option<AdminText>,
+        user_login: Option<AdminLogin>,
+    ) -> Self {
+        Self {
+            action,
+            resource,
+            resource_id,
+            user_login,
+        }
+    }
+    #[must_use]
+    pub const fn action(&self) -> Option<&AdminText> {
+        self.action.as_ref()
+    }
+    #[must_use]
+    pub const fn resource(&self) -> Option<&AdminText> {
+        self.resource.as_ref()
+    }
+    #[must_use]
+    pub const fn resource_id(&self) -> Option<&AdminText> {
+        self.resource_id.as_ref()
+    }
+    #[must_use]
+    pub const fn user_login(&self) -> Option<&AdminLogin> {
+        self.user_login.as_ref()
+    }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataRow {
@@ -1408,6 +1457,8 @@ pub struct AdminDataTableView {
     columns: Vec<AdminText>,
     items: Vec<AdminDataRow>,
     table: AdminDataTable,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
 }
 impl AdminDataTableView {
     #[must_use]
@@ -1415,11 +1466,13 @@ impl AdminDataTableView {
         columns: Vec<AdminText>,
         items: Vec<AdminDataRow>,
         table: AdminDataTable,
+        total: AdminPageTotal,
     ) -> Self {
         Self {
             columns,
             items,
             table,
+            total,
         }
     }
     #[must_use]
@@ -1433,6 +1486,10 @@ impl AdminDataTableView {
     #[must_use]
     pub const fn table(&self) -> AdminDataTable {
         self.table
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1475,8 +1532,16 @@ impl AdminAuditExport {
 }
 impl AdminAuditPage {
     #[must_use]
-    pub const fn new(items: Vec<AdminAuditView>, next_cursor: Option<AdminAuditCursor>) -> Self {
-        Self { items, next_cursor }
+    pub const fn new(
+        items: Vec<AdminAuditView>,
+        next_cursor: Option<AdminAuditCursor>,
+        total: AdminPageTotal,
+    ) -> Self {
+        Self {
+            items,
+            next_cursor,
+            total,
+        }
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminAuditView] {
@@ -1485,6 +1550,10 @@ impl AdminAuditPage {
     #[must_use]
     pub const fn next_cursor(&self) -> Option<&AdminAuditCursor> {
         self.next_cursor.as_ref()
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1785,6 +1854,27 @@ pub struct AdminSessionView {
     #[serde(default)]
     is_current: AdminBool,
 }
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+pub struct AdminSessionsPage {
+    items: Vec<AdminSessionView>,
+    #[schema(value_type = u64)]
+    total: AdminPageTotal,
+}
+impl AdminSessionsPage {
+    #[must_use]
+    pub const fn new(items: Vec<AdminSessionView>, total: AdminPageTotal) -> Self {
+        Self { items, total }
+    }
+    #[must_use]
+    pub const fn items(&self) -> &[AdminSessionView] {
+        self.items.as_slice()
+    }
+    #[must_use]
+    pub const fn total(&self) -> AdminPageTotal {
+        self.total
+    }
+}
 fn admin_permission_requirement(
     permission: AdminPermission,
 ) -> frontend_contract::AuthenticationRequirement {
@@ -1882,7 +1972,7 @@ pub struct AdminChangeOwnPasswordRoute;
 pub struct AdminSignOutRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]
-#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sessions", path = "/auth/sessions", request = AdminNoBody, response = Vec<AdminSessionView>, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
+#[typed_route(error_statuses = frontend_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES, authentication = frontend_contract::AuthenticationRequirement::Authenticated, method = frontend_contract::RouteMethod::Get, mutation = frontend_contract::RouteMutation::ReadOnly, obligations = frontend_contract::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, openapi_operation_id = "sessions", path = "/auth/sessions", request = AdminNoBody, response = AdminSessionsPage, success_status = frontend_contract::SuccessStatus::Code200, transport = frontend_contract::AuthenticatedTransport)]
 pub struct AdminSessionsRoute;
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]

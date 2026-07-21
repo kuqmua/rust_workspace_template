@@ -501,7 +501,8 @@ pub(super) async fn change_own_password(
 }
 pub(super) async fn sessions_view(
     auth: super::AdminAuthReq,
-) -> Result<Vec<server_admin_contract::AdminSessionView>, super::AdminApiError> {
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+) -> Result<server_admin_contract::AdminSessionsPage, super::AdminApiError> {
     let authenticated = super::authenticate(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
@@ -514,14 +515,16 @@ pub(super) async fn sessions_view(
         ),
         authenticated.session_id,
         authenticated.id,
+        &query.0,
     )
     .await
     .map_err(map_repository_error)
 }
 pub(super) async fn sessions(
     auth: super::AdminAuthReq,
+    query: super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    sessions_view(auth).await.map(|sessions| {
+    sessions_view(auth, query).await.map(|sessions| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             sessions,
         )))
@@ -1378,6 +1381,7 @@ pub(super) async fn data_table_catalog(
 pub(super) async fn data_table_view(
     auth: super::AdminAuthReq,
     table: server_admin_contract::AdminDataTable,
+    query: &server_admin_contract::AdminTableQuery,
 ) -> Result<server_admin_contract::AdminDataTableView, super::AdminApiError> {
     let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
@@ -1392,6 +1396,7 @@ pub(super) async fn data_table_view(
             auth.state.as_ref().pool.as_ref(),
         ),
         table,
+        query,
     )
     .await
     .map_err(map_repository_error)
@@ -1399,8 +1404,9 @@ pub(super) async fn data_table_view(
 pub(super) async fn data_table(
     auth: super::AdminAuthReq,
     super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
+    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    data_table_view(auth, table).await.map(|view| {
+    data_table_view(auth, table, &query).await.map(|view| {
         super::AxumAdminResponse(axum::response::IntoResponse::into_response(axum::Json(
             view,
         )))

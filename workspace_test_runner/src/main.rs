@@ -941,7 +941,11 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         ))?,
         server_admin_contract::AdminAuditLogId::from(1i64),
     );
-    let audit_page = server_admin_contract::AdminAuditPage::new(audit, Some(audit_cursor));
+    let audit_page = server_admin_contract::AdminAuditPage::new(
+        audit,
+        Some(audit_cursor),
+        server_admin_contract::AdminPageTotal::from(1u64),
+    );
     let audit_json = serde_json::to_value(&audit_page).map_err(|error| {
         eprintln!("{error}");
     })?;

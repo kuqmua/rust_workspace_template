@@ -152,7 +152,7 @@ fn render_admin_page_with_table_access(
                         {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| !matches!(item.page(), server_admin_contract::AdminPage::Audit | server_admin_contract::AdminPage::Permissions | server_admin_contract::AdminPage::Roles | server_admin_contract::AdminPage::Sessions | server_admin_contract::AdminPage::Settings | server_admin_contract::AdminPage::Tables | server_admin_contract::AdminPage::Users) && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
                             let item_page = item.page();
                             let href = String::from(item.path());
-                            let label = String::from(item.title());
+                            let label = item.title().as_ref().to_ascii_lowercase();
                             leptos::view! {
                                 <a class=(item_page == page).then_some("active") href=href>{label}</a>
                             }
@@ -164,7 +164,7 @@ fn render_admin_page_with_table_access(
                                 <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
-                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">"Sign out"</button></form>
+                        <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{str_constants::SIGN_OUT}</button></form>
                     </nav>
                 </header>
                 <main class="main-content"><p id="saved" class="flash-success" role="status">"Changes saved."</p><div inner_html=content.0></div></main>
@@ -205,6 +205,8 @@ fn table_pagination(
     page: server_admin_contract::AdminPage,
     query: &server_admin_contract::AdminTableQuery,
     total: server_admin_contract::AdminPageTotal,
+    table: Option<server_admin_contract::AdminDataTable>,
+    audit: Option<&server_admin_contract::AdminAuditHtmlQuery>,
 ) -> impl leptos::prelude::IntoView {
     let action = String::from(page.path());
     let search = query.search().as_ref().to_owned();
@@ -216,20 +218,58 @@ fn table_pagination(
     let next_offset = offset.saturating_add(u32::from(limit));
     let previous_disabled = offset == 0u32;
     let next_disabled = u64::from(next_offset) >= u64::from(total);
+    let table_name = table.map(|value| value.to_string());
+    let audit_action = audit
+        .and_then(server_admin_contract::AdminAuditHtmlQuery::action)
+        .map(ToString::to_string);
+    let audit_resource = audit
+        .and_then(server_admin_contract::AdminAuditHtmlQuery::resource)
+        .map(ToString::to_string);
+    let audit_resource_id = audit
+        .and_then(server_admin_contract::AdminAuditHtmlQuery::resource_id)
+        .map(ToString::to_string);
+    let audit_user_login = audit
+        .and_then(server_admin_contract::AdminAuditHtmlQuery::user_login)
+        .map(ToString::to_string);
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form method="get" action=action.clone()>
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
+                {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {audit_action.clone().map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
+                {audit_resource.clone().map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
+                {audit_resource_id.clone().map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
+                {audit_user_login.clone().map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(u64::from(total)), u64::from(offset).saturating_add(u64::from(limit)).min(u64::from(total)), total)}</span>
             <form method="get" action=action>
                 <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
                 <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
+                {table_name.map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
+                {audit_action.map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
+                {audit_resource.map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
+                {audit_resource_id.map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
+                {audit_user_login.map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
         </nav>
+    }
+}
+
+fn table_page_size(
+    page: server_admin_contract::AdminPage,
+    query: &server_admin_contract::AdminTableQuery,
+    table: Option<server_admin_contract::AdminDataTable>,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! {
+        <form class="table-tools" method="get" action=String::from(page.path())>
+            {table.map(|value| leptos::view! { <input type="hidden" name="table" value=value.to_string() /> })}
+            <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=u16::from(query.limit()).to_string() /></label>
+            <input name="offset" type="hidden" value="0" />
+            <button type="submit">"Apply"</button>
+        </form>
     }
 }
 
@@ -266,7 +306,7 @@ pub fn render_users(
                 <form method="post" action=server_admin_contract::AdminHtmlAction::UserBan.get()><input type="hidden" name="user_id" value=item.id().to_string() /><input type="hidden" name="is_banned" value=(!bool::from(item.is_banned())).to_string() /><button type="submit">{if bool::from(item.is_banned()) { "Unban" } else { "Ban" }}</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::UserDelete.get()><input type="hidden" name="user_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit">"Delete user"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table>
-        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total())}
+        {table_pagination(server_admin_contract::AdminPage::Users, query, page.total(), None, None)}
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Users,
@@ -304,7 +344,7 @@ pub fn render_roles(
                 {can_update.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RoleUpdate.get()><input type="hidden" name="role_id" value=item.id().to_string() /><input name="name" value=item.name().to_string() required /><button type="submit">"Save"</button></form> })}
                 {can_delete.then(|| leptos::view! { <details><summary>"Delete"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleDelete.get()><input type="hidden" name="role_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm permanent deletion"</label><button class="danger-button" type="submit" disabled=bool::from(item.is_system())>"Delete role"</button></form></details> })}</td></tr>
         }}).collect::<Vec<_>>()}</tbody></table>
-        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total())}
+        {table_pagination(server_admin_contract::AdminPage::Roles, query, page.total(), None, None)}
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Roles,
@@ -327,7 +367,7 @@ pub fn render_permissions(
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Permission">{item.name().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
-        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total())}
+        {table_pagination(server_admin_contract::AdminPage::Permissions, query, page.total(), None, None)}
     }
     .render_admin_ssr();
     render_admin_page_with_access(
@@ -341,12 +381,14 @@ pub fn render_permissions(
 #[must_use]
 pub fn render_data_tables(
     table: Option<&server_admin_contract::AdminDataTableView>,
+    query: &server_admin_contract::AdminTableQuery,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section>
+                {table_page_size(server_admin_contract::AdminPage::Tables, query, Some(view.table()))}
                 <div class="table-scroll"><table>
                     <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
                     <tbody>{view.items().iter().map(|row| leptos::view! {
@@ -356,6 +398,7 @@ pub fn render_data_tables(
                         }).collect::<Vec<_>>()}</tr>
                     }).collect::<Vec<_>>()}</tbody>
                 </table></div>
+                {table_pagination(server_admin_contract::AdminPage::Tables, query, view.total(), Some(view.table()), None)}
             </section>
         })}
     }
@@ -371,15 +414,18 @@ pub fn render_data_tables(
 
 #[must_use]
 pub fn render_sessions(
-    items: &[server_admin_contract::AdminSessionView],
+    page: &server_admin_contract::AdminSessionsPage,
+    query: &server_admin_contract::AdminTableQuery,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
+        {table_page_size(server_admin_contract::AdminPage::Sessions, query, None)}
         <table><thead><tr><th>"Session"</th><th>"Created"</th><th>"Expires"</th><th>"Current"</th><th>"Actions"</th></tr></thead>
-        <tbody>{items.iter().map(|item| leptos::view! {
+        <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="Session">{item.id().to_string()}</td><td data-label="Created">{item.created_at().to_string()}</td><td data-label="Expires">{item.expires_at().to_string()}</td><td data-label="Current">{item.is_current().to_string()}</td><td data-label="Actions"><details><summary>"Revoke"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::SessionRevoke.get()><input type="hidden" name="session_id" value=item.id().to_string() /><label><input type="checkbox" name="confirmation" value="true" required />"Confirm session revocation"</label><button class="danger-button" type="submit">"Revoke session"</button></form></details></td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
+        {table_pagination(server_admin_contract::AdminPage::Sessions, query, page.total(), None, None)}
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Sessions,
@@ -476,17 +522,20 @@ pub fn render_settings(
 #[must_use]
 pub fn render_audit(
     page: &server_admin_contract::AdminAuditPage,
+    query: &server_admin_contract::AdminTableQuery,
+    filters: &server_admin_contract::AdminAuditHtmlQuery,
     admin: &server_admin_contract::AuthenticatedAdmin,
     branding: &server_admin_contract::AdminBrandingView,
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         <form class="audit-filters" method="get" action=server_admin_contract::AdminFrontendPath::Audit.get()>
-            <label><span>"Action"</span><input name="action" /></label><label><span>"Resource"</span><input name="resource" /></label><label><span>"Resource ID"</span><input name="resource_id" /></label>
-            <label><span>"User login"</span><input name="user_login" /></label><label><span>"Limit"</span><input name="limit" type="number" min="1" max="100" value="50" /></label><button type="submit">"Apply"</button>
+            <label><span>"Action"</span><input name="action" value=filters.action().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource"</span><input name="resource" value=filters.resource().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Resource ID"</span><input name="resource_id" value=filters.resource_id().map(ToString::to_string).unwrap_or_default() /></label>
+            <label><span>"User login"</span><input name="user_login" value=filters.user_login().map(ToString::to_string).unwrap_or_default() /></label><label><span>"Limit"</span><input name="limit" type="number" min="1" max="100" value=u16::from(query.limit()).to_string() /></label><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
         </form>
         <table><thead><tr><th>"Time"</th><th>"User"</th><th>"Action"</th><th>"Resource"</th><th>"Result"</th></tr></thead><tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="Time">{item.created_at().to_string()}</td><td data-label="User">{item.user_login().map(ToString::to_string).unwrap_or_default()}</td><td data-label="Action">{item.action().to_string()}</td><td data-label="Resource">{item.resource().to_string()}</td><td data-label="Result">{item.succeeded().to_string()}</td></tr>
         }).collect::<Vec<_>>()}</tbody></table>
+        {table_pagination(server_admin_contract::AdminPage::Audit, query, page.total(), None, Some(filters))}
     }.render_admin_ssr();
     render_admin_page_with_access(
         server_admin_contract::AdminPage::Audit,
@@ -552,7 +601,10 @@ mod tests {
         assert!(!page.as_ref().contains("<h2"));
         assert!(!page.as_ref().contains("class=\"brand\""));
         assert!(!page.as_ref().contains("nav-dot"));
-        assert!(page.as_ref().contains("Sign out</button></form></nav>"));
+        assert!(
+            page.as_ref()
+                .contains(format!("{}</button></form></nav>", str_constants::SIGN_OUT).as_str())
+        );
         assert!(!page.as_ref().contains("<script"));
     }
 
@@ -562,11 +614,38 @@ mod tests {
             server_admin_contract::AdminPage::Users,
             &server_admin_contract::AdminTableQuery::default(),
             server_admin_contract::AdminPageTotal::from(101u64),
+            None,
+            None,
         )
         .render_admin_ssr();
         assert!(html.as_ref().contains("name=\"offset\" value=\"20\""));
         assert!(html.as_ref().contains("disabled>Previous"));
         assert!(!html.as_ref().contains("<script"));
+
+        let filters = server_admin_contract::AdminAuditHtmlQuery::new(
+            Some(
+                server_admin_contract::AdminText::try_from(
+                    str_constants::PG_CRUD_CREATE_PERMISSION_ACTION.to_owned(),
+                )
+                .expect("3f422443"),
+            ),
+            None,
+            None,
+            None,
+        );
+        let audit_html = super::table_pagination(
+            server_admin_contract::AdminPage::Audit,
+            &server_admin_contract::AdminTableQuery::default(),
+            server_admin_contract::AdminPageTotal::from(21u64),
+            None,
+            Some(&filters),
+        )
+        .render_admin_ssr();
+        assert!(
+            audit_html
+                .as_ref()
+                .contains("name=\"action\" value=\"create\"")
+        );
     }
 
     #[test]

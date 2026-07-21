@@ -18,11 +18,19 @@ pub(crate) async fn list_active_sessions(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
     current_session_id: crate::AdminSessionId,
     user_id: crate::AdminUserId,
-) -> Result<Vec<server_admin_contract::AdminSessionView>, super::AdminRepositoryError> {
-    sqlx::query_as::<_, (uuid::Uuid, String, String)>(
+    query: &server_admin_contract::AdminTableQuery,
+) -> Result<server_admin_contract::AdminSessionsPage, super::AdminRepositoryError> {
+    let total = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+        .bind(user_id.0)
+        .fetch_one(pool.0)
+        .await
+        .map_err(crate::SqlxAdminError::from)?;
+    let items = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(user_id.0)
+    .bind(i64::from(u16::from(query.limit())))
+    .bind(i64::from(u32::from(query.offset())))
     .fetch_all(pool.0)
     .await
     .map_err(crate::SqlxAdminError::from)?
@@ -38,7 +46,11 @@ pub(crate) async fn list_active_sessions(
             server_admin_contract::AdminBool::from(id == current_session_id.0.0),
         ))
     })
-    .collect()
+    .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
+    Ok(server_admin_contract::AdminSessionsPage::new(
+        items,
+        super::page_total(super::AdminPageTotalCount::from(total))?,
+    ))
 }
 
 pub(crate) async fn access_session_is_active(

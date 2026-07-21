@@ -140,7 +140,7 @@ fn authenticated_admin_contract(
         roles,
     ))
 }
-#[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
+#[derive(Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
 #[into_params(parameter_in = Query)]
 pub struct AdminAuditQuery {
     action: Option<super::AdminAuditAction>,
@@ -151,6 +151,9 @@ pub struct AdminAuditQuery {
     #[serde(default)]
     #[param(value_type = u16, minimum = 1, maximum = 100)]
     limit: server_admin_contract::AdminPageLimit,
+    #[serde(default)]
+    #[param(value_type = u32)]
+    offset: server_admin_contract::AdminPageOffset,
     resource: Option<super::AdminAuditResource>,
     resource_id: Option<server_admin_contract::AdminText>,
     succeeded: Option<server_admin_contract::AdminBool>,
@@ -165,6 +168,7 @@ pub(crate) struct AdminAuditQueryParts {
     pub(crate) cursor_created_at: Option<server_admin_contract::AdminAuditTimestamp>,
     pub(crate) cursor_id: Option<server_admin_contract::AdminAuditLogId>,
     pub(crate) limit: server_admin_contract::AdminPageLimit,
+    pub(crate) offset: server_admin_contract::AdminPageOffset,
     pub(crate) resource: Option<super::AdminAuditResource>,
     pub(crate) resource_id: Option<server_admin_contract::AdminText>,
     pub(crate) succeeded: Option<server_admin_contract::AdminBool>,
@@ -172,6 +176,12 @@ pub(crate) struct AdminAuditQueryParts {
     pub(crate) user_login: Option<server_admin_contract::AdminLogin>,
 }
 impl AdminAuditQuery {
+    pub(crate) const fn limit(&self) -> server_admin_contract::AdminPageLimit {
+        self.limit
+    }
+    pub(crate) const fn offset(&self) -> server_admin_contract::AdminPageOffset {
+        self.offset
+    }
     pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
         super::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
@@ -183,6 +193,7 @@ impl AdminAuditQuery {
             cursor_created_at: self.cursor_created_at,
             cursor_id: self.cursor_id,
             limit: self.limit,
+            offset: self.offset,
             resource: self.resource,
             resource_id: self.resource_id,
             succeeded: self.succeeded,
@@ -802,9 +813,15 @@ async fn sign_out(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError
     handlers::sign_out(auth).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
-#[frontend_contract::route_openapi(tag = "admin_auth")]
-async fn sessions(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::sessions(auth).await
+#[frontend_contract::route_openapi(
+    params(server_admin_contract::AdminTableQuery),
+    tag = "admin_auth"
+)]
+async fn sessions(
+    auth: AdminAuthReq,
+    query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+) -> Result<AxumAdminResponse, AdminApiError> {
+    handlers::sessions(auth, query).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(tag = "admin_auth")]
@@ -946,12 +963,16 @@ async fn data_tables(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiEr
     handlers::data_tables(auth).await
 }
 #[allow(clippy::single_call_fn)]
-#[frontend_contract::route_openapi(tag = "admin_tables")]
+#[frontend_contract::route_openapi(
+    params(server_admin_contract::AdminTableQuery),
+    tag = "admin_tables"
+)]
 async fn data_table(
     auth: AdminAuthReq,
     path: AxumAdminPath<server_admin_contract::AdminDataTable>,
+    query: AxumAdminQuery<server_admin_contract::AdminTableQuery>,
 ) -> Result<AxumAdminResponse, AdminApiError> {
-    handlers::data_table(auth, path).await
+    handlers::data_table(auth, path, query).await
 }
 #[allow(clippy::single_call_fn)] // Axum route handler is registered once by the route inventory
 #[frontend_contract::route_openapi(request_body = server_admin_contract::AdminUpdateSettingsReq, tag = "admin_settings")]

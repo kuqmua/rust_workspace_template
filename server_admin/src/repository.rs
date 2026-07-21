@@ -121,6 +121,13 @@ impl AdminPageTotalCount {
         self.0
     }
 }
+pub(crate) fn page_total(
+    value: AdminPageTotalCount,
+) -> Result<server_admin_contract::AdminPageTotal, AdminRepositoryError> {
+    u64::try_from(value.get())
+        .map(server_admin_contract::AdminPageTotal::from)
+        .map_err(|_error| AdminRepositoryError::InvalidStoredValue)
+}
 impl AdminRecentLoginFailureCount {
     pub(crate) fn reached(
         self,
