@@ -445,8 +445,12 @@ td {
   border-top: 1px solid var(--border);
   color: var(--text-secondary);
   font-size: 13px;
-  padding: 13px 14px;
+  padding: 0 11px;
   vertical-align: middle;
+}
+
+tbody tr {
+  height: var(--header-height);
 }
 
 tbody tr:hover {
@@ -786,6 +790,7 @@ pre {
 
   table tr {
     display: grid;
+    height: auto;
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: 0;
