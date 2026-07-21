@@ -31,15 +31,15 @@ pub use advisory_lock::{
     validate_pg_relation_capacity,
 };
 pub use batch_validation::{
-    BatchDuplicatePolicy, BatchInvalidItemCount, BatchProcessedItemCount, BatchStoppedEarly,
-    BatchValidationReport, validate_batch_by_key,
+    BatchDuplicatePolicy, BatchInvalidItemCount, BatchInvalidItems, BatchProcessedItemCount,
+    BatchStoppedEarly, BatchValidationReport, StdBatchRecords, validate_batch_by_key,
 };
 pub use bind_index::{
     QueryPartIncrement, QueryPartIncrementMut, increment_checked_add_one_returning_increment,
 };
 pub use cardinality::{
-    DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash, take_fst_dup,
-    take_fst_dup_by_hash,
+    DuplicateCandidates, DuplicateIdx, first_duplicate_idx, first_duplicate_idx_by_hash,
+    take_fst_dup, take_fst_dup_by_hash,
 };
 pub use cursor::{
     CursorCodec, CursorCodecBuildError, CursorDecodeError, CursorEncodeError, CursorMaximumLength,
@@ -52,13 +52,15 @@ pub use date_sql_filter::{
     StdDateSqlBindStart, build_date_sql_filter,
 };
 pub use db_schema_conformance::{
-    DbCatalogSnapshot, DbColumnContractSnapshot, DbColumnHasServerDefault, DbColumnNullable,
-    DbColumnSnapshot, DbColumnSpec, DbDefaultSpec, DbExtendedTableSchema, DbKeyContractSnapshot,
-    DbKeySpec, DbObjectKind, DbObjectSnapshot, DbObjectSpec, DbSchemaConformanceError,
-    DbSchemaNameRef, DbSchemaText, DbSchemaTextError, DbSchemaTextTryFromStringError,
-    DbStaticSchemaText, DbTableNameRef, DbTableSchema, DbTableSnapshot, PgColumnSchema,
-    SqlxDbSchemaInspectionError, SqlxPgPoolRef, inspect_postgres_catalog, inspect_postgres_table,
-    validate_generated_postgres_table, validate_postgres_catalog,
+    DbCatalogSnapshot, DbColumnContractSnapshot, DbColumnContractSnapshots,
+    DbColumnHasServerDefault, DbColumnNullable, DbColumnSnapshot, DbColumnSnapshots, DbColumnSpec,
+    DbColumnSpecs, DbDefaultSpec, DbDefaultSpecs, DbExtendedTableSchema, DbKeyContractSnapshot,
+    DbKeyContractSnapshots, DbKeySpec, DbKeySpecs, DbObjectKind, DbObjectSnapshot,
+    DbObjectSnapshots, DbObjectSpec, DbObjectSpecs, DbSchemaConformanceError, DbSchemaNameRef,
+    DbSchemaText, DbSchemaTextError, DbSchemaTextTryFromStringError, DbSchemaTexts,
+    DbStaticSchemaText, DbStaticSchemaTexts, DbTableNameRef, DbTableSchema, DbTableSnapshot,
+    PgColumnSchema, SqlxDbSchemaInspectionError, SqlxPgPoolRef, inspect_postgres_catalog,
+    inspect_postgres_table, validate_generated_postgres_table, validate_postgres_catalog,
     validate_postgres_table_extensions, validate_postgres_table_schema,
 };
 pub use errors::{
@@ -77,8 +79,8 @@ pub use invariants::{
     validate_migration_idempotency, validate_pagination_invariants,
 };
 pub use list_total::{
-    ListOffset, ListPage, ListRows, ListRowsPresence, ListTotal, ListTotalError, ListTotalSource,
-    WindowTotalPresence, list_total_source, run_list_with_total,
+    ListItems, ListOffset, ListPage, ListRows, ListRowsPresence, ListTotal, ListTotalError,
+    ListTotalSource, WindowTotalPresence, list_total_source, run_list_with_total,
 };
 pub use operation_budget::{
     OperationBudget, OperationBudgetExceeded, OperationCount, validate_operation_budget,
@@ -86,11 +88,12 @@ pub use operation_budget::{
 pub use operational_invariants::{
     PgCounterReconciliation, PgCounterValue, PgOperationalLimit, PgOperationalLimitError,
     PgOperationalLimitUpdateAuthority, PgScopedForeignKey, PgScopedForeignKeyError,
-    PgScopedForeignKeyOnDelete, build_pg_scoped_foreign_key_clause, reconcile_pg_counter,
-    resolve_pg_operational_limit_update,
+    PgScopedForeignKeyOnDelete, PgSqlIdentifiers, build_pg_scoped_foreign_key_clause,
+    reconcile_pg_counter, resolve_pg_operational_limit_update,
 };
 pub use order_preserving_deduplication::{
-    SliceOrdering, classify_slice_ordering, deduplicate_preserving_order_by_key,
+    OrderPreservingValues, SliceOrdering, classify_slice_ordering,
+    deduplicate_preserving_order_by_key,
 };
 pub use pagination::{
     PaginationEnd, PaginationLimit, PaginationOffset, PaginationPolicy, PaginationStart,
@@ -104,17 +107,29 @@ pub use read_query_plan::{
 };
 pub use rollback::TransactionFailure;
 pub use sql_identifier::{
-    SqlIdentifier, SqlIdentifierError, SqlQualifiedIdentifier, SqlSelectBuilder,
+    SqlIdentifier, SqlIdentifierError, SqlIdentifiers, SqlQualifiedIdentifier, SqlSelectBuilder,
 };
 pub use sql_like_pattern::{
     SqlLikeInputRef, SqlLikeMatchMode, SqlLikePattern, SqlLikePatternError, build_sql_like_pattern,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AllEnumVariants<T>(Vec<T>);
+impl<T> From<Vec<T>> for AllEnumVariants<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self(value)
+    }
+}
+impl<T> From<AllEnumVariants<T>> for Vec<T> {
+    fn from(value: AllEnumVariants<T>) -> Self {
+        value.0
+    }
+}
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
-    fn all_variants_default_some_one_element() -> Vec<Self>;
+    fn all_variants_default_some_one_element() -> AllEnumVariants<Self>;
 }
 pub trait AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize: Sized {
-    fn all_variants_default_some_one_element_max_page_size() -> Vec<Self>;
+    fn all_variants_default_some_one_element_max_page_size() -> AllEnumVariants<Self>;
 }
 pub trait DefaultSomeOneElement: Sized {
     fn default_some_one_element() -> Self;
@@ -615,10 +630,11 @@ where
         + for<'t_lt> PgTypeWhereFilter<'t_lt>
         + AllEnumVariantsArrayDefaultSomeOneElement,
 {
-    fn all_variants_default_some_one_element() -> Vec<Self> {
+    fn all_variants_default_some_one_element() -> AllEnumVariants<Self> {
         vec![Self(
             Some(DefaultSomeOneElement::default_some_one_element()),
         )]
+        .into()
     }
 }
 #[allow(clippy::arbitrary_source_item_ordering)]
@@ -659,7 +675,10 @@ impl<T: PartialEq + Clone> PgTypeWhere<T> {
     pub const fn new(operator: Operator, v: NotEmptyUniqueVec<T>) -> Self {
         Self { v, operator }
     }
-    pub fn try_new(operator: Operator, v: Vec<T>) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
+    pub fn try_new(
+        operator: Operator,
+        v: DuplicateCandidates<T>,
+    ) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
         match NotEmptyUniqueVec::try_new(v) {
             Ok(v0) => Ok(Self { operator, v: v0 }),
             Err(error) => Err(error),
@@ -777,7 +796,7 @@ const _: () = {
                             &str_constants::PG_CRUD_PG_TYPE_WHERE_EXPECTING,
                         ));
                     };
-                    match PgTypeWhere::try_new(f0, f1) {
+                    match PgTypeWhere::try_new(f0, f1.into()) {
                         Ok(v) => Ok(v),
                         Err(error) => Err(serde::de::Error::custom(format!("{error:?}"))),
                     }
@@ -833,7 +852,7 @@ const _: () = {
                             _serde::__private228::de::missing_field(str_constants::PG_CRUD_V_FIELD)?
                         }
                     };
-                    match PgTypeWhere::try_new(f0_v, f1_v) {
+                    match PgTypeWhere::try_new(f0_v, f1_v.into()) {
                         Ok(v) => Ok(v),
                         Err(error) => Err(serde::de::Error::custom(format!("{error:?}"))),
                     }
@@ -1323,41 +1342,45 @@ impl<T> NotEmptyUniqueVec<T> {
     pub const fn as_slice(&self) -> &[T] {
         self.0.as_slice()
     }
-    #[must_use]
-    pub const fn to_vec(&self) -> &Vec<T> {
-        &self.0
-    }
 }
 impl<T: PartialEq> NotEmptyUniqueVec<T> {
-    pub fn try_new(mut values: Vec<T>) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
-        if values.is_empty() {
+    pub fn try_new(
+        values: DuplicateCandidates<T>,
+    ) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
+        let raw_values = Vec::from(values);
+        if raw_values.is_empty() {
             return Err(NotEmptyUniqueVecTryNewError::IsEmpty {
                 location: location_macros::location!(),
             });
         }
-        if let Some(duplicate) = take_fst_dup(&mut values) {
+        let mut candidates = DuplicateCandidates::from(raw_values);
+        if let Some(duplicate) = take_fst_dup(&mut candidates) {
             return Err(NotEmptyUniqueVecTryNewError::NotUnique {
                 v: duplicate,
                 location: location_macros::location!(),
             });
         }
-        Ok(Self(values))
+        Ok(Self(Vec::from(candidates)))
     }
 }
 impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
-    pub fn try_new_by_hash(mut values: Vec<T>) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
-        if values.is_empty() {
+    pub fn try_new_by_hash(
+        values: DuplicateCandidates<T>,
+    ) -> Result<Self, NotEmptyUniqueVecTryNewError<T>> {
+        let raw_values = Vec::from(values);
+        if raw_values.is_empty() {
             return Err(NotEmptyUniqueVecTryNewError::IsEmpty {
                 location: location_macros::location!(),
             });
         }
-        if let Some(duplicate) = take_fst_dup_by_hash(&mut values) {
+        let mut candidates = DuplicateCandidates::from(raw_values);
+        if let Some(duplicate) = take_fst_dup_by_hash(&mut candidates) {
             return Err(NotEmptyUniqueVecTryNewError::NotUnique {
                 v: duplicate,
                 location: location_macros::location!(),
             });
         }
-        Ok(Self(values))
+        Ok(Self(Vec::from(candidates)))
     }
 }
 #[allow(unused_qualifications)]
@@ -1416,7 +1439,7 @@ const _: () = {
                             &str_constants::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
                         ));
                     };
-                    match NotEmptyUniqueVec::try_new(f0) {
+                    match NotEmptyUniqueVec::try_new(f0.into()) {
                         Ok(v) => Ok(v),
                         Err(error) => Err(_serde::de::Error::custom(format!("{error:?}"))),
                     }
@@ -1435,14 +1458,18 @@ const _: () = {
 };
 impl<T: AllEnumVariantsArrayDefaultSomeOneElement> DefaultSomeOneElement for NotEmptyUniqueVec<T> {
     fn default_some_one_element() -> Self {
-        Self(AllEnumVariantsArrayDefaultSomeOneElement::all_variants_default_some_one_element())
+        Self(Vec::from(
+            AllEnumVariantsArrayDefaultSomeOneElement::all_variants_default_some_one_element(),
+        ))
     }
 }
 impl<T: AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize> DefaultSomeOneElementMaxPageSize
     for NotEmptyUniqueVec<T>
 {
     fn default_some_one_element_max_page_size() -> Self {
-        Self(AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size())
+        Self(Vec::from(
+            AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size(),
+        ))
     }
 }
 impl<T> Default for NotEmptyUniqueVec<T> {
@@ -1469,8 +1496,9 @@ mod tests_not_empty_unique_vec {
     struct NonClone(u8);
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
-        let error = super::NotEmptyUniqueVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)])
-            .expect_err(str_constants::ADF2B8C1);
+        let error =
+            super::NotEmptyUniqueVec::try_new(vec![NonClone(1), NonClone(2), NonClone(1)].into())
+                .expect_err(str_constants::ADF2B8C1);
         match error {
             super::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => assert_eq!(v, NonClone(1)),
             super::NotEmptyUniqueVecTryNewError::IsEmpty { .. } => panic!("9f5e2a34"),
@@ -1478,7 +1506,7 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {
-        let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new())
+        let error = super::NotEmptyUniqueVec::<u8>::try_new(Vec::new().into())
             .expect_err(str_constants::VALUE_3B41DE7F);
         assert!(matches!(
             error,
@@ -1518,28 +1546,28 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn take_fst_dup_returns_none_for_unique_input() {
-        let mut values = vec![1u8, 2u8, 3u8];
+        let mut values = super::DuplicateCandidates::from(vec![1u8, 2u8, 3u8]);
         let actual = super::take_fst_dup(&mut values);
         assert!(actual.is_none());
-        assert_eq!(values, vec![1u8, 2u8, 3u8]);
+        assert_eq!(Vec::from(values), vec![1u8, 2u8, 3u8]);
     }
     #[test]
     fn take_fst_dup_returns_first_duplicate_value() {
-        let mut values = vec![7u8, 8u8, 8u8, 7u8];
+        let mut values = super::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
         let actual = super::take_fst_dup(&mut values);
         assert_eq!(actual, Some(8u8));
-        assert_eq!(values.len(), 3usize);
+        assert_eq!(Vec::from(values).len(), 3usize);
     }
     #[test]
     fn take_fst_dup_by_hash_returns_first_duplicate_value() {
-        let mut values = vec![7u8, 8u8, 8u8, 7u8];
+        let mut values = super::DuplicateCandidates::from(vec![7u8, 8u8, 8u8, 7u8]);
         let actual = super::take_fst_dup_by_hash(&mut values);
         assert_eq!(actual, Some(8u8));
-        assert_eq!(values.len(), 3usize);
+        assert_eq!(Vec::from(values).len(), 3usize);
     }
     #[test]
     fn not_empty_unique_vec_try_new_by_hash_returns_not_unique() {
-        let error = super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8])
+        let error = super::NotEmptyUniqueVec::try_new_by_hash(vec![1u8, 2u8, 1u8].into())
             .expect_err(str_constants::VALUE_59C80912);
         assert!(matches!(
             error,
@@ -1548,9 +1576,10 @@ mod tests_not_empty_unique_vec {
     }
     #[test]
     fn as_slice_matches_to_vec_view() {
-        let values = super::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8]).expect("3f6e8a12");
+        let values =
+            super::NotEmptyUniqueVec::try_new(vec![1u8, 2u8, 3u8].into()).expect("3f6e8a12");
         assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
-        assert_eq!(values.as_slice(), values.to_vec().as_slice());
+        assert_eq!(values.as_slice(), &[1u8, 2u8, 3u8]);
     }
 }
 impl<'query_lt, T> PgTypeWhereFilter<'query_lt> for NotEmptyUniqueVec<T>

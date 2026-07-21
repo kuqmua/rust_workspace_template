@@ -33,6 +33,67 @@ pub struct DbColumnSpec {
     name: DbStaticSchemaText,
     nullable: DbColumnNullable,
 }
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbColumnSpecs(Vec<DbColumnSpec>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbStaticSchemaTexts(Vec<DbStaticSchemaText>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbKeySpecs(Vec<DbKeySpec>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbObjectSpecs(Vec<DbObjectSpec>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbDefaultSpecs(Vec<DbDefaultSpec>);
+
 impl DbColumnSpec {
     #[must_use]
     pub const fn new(
@@ -52,11 +113,11 @@ impl DbColumnSpec {
 
 pub trait DbTableSchema {
     const TABLE_NAME: &'static str;
-    fn columns() -> Vec<DbColumnSpec>;
-    fn create_excluded_columns() -> Vec<DbStaticSchemaText>;
-    fn keys() -> Vec<DbKeySpec>;
+    fn columns() -> DbColumnSpecs;
+    fn create_excluded_columns() -> DbStaticSchemaTexts;
+    fn keys() -> DbKeySpecs;
     fn primary_key_column() -> DbStaticSchemaText;
-    fn read_excluded_columns() -> Vec<DbStaticSchemaText>;
+    fn read_excluded_columns() -> DbStaticSchemaTexts;
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DbDefaultSpec {
@@ -90,31 +151,102 @@ impl DbObjectSpec {
     }
 }
 pub trait DbExtendedTableSchema: DbTableSchema {
-    fn checks_and_indexes() -> Vec<DbObjectSpec>;
-    fn exact_defaults() -> Vec<DbDefaultSpec>;
+    fn checks_and_indexes() -> DbObjectSpecs;
+    fn exact_defaults() -> DbDefaultSpecs;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DbKeySpec {
     ForeignKey {
-        columns: Vec<DbStaticSchemaText>,
-        referenced_columns: Vec<DbStaticSchemaText>,
+        columns: DbStaticSchemaTexts,
+        referenced_columns: DbStaticSchemaTexts,
         referenced_table: DbStaticSchemaText,
     },
-    PrimaryKey(Vec<DbStaticSchemaText>),
-    Unique(Vec<DbStaticSchemaText>),
+    PrimaryKey(DbStaticSchemaTexts),
+    Unique(DbStaticSchemaTexts),
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum DbKeyContractSnapshot {
     ForeignKey {
-        columns: Vec<DbSchemaText>,
-        referenced_columns: Vec<DbSchemaText>,
+        columns: DbSchemaTexts,
+        referenced_columns: DbSchemaTexts,
         referenced_table: DbSchemaText,
     },
-    PrimaryKey(Vec<DbSchemaText>),
-    Unique(Vec<DbSchemaText>),
+    PrimaryKey(DbSchemaTexts),
+    Unique(DbSchemaTexts),
 }
+
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbSchemaTexts(Vec<DbSchemaText>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbColumnContractSnapshots(Vec<DbColumnContractSnapshot>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbKeyContractSnapshots(Vec<DbKeyContractSnapshot>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbColumnSnapshots(Vec<DbColumnSnapshot>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    newtype::DerefTarget,
+    newtype::DerefMutTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct DbObjectSnapshots(Vec<DbObjectSnapshot>);
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct DbColumnContractSnapshot {
@@ -206,24 +338,24 @@ impl DbObjectSnapshot {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DbTableSnapshot {
-    columns: Vec<DbColumnSnapshot>,
-    objects: Vec<DbObjectSnapshot>,
+    columns: DbColumnSnapshots,
+    objects: DbObjectSnapshots,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DbCatalogSnapshot {
-    objects: Vec<DbObjectSnapshot>,
+    objects: DbObjectSnapshots,
 }
 impl DbCatalogSnapshot {
     #[must_use]
-    pub fn new(mut objects: Vec<DbObjectSnapshot>) -> Self {
+    pub fn new(mut objects: DbObjectSnapshots) -> Self {
         objects.sort_unstable();
         Self { objects }
     }
 }
 impl DbTableSnapshot {
     #[must_use]
-    pub fn new(mut columns: Vec<DbColumnSnapshot>, mut objects: Vec<DbObjectSnapshot>) -> Self {
+    pub fn new(mut columns: DbColumnSnapshots, mut objects: DbObjectSnapshots) -> Self {
         columns.sort_unstable();
         objects.sort_unstable();
         Self { columns, objects }
@@ -247,27 +379,27 @@ pub enum DbSchemaConformanceError {
     },
     #[error("PostgreSQL columns differ from the generated table descriptor")]
     ColumnContractMismatch {
-        expected: Vec<DbColumnContractSnapshot>,
-        observed: Vec<DbColumnContractSnapshot>,
+        expected: DbColumnContractSnapshots,
+        observed: DbColumnContractSnapshots,
     },
     #[error("PostgreSQL exact defaults differ from the reviewed table contract")]
     DefaultContractMismatch {
-        expected: Vec<DbObjectSnapshot>,
-        observed: Vec<DbObjectSnapshot>,
+        expected: DbObjectSnapshots,
+        observed: DbObjectSnapshots,
     },
     #[error("generated CRUD configuration refers to a column absent from its table descriptor")]
     DescriptorFieldMismatch(DbSchemaText),
     #[error("PostgreSQL CHECK/index objects differ from the reviewed table contract")]
     ExtendedObjectContractMismatch {
-        expected: Vec<DbObjectSnapshot>,
-        observed: Vec<DbObjectSnapshot>,
+        expected: DbObjectSnapshots,
+        observed: DbObjectSnapshots,
     },
     #[error("failed to inspect PostgreSQL schema: {0}")]
     Inspection(SqlxDbSchemaInspectionError),
     #[error("PostgreSQL key constraints differ from the generated table descriptor")]
     KeyContractMismatch {
-        expected: Vec<DbKeyContractSnapshot>,
-        observed: Vec<DbKeyContractSnapshot>,
+        expected: DbKeyContractSnapshots,
+        observed: DbKeyContractSnapshots,
     },
     #[error("PostgreSQL table schema differs from the expected snapshot")]
     Mismatch {
@@ -292,7 +424,7 @@ where
             .map_err(|error| DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error)))
     }
     let mut expected_defaults = Table::exact_defaults()
-        .into_iter()
+        .iter()
         .map(|spec| {
             Ok(DbObjectSnapshot::new(
                 schema_text(spec.column.0.to_owned())?,
@@ -331,12 +463,12 @@ where
     observed_defaults.sort_unstable();
     if expected_defaults != observed_defaults {
         return Err(DbSchemaConformanceError::DefaultContractMismatch {
-            expected: expected_defaults,
-            observed: observed_defaults,
+            expected: expected_defaults.into(),
+            observed: observed_defaults.into(),
         });
     }
     let mut expected_objects = Table::checks_and_indexes()
-        .into_iter()
+        .iter()
         .map(|spec| {
             Ok(DbObjectSnapshot::new(
                 schema_text(spec.name.0.to_owned())?,
@@ -389,8 +521,8 @@ where
         Ok(())
     } else {
         Err(DbSchemaConformanceError::ExtendedObjectContractMismatch {
-            expected: expected_objects,
-            observed: observed_objects,
+            expected: expected_objects.into(),
+            observed: observed_objects.into(),
         })
     }
 }
@@ -409,9 +541,13 @@ where
             .map_err(|error| DbSchemaConformanceError::SchemaTextTooLong(DbSchemaTextError(error)))
     }
     fn static_schema_texts(
-        values: Vec<DbStaticSchemaText>,
-    ) -> Result<Vec<DbSchemaText>, DbSchemaConformanceError> {
-        values.into_iter().map(static_schema_text).collect()
+        values: DbStaticSchemaTexts,
+    ) -> Result<DbSchemaTexts, DbSchemaConformanceError> {
+        Vec::from(values)
+            .into_iter()
+            .map(static_schema_text)
+            .collect::<Result<Vec<_>, _>>()
+            .map(Into::into)
     }
     fn schema_text(value: String) -> Result<DbSchemaText, DbSchemaConformanceError> {
         DbSchemaText::try_from(value)
@@ -436,15 +572,19 @@ where
             ))
         })
         .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?;
-    Table::create_excluded_columns()
+    Vec::from(Table::create_excluded_columns())
         .into_iter()
-        .chain(Table::read_excluded_columns())
+        .chain(Vec::from(Table::read_excluded_columns()))
         .chain(std::iter::once(Table::primary_key_column()))
-        .chain(Table::keys().into_iter().flat_map(|key| match key {
-            DbKeySpec::ForeignKey { columns, .. }
-            | DbKeySpec::PrimaryKey(columns)
-            | DbKeySpec::Unique(columns) => columns,
-        }))
+        .chain(
+            Vec::from(Table::keys())
+                .into_iter()
+                .flat_map(|key| match key {
+                    DbKeySpec::ForeignKey { columns, .. }
+                    | DbKeySpec::PrimaryKey(columns)
+                    | DbKeySpec::Unique(columns) => Vec::from(columns),
+                }),
+        )
         .try_for_each(|field| {
             if table_columns.iter().any(|column| column.name == field) {
                 Ok(())
@@ -504,9 +644,12 @@ where
     expected.sort_unstable();
     observed.sort_unstable();
     if expected != observed {
-        return Err(DbSchemaConformanceError::ColumnContractMismatch { expected, observed });
+        return Err(DbSchemaConformanceError::ColumnContractMismatch {
+            expected: expected.into(),
+            observed: observed.into(),
+        });
     }
-    let mut expected_keys = Table::keys()
+    let mut expected_keys = Vec::from(Table::keys())
         .into_iter()
         .map(|key| match key {
             DbKeySpec::ForeignKey {
@@ -568,16 +711,16 @@ where
                             })?,
                     )?;
                     Ok(DbKeyContractSnapshot::ForeignKey {
-                        columns,
-                        referenced_columns,
+                        columns: columns.into(),
+                        referenced_columns: referenced_columns.into(),
                         referenced_table,
                     })
                 }
                 str_constants::DB_CONSTRAINT_PRIMARY_KEY_SHORT => {
-                    Ok(DbKeyContractSnapshot::PrimaryKey(columns))
+                    Ok(DbKeyContractSnapshot::PrimaryKey(columns.into()))
                 }
                 str_constants::DB_CONSTRAINT_UNIQUE_SHORT => {
-                    Ok(DbKeyContractSnapshot::Unique(columns))
+                    Ok(DbKeyContractSnapshot::Unique(columns.into()))
                 }
                 _ => Err(DbSchemaConformanceError::UnknownObjectKind),
             }
@@ -589,8 +732,8 @@ where
         Ok(())
     } else {
         Err(DbSchemaConformanceError::KeyContractMismatch {
-            expected: expected_keys,
-            observed: observed_keys,
+            expected: expected_keys.into(),
+            observed: observed_keys.into(),
         })
     }
 }
@@ -661,7 +804,7 @@ pub async fn inspect_postgres_catalog(
             ))
         })
         .collect::<Result<Vec<_>, _>>()
-        .map(DbCatalogSnapshot::new)
+        .map(|objects| DbCatalogSnapshot::new(objects.into()))
 }
 
 pub async fn inspect_postgres_table(
@@ -815,20 +958,25 @@ pub async fn inspect_postgres_table(
             })
             .collect::<Result<Vec<_>, DbSchemaConformanceError>>()?,
     );
-    Ok(DbTableSnapshot::new(columns, objects))
+    Ok(DbTableSnapshot::new(columns.into(), objects.into()))
 }
 
 #[cfg(test)]
 #[allow(clippy::needless_for_each)] // repository policy requires iterator traversal in source tests
 mod tests {
     fn catalog_snapshot(kind: super::DbObjectKind) -> super::DbCatalogSnapshot {
-        super::DbCatalogSnapshot::new(vec![super::DbObjectSnapshot::new(
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_NAME))
-                .expect(str_constants::VALUE_E84FED1B),
-            kind,
-            super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_DEFINITION))
+        super::DbCatalogSnapshot::new(
+            vec![super::DbObjectSnapshot::new(
+                super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_OBJECT_NAME))
+                    .expect(str_constants::VALUE_E84FED1B),
+                kind,
+                super::DbSchemaText::try_from(String::from(
+                    str_constants::TEST_DB_OBJECT_DEFINITION,
+                ))
                 .expect(str_constants::VALUE_A7950FF0),
-        )])
+            )]
+            .into(),
+        )
     }
 
     fn snapshot(nullable: bool) -> super::DbTableSnapshot {
@@ -840,7 +988,8 @@ mod tests {
                     .expect(str_constants::VALUE_9CB64C93),
                 nullable.into(),
                 None,
-            )],
+            )]
+            .into(),
             vec![super::DbObjectSnapshot::new(
                 super::DbSchemaText::try_from(String::from(str_constants::TEST_DB_CONSTRAINT_NAME))
                     .expect(str_constants::VALUE_61F95647),
@@ -849,7 +998,8 @@ mod tests {
                     str_constants::TEST_DB_CONSTRAINT_DEFINITION,
                 ))
                 .expect(str_constants::VALUE_A4B28D38),
-            )],
+            )]
+            .into(),
         )
     }
 

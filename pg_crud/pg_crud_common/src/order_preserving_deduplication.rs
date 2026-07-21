@@ -4,6 +4,18 @@ pub enum SliceOrdering {
     StrictlyIncreasing,
     Unordered,
 }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OrderPreservingValues<Value>(Vec<Value>);
+impl<Value> From<Vec<Value>> for OrderPreservingValues<Value> {
+    fn from(value: Vec<Value>) -> Self {
+        Self(value)
+    }
+}
+impl<Value> From<OrderPreservingValues<Value>> for Vec<Value> {
+    fn from(value: OrderPreservingValues<Value>) -> Self {
+        value.0
+    }
+}
 
 #[must_use]
 pub fn classify_slice_ordering<Value>(values: &[Value]) -> SliceOrdering
@@ -33,18 +45,20 @@ where
 
 #[must_use]
 pub fn deduplicate_preserving_order_by_key<Value, Key, AccessKey>(
-    values: Vec<Value>,
+    values: OrderPreservingValues<Value>,
     access_key: AccessKey,
-) -> Vec<Value>
+) -> OrderPreservingValues<Value>
 where
     Key: Eq + std::hash::Hash,
     AccessKey: Fn(&Value) -> Key,
 {
-    let mut seen = std::collections::HashSet::with_capacity(values.len());
+    let mut seen = std::collections::HashSet::with_capacity(values.0.len());
     values
+        .0
         .into_iter()
         .filter(|value| seen.insert(access_key(value)))
-        .collect()
+        .collect::<Vec<_>>()
+        .into()
 }
 
 #[cfg(test)]
@@ -53,7 +67,10 @@ mod tests {
     fn deduplication_keeps_first_value_and_input_order() {
         let values = vec![(1u8, 10u8), (2u8, 20u8), (1u8, 30u8)];
         assert_eq!(
-            super::deduplicate_preserving_order_by_key(values, |value| value.0),
+            Vec::from(super::deduplicate_preserving_order_by_key(
+                values.into(),
+                |value| value.0
+            )),
             vec![(1u8, 10u8), (2u8, 20u8)]
         );
     }

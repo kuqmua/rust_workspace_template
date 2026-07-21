@@ -3028,6 +3028,11 @@ fn string_wrapper_names(ast: types::SynFileRef<'_>) -> types::StdSourceTextSet {
 }
 #[allow(clippy::single_call_fn)] // keeps domain policy exception handling centralized and documented
 fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
+    let location_test_component = format!(
+        "{}{}",
+        str_constants::LOCATION.to_ascii_lowercase(),
+        str_constants::TEST
+    );
     if path
         .as_ref()
         .starts_with(str_constants::WORKSPACE_TEST_RUNNER_SRC)
@@ -3041,6 +3046,9 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
             .as_ref()
             .components()
             .any(|component| component.as_os_str() == str_constants::BENCHES)
+        || path.as_ref().components().any(|component| {
+            component.as_os_str() == std::ffi::OsStr::new(location_test_component.as_str())
+        })
     {
         return types::AnalyzerBool::default();
     }
@@ -3056,9 +3064,17 @@ fn domain_type_policy_should_check_path(path: types::StdPathRef<'_>) -> types::A
     let Some(cargo_toml_path) = nearest_cargo_toml_path(path) else {
         return types::AnalyzerBool::default();
     };
-    types::AnalyzerBool::from(
-        read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref())).is_some(),
-    )
+    let Some(manifest) = read_toml_table(types::StdPathRef::from(cargo_toml_path.as_ref())) else {
+        return types::AnalyzerBool::default();
+    };
+    let is_proc_macro = manifest
+        .as_ref()
+        .get(str_constants::LIB)
+        .and_then(toml::Value::as_table)
+        .and_then(|lib| lib.get(str_constants::PROC_MACRO))
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(false);
+    types::AnalyzerBool::from(!is_proc_macro)
 }
 #[allow(clippy::single_call_fn)] // helper-return text wrappers live in the code-style meta harness types module
 fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types::AnalyzerBool {
@@ -3071,19 +3087,7 @@ fn is_code_style_meta_harness_source_path(path: types::StdPathRef<'_>) -> types:
 fn is_structural_generic_container(identifier: types::SourceTextRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(matches!(
         identifier.as_ref(),
-        str_constants::OPTION
-            | str_constants::RESULT
-            | str_constants::VEC
-            | str_constants::BOX
-            | str_constants::COW
-            | str_constants::ARC
-            | str_constants::RC
-            | str_constants::PIN
-            | str_constants::PHANTOMDATA
-            | str_constants::HASHMAP
-            | str_constants::BTREEMAP
-            | str_constants::HASHSET
-            | str_constants::BTREESET
+        str_constants::OPTION | str_constants::RESULT
     ))
 }
 fn analyzer_state_raw_container_ty(

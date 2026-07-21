@@ -2577,8 +2577,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("1e53a0c7");
     let assign_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            Vec::new(),
-            vec![server_admin_contract::AdminRoleId::from(role_id)],
+            Vec::new().into(),
+            vec![server_admin_contract::AdminRoleId::from(role_id)].into(),
         ))
         .expect("bf02e516");
     let assign_role_response = tower::ServiceExt::oneshot(
@@ -2596,8 +2596,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     .expect("f74095eb");
     assert_eq!(assign_role_response.status(), http::StatusCode::NO_CONTENT);
     let stale_role_body = serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-        Vec::new(),
-        Vec::new(),
+        Vec::new().into(),
+        Vec::new().into(),
     ))
     .expect("1fd845d3");
     let stale_role_response = tower::ServiceExt::oneshot(
@@ -2616,8 +2616,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
     let remove_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            vec![server_admin_contract::AdminRoleId::from(role_id)],
-            Vec::new(),
+            vec![server_admin_contract::AdminRoleId::from(role_id)].into(),
+            Vec::new().into(),
         ))
         .expect("23c416a1");
     let remove_role_response = tower::ServiceExt::oneshot(
@@ -2683,8 +2683,8 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("20b5fb03");
     let remove_last_admin_role_body =
         serde_json::to_string(&server_admin_contract::AdminSetUserRolesReq::new(
-            vec![server_admin_contract::AdminRoleId::from(admin_role_id)],
-            Vec::new(),
+            vec![server_admin_contract::AdminRoleId::from(admin_role_id)].into(),
+            Vec::new().into(),
         ))
         .expect("1528b0d3");
     let remove_last_admin_role_response = tower::ServiceExt::oneshot(

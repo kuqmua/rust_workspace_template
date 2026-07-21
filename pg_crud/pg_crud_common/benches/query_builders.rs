@@ -21,7 +21,7 @@ fn bench_sql_select_builder(criterion: &mut criterion::Criterion) {
                         identifier(str_constants::PUBLIC),
                         identifier(str_constants::BENCHMARK_TABLE),
                     ),
-                    columns.clone(),
+                    columns.clone().into(),
                 )
                 .build();
                 let _query = std::hint::black_box(query);

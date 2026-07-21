@@ -82,6 +82,8 @@ impl AsRef<str> for ProcessArgument {
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct ProcessArguments(Vec<ProcessArgument>);
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+pub struct ProcessCommands(Vec<ProcessCommand>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
 pub struct ProcessProgram(&'static str);
@@ -126,7 +128,7 @@ where
 }
 
 #[must_use]
-pub fn migration_commands<Specifications>(specs: Specifications) -> Vec<ProcessCommand>
+pub fn migration_commands<Specifications>(specs: Specifications) -> ProcessCommands
 where
     Specifications: IntoIterator<Item = DatabasePreparationSpec>,
 {
@@ -142,7 +144,8 @@ where
             ]),
             program: ProcessProgram(str_constants::SQLX),
         })
-        .collect()
+        .collect::<Vec<_>>()
+        .into()
 }
 
 #[cfg(test)]
@@ -159,8 +162,8 @@ mod tests {
                 super::DatabasePreparationSpec::new(valid_url, valid_source)
             },
         ));
-        assert_eq!(commands.len(), 1usize);
-        let command = commands.first().expect("989c8d37");
+        assert_eq!(commands.as_ref().len(), 1usize);
+        let command = commands.as_ref().first().expect("989c8d37");
         assert_eq!(command.program().as_ref(), str_constants::SQLX);
         assert_eq!(command.arguments().as_ref().len(), 5usize);
     }

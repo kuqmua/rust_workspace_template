@@ -249,7 +249,7 @@ where
 
 fn role_ids(
     value: &AdminHtmlFormText,
-) -> Result<Vec<server_admin_contract::AdminRoleId>, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminRoleIds, super::AdminApiError> {
     value
         .0
         .split(',')
@@ -259,12 +259,13 @@ fn role_ids(
                 .map(server_admin_contract::AdminRoleId::from)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(Into::into)
 }
 
 fn permission_ids(
     value: &AdminHtmlFormText,
-) -> Result<Vec<server_admin_contract::AdminPermissionId>, super::AdminApiError> {
+) -> Result<server_admin_contract::AdminPermissionIds, super::AdminApiError> {
     value
         .0
         .split(',')
@@ -274,7 +275,8 @@ fn permission_ids(
                 .map(server_admin_contract::AdminPermissionId::from)
                 .map_err(|_error| super::AdminApiError::Validation)
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(Into::into)
 }
 
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
@@ -870,7 +872,7 @@ async fn update_settings(
         Some(form.site_name),
         support_url,
         tab_title,
-        clear,
+        clear.into(),
     );
     action_result(
         super::handlers::update_settings(auth, super::AxumAdminJson(request)).await,

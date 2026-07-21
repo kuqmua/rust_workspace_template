@@ -49,14 +49,22 @@ impl TryFrom<i64> for ListTotal {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ListItems<Item>(Vec<Item>);
+impl<Item> From<Vec<Item>> for ListItems<Item> {
+    fn from(value: Vec<Item>) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ListPage<Item> {
-    items: Vec<Item>,
+    items: ListItems<Item>,
     total: ListTotal,
 }
 impl<Item> ListPage<Item> {
     #[must_use]
     pub const fn items(&self) -> &[Item] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
 
     #[must_use]
@@ -67,12 +75,12 @@ impl<Item> ListPage<Item> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ListRows<Item> {
-    items: Vec<Item>,
+    items: ListItems<Item>,
     window_total: Option<ListTotal>,
 }
 impl<Item> ListRows<Item> {
     #[must_use]
-    pub const fn new(items: Vec<Item>, window_total: Option<ListTotal>) -> Self {
+    pub const fn new(items: ListItems<Item>, window_total: Option<ListTotal>) -> Self {
         Self {
             items,
             window_total,
@@ -99,7 +107,7 @@ where
     FetchCountFuture: Future<Output = Result<ListTotal, Error>>,
 {
     let rows = fetch_list().await?;
-    let rows_presence = if rows.items.is_empty() {
+    let rows_presence = if rows.items.0.is_empty() {
         ListRowsPresence::Empty
     } else {
         ListRowsPresence::Present

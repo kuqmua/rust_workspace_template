@@ -63,9 +63,9 @@ mod tests {
     fn route_family_generates_valid_coverage_descriptors() {
         let descriptors =
             <TestRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 1usize);
+        assert_eq!(descriptors.as_ref().len(), 1usize);
         assert_eq!(
-            frontend_contract::validate_route_coverage(&descriptors),
+            frontend_contract::validate_route_coverage(descriptors.as_ref()),
             Ok(())
         );
     }
@@ -74,7 +74,7 @@ mod tests {
         let metadata = <TestRouteFamily as frontend_contract::RouteFamily>::route_metadata();
         assert_eq!(
             metadata,
-            vec![frontend_contract::client_route_metadata::<TestRoute>()]
+            vec![frontend_contract::client_route_metadata::<TestRoute>()].into()
         );
     }
     #[test]
@@ -88,13 +88,15 @@ mod tests {
             str_constants::ROUTE
         );
         assert_eq!(
-            <TestCatalogFamily as frontend_contract::RouteFamily>::coverage_descriptors().len(),
+            <TestCatalogFamily as frontend_contract::RouteFamily>::coverage_descriptors()
+                .as_ref()
+                .len(),
             1usize
         );
         let schema_contracts =
             <TestCatalogFamily as frontend_contract::RouteFamily>::schema_contracts();
-        assert_eq!(schema_contracts.len(), 1usize);
-        let schema_contract = schema_contracts.first().expect("b4e9f1c3");
+        assert_eq!(schema_contracts.as_ref().len(), 1usize);
+        let schema_contract = schema_contracts.as_ref().first().expect("b4e9f1c3");
         assert_eq!(
             schema_contract.metadata(),
             frontend_contract::client_route_metadata::<TestRoute>()

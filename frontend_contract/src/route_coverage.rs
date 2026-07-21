@@ -58,20 +58,32 @@ pub enum RouteTestCategory {
     Metadata,
     StreamingResponse,
 }
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct RouteTestCategories(Vec<RouteTestCategory>);
 
 #[must_use]
 pub fn missing_required_test_categories(
     capabilities: RouteTestCapabilities,
     available_categories: &[RouteTestCategory],
-) -> Vec<RouteTestCategory> {
-    required_test_categories(capabilities)
+) -> RouteTestCategories {
+    Vec::from(required_test_categories(capabilities))
         .into_iter()
         .filter(|category| !available_categories.contains(category))
-        .collect()
+        .collect::<Vec<_>>()
+        .into()
 }
 
 #[must_use]
-pub fn required_test_categories(capabilities: RouteTestCapabilities) -> Vec<RouteTestCategory> {
+pub fn required_test_categories(capabilities: RouteTestCapabilities) -> RouteTestCategories {
     [
         Some(RouteTestCategory::FixtureHook),
         Some(RouteTestCategory::Metadata),
@@ -84,7 +96,8 @@ pub fn required_test_categories(capabilities: RouteTestCapabilities) -> Vec<Rout
     ]
     .into_iter()
     .flatten()
-    .collect()
+    .collect::<Vec<_>>()
+    .into()
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -319,13 +332,13 @@ mod tests {
             super::RouteResponseKind::Streaming,
         );
         assert_eq!(
-            super::missing_required_test_categories(
+            Vec::from(super::missing_required_test_categories(
                 capabilities,
                 &[
                     super::RouteTestCategory::FixtureHook,
                     super::RouteTestCategory::Metadata,
                 ],
-            ),
+            )),
             vec![
                 super::RouteTestCategory::DatabaseFixture,
                 super::RouteTestCategory::JsonRoundTrip,
@@ -342,7 +355,7 @@ mod tests {
             super::RouteResponseKind::Buffered,
         );
         assert_eq!(
-            super::required_test_categories(capabilities),
+            Vec::from(super::required_test_categories(capabilities)),
             vec![
                 super::RouteTestCategory::FixtureHook,
                 super::RouteTestCategory::Metadata,

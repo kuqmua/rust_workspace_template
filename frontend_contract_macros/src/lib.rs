@@ -898,19 +898,19 @@ pub fn derive_route_catalog(input: proc_macro::TokenStream) -> proc_macro::Token
             fn body_limit() -> Option<frontend_contract::RouteBodyLimit> {
                 Some(frontend_contract::RouteBodyLimit::from(#body_limit))
             }
-            fn coverage_descriptors() -> Vec<frontend_contract::RouteCoverageDescriptor> {
+            fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
                 vec![
                     #(
                         <#family_routes as frontend_contract::CoveredRoute>::coverage_descriptor()
                     ),*
-                ]
+                ].into()
             }
-            fn schema_contracts() -> Vec<frontend_contract::RouteSchemaContract> {
+            fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
                 vec![
                     #(
                         frontend_contract::RouteSchemaContract::from_typed_route::<#family_routes>()
                     ),*
-                ]
+                ].into()
             }
         }
     }
@@ -1096,19 +1096,19 @@ pub fn derive_route_family(input: proc_macro::TokenStream) -> proc_macro::TokenS
     quote::quote! {
         impl frontend_contract::RouteFamily for #identifier {
             #body_limit
-            fn coverage_descriptors() -> Vec<frontend_contract::RouteCoverageDescriptor> {
+            fn coverage_descriptors() -> frontend_contract::RouteCoverageDescriptors {
                 vec![
                     #(
                         <#route_types as frontend_contract::CoveredRoute>::coverage_descriptor()
                     ),*
-                ]
+                ].into()
             }
-            fn schema_contracts() -> Vec<frontend_contract::RouteSchemaContract> {
+            fn schema_contracts() -> frontend_contract::RouteSchemaContracts {
                 vec![
                     #(
                         frontend_contract::RouteSchemaContract::from_typed_route::<#route_types>()
                     ),*
-                ]
+                ].into()
             }
         }
     }

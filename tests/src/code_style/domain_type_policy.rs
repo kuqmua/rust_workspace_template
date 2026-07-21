@@ -206,6 +206,10 @@ fn domain_boundaries_use_repository_declared_types() {
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
                 .get()
+                || super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(
+                    path,
+                ))
+                .get()
             {
                 return;
             }
@@ -257,6 +261,45 @@ fn domain_type_policy_checks_explicit_closure_parameter_types() {
         ers.iter()
             .any(|error| error.contains("closure parameter uses `syn::Type`")),
         "60b8ae2d {ers:#?}"
+    );
+}
+
+#[test]
+fn domain_type_policy_allows_only_option_and_result_containers() {
+    let ast: syn::File = syn::parse_quote! {
+        struct AdminRole;
+        struct AdminError;
+        struct Allowed {
+            optional: Option<AdminRole>,
+            fallible: Result<AdminRole, AdminError>,
+        }
+        struct Rejected {
+            roles: Vec<AdminRole>,
+        }
+    };
+    let repo_crates = std::collections::BTreeSet::new();
+    let repo_types = std::collections::BTreeSet::from([
+        String::from("AdminError"),
+        String::from("AdminRole"),
+        String::from("Allowed"),
+        String::from("Rejected"),
+    ]);
+    let visitor = super::visit_syn_file(
+        super::types::SynFileRef::from(&ast),
+        super::DomainTypePolicyVisitor {
+            ers: super::types::DiagnosticMsgs::default(),
+            closure_body_scan_depth: super::types::AnalyzerCount::default(),
+            generic_scopes: Vec::new(),
+            repo_crates: super::types::StdStdSourceTextSetRef::from(&repo_crates),
+            repo_types: super::types::StdStdSourceTextSetRef::from(&repo_types),
+        },
+    );
+    let ers = visitor.ers.into_iter().collect::<Vec<String>>();
+    assert_eq!(ers.len(), 1, "c47a91e2 {ers:#?}");
+    assert!(
+        ers.first()
+            .is_some_and(|error| error.contains("uses `Vec`")),
+        "d8b305f6 {ers:#?}"
     );
 }
 #[test]

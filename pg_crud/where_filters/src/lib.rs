@@ -519,25 +519,21 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
 #[allow(clippy::arbitrary_source_item_ordering)]
 impl<T> PgTypeNotEmptyUniqueVec<T> {
     #[must_use]
-    pub const fn to_vec(&self) -> &Vec<T> {
-        &self.0
-    }
-    #[must_use]
-    pub fn into_vec(self) -> Vec<T> {
-        self.0
+    pub const fn as_slice(&self) -> &[T] {
+        self.0.as_slice()
     }
 }
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
     type Error = pg_crud_common::NotEmptyUniqueVecTryNewError<T>;
     fn try_from(v: Vec<T>) -> Result<Self, Self::Error> {
-        pg_crud_common::NotEmptyUniqueVec::try_new(v)
+        pg_crud_common::NotEmptyUniqueVec::try_new(v.into())
             .map(pg_crud_common::NotEmptyUniqueVec::into_vec)
             .map(Self)
     }
 }
 impl<T: Eq + std::hash::Hash> PgTypeNotEmptyUniqueVec<T> {
     pub fn try_from_by_hash(
-        v: Vec<T>,
+        v: pg_crud_common::DuplicateCandidates<T>,
     ) -> Result<Self, pg_crud_common::NotEmptyUniqueVecTryNewError<T>> {
         pg_crud_common::NotEmptyUniqueVec::try_new_by_hash(v)
             .map(pg_crud_common::NotEmptyUniqueVec::into_vec)
@@ -708,6 +704,10 @@ impl<
 > BoundedVec<T, LENGTH>
 {
     #[must_use]
+    pub const fn as_slice(&self) -> &[T] {
+        self.0.as_slice()
+    }
+    #[must_use]
     pub fn into_inner(self) -> Vec<T> {
         self.0
     }
@@ -780,10 +780,6 @@ impl<
         })?;
         Ok(pg_crud_common::QueryPartFragment::try_from(accumulator)?)
     }
-    #[must_use]
-    pub const fn to_inner(&self) -> &Vec<T> {
-        &self.0
-    }
 }
 impl<T, const LENGTH: usize> TryFrom<Vec<T>> for BoundedVec<T, LENGTH> {
     type Error = BoundedVecTryNewError;
@@ -839,7 +835,8 @@ mod tests {
     }
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_by_hash_not_unique() {
-        let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from_by_hash(vec![1i32, 2i32, 1i32]);
+        let rslt =
+            super::PgTypeNotEmptyUniqueVec::<i32>::try_from_by_hash(vec![1i32, 2i32, 1i32].into());
         assert!(matches!(
             rslt,
             Err(pg_crud_common::NotEmptyUniqueVecTryNewError::NotUnique { v: 1i32, .. })

@@ -814,13 +814,171 @@ impl AdminSignInReq {
         &self.password
     }
 }
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminPermissionValues(Vec<AdminPermissionValue>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminRoleNames(Vec<AdminRoleName>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminRoleIds(Vec<AdminRoleId>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminPermissionIds(Vec<AdminPermissionId>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminUserSummaries(Vec<AdminUserSummary>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminRoleSummaries(Vec<AdminRoleSummary>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminPermissionSummaries(Vec<AdminPermissionSummary>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminAuditViews(Vec<AdminAuditView>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminTexts(Vec<AdminText>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminDataRows(Vec<AdminDataRow>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminDataTables(Vec<AdminDataTable>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminOptionalSettings(Vec<AdminOptionalSetting>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub struct AdminSessionViews(Vec<AdminSessionView>);
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
     display_name: AdminDisplayName,
     id: AdminUserId,
     login: AdminLogin,
-    permissions: Vec<AdminPermissionValue>,
-    roles: Vec<AdminRoleName>,
+    permissions: AdminPermissionValues,
+    roles: AdminRoleNames,
 }
 impl AuthenticatedAdmin {
     #[must_use]
@@ -828,8 +986,8 @@ impl AuthenticatedAdmin {
         display_name: AdminDisplayName,
         id: AdminUserId,
         login: AdminLogin,
-        permissions: Vec<AdminPermissionValue>,
-        roles: Vec<AdminRoleName>,
+        permissions: AdminPermissionValues,
+        roles: AdminRoleNames,
     ) -> Self {
         Self {
             display_name,
@@ -844,8 +1002,8 @@ impl AuthenticatedAdmin {
         &self.display_name
     }
     #[must_use]
-    pub const fn permissions(&self) -> &Vec<AdminPermissionValue> {
-        &self.permissions
+    pub fn permissions(&self) -> &[AdminPermissionValue] {
+        self.permissions.as_ref()
     }
     #[must_use]
     pub const fn login(&self) -> &AdminLogin {
@@ -853,13 +1011,14 @@ impl AuthenticatedAdmin {
     }
     #[must_use]
     pub const fn roles(&self) -> &[AdminRoleName] {
-        self.roles.as_slice()
+        self.roles.0.as_slice()
     }
     #[must_use]
     pub fn has_permission(&self, permission: AdminPermission) -> AdminBool {
         let required = permission.as_str();
         AdminBool::from(
             self.permissions
+                .as_ref()
                 .iter()
                 .any(|value| value.as_ref() == required.get()),
         )
@@ -871,6 +1030,7 @@ impl AuthenticatedAdmin {
             | frontend_contract::AuthenticationRequirement::Public => true,
             frontend_contract::AuthenticationRequirement::Permission(required) => self
                 .permissions
+                .as_ref()
                 .iter()
                 .any(|value| value.as_ref() == required.as_ref()),
         })
@@ -1046,33 +1206,33 @@ impl AdminUpdateRoleReq {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetUserRolesReq {
-    expected_role_ids: Vec<AdminRoleId>,
-    role_ids: Vec<AdminRoleId>,
+    expected_role_ids: AdminRoleIds,
+    role_ids: AdminRoleIds,
 }
 impl AdminSetUserRolesReq {
     #[must_use]
-    pub const fn new(expected_role_ids: Vec<AdminRoleId>, role_ids: Vec<AdminRoleId>) -> Self {
+    pub const fn new(expected_role_ids: AdminRoleIds, role_ids: AdminRoleIds) -> Self {
         Self {
             expected_role_ids,
             role_ids,
         }
     }
     #[must_use]
-    pub fn into_parts(self) -> (Vec<AdminRoleId>, Vec<AdminRoleId>) {
+    pub fn into_parts(self) -> (AdminRoleIds, AdminRoleIds) {
         (self.expected_role_ids, self.role_ids)
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AdminSetRolePermissionsReq {
-    expected_permission_ids: Vec<AdminPermissionId>,
-    permission_ids: Vec<AdminPermissionId>,
+    expected_permission_ids: AdminPermissionIds,
+    permission_ids: AdminPermissionIds,
 }
 impl AdminSetRolePermissionsReq {
     #[must_use]
     pub const fn new(
-        expected_permission_ids: Vec<AdminPermissionId>,
-        permission_ids: Vec<AdminPermissionId>,
+        expected_permission_ids: AdminPermissionIds,
+        permission_ids: AdminPermissionIds,
     ) -> Self {
         Self {
             expected_permission_ids,
@@ -1080,7 +1240,7 @@ impl AdminSetRolePermissionsReq {
         }
     }
     #[must_use]
-    pub fn into_parts(self) -> (Vec<AdminPermissionId>, Vec<AdminPermissionId>) {
+    pub fn into_parts(self) -> (AdminPermissionIds, AdminPermissionIds) {
         (self.expected_permission_ids, self.permission_ids)
     }
 }
@@ -1091,7 +1251,7 @@ pub struct AdminUserSummary {
     is_banned: AdminBool,
     login: AdminLogin,
     #[serde(default)]
-    role_ids: Vec<AdminRoleId>,
+    role_ids: AdminRoleIds,
 }
 impl AdminUserSummary {
     #[must_use]
@@ -1100,7 +1260,7 @@ impl AdminUserSummary {
         id: AdminUserId,
         is_banned: AdminBool,
         login: AdminLogin,
-        role_ids: Vec<AdminRoleId>,
+        role_ids: AdminRoleIds,
     ) -> Self {
         Self {
             display_name,
@@ -1128,7 +1288,7 @@ impl AdminUserSummary {
     }
     #[must_use]
     pub const fn role_ids(&self) -> &[AdminRoleId] {
-        self.role_ids.as_slice()
+        self.role_ids.0.as_slice()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1137,7 +1297,7 @@ pub struct AdminRoleSummary {
     is_system: AdminBool,
     name: AdminRoleName,
     #[serde(default)]
-    permission_ids: Vec<AdminPermissionId>,
+    permission_ids: AdminPermissionIds,
 }
 impl AdminRoleSummary {
     #[must_use]
@@ -1145,7 +1305,7 @@ impl AdminRoleSummary {
         id: AdminRoleId,
         is_system: AdminBool,
         name: AdminRoleName,
-        permission_ids: Vec<AdminPermissionId>,
+        permission_ids: AdminPermissionIds,
     ) -> Self {
         Self {
             id,
@@ -1168,7 +1328,7 @@ impl AdminRoleSummary {
     }
     #[must_use]
     pub const fn permission_ids(&self) -> &[AdminPermissionId] {
-        self.permission_ids.as_slice()
+        self.permission_ids.0.as_slice()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
@@ -1192,16 +1352,16 @@ impl AdminPermissionSummary {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminUsersPage {
-    items: Vec<AdminUserSummary>,
-    roles: Vec<AdminRoleSummary>,
+    items: AdminUserSummaries,
+    roles: AdminRoleSummaries,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
 }
 impl AdminUsersPage {
     #[must_use]
     pub const fn new(
-        items: Vec<AdminUserSummary>,
-        roles: Vec<AdminRoleSummary>,
+        items: AdminUserSummaries,
+        roles: AdminRoleSummaries,
         total: AdminPageTotal,
     ) -> Self {
         Self {
@@ -1212,7 +1372,7 @@ impl AdminUsersPage {
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminUserSummary] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn total(&self) -> AdminPageTotal {
@@ -1220,25 +1380,25 @@ impl AdminUsersPage {
     }
     #[must_use]
     pub const fn roles(&self) -> &[AdminRoleSummary] {
-        self.roles.as_slice()
+        self.roles.0.as_slice()
     }
     #[must_use]
-    pub fn into_items(self) -> Vec<AdminUserSummary> {
+    pub fn into_items(self) -> AdminUserSummaries {
         self.items
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminRolesPage {
-    items: Vec<AdminRoleSummary>,
-    permissions: Vec<AdminPermissionSummary>,
+    items: AdminRoleSummaries,
+    permissions: AdminPermissionSummaries,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
 }
 impl AdminRolesPage {
     #[must_use]
     pub const fn new(
-        items: Vec<AdminRoleSummary>,
-        permissions: Vec<AdminPermissionSummary>,
+        items: AdminRoleSummaries,
+        permissions: AdminPermissionSummaries,
         total: AdminPageTotal,
     ) -> Self {
         Self {
@@ -1249,7 +1409,7 @@ impl AdminRolesPage {
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminRoleSummary] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn total(&self) -> AdminPageTotal {
@@ -1257,34 +1417,34 @@ impl AdminRolesPage {
     }
     #[must_use]
     pub const fn permissions(&self) -> &[AdminPermissionSummary] {
-        self.permissions.as_slice()
+        self.permissions.0.as_slice()
     }
     #[must_use]
-    pub fn into_items(self) -> Vec<AdminRoleSummary> {
+    pub fn into_items(self) -> AdminRoleSummaries {
         self.items
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminPermissionsPage {
-    items: Vec<AdminPermissionSummary>,
+    items: AdminPermissionSummaries,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
 }
 impl AdminPermissionsPage {
     #[must_use]
-    pub const fn new(items: Vec<AdminPermissionSummary>, total: AdminPageTotal) -> Self {
+    pub const fn new(items: AdminPermissionSummaries, total: AdminPageTotal) -> Self {
         Self { items, total }
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminPermissionSummary] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn total(&self) -> AdminPageTotal {
         self.total
     }
     #[must_use]
-    pub fn into_items(self) -> Vec<AdminPermissionSummary> {
+    pub fn into_items(self) -> AdminPermissionSummaries {
         self.items
     }
 }
@@ -1383,7 +1543,7 @@ impl AdminAuditCursor {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminAuditPage {
-    items: Vec<AdminAuditView>,
+    items: AdminAuditViews,
     #[schema(inline)]
     next_cursor: Option<AdminAuditCursor>,
     #[schema(value_type = u64)]
@@ -1430,22 +1590,22 @@ impl AdminAuditHtmlQuery {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataRow {
-    values: Vec<AdminText>,
+    values: AdminTexts,
 }
 impl AdminDataRow {
     #[must_use]
-    pub const fn new(values: Vec<AdminText>) -> Self {
+    pub const fn new(values: AdminTexts) -> Self {
         Self { values }
     }
     #[must_use]
     pub const fn values(&self) -> &[AdminText] {
-        self.values.as_slice()
+        self.values.0.as_slice()
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataTableView {
-    columns: Vec<AdminText>,
-    items: Vec<AdminDataRow>,
+    columns: AdminTexts,
+    items: AdminDataRows,
     table: AdminDataTable,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
@@ -1453,8 +1613,8 @@ pub struct AdminDataTableView {
 impl AdminDataTableView {
     #[must_use]
     pub const fn new(
-        columns: Vec<AdminText>,
-        items: Vec<AdminDataRow>,
+        columns: AdminTexts,
+        items: AdminDataRows,
         table: AdminDataTable,
         total: AdminPageTotal,
     ) -> Self {
@@ -1467,11 +1627,11 @@ impl AdminDataTableView {
     }
     #[must_use]
     pub const fn columns(&self) -> &[AdminText] {
-        self.columns.as_slice()
+        self.columns.0.as_slice()
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminDataRow] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn table(&self) -> AdminDataTable {
@@ -1484,16 +1644,16 @@ impl AdminDataTableView {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataTableCatalog {
-    items: Vec<AdminDataTable>,
+    items: AdminDataTables,
 }
 impl AdminDataTableCatalog {
     #[must_use]
-    pub const fn new(items: Vec<AdminDataTable>) -> Self {
+    pub const fn new(items: AdminDataTables) -> Self {
         Self { items }
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminDataTable] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
 }
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr, newtype::Display)]
@@ -1523,7 +1683,7 @@ impl AdminAuditExport {
 impl AdminAuditPage {
     #[must_use]
     pub const fn new(
-        items: Vec<AdminAuditView>,
+        items: AdminAuditViews,
         next_cursor: Option<AdminAuditCursor>,
         total: AdminPageTotal,
     ) -> Self {
@@ -1535,7 +1695,7 @@ impl AdminAuditPage {
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminAuditView] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn next_cursor(&self) -> Option<&AdminAuditCursor> {
@@ -1663,7 +1823,7 @@ impl AdminBrandingView {
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateSettingsReq {
     #[schema(max_items = 6)]
-    clear: Vec<AdminOptionalSetting>,
+    clear: AdminOptionalSettings,
     default_admin_route: Option<AdminDefaultRoute>,
     main_logo: Option<AdminMainLogo>,
     organization_contacts: Option<AdminOrganizationContacts>,
@@ -1696,7 +1856,7 @@ impl AdminUpdateSettingsReq {
         site_name: Option<AdminSiteName>,
         support_url: Option<AdminSupportUrl>,
         tab_title: Option<AdminTabTitle>,
-        clear: Vec<AdminOptionalSetting>,
+        clear: AdminOptionalSettings,
     ) -> Self {
         Self {
             clear,
@@ -1722,7 +1882,7 @@ impl AdminUpdateSettingsReq {
         Option<AdminSiteName>,
         Option<AdminSupportUrl>,
         Option<AdminTabTitle>,
-        Vec<AdminOptionalSetting>,
+        AdminOptionalSettings,
     ) {
         (
             self.default_admin_route,
@@ -1747,19 +1907,20 @@ impl AdminUpdateSettingsReq {
                 || self.site_name.is_some()
                 || self.support_url.is_some()
                 || self.tab_title.is_some()
-                || !self.clear.is_empty(),
+                || !self.clear.as_ref().is_empty(),
         )
     }
     #[must_use]
     pub fn is_valid(&self) -> AdminBool {
         let unique = self
             .clear
+            .as_ref()
             .iter()
             .copied()
             .collect::<std::collections::HashSet<_>>();
         AdminBool::from(
-            unique.len() == self.clear.len()
-                && self.clear.len() <= 6usize
+            unique.len() == self.clear.as_ref().len()
+                && self.clear.as_ref().len() <= 6usize
                 && !(self.main_logo.is_some() && unique.contains(&AdminOptionalSetting::MainLogo))
                 && !(self.organization_contacts.is_some()
                     && unique.contains(&AdminOptionalSetting::OrganizationContacts))
@@ -1847,18 +2008,18 @@ pub struct AdminSessionView {
 
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct AdminSessionsPage {
-    items: Vec<AdminSessionView>,
+    items: AdminSessionViews,
     #[schema(value_type = u64)]
     total: AdminPageTotal,
 }
 impl AdminSessionsPage {
     #[must_use]
-    pub const fn new(items: Vec<AdminSessionView>, total: AdminPageTotal) -> Self {
+    pub const fn new(items: AdminSessionViews, total: AdminPageTotal) -> Self {
         Self { items, total }
     }
     #[must_use]
     pub const fn items(&self) -> &[AdminSessionView] {
-        self.items.as_slice()
+        self.items.0.as_slice()
     }
     #[must_use]
     pub const fn total(&self) -> AdminPageTotal {
@@ -2501,8 +2662,9 @@ mod tests {
                     super::AdminPermission::UsersRead.as_str().get().to_owned(),
                 )
                 .expect("837c99bb"),
-            ],
-            Vec::new(),
+            ]
+            .into(),
+            Vec::new().into(),
         );
         assert!(bool::from(
             admin.has_permission(super::AdminPermission::UsersRead)
@@ -2517,9 +2679,9 @@ mod tests {
     #[test]
     fn authentication_route_family_has_valid_coverage() {
         let descriptors = <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors();
-        assert_eq!(descriptors.len(), 28usize);
+        assert_eq!(descriptors.as_ref().len(), 28usize);
         assert_eq!(
-            frontend_contract::validate_route_coverage(&descriptors),
+            frontend_contract::validate_route_coverage(descriptors.as_ref()),
             Ok(())
         );
         assert_eq!(
@@ -2560,7 +2722,7 @@ mod tests {
             None,
             None,
             None,
-            Vec::new(),
+            Vec::new().into(),
         );
         assert!(!bool::from(empty.has_fields()));
         let with_site_name = super::AdminUpdateSettingsReq::new(
@@ -2574,7 +2736,7 @@ mod tests {
             ),
             None,
             None,
-            Vec::new(),
+            Vec::new().into(),
         );
         assert!(bool::from(with_site_name.has_fields()));
         assert!(bool::from(with_site_name.is_valid()));
@@ -2587,7 +2749,7 @@ mod tests {
             None,
             None,
             None,
-            vec![super::AdminOptionalSetting::MainLogo],
+            vec![super::AdminOptionalSetting::MainLogo].into(),
         );
         assert!(bool::from(clear_logo.has_fields()));
         assert!(bool::from(clear_logo.is_valid()));

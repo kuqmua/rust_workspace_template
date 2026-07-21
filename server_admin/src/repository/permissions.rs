@@ -2,7 +2,7 @@
 
 pub(crate) async fn list_permission_catalog(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
-) -> Result<Vec<server_admin_contract::AdminPermissionSummary>, super::AdminRepositoryError> {
+) -> Result<server_admin_contract::AdminPermissionSummaries, super::AdminRepositoryError> {
     sqlx::query_as::<_, (i64, String)>(str_constants::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
         .fetch_all(pool.0)
         .await
@@ -15,7 +15,8 @@ pub(crate) async fn list_permission_catalog(
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             ))
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(Into::into)
 }
 
 pub(crate) async fn list_permissions(
@@ -23,7 +24,7 @@ pub(crate) async fn list_permissions(
     query: &server_admin_contract::AdminTableQuery,
 ) -> Result<
     (
-        Vec<server_admin_contract::AdminPermissionSummary>,
+        server_admin_contract::AdminPermissionSummaries,
         super::AdminPageTotalCount,
     ),
     super::AdminRepositoryError,
@@ -54,7 +55,7 @@ pub(crate) async fn list_permissions(
                 ))
             })
             .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items, super::AdminPageTotalCount::from(total)))
+    Ok((items.into(), super::AdminPageTotalCount::from(total)))
 }
 
 pub(crate) async fn replace_role_permissions(

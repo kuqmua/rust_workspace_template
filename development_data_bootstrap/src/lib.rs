@@ -1,6 +1,11 @@
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
+    Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
+);
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DevelopmentBootstrapPlan<Login, DisplayName, Role, SecretSource> {
-    identities: Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
+    identities: DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>,
 }
 
 impl<Login, DisplayName, Role, SecretSource>
@@ -10,12 +15,12 @@ impl<Login, DisplayName, Role, SecretSource>
     pub fn identities(
         &self,
     ) -> &[server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>] {
-        &self.identities
+        self.identities.as_ref()
     }
 
     #[must_use]
     pub const fn new(
-        identities: Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
+        identities: DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>,
     ) -> Self {
         Self { identities }
     }
@@ -102,9 +107,9 @@ mod tests {
 
     #[test]
     fn plan_preserves_typed_identity_specs() {
-        let plan = super::DevelopmentBootstrapPlan::new(vec![server_runtime::IdentitySpec::new(
-            1u8, 2u8, 3u8, 4u8,
-        )]);
+        let plan = super::DevelopmentBootstrapPlan::new(
+            vec![server_runtime::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)].into(),
+        );
         let identity = plan.identities().first().expect("b9368d0c");
         assert_eq!(identity.login(), &1u8);
     }

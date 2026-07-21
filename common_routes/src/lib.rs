@@ -52,9 +52,12 @@ pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::FromInner)]
+#[serde(transparent)]
+pub struct HealthComponents(Vec<HealthComponent>);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
 pub struct HealthReport {
-    components: Vec<HealthComponent>,
+    components: HealthComponents,
     status: HealthStatus,
 }
 impl HealthReport {
@@ -64,7 +67,8 @@ impl HealthReport {
             components: vec![HealthComponent {
                 kind: HealthComponentKind::ServiceAvailability,
                 status: HealthStatus::Ok,
-            }],
+            }]
+            .into(),
             status: HealthStatus::Ok,
         }
     }
@@ -90,7 +94,8 @@ impl HealthReport {
                     kind: HealthComponentKind::DatabaseConnectivity,
                     status: database_status,
                 },
-            ],
+            ]
+            .into(),
             status,
         }
     }
@@ -357,14 +362,14 @@ mod tests {
     fn health_reports_distinguish_liveness_and_dependency_readiness() {
         let live = super::HealthReport::liveness();
         assert_eq!(live.status(), super::HealthStatus::Ok);
-        assert_eq!(live.components.len(), 1usize);
+        assert_eq!(live.components.0.len(), 1usize);
         let ready = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(true));
         assert_eq!(ready.status(), super::HealthStatus::Ok);
-        assert_eq!(ready.components.len(), 2usize);
+        assert_eq!(ready.components.0.len(), 2usize);
         let degraded = super::HealthReport::readiness(super::HealthDatabaseAvailable::from(false));
         assert_eq!(degraded.status(), super::HealthStatus::Degraded);
         assert_eq!(
-            degraded.components.get(1usize).expect("16ca1c84").status,
+            degraded.components.0.get(1usize).expect("16ca1c84").status,
             super::HealthStatus::Error
         );
     }

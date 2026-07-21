@@ -157,6 +157,20 @@ pub struct MultipartBytesPart {
     file_name: Option<MultipartFileName>,
     name: MultipartFieldName,
 }
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct MultipartBytesParts(Vec<MultipartBytesPart>);
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct MultipartTextParts(Vec<MultipartTextPart>);
+impl AsRef<[MultipartBytesPart]> for MultipartBytesParts {
+    fn as_ref(&self) -> &[MultipartBytesPart] {
+        self.0.as_slice()
+    }
+}
+impl AsRef<[MultipartTextPart]> for MultipartTextParts {
+    fn as_ref(&self) -> &[MultipartTextPart] {
+        self.0.as_slice()
+    }
+}
 impl MultipartBytesPart {
     #[must_use]
     pub const fn bytes(&self) -> &MultipartBytes {
@@ -195,21 +209,27 @@ pub enum MultipartRequestError {
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct MultipartUploadRequest {
-    bytes_parts: Vec<MultipartBytesPart>,
+    bytes_parts: MultipartBytesParts,
     payload_bytes: MultipartValueLength,
-    text_parts: Vec<MultipartTextPart>,
+    text_parts: MultipartTextParts,
 }
 impl MultipartUploadRequest {
     #[must_use]
     pub const fn bytes_parts(&self) -> &[MultipartBytesPart] {
-        self.bytes_parts.as_slice()
+        self.bytes_parts.0.as_slice()
     }
     fn ensure_additional_part(
         &mut self,
         part_bytes: MultipartValueLength,
         maximum: MultipartPayloadMaximum,
     ) -> Result<(), MultipartRequestError> {
-        if self.bytes_parts.len().saturating_add(self.text_parts.len()) >= 32usize {
+        if self
+            .bytes_parts
+            .as_ref()
+            .len()
+            .saturating_add(self.text_parts.as_ref().len())
+            >= 32usize
+        {
             return Err(MultipartRequestError::TooManyParts);
         }
         let payload_bytes = self
@@ -229,7 +249,7 @@ impl MultipartUploadRequest {
     }
     #[must_use]
     pub const fn text_parts(&self) -> &[MultipartTextPart] {
-        self.text_parts.as_slice()
+        self.text_parts.0.as_slice()
     }
     pub fn with_bytes_part(
         mut self,
@@ -237,7 +257,7 @@ impl MultipartUploadRequest {
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
         self.ensure_additional_part(MultipartValueLength(part.bytes().as_ref().len()), maximum)?;
-        self.bytes_parts.push(part);
+        self.bytes_parts.0.push(part);
         Ok(self)
     }
     pub fn with_text_part(
@@ -246,7 +266,7 @@ impl MultipartUploadRequest {
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
         self.ensure_additional_part(MultipartValueLength(part.value().as_ref().len()), maximum)?;
-        self.text_parts.push(part);
+        self.text_parts.0.push(part);
         Ok(self)
     }
 }

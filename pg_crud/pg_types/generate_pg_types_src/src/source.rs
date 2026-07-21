@@ -574,11 +574,34 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
+#[derive(Debug, serde::Deserialize)]
+#[serde(transparent)]
+struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
+#[derive(Debug, serde::Deserialize)]
+#[serde(transparent)]
+struct GeneratePgTypes(Vec<PgType>);
+impl std::ops::Deref for GeneratePgTypeRecords {
+    type Target = [PgTypeRecord];
+    fn deref(&self) -> &Self::Target {
+        self.0.as_slice()
+    }
+}
+impl std::ops::Deref for GeneratePgTypes {
+    type Target = [PgType];
+    fn deref(&self) -> &Self::Target {
+        self.0.as_slice()
+    }
+}
+impl From<GeneratePgTypeRecords> for Vec<PgTypeRecord> {
+    fn from(value: GeneratePgTypeRecords) -> Self {
+        value.0
+    }
+}
 #[derive(Debug, serde::Deserialize, optml::Optml)]
 enum GeneratePgTypesConfigVariant {
     All,
-    Concrete(Vec<PgTypeRecord>),
-    Subset(Vec<PgType>),
+    Concrete(GeneratePgTypeRecords),
+    Subset(GeneratePgTypes),
 }
 #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
 #[serde(transparent)]
@@ -933,7 +956,7 @@ pub fn emit_generate_pg_types(
                     .collect::<std::collections::HashSet<PgType>>();
                 generate_variants(&|pg_type| type_set.contains(pg_type))
             }
-            GeneratePgTypesConfigVariant::Concrete(v) => v,
+            GeneratePgTypesConfigVariant::Concrete(v) => Vec::from(v),
         };
         {
             let mut check_accumulator = std::collections::HashSet::with_capacity(pg_type_records.len());
@@ -4889,7 +4912,7 @@ pub fn emit_generate_pg_types(
             let read_ids_and_create_into_vec_where_eq_using_fields_token_stream = quote::quote! {
                 #import::NotEmptyUniqueVec::try_new(vec![
                     #read_ids_and_create_into_where_eq_token_stream
-                ]).expect("4c08b551")
+                ].into()).expect("4c08b551")
             };
             let read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream: Option<proc_macro2::TokenStream> = None;
             let pg_type_optional_vec_where_greater_than_test_token_stream: Option<proc_macro2::TokenStream> = {
@@ -4964,7 +4987,7 @@ pub fn emit_generate_pg_types(
                     PgTypePattern::Standard => match &is_nullable {
                         pg_crud_macros_common::IsNullable::False => {
                             let wrap_into_not_empty_unique_vec_token_stream = |ts: &dyn quote::ToTokens| Some(quote::quote! {Some(
-                                #import::NotEmptyUniqueVec::try_new(vec![#ts]).expect("3ad4b6bf")
+                                #import::NotEmptyUniqueVec::try_new(vec![#ts].into()).expect("3ad4b6bf")
                             )});
                             let sqlx_types_chrono_naive_time_as_time_standard_non_null_token_stream = &generate_identifier_token_stream(
                                 &PgType::SqlxTypesChronoNaiveTimeAsTime,
@@ -5100,7 +5123,8 @@ pub fn emit_generate_pg_types(
                                         create: #identifier_create_upper_camel_case(#identifier_origin_upper_camel_case(Some(element_504739e6.create.0))),
                                         greater_than: #identifier_table_type_upper_camel_case(#identifier_origin_upper_camel_case(Some(element_504739e6.greater_than.0))),
                                     })
-                                    .collect()
+                                    .collect::<Vec<_>>()
+                                    .into()
                                 ).expect("63ce5df3")
                             )
                         }),

@@ -51,8 +51,8 @@ pub(crate) enum AdminRepositoryDbRef<'connection_lt, 'pool_lt> {
 pub(crate) struct AdminAuthenticatedRecord {
     display_name: server_admin_contract::AdminDisplayName,
     login: server_admin_contract::AdminLogin,
-    permissions: Vec<server_admin_contract::AdminPermission>,
-    roles: Vec<server_admin_contract::AdminRoleName>,
+    permissions: super::AdminPermissions,
+    roles: super::AdminRoleNames,
 }
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct AdminCleanupRepositoryReport {
@@ -87,8 +87,8 @@ impl AdminAuthenticatedRecord {
     ) -> (
         server_admin_contract::AdminDisplayName,
         server_admin_contract::AdminLogin,
-        Vec<server_admin_contract::AdminPermission>,
-        Vec<server_admin_contract::AdminRoleName>,
+        super::AdminPermissions,
+        super::AdminRoleNames,
     ) {
         (self.display_name, self.login, self.permissions, self.roles)
     }

@@ -21,6 +21,28 @@ pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub use server_admin_contract::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
 };
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub(crate) struct AdminPermissions(Vec<AdminPermission>);
+#[derive(
+    Clone,
+    Debug,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+#[serde(transparent)]
+pub(crate) struct AdminRoleNames(Vec<AdminRoleName>);
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]

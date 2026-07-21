@@ -4,6 +4,8 @@ mod html;
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
 #[derive(newtype::DebugTransparent)]
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
+#[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
+struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAdminAccessTtlSeconds(u64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -59,7 +61,7 @@ pub struct AdminAuthSvcState {
     allowed_origins: server_runtime::AllowedOrigins,
     audience: config_lib::AdminTokenAudience,
     cookie_secure: super::AdminCookieSecure,
-    decoding_keys: Vec<JsonwebtokenAdminDecodingKey>,
+    decoding_keys: JsonwebtokenAdminDecodingKeys,
     encoding_key: JsonwebtokenAdminEncodingKey,
     issuer: config_lib::AdminTokenIssuer,
     password_hasher: super::AdminPasswordHasher,
@@ -99,8 +101,8 @@ pub struct AuthenticatedAdmin {
     display_name: super::AdminDisplayName,
     id: super::AdminUserId,
     login: super::AdminLogin,
-    permissions: Vec<super::AdminPermission>,
-    roles: Vec<super::AdminRoleName>,
+    permissions: super::AdminPermissions,
+    roles: super::AdminRoleNames,
     session_id: super::AdminSessionId,
 }
 impl AuthenticatedAdmin {
@@ -114,6 +116,7 @@ fn authenticated_admin_contract(
 ) -> Result<server_admin_contract::AuthenticatedAdmin, AdminApiError> {
     let permissions = value
         .permissions
+        .as_ref()
         .iter()
         .map(|permission| {
             server_admin_contract::AdminPermissionValue::try_from(
@@ -124,6 +127,7 @@ fn authenticated_admin_contract(
         .collect::<Result<Vec<_>, AdminApiError>>()?;
     let roles = value
         .roles
+        .as_ref()
         .iter()
         .map(|role| {
             server_admin_contract::AdminRoleName::try_from(role.as_ref().to_owned())
@@ -136,8 +140,8 @@ fn authenticated_admin_contract(
         server_admin_contract::AdminUserId::from(value.id.0),
         server_admin_contract::AdminLogin::try_from(value.login.as_ref().to_owned())
             .map_err(|_error| AdminApiError::Validation)?,
-        permissions,
-        roles,
+        permissions.into(),
+        roles.into(),
     ))
 }
 #[derive(Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
@@ -443,6 +447,7 @@ async fn authenticate(
     validation.set_audience(&[state.audience.as_ref()]);
     let claims = state
         .decoding_keys
+        .as_ref()
         .iter()
         .find_map(|decoding_key| {
             jsonwebtoken::decode::<super::AdminAccessClaims>(
@@ -510,7 +515,11 @@ pub async fn authorize_generated_request(
     let authenticated = authenticate(state, headers, peer).await?;
     let required_permission = super::AdminPermission::try_from(permission.as_ref())
         .map_err(|_error| AdminApiError::Authorization)?;
-    if !authenticated.permissions.contains(&required_permission) {
+    if !authenticated
+        .permissions
+        .as_ref()
+        .contains(&required_permission)
+    {
         return Err(AdminApiError::Authorization);
     }
     if mutates.0 {
@@ -1092,7 +1101,8 @@ impl AdminAuthSvcState {
                             .as_bytes(),
                     ))
                 })
-                .collect(),
+                .collect::<Vec<_>>()
+                .into(),
             encoding_key: JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey::from_secret(
                 secret.as_bytes(),
             )),
@@ -1301,7 +1311,9 @@ mod tests {
             })
             .collect::<std::collections::BTreeSet<_>>();
         let contracted_route_contracts = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::coverage_descriptors()
-            .into_iter()
+            .as_ref()
+            .iter()
+            .copied()
             .map(|descriptor| {
                 let metadata = descriptor.metadata();
                 (

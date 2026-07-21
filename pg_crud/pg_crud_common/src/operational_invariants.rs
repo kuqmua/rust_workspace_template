@@ -16,12 +16,19 @@ pub enum PgScopedForeignKeyError {
     #[error("{}", str_constants::PG_SCOPED_FOREIGN_KEY_INVALID_COLUMN_COUNT)]
     InvalidColumnCount,
 }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PgSqlIdentifiers(Vec<crate::SqlIdentifier>);
+impl From<Vec<crate::SqlIdentifier>> for PgSqlIdentifiers {
+    fn from(value: Vec<crate::SqlIdentifier>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgScopedForeignKey {
-    local_columns: Vec<crate::SqlIdentifier>,
+    local_columns: PgSqlIdentifiers,
     on_delete: PgScopedForeignKeyOnDelete,
-    referenced_columns: Vec<crate::SqlIdentifier>,
+    referenced_columns: PgSqlIdentifiers,
     referenced_table: crate::SqlQualifiedIdentifier,
 }
 
@@ -51,22 +58,22 @@ impl TryFrom<String> for PgScopedForeignKeyClauseText {
 
 impl PgScopedForeignKey {
     pub fn new(
-        local_columns: Vec<crate::SqlIdentifier>,
+        local_columns: PgSqlIdentifiers,
         referenced_table: crate::SqlQualifiedIdentifier,
-        referenced_columns: Vec<crate::SqlIdentifier>,
+        referenced_columns: PgSqlIdentifiers,
         on_delete: PgScopedForeignKeyOnDelete,
     ) -> Result<Self, PgScopedForeignKeyError> {
-        if local_columns.len() != referenced_columns.len() {
+        if local_columns.0.len() != referenced_columns.0.len() {
             return Err(PgScopedForeignKeyError::ColumnCountMismatch);
         }
         if !(MINIMUM_SCOPED_FOREIGN_KEY_COLUMNS..=MAXIMUM_SCOPED_FOREIGN_KEY_COLUMNS)
-            .contains(&local_columns.len())
+            .contains(&local_columns.0.len())
         {
             return Err(PgScopedForeignKeyError::InvalidColumnCount);
         }
-        if contains_duplicate_identifier(local_columns.as_slice())
+        if contains_duplicate_identifier(local_columns.0.as_slice())
             == PgDuplicateIdentifierPresence::Present
-            || contains_duplicate_identifier(referenced_columns.as_slice())
+            || contains_duplicate_identifier(referenced_columns.0.as_slice())
                 == PgDuplicateIdentifierPresence::Present
         {
             return Err(PgScopedForeignKeyError::DuplicateColumn);
@@ -124,13 +131,13 @@ pub fn build_pg_scoped_foreign_key_clause(
 ) -> Result<crate::QueryPartFragment, crate::PgCrudStringWrapperTryFromStringError> {
     let mut clause =
         PgScopedForeignKeyClauseText::try_from(String::from(str_constants::FOREIGN_KEY_OPENING))?;
-    push_identifier_list(&mut clause, foreign_key.local_columns.as_slice());
+    push_identifier_list(&mut clause, foreign_key.local_columns.0.as_slice());
     clause.0.push_str(str_constants::REFERENCES);
     clause
         .0
         .push_str(foreign_key.referenced_table.to_string().as_str());
     clause.0.push('(');
-    push_identifier_list(&mut clause, foreign_key.referenced_columns.as_slice());
+    push_identifier_list(&mut clause, foreign_key.referenced_columns.0.as_slice());
     clause.0.push(')');
     clause.0.push_str(match foreign_key.on_delete {
         PgScopedForeignKeyOnDelete::Cascade => str_constants::ON_DELETE_CASCADE,
@@ -248,7 +255,8 @@ mod tests {
             vec![
                 identifier(str_constants::PG_TEST_FEATURE_ID),
                 identifier(str_constants::PG_TEST_LAYER_ID),
-            ],
+            ]
+            .into(),
             crate::SqlQualifiedIdentifier::new(
                 identifier(str_constants::PUBLIC),
                 identifier(str_constants::PG_TEST_FEATURES),
@@ -256,7 +264,8 @@ mod tests {
             vec![
                 identifier(str_constants::SQL_NAMES_ID),
                 identifier(str_constants::PG_TEST_LAYER_ID),
-            ],
+            ]
+            .into(),
             super::PgScopedForeignKeyOnDelete::Cascade,
         )
         .expect("21fc516e");

@@ -1,5 +1,17 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, optml::Optml, newtype::FromInner)]
 pub struct DuplicateIdx(usize);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DuplicateCandidates<T>(Vec<T>);
+impl<T> From<Vec<T>> for DuplicateCandidates<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self(value)
+    }
+}
+impl<T> From<DuplicateCandidates<T>> for Vec<T> {
+    fn from(value: DuplicateCandidates<T>) -> Self {
+        value.0
+    }
+}
 impl DuplicateIdx {
     #[must_use]
     pub const fn get(self) -> usize {
@@ -36,18 +48,18 @@ where
         .map(|(idx, _)| DuplicateIdx::from(idx))
 }
 #[must_use]
-pub fn take_fst_dup<T>(values: &mut Vec<T>) -> Option<T>
+pub fn take_fst_dup<T>(values: &mut DuplicateCandidates<T>) -> Option<T>
 where
     T: PartialEq,
 {
-    let duplicate_idx = first_duplicate_idx(values.as_slice())?;
-    Some(values.swap_remove(duplicate_idx.get()))
+    let duplicate_idx = first_duplicate_idx(values.0.as_slice())?;
+    Some(values.0.swap_remove(duplicate_idx.get()))
 }
 #[must_use]
-pub fn take_fst_dup_by_hash<T>(values: &mut Vec<T>) -> Option<T>
+pub fn take_fst_dup_by_hash<T>(values: &mut DuplicateCandidates<T>) -> Option<T>
 where
     T: Eq + std::hash::Hash,
 {
-    let duplicate_idx = first_duplicate_idx_by_hash(values.as_slice())?;
-    Some(values.swap_remove(duplicate_idx.get()))
+    let duplicate_idx = first_duplicate_idx_by_hash(values.0.as_slice())?;
+    Some(values.0.swap_remove(duplicate_idx.get()))
 }

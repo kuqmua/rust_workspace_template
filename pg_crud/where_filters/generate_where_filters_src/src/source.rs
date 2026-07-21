@@ -580,7 +580,7 @@ pub fn emit_generate_where_filters(
                                 );
                                 quote::quote! {
                                     #maybe_dimensions_ies_initialization_token_stream
-                                    let values = #self_snake_case.#v_snake_case.to_vec();
+                                    let values = #self_snake_case.#v_snake_case.as_slice();
                                     let mut query_part_bce8c9ae = String::with_capacity(
                                         32usize.saturating_add(values.len().saturating_mul(8))
                                     );
@@ -610,7 +610,7 @@ pub fn emit_generate_where_filters(
                             is_query_bind_mut_true,
                             quote::quote! {
                                 #maybe_dimensions_query_bind_token_stream
-                                for element in #self_snake_case.#v_snake_case.into_vec() {
+                                for element in Vec::from(#self_snake_case.#v_snake_case) {
                                     if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(element) {
                                         return Err(match #import::SqlxPostgresQueryBindError::try_from(#error_snake_case.to_string()) {
                                             Ok(v) => v,

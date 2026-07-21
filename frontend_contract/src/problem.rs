@@ -80,13 +80,26 @@ pub struct ApiProblemViolation {
     detail: ApiProblemDetail,
     field: ApiProblemField,
 }
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde::Deserialize,
+    serde::Serialize,
+    utoipa::ToSchema,
+    newtype::FromInner,
+)]
+#[serde(transparent)]
+pub(crate) struct ApiProblemViolations(Vec<ApiProblemViolation>);
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblem {
     detail: ApiProblemDetail,
     kind: ApiProblemKind,
     request_id: Option<ApiProblemRequestId>,
     status: ApiProblemStatus,
-    violations: Vec<ApiProblemViolation>,
+    violations: ApiProblemViolations,
 }
 impl ApiProblem {
     #[must_use]
@@ -148,7 +161,7 @@ impl ApiProblem {
             kind,
             request_id: None,
             status,
-            violations: Vec::new(),
+            violations: ApiProblemViolations::default(),
         }
     }
     #[must_use]

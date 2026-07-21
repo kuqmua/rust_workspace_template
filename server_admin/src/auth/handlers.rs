@@ -1079,16 +1079,18 @@ pub(super) async fn set_role_permissions(
         super::authorize_custom(&auth, super::super::AdminPermission::RolePermissionsUpdate)
             .await?;
     let (expected_permission_ids, contract_permission_ids) = request.0.into_parts();
-    if expected_permission_ids
+    if AsRef::<[server_admin_contract::AdminPermissionId]>::as_ref(&expected_permission_ids)
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != expected_permission_ids.len()
-        || contract_permission_ids
+        != AsRef::<[server_admin_contract::AdminPermissionId]>::as_ref(&expected_permission_ids)
+            .len()
+        || AsRef::<[server_admin_contract::AdminPermissionId]>::as_ref(&contract_permission_ids)
             .iter()
             .collect::<std::collections::HashSet<_>>()
             .len()
-            != contract_permission_ids.len()
+            != AsRef::<[server_admin_contract::AdminPermissionId]>::as_ref(&contract_permission_ids)
+                .len()
     {
         return Err(super::AdminApiError::Validation);
     }
@@ -1103,8 +1105,8 @@ pub(super) async fn set_role_permissions(
     let outcome = super::super::repository::permissions::replace_role_permissions(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
-        expected_permission_ids.as_slice(),
-        contract_permission_ids.as_slice(),
+        expected_permission_ids.as_ref(),
+        contract_permission_ids.as_ref(),
     )
     .await
     .map_err(super::AdminApiError::from)?;
@@ -1143,16 +1145,16 @@ pub(super) async fn set_user_roles(
     let actor =
         super::authorize_custom(&auth, super::super::AdminPermission::UserRolesUpdate).await?;
     let (expected_role_ids, contract_role_ids) = request.0.into_parts();
-    if expected_role_ids
+    if AsRef::<[server_admin_contract::AdminRoleId]>::as_ref(&expected_role_ids)
         .iter()
         .collect::<std::collections::HashSet<_>>()
         .len()
-        != expected_role_ids.len()
-        || contract_role_ids
+        != AsRef::<[server_admin_contract::AdminRoleId]>::as_ref(&expected_role_ids).len()
+        || AsRef::<[server_admin_contract::AdminRoleId]>::as_ref(&contract_role_ids)
             .iter()
             .collect::<std::collections::HashSet<_>>()
             .len()
-            != contract_role_ids.len()
+            != AsRef::<[server_admin_contract::AdminRoleId]>::as_ref(&contract_role_ids).len()
     {
         return Err(super::AdminApiError::Validation);
     }
@@ -1167,8 +1169,8 @@ pub(super) async fn set_user_roles(
     let outcome = super::super::repository::roles::replace_user_roles(
         super::super::repository::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
         path.0,
-        expected_role_ids.as_slice(),
-        contract_role_ids.as_slice(),
+        expected_role_ids.as_ref(),
+        contract_role_ids.as_ref(),
     )
     .await
     .map_err(super::AdminApiError::from)?;
@@ -1376,7 +1378,9 @@ pub(super) async fn data_table_catalog(
         .into_iter()
         .filter(|table| bool::from(admin.has_permission(table.permission())))
         .collect::<Vec<_>>();
-    Ok(server_admin_contract::AdminDataTableCatalog::new(items))
+    Ok(server_admin_contract::AdminDataTableCatalog::new(
+        items.into(),
+    ))
 }
 pub(super) async fn data_table_view(
     auth: super::AdminAuthReq,

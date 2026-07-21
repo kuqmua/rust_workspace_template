@@ -743,7 +743,8 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         serde_json::to_value(<server_admin_contract::AdminNoBody as utoipa::ToSchema>::schema().1)
             .map_err(|error| eprintln!("{error}"))?;
     let routes = <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
-        .into_iter()
+        .as_ref()
+        .iter()
         .map(|contract| {
             let metadata = contract.metadata();
             let request_schema = contract
@@ -796,12 +797,13 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         admin_fixture_string::<server_admin_contract::AdminLogin>(String::from(
             str_constants::ROOT,
         ))?,
-        permission_values.clone(),
+        permission_values.clone().into(),
         vec![
             admin_fixture_string::<server_admin_contract::AdminRoleName>(String::from(
                 str_constants::ADMIN_FIXTURE_ROLE_NAME,
             ))?,
-        ],
+        ]
+        .into(),
     );
     let users = (0i64..25i64)
         .map(|index| {
@@ -822,7 +824,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
                 } else {
                     format!("user_{number:02}")
                 })?,
-                vec![server_admin_contract::AdminRoleId::from(1i64)],
+                vec![server_admin_contract::AdminRoleId::from(1i64)].into(),
             ))
         })
         .collect::<Result<Vec<_>, ()>>()?;
@@ -851,7 +853,8 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         permission_summaries
             .iter()
             .map(server_admin_contract::AdminPermissionSummary::id)
-            .collect(),
+            .collect::<Vec<_>>()
+            .into(),
     )];
     let audit_details =
         server_admin_contract::SerdeJsonAdminAuditDetails::try_from(serde_json::json!({
@@ -910,20 +913,20 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
     })?;
     let user_total = u64::try_from(users.len()).map_err(|error| eprintln!("{error}"))?;
     let users_page = server_admin_contract::AdminUsersPage::new(
-        users,
-        role_summaries.clone(),
+        users.into(),
+        role_summaries.clone().into(),
         server_admin_contract::AdminPageTotal::from(user_total),
     );
     let role_total = u64::try_from(role_summaries.len()).map_err(|error| eprintln!("{error}"))?;
     let roles_page = server_admin_contract::AdminRolesPage::new(
-        role_summaries,
-        permission_summaries.clone(),
+        role_summaries.into(),
+        permission_summaries.clone().into(),
         server_admin_contract::AdminPageTotal::from(role_total),
     );
     let permission_total =
         u64::try_from(permission_summaries.len()).map_err(|error| eprintln!("{error}"))?;
     let permissions_page = server_admin_contract::AdminPermissionsPage::new(
-        permission_summaries,
+        permission_summaries.into(),
         server_admin_contract::AdminPageTotal::from(permission_total),
     );
     let users_json = serde_json::to_value(&users_page).map_err(|error| {
@@ -942,7 +945,7 @@ fn write_admin_contract_fixture() -> Result<(), ()> {
         server_admin_contract::AdminAuditLogId::from(1i64),
     );
     let audit_page = server_admin_contract::AdminAuditPage::new(
-        audit,
+        audit.into(),
         Some(audit_cursor),
         server_admin_contract::AdminPageTotal::from(1u64),
     );

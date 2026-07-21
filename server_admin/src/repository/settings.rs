@@ -75,12 +75,36 @@ pub(crate) async fn update_settings(
         .bind(organization_name.as_ref().map(AsRef::<str>::as_ref))
         .bind(organization_contacts.as_ref().map(AsRef::<str>::as_ref))
         .bind(support_url.as_ref().map(AsRef::<str>::as_ref))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::TabTitle))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::MainLogo))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::PrimaryColor))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::OrganizationName))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::OrganizationContacts))
-        .bind(clear.contains(&server_admin_contract::AdminOptionalSetting::SupportUrl))
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::TabTitle),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::MainLogo),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::PrimaryColor),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::OrganizationName),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::OrganizationContacts),
+        )
+        .bind(
+            clear
+                .as_ref()
+                .contains(&server_admin_contract::AdminOptionalSetting::SupportUrl),
+        )
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)

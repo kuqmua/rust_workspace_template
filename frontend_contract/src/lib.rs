@@ -33,9 +33,10 @@ pub use problem::{
 pub use route::{
     AuthenticatedTransport, CoveredRoute, OpenApiSecuritySchemeRef, ParameterizedRoute,
     ParameterizedRoutePath, ParameterizedRoutePathTryFromStringError, PublicTransport,
-    RouteBodyLimit, RouteFamily, RouteMetadata, RouteMethod, RouteRequest, RouteResponse,
-    RouteSchemaContract, RouteTransport, TypedRoute, UtoipaOpenApiPathParameter,
-    UtoipaOpenApiRouteSchema, apply_openapi_error_contract, apply_openapi_path_parameter_contract,
+    RouteBodyLimit, RouteCoverageDescriptors, RouteFamily, RouteMetadata, RouteMetadataList,
+    RouteMethod, RouteRequest, RouteResponse, RouteSchemaContract, RouteSchemaContracts,
+    RouteTransport, TypedRoute, UtoipaOpenApiPathParameter, UtoipaOpenApiRouteSchema,
+    apply_openapi_error_contract, apply_openapi_path_parameter_contract,
     apply_openapi_security_contract, apply_openapi_success_contract, client_request,
     client_route_metadata, openapi_route_metadata, server_response, server_route_metadata,
     typed_parameterized_route_path, typed_route_path,
@@ -50,8 +51,9 @@ pub use route_coverage::{
     AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
     PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS, RouteAccess, RouteCoverageDescriptor,
     RouteCoverageError, RouteCoverageEvidence, RouteCoverageObligation, RouteDatabaseUsage,
-    RouteJsonBodyUsage, RouteMutation, RouteResponseKind, RouteTestCapabilities, RouteTestCategory,
-    missing_required_test_categories, required_test_categories, validate_route_coverage,
+    RouteJsonBodyUsage, RouteMutation, RouteResponseKind, RouteTestCapabilities,
+    RouteTestCategories, RouteTestCategory, missing_required_test_categories,
+    required_test_categories, validate_route_coverage,
 };
 pub use url_builder::{ApiUrl, ApiUrlBuildError, ApiUrlPathSegmentRef, ApiUrlQueryComponentRef};
 #[derive(
@@ -762,7 +764,7 @@ pub trait Transport {
     fn send(
         &self,
         request: TransportRequest,
-    ) -> std::pin::Pin<Box<dyn Future<Output = Result<TransportResponse, TransportError>> + '_>>;
+    ) -> impl Future<Output = Result<TransportResponse, TransportError>> + '_;
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ClientError {

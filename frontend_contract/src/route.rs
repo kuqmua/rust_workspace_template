@@ -234,6 +234,32 @@ pub trait ParameterizedRoute: TypedRoute {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct RouteBodyLimit(usize);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct RouteCoverageDescriptors(Vec<crate::RouteCoverageDescriptor>);
+#[derive(
+    Clone, Debug, Default, newtype::AsRefTarget, newtype::FromInner, newtype::IntoInnerFrom,
+)]
+pub struct RouteSchemaContracts(Vec<RouteSchemaContract>);
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    Eq,
+    PartialEq,
+    newtype::AsRefTarget,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
+pub struct RouteMetadataList(Vec<RouteMetadata>);
 impl RouteBodyLimit {
     #[must_use]
     pub const fn get(self) -> usize {
@@ -245,16 +271,17 @@ pub trait RouteFamily {
     fn body_limit() -> Option<RouteBodyLimit> {
         None
     }
-    fn coverage_descriptors() -> Vec<crate::RouteCoverageDescriptor>;
+    fn coverage_descriptors() -> RouteCoverageDescriptors;
     #[must_use]
-    fn schema_contracts() -> Vec<RouteSchemaContract> {
-        Vec::new()
+    fn schema_contracts() -> RouteSchemaContracts {
+        RouteSchemaContracts::default()
     }
-    fn route_metadata() -> Vec<RouteMetadata> {
-        Self::coverage_descriptors()
+    fn route_metadata() -> RouteMetadataList {
+        Vec::from(Self::coverage_descriptors())
             .into_iter()
             .map(crate::RouteCoverageDescriptor::metadata)
-            .collect()
+            .collect::<Vec<_>>()
+            .into()
     }
 }
 #[derive(Clone, Debug, Eq, PartialEq)]

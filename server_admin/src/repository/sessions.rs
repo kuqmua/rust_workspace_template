@@ -48,7 +48,7 @@ pub(crate) async fn list_active_sessions(
     })
     .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok(server_admin_contract::AdminSessionsPage::new(
-        items,
+        items.into(),
         super::page_total(super::AdminPageTotalCount::from(total))?,
     ))
 }

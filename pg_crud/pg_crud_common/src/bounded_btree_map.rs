@@ -12,7 +12,7 @@ pub struct StdBoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap
 
 impl<K, V, const MAX: usize> StdBoundedBTreeMap<K, V, MAX> {
     #[must_use]
-    pub const fn as_map(&self) -> &std::collections::BTreeMap<K, V> {
+    pub const fn get(&self) -> &std::collections::BTreeMap<K, V> {
         &self.0
     }
 }
@@ -99,6 +99,6 @@ mod tests {
             str_constants::TEST_JSON_MAP_WITH_ONE_ENTRY,
         )
         .expect("298b587f");
-        assert_eq!(value.as_map().len(), 1usize);
+        assert_eq!(value.get().len(), 1usize);
     }
 }

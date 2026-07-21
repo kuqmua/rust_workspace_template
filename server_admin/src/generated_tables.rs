@@ -291,7 +291,9 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("ab2e610c");
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
-            .into_iter()
+            .as_ref()
+            .iter()
+            .copied()
             .for_each(|metadata| {
                 let operation = typed_operation(&document, metadata);
                 assert_eq!(
@@ -341,7 +343,9 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("d083c1a9");
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::route_metadata()
-            .into_iter()
+            .as_ref()
+            .iter()
+            .copied()
             .for_each(|metadata| {
                 let expected: &[&str] = match metadata.openapi_operation_id().as_ref() {
                     "audit_log" | "export_audit_log" => &["action", "created_after", "created_before", "cursor_created_at", "cursor_id", "limit", "resource", "resource_id", "succeeded", "user_id", "user_login"],
@@ -387,7 +391,8 @@ mod tests {
         )
         .expect("e185e575");
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
-            .into_iter()
+            .as_ref()
+            .iter()
             .for_each(|contract| {
                 let metadata = contract.metadata();
                 let operation = typed_operation(&document, metadata);
@@ -429,7 +434,8 @@ mod tests {
             serde_json::to_value(utoipa::openapi::OpenApi::from(super::generated_open_api()))
                 .expect("c4ddf19e");
         <server_admin_contract::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::schema_contracts()
-            .into_iter()
+            .as_ref()
+            .iter()
             .for_each(|contract| {
                 let metadata = contract.metadata();
                 let status = u16::from(metadata.success_status().transport_status()).to_string();

@@ -36,27 +36,47 @@ impl BatchStoppedEarly {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BatchInvalidItems<InvalidItem>(Vec<InvalidItem>);
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StdBatchRecords<Key, Record>(std::collections::BTreeMap<Key, Record>);
+impl<InvalidItem> From<Vec<InvalidItem>> for BatchInvalidItems<InvalidItem> {
+    fn from(value: Vec<InvalidItem>) -> Self {
+        Self(value)
+    }
+}
+impl<Key, Record> From<std::collections::BTreeMap<Key, Record>> for StdBatchRecords<Key, Record> {
+    fn from(value: std::collections::BTreeMap<Key, Record>) -> Self {
+        Self(value)
+    }
+}
+impl<Key, Record> AsRef<std::collections::BTreeMap<Key, Record>> for StdBatchRecords<Key, Record> {
+    fn as_ref(&self) -> &std::collections::BTreeMap<Key, Record> {
+        &self.0
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BatchValidationReport<Key, Record, InvalidItem> {
-    invalid_items: Vec<InvalidItem>,
+    invalid_items: BatchInvalidItems<InvalidItem>,
     processed_item_count: BatchProcessedItemCount,
-    records_by_key: std::collections::BTreeMap<Key, Record>,
+    records_by_key: StdBatchRecords<Key, Record>,
     stopped_early: BatchStoppedEarly,
 }
 
 impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
     #[must_use]
-    pub fn into_parts(self) -> (std::collections::BTreeMap<Key, Record>, Vec<InvalidItem>) {
+    pub fn into_parts(self) -> (StdBatchRecords<Key, Record>, BatchInvalidItems<InvalidItem>) {
         (self.records_by_key, self.invalid_items)
     }
 
     #[must_use]
     pub const fn invalid_item_count(&self) -> BatchInvalidItemCount {
-        BatchInvalidItemCount(self.invalid_items.len())
+        BatchInvalidItemCount(self.invalid_items.0.len())
     }
 
     #[must_use]
-    pub fn invalid_items(&self) -> &[InvalidItem] {
-        &self.invalid_items
+    pub const fn invalid_items(&self) -> &[InvalidItem] {
+        self.invalid_items.0.as_slice()
     }
 
     #[must_use]
@@ -65,7 +85,7 @@ impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
     }
 
     #[must_use]
-    pub const fn records_by_key(&self) -> &std::collections::BTreeMap<Key, Record> {
+    pub const fn records_by_key(&self) -> &StdBatchRecords<Key, Record> {
         &self.records_by_key
     }
 
@@ -146,8 +166,8 @@ where
             });
 
     BatchValidationReport {
-        records_by_key,
-        invalid_items,
+        records_by_key: records_by_key.into(),
+        invalid_items: invalid_items.into(),
         processed_item_count: BatchProcessedItemCount::from(processed_item_count),
         stopped_early: BatchStoppedEarly::from(stopped_early),
     }
@@ -184,7 +204,7 @@ mod tests {
             4,
             super::BatchDuplicatePolicy::Reject,
         );
-        assert_eq!(report.records_by_key().len(), 2usize);
+        assert_eq!(report.records_by_key().as_ref().len(), 2usize);
         assert_eq!(
             report.invalid_items(),
             &[(1usize, str_constants::TEST_DUPLICATE)]
@@ -220,11 +240,11 @@ mod tests {
             |_index, _key| str_constants::TEST_DUPLICATE,
         );
         assert_eq!(
-            first.records_by_key().get(&1i32),
+            first.records_by_key().as_ref().get(&1i32),
             Some(&(1i32, str_constants::TEST_FIRST))
         );
         assert_eq!(
-            last.records_by_key().get(&1i32),
+            last.records_by_key().as_ref().get(&1i32),
             Some(&(1i32, str_constants::TEST_LAST))
         );
     }
@@ -239,7 +259,7 @@ mod tests {
         assert_eq!(report.invalid_item_count().get(), 1usize);
         assert_eq!(report.processed_item_count().get(), 1usize);
         assert!(report.stopped_early().get());
-        assert!(report.records_by_key().is_empty());
+        assert!(report.records_by_key().as_ref().is_empty());
     }
 
     #[test]

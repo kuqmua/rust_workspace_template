@@ -25,6 +25,13 @@ pub struct SqlQualifiedIdentifier {
     schema: SqlIdentifier,
     table: SqlIdentifier,
 }
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SqlIdentifiers(Vec<SqlIdentifier>);
+impl From<Vec<SqlIdentifier>> for SqlIdentifiers {
+    fn from(value: Vec<SqlIdentifier>) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct SqlQueryText(String);
 impl TryFrom<String> for SqlQueryText {
@@ -60,7 +67,7 @@ impl std::fmt::Display for SqlQualifiedIdentifier {
 }
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SqlSelectBuilder {
-    columns: Vec<SqlIdentifier>,
+    columns: SqlIdentifiers,
     table: SqlQualifiedIdentifier,
 }
 impl SqlSelectBuilder {
@@ -68,6 +75,7 @@ impl SqlSelectBuilder {
     pub fn build(self) -> crate::QueryPartFragment {
         let columns_len = self
             .columns
+            .0
             .iter()
             .map(|column| column.as_ref().len())
             .sum::<usize>();
@@ -75,7 +83,7 @@ impl SqlSelectBuilder {
             SqlQueryText::try_from(String::with_capacity(columns_len.saturating_add(32usize)))
                 .unwrap_or_else(|_error| SqlQueryText(String::new()));
         query.0.push_str(str_constants::SELECT);
-        self.columns.iter().enumerate().for_each(|(idx, column)| {
+        self.columns.0.iter().enumerate().for_each(|(idx, column)| {
             if idx != 0usize {
                 query.0.push_str(str_constants::TEXT_ALT_6);
             }
@@ -86,7 +94,7 @@ impl SqlSelectBuilder {
         crate::QueryPartFragment::try_from(query.0).unwrap_or_else(crate::QueryPartFragment::from)
     }
     #[must_use]
-    pub const fn new(table: SqlQualifiedIdentifier, columns: Vec<SqlIdentifier>) -> Self {
+    pub const fn new(table: SqlQualifiedIdentifier, columns: SqlIdentifiers) -> Self {
         Self { columns, table }
     }
 }
@@ -133,7 +141,8 @@ mod tests {
             vec![
                 identifier(str_constants::SQL_NAMES_ID),
                 identifier(str_constants::LOGIN),
-            ],
+            ]
+            .into(),
         )
         .build();
         assert_eq!(query.into_inner(), "SELECT id, login FROM public.users");

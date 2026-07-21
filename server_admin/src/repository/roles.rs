@@ -54,7 +54,7 @@ pub(crate) async fn delete_role(
 
 pub(crate) async fn list_role_catalog(
     pool: super::SqlxAdminRepositoryPoolRef<'_>,
-) -> Result<Vec<server_admin_contract::AdminRoleSummary>, super::AdminRepositoryError> {
+) -> Result<server_admin_contract::AdminRoleSummaries, super::AdminRepositoryError> {
     let rows = sqlx::query_as::<_, (i64, String, bool)>(str_constants::SERVER_ADMIN_LIST_ROLES_SQL)
         .fetch_all(pool.0)
         .await
@@ -82,10 +82,14 @@ pub(crate) async fn list_role_catalog(
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                permission_ids_by_role.remove(&id).unwrap_or_default(),
+                permission_ids_by_role
+                    .remove(&id)
+                    .unwrap_or_default()
+                    .into(),
             ))
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()
+        .map(Into::into)
 }
 
 pub(crate) async fn list_roles(
@@ -93,7 +97,7 @@ pub(crate) async fn list_roles(
     query: &server_admin_contract::AdminTableQuery,
 ) -> Result<
     (
-        Vec<server_admin_contract::AdminRoleSummary>,
+        server_admin_contract::AdminRoleSummaries,
         super::AdminPageTotalCount,
     ),
     super::AdminRepositoryError,
@@ -137,11 +141,14 @@ pub(crate) async fn list_roles(
                 server_admin_contract::AdminBool::from(is_system),
                 server_admin_contract::AdminRoleName::try_from(name)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                permission_ids_by_role.remove(&id).unwrap_or_default(),
+                permission_ids_by_role
+                    .remove(&id)
+                    .unwrap_or_default()
+                    .into(),
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items, super::AdminPageTotalCount::from(total)))
+    Ok((items.into(), super::AdminPageTotalCount::from(total)))
 }
 
 pub(crate) async fn replace_user_roles(

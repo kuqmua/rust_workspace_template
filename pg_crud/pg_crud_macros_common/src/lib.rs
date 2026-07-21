@@ -328,6 +328,14 @@ pub enum Import {
     PgCrudCommon,
 }
 impl Import {
+    fn all_enum_variants(
+        self,
+    ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
+        macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream::from(match self {
+            Self::Crate => quote::quote! { crate::AllEnumVariants },
+            Self::PgCrudCommon => quote::quote! { pg_crud_common::AllEnumVariants },
+        })
+    }
     fn all_variants_default_some_one_element(&self) -> &dyn quote::ToTokens {
         match &self {
             Self::Crate => &token_patterns::CrateAllEnumVariantsArrayDefaultSomeOneElement,
@@ -718,10 +726,11 @@ pub fn generate_impl_all_variants_default_some_one_element_token_stream(
     let (AllVariantsDefaultSomeOneElementSnakeCase,) =
         (&names.AllVariantsDefaultSomeOneElementSnakeCase,);
     let path_trait_token_stream = import.all_variants_default_some_one_element();
+    let all_enum_variants = import.all_enum_variants();
     quote::quote! {
         impl #path_trait_token_stream for #identifier {
-            fn #AllVariantsDefaultSomeOneElementSnakeCase() -> Vec<Self> {
-                #ts
+            fn #AllVariantsDefaultSomeOneElementSnakeCase() -> #all_enum_variants<Self> {
+                (#ts).into()
             }
         }
     }
@@ -758,12 +767,13 @@ pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_s
     let (AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,) =
         (&names.AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase,);
     let path_trait_token_stream = import.all_variants_default_some_one_element_max_page_size();
+    let all_enum_variants = import.all_enum_variants();
     let all_variants_default_some_one_element_max_page_size_snake_case =
         AllVariantsDefaultSomeOneElementMaxPageSizeSnakeCase;
     quote::quote! {
         impl #path_trait_token_stream for #identifier {
-            fn #all_variants_default_some_one_element_max_page_size_snake_case() -> Vec<Self> {
-                #ts
+            fn #all_variants_default_some_one_element_max_page_size_snake_case() -> #all_enum_variants<Self> {
+                (#ts).into()
             }
         }
     }

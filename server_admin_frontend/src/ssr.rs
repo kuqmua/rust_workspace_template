@@ -695,8 +695,9 @@ mod tests {
                         .to_owned(),
                 )
                 .expect("7e7147f6"),
-            ],
-            Vec::new(),
+            ]
+            .into(),
+            Vec::new().into(),
         );
         let html = super::render_admin_page_with_access(
             server_admin_contract::AdminPage::Users,

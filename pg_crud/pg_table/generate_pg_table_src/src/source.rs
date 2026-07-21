@@ -1,5 +1,11 @@
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
+struct TableTestNames<'value_lt>(Vec<&'value_lt str>);
+impl<'value_lt> From<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
+    fn from(value: Vec<&'value_lt str>) -> Self {
+        Self(value)
+    }
+}
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
 ) -> macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream {
@@ -2216,7 +2222,7 @@ pub fn emit_generate_pg_table(
             let ts0 = generate_accumulator_string_pop_ok_accumulator_token_stream(
                 &quote::quote! {accumulator},
                 &quote::quote! {
-                    for element in #SelectSnakeCase.to_vec() {
+                    for element in #SelectSnakeCase.as_slice() {
                         accumulator.push_str(&match element {
                             #vrts_token_stream
                         });
@@ -2336,15 +2342,23 @@ pub fn emit_generate_pg_table(
             #ts
         }
     };
-    let new_syn_variant = |variant_name: &dyn std::fmt::Display,
-                           status_code: Option<macros_helpers::status_code::StatusCode>,
-                           variant_fields: Vec<(
-        macros_helpers::location_data::LocationFieldAttr,
-        &dyn std::fmt::Display,
-        macros_helpers::generate_simple_syn_punct::SynPathSegments,
-    )>,
-                           is_location_first|
-     -> SynVariant {
+    // This generated-code helper stays next to its only call sites inside the generation scope.
+    #[allow(clippy::items_after_statements)]
+    fn new_syn_variant<DisplayValue>(
+        variant_name: &dyn std::fmt::Display,
+        status_code: Option<macros_helpers::status_code::StatusCode>,
+        variant_fields: impl IntoIterator<
+            Item = (
+                macros_helpers::location_data::LocationFieldAttr,
+                DisplayValue,
+                macros_helpers::generate_simple_syn_punct::SynPathSegments,
+            ),
+        >,
+        is_location_first: bool,
+    ) -> SynVariant
+    where
+        DisplayValue: std::fmt::Display,
+    {
         SynVariant {
             variant: syn::Variant {
                 attrs: {
@@ -2448,7 +2462,7 @@ pub fn emit_generate_pg_table(
             },
             status_code,
         }
-    };
+    }
     let query_part_syn_variant = new_syn_variant(
         &QueryPartUpperCamelCase,
         Some(macros_helpers::status_code::StatusCode::BadReq400),
@@ -3261,7 +3275,7 @@ pub fn emit_generate_pg_table(
                     ) -> Result<Self, sqlx::Error> {
                         #declaration_primary_key_token_stream
                         #declaration_without_primary_key_token_stream
-                        for element_dca9f0b7 in #SelectSnakeCase.to_vec() {
+                        for element_dca9f0b7 in #SelectSnakeCase.as_slice() {
                             match element_dca9f0b7 {
                                 #assign_variant_primary_key_token_stream,
                                 #(#assign_variants_without_primary_key_token_stream),*
@@ -3793,13 +3807,14 @@ pub fn emit_generate_pg_table(
                 },
             )
         };
+    let row_field_name: &dyn std::fmt::Display = &RowSnakeCase;
     let row_and_rollback_syn_variant = new_syn_variant(
         &RowAndRollbackUpperCamelCase,
         Some(macros_helpers::status_code::StatusCode::InternalServerError500),
         vec![
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
-                &RowSnakeCase,
+                row_field_name,
                 simple_syn_punct_sqlx_error.clone(),
             ),
             (
@@ -3858,13 +3873,14 @@ pub fn emit_generate_pg_table(
             str_constants::REQWEST,
             str_constants::ERROR,
         ]);
+    let status_code_field_name: &dyn std::fmt::Display = &StatusCodeSnakeCase;
     let failed_to_get_res_text_syn_variant = new_syn_variant(
         &FailedToGetResTextUpperCamelCase,
         Some(macros_helpers::status_code::StatusCode::BadReq400),
         vec![
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
-                &StatusCodeSnakeCase,
+                status_code_field_name,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
                     str_constants::REQWEST,
                     str_constants::STATUSCODE,
@@ -3893,7 +3909,7 @@ pub fn emit_generate_pg_table(
         vec![
             (
                 macros_helpers_location_field_attr_eo_to_err_string,
-                &StatusCodeSnakeCase,
+                status_code_field_name,
                 macros_helpers::generate_simple_syn_punct::generate_simple_syn_punct([
                     str_constants::REQWEST,
                     str_constants::STATUSCODE,
@@ -6274,7 +6290,7 @@ pub fn emit_generate_pg_table(
                                         Deserializer: serde::Deserializer<'de>,
                                     {
                                         let bounded = <pg_crud_common::bounded_vec::BoundedVec<#identifier_create_upper_camel_case, 0usize, #limit_value> as serde::Deserialize>::deserialize(deserializer)?;
-                                        Ok(Self(bounded.into_vec()))
+                                        Ok(Self(Vec::from(bounded)))
                                     }
                                 }
                             }
@@ -6402,7 +6418,7 @@ pub fn emit_generate_pg_table(
                             |limit| {
                                 let limit_value = limit.0;
                                 quote::quote! {
-                                    <pg_crud_common::bounded_vec::BoundedVec<#identifier_update_upper_camel_case, 0usize, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?.into_vec()
+                                    Vec::from(<pg_crud_common::bounded_vec::BoundedVec<#identifier_update_upper_camel_case, 0usize, #limit_value> as _serde::Deserialize>::deserialize(__deserializer)?)
                                 }
                             },
                         );
@@ -7442,7 +7458,7 @@ pub fn emit_generate_pg_table(
                     Some(
                         #import_token_stream PgTypeWhere::try_new(
                             #operator_token_stream,
-                            #ts
+                            (#ts).into()
                         ).expect("6b0491b2"),
                     )
                 }
@@ -7453,7 +7469,7 @@ pub fn emit_generate_pg_table(
         let generate_pg_type_where_try_new_primary_key_token_stream = quote::quote! {
             #import_token_stream PgTypeWhere::try_new(
                 operator,
-                vec
+                vec.into()
             ).expect("fd20ad6d")
         };
         let identifier_create_default_fields_initialization_without_primary_key_token_stream =
@@ -7492,7 +7508,7 @@ pub fn emit_generate_pg_table(
             quote::quote! {
                 let select_default_all_with_max_page_size = #import_token_stream NotEmptyUniqueVec::try_new_by_hash(vec![
                     #ts
-                ]).expect("5e82ac66");
+                ].into()).expect("5e82ac66");
             }
         };
         let primary_key_field_type_as_pg_type_primary_key_token_stream =
@@ -7691,8 +7707,9 @@ pub fn emit_generate_pg_table(
         let mut table_test_name_fis_vec_token_stream = Vec::with_capacity(
             fields_len_without_primary_key.saturating_mul(table_fields_test_name_count),
         );
-        let fill_table_fis_vec_token_stream: &mut dyn FnMut(Vec<&str>) = &mut |test_names| {
-            test_names.into_iter().fold((), |(), el0| {
+        let fill_table_fis_vec_token_stream: &mut dyn FnMut(TableTestNames<'_>) =
+            &mut |test_names| {
+                test_names.0.into_iter().fold((), |(), el0| {
                 let generate_initialization_variable_name_token_stream: &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream =
                     &|field| {
                         let initialization_variable_name = quote::format_ident!("table_{el0}_{field}");
@@ -7716,19 +7733,22 @@ pub fn emit_generate_pg_table(
                     },
                 ));
             });
-        };
+            };
         let table_read_ids_and_create_into_where_eq_name = str_constants::VALUE_8E427AD7;
         let table_read_ids_and_create_into_vec_where_eq_using_fields_name = str_constants::EB24448C;
         let table_read_ids_and_create_into_optional_vec_where_eq_to_field_name =
             str_constants::VALUE_9AC6D79A;
         let table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name =
             str_constants::VALUE_5A52AF33;
-        fill_table_fis_vec_token_stream(vec![
-            &table_read_ids_and_create_into_where_eq_name,
-            &table_read_ids_and_create_into_vec_where_eq_using_fields_name,
-            &table_read_ids_and_create_into_optional_vec_where_eq_to_field_name,
-            &table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name,
-        ]);
+        fill_table_fis_vec_token_stream(
+            vec![
+                table_read_ids_and_create_into_where_eq_name,
+                table_read_ids_and_create_into_vec_where_eq_using_fields_name,
+                table_read_ids_and_create_into_optional_vec_where_eq_to_field_name,
+                table_read_ids_and_table_type_into_pg_type_optional_where_greater_than_name,
+            ]
+            .into(),
+        );
         let select_default_all_with_max_page_size_cloned_clone_token_stream =
             quote::quote! {select_default_all_with_max_page_size_cloned.clone()};
         let read_ids_to_2_dimensions_vec_read_inner_accumulator_fields_token_stream =
@@ -9497,7 +9517,7 @@ pub fn emit_generate_pg_table(
                             #identifier_select_upper_camel_case::#primary_key_field_upper_camel_case_token_stream(
                                 #primary_key_field_type_as_pg_type_select_token_stream::default(),
                             )
-                        ])
+                        ].into())
                         .expect("0776170e");
                         let #IdentifierCreateDefaultSnakeCase = identifier_create_default();
                         #select_default_all_with_max_page_size_not_empty_unique_vec_token_stream
@@ -9669,7 +9689,7 @@ pub fn emit_generate_pg_table(
             quote::quote! {
                 pg_crud_common::DbKeySpec::Unique(vec![
                     #(pg_crud_common::DbStaticSchemaText::from(#column_token_stream)),*
-                ])
+                ].into())
             }
         });
     let db_foreign_key_token_stream = generate_pg_table_input_model
@@ -9691,10 +9711,10 @@ pub fn emit_generate_pg_table(
                 pg_crud_common::DbKeySpec::ForeignKey {
                     columns: vec![
                         #(pg_crud_common::DbStaticSchemaText::from(#column_token_stream)),*
-                    ],
+                    ].into(),
                     referenced_columns: vec![
                         #(pg_crud_common::DbStaticSchemaText::from(#referenced_column_token_stream)),*
-                    ],
+                    ].into(),
                     referenced_table: pg_crud_common::DbStaticSchemaText::from(#referenced_table_token_stream),
                 }
             }
@@ -9702,26 +9722,26 @@ pub fn emit_generate_pg_table(
     let db_table_schema_token_stream = quote::quote! {
         impl pg_crud_common::DbTableSchema for #identifier {
             const TABLE_NAME: &'static str = #db_table_name_double_quoted_token_stream;
-            fn columns() -> Vec<pg_crud_common::DbColumnSpec> {
-                vec![#(#db_column_specs_token_stream),*]
+            fn columns() -> pg_crud_common::DbColumnSpecs {
+                vec![#(#db_column_specs_token_stream),*].into()
             }
-            fn create_excluded_columns() -> Vec<pg_crud_common::DbStaticSchemaText> {
-                vec![#(pg_crud_common::DbStaticSchemaText::from(#create_excluded_column_token_stream)),*]
+            fn create_excluded_columns() -> pg_crud_common::DbStaticSchemaTexts {
+                vec![#(pg_crud_common::DbStaticSchemaText::from(#create_excluded_column_token_stream)),*].into()
             }
-            fn keys() -> Vec<pg_crud_common::DbKeySpec> {
+            fn keys() -> pg_crud_common::DbKeySpecs {
                 vec![
                     pg_crud_common::DbKeySpec::PrimaryKey(vec![
                         pg_crud_common::DbStaticSchemaText::from(#primary_key_field_name)
-                    ])
+                    ].into())
                     #(, #db_unique_key_token_stream)*
                     #(, #db_foreign_key_token_stream)*
-                ]
+                ].into()
             }
             fn primary_key_column() -> pg_crud_common::DbStaticSchemaText {
                 pg_crud_common::DbStaticSchemaText::from(#primary_key_field_name)
             }
-            fn read_excluded_columns() -> Vec<pg_crud_common::DbStaticSchemaText> {
-                vec![#(pg_crud_common::DbStaticSchemaText::from(#read_excluded_column_token_stream)),*]
+            fn read_excluded_columns() -> pg_crud_common::DbStaticSchemaTexts {
+                vec![#(pg_crud_common::DbStaticSchemaText::from(#read_excluded_column_token_stream)),*].into()
             }
         }
     };

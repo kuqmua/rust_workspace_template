@@ -81,6 +81,19 @@ impl std::fmt::Display for ServerRuntimeContentSecurityPolicyError {
 }
 impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
 struct AxumApiRoutes(axum::Router);
+#[derive(Clone)]
+struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
+impl StdSharedServerAppState {
+    const fn get(&self) -> &std::sync::Arc<server_app_state::ServerAppState<'static>> {
+        &self.0
+    }
+}
+impl std::ops::Deref for StdSharedServerAppState {
+    type Target = server_app_state::ServerAppState<'static>;
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref()
+    }
+}
 #[derive(Clone, Debug)]
 struct ClientIpRateLimitKeyExtractor {
     trusted_proxy_ranges: server_runtime::TrustedProxyRanges,
@@ -171,7 +184,7 @@ fn frontend_fallback_routes() -> server_runtime::AxumRouter {
 }
 #[allow(clippy::single_call_fn)] // route wiring is reused by startup flow and isolated from layer setup
 fn mk_api_routes(
-    app_state: &std::sync::Arc<server_app_state::ServerAppState<'static>>,
+    app_state: &StdSharedServerAppState,
     admin_auth_state: server_admin::auth::StdSharedAdminAuthSvcState,
     metrics_handle: MetricsExporterPrometheusHandle,
 ) -> AxumApiRoutes {
@@ -179,25 +192,25 @@ fn mk_api_routes(
     let generated_table_routes =
         server_admin::generated_tables::AdminRoles::routes(std::sync::Arc::<
             server_app_state::ServerAppState<'static>,
-        >::clone(app_state))
+        >::clone(app_state.get()))
         .merge(
             server_admin::generated_tables::AdminRolePermissions::routes(std::sync::Arc::<
                 server_app_state::ServerAppState<'static>,
             >::clone(
-                app_state
+                app_state.get()
             )),
         )
         .merge(server_admin::generated_tables::AdminPermissions::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
         ))
         .merge(server_admin::generated_tables::AdminSystemSettings::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
         ))
         .merge(server_admin::generated_tables::AdminUsers::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
         ))
         .merge(server_admin::generated_tables::AdminUserRoles::routes(
-            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
+            std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state.get()),
         ));
     let documented_admin_routes = if *app_state.config.admin_swagger_enabled {
         generated_table_routes.route(
@@ -246,8 +259,8 @@ fn mk_api_routes(
 fn mk_app_state(
     config: server_config::Config,
     pg_pool: app_state::SqlxPgPool,
-) -> std::sync::Arc<server_app_state::ServerAppState<'static>> {
-    std::sync::Arc::new(server_app_state::ServerAppState {
+) -> StdSharedServerAppState {
+    StdSharedServerAppState(std::sync::Arc::new(server_app_state::ServerAppState {
         bulk_item_budget: server_runtime::ResourceBudget::new(
             server_runtime::ResourceBudgetMaximum::from(
                 std::num::NonZeroUsize::new(4_096usize).unwrap_or(std::num::NonZeroUsize::MIN),
@@ -262,7 +275,7 @@ fn mk_app_state(
         ),
         pg_pool,
         project_git_info: &git_info::PROJECT_GIT_INFO,
-    })
+    }))
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
 fn initialization_tracing(format: config_lib::types::TracingFormat) {
@@ -484,7 +497,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     let operational_routes = axum::Router::from(common_routes::common_routes(
         common_routes::StdArcCommonRoutesAppState::from(std::sync::Arc::<
             server_app_state::ServerAppState<'static>,
-        >::clone(&app_state)),
+        >::clone(app_state.get())),
     ));
     let governor_conf = std::sync::Arc::new(
         tower_governor::governor::GovernorConfigBuilder::default()

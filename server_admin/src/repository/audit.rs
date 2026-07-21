@@ -176,7 +176,7 @@ pub(crate) async fn query_audit_log(
         None
     };
     Ok(server_admin_contract::AdminAuditPage::new(
-        views,
+        views.into(),
         next_cursor,
         super::page_total(super::AdminPageTotalCount::from(total))?,
     ))

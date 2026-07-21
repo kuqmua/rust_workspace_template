@@ -36,10 +36,6 @@ impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {
         self.0.as_slice()
     }
     #[must_use]
-    pub fn into_vec(self) -> Vec<T> {
-        self.0
-    }
-    #[must_use]
     pub fn len(&self) -> BoundedVecLen {
         BoundedVecLen::from(self.0.len())
     }
