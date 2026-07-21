@@ -254,7 +254,6 @@ pub fn render_users(
             <label><span>"Login"</span><input name="login" required /></label><label><span>"Display name"</span><input name="display_name" required /></label>
             <label><span>"Password"</span><input name="password" type="password" required /></label><button type="submit">"Create user"</button>
         </form></details> })}
-        <p>{format!("{} users", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Login"</th><th>"Display name"</th><th>"Banned"</th><th>"Roles"</th><th>"Actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_role_ids = item.role_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
             <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Login">{item.login().to_string()}</td><td data-label="Display name">{item.display_name().to_string()}</td><td data-label="Banned">{item.is_banned().to_string()}</td>
@@ -296,7 +295,6 @@ pub fn render_roles(
     let content = leptos::view! {
         {table_filters(server_admin_contract::AdminPage::Roles, query, &server_admin_contract::AdminTableSortField::ROLE)}
         {can_create.then(|| leptos::view! { <details class="mutation-form"><summary>"Create role"</summary><form method="post" action=server_admin_contract::AdminHtmlAction::RoleCreate.get()><label><span>"Name"</span><input name="name" required /></label><button type="submit">"Create role"</button></form></details> })}
-        <p>{format!("{} roles", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Name"</th><th>"System"</th><th>"Permissions"</th><th>"Actions"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| { let expected_permission_ids = item.permission_ids().iter().map(ToString::to_string).collect::<Vec<_>>().join(","); leptos::view! {
             <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Name">{item.name().to_string()}</td><td data-label="System">{item.is_system().to_string()}</td><td data-label="Permissions">{can_update_permissions.then(|| leptos::view! { <form method="post" action=server_admin_contract::AdminHtmlAction::RolePermissions.get()><input type="hidden" name="role_id" value=item.id().to_string() />
@@ -325,7 +323,6 @@ pub fn render_permissions(
 ) -> AdminSsrHtml {
     let content = leptos::view! {
         {table_filters(server_admin_contract::AdminPage::Permissions, query, &server_admin_contract::AdminTableSortField::PERMISSION)}
-        <p>{format!("{} permissions", page.total())}</p>
         <table><thead><tr><th>"ID"</th><th>"Permission"</th></tr></thead>
         <tbody>{page.items().iter().map(|item| leptos::view! {
             <tr><td data-label="ID">{item.id().to_string()}</td><td data-label="Permission">{item.name().to_string()}</td></tr>
@@ -350,7 +347,6 @@ pub fn render_data_tables(
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section>
-                <p>{format!("{} rows (maximum 100)", view.items().len())}</p>
                 <div class="table-scroll"><table>
                     <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
                     <tbody>{view.items().iter().map(|row| leptos::view! {
