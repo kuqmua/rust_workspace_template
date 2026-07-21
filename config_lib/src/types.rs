@@ -2,6 +2,18 @@
 struct TracingLevelName(&'static str);
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
+impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
+    type Error = super::ConfigLibStringWrapperTryFromStringError;
+    fn try_from(value: Result<String, std::env::VarError>) -> Result<Self, Self::Error> {
+        match value {
+            Ok(raw_value) => {
+                let bounded = super::StdEnvVarOk::try_from(raw_value)?;
+                Ok(Self(Ok(bounded.0)))
+            }
+            Err(error) => Ok(Self(Err(error))),
+        }
+    }
+}
 #[derive(Debug, Clone, Copy)]
 struct EnvVarNameRef<'name_lt>(&'name_lt str);
 #[derive(Debug, Clone, Copy)]
@@ -99,9 +111,10 @@ impl SrcPlaceType {
         if let Err(error) = dotenv::dotenv() {
             eprintln!("dotenv::dotenv() failed in SrcPlaceType::from_env_or_default: {error}");
         }
-        let parsed = Self::parse_src_place_type_from_env_var(StdEnvVarResult(std::env::var(
-            str_constants::ENV_NAMES_SRC_PLACE_TYPE,
-        )));
+        let parsed =
+            StdEnvVarResult::try_from(std::env::var(str_constants::ENV_NAMES_SRC_PLACE_TYPE))
+                .map_err(EnvParseError::from)
+                .and_then(Self::parse_src_place_type_from_env_var);
         match parsed {
             Ok(v) => v,
             Err(message) => {
@@ -164,6 +177,17 @@ where
 }
 #[cfg(test)]
 mod tests {
+    fn env_result(value: Result<String, std::env::VarError>) -> super::StdEnvVarResult {
+        super::StdEnvVarResult::try_from(value).expect("a4aa0c6f")
+    }
+    #[test]
+    fn environment_result_rejects_values_above_shared_limit() {
+        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
+            .repeat(super::super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));
+        let Err(_error) = super::StdEnvVarResult::try_from(Ok(value)) else {
+            panic!("3ee39bcb");
+        };
+    }
     #[allow(clippy::single_call_fn)] // shared helper keeps variant parse/display assertions centralized across enum parser tests
     fn assert_parse_display_roundtrip_variants<T>()
     where
@@ -256,7 +280,7 @@ mod tests {
     #[test]
     fn parse_from_env_var_with_wraps_missing_var_context() {
         let parsed = super::parse_from_env_var_with(
-            super::StdEnvVarResult(Err(std::env::VarError::NotPresent)),
+            env_result(Err(std::env::VarError::NotPresent)),
             super::EnvVarNameRef(str_constants::ENV_NAMES_SRC_PLACE_TYPE),
             |_v| Ok(()),
         );
@@ -266,7 +290,7 @@ mod tests {
     #[test]
     fn parse_from_env_var_with_passes_value_into_parse_callback() {
         let parsed = super::parse_from_env_var_with(
-            super::StdEnvVarResult(Ok(String::from(str_constants::SRC_ALT))),
+            env_result(Ok(String::from(str_constants::SRC_ALT))),
             super::EnvVarNameRef(str_constants::ENV_NAMES_SRC_PLACE_TYPE),
             |v| Ok(v.0.to_owned()),
         );
@@ -275,7 +299,7 @@ mod tests {
     #[test]
     fn parse_from_env_var_from_str_parses_bool_when_input_is_valid() {
         let parsed = super::parse_from_env_var_from_str::<bool>(
-            super::StdEnvVarResult(Ok(String::from(str_constants::TRUE))),
+            env_result(Ok(String::from(str_constants::TRUE))),
             super::EnvVarNameRef(str_constants::ENV_NAMES_SRC_PLACE_TYPE),
             super::ParseCtxRef(str_constants::BOOL_PARSE),
         );
@@ -284,7 +308,7 @@ mod tests {
     #[test]
     fn parse_from_env_var_from_str_wraps_context_when_parse_fails() {
         let error = super::parse_from_env_var_from_str::<bool>(
-            super::StdEnvVarResult(Ok(String::from(str_constants::X))),
+            env_result(Ok(String::from(str_constants::X))),
             super::EnvVarNameRef(str_constants::ENV_NAMES_SRC_PLACE_TYPE),
             super::ParseCtxRef(str_constants::BOOL_PARSE),
         )
@@ -293,17 +317,17 @@ mod tests {
     }
     #[test]
     fn parse_src_place_type_from_env_var_wraps_missing_var_context() {
-        let error = super::SrcPlaceType::parse_src_place_type_from_env_var(super::StdEnvVarResult(
-            Err(std::env::VarError::NotPresent),
-        ))
+        let error = super::SrcPlaceType::parse_src_place_type_from_env_var(env_result(Err(
+            std::env::VarError::NotPresent,
+        )))
         .expect_err(str_constants::VALUE_5A83F2BE);
         assert!(error.as_ref().contains("std::env::var(\"SRC_PLACE_TYPE\")"));
     }
     #[test]
     fn parse_src_place_type_from_env_var_parses_ok_value() {
-        let parsed = super::SrcPlaceType::parse_src_place_type_from_env_var(
-            super::StdEnvVarResult(Ok(String::from(str_constants::SRC_ALT))),
-        );
+        let parsed = super::SrcPlaceType::parse_src_place_type_from_env_var(env_result(Ok(
+            String::from(str_constants::SRC_ALT),
+        )));
         assert_eq!(parsed, Ok(super::SrcPlaceType::Src));
     }
     #[test]

@@ -8,7 +8,6 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
     Eq,
     Clone,
     serde::Serialize,
-    serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
@@ -18,6 +17,15 @@ const LOC_COMMIT_MAX_LEN: usize = 1_048_576;
 )]
 #[bounded_string(max = LOC_FILE_MAX_LEN )]
 pub struct LocationFile(String);
+impl<'de> serde::Deserialize<'de> for LocationFile {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -54,7 +62,6 @@ pub struct LocationColumn(u32);
     Eq,
     Clone,
     serde::Serialize,
-    serde::Deserialize,
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
@@ -63,6 +70,15 @@ pub struct LocationColumn(u32);
 )]
 #[bounded_string(max = LOC_COMMIT_MAX_LEN )]
 pub struct LocationCommit(String);
+impl<'de> serde::Deserialize<'de> for LocationCommit {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 #[derive(
     Debug,
     PartialEq,
@@ -419,5 +435,17 @@ mod tests {
             offset.0.local_minus_utc(),
             super::LOC_DISPLAY_UTC_OFFSET_SECS
         );
+    }
+    #[test]
+    fn location_text_deserialization_uses_bounded_try_from() {
+        let oversized = "x".repeat(super::LOC_FILE_MAX_LEN + 1usize);
+        let _file_error = <super::LocationFile as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized.clone()),
+        )
+        .expect_err("845c5b02");
+        let _commit_error = <super::LocationCommit as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(oversized),
+        )
+        .expect_err("7e50ddbb");
     }
 }

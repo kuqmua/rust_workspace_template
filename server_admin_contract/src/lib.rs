@@ -814,164 +814,119 @@ impl AdminSignInReq {
         &self.password
     }
 }
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminPermissionValues(Vec<AdminPermissionValue>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleNames(Vec<AdminRoleName>);
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleIds(Vec<AdminRoleId>);
-#[derive(
-    Clone,
-    Debug,
-    Default,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminPermissionIds(Vec<AdminPermissionId>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminUserSummaries(Vec<AdminUserSummary>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminRoleSummaries(Vec<AdminRoleSummary>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminPermissionSummaries(Vec<AdminPermissionSummary>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminAuditViews(Vec<AdminAuditView>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminTexts(Vec<AdminText>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminDataRows(Vec<AdminDataRow>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminDataTables(Vec<AdminDataTable>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminOptionalSettings(Vec<AdminOptionalSetting>);
-#[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    serde::Deserialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
-)]
-#[serde(transparent)]
-pub struct AdminSessionViews(Vec<AdminSessionView>);
+const ADMIN_COLLECTION_MAX_ITEMS: usize = 10_000usize;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AdminCollectionError {
+    TooLong,
+}
+impl std::fmt::Display for AdminCollectionError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::TooLong => {
+                formatter.write_str("administrator collection exceeds maximum item count")
+            }
+        }
+    }
+}
+impl std::error::Error for AdminCollectionError {}
+struct AdminBoundedVec<T>(Vec<T>);
+struct StdPhantomDataAdminBoundedVecVisitor<T>(std::marker::PhantomData<T>);
+impl<'de, T: serde::Deserialize<'de>> serde::de::Visitor<'de>
+    for StdPhantomDataAdminBoundedVecVisitor<T>
+{
+    type Value = AdminBoundedVec<T>;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "an administrator array with at most {ADMIN_COLLECTION_MAX_ITEMS} items"
+        )
+    }
+    fn visit_seq<Seq>(self, mut seq: Seq) -> Result<Self::Value, Seq::Error>
+    where
+        Seq: serde::de::SeqAccess<'de>,
+    {
+        let mut values = Vec::with_capacity(
+            seq.size_hint()
+                .unwrap_or_default()
+                .min(ADMIN_COLLECTION_MAX_ITEMS),
+        );
+        while let Some(value) = seq.next_element()? {
+            if values.len() == ADMIN_COLLECTION_MAX_ITEMS {
+                return Err(serde::de::Error::custom(AdminCollectionError::TooLong));
+            }
+            values.push(value);
+        }
+        Ok(AdminBoundedVec(values))
+    }
+}
+impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVec<T> {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_seq(StdPhantomDataAdminBoundedVecVisitor(
+            std::marker::PhantomData,
+        ))
+    }
+}
+macro_rules! admin_collection {
+    ($name:ident, $item:ty) => {
+        #[derive(
+            Clone,
+            Debug,
+            serde::Serialize,
+            utoipa::ToSchema,
+            newtype::AsRefTarget,
+            newtype::IntoInnerFrom,
+        )]
+        #[serde(transparent)]
+        pub struct $name(#[schema(max_items = 10000)] Vec<$item>);
+        impl TryFrom<Vec<$item>> for $name {
+            type Error = AdminCollectionError;
+            fn try_from(value: Vec<$item>) -> Result<Self, Self::Error> {
+                if value.len() > ADMIN_COLLECTION_MAX_ITEMS {
+                    Err(AdminCollectionError::TooLong)
+                } else {
+                    Ok(Self(value))
+                }
+            }
+        }
+        impl<'de> serde::Deserialize<'de> for $name {
+            fn deserialize<Deserializer>(
+                deserializer: Deserializer,
+            ) -> Result<Self, Deserializer::Error>
+            where
+                Deserializer: serde::Deserializer<'de>,
+            {
+                <AdminBoundedVec<$item> as serde::Deserialize>::deserialize(deserializer)
+                    .map(|value| Self(value.0))
+            }
+        }
+    };
+}
+admin_collection!(AdminPermissionValues, AdminPermissionValue);
+admin_collection!(AdminRoleNames, AdminRoleName);
+admin_collection!(AdminRoleIds, AdminRoleId);
+admin_collection!(AdminPermissionIds, AdminPermissionId);
+admin_collection!(AdminUserSummaries, AdminUserSummary);
+admin_collection!(AdminRoleSummaries, AdminRoleSummary);
+admin_collection!(AdminPermissionSummaries, AdminPermissionSummary);
+admin_collection!(AdminAuditViews, AdminAuditView);
+admin_collection!(AdminTexts, AdminText);
+admin_collection!(AdminDataRows, AdminDataRow);
+admin_collection!(AdminDataTables, AdminDataTable);
+admin_collection!(AdminOptionalSettings, AdminOptionalSetting);
+admin_collection!(AdminSessionViews, AdminSessionView);
+impl Default for AdminRoleIds {
+    fn default() -> Self {
+        Self(Vec::new())
+    }
+}
+impl Default for AdminPermissionIds {
+    fn default() -> Self {
+        Self(Vec::new())
+    }
+}
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AuthenticatedAdmin {
     display_name: AdminDisplayName,
@@ -2652,19 +2607,38 @@ mod tests {
         assert!(serde_json::from_str::<Value>(json).is_err());
     }
     #[test]
+    fn administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
+        let maximum = vec![super::AdminRoleId::from(1i64); super::ADMIN_COLLECTION_MAX_ITEMS];
+        assert!(super::AdminRoleIds::try_from(maximum).is_ok());
+        let oversized = vec![
+            super::AdminRoleId::from(1i64);
+            super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
+        ];
+        assert!(matches!(
+            super::AdminRoleIds::try_from(oversized),
+            Err(super::AdminCollectionError::TooLong)
+        ));
+        let json = serde_json::json!(vec![
+            1i64;
+            super::ADMIN_COLLECTION_MAX_ITEMS.saturating_add(1usize)
+        ])
+        .to_string();
+        assert!(serde_json::from_str::<super::AdminRoleIds>(&json).is_err());
+    }
+    #[test]
     fn authenticated_admin_checks_permissions_and_page_access() {
         let admin = super::AuthenticatedAdmin::new(
             super::AdminDisplayName::try_from(str_constants::ADMIN.to_owned()).expect("67f10787"),
             super::AdminUserId::from(1i64),
             super::AdminLogin::try_from(str_constants::ROOT.to_owned()).expect("ced445ee"),
-            vec![
+            super::AdminPermissionValues::try_from(vec![
                 super::AdminPermissionValue::try_from(
                     super::AdminPermission::UsersRead.as_str().get().to_owned(),
                 )
                 .expect("837c99bb"),
-            ]
-            .into(),
-            Vec::new().into(),
+            ])
+            .expect("34462164"),
+            super::AdminRoleNames::try_from(Vec::new()).expect("cc22bb17"),
         );
         assert!(bool::from(
             admin.has_permission(super::AdminPermission::UsersRead)
@@ -2722,7 +2696,7 @@ mod tests {
             None,
             None,
             None,
-            Vec::new().into(),
+            super::AdminOptionalSettings::try_from(Vec::new()).expect("c4a1e2d3"),
         );
         assert!(!bool::from(empty.has_fields()));
         let with_site_name = super::AdminUpdateSettingsReq::new(
@@ -2736,7 +2710,7 @@ mod tests {
             ),
             None,
             None,
-            Vec::new().into(),
+            super::AdminOptionalSettings::try_from(Vec::new()).expect("32e4e74d"),
         );
         assert!(bool::from(with_site_name.has_fields()));
         assert!(bool::from(with_site_name.is_valid()));
@@ -2749,7 +2723,8 @@ mod tests {
             None,
             None,
             None,
-            vec![super::AdminOptionalSetting::MainLogo].into(),
+            super::AdminOptionalSettings::try_from(vec![super::AdminOptionalSetting::MainLogo])
+                .expect("96e94562"),
         );
         assert!(bool::from(clear_logo.has_fields()));
         assert!(bool::from(clear_logo.is_valid()));

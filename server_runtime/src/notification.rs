@@ -64,6 +64,7 @@ impl TryFrom<String> for NotificationApiToken {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(try_from = "String")]
 pub struct NotificationMessage(String);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -256,6 +257,12 @@ mod tests {
         assert!(bool::from(token.authorizes(
             super::NotificationApiTokenRef::from(str_constants::TEST_NOTIFICATION_API_TOKEN,)
         )));
+    }
+
+    #[test]
+    fn message_deserialization_uses_length_validation() {
+        let json = serde_json::Value::String("x".repeat(65_537usize)).to_string();
+        assert!(serde_json::from_str::<super::NotificationMessage>(&json).is_err());
     }
 
     #[tokio::test]

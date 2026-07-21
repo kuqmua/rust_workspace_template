@@ -673,7 +673,7 @@ mod tests {
             server_admin_contract::AdminUserId::from(1i64),
             server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
                 .expect("9ae5b850"),
-            vec![
+            server_admin_contract::AdminPermissionValues::try_from(vec![
                 server_admin_contract::AdminPermissionValue::try_from(
                     server_admin_contract::AdminPermission::UsersRead
                         .as_str()
@@ -695,9 +695,9 @@ mod tests {
                         .to_owned(),
                 )
                 .expect("7e7147f6"),
-            ]
-            .into(),
-            Vec::new().into(),
+            ])
+            .expect("e05ce0b9"),
+            server_admin_contract::AdminRoleNames::try_from(Vec::new()).expect("f1ec0093"),
         );
         let html = super::render_admin_page_with_access(
             server_admin_contract::AdminPage::Users,

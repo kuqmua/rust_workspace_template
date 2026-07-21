@@ -41,13 +41,21 @@ pub enum ErrorOne {
     Eq,
     Hash,
     serde::Serialize,
-    serde::Deserialize,
     optml::Optml,
     newtype::BoundedString,
     newtype::ToErrStringAsRefStr,
 )]
 #[bounded_string(max = LOC_TEST_TEXT_MAX_LEN )]
 pub struct LocationTestText(String);
+impl<'de> serde::Deserialize<'de> for LocationTestText {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 #[derive(
     Debug,
     Clone,

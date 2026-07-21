@@ -38,6 +38,14 @@ impl TryFrom<String> for QueryPartFragment {
 }
 impl std::fmt::Write for QueryPartFragment {
     fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        if self
+            .0
+            .len()
+            .checked_add(s.len())
+            .is_none_or(|length| length > crate::PG_CRUD_STRING_WRAPPER_MAX_LEN)
+        {
+            return Err(std::fmt::Error);
+        }
         self.0.push_str(s);
         Ok(())
     }
@@ -60,5 +68,21 @@ impl std::fmt::Debug for SqlColumnRef<'_> {
 impl std::fmt::Display for SqlColumnRef<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn write_does_not_grow_fragment_above_limit() {
+        let mut fragment =
+            super::QueryPartFragment::try_from("x".repeat(crate::PG_CRUD_STRING_WRAPPER_MAX_LEN))
+                .expect("63af01f6");
+        let write_result = std::fmt::Write::write_str(&mut fragment, str_constants::X);
+        assert_eq!(write_result, Err(std::fmt::Error));
+        assert_eq!(
+            fragment.as_ref().len(),
+            crate::PG_CRUD_STRING_WRAPPER_MAX_LEN
+        );
     }
 }

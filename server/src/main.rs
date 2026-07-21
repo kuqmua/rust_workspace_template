@@ -140,6 +140,8 @@ enum RunServerError {
     Config(ServerConfigError),
     #[error("invalid content security policy: {0}")]
     ContentSecurityPolicy(ServerRuntimeContentSecurityPolicyError),
+    #[error("invalid CORS allow-origin configuration: {0}")]
+    CorsAllowOrigin(server_runtime::HttpCorsAllowOriginHeaderValuesError),
     #[error("failed to build governor config")]
     GovernorConfig,
     #[error("failed to install metrics recorder: {0}")]
@@ -158,6 +160,8 @@ enum RunServerError {
     Serve(ServerRuntimeServeError),
     #[error("invalid trusted proxy range: {0}")]
     TrustedProxyRange(server_runtime::TrustedProxyRangeParseError),
+    #[error("invalid trusted proxy range list: {0}")]
+    TrustedProxyRanges(server_runtime::TrustedProxyRangesError),
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
 fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
@@ -395,7 +399,8 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     let cors_origins = Vec::<axum::http::HeaderValue>::from(
         server_runtime::parse_cors_allow_origin(server_runtime::HttpCorsAllowOriginTextRef::from(
             config_lib::GetCorsAllowOrigin::get_cors_allow_origin(&config).as_str(),
-        )),
+        ))
+        .map_err(RunServerError::CorsAllowOrigin)?,
     );
     let admin_auth_state =
         server_admin::auth::StdSharedAdminAuthSvcState::from(std::sync::Arc::new(
@@ -417,7 +422,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
             })?,
         ));
     let swagger_enabled = *config.admin_swagger_enabled;
-    let trusted_proxy_ranges = config
+    let trusted_proxy_range_values = config
         .trusted_proxy_ranges_text
         .0
         .split(',')
@@ -425,8 +430,10 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .map(str::to_owned)
         .map(server_runtime::TrustedProxyRange::try_from)
         .collect::<Result<Vec<server_runtime::TrustedProxyRange>, _>>()
-        .map(server_runtime::TrustedProxyRanges::from)
         .map_err(RunServerError::TrustedProxyRange)?;
+    let trusted_proxy_ranges =
+        server_runtime::TrustedProxyRanges::try_from(trusted_proxy_range_values)
+            .map_err(RunServerError::TrustedProxyRanges)?;
     let content_security_policy = server_runtime::HttpContentSecurityPolicy::try_from(
         config.content_security_policy.as_ref().to_owned(),
     )
@@ -668,9 +675,10 @@ mod tests {
         )
         .expect("5c81d907");
         let extractor = super::ClientIpRateLimitKeyExtractor {
-            trusted_proxy_ranges: server_runtime::TrustedProxyRanges::from(vec![
+            trusted_proxy_ranges: server_runtime::TrustedProxyRanges::try_from(vec![
                 trusted_proxy_range,
-            ]),
+            ])
+            .expect("9f2a9017"),
         };
         let mut request = axum::http::Request::builder()
             .header(

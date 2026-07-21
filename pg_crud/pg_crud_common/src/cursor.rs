@@ -1,3 +1,5 @@
+const CURSOR_SIGNING_KEY_MAXIMUM_LENGTH: usize = 4_096usize;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CursorMaximumLength(usize);
 
@@ -64,7 +66,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
     type Error = CursorSigningKeyError;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
-        if value.is_empty() {
+        if value.is_empty() || value.len() > CURSOR_SIGNING_KEY_MAXIMUM_LENGTH {
             Err(CursorSigningKeyError)
         } else {
             Ok(Self(value))
@@ -73,7 +75,7 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
-#[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_MUST_NOT_BE_EMPTY)]
+#[error("{message}", message = str_constants::CURSOR_SIGNING_KEY_LENGTH_INVALID)]
 pub struct CursorSigningKeyError;
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
@@ -262,6 +264,23 @@ mod tests {
             super::CursorSigningKey::try_from(vec![7u8; 32usize]).expect("556f25ae"),
             super::CursorMaximumLength::try_from(1_024usize).expect("30c8f351"),
         )
+    }
+
+    #[test]
+    fn signing_key_rejects_empty_and_oversized_values() {
+        assert_eq!(
+            super::CursorSigningKey::try_from(Vec::new()).map(drop),
+            Err(super::CursorSigningKeyError)
+        );
+        assert_eq!(
+            super::CursorSigningKey::try_from(vec![
+                0u8;
+                super::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH
+                    + 1usize
+            ])
+            .map(drop),
+            Err(super::CursorSigningKeyError)
+        );
     }
 
     #[test]

@@ -16,7 +16,10 @@ pub(crate) async fn list_permission_catalog(
             ))
         })
         .collect::<Result<Vec<_>, _>>()
-        .map(Into::into)
+        .and_then(|values| {
+            server_admin_contract::AdminPermissionSummaries::try_from(values)
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+        })
 }
 
 pub(crate) async fn list_permissions(
@@ -55,7 +58,11 @@ pub(crate) async fn list_permissions(
                 ))
             })
             .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items.into(), super::AdminPageTotalCount::from(total)))
+    Ok((
+        server_admin_contract::AdminPermissionSummaries::try_from(items)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        super::AdminPageTotalCount::from(total),
+    ))
 }
 
 pub(crate) async fn replace_role_permissions(

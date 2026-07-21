@@ -1,5 +1,6 @@
 const MAX_FORWARDED_HEADER_BYTES: usize = 4096;
 const MAX_FORWARDED_ENTRIES: usize = 32;
+const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = 128usize;
 #[derive(Clone, Copy, Debug)]
 pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
 impl<'lt> From<&'lt http::HeaderMap> for HttpHeaderMapRef<'lt> {
@@ -126,9 +127,17 @@ impl TryFrom<String> for TrustedProxyRange {
 }
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TrustedProxyRanges(Vec<TrustedProxyRange>);
-impl From<Vec<TrustedProxyRange>> for TrustedProxyRanges {
-    fn from(value: Vec<TrustedProxyRange>) -> Self {
-        Self(value)
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("trusted proxy range list exceeds its maximum item count")]
+pub struct TrustedProxyRangesError;
+impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
+    type Error = TrustedProxyRangesError;
+    fn try_from(value: Vec<TrustedProxyRange>) -> Result<Self, Self::Error> {
+        if value.len() > TRUSTED_PROXY_RANGES_MAX_ITEMS {
+            Err(TrustedProxyRangesError)
+        } else {
+            Ok(Self(value))
+        }
     }
 }
 impl TrustedProxyRange {
@@ -253,9 +262,18 @@ mod tests {
                     .parse::<std::net::SocketAddr>()
                     .expect("262819a8"),
             ),
-            &super::TrustedProxyRanges::from(ranges),
+            &super::TrustedProxyRanges::try_from(ranges).expect("38546d0b"),
         )
         .to_string()
+    }
+    #[test]
+    fn trusted_proxy_ranges_reject_oversized_lists() {
+        let item = range(str_constants::VALUE_127_0_0_1_32);
+        let values = vec![item; super::TRUSTED_PROXY_RANGES_MAX_ITEMS.saturating_add(1usize)];
+        assert_eq!(
+            super::TrustedProxyRanges::try_from(values),
+            Err(super::TrustedProxyRangesError)
+        );
     }
     #[test]
     fn untrusted_peer_cannot_spoof_forwarded_header() {

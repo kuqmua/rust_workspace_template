@@ -1,5 +1,6 @@
 const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
+const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
 #[derive(Debug)]
 pub struct StdFileStorageIoError(std::io::Error);
@@ -38,6 +39,9 @@ pub struct StdFileStorageRoot(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdFileStorageRoot {
     type Error = FileStoragePathError;
     fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
+        if value.as_os_str().as_encoded_bytes().len() > MAXIMUM_PATH_BYTES {
+            return Err(FileStoragePathError::PathTooLong);
+        }
         if value.is_absolute() {
             Ok(Self(value))
         } else {
@@ -51,6 +55,9 @@ pub struct StdStorageRelativePath(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for StdStorageRelativePath {
     type Error = FileStoragePathError;
     fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
+        if value.as_os_str().as_encoded_bytes().len() > MAXIMUM_PATH_BYTES {
+            return Err(FileStoragePathError::PathTooLong);
+        }
         let valid = !value.as_os_str().is_empty()
             && value
                 .components()
@@ -99,6 +106,8 @@ pub enum FileStoragePathError {
     FileTooLarge,
     #[error("{}", str_constants::FILE_STORAGE_OPERATION_ID_INVALID)]
     OperationIdInvalid,
+    #[error("{}", str_constants::FILE_STORAGE_PATH_TOO_LONG)]
+    PathTooLong,
     #[error("{}", str_constants::FILE_STORAGE_RELATIVE_PATH_INVALID)]
     RelativePathInvalid,
     #[error("{}", str_constants::FILE_STORAGE_ROOT_MUST_BE_ABSOLUTE)]
@@ -717,6 +726,22 @@ mod tests {
                 str_constants::TEST_PATH_TRAVERSAL,
             )),
             Err(super::FileStoragePathError::OperationIdInvalid),
+        );
+    }
+
+    #[test]
+    fn storage_paths_reject_values_above_maximum_length() {
+        let relative = str_constants::TEST_JWT_SECRET_CHARACTER_A
+            .repeat(super::MAXIMUM_PATH_BYTES.saturating_add(1usize));
+        let mut absolute = std::path::MAIN_SEPARATOR.to_string();
+        absolute.push_str(relative.as_str());
+        assert_eq!(
+            super::StdStorageRelativePath::try_from(std::path::PathBuf::from(relative)),
+            Err(super::FileStoragePathError::PathTooLong)
+        );
+        assert_eq!(
+            super::StdFileStorageRoot::try_from(std::path::PathBuf::from(absolute)),
+            Err(super::FileStoragePathError::PathTooLong)
         );
     }
 

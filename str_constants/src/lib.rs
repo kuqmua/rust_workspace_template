@@ -1252,6 +1252,7 @@ str_constants_macros::define_str_constants! {
         pub(crate) WORKSPACE_TEST_RUNNER_NO_DEV_DEPS_ARG = ["--no-dev-deps"];
         pub(crate) WORKSPACE_TEST_RUNNER_NIGHTLY_ARG = ["+nightly"];
         pub CURSOR_VERSION_V1 = [WORD_V1];
+        pub CURSOR_SIGNING_KEY_LENGTH_INVALID = ["cursor signing key length must be between 1 and 4096 bytes"];
         pub CURSOR_SIGNING_KEY_MUST_NOT_BE_EMPTY = ["cursor signing key must not be empty"];
         pub CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY = ["cursor payload must not be empty"];
         pub SIGNED_CURSOR_MUST_NOT_BE_EMPTY = ["signed cursor must not be empty"];
@@ -1263,6 +1264,8 @@ str_constants_macros::define_str_constants! {
         pub CURSOR_SIGNATURE_IS_INVALID = ["cursor signature is invalid"];
         pub ALLOWED_HTTP_ORIGIN_IS_INVALID = ["allowed HTTP origin is invalid"];
         pub ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID = ["allowed HTTP origin list is invalid"];
+        pub HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT = [WORD_HEALTH, " components length exceeds limit"];
+        pub FILE_STORAGE_PATH_TOO_LONG = ["file storage path exceeds maximum length"];
         pub METRICS_RESPONSE_BODY_EXCEEDS_MAXIMUM_LENGTH = ["metrics response body exceeds maximum length"];
         pub HTTPS_ADMIN_EXAMPLE_COM_PATH = [WORD_HTTPS, "://", WORD_ADMIN_2, ".", WORD_EXAMPLE, ".", WORD_COM, "/", WORD_PATH];
         pub HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER = ["HTTPS://ADMIN.EXAMPLE.COM/settings"];
@@ -3254,8 +3257,8 @@ str_constants_macros::define_str_constants! {
         pub SERVER_ADMIN_DELETE_USER_SQL = [WORD_DELETE, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_RETURNING, " ", WORD_TRUE_2];
         pub SERVER_ADMIN_LIST_USER_ROLE_IDS_SQL = [WORD_SELECT, " ", WORD_USER_ID, ", ", WORD_ROLE_ID, " ", WORD_FROM, " ", WORD_ADMIN_USER_ROLES, " ", WORD_WHERE, " ", WORD_USER_ID, " = ", WORD_ANY, "($1) ", WORD_ORDER, " ", WORD_BY, " ", WORD_USER_ID, ", ", WORD_ROLE_ID];
         pub SERVER_ADMIN_READ_AUTH_USER_SQL = [WORD_SELECT, " ", WORD_LOGIN, ", ", WORD_DISPLAY_NAME, " ", WORD_FROM, " ", WORD_ADMIN_USERS, " ", WORD_WHERE, " ", WORD_ID, " = $1 ", WORD_AND, " ", WORD_IS_BANNED, " = ", WORD_FALSE_2];
-        pub SERVER_ADMIN_READ_AUTH_ROLES_SQL = [WORD_SELECT, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_LINK, " ", WORD_ON, " ", WORD_LINK, ".", WORD_ROLE_ID, " = ", WORD_ROLE, ".", WORD_ID, " ", WORD_WHERE, " ", WORD_LINK, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_ROLE, ".", WORD_NAME_2];
-        pub SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL = [WORD_SELECT, " ", WORD_DISTINCT, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_PERMISSION, " ", WORD_JOIN, " ", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_ROLE_PERMISSION, " ", WORD_ON, " ", WORD_ROLE_PERMISSION, ".", WORD_PERMISSION_ID, " = ", WORD_PERMISSION, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " = ", WORD_ROLE_PERMISSION, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_PERMISSION, ".", WORD_NAME_2];
+        pub SERVER_ADMIN_READ_AUTH_ROLES_SQL = [WORD_SELECT, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_ROLES, " ", WORD_ROLE, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_LINK, " ", WORD_ON, " ", WORD_LINK, ".", WORD_ROLE_ID, " = ", WORD_ROLE, ".", WORD_ID, " ", WORD_WHERE, " ", WORD_LINK, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_ROLE, ".", WORD_NAME_2, " ", WORD_LIMIT, " 10001"];
+        pub SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL = [WORD_SELECT, " ", WORD_DISTINCT, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_FROM, " ", WORD_ADMIN_PERMISSIONS, " ", WORD_PERMISSION, " ", WORD_JOIN, " ", WORD_ADMIN_ROLE_PERMISSIONS, " ", WORD_ROLE_PERMISSION, " ", WORD_ON, " ", WORD_ROLE_PERMISSION, ".", WORD_PERMISSION_ID, " = ", WORD_PERMISSION, ".", WORD_ID, " ", WORD_JOIN, " ", WORD_ADMIN_USER_ROLES, " ", WORD_USER_ROLE, " ", WORD_ON, " ", WORD_USER_ROLE, ".", WORD_ROLE_ID, " = ", WORD_ROLE_PERMISSION, ".", WORD_ROLE_ID, " ", WORD_WHERE, " ", WORD_USER_ROLE, ".", WORD_USER_ID, " = $1 ", WORD_ORDER, " ", WORD_BY, " ", WORD_PERMISSION, ".", WORD_NAME_2, " ", WORD_LIMIT, " 10001"];
         pub SERVER_ADMIN_DB_SCHEMA_VALUE_001 = [WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY];
         pub SERVER_ADMIN_DB_SCHEMA_VALUE_002 = [WORD_SET_2, "_updated_", WORD_AT];
         pub SERVER_ADMIN_DB_SCHEMA_VALUE_003 = [WORD_ADMIN_AUDIT_LOG, "_append_", WORD_ONLY, "_guard"];

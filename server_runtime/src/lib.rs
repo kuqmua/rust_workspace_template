@@ -61,11 +61,12 @@ pub use child_process::{
 };
 pub use client_ip::{
     HttpHeaderMapRef, StdAddrParseError, StdParseIntError, StdResolvedClientIp, StdSocketAddr,
-    TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, resolve_client_ip,
-    resolve_header_text,
+    TrustedProxyRange, TrustedProxyRangeParseError, TrustedProxyRanges, TrustedProxyRangesError,
+    resolve_client_ip, resolve_header_text,
 };
 pub use cors::{
-    HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
+    HttpCorsAllowOriginHeaderValues, HttpCorsAllowOriginHeaderValuesError,
+    HttpCorsAllowOriginTextRef, parse_cors_allow_origin,
 };
 pub use csp::{
     HttpCspBuilder, HttpCspDirectiveName, HttpCspDirectiveValue, HttpCspMaximumBytesError,

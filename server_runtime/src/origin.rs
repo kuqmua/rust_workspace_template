@@ -66,6 +66,9 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
     type Error = AllowedOriginsError;
 
     fn try_from(values: Vec<String>) -> Result<Self, Self::Error> {
+        if values.len() > 128usize {
+            return Err(AllowedOriginsError);
+        }
         values
             .into_iter()
             .map(AllowedOrigin::try_from)
@@ -202,6 +205,15 @@ mod tests {
     fn allowed_origins() -> super::AllowedOrigins {
         super::AllowedOrigins::try_from(vec![String::from(str_constants::HTTPS_ADMIN_EXAMPLE_COM)])
             .expect("782d2bed")
+    }
+
+    #[test]
+    fn allowed_origins_reject_oversized_lists() {
+        let values = vec![String::from(str_constants::HTTPS_ADMIN_EXAMPLE_COM); 129usize];
+        assert_eq!(
+            super::AllowedOrigins::try_from(values),
+            Err(super::AllowedOriginsError)
+        );
     }
 
     #[test]

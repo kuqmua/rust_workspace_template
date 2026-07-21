@@ -21,28 +21,39 @@ pub use generated_auth::{AdminGeneratedAuthLayer, AdminGeneratedAuthService};
 pub use server_admin_contract::{
     AdminDisplayName, AdminLogin, AdminPermission, AdminPermissionTryFromStrError, AdminRoleName,
 };
+const ADMIN_AUTH_COLLECTION_MAX_LEN: usize = 10_000usize;
 #[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminPermissions(Vec<AdminPermission>);
 #[derive(
-    Clone,
-    Debug,
-    serde::Serialize,
-    utoipa::ToSchema,
-    newtype::AsRefTarget,
-    newtype::FromInner,
-    newtype::IntoInnerFrom,
+    Clone, Debug, serde::Serialize, utoipa::ToSchema, newtype::AsRefTarget, newtype::IntoInnerFrom,
 )]
 #[serde(transparent)]
 pub(crate) struct AdminRoleNames(Vec<AdminRoleName>);
+#[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+#[error("administrator authorization collection exceeds maximum length")]
+pub(crate) struct AdminAuthCollectionError;
+fn validate_admin_auth_collection<T>(value: Vec<T>) -> Result<Vec<T>, AdminAuthCollectionError> {
+    if value.len() > ADMIN_AUTH_COLLECTION_MAX_LEN {
+        Err(AdminAuthCollectionError)
+    } else {
+        Ok(value)
+    }
+}
+impl TryFrom<Vec<AdminPermission>> for AdminPermissions {
+    type Error = AdminAuthCollectionError;
+    fn try_from(value: Vec<AdminPermission>) -> Result<Self, Self::Error> {
+        validate_admin_auth_collection(value).map(Self)
+    }
+}
+impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
+    type Error = AdminAuthCollectionError;
+    fn try_from(value: Vec<AdminRoleName>) -> Result<Self, Self::Error> {
+        validate_admin_auth_collection(value).map(Self)
+    }
+}
 #[derive(Clone, Debug)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
@@ -87,9 +98,9 @@ impl<'de> serde::Deserialize<'de> for AdminPassword {
                 str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID,
             ));
         }
-        Ok(Self(SecrecyAdminString::from(secrecy::SecretBox::new(
-            Box::new(value),
-        ))))
+        Ok(Self(SecrecyAdminString(secrecy::SecretBox::new(Box::new(
+            value,
+        )))))
     }
 }
 impl AdminPassword {
@@ -585,7 +596,7 @@ mod tests {
         );
     }
     fn secret(value: &str) -> super::SecrecyAdminString {
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(value.to_owned())))
+        super::SecrecyAdminString(secrecy::SecretBox::new(Box::new(value.to_owned())))
     }
     fn password_hasher() -> super::AdminPasswordHasher {
         super::AdminPasswordHasher::new(super::AdminPasswordHashConcurrency::from(

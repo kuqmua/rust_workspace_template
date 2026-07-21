@@ -137,8 +137,22 @@ impl ConfigFieldDescriptor {
 }
 const ADMIN_JWT_SECRET_MIN_LEN: usize = 32;
 const ADMIN_JWT_SECRET_MAX_COUNT: usize = 8;
-#[derive(newtype::AsRefOwned, newtype::FromInner)]
+#[derive(newtype::AsRefOwned)]
 pub struct SecrecySecretBoxString(secrecy::SecretBox<String>);
+impl TryFrom<secrecy::SecretBox<String>> for SecrecySecretBoxString {
+    type Error = ConfigLibStringWrapperTryFromStringError;
+    fn try_from(value: secrecy::SecretBox<String>) -> Result<Self, Self::Error> {
+        let len = secrecy::ExposeSecret::expose_secret(&value).len();
+        if len > CONFIG_LIB_STRING_WRAPPER_MAX_LEN {
+            Err(Self::Error::TooLong {
+                len,
+                max: CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
+            })
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 impl std::fmt::Debug for SecrecySecretBoxString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
@@ -179,6 +193,8 @@ pub enum TryFromStdEnvVarOkAdminJwtSecretError {
     TooMany,
     #[error("administrator JWT secret must contain at least {ADMIN_JWT_SECRET_MIN_LEN} bytes")]
     TooShort,
+    #[error("administrator JWT secret is too long")]
+    TooLong,
 }
 impl TryFromStdEnvVarOk for AdminJwtSecret {
     type Error = TryFromStdEnvVarOkAdminJwtSecretError;
@@ -200,9 +216,10 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
                 if value.len() < ADMIN_JWT_SECRET_MIN_LEN {
                     Err(Self::Error::TooShort)
                 } else {
-                    Ok(SecrecySecretBoxString::from(secrecy::SecretBox::new(
-                        Box::new(value.to_owned()),
+                    SecrecySecretBoxString::try_from(secrecy::SecretBox::new(Box::new(
+                        value.to_owned(),
                     )))
+                    .map_err(|_error| Self::Error::TooLong)
                 }
             })
             .collect::<Result<Vec<_>, _>>()
@@ -211,6 +228,16 @@ impl TryFromStdEnvVarOk for AdminJwtSecret {
 }
 #[cfg(test)]
 mod admin_jwt_secret_tests {
+    #[test]
+    fn secret_box_string_rejects_values_above_shared_limit() {
+        let value = str_constants::TEST_JWT_SECRET_CHARACTER_A
+            .repeat(super::CONFIG_LIB_STRING_WRAPPER_MAX_LEN.saturating_add(1usize));
+        let Err(_error) =
+            super::SecrecySecretBoxString::try_from(secrecy::SecretBox::new(Box::new(value)))
+        else {
+            panic!("41c03fcc");
+        };
+    }
     #[test]
     fn parses_primary_and_verification_secrets() {
         let first =
@@ -450,6 +477,7 @@ impl TryFromStdEnvVarOk for HttpGzipEnabled {
     newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token issuer")]
+#[serde(try_from = "String")]
 pub struct AdminTokenIssuer(String);
 #[derive(
     Debug,
@@ -463,6 +491,7 @@ pub struct AdminTokenIssuer(String);
     newtype::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token audience")]
+#[serde(try_from = "String")]
 pub struct AdminTokenAudience(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminTokenTextError {
@@ -839,6 +868,27 @@ mod tests {
         T::try_from_std_env_var_ok(
             super::StdEnvVarOk::try_from(v.to_owned()).unwrap_or_else(super::StdEnvVarOk::from),
         )
+    }
+    #[test]
+    fn administrator_token_text_deserialization_uses_bounded_try_from() {
+        let issuer_deserializer =
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
+            );
+        let audience_deserializer =
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                str_constants::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
+            );
+        let Err(_issuer_error) =
+            <super::AdminTokenIssuer as serde::Deserialize>::deserialize(issuer_deserializer)
+        else {
+            panic!("b286db7c");
+        };
+        let Err(_audience_error) =
+            <super::AdminTokenAudience as serde::Deserialize>::deserialize(audience_deserializer)
+        else {
+            panic!("70f1e49f");
+        };
     }
     #[test]
     fn cors_allow_origin_parsing_returns_value() {

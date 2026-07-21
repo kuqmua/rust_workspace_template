@@ -8,16 +8,7 @@ pub enum SqlLikeMatchMode {
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
 
-#[derive(
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    newtype::AsRefStr,
-    newtype::TryFrom,
-)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(validator = |value: &String| if value.len() > super::PG_CRUD_STRING_WRAPPER_MAX_LEN {
     Err(SqlLikePatternError)
 } else {
@@ -25,6 +16,15 @@ pub struct SqlLikeInputRef<'value_lt>(&'value_lt str);
 })]
 #[serde(transparent)]
 pub struct SqlLikePattern(String);
+impl<'de> serde::Deserialize<'de> for SqlLikePattern {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{}", str_constants::SQL_LIKE_PATTERN_EXCEEDS_MAXIMUM_LENGTH)]
 pub struct SqlLikePatternError;
@@ -105,5 +105,15 @@ mod tests {
             ),
             Ok(pattern) if pattern.as_ref() == str_constants::TEST_SQL_LIKE_RESERVED_PATTERN
         ));
+    }
+
+    #[test]
+    fn deserialization_uses_bounded_try_from() {
+        let _error = <super::SqlLikePattern as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                "x".repeat(super::super::PG_CRUD_STRING_WRAPPER_MAX_LEN + 1usize),
+            ),
+        )
+        .expect_err("432eaebe");
     }
 }

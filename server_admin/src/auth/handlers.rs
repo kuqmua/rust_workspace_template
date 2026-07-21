@@ -250,7 +250,7 @@ pub(super) async fn refresh(
         apply_refresh_failure_delay(state.as_ref().policy.failure_delay).await;
         return Err(super::AdminApiError::Authentication);
     };
-    let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
+    let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(
         secrecy::SecretBox::new(Box::new(raw_token.as_ref().to_owned())),
     ));
     let context_hash = super::session_context_hash(
@@ -360,7 +360,7 @@ pub(super) async fn sign_out(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         super::super::AdminCookieKind::Refresh,
     ) {
-        let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
+        let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(
             secrecy::SecretBox::new(Box::new(raw_refresh.as_ref().to_owned())),
         ));
         let context_hash = super::session_context_hash(
@@ -1379,7 +1379,8 @@ pub(super) async fn data_table_catalog(
         .filter(|table| bool::from(admin.has_permission(table.permission())))
         .collect::<Vec<_>>();
     Ok(server_admin_contract::AdminDataTableCatalog::new(
-        items.into(),
+        server_admin_contract::AdminDataTables::try_from(items)
+            .map_err(|_error| super::AdminApiError::Validation)?,
     ))
 }
 pub(super) async fn data_table_view(

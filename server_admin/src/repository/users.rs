@@ -200,11 +200,18 @@ pub(crate) async fn list_users(
                 server_admin_contract::AdminBool::from(is_banned),
                 server_admin_contract::AdminLogin::try_from(login)
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
-                role_ids_by_user.remove(&id).unwrap_or_default().into(),
+                server_admin_contract::AdminRoleIds::try_from(
+                    role_ids_by_user.remove(&id).unwrap_or_default(),
+                )
+                .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
             ))
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
-    Ok((items.into(), super::AdminPageTotalCount::from(total)))
+    Ok((
+        server_admin_contract::AdminUserSummaries::try_from(items)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        super::AdminPageTotalCount::from(total),
+    ))
 }
 
 pub(crate) async fn read_authenticated_record(
@@ -254,12 +261,14 @@ pub(crate) async fn read_authenticated_record(
             .map(|permission| server_admin_contract::AdminPermission::try_from(permission.as_str()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
-            .into(),
+            .try_into()
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
         roles: raw_roles
             .into_iter()
             .map(server_admin_contract::AdminRoleName::try_from)
             .collect::<Result<Vec<_>, _>>()
             .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?
-            .into(),
+            .try_into()
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
     }))
 }

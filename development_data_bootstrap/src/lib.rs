@@ -1,7 +1,24 @@
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
+
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::TryFrom)]
+#[try_from(validator = |value: &Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>| {
+    if value.len() > DEVELOPMENT_IDENTITY_SPECS_MAX_LEN {
+        Err(DevelopmentIdentitySpecsError)
+    } else {
+        Ok(())
+    }
+})]
 pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
     Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
 );
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DevelopmentIdentitySpecsError;
+impl std::fmt::Display for DevelopmentIdentitySpecsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+impl std::error::Error for DevelopmentIdentitySpecsError {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DevelopmentBootstrapPlan<Login, DisplayName, Role, SecretSource> {
@@ -108,9 +125,23 @@ mod tests {
     #[test]
     fn plan_preserves_typed_identity_specs() {
         let plan = super::DevelopmentBootstrapPlan::new(
-            vec![server_runtime::IdentitySpec::new(1u8, 2u8, 3u8, 4u8)].into(),
+            super::DevelopmentIdentitySpecs::try_from(vec![server_runtime::IdentitySpec::new(
+                1u8, 2u8, 3u8, 4u8,
+            )])
+            .expect("743c519b"),
         );
         let identity = plan.identities().first().expect("b9368d0c");
         assert_eq!(identity.login(), &1u8);
+    }
+    #[test]
+    fn identity_specs_rejects_more_than_supported_entries() {
+        let values =
+            std::iter::repeat_with(|| server_runtime::IdentitySpec::new(1u8, 2u8, 3u8, 4u8))
+                .take(super::DEVELOPMENT_IDENTITY_SPECS_MAX_LEN.saturating_add(1usize))
+                .collect::<Vec<_>>();
+        assert_eq!(
+            super::DevelopmentIdentitySpecs::try_from(values),
+            Err(super::DevelopmentIdentitySpecsError)
+        );
     }
 }

@@ -85,14 +85,14 @@ pub enum AdminAuthSvcStateBuildError {
 fn admin_password_from_contract(
     value: server_admin_contract::AdminPassword,
 ) -> super::AdminPassword {
-    super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
+    super::AdminPassword::new(super::SecrecyAdminString(secrecy::SecretBox::new(
         Box::new(value.into_inner()),
     )))
 }
 fn admin_new_password_from_contract(
     value: server_admin_contract::AdminNewPassword,
 ) -> super::AdminPassword {
-    super::AdminPassword::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
+    super::AdminPassword::new(super::SecrecyAdminString(secrecy::SecretBox::new(
         Box::new(value.into_inner()),
     )))
 }
@@ -140,8 +140,10 @@ fn authenticated_admin_contract(
         server_admin_contract::AdminUserId::from(value.id.0),
         server_admin_contract::AdminLogin::try_from(value.login.as_ref().to_owned())
             .map_err(|_error| AdminApiError::Validation)?,
-        permissions.into(),
-        roles.into(),
+        server_admin_contract::AdminPermissionValues::try_from(permissions)
+            .map_err(|_error| AdminApiError::Validation)?,
+        server_admin_contract::AdminRoleNames::try_from(roles)
+            .map_err(|_error| AdminApiError::Validation)?,
     ))
 }
 #[derive(Clone, Debug, serde::Deserialize, utoipa::IntoParams)]
@@ -407,9 +409,9 @@ fn session_context_hash(
         }
         None => context.push_str(str_constants::UNKNOWN_USER_AGENT),
     }
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(context))),
-    ))
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(super::SecrecyAdminString(
+        secrecy::SecretBox::new(Box::new(context)),
+    )))
 }
 fn hash_refresh_token_with_context(
     token: &super::AdminOpaqueToken,
@@ -421,9 +423,9 @@ fn hash_refresh_token_with_context(
         String::with_capacity(token_text.len().saturating_add(context_hash_text.len()));
     token_with_context.push_str(token_text);
     token_with_context.push_str(context_hash_text);
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(
-        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(token_with_context))),
-    ))
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(super::SecrecyAdminString(
+        secrecy::SecretBox::new(Box::new(token_with_context)),
+    )))
 }
 #[allow(clippy::single_call_fn)] // CSRF origin validation stays isolated from token validation
 fn origin_is_present_and_allowed(
@@ -488,7 +490,7 @@ async fn validate_csrf(
         ))
         .and_then(|value| value.to_str().ok())
         .ok_or(AdminApiError::Csrf)?;
-    let provided_token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
+    let provided_token = super::AdminOpaqueToken::new(super::SecrecyAdminString(
         secrecy::SecretBox::new(Box::new(provided.to_owned())),
     ));
     let provided_hash = super::hash_opaque_token(&provided_token);

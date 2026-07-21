@@ -113,6 +113,7 @@ pub use sql_like_pattern::{
     SqlLikeInputRef, SqlLikeMatchMode, SqlLikePattern, SqlLikePatternError, build_sql_like_pattern,
 };
 pub(crate) const PG_CRUD_STRING_WRAPPER_MAX_LEN: usize = 1_048_576;
+const NOT_EMPTY_UNIQUE_VEC_MAX_LEN: usize = 10_000usize;
 #[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AllEnumVariants<T>(Vec<T>);
 pub trait AllEnumVariantsArrayDefaultSomeOneElement: Sized {
@@ -1298,6 +1299,7 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
         #[eo_to_err_string_serde]
         v: T,
     },
+    TooLong {},
 }
 #[derive(
     Debug,
@@ -1322,6 +1324,7 @@ impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
             utoipa::openapi::ArrayBuilder::new()
                 .items(<T as utoipa::ToSchema>::schema().1)
                 .min_items(Some(1))
+                .max_items(Some(NOT_EMPTY_UNIQUE_VEC_MAX_LEN))
                 .build()
                 .into(),
         )
@@ -1343,6 +1346,11 @@ impl<T: PartialEq> NotEmptyUniqueVec<T> {
                 location: location_macros::location!(),
             });
         }
+        if raw_values.len() > NOT_EMPTY_UNIQUE_VEC_MAX_LEN {
+            return Err(NotEmptyUniqueVecTryNewError::TooLong {
+                location: location_macros::location!(),
+            });
+        }
         let mut candidates = DuplicateCandidates::from(raw_values);
         if let Some(duplicate) = take_fst_dup(&mut candidates) {
             return Err(NotEmptyUniqueVecTryNewError::NotUnique {
@@ -1360,6 +1368,11 @@ impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
         let raw_values = Vec::from(values);
         if raw_values.is_empty() {
             return Err(NotEmptyUniqueVecTryNewError::IsEmpty {
+                location: location_macros::location!(),
+            });
+        }
+        if raw_values.len() > NOT_EMPTY_UNIQUE_VEC_MAX_LEN {
+            return Err(NotEmptyUniqueVecTryNewError::TooLong {
                 location: location_macros::location!(),
             });
         }
@@ -1415,7 +1428,10 @@ const _: () = {
                     __E: serde::Deserializer<'de>,
                 {
                     let f0: Vec<T> = <Vec<T> as serde::Deserialize>::deserialize(__e)?;
-                    Ok(NotEmptyUniqueVec(f0))
+                    match NotEmptyUniqueVec::try_new(f0.into()) {
+                        Ok(v) => Ok(v),
+                        Err(error) => Err(_serde::de::Error::custom(format!("{error:?}"))),
+                    }
                 }
                 #[inline]
                 fn visit_seq<__A>(self, mut __seq: __A) -> Result<Self::Value, __A::Error>
@@ -1491,8 +1507,19 @@ mod tests_not_empty_unique_vec {
                 .expect_err(str_constants::ADF2B8C1);
         match error {
             super::NotEmptyUniqueVecTryNewError::NotUnique { v, .. } => assert_eq!(v, NonClone(1)),
-            super::NotEmptyUniqueVecTryNewError::IsEmpty { .. } => panic!("9f5e2a34"),
+            super::NotEmptyUniqueVecTryNewError::IsEmpty { .. }
+            | super::NotEmptyUniqueVecTryNewError::TooLong { .. } => panic!("9f5e2a34"),
         }
+    }
+    #[test]
+    fn not_empty_unique_vec_rejects_oversized_and_deserialized_empty_values() {
+        let oversized = (0usize..=super::NOT_EMPTY_UNIQUE_VEC_MAX_LEN).collect::<Vec<_>>();
+        assert!(matches!(
+            super::NotEmptyUniqueVec::try_new(oversized.into()),
+            Err(super::NotEmptyUniqueVecTryNewError::TooLong { .. })
+        ));
+        let _error =
+            serde_json::from_str::<super::NotEmptyUniqueVec<u8>>("[]").expect_err("2510fe33");
     }
     #[test]
     fn not_empty_unique_vec_try_new_returns_is_empty_for_empty_vec() {

@@ -48,7 +48,8 @@ pub(crate) async fn list_active_sessions(
     })
     .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok(server_admin_contract::AdminSessionsPage::new(
-        items.into(),
+        server_admin_contract::AdminSessionViews::try_from(items)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
         super::page_total(super::AdminPageTotalCount::from(total))?,
     ))
 }
@@ -84,9 +85,9 @@ pub(crate) async fn read_csrf_hash(
         .map_err(crate::SqlxAdminError::from)
         .map(|value| {
             value.map(|hash| {
-                crate::AdminTokenHash::new(crate::SecrecyAdminString::from(
-                    secrecy::SecretBox::new(Box::new(hash)),
-                ))
+                crate::AdminTokenHash::new(crate::SecrecyAdminString(secrecy::SecretBox::new(
+                    Box::new(hash),
+                )))
             })
         })
 }

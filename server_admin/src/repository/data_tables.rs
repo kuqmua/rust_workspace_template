@@ -95,12 +95,18 @@ pub(crate) async fn read(
                     .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
                 })
                 .collect::<Result<Vec<_>, super::AdminRepositoryError>>()
-                .map(|values| server_admin_contract::AdminDataRow::new(values.into()))
+                .and_then(|values| {
+                    server_admin_contract::AdminTexts::try_from(values)
+                        .map(server_admin_contract::AdminDataRow::new)
+                        .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)
+                })
         })
         .collect::<Result<Vec<_>, super::AdminRepositoryError>>()?;
     Ok(server_admin_contract::AdminDataTableView::new(
-        columns.into(),
-        items.into(),
+        server_admin_contract::AdminTexts::try_from(columns)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
+        server_admin_contract::AdminDataRows::try_from(items)
+            .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?,
         table,
         super::page_total(super::AdminPageTotalCount::from(total))?,
     ))

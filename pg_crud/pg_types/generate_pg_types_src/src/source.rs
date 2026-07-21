@@ -1,4 +1,6 @@
 #![allow(clippy::unreachable, clippy::wildcard_enum_match_arm)] // schema branches are guarded by the PostgreSQL type category selected immediately before each match
+const GENERATE_PG_TYPES_MAX_LEN: usize = 128usize;
+
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, strum_macros::Display, optml::Optml)]
 enum RustTypeName {
@@ -574,12 +576,58 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
-#[derive(Debug, serde::Deserialize)]
-#[serde(transparent)]
+#[derive(Debug)]
 struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
-#[derive(Debug, serde::Deserialize)]
-#[serde(transparent)]
+#[derive(Debug)]
 struct GeneratePgTypes(Vec<PgType>);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct GeneratePgTypesLengthError;
+impl std::fmt::Display for GeneratePgTypesLengthError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+impl std::error::Error for GeneratePgTypesLengthError {}
+impl TryFrom<Vec<PgTypeRecord>> for GeneratePgTypeRecords {
+    type Error = GeneratePgTypesLengthError;
+
+    fn try_from(value: Vec<PgTypeRecord>) -> Result<Self, Self::Error> {
+        if value.len() > GENERATE_PG_TYPES_MAX_LEN {
+            Err(GeneratePgTypesLengthError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl TryFrom<Vec<PgType>> for GeneratePgTypes {
+    type Error = GeneratePgTypesLengthError;
+
+    fn try_from(value: Vec<PgType>) -> Result<Self, Self::Error> {
+        if value.len() > GENERATE_PG_TYPES_MAX_LEN {
+            Err(GeneratePgTypesLengthError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+impl<'de> serde::Deserialize<'de> for GeneratePgTypeRecords {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <Vec<PgTypeRecord> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
+impl<'de> serde::Deserialize<'de> for GeneratePgTypes {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <Vec<PgType> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 impl std::ops::Deref for GeneratePgTypeRecords {
     type Target = [PgTypeRecord];
     fn deref(&self) -> &Self::Target {
@@ -5635,5 +5683,16 @@ mod tests {
             ),
             Err(super::GeneratePgTypesPipelineError::Parse(_error))
         ));
+    }
+
+    #[test]
+    fn generated_type_list_deserialization_rejects_too_many_entries() {
+        let serialized = serde_json::to_string(&vec![
+            super::PgType::I16AsInt2;
+            super::GENERATE_PG_TYPES_MAX_LEN + 1usize
+        ])
+        .expect("7cd2e0af");
+        let _error =
+            serde_json::from_str::<super::GeneratePgTypes>(&serialized).expect_err("40b96aa2");
     }
 }

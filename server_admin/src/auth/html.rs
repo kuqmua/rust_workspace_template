@@ -92,6 +92,7 @@ struct RolePermissionsForm {
 }
 
 const ADMIN_HTML_FORM_TEXT_MAX_BYTES: usize = 8_192usize;
+const ADMIN_HTML_FORM_SELECTED_MAX_ITEMS: usize = 1_000usize;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_TEXT_TOO_LONG)]
@@ -99,6 +100,9 @@ struct AdminHtmlFormTextError;
 #[derive(Debug, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_HTML_FORM_KEY_TOO_LONG)]
 struct AdminHtmlFormKeyError;
+#[derive(Debug, thiserror::Error)]
+#[error("administrator HTML form contains too many selected fields")]
+struct StdAdminHtmlSelectedError;
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(try_from = "String")]
@@ -122,8 +126,30 @@ impl TryFrom<String> for AdminHtmlFormKey {
             .ok_or(AdminHtmlFormKeyError)
     }
 }
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 struct StdAdminHtmlSelected(std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>);
+impl TryFrom<std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>>
+    for StdAdminHtmlSelected
+{
+    type Error = StdAdminHtmlSelectedError;
+    fn try_from(
+        value: std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText>,
+    ) -> Result<Self, Self::Error> {
+        (value.len() <= ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+            .then_some(Self(value))
+            .ok_or(StdAdminHtmlSelectedError)
+    }
+}
+impl<'de> serde::Deserialize<'de> for StdAdminHtmlSelected {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        <std::collections::BTreeMap<AdminHtmlFormKey, AdminHtmlFormText> as serde::Deserialize>::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
+}
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -260,7 +286,10 @@ fn role_ids(
                 .map_err(|_error| super::AdminApiError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()
-        .map(Into::into)
+        .and_then(|values| {
+            server_admin_contract::AdminRoleIds::try_from(values)
+                .map_err(|_error| super::AdminApiError::Validation)
+        })
 }
 
 fn permission_ids(
@@ -276,7 +305,10 @@ fn permission_ids(
                 .map_err(|_error| super::AdminApiError::Validation)
         })
         .collect::<Result<Vec<_>, _>>()
-        .map(Into::into)
+        .and_then(|values| {
+            server_admin_contract::AdminPermissionIds::try_from(values)
+                .map_err(|_error| super::AdminApiError::Validation)
+        })
 }
 
 async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
@@ -863,6 +895,9 @@ async fn update_settings(
     .into_iter()
     .filter_map(|(is_empty, setting)| is_empty.then_some(setting))
     .for_each(|setting| clear.push(setting));
+    let Ok(clear) = server_admin_contract::AdminOptionalSettings::try_from(clear) else {
+        return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
+    };
     let request = server_admin_contract::AdminUpdateSettingsReq::new(
         Some(form.default_admin_route),
         main_logo,
@@ -872,7 +907,7 @@ async fn update_settings(
         Some(form.site_name),
         support_url,
         tab_title,
-        clear.into(),
+        clear,
     );
     action_result(
         super::handlers::update_settings(auth, super::AxumAdminJson(request)).await,
@@ -1095,5 +1130,18 @@ mod tests {
         assert_eq!(i64::from(form.user_id), 7i64);
         assert_eq!(form.expected_role_ids.0, "1,2");
         assert_eq!(form.selected.0.len(), 2usize);
+    }
+
+    #[test]
+    fn selected_form_fields_reject_oversized_maps() {
+        let values = (0usize..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
+            .map(|idx| {
+                (
+                    super::AdminHtmlFormKey(idx.to_string()),
+                    super::AdminHtmlFormText(String::new()),
+                )
+            })
+            .collect::<std::collections::BTreeMap<_, _>>();
+        assert!(super::StdAdminHtmlSelected::try_from(values).is_err());
     }
 }

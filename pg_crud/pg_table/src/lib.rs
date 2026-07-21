@@ -25,8 +25,27 @@ pub struct PgTableIdempotencyMethod(String);
 pub struct PgTableIdempotencyRoute(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PgTableIdempotencyBodyError;
+impl std::fmt::Display for PgTableIdempotencyBodyError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)
+    }
+}
+impl std::error::Error for PgTableIdempotencyBodyError {}
+impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
+    type Error = PgTableIdempotencyBodyError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
+            Err(PgTableIdempotencyBodyError)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct PgTableIdempotencyBodyRef<'body_lt>(&'body_lt [u8]);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
@@ -329,8 +348,12 @@ pub async fn begin_pg_table_idempotency(
                 Ok(value) => value,
                 Err(_error) => return Ok(PgTableIdempotencyBegin::InProgress),
             };
+            let response_body = match PgTableIdempotencyBody::try_from(response_body) {
+                Ok(value) => value,
+                Err(_error) => return Ok(PgTableIdempotencyBegin::InProgress),
+            };
             Ok(PgTableIdempotencyBegin::Replay(PgTableIdempotencyReplay {
-                response_body: PgTableIdempotencyBody::from(response_body),
+                response_body,
                 response_status: PgTableIdempotencyResponseStatus::from(response_status),
             }))
         }
@@ -488,6 +511,18 @@ mod idempotency_tests {
         assert_ne!(first, second);
         assert!(!first.as_ref().is_empty());
         assert!(first.as_ref().len() <= super::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES);
+    }
+    #[test]
+    fn persisted_idempotency_body_rejects_values_above_storage_limit() {
+        assert_eq!(
+            super::PgTableIdempotencyBody::try_from(vec![
+                0u8;
+                super::PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES
+                    + 1usize
+            ])
+            .map(drop),
+            Err(super::PgTableIdempotencyBodyError)
+        );
     }
 }
 #[derive(Clone, Copy)]

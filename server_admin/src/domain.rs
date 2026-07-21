@@ -1,5 +1,5 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
-#[derive(newtype::AsRefOwned, newtype::FromInner)]
+#[derive(newtype::AsRefOwned)]
 pub struct SecrecyAdminString(pub(super) secrecy::SecretBox<String>);
 impl std::fmt::Debug for SecrecyAdminString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

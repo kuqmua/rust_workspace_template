@@ -34,9 +34,18 @@ impl CreateNotificationRes {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, utoipa::ToSchema)]
 #[serde(transparent)]
 pub struct NotificationMessage(String);
+impl<'de> serde::Deserialize<'de> for NotificationMessage {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let value = <String as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(value).map_err(serde::de::Error::custom)
+    }
+}
 #[derive(
     Clone,
     Copy,
@@ -118,5 +127,19 @@ mod tests {
             super::NotificationMessage::try_from("x".repeat(4_097usize)),
             Err(super::NotificationMessageTryFromStringError::TooLong)
         ));
+    }
+
+    #[test]
+    fn notification_message_deserialization_enforces_bounds() {
+        let _empty_error = <super::NotificationMessage as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(String::new()),
+        )
+        .expect_err("6406611c");
+        let _too_long_error = <super::NotificationMessage as serde::Deserialize>::deserialize(
+            serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                "x".repeat(super::NOTIFICATION_MESSAGE_MAX_LEN + 1usize),
+            ),
+        )
+        .expect_err("48d2019d");
     }
 }

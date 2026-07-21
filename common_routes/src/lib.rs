@@ -4,6 +4,7 @@
 )]
 //todo generate openapi spec
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
+const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
 const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
     AxumHealthCheckStatus(axum::http::StatusCode::OK);
@@ -52,9 +53,24 @@ pub struct HealthComponent {
     kind: HealthComponentKind,
     status: HealthStatus,
 }
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::FromInner)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::TryFrom)]
+#[try_from(validator = |value: &Vec<HealthComponent>| {
+    if value.len() > HEALTH_COMPONENTS_MAX_LEN {
+        Err(HealthComponentsError)
+    } else {
+        Ok(())
+    }
+})]
 #[serde(transparent)]
 pub struct HealthComponents(Vec<HealthComponent>);
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct HealthComponentsError;
+impl std::fmt::Display for HealthComponentsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)
+    }
+}
+impl std::error::Error for HealthComponentsError {}
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
 pub struct HealthReport {
     components: HealthComponents,
@@ -64,11 +80,10 @@ impl HealthReport {
     #[must_use]
     pub fn liveness() -> Self {
         Self {
-            components: vec![HealthComponent {
+            components: HealthComponents(vec![HealthComponent {
                 kind: HealthComponentKind::ServiceAvailability,
                 status: HealthStatus::Ok,
-            }]
-            .into(),
+            }]),
             status: HealthStatus::Ok,
         }
     }
@@ -85,7 +100,7 @@ impl HealthReport {
             HealthStatus::Degraded
         };
         Self {
-            components: vec![
+            components: HealthComponents(vec![
                 HealthComponent {
                     kind: HealthComponentKind::ServiceAvailability,
                     status: HealthStatus::Ok,
@@ -94,8 +109,7 @@ impl HealthReport {
                     kind: HealthComponentKind::DatabaseConnectivity,
                     status: database_status,
                 },
-            ]
-            .into(),
+            ]),
             status,
         }
     }
@@ -446,6 +460,17 @@ mod tests {
     fn git_info_response_shape_stays_stable() {
         let git_info = super::mk_git_info_payload(b_cow(str_constants::TEST_VALUES_COMMIT));
         assert_git_info_commit(&git_info, str_constants::TEST_VALUES_COMMIT);
+    }
+    #[test]
+    fn health_components_rejects_more_than_supported_components() {
+        let component = super::HealthComponent {
+            kind: super::HealthComponentKind::ServiceAvailability,
+            status: super::HealthStatus::Ok,
+        };
+        assert_eq!(
+            super::HealthComponents::try_from(vec![component, component, component]),
+            Err(super::HealthComponentsError)
+        );
     }
     #[test]
     fn not_found_response_shape_stays_stable() {
