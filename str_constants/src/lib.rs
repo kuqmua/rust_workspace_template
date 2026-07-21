@@ -3964,6 +3964,9 @@ pub const PG_CRUD_COMMON_SRC_PG_ERROR_RS: &str = "pg_crud/pg_crud_common/src/pg_
 pub const NEWTYPE_TRY_FROM: &str = "try_from";
 pub const NEWTYPE_FROM_INNER_DERIVE_NAME: &str = "FromInner";
 pub const NEWTYPE_TRY_FROM_DERIVE_NAME: &str = "TryFrom";
+pub const CODE_STYLE_DESERIALIZE_DERIVE_NAME: &str = "Deserialize";
+pub const CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT: &str = "from =";
+pub const CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT: &str = "try_from =";
 pub const NEWTYPE_TRY_FROM_DUPLICATE: &str = "duplicate newtype try_from option";
 pub const NEWTYPE_TRY_FROM_FROM_INNER_CONFLICT: &str =
     "newtype try_from cannot be combined with from_inner";

@@ -109,7 +109,7 @@ const _: () = {
 impl pg_crud_common::DefaultSomeOneElement for RegexRegex {
     fn default_some_one_element() -> Self {
         match regex::Regex::new(str_constants::A_Z_PLUS) {
-            Ok(v) => Self(v),
+            Ok(v) => Self::from(v),
             Err(error) => {
                 eprintln!("22a9eda5: {error}");
                 std::process::abort();
@@ -510,6 +510,11 @@ impl<'lt, T: Send + sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx
     newtype::IntoInnerFrom,
 )]
 pub struct PgTypeNotEmptyUniqueVec<T>(Vec<T>);
+impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {
+    fn from(value: [T; 1]) -> Self {
+        Self(Vec::from(value))
+    }
+}
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
     for PgTypeNotEmptyUniqueVec<T>
 {
@@ -624,9 +629,7 @@ impl<T: pg_crud_common::DefaultSomeOneElement> pg_crud_common::DefaultSomeOneEle
     for PgTypeNotEmptyUniqueVec<T>
 {
     fn default_some_one_element() -> Self {
-        Self(vec![
-            pg_crud_common::DefaultSomeOneElement::default_some_one_element(),
-        ])
+        Self::from([pg_crud_common::DefaultSomeOneElement::default_some_one_element()])
     }
 }
 #[derive(
@@ -645,6 +648,11 @@ impl<T: pg_crud_common::DefaultSomeOneElement> pg_crud_common::DefaultSomeOneEle
 )]
 #[serde(try_from = "Vec<T>")]
 pub struct BoundedVec<T, const LENGTH: usize>(Vec<T>);
+impl<T, const LENGTH: usize> From<[T; LENGTH]> for BoundedVec<T, LENGTH> {
+    fn from(value: [T; LENGTH]) -> Self {
+        Self(Vec::from(value))
+    }
+}
 #[location::errors_with_location]
 #[derive(
     Debug,
@@ -792,17 +800,15 @@ impl<T: Clone + pg_crud_common::DefaultSomeOneElement, const LENGTH: usize>
     pg_crud_common::DefaultSomeOneElement for BoundedVec<T, LENGTH>
 {
     fn default_some_one_element() -> Self {
-        Self(vec![
-            <T as pg_crud_common::DefaultSomeOneElement>::default_some_one_element();
-            LENGTH
-        ])
+        Self::from(std::array::from_fn(|_| {
+            <T as pg_crud_common::DefaultSomeOneElement>::default_some_one_element()
+        }))
     }
 }
 #[cfg(test)]
 mod tests {
-    #[derive(Debug, PartialEq, Eq)]
-#[derive(newtype::FromInner)]
-struct NonClone(u8);
+    #[derive(Debug, PartialEq, Eq, newtype::FromInner)]
+    struct NonClone(u8);
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_ok() {
         let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);

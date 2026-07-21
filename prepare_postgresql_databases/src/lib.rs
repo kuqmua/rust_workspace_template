@@ -49,8 +49,7 @@ pub enum ProcessArgument {
     Static(ProcessStaticArgument),
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ProcessStaticArgument(&'static str);
 
 impl From<DatabaseUrl> for ProcessArgument {
@@ -81,14 +80,12 @@ impl AsRef<str> for ProcessArgument {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ProcessArguments(Vec<ProcessArgument>);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ProcessCommands(Vec<ProcessCommand>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcessProgram(&'static str);
 
 impl ProcessCommand {

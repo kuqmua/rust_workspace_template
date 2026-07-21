@@ -68,8 +68,7 @@ pub enum PgRelationLockError {
     TooManyResources,
 }
 
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
 
 #[derive(Debug, newtype::AsMut)]

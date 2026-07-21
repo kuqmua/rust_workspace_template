@@ -146,8 +146,12 @@ pub enum FileStorageStagingArea {
 impl FileStorageStagingArea {
     fn directory_name(self) -> StorageDirectoryNameRef<'static> {
         match self {
-            Self::Delete => StorageDirectoryNameRef::from(str_constants::FILE_DELETE_STAGING_DIRECTORY),
-            Self::Upload => StorageDirectoryNameRef::from(str_constants::FILE_UPLOAD_STAGING_DIRECTORY),
+            Self::Delete => {
+                StorageDirectoryNameRef::from(str_constants::FILE_DELETE_STAGING_DIRECTORY)
+            }
+            Self::Upload => {
+                StorageDirectoryNameRef::from(str_constants::FILE_UPLOAD_STAGING_DIRECTORY)
+            }
         }
     }
 }

@@ -229,7 +229,9 @@ impl From<syn::Type> for SynRouteRegistryRoute {
     }
 }
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
-impl From<syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>> for SynRouteRegistryBindings {
+impl From<syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>>
+    for SynRouteRegistryBindings
+{
     fn from(value: syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>) -> Self {
         Self(value)
     }

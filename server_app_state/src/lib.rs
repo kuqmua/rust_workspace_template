@@ -4,7 +4,7 @@ pub struct ServerAppState<'lt> {
     pub config: server_config::Config,
     pub idempotency_response_budget: server_runtime::ResourceBudget,
     pub pg_pool: app_state::SqlxPgPool,
-    pub project_git_info: &'lt git_info::ProjectGitInfo<'lt>,
+    pub project_git_info: git_info::ProjectGitInfo<'lt>,
 }
 impl ServerAppState<'_> {
     #[allow(clippy::single_call_fn)] // keeps config forwarding in one place for all generated trait impls
@@ -210,7 +210,7 @@ pub fn mk_test_server_app_state() -> ServerAppState<'static> {
             sqlx::PgPool::connect_lazy(str_constants::TEST_VALUES_UNREACHABLE_DATABASE_URL)
                 .expect("d53d8ff0"),
         ),
-        project_git_info: &git_info::PROJECT_GIT_INFO,
+        project_git_info: git_info::project_git_info(),
     }
 }
 #[cfg(test)]
@@ -231,9 +231,7 @@ mod tests {
         )
         .expect("3879e38d")
     }
-    fn mk_structure<'state_lt>(
-        project_git_info: &'state_lt git_info::ProjectGitInfo<'state_lt>,
-    ) -> super::ServerAppState<'state_lt> {
+    fn mk_structure(project_git_info: git_info::ProjectGitInfo<'_>) -> super::ServerAppState<'_> {
         super::ServerAppState {
             bulk_item_budget: server_runtime::ResourceBudget::new(
                 server_runtime::ResourceBudgetMaximum::try_from(128usize).expect("837f89a0"),
@@ -293,7 +291,7 @@ mod tests {
     #[tokio::test]
     async fn cfg_getters_forward_to_inner_config() {
         let git_info = mk_git_info();
-        let structure = mk_structure(&git_info);
+        let structure = mk_structure(git_info);
         assert_eq!(
             config_lib::GetSrcPlaceType::get_src_place_type(&structure),
             &config_lib::types::SrcPlaceType::Github
@@ -315,7 +313,7 @@ mod tests {
     #[tokio::test]
     async fn get_pg_pool_returns_same_pool_ref() {
         let git_info = mk_git_info();
-        let structure = mk_structure(&git_info);
+        let structure = mk_structure(git_info);
         let lhs =
             std::ptr::from_ref(app_state::GetSqlxPgPool::get_sqlx_pg_pool(&structure).as_ref());
         let rhs = std::ptr::from_ref(structure.pg_pool.as_ref());
@@ -324,7 +322,7 @@ mod tests {
     #[tokio::test]
     async fn as_ref_and_git_commit_link_are_consistent() {
         let git_info = mk_git_info();
-        let structure = mk_structure(&git_info);
+        let structure = mk_structure(git_info);
         assert_eq!(structure.as_ref(), str_constants::TEST_VALUES_COMMIT);
         assert_eq!(
             git_info::GetGitCommitLink::get_git_commit_link(&structure),

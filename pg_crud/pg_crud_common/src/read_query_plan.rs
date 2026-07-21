@@ -4,7 +4,7 @@ pub enum QuerySortOrder {
     Descending,
 }
 impl QuerySortOrder {
-    const fn sql(self) -> SqlSortOrderText {
+    fn sql(self) -> SqlSortOrderText {
         SqlSortOrderText::from(match self {
             Self::Ascending => str_constants::SORT_ASC,
             Self::Descending => str_constants::SORT_DESC,
@@ -12,15 +12,13 @@ impl QuerySortOrder {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 struct SqlSortOrderText(&'static str);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdReadQueryBindIndex(std::num::NonZeroU32);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct ReadQueryPlan(crate::QueryPartFragment);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]

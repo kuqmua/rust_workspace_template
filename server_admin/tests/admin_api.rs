@@ -1,8 +1,7 @@
 #![allow(unused_crate_dependencies)]
 // integration target inherits the library dependency graph while exercising the assembled public router
 #![allow(clippy::tests_outside_test_module)] // every item in this integration target is compiled exclusively by the test harness
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct StdAdminApiTestStrRef<'value_lt>(&'value_lt str);
 #[derive(newtype::FromInner)]
 struct AxumAdminApiTestRouter(axum::Router);
@@ -15,8 +14,7 @@ struct HttpAdminApiTestMethod(http::Method);
 #[derive(newtype::FromInner)]
 struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
 struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = 16384)]
@@ -112,7 +110,9 @@ fn router() -> AxumAdminApiTestRouter {
             str_constants::VALUE_3600,
         )),
         &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
-        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_2)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_2,
+        )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
         )),
@@ -143,7 +143,9 @@ fn router_with_pool(pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
             str_constants::VALUE_3600,
         )),
         &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
-        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_2)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_2,
+        )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
         )),
@@ -335,7 +337,9 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
             str_constants::VALUE_3600,
         )),
         &env::<config_lib::AdminSessionLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
-        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(str_constants::VALUE_20)),
+        &env::<config_lib::AdminSignInRateLimit>(StdAdminApiTestStrRef::from(
+            str_constants::VALUE_20,
+        )),
         &env::<config_lib::AdminPasswordHashConcurrency>(StdAdminApiTestStrRef::from(
             str_constants::VALUE_1,
         )),
@@ -1265,7 +1269,9 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         let update_response = admin_html_response(
             fixture_ref,
             HttpAdminApiTestMethod::from(http::Method::POST),
-            StdAdminApiTestStrRef::from(server_admin_contract::AdminHtmlAction::SettingsUpdate.get()),
+            StdAdminApiTestStrRef::from(
+                server_admin_contract::AdminHtmlAction::SettingsUpdate.get(),
+            ),
             StdAdminApiTestStrRef::from(form_body.0.as_str()),
         )
         .await;
@@ -2384,7 +2390,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef::from(
+                str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+            ),
             None,
             None,
         )
@@ -2521,7 +2529,9 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
                 frontend_contract::typed_route_path::<server_admin_contract::AdminSignInRoute>()
                     .as_ref(),
             ),
-            StdAdminApiTestStrRef::from(str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            StdAdminApiTestStrRef::from(
+                str_constants::LOGIN_LIMITED_USER_PASSWORD_LIMITED_PASSWORD,
+            ),
             None,
             None,
         )

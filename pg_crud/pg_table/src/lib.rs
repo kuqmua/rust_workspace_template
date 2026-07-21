@@ -23,8 +23,7 @@ pub struct PgTableIdempotencyKey(String);
 pub struct PgTableIdempotencyMethod(String);
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRoute(String);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
@@ -64,8 +63,7 @@ pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::
 #[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
 #[derive(Debug)]
 pub enum PgTableRevisionTryFromStringError {

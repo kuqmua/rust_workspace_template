@@ -72,10 +72,9 @@ impl BackgroundTask {
     pub async fn join(mut self) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownError> {
         let shutdown_tx = self.shutdown_tx.take();
         let result = match self.handle.take() {
-            Some(handle) => handle
-                .0
-                .await
-                .map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))),
+            Some(handle) => handle.0.await.map_err(|error| {
+                BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
+            }),
             None => Ok(BackgroundTaskOutcome::Completed),
         };
         drop(shutdown_tx);
@@ -92,9 +91,9 @@ impl BackgroundTask {
             return Ok(BackgroundTaskOutcome::ShutdownRequested);
         };
         match tokio::time::timeout(timeout.get(), &mut handle).await {
-            Ok(result) => {
-                result.map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error)))
-            }
+            Ok(result) => result.map_err(|error| {
+                BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))
+            }),
             Err(_elapsed) => {
                 handle.abort();
                 match handle.await {

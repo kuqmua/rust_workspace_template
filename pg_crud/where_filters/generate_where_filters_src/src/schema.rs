@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "the schema emitter boundary is intentionally isolated from descriptor and contract emitters"
 )]
-pub(super) const fn schema_uses_text_value(
+pub(super) fn schema_uses_text_value(
     spec: crate::model::FilterSpec,
 ) -> crate::model::FilterSpecValid {
     spec.has_text_value_shape()

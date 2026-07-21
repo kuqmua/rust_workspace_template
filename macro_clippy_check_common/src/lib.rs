@@ -247,7 +247,7 @@ mod tests {
                 seq
             ));
             std::fs::create_dir_all(&path).expect("2b24ef1a");
-            Self(path)
+            Self::from(path)
         }
         fn path(&self) -> &std::path::Path {
             &self.0

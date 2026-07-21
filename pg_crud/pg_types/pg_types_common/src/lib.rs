@@ -52,6 +52,11 @@ impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
 )]
 #[serde(try_from = "PaginationStartsWithOneRaw")]
 pub struct PaginationStartsWithOne(pg_crud_common::PaginationBase);
+impl From<pg_crud_common::PaginationBase> for PaginationStartsWithOne {
+    fn from(value: pg_crud_common::PaginationBase) -> Self {
+        Self(value)
+    }
+}
 #[location::errors_with_location]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
@@ -103,7 +108,7 @@ impl PaginationStartsWithOne {
                 })
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
-            Ok(Self(pg_crud_common::PaginationBase::new_unchecked(
+            Ok(Self::from(pg_crud_common::PaginationBase::new_unchecked(
                 limit_value.get(),
                 offset_value.get(),
             )))
@@ -144,8 +149,8 @@ impl<'lt> pg_crud_common::PgTypeWhereFilter<'lt> for PaginationStartsWithOne {
 impl pg_crud_common::DefaultSomeOneElement for PaginationStartsWithOne {
     #[inline]
     fn default_some_one_element() -> Self {
-        Self(pg_crud_common::PaginationBase::new_unchecked(
-            pg_crud_common::PaginationPolicy::DEFAULT
+        Self::from(pg_crud_common::PaginationBase::new_unchecked(
+            pg_crud_common::PaginationPolicy::standard()
                 .default_limit()
                 .get(),
             1,
@@ -156,7 +161,7 @@ impl pg_crud_common::DefaultSomeOneElementMaxPageSize for PaginationStartsWithOn
     #[inline]
     fn default_some_one_element_max_page_size() -> Self {
         let one: i32 = 1;
-        Self(pg_crud_common::PaginationBase::new_unchecked(
+        Self::from(pg_crud_common::PaginationBase::new_unchecked(
             i32::MAX - one,
             one,
         ))

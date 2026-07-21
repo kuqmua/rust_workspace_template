@@ -197,7 +197,7 @@ where
     ) -> Result<Self, Self::Rejection> {
         axum::Json::<NotificationRequest>::from_request(req, state)
             .await
-            .map(|axum::Json(value)| Self(value))
+            .map(|axum::Json(value)| Self::from(value))
     }
 }
 #[allow(clippy::single_call_fn)] // named handler keeps axum extractor boundaries domain-typed

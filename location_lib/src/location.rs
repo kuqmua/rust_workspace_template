@@ -128,16 +128,13 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
         )
     }
 }
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct LocationFileRef<'file_lt>(&'file_lt str);
 #[derive(newtype::FromInner)]
 struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDisplayTimezone(chrono::FixedOffset);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct ChronoLocationDateTime(chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
@@ -288,8 +285,10 @@ impl Location {
                 .unwrap_or_else(LocationFile::from),
             line: line.into(),
             column: column.into(),
-            commit: LocationCommit::try_from(git_info::PROJECT_GIT_INFO.commit.as_ref().to_owned())
-                .unwrap_or_else(LocationCommit::from),
+            commit: LocationCommit::try_from(
+                git_info::project_git_info().commit.as_ref().to_owned(),
+            )
+            .unwrap_or_else(LocationCommit::from),
             duration: StdLocationDuration::from(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)

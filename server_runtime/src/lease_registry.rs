@@ -201,7 +201,9 @@ impl LeaseRegistry {
 #[derive(Clone, Copy, Debug)]
 struct LeaseTextRef<'value_lt>(&'value_lt str);
 impl<'value_lt> From<&'value_lt str> for LeaseTextRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self { Self(value) }
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Clone, Debug, Default)]

@@ -82,7 +82,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
                 min: MIN.into(),
             }))
         } else {
-            Ok(BoundedUniqueVec::from(values))
+            BoundedUniqueVec::try_from(values).map_err(serde::de::Error::custom)
         }
     }
 }
@@ -96,7 +96,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
         deserializer.deserialize_seq(StdBoundedUniqueVecVisitor::from(std::marker::PhantomData))
     }
 }
-const fn validate_bounds<const MIN: usize, const MAX: usize>() -> Result<(), UniqueVecError> {
+fn validate_bounds<const MIN: usize, const MAX: usize>() -> Result<(), UniqueVecError> {
     if MIN > MAX {
         Err(UniqueVecError::InvalidBounds {
             min: UniqueVecLen::from(MIN),

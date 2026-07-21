@@ -1,16 +1,12 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
     axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
 pub struct CommitNotEqMessage(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
 pub struct CommitToUse(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr, newtype::FromInner)]
 pub struct NoCommitHeaderMessage(&'static str);
-#[derive(Debug, newtype::ToErrString)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::ToErrString, newtype::FromInner)]
 pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct EnableApiGitCommitCheck(bool);
@@ -35,13 +31,17 @@ pub enum CommitError {
     },
 }
 impl crate::GetAxumHttpStatusCode for CommitError {
-    const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode = crate::AxumHttpStatusCode::BAD_REQUEST;
+    fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+        crate::AxumHttpStatusCode::bad_request()
+    }
 }
 impl CommitError {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
     fn commit_not_eq(commit_to_use: CommitToUse) -> Self {
         Self::CommitNotEq {
-            commit_not_eq: CommitNotEqMessage::from(str_constants::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG),
+            commit_not_eq: CommitNotEqMessage::from(
+                str_constants::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG,
+            ),
             commit_to_use,
             location: location_macros::location!(),
         }
@@ -121,7 +121,7 @@ mod tests {
         mk_headers_with_commit(str_constants::TEST_VALUES_WRONG_COMMIT)
     }
     fn mk_headers_with_project_commit() -> crate::test_hlp::AxumTestHeaders {
-        mk_headers_with_commit(git_info::PROJECT_GIT_INFO.commit.as_ref())
+        mk_headers_with_commit(git_info::project_git_info().commit.as_ref())
     }
     fn mk_headers_with_non_utf8_commit() -> crate::test_hlp::AxumTestHeaders {
         mk_headers_with_commit_header_value(crate::test_hlp::non_utf8_header_value())
@@ -146,7 +146,7 @@ mod tests {
         crate::test_hlp::assert_err_status_code_only(
             check_commit_enabled(headers),
             exp_id,
-            crate::AxumHttpStatusCode::BAD_REQUEST,
+            crate::AxumHttpStatusCode::bad_request(),
         );
     }
     #[allow(clippy::single_call_fn)] // shared extractor keeps NoCommitHeader variant matching reusable across tests
@@ -224,7 +224,7 @@ mod tests {
         crate::test_hlp::expect_err_variant_ref_with_status(
             check_commit_enabled(headers),
             exp_id,
-            Some(crate::AxumHttpStatusCode::BAD_REQUEST),
+            Some(crate::AxumHttpStatusCode::bad_request()),
             map,
         )
     }
@@ -268,7 +268,7 @@ mod tests {
             super::read_commit_header_str(crate::hdr_val::AxumHeadersRef::from(&headers))
                 .map(crate::hdr_val::HeaderStrRef::get),
             str_constants::E1D07F53,
-            &git_info::PROJECT_GIT_INFO.commit.as_ref(),
+            &git_info::project_git_info().commit.as_ref(),
         );
     }
     #[test]
@@ -334,7 +334,7 @@ mod tests {
     fn validate_commit_header_value_accepts_project_commit() {
         crate::test_hlp::expect_ok(
             super::validate_commit_header_value(crate::hdr_val::HeaderStrRef::from(
-                git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                git_info::project_git_info().commit.as_ref(),
             )),
             str_constants::VALUE_5EF927D2,
         );
@@ -373,7 +373,7 @@ mod tests {
     #[test]
     fn project_commit_is_recognized_by_git_info_helper() {
         assert!(git_info::is_project_commit(
-            git_info::PROJECT_GIT_INFO.commit
+            git_info::project_git_info().commit
         ));
     }
     #[test]

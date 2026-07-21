@@ -1,7 +1,14 @@
 #[derive(Debug, Clone, Copy)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 impl<'message_lt> From<&'message_lt str> for CompileErrorMessage<'message_lt> {
-    fn from(value: &'message_lt str) -> Self { Self(value) }
+    fn from(value: &'message_lt str) -> Self {
+        Self(value)
+    }
+}
+impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
+    fn from(value: &'message_lt String) -> Self {
+        Self(value.as_str())
+    }
 }
 struct TableTestNames<'value_lt>(Vec<&'value_lt str>);
 impl<'value_lt> From<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
@@ -537,12 +544,12 @@ pub fn emit_generate_pg_table(
         logic_token_stream_by_attr:
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
-struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableTestsTokenStream {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
+    struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
+    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableTestsTokenStream {
+        fn from(value: proc_macro2::TokenStream) -> Self {
+            Self(value)
+        }
     }
-}
     impl ProcMacro2GeneratePgTableTestsTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
@@ -551,23 +558,23 @@ impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableTestsTokenStrea
             self.0
         }
     }
-struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableCommonTokenStream {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
+    struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
+    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableCommonTokenStream {
+        fn from(value: proc_macro2::TokenStream) -> Self {
+            Self(value)
+        }
     }
-}
     impl ProcMacro2GeneratePgTableCommonTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
         }
     }
-struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableWholeTokenStream {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
+    struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
+    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableWholeTokenStream {
+        fn from(value: proc_macro2::TokenStream) -> Self {
+            Self(value)
+        }
     }
-}
     impl ProcMacro2GeneratePgTableWholeTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
@@ -576,12 +583,12 @@ impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableWholeTokenStrea
             self.0
         }
     }
-struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
-impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
-    fn from(value: syn::DeriveInput) -> Self {
-        Self(value)
+    struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
+    impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
+        fn from(value: syn::DeriveInput) -> Self {
+            Self(value)
+        }
     }
-}
     impl SynGeneratePgTableDeriveInput {
         const fn get(&self) -> &syn::DeriveInput {
             &self.0
@@ -706,7 +713,9 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
     #[derive(Clone, Copy)]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
     impl<'name_lt> From<&'name_lt str> for GeneratePgTablePrimaryKeyAttrName<'name_lt> {
-        fn from(value: &'name_lt str) -> Self { Self(value) }
+        fn from(value: &'name_lt str) -> Self {
+            Self(value)
+        }
     }
     impl<'name_lt> GeneratePgTablePrimaryKeyAttrName<'name_lt> {
         const fn get(self) -> &'name_lt str {
@@ -1251,7 +1260,9 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
         pg_crud_macros_common::generate_return_err_query_part_error_write_into_buffer_token_stream(
             import,
         );
-    let parsed_input = SynGeneratePgTableDeriveInput::from(validated.into_model().into_input().into());
+    let parsed_input = SynGeneratePgTableDeriveInput::from(syn::DeriveInput::from(
+        validated.into_model().into_input(),
+    ));
     let di = parsed_input.get();
     let generate_pg_table_input_model =
         match build_generate_pg_table_input_model_stage(&parsed_input) {
@@ -1480,7 +1491,9 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
         GeneratePgTablePrimaryKeySnakeCase.to_string();
     let fields_model = match build_generate_pg_table_fields_model_stage(
         &parsed_input,
-        GeneratePgTablePrimaryKeyAttrName::from(generate_pg_table_primary_key_snake_case_str.as_str()),
+        GeneratePgTablePrimaryKeyAttrName::from(
+            generate_pg_table_primary_key_snake_case_str.as_str(),
+        ),
     ) {
         Ok(v) => v,
         Err(error) => return error,
@@ -1728,7 +1741,7 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
                 frontend_contract::FieldContract::new(
                     frontend_contract::ContractStr::from(#field_name_double_quoted_token_stream),
                     frontend_contract::ContractStr::from(#label_double_quoted_token_stream),
-                    <#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT,
+                    <#field_type as frontend_contract::HasTypeContract>::type_contract(),
                 )
                 .with_primary_key(#primary_key_token_stream)
                 .with_creatable(#creatable_token_stream)
@@ -1750,7 +1763,7 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
             let sortable_assertion = frontend.sortable.then(|| {
                 quote::quote! {
                     assert!(
-                        matches!(<#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_sorting(), frontend_contract::CapabilitySupport::Supported),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::type_contract().supports_sorting(), frontend_contract::CapabilitySupport::Supported),
                         "c5882cc4: frontend sorting is unsupported for this field type",
                     );
                 }
@@ -1758,7 +1771,7 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
             let filterable_assertion = frontend.filterable.then(|| {
                 quote::quote! {
                     assert!(
-                        matches!(<#field_type as frontend_contract::HasTypeContract>::TYPE_CONTRACT.supports_filtering(), frontend_contract::CapabilitySupport::Supported),
+                        matches!(<#field_type as frontend_contract::HasTypeContract>::type_contract().supports_filtering(), frontend_contract::CapabilitySupport::Supported),
                         "141942af: frontend filtering is unsupported for this field type",
                     );
                 }
@@ -5080,7 +5093,7 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
                     let commit_header_addition_token_stream = quote::quote! {
                         .header(
                             &"commit".to_owned(),
-                            git_info::PROJECT_GIT_INFO.commit.as_ref(),
+                            git_info::project_git_info().commit.as_ref(),
                         )
                     };
                     let app_json_double_quoted_token_stream = generate_quotes::dq_token_stream(&str_constants::APPLICATION_JSON);
@@ -9546,7 +9559,7 @@ impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
                                 idempotency_response_budget: server_runtime::ResourceBudget::new(
                                     server_runtime::ResourceBudgetMaximum::try_from(67_108_864usize).expect("c75e4935"),
                                 ),
-                                project_git_info: &git_info::PROJECT_GIT_INFO,
+                                project_git_info: git_info::project_git_info(),
                             });
                             started_tx.send(()).expect("431a6f8d");
                             axum::serve(

@@ -30,8 +30,7 @@ pub enum PgFilterBindValue {
     Text(PgFilterText),
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct FilterBindPlan(Vec<PgFilterBindValue>);
 impl FilterBindPlan {
     #[must_use]

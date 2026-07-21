@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn generated_frontend_type_contract_matches_integer_wire_contract() {
         let contract =
-            <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::HasTypeContract>::TYPE_CONTRACT;
+            <pg_types_numeric::I16AsNonNullInt2 as frontend_contract::HasTypeContract>::type_contract();
         assert_eq!(contract.input_kind(), frontend_contract::InputKind::Number);
         assert_eq!(contract.format(), frontend_contract::ValueFormat::Int16);
         assert_eq!(
@@ -89,16 +89,16 @@ mod tests {
         );
         assert_eq!(
             contract.minimum(),
-            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MIN)
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_min())
         );
         assert_eq!(
             contract.maximum(),
-            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MAX)
+            frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_max())
         );
     }
     #[test]
     fn generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
-        let contract = <pg_types_text_misc::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::HasTypeContract>::TYPE_CONTRACT;
+        let contract = <pg_types_text_misc::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::HasTypeContract>::type_contract();
         assert_eq!(contract.input_kind(), frontend_contract::InputKind::Uuid);
         assert_eq!(contract.format(), frontend_contract::ValueFormat::Uuid);
         assert_eq!(

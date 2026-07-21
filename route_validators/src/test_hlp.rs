@@ -316,9 +316,7 @@ pub(crate) fn replace_header_name<'headers_lt>(
     insert_header_no_prev(headers.0, to_name, value);
 }
 pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {
-    AxumTestHeaderValue::from(
-        axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"),
-    )
+    AxumTestHeaderValue::from(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
 }
 #[track_caller]
 pub(crate) fn assert_panics(
@@ -350,7 +348,7 @@ mod tests {
             super::is_block_on_poll_limit_reached(super::TestPollCount::from(
                 super::MAX_BLOCK_ON_POLLS,
             ))
-                .0
+            .0
         );
     }
     #[test]
@@ -447,13 +445,14 @@ mod tests {
             A,
         }
         impl crate::GetAxumHttpStatusCode for TestError {
-            const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::BAD_REQUEST;
+            fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
+            }
         }
         let _: () = super::assert_err_status_code_variant::<(), TestError, ()>(
             Err(TestError::A),
             str_constants::C1D74A8E,
-            crate::AxumHttpStatusCode::BAD_REQUEST,
+            crate::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A => Some(()),
             },
@@ -466,13 +465,14 @@ mod tests {
             A(u8),
         }
         impl crate::GetAxumHttpStatusCode for TestError {
-            const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::BAD_REQUEST;
+            fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
+            }
         }
         let v = super::assert_err_status_code_variant_ref::<(), TestError, u8>(
             Err(TestError::A(7)),
             str_constants::VALUE_8AFB4FFD,
-            crate::AxumHttpStatusCode::BAD_REQUEST,
+            crate::AxumHttpStatusCode::bad_request(),
             |error| match error {
                 TestError::A(v) => Some(*v),
             },
@@ -521,18 +521,19 @@ mod tests {
         #[derive(std::fmt::Debug)]
         struct TestErr;
         impl crate::GetAxumHttpStatusCode for TestErr {
-            const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-                crate::AxumHttpStatusCode::BAD_REQUEST;
+            fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+                crate::AxumHttpStatusCode::bad_request()
+            }
         }
         let _err = super::assert_err_status_code::<(), TestErr>(
             Err(TestErr),
             str_constants::VALUE_4A1791D2,
-            crate::AxumHttpStatusCode::BAD_REQUEST,
+            crate::AxumHttpStatusCode::bad_request(),
         );
         super::assert_err_status_code_only::<(), TestErr>(
             Err(TestErr),
             str_constants::VALUE_773C5AF2,
-            crate::AxumHttpStatusCode::BAD_REQUEST,
+            crate::AxumHttpStatusCode::bad_request(),
         );
     }
 }

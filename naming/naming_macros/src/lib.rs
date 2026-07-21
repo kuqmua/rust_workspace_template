@@ -1,11 +1,8 @@
-#[derive(newtype::ToTokens)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::ToTokens, newtype::FromInner)]
 struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ProcMacro2VariantMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
 fn generate_impl_to_tokens_token_stream(
     ts0: &dyn quote::ToTokens,

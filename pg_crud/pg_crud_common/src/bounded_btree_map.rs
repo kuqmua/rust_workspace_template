@@ -66,7 +66,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
             }
             let _previous = values.insert(key, value);
         }
-        Ok(StdBoundedBTreeMap::from(values))
+        StdBoundedBTreeMap::try_from(values).map_err(serde::de::Error::custom)
     }
 }
 

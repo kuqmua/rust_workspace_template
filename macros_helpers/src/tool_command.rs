@@ -1,7 +1,6 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'lt>(&'lt std::path::Path);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 struct StdProcessCommand(std::process::Command);
 #[derive(Debug)]
 struct StdOsString(std::ffi::OsString);
@@ -20,11 +19,9 @@ pub struct ToolArgsRef<'lt>(&'lt [&'lt str]);
 pub struct ToolEnvKeyRef<'lt>(&'lt str);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ToolEnvValueRef<'lt>(&'lt str);
-#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::Display)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::DerefInner, newtype::Display, newtype::FromInner)]
 pub struct StdProcessExitStatus(std::process::ExitStatus);
-#[derive(Debug, newtype::AsRefOwned, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::AsRefOwned, newtype::DerefInner, newtype::FromInner)]
 pub struct StdProcessOutput(std::process::Output);
 pub struct ToolCommand {
     inner: StdProcessCommand,

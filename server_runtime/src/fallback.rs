@@ -50,7 +50,9 @@ impl From<usize> for HttpAcceptHeaderMaximumBytes {
 #[derive(Clone, Copy)]
 struct HttpMediaRangeRef<'value_lt>(&'value_lt str);
 impl<'value_lt> From<&'value_lt str> for HttpMediaRangeRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self { Self(value) }
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
 }
 #[derive(Clone, Copy)]
 struct AcceptsApplicationJson(bool);

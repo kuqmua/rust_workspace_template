@@ -47,9 +47,9 @@ impl SingleFlight {
     pub fn acquire(&self, key: SingleFlightKey) -> SingleFlightAcquire {
         let mut inner = write_inner(&self.inner);
         if let Some(sender) = inner.flights.get(&key) {
-            return SingleFlightAcquire::Waiter(SingleFlightWaiter::from(TokioSingleFlightReceiver::from(
-                sender.0.subscribe(),
-            )));
+            return SingleFlightAcquire::Waiter(SingleFlightWaiter::from(
+                TokioSingleFlightReceiver::from(sender.0.subscribe()),
+            ));
         }
         if inner.flights.len() >= self.maximum.0.get() {
             return SingleFlightAcquire::Full;

@@ -124,12 +124,30 @@ pub enum NumericBound {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
 pub struct ContractI64(i64);
 impl ContractI64 {
-    pub const I16_MAX: Self = Self(32_767i64);
-    pub const I16_MIN: Self = Self(-32_768i64);
-    pub const I32_MAX: Self = Self(2_147_483_647i64);
-    pub const I32_MIN: Self = Self(-2_147_483_648i64);
-    pub const MAX: Self = Self(i64::MAX);
-    pub const MIN: Self = Self(i64::MIN);
+    #[must_use]
+    pub fn i16_max() -> Self {
+        Self::from(32_767i64)
+    }
+    #[must_use]
+    pub fn i16_min() -> Self {
+        Self::from(-32_768i64)
+    }
+    #[must_use]
+    pub fn i32_max() -> Self {
+        Self::from(2_147_483_647i64)
+    }
+    #[must_use]
+    pub fn i32_min() -> Self {
+        Self::from(-2_147_483_648i64)
+    }
+    #[must_use]
+    pub fn max() -> Self {
+        Self::from(i64::MAX)
+    }
+    #[must_use]
+    pub fn min() -> Self {
+        Self::from(i64::MIN)
+    }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ValueExample {
@@ -235,7 +253,7 @@ impl TypeContract {
     }
 }
 pub trait HasTypeContract {
-    const TYPE_CONTRACT: TypeContract;
+    fn type_contract() -> TypeContract;
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::BoundedString)]
 #[bounded_string(max = 1_048_576usize)]

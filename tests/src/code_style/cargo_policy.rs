@@ -67,7 +67,8 @@ fn check_workspace_dependencies_having_exact_version() {
 }
 #[test]
 fn env_and_env_example_have_same_keys() {
-    let env_keys = super::env_keys_from_file(super::types::StaticStr::from(str_constants::SERVER_ENV));
+    let env_keys =
+        super::env_keys_from_file(super::types::StaticStr::from(str_constants::SERVER_ENV));
     let example_keys = super::env_keys_from_file(super::types::StaticStr::from(
         str_constants::SERVER_DOT_ENV_EXAMPLE,
     ));

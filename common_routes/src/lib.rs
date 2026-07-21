@@ -6,10 +6,6 @@
 const HEALTH_PROBE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(2u64);
 const HEALTH_COMPONENTS_MAX_LEN: usize = 2usize;
 const NOT_FOUND_MSG_MAX_LEN: usize = 1_048_576;
-const HEALTH_CHECK_OK_STATUS: AxumHealthCheckStatus =
-    AxumHealthCheckStatus(axum::http::StatusCode::OK);
-const HEALTH_CHECK_ER_STATUS: AxumHealthCheckStatus =
-    AxumHealthCheckStatus(axum::http::StatusCode::SERVICE_UNAVAILABLE);
 #[derive(Debug, serde::Serialize, utoipa::ToSchema, optml::Optml)]
 pub struct GitInfo {
     commit: git_info::StdGitCommitLinkCow,
@@ -23,20 +19,15 @@ struct NotFoundHandle {
 #[derive(Debug, serde::Serialize, optml::Optml, newtype::BoundedString, newtype::Display)]
 #[bounded_string(max = NOT_FOUND_MSG_MAX_LEN, description = "not found message" )]
 struct NotFoundMessage(String);
-#[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, serde::Serialize, optml::Optml, newtype::FromInner)]
 struct OpenApiSpecificationPath(&'static str);
-#[derive(Debug, Clone, Copy, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
 struct AxumHttpUriRef<'uri_lt>(&'uri_lt axum::http::Uri);
-#[derive(Debug, Clone, Copy, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
 struct UriSuffixRef<'suffix_lt>(&'suffix_lt str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 struct NoRouteMessageCapacity(usize);
-#[derive(Debug, Clone, Copy, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::FromInner)]
 struct HealthCheckSucceeded(bool);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HealthDatabaseAvailable(bool);
@@ -133,16 +124,14 @@ impl HealthReport {
         self.status
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 struct AxumHealthCheckStatus(axum::http::StatusCode);
 #[derive(Debug, optml::Optml)]
 struct JsonRes<T> {
     payload: AxumJsonPayload<T>,
     status: AxumHealthCheckStatus,
 }
-#[derive(Debug, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, optml::Optml, newtype::FromInner)]
 struct AxumJsonPayload<T>(axum::Json<T>);
 impl<T> axum::response::IntoResponse for AxumJsonPayload<T>
 where
@@ -160,8 +149,7 @@ where
         (self.status.0, self.payload).into_response()
     }
 }
-#[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumCommonRoutes(axum::Router);
 #[derive(Clone, optml::Optml)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
@@ -216,6 +204,12 @@ pub trait CommonRoutesParameters:
     git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync
 {
 }
+fn health_check_ok_status() -> AxumHealthCheckStatus {
+    AxumHealthCheckStatus::from(axum::http::StatusCode::OK)
+}
+fn health_check_er_status() -> AxumHealthCheckStatus {
+    AxumHealthCheckStatus::from(axum::http::StatusCode::SERVICE_UNAVAILABLE)
+}
 #[allow(clippy::single_call_fn)] // keeps commit-link extraction shape shared between handlers and tests
 const fn mk_git_info_payload(commit: git_info::StdGitCommitLinkCow) -> GitInfo {
     GitInfo { commit }
@@ -263,7 +257,9 @@ fn mk_not_found_payload_with_message(
     NotFoundHandle {
         commit,
         message,
-        open_api_specification: OpenApiSpecificationPath::from(str_constants::COMMON_ROUTES_SWAGGER_UI),
+        open_api_specification: OpenApiSpecificationPath::from(
+            str_constants::COMMON_ROUTES_SWAGGER_UI,
+        ),
     }
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps commit-based status+json responses consistent across handlers
@@ -290,11 +286,11 @@ fn mk_json_res<T>(status: AxumHealthCheckStatus, payload: T) -> JsonRes<T> {
     }
 }
 #[allow(clippy::single_call_fn)] // shared mapping keeps health-check status behavior centralized
-const fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus {
+fn map_health_check_status(is_ok: HealthCheckSucceeded) -> AxumHealthCheckStatus {
     if is_ok.0 {
-        HEALTH_CHECK_OK_STATUS
+        health_check_ok_status()
     } else {
-        HEALTH_CHECK_ER_STATUS
+        health_check_er_status()
     }
 }
 async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthCheckSucceeded {
@@ -315,8 +311,8 @@ async fn database_is_ready(app_state: &dyn CommonRoutesParameters) -> HealthChec
 }
 fn health_report_response(report: HealthReport) -> JsonRes<HealthReport> {
     let status = match report.status() {
-        HealthStatus::Ok => HEALTH_CHECK_OK_STATUS,
-        HealthStatus::Degraded | HealthStatus::Error => HEALTH_CHECK_ER_STATUS,
+        HealthStatus::Ok => health_check_ok_status(),
+        HealthStatus::Degraded | HealthStatus::Error => health_check_er_status(),
     };
     mk_json_res(status, report)
 }
@@ -604,14 +600,14 @@ mod tests {
     fn map_health_check_status_returns_ok_for_success() {
         assert_eq!(
             super::map_health_check_status(super::HealthCheckSucceeded(true)),
-            super::HEALTH_CHECK_OK_STATUS
+            super::health_check_ok_status()
         );
     }
     #[test]
     fn map_health_check_status_returns_unavailable_for_error() {
         assert_eq!(
             super::map_health_check_status(super::HealthCheckSucceeded(false)),
-            super::HEALTH_CHECK_ER_STATUS
+            super::health_check_er_status()
         );
     }
     #[test]
@@ -652,9 +648,9 @@ mod tests {
     }
     #[tokio::test]
     async fn runtime_health_version_and_public_read_match_openapi() {
-        let router = axum::Router::from(super::common_routes(super::StdArcCommonRoutesAppState::from(
-            test_state(),
-        )));
+        let router = axum::Router::from(super::common_routes(
+            super::StdArcCommonRoutesAppState::from(test_state()),
+        ));
         let document =
             serde_json::to_value(super::CommonRoutesOpenApi::open_api()).expect("f96bcc6e");
         let check = |path: &'static str| {

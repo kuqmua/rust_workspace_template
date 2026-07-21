@@ -1,6 +1,5 @@
 const SC_STRING_MAX_LEN: usize = 1_048_576;
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ToSnakeCaseInput<'input_lt>(&'input_lt str);
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = SC_STRING_MAX_LEN, description = "snake case string")]

@@ -234,17 +234,23 @@ fn tuple_wrappers_initialize_only_through_from_or_try_from() {
                     converted_names: super::types::StdSourceTextSet::default(),
                 },
             );
-            ers.extend(collector.names.difference(&collector.converted_names).map(|name| {
-                format!(
-                    "{}: tuple wrapper `{name}` has no From/TryFrom implementation",
-                    path.display()
-                )
-            }));
+            ers.extend(
+                collector
+                    .names
+                    .difference(&collector.converted_names)
+                    .map(|name| {
+                        format!(
+                            "{}: tuple wrapper `{name}` has no From/TryFrom implementation",
+                            path.display()
+                        )
+                    }),
+            );
             let visitor = super::visit_syn_file(
                 super::types::SynFileRef::from(ast),
                 super::DirectTupleWrapperConstructorVisitor {
                     names: &collector.names,
                     inside_conversion_impl: super::types::AnalyzerBool::default(),
+                    current_wrapper_name: None,
                     ers: super::types::DiagnosticMsgs::default(),
                 },
             );

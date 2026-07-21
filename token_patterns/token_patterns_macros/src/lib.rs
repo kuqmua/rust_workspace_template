@@ -45,8 +45,8 @@ pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     generate_tp(ProcMacro2GenerateTpInput::from(
         proc_macro2::TokenStream::from(input),
     ))
-        .0
-        .into()
+    .0
+    .into()
 }
 #[proc_macro]
 pub fn tp_parts(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

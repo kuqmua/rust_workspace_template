@@ -17,15 +17,15 @@ mod tests {
     #[test]
     fn sql_bind_schema_and_client_read_one_filter_spec() {
         [
-            crate::model::FilterSpec::ADJACENT,
-            crate::model::FilterSpec::BEFORE,
-            crate::model::FilterSpec::CONTAINS,
-            crate::model::FilterSpec::EQUALITY,
-            crate::model::FilterSpec::LEFT_OF,
-            crate::model::FilterSpec::OVERLAPS,
-            crate::model::FilterSpec::RIGHT_OF,
-            crate::model::FilterSpec::TEXT_SEARCH,
-            crate::model::FilterSpec::WITHIN,
+            crate::model::FilterSpec::adjacent(),
+            crate::model::FilterSpec::before(),
+            crate::model::FilterSpec::contains(),
+            crate::model::FilterSpec::equality(),
+            crate::model::FilterSpec::left_of(),
+            crate::model::FilterSpec::overlaps(),
+            crate::model::FilterSpec::right_of(),
+            crate::model::FilterSpec::text_search(),
+            crate::model::FilterSpec::within(),
         ]
         .into_iter()
         .for_each(|spec| {

@@ -86,8 +86,7 @@ impl LocationFieldAttr {
         }
     }
 }
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
 impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
     fn from(value: &'message_lt String) -> Self {

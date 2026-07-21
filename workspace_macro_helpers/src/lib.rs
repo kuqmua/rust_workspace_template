@@ -21,7 +21,9 @@ pub enum SynStructShapeRef<'shape_lt> {
 #[derive(Debug, Clone, Copy)]
 pub struct SynFieldsNamedRef<'fields_lt>(&'fields_lt syn::FieldsNamed);
 impl<'fields_lt> From<&'fields_lt syn::FieldsNamed> for SynFieldsNamedRef<'fields_lt> {
-    fn from(value: &'fields_lt syn::FieldsNamed) -> Self { Self(value) }
+    fn from(value: &'fields_lt syn::FieldsNamed) -> Self {
+        Self(value)
+    }
 }
 impl<'fields_lt> SynFieldsNamedRef<'fields_lt> {
     #[must_use]
@@ -38,7 +40,9 @@ impl std::ops::Deref for SynFieldsNamedRef<'_> {
 #[derive(Debug, Clone, Copy)]
 pub struct SynFieldsUnnamedRef<'fields_lt>(&'fields_lt syn::FieldsUnnamed);
 impl<'fields_lt> From<&'fields_lt syn::FieldsUnnamed> for SynFieldsUnnamedRef<'fields_lt> {
-    fn from(value: &'fields_lt syn::FieldsUnnamed) -> Self { Self(value) }
+    fn from(value: &'fields_lt syn::FieldsUnnamed) -> Self {
+        Self(value)
+    }
 }
 impl<'fields_lt> SynFieldsUnnamedRef<'fields_lt> {
     #[must_use]
@@ -168,7 +172,7 @@ impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
             .into_iter()
             .map(|part| part.0.into_inner())
             .collect::<Vec<_>>();
-        Ok(Self(parts))
+        Ok(Self::from(parts))
     }
 }
 struct TopLevelCommaPart(ProcMacro2MacroTokens);
@@ -184,7 +188,7 @@ impl syn::parse::Parse for TopLevelCommaPart {
             && (type_fork.is_empty() || type_fork.peek(syn::Token![,]))
         {
             syn::parse::discouraged::Speculative::advance_to(input, &type_fork);
-            return Ok(Self(ProcMacro2MacroTokens::from(
+            return Ok(Self::from(ProcMacro2MacroTokens::from(
                 quote::ToTokens::to_token_stream(&parsed),
             )));
         }
@@ -193,7 +197,7 @@ impl syn::parse::Parse for TopLevelCommaPart {
             && (expr_fork.is_empty() || expr_fork.peek(syn::Token![,]))
         {
             syn::parse::discouraged::Speculative::advance_to(input, &expr_fork);
-            return Ok(Self(ProcMacro2MacroTokens::from(
+            return Ok(Self::from(ProcMacro2MacroTokens::from(
                 quote::ToTokens::to_token_stream(&parsed),
             )));
         }
@@ -209,7 +213,7 @@ impl syn::parse::Parse for TopLevelCommaPart {
                 rest = next;
             }
             Ok((
-                Self(ProcMacro2MacroTokens::from(
+                Self::from(ProcMacro2MacroTokens::from(
                     tokens.into_iter().collect::<proc_macro2::TokenStream>(),
                 )),
                 rest,
@@ -257,8 +261,12 @@ impl std::fmt::Display for FirstIdentifierifierTryFromStringError {
 }
 #[derive(Debug, Clone)]
 pub struct StdUniqueOptionSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
-impl<OptionValue> From<std::collections::BTreeSet<OptionValue>> for StdUniqueOptionSet<OptionValue> {
-    fn from(value: std::collections::BTreeSet<OptionValue>) -> Self { Self(value) }
+impl<OptionValue> From<std::collections::BTreeSet<OptionValue>>
+    for StdUniqueOptionSet<OptionValue>
+{
+    fn from(value: std::collections::BTreeSet<OptionValue>) -> Self {
+        Self(value)
+    }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdUniqueOptionSetContains(bool);
@@ -288,7 +296,7 @@ impl StdUniqueOptionSetIsEmpty {
 }
 impl<OptionValue> Default for StdUniqueOptionSet<OptionValue> {
     fn default() -> Self {
-        Self(std::collections::BTreeSet::new())
+        Self::from(std::collections::BTreeSet::new())
     }
 }
 impl<OptionValue> StdUniqueOptionSet<OptionValue>

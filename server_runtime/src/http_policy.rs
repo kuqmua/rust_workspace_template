@@ -12,7 +12,9 @@ impl<'value_lt> From<Option<&'value_lt str>> for HttpAuthorizationHeaderTextRef<
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
 impl<'value_lt> From<&'value_lt str> for HttpBearerTokenRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self { Self(value) }
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
 }
 impl AsRef<str> for HttpBearerTokenRef<'_> {
     fn as_ref(&self) -> &str {
@@ -65,7 +67,9 @@ impl<'value_lt> From<&'value_lt str> for HttpCookieNameRef<'value_lt> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
 impl<'value_lt> From<&'value_lt str> for HttpCookieValueRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self { Self(value) }
+    fn from(value: &'value_lt str) -> Self {
+        Self(value)
+    }
 }
 impl AsRef<str> for HttpCookieValueRef<'_> {
     fn as_ref(&self) -> &str {

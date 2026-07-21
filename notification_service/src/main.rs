@@ -103,7 +103,7 @@ impl axum::extract::FromRequestParts<NotificationState> for AxumNotificationStat
         _parts: &mut http::request::Parts,
         state: &NotificationState,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
-        std::future::ready(Ok(Self(state.clone())))
+        std::future::ready(Ok(Self::from(state.clone())))
     }
 }
 impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
@@ -114,7 +114,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
     ) -> Result<Self, Self::Rejection> {
         <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
-            .map(|axum::Json(value)| Self(value))
+            .map(|axum::Json(value)| Self::from(value))
             .map_err(|_error| HttpNotificationApiProblem::from(http::StatusCode::UNPROCESSABLE_ENTITY))
     }
 }
@@ -173,7 +173,9 @@ impl From<server_runtime::ServeWithGracefulShutdownError> for NotificationServeE
 }
 #[derive(Debug)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
-impl From<metrics_exporter_prometheus::BuildError> for MetricsExporterPrometheusNotificationBuildError {
+impl From<metrics_exporter_prometheus::BuildError>
+    for MetricsExporterPrometheusNotificationBuildError
+{
     fn from(value: metrics_exporter_prometheus::BuildError) -> Self {
         Self(value)
     }
@@ -333,9 +335,9 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
         .install_recorder()
         .map(MetricsExporterPrometheusHandle)
         .map_err(|error| {
-            NotificationServiceError::Metrics(MetricsExporterPrometheusNotificationBuildError::from(
-                error,
-            ))
+            NotificationServiceError::Metrics(
+                MetricsExporterPrometheusNotificationBuildError::from(error),
+            )
         })?;
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(**config.pg_pool_max_connections())

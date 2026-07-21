@@ -28,8 +28,7 @@ impl<'value_lt> DateFilterBounds<'value_lt> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDateSqlBindStart(std::num::NonZeroU32);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChronoUtcDateTimes(Vec<chrono::DateTime<chrono::Utc>>);
 
 #[derive(Clone, Debug, Eq, PartialEq)]

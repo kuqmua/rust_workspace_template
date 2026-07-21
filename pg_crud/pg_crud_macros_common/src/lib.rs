@@ -186,7 +186,7 @@ impl FromIterator<macros_helpers::generated_rust_token_stream::GeneratedRustToke
             Item = macros_helpers::generated_rust_token_stream::GeneratedRustTokenStream,
         >,
     {
-        Self(iter.into_iter().collect())
+        Self::from(iter.into_iter().collect::<Vec<_>>())
     }
 }
 #[derive(Debug, Clone, Copy, newtype::Display, newtype::FromInner)]

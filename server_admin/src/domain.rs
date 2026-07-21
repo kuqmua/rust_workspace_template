@@ -25,16 +25,18 @@ impl std::fmt::Debug for SecrecyAdminString {
 #[bounded_string(max = 8192, description = "administrator internal text")]
 pub struct StdAdminString(String);
 pub(super) enum AdminAuditResourceValue {
-    Id(i64),
-    Session(uuid::Uuid),
+    Role(AdminRoleId),
+    Session(crate::AdminSessionId),
     SystemSettings,
+    User(AdminUserId),
 }
 impl From<AdminAuditResourceValue> for StdAdminString {
     fn from(value: AdminAuditResourceValue) -> Self {
         Self(match value {
-            AdminAuditResourceValue::Id(value) => value.to_string(),
-            AdminAuditResourceValue::Session(value) => value.to_string(),
+            AdminAuditResourceValue::Role(role) => role.get().to_string(),
+            AdminAuditResourceValue::Session(session) => session.0.get().to_string(),
             AdminAuditResourceValue::SystemSettings => str_constants::VALUE_1.to_owned(),
+            AdminAuditResourceValue::User(user) => user.get().to_string(),
         })
     }
 }
@@ -43,6 +45,7 @@ impl From<AdminAuditResourceValue> for StdAdminString {
 )]
 pub struct StdAdminStrRef<'value_lt>(&'value_lt str);
 impl<'value_lt> StdAdminStrRef<'value_lt> {
+    #[must_use]
     pub const fn get(self) -> &'value_lt str {
         self.0
     }
@@ -53,6 +56,7 @@ impl<'value_lt> StdAdminStrRef<'value_lt> {
 #[serde(from = "bool")]
 pub struct StdAdminBool(bool);
 impl StdAdminBool {
+    #[must_use]
     pub const fn get(self) -> bool {
         self.0
     }
@@ -60,6 +64,7 @@ impl StdAdminBool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
 pub struct StdAdminNonZeroUsize(std::num::NonZeroUsize);
 impl StdAdminNonZeroUsize {
+    #[must_use]
     pub const fn get(self) -> std::num::NonZeroUsize {
         self.0
     }
@@ -70,6 +75,7 @@ impl StdAdminNonZeroUsize {
 #[serde(from = "uuid::Uuid")]
 pub struct UuidAdminValue(uuid::Uuid);
 impl UuidAdminValue {
+    #[must_use]
     pub const fn get(self) -> uuid::Uuid {
         self.0
     }
@@ -93,6 +99,7 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for UuidAdminValue {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdAdminSocketAddr(std::net::SocketAddr);
 impl StdAdminSocketAddr {
+    #[must_use]
     pub const fn get(self) -> std::net::SocketAddr {
         self.0
     }
@@ -114,6 +121,7 @@ impl StdAdminSocketAddr {
 #[serde(from = "i64")]
 pub struct AdminUserId(i64);
 impl AdminUserId {
+    #[must_use]
     pub const fn get(self) -> i64 {
         self.0
     }
@@ -135,6 +143,7 @@ impl AdminUserId {
 #[serde(from = "i64")]
 pub struct AdminRoleId(i64);
 impl AdminRoleId {
+    #[must_use]
     pub const fn get(self) -> i64 {
         self.0
     }
@@ -156,6 +165,7 @@ impl AdminRoleId {
 #[serde(from = "i64")]
 pub struct AdminPermissionId(i64);
 impl AdminPermissionId {
+    #[must_use]
     pub const fn get(self) -> i64 {
         self.0
     }
@@ -165,6 +175,7 @@ impl AdminPermissionId {
 )]
 pub struct AdminAuditLogId(i64);
 impl AdminAuditLogId {
+    #[must_use]
     pub const fn get(self) -> i64 {
         self.0
     }

@@ -8,9 +8,9 @@ fn unix_now() -> Result<super::super::AdminUnixTokenStream, super::AdminSessionE
 }
 #[allow(clippy::single_call_fn)] // token identifier conversion keeps secret construction explicit
 fn opaque_token_from_uuid(value: super::super::UuidAdminValue) -> super::super::AdminOpaqueToken {
-    super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(secrecy::SecretBox::new(
-        Box::new(value.get().to_string()),
-    )))
+    super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
+        secrecy::SecretBox::new(Box::new(value.get().to_string())),
+    ))
 }
 pub(super) async fn create_session_in_connection(
     state: &super::AdminAuthSvcState,

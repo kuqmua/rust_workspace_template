@@ -80,12 +80,7 @@ pub(super) struct StdSourceTextHashSet<'text_lt>(std::collections::HashSet<&'tex
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
 #[derive(
-    Debug,
-    Clone,
-    Default,
-    newtype::DerefInner,
-    newtype::DerefMutInner,
-    newtype::FromInner,
+    Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner,
 )]
 pub(super) struct DiagnosticMsgs(Vec<String>);
 impl IntoIterator for DiagnosticMsgs {

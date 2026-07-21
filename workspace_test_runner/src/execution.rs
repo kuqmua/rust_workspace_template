@@ -1,24 +1,21 @@
 static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
-#[derive(Clone, Copy, Debug)]
-#[derive(newtype::FromInner)]
+const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct CommandIdx(usize);
 impl CommandIdx {
     const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct CommandStartedAt(std::time::Instant);
 impl CommandStartedAt {
     fn elapsed(self) -> std::time::Duration {
         self.0.elapsed()
     }
 }
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 struct RunDir(std::path::PathBuf);
-const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
 #[derive(Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = SUMMARY_MAX_BYTES)]
 struct SummaryText(String);

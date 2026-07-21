@@ -1126,7 +1126,7 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationBase {
 }
 impl Default for PaginationBase {
     fn default() -> Self {
-        Self::new_unchecked(PaginationPolicy::DEFAULT.default_limit().get(), 0)
+        Self::new_unchecked(PaginationPolicy::standard().default_limit().get(), 0)
     }
 }
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema, optml::Optml)]
@@ -1149,6 +1149,11 @@ struct PaginationStartsWithZeroRaw {
 )]
 #[serde(try_from = "PaginationStartsWithZeroRaw")]
 pub struct PaginationStartsWithZero(PaginationBase);
+impl From<PaginationBase> for PaginationStartsWithZero {
+    fn from(value: PaginationBase) -> Self {
+        Self(value)
+    }
+}
 #[location::errors_with_location]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
@@ -1203,7 +1208,7 @@ impl PaginationStartsWithZero {
                 })
             }
         } else if offset_value.get().checked_add(limit_value.get()).is_some() {
-            Ok(Self(PaginationBase::new_unchecked(
+            Ok(Self::from(PaginationBase::new_unchecked(
                 limit_value,
                 offset_value,
             )))
@@ -1243,8 +1248,8 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationStartsWithZero {
 impl DefaultSomeOneElement for PaginationStartsWithZero {
     #[inline]
     fn default_some_one_element() -> Self {
-        Self(PaginationBase::new_unchecked(
-            PaginationPolicy::DEFAULT.default_limit().get(),
+        Self::from(PaginationBase::new_unchecked(
+            PaginationPolicy::standard().default_limit().get(),
             0,
         ))
     }
@@ -1252,7 +1257,7 @@ impl DefaultSomeOneElement for PaginationStartsWithZero {
 impl DefaultSomeOneElementMaxPageSize for PaginationStartsWithZero {
     #[inline]
     fn default_some_one_element_max_page_size() -> Self {
-        Self(PaginationBase::new_unchecked(i32::MAX, 0))
+        Self::from(PaginationBase::new_unchecked(i32::MAX, 0))
     }
 }
 //this needed coz serde Option<Optional<T>> #[serde(skip_serializing_if = "Option::is_none")] - if both opts: inner and parent is null then it skip - its not correct
@@ -1316,8 +1321,8 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     schemars::JsonSchema,
     optml::Optml,
     newtype::IntoVec,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
     for NotEmptyUniqueVec<T>
@@ -1365,7 +1370,7 @@ impl<T: PartialEq> NotEmptyUniqueVec<T> {
                 location: location_macros::location!(),
             });
         }
-        Ok(Self(Vec::from(candidates)))
+        Ok(Self::from(Vec::from(candidates)))
     }
 }
 impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
@@ -1390,7 +1395,7 @@ impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {
                 location: location_macros::location!(),
             });
         }
-        Ok(Self(Vec::from(candidates)))
+        Ok(Self::from(Vec::from(candidates)))
     }
 }
 #[allow(unused_qualifications)]
@@ -1471,7 +1476,7 @@ const _: () = {
 };
 impl<T: AllEnumVariantsArrayDefaultSomeOneElement> DefaultSomeOneElement for NotEmptyUniqueVec<T> {
     fn default_some_one_element() -> Self {
-        Self(Vec::from(
+        Self::from(Vec::from(
             AllEnumVariantsArrayDefaultSomeOneElement::all_variants_default_some_one_element(),
         ))
     }
@@ -1480,14 +1485,14 @@ impl<T: AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize> DefaultSomeOneElem
     for NotEmptyUniqueVec<T>
 {
     fn default_some_one_element_max_page_size() -> Self {
-        Self(Vec::from(
+        Self::from(Vec::from(
             AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size(),
         ))
     }
 }
 impl<T> Default for NotEmptyUniqueVec<T> {
     fn default() -> Self {
-        Self(Vec::default())
+        Self::from(Vec::default())
     }
 }
 impl<T> From<NotEmptyUniqueVec<T>> for Vec<T> {
@@ -1505,9 +1510,8 @@ impl<T1> NotEmptyUniqueVec<T1> {
 }
 #[cfg(test)]
 mod tests_not_empty_unique_vec {
-    #[derive(Debug, PartialEq, Eq)]
-#[derive(newtype::FromInner)]
-struct NonClone(u8);
+    #[derive(Debug, PartialEq, Eq, newtype::FromInner)]
+    struct NonClone(u8);
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error =
@@ -1689,7 +1693,7 @@ impl sqlx::Type<sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
 }
 impl Default for NonPrimaryKeyPgTypeReadIds {
     fn default() -> Self {
-        Self(V { v: None })
+        Self::from(V { v: None })
     }
 }
 #[derive(Debug, Clone, Copy, optml::Optml)]
@@ -1736,6 +1740,11 @@ pub trait PgTypeEqOperator {
 )]
 #[serde(try_from = "i32")]
 pub struct UnsignedPartOfI32(i32);
+impl From<u16> for UnsignedPartOfI32 {
+    fn from(value: u16) -> Self {
+        Self(i32::from(value))
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -1826,7 +1835,7 @@ impl UnsignedPartOfI32 {
 }
 impl DefaultSomeOneElement for UnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
-        Self(0)
+        Self::from(0u16)
     }
 }
 #[derive(
@@ -1844,6 +1853,11 @@ impl DefaultSomeOneElement for UnsignedPartOfI32 {
 )]
 #[serde(try_from = "i32")]
 pub struct NotZeroUnsignedPartOfI32(UnsignedPartOfI32);
+impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
+    fn from(value: std::num::NonZeroU16) -> Self {
+        Self(UnsignedPartOfI32::from(value.get()))
+    }
+}
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NotZeroUnsignedPartOfI32 {
     fn schema() -> (
         &'schema_lt str,
@@ -1928,7 +1942,7 @@ impl NotZeroUnsignedPartOfI32 {
 }
 impl DefaultSomeOneElement for NotZeroUnsignedPartOfI32 {
     fn default_some_one_element() -> Self {
-        Self(DefaultSomeOneElement::default_some_one_element())
+        Self::from(std::num::NonZeroU16::MIN)
     }
 }
 #[derive(

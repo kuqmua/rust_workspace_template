@@ -66,8 +66,14 @@ struct HttpMetricsPathCache {
 struct StdHttpMetricsPathEntries(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
-impl From<std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>> for StdHttpMetricsPathEntries {
-    fn from(value: std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>) -> Self {
+impl From<std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>>
+    for StdHttpMetricsPathEntries
+{
+    fn from(
+        value: std::sync::RwLock<
+            std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>,
+        >,
+    ) -> Self {
         Self(value)
     }
 }

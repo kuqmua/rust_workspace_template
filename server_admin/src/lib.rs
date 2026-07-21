@@ -55,8 +55,7 @@ impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
         }
     }
 }
-#[derive(Clone, Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminJoinError(tokio::task::JoinError);
@@ -66,8 +65,7 @@ pub struct TokioAdminAcquireError(tokio::sync::AcquireError);
 pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
@@ -101,62 +99,57 @@ impl<'de> serde::Deserialize<'de> for AdminPassword {
                 str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID,
             ));
         }
-        Ok(Self(SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
-            value,
-        )))))
+        Ok(Self::from(SecrecyAdminString::from(
+            secrecy::SecretBox::new(Box::new(value)),
+        )))
     }
 }
 impl AdminPassword {
     #[must_use]
-    pub const fn new(value: SecrecyAdminString) -> Self {
-        Self(value)
+    pub fn new(value: SecrecyAdminString) -> Self {
+        Self::from(value)
     }
     fn into_inner(self) -> SecrecyAdminString {
         self.0
     }
 }
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
-    pub const fn new(value: pg_types_text_misc::StringAsNonNullTextSecret) -> Self {
-        Self(value)
+    pub fn new(value: pg_types_text_misc::StringAsNonNullTextSecret) -> Self {
+        Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminJwtSecret(SecrecyAdminString);
 impl AdminJwtSecret {
     #[must_use]
-    pub const fn new(value: SecrecyAdminString) -> Self {
-        Self(value)
+    pub fn new(value: SecrecyAdminString) -> Self {
+        Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
     #[must_use]
-    pub const fn new(value: SecrecyAdminString) -> Self {
-        Self(value)
+    pub fn new(value: SecrecyAdminString) -> Self {
+        Self::from(value)
     }
 }
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminRefreshToken(AdminOpaqueToken);
 impl AdminRefreshToken {
     #[must_use]
-    pub const fn new(value: AdminOpaqueToken) -> Self {
-        Self(value)
+    pub fn new(value: AdminOpaqueToken) -> Self {
+        Self::from(value)
     }
     #[must_use]
     pub fn expose(&self) -> StdAdminStrRef<'_> {
         StdAdminStrRef::from(secrecy::ExposeSecret::expose_secret(self.0.0.as_ref()).as_str())
     }
 }
-#[derive(newtype::DebugRedacted)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugRedacted, newtype::FromInner)]
 pub struct AdminTokenHash(SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
@@ -164,8 +157,8 @@ impl AdminTokenHash {
         clippy::single_call_fn,
         reason = "the crate-private constructor is the invariant boundary for SHA-256 token hashes"
     )]
-    pub(crate) const fn new(value: SecrecyAdminString) -> Self {
-        Self(value)
+    pub(crate) fn new(value: SecrecyAdminString) -> Self {
+        Self::from(value)
     }
     #[must_use]
     pub fn expose(&self) -> StdAdminStrRef<'_> {
@@ -241,12 +234,13 @@ pub fn build_admin_cookie(
     } else {
         str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
     };
-    StdAdminCookie::from(format!(
+    StdAdminCookie::try_from(format!(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
         kind.name().as_ref(),
         value.as_ref(),
         max_age.0
     ))
+    .unwrap_or_else(StdAdminCookie::from)
 }
 #[must_use]
 pub fn clear_admin_cookie(kind: AdminCookieKind, secure: AdminCookieSecure) -> StdAdminCookie {
@@ -452,12 +446,12 @@ pub struct AdminCleanupRows(u64);
 impl std::ops::Add for AdminCleanupRows {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
-        Self(self.0.saturating_add(rhs.0))
+        Self::from(self.0.saturating_add(rhs.0))
     }
 }
 impl AdminCleanupRows {
-    const fn saturating_add(self, rhs: Self) -> Self {
-        Self(self.0.saturating_add(rhs.0))
+    fn saturating_add(self, rhs: Self) -> Self {
+        Self::from(self.0.saturating_add(rhs.0))
     }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -544,7 +538,7 @@ impl AdminCleanupCfg {
 }
 impl AdminCleanupReport {
     #[must_use]
-    pub const fn total_rows(self) -> AdminCleanupRows {
+    pub fn total_rows(self) -> AdminCleanupRows {
         self.access_sessions
             .saturating_add(self.audit_log)
             .saturating_add(self.idempotency)

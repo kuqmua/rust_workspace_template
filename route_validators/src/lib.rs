@@ -7,26 +7,33 @@ pub(crate) mod test_hlp;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct AxumHttpStatusCode(axum::http::StatusCode);
 impl AxumHttpStatusCode {
-    pub const BAD_REQUEST: Self = Self(axum::http::StatusCode::BAD_REQUEST);
-    pub const IM_A_TEAPOT: Self = Self(axum::http::StatusCode::IM_A_TEAPOT);
-    pub const PAYLOAD_TOO_LARGE: Self = Self(axum::http::StatusCode::PAYLOAD_TOO_LARGE);
+    #[must_use]
+    pub fn bad_request() -> Self {
+        Self::from(axum::http::StatusCode::BAD_REQUEST)
+    }
     #[must_use]
     pub const fn get(self) -> axum::http::StatusCode {
         self.0
     }
+    #[must_use]
+    pub fn im_a_teapot() -> Self {
+        Self::from(axum::http::StatusCode::IM_A_TEAPOT)
+    }
+    #[must_use]
+    pub fn payload_too_large() -> Self {
+        Self::from(axum::http::StatusCode::PAYLOAD_TOO_LARGE)
+    }
 }
 pub trait GetAxumHttpStatusCode {
-    const AXUM_HTTP_STATUS_CODE: AxumHttpStatusCode;
-    fn get_axum_http_status_code(&self) -> AxumHttpStatusCode {
-        Self::AXUM_HTTP_STATUS_CODE
-    }
+    fn get_axum_http_status_code(&self) -> AxumHttpStatusCode;
 }
 #[cfg(test)]
 mod tests {
     struct TestError;
     impl super::GetAxumHttpStatusCode for TestError {
-        const AXUM_HTTP_STATUS_CODE: super::AxumHttpStatusCode =
-            super::AxumHttpStatusCode::IM_A_TEAPOT;
+        fn get_axum_http_status_code(&self) -> super::AxumHttpStatusCode {
+            super::AxumHttpStatusCode::im_a_teapot()
+        }
     }
     #[test]
     fn get_axum_http_status_code_default_method_returns_associated_const() {

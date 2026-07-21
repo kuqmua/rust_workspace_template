@@ -39,10 +39,14 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
     let input = value.0;
     if let Ok(mut url) = reqwest::Url::parse(input) {
         if url.username().is_empty() && url.password().is_none() {
-            return RedactedUrl::from(crate::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok());
+            return RedactedUrl::from(
+                crate::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok(),
+            );
         }
         if url.set_username(str_constants::REDACTED_ALT).is_ok() && url.set_password(None).is_ok() {
-            return RedactedUrl::from(crate::RequiredNulFreeBoundedText::try_from(url.to_string()).ok());
+            return RedactedUrl::from(
+                crate::RequiredNulFreeBoundedText::try_from(url.to_string()).ok(),
+            );
         }
     }
     let Some((scheme, remainder)) = input.split_once(str_constants::TEXT_ALT_10) else {
@@ -59,7 +63,9 @@ pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {
         );
     };
     let Some(userinfo_end) = authority.rfind('@') else {
-        return RedactedUrl::from(crate::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok());
+        return RedactedUrl::from(
+            crate::RequiredNulFreeBoundedText::try_from(input.to_owned()).ok(),
+        );
     };
     let host = authority
         .get(userinfo_end.saturating_add(1usize)..)

@@ -481,7 +481,7 @@ async fn version(auth: super::AdminAuthReq) -> axum::response::Response {
                 str_constants::VERSION_ALT.to_owned(),
             ),
             server_admin_frontend::ssr::AdminSsrText::try_from(
-                git_info::PROJECT_GIT_INFO.commit.to_string(),
+                git_info::project_git_info().commit.to_string(),
             ),
         ) {
             (Ok(title), Ok(text)) => {
@@ -1133,8 +1133,8 @@ mod tests {
         let values = (0usize..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
             .map(|idx| {
                 (
-                    super::AdminHtmlFormKey::from(idx.to_string()),
-                    super::AdminHtmlFormText::from(String::new()),
+                    super::AdminHtmlFormKey::try_from(idx.to_string()).expect("763b9ec0"),
+                    super::AdminHtmlFormText::try_from(String::new()).expect("ef54739a"),
                 )
             })
             .collect::<std::collections::BTreeMap<_, _>>();

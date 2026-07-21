@@ -17,8 +17,10 @@ where
     View: IntoAny,
 {
     fn render_admin_ssr(self) -> AdminSsrHtml {
-        AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(self)))
-            .unwrap_or_else(AdminSsrHtml::from)
+        AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(
+            self,
+        )))
+        .unwrap_or_else(AdminSsrHtml::from)
     }
 }
 

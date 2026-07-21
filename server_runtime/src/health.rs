@@ -67,9 +67,9 @@ pub struct HealthReadiness {
 impl Default for HealthReadiness {
     fn default() -> Self {
         Self {
-            shared: StdSharedHealthReadiness::from(std::sync::Arc::from(StdHealthReadinessAtomicBool::from(
-                std::sync::atomic::AtomicBool::new(false),
-            ))),
+            shared: StdSharedHealthReadiness::from(std::sync::Arc::from(
+                StdHealthReadinessAtomicBool::from(std::sync::atomic::AtomicBool::new(false)),
+            )),
         }
     }
 }

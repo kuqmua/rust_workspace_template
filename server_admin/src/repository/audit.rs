@@ -53,7 +53,7 @@ pub(crate) async fn query_audit_log(
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     let total =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
-            .bind(parts.user_id.map(|value| value.get()))
+            .bind(parts.user_id.map(super::super::domain::AdminUserId::get))
             .bind(action_text.map(|value| value.as_ref().to_owned()))
             .bind(resource_text.map(|value| value.as_ref().to_owned()))
             .bind(
@@ -98,7 +98,7 @@ pub(crate) async fn query_audit_log(
             String,
         ),
     >(str_constants::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
-    .bind(parts.user_id.map(|value| value.get()))
+    .bind(parts.user_id.map(super::super::domain::AdminUserId::get))
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))
     .bind(

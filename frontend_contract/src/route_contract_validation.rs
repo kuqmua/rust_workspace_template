@@ -14,8 +14,7 @@ pub enum RouteContractMismatch {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]

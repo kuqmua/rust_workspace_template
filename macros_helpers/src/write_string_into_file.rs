@@ -354,7 +354,10 @@ mod tests {
         let path = crate::rs_file_path::rs_file_path(crate::test_hlp::test_path(
             crate::test_hlp::TestPathStem::new(str_constants::MACROS_HELPERS_RS_EXT_PATH),
         ));
-        assert_eq!(path.as_ref().extension().and_then(|v| v.to_str()), Some("rs"));
+        assert_eq!(
+            path.as_ref().extension().and_then(|v| v.to_str()),
+            Some("rs")
+        );
     }
     #[test]
     fn try_write_string_into_file_skips_rewrite_when_cnt_is_unchanged() {

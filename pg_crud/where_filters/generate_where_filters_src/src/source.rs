@@ -14,11 +14,9 @@ pub struct BuiltGenerateWhereFiltersModel {
     config: ParsedGenerateWhereFiltersConfig,
     contract_valid: crate::model::FilterSpecValid,
 }
-#[derive(Clone, Copy, Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
 #[derive(Debug)]
 pub enum GenerateWhereFiltersPipelineError {
@@ -45,15 +43,15 @@ pub fn build_generate_where_filters(
     parsed: ParsedGenerateWhereFiltersConfig,
 ) -> Result<BuiltGenerateWhereFiltersModel, GenerateWhereFiltersPipelineError> {
     let valid = [
-        crate::model::FilterSpec::ADJACENT,
-        crate::model::FilterSpec::BEFORE,
-        crate::model::FilterSpec::CONTAINS,
-        crate::model::FilterSpec::EQUALITY,
-        crate::model::FilterSpec::LEFT_OF,
-        crate::model::FilterSpec::OVERLAPS,
-        crate::model::FilterSpec::RIGHT_OF,
-        crate::model::FilterSpec::TEXT_SEARCH,
-        crate::model::FilterSpec::WITHIN,
+        crate::model::FilterSpec::adjacent(),
+        crate::model::FilterSpec::before(),
+        crate::model::FilterSpec::contains(),
+        crate::model::FilterSpec::equality(),
+        crate::model::FilterSpec::left_of(),
+        crate::model::FilterSpec::overlaps(),
+        crate::model::FilterSpec::right_of(),
+        crate::model::FilterSpec::text_search(),
+        crate::model::FilterSpec::within(),
     ]
     .into_iter()
     .all(|spec| crate::contract_tests::filter_spec_contract_is_valid(spec).get());
@@ -62,7 +60,7 @@ pub fn build_generate_where_filters(
         contract_valid: crate::model::FilterSpecValid::from(valid),
     })
 }
-pub const fn validate_generate_where_filters(
+pub fn validate_generate_where_filters(
     built: BuiltGenerateWhereFiltersModel,
 ) -> Result<ValidatedGenerateWhereFiltersConfig, GenerateWhereFiltersPipelineError> {
     if built.contract_valid.get() {
@@ -816,7 +814,7 @@ pub fn emit_generate_where_filters(
                         )
                     };
                     let equality_sql_operator =
-                        crate::sql::filter_sql_operator(crate::model::FilterSpec::EQUALITY);
+                        crate::sql::filter_sql_operator(crate::model::FilterSpec::equality());
                     let generate_eq_operator_query_part_token_stream =
                         |maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens| {
                             quote::quote! {
@@ -891,7 +889,7 @@ pub fn emit_generate_where_filters(
                     pg_crud_macros_common::filters::PgTypeFilter::Before { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::BEFORE.sql_operator(),
+                            &crate::model::FilterSpec::before().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::CurrentDate => {
@@ -918,25 +916,25 @@ pub fn emit_generate_where_filters(
                     pg_crud_macros_common::filters::PgTypeFilter::FindRangesWithinGivenRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::WITHIN.sql_operator(),
+                            &crate::model::FilterSpec::within().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::FindRangesThatFullyContainTheGivenRange {
                         ..
                     } => generate_operator_cmp_filter_token_stream(
                         &pg_type_ptrn_standard,
-                        &crate::model::FilterSpec::CONTAINS.sql_operator(),
+                        &crate::model::FilterSpec::contains().sql_operator(),
                     ),
                     pg_crud_macros_common::filters::PgTypeFilter::StrictlyToLeftOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::LEFT_OF.sql_operator(),
+                            &crate::model::FilterSpec::left_of().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::StrictlyToRightOfRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::RIGHT_OF.sql_operator(),
+                            &crate::model::FilterSpec::right_of().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::IncludedLowerBound { .. } => {
@@ -954,13 +952,13 @@ pub fn emit_generate_where_filters(
                     pg_crud_macros_common::filters::PgTypeFilter::OverlapWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::OVERLAPS.sql_operator(),
+                            &crate::model::FilterSpec::overlaps().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::AdjacentWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
                             &pg_type_ptrn_standard,
-                            &crate::model::FilterSpec::ADJACENT.sql_operator(),
+                            &crate::model::FilterSpec::adjacent().sql_operator(),
                         )
                     }
                     pg_crud_macros_common::filters::PgTypeFilter::RangeLen => {
@@ -1013,7 +1011,7 @@ pub fn emit_generate_where_filters(
         #[allow(clippy::wildcard_imports)]
         use super::*;
     };
-    let text_search_spec = crate::model::FilterSpec::TEXT_SEARCH;
+    let text_search_spec = crate::model::FilterSpec::text_search();
     let text_search_schema_token_stream = crate::schema::text_search_token_stream(text_search_spec);
     let text_search_client_token_stream = crate::client::text_search_token_stream(text_search_spec);
     let text_search_bind_token_stream = crate::bind::text_search_token_stream(text_search_spec);

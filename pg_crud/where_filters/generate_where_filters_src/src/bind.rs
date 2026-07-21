@@ -10,14 +10,14 @@
 #[derive(newtype::FromInner)]
 pub(super) struct FilterPlaceholderCount(usize);
 impl FilterPlaceholderCount {
-    pub(super) const fn one() -> Self {
-        Self(1usize)
-    }
     pub(super) const fn get(self) -> usize {
         self.0
     }
+    pub(super) fn one() -> Self {
+        Self::from(1usize)
+    }
 }
-pub(super) const fn bind_count_matches(
+pub(super) fn bind_count_matches(
     spec: crate::model::FilterSpec,
     placeholders: FilterPlaceholderCount,
 ) -> crate::model::FilterSpecValid {

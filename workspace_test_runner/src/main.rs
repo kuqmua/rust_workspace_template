@@ -46,58 +46,21 @@ const NEXTEST_COMMANDS: [(&str, &[&str]); 3] = [
         &str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_DOC_ARGS,
     ),
 ];
-const MACRO_GENERATION_MEASUREMENTS: [(MeasurementName, CargoArgs); 3] = [
-    (
-        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT),
-        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TBL_ARGS),
-    ),
-    (
-        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT),
-        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TYPES_ARGS),
-    ),
-    (
-        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT),
-        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_WH_FLTS_ARGS),
-    ),
-];
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
-const ALLOCATION_TOOLS: [AllocationTool; 6] = [
-    AllocationTool {
-        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH),
-    },
-    AllocationTool {
-        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_TOOL),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_PATH),
-    },
-    AllocationTool {
-        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_TOOL),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_PATH),
-    },
-    AllocationTool {
-        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_TOOL),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_PATH),
-    },
-    AllocationTool {
-        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_TOOL),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_PATH),
-    },
-    AllocationTool {
-        name: ToolName::from(str_constants::PG_CRUD_PG_TIME),
-        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH),
-    },
-];
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MeasurementName(&'static str);
 impl MeasurementName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct CargoArgs(&'static [&'static str]);
+impl<const N: usize> From<&'static [&'static str; N]> for CargoArgs {
+    fn from(value: &'static [&'static str; N]) -> Self {
+        Self(value.as_slice())
+    }
+}
 impl CargoArgs {
     const fn get(self) -> &'static [&'static str] {
         self.0
@@ -110,8 +73,7 @@ impl<'lt> StderrTextRef<'lt> {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct AnsiTextRef<'lt>(&'lt str);
 impl<'lt> AnsiTextRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -121,75 +83,70 @@ impl<'lt> AnsiTextRef<'lt> {
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = CLEAN_ANSI_TEXT_MAX_LEN)]
 struct CleanAnsiText(String);
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MemusageKey(&'static str);
 impl MemusageKey {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MemusageRowName(&'static str);
 impl MemusageRowName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MemusageColumnIdx(usize);
 impl MemusageColumnIdx {
     const fn get(self) -> usize {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MemusageValueRef<'lt>(&'lt str);
 impl<'lt> MemusageValueRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ProgramPathRef<'lt>(&'lt str);
 impl<'lt> ProgramPathRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ProgramArgsRef<'lt>(&'lt [&'lt str]);
+impl<'lt, const N: usize> From<&'lt [&'lt str; N]> for ProgramArgsRef<'lt> {
+    fn from(value: &'lt [&'lt str; N]) -> Self {
+        Self(value.as_slice())
+    }
+}
 impl<'lt> ProgramArgsRef<'lt> {
     const fn get(self) -> &'lt [&'lt str] {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct MemusageProgNameRef<'lt>(&'lt str);
 impl<'lt> MemusageProgNameRef<'lt> {
     const fn get(self) -> &'lt str {
         self.0
     }
 }
-#[derive(Clone, newtype::AsRefOwned)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, newtype::AsRefOwned, newtype::FromInner)]
 struct QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::__private::TokenStream);
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ToolName(&'static str);
 impl ToolName {
     const fn get(self) -> &'static str {
         self.0
     }
 }
-#[derive(Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct ToolPath(&'static str);
 impl ToolPath {
     const fn get(self) -> &'static str {
@@ -200,6 +157,57 @@ impl ToolPath {
 struct AllocationTool {
     name: ToolName,
     path: ToolPath,
+}
+fn macro_generation_measurements() -> [(MeasurementName, CargoArgs); 3] {
+    [
+        (
+            MeasurementName::from(
+                str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT,
+            ),
+            CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TBL_ARGS[..]),
+        ),
+        (
+            MeasurementName::from(
+                str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT,
+            ),
+            CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TYPES_ARGS[..]),
+        ),
+        (
+            MeasurementName::from(
+                str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT,
+            ),
+            CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_WH_FLTS_ARGS[..]),
+        ),
+    ]
+}
+#[allow(clippy::single_call_fn)] // runtime construction keeps wrapper initialization on From while centralizing tool metadata
+fn allocation_tools() -> [AllocationTool; 6] {
+    [
+        AllocationTool {
+            name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH),
+        },
+        AllocationTool {
+            name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_TOOL),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_PATH),
+        },
+        AllocationTool {
+            name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_TOOL),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_PATH),
+        },
+        AllocationTool {
+            name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_TOOL),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_PATH),
+        },
+        AllocationTool {
+            name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_TOOL),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_PATH),
+        },
+        AllocationTool {
+            name: ToolName::from(str_constants::PG_CRUD_PG_TIME),
+            path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH),
+        },
+    ]
 }
 fn print_without_measurement_footer(stderr: StderrTextRef<'_>) {
     stderr
@@ -238,7 +246,7 @@ fn strip_ansi_codes(value: AnsiTextRef<'_>) -> CleanAnsiText {
             },
         )
         .0;
-    CleanAnsiText::try_from(clean).unwrap_or_else(|_| CleanAnsiText::from(String::new()))
+    CleanAnsiText::try_from(clean).unwrap_or_else(CleanAnsiText::from)
 }
 fn print_without_memusage_footer(stderr: StderrTextRef<'_>) {
     let clean = strip_ansi_codes(AnsiTextRef::from(stderr.get()));
@@ -256,8 +264,8 @@ fn memusage_heap_value(text: &CleanAnsiText, key: MemusageKey) -> MemusageValueR
         .lines()
         .find_map(|line| line.split_once(key.get()).map(|(_, tail)| tail.trim()))
         .and_then(|tail| tail.split([',', ' ']).find(|part| !part.is_empty()))
-        .map_or(
-            MemusageValueRef::from(str_constants::UNAVAILABLE),
+        .map_or_else(
+            || MemusageValueRef::from(str_constants::UNAVAILABLE),
             MemusageValueRef,
         )
 }
@@ -272,8 +280,8 @@ fn memusage_table_value(
         .find(|line| line.contains(row_name.get()))
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(column_idx.get()))
-        .map_or(
-            MemusageValueRef::from(str_constants::UNAVAILABLE),
+        .map_or_else(
+            || MemusageValueRef::from(str_constants::UNAVAILABLE),
             MemusageValueRef,
         )
 }
@@ -1066,7 +1074,7 @@ fn main() {
         Some(str_constants::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD) => {
             run_alloc_workload_where_filters_query_part()
         }
-        Some(str_constants::MACRO_GENERATION) => MACRO_GENERATION_MEASUREMENTS
+        Some(str_constants::MACRO_GENERATION) => macro_generation_measurements()
             .iter()
             .try_fold((), |(), (measurement_name, args)| {
                 measure_cargo_command(*measurement_name, *args)
@@ -1086,7 +1094,7 @@ fn main() {
         Some(str_constants::RELEASE) => run_release(),
         Some(str_constants::MEASURE) => {
             let allocation_tools_printed: Result<(), std::convert::Infallible> =
-                ALLOCATION_TOOLS.iter().try_fold((), |(), tool| {
+                allocation_tools().iter().try_fold((), |(), tool| {
                     let available = discovery::tool_available(tool.path.get());
                     let name = tool.name.get();
                     let path = tool.path.get();
@@ -1550,7 +1558,7 @@ fn main() {
         Some(str_constants::ALL_ALT) => execution::run_commands(&STATIC_COMMANDS)
             .and_then(|()| run_workspace_tests())
             .and_then(|()| {
-                MACRO_GENERATION_MEASUREMENTS
+                macro_generation_measurements()
                     .iter()
                     .try_fold((), |(), (measurement_name, args)| {
                         measure_cargo_command(*measurement_name, *args)

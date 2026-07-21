@@ -85,9 +85,9 @@ pub(crate) async fn read_csrf_hash(
         .map_err(crate::SqlxAdminError::from)
         .map(|value| {
             value.map(|hash| {
-                crate::AdminTokenHash::new(crate::SecrecyAdminString::from(secrecy::SecretBox::new(
-                    Box::new(hash),
-                )))
+                crate::AdminTokenHash::new(crate::SecrecyAdminString::from(
+                    secrecy::SecretBox::new(Box::new(hash)),
+                ))
             })
         })
 }

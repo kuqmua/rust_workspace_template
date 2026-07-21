@@ -1,7 +1,6 @@
 pub mod ssr;
 
-#[derive(Debug, Clone, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminFrontendRouter(axum::Router);
 
 #[must_use]

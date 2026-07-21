@@ -59,23 +59,17 @@ impl TryFrom<String> for EnvVarName {
         Ok(Self(value))
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct ChronoFixedOffsetError(&'static str);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdI32ParsingError(std::num::ParseIntError);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdU32ParsingError(std::num::ParseIntError);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct StdUsizeParsingError(std::num::ParseIntError);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct TimezoneSeconds(i32);
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct ChronoEastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
@@ -176,8 +170,8 @@ pub struct StdParseBoolError(std::str::ParseBoolError);
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::AsRefOwned,
     newtype::DebugRedacted,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
 impl AdminJwtSecret {
     #[must_use]
@@ -252,7 +246,7 @@ mod admin_jwt_secret_tests {
         let second =
             str_constants::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let parsed = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk::from(format!("{first}, {second}")),
+            super::StdEnvVarOk::try_from(format!("{first}, {second}")).expect("12fd7c6a"),
         )
         .expect("2c18577d");
         assert_eq!(parsed.verification_secrets().len(), 2usize);
@@ -267,7 +261,8 @@ mod admin_jwt_secret_tests {
     #[test]
     fn rejects_empty_effective_secret_list() {
         let result = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk::from(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST)),
+            super::StdEnvVarOk::try_from(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST))
+                .expect("86c514b2"),
         );
         assert!(matches!(
             result,
@@ -283,8 +278,8 @@ mod admin_jwt_secret_tests {
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -294,8 +289,8 @@ pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -305,8 +300,8 @@ pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminSignInRateLimit(StdNonZeroU64);
 #[derive(
     Debug,
@@ -316,11 +311,10 @@ pub struct AdminSignInRateLimit(StdNonZeroU64);
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminSessionLimit(StdNonZeroUsize);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct AdminPositiveU64ParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
@@ -383,11 +377,10 @@ impl TryFromStdEnvVarOk for AdminSessionLimit {
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminPasswordHashConcurrency(StdNonZeroUsize);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct AdminPositiveUsizeParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
@@ -422,8 +415,8 @@ impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminCookieSecure(bool);
 #[derive(
     Debug,
@@ -433,14 +426,12 @@ pub struct AdminCookieSecure(bool);
     Eq,
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct AdminSwaggerEnabled(bool);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
 pub struct HttpGzipEnabled(bool);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct AdminBoolParsingError(StdParseBoolError);
 #[derive(Debug, thiserror::Error)]
 #[error("{0:?}")]
@@ -610,20 +601,15 @@ config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUr
     newtype::DerefInner,
 )]
 pub struct PgPoolMaxConnections(u32);
-#[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolMinConnections(u32);
-#[derive(Debug, Clone, Copy, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
-#[derive(Debug, Clone, Copy, newtype::DerefInner)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::DerefInner, newtype::FromInner)]
 pub struct RequestTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum PgPoolConfigParseError {
@@ -730,11 +716,12 @@ pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsError {
 impl TryFromStdEnvVarOk for PgPoolMaxConnections {
     type Error = TryFromStdEnvVarOkPgPoolMaxConnectionsError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: u32 = parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |u32_parsing| {
-            Self::Error::U32Parsing {
-                u32_parsing: StdU32ParsingError::from(u32_parsing),
-            }
-        })?;
+        let parsed: u32 =
+            parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |u32_parsing| {
+                Self::Error::U32Parsing {
+                    u32_parsing: StdU32ParsingError::from(u32_parsing),
+                }
+            })?;
         Self::try_from(parsed).map_err(|pg_pool_max_connections| {
             Self::Error::PgPoolMaxConnections {
                 pg_pool_max_connections,
@@ -773,6 +760,11 @@ config_lib_macros::impl_try_from_non_empty_string!(
     newtype::DerefInner,
 )]
 pub struct ChronoTimezone(chrono::FixedOffset);
+impl From<ChronoEastFixedOffset> for ChronoTimezone {
+    fn from(value: ChronoEastFixedOffset) -> Self {
+        Self(value.0)
+    }
+}
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = ChronoFixedOffsetError;
     fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {
@@ -801,7 +793,7 @@ impl TryFromStdEnvVarOk for ChronoTimezone {
             .map_err(|chrono_fixed_offset| Self::Error::ChronoFixedOffset {
                 chrono_fixed_offset,
             })
-            .map(|timezone| Self(timezone.0))
+            .map(Self::from)
     }
 }
 impl TryFromStdEnvVarOk for types::TracingFormat {
@@ -866,9 +858,7 @@ fn parse_east_fixed_offset(
 ) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetError> {
     chrono::FixedOffset::east_opt(v.0)
         .map(ChronoEastFixedOffset)
-        .ok_or(ChronoFixedOffsetError::from(
-            str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG,
-        ))
+        .ok_or_else(|| ChronoFixedOffsetError::from(str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG))
 }
 #[cfg(test)]
 mod tests {

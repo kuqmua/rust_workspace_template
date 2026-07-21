@@ -10,11 +10,9 @@ pub enum ShouldWriteTokenStreamIntoFile {
 }
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct ShouldWriteTokenStreamFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
@@ -35,9 +33,7 @@ fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     }
 }
 #[allow(clippy::single_call_fn)] // keeps ShouldWriteTokenStreamIntoFile flag interpretation centralized
-fn should_write_token_stream_flag(
-    v: ShouldWriteTokenStreamIntoFile,
-) -> ShouldWriteTokenStreamFlag {
+fn should_write_token_stream_flag(v: ShouldWriteTokenStreamIntoFile) -> ShouldWriteTokenStreamFlag {
     ShouldWriteTokenStreamFlag::from(matches!(v, ShouldWriteTokenStreamIntoFile::True))
 }
 #[allow(clippy::single_call_fn)] // centralizes token-to-file write mapping and outcome extraction

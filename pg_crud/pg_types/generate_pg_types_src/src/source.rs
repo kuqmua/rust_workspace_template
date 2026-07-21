@@ -230,7 +230,7 @@ impl PgType {
     fn can_be_nullable(self) -> CanBeNullable {
         crate::sqlx::can_be_nullable(self.spec())
     }
-    const fn spec(
+    fn spec(
         self,
     ) -> crate::model::PgTypeSpec<CanBeNullable, CanBePrimaryKey, FilterKind, PgSqlName, WireKind>
     {
@@ -855,7 +855,9 @@ pub fn parse_generate_pg_types(
 ) -> Result<ParsedGeneratePgTypesConfig, GeneratePgTypesPipelineError> {
     serde_json::from_str::<GeneratePgTypesConfig>(&input.as_ref().to_string())
         .map(ParsedGeneratePgTypesConfig)
-        .map_err(|error| GeneratePgTypesPipelineError::Parse(SerdeJsonGeneratePgTypesError::from(error)))
+        .map_err(|error| {
+            GeneratePgTypesPipelineError::Parse(SerdeJsonGeneratePgTypesError::from(error))
+        })
 }
 pub fn validate_generate_pg_types(
     built: BuiltGeneratePgTypesModel,
@@ -5419,17 +5421,19 @@ pub fn emit_generate_pg_types(
             WireKind::Uuid => (quote::quote! {frontend_contract::InputKind::Uuid}, quote::quote! {frontend_contract::ValueFormat::Uuid}, quote::quote! {frontend_contract::InputStep::Any}, quote::quote! {frontend_contract::ValueExample::Uuid}),
         };
         let frontend_bounds_token_stream = match crate::rust_type::wire_kind(pg_type_dsc) {
-            WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I16_MAX))},
-            WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I32_MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::I32_MAX))},
-            WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::MIN)).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::MAX))},
+            WireKind::Int16 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i16_max()))},
+            WireKind::Int32 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i32_min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::i32_max()))},
+            WireKind::Int64 => quote::quote! {.with_minimum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::min())).with_maximum(frontend_contract::NumericBound::Inclusive(frontend_contract::ContractI64::max()))},
             WireKind::Bool | WireKind::Bytes | WireKind::Date | WireKind::Float32 | WireKind::Float64 | WireKind::Inet | WireKind::Interval | WireKind::Mac | WireKind::RangeDate | WireKind::RangeInt32 | WireKind::RangeInt64 | WireKind::RangeTimestamp | WireKind::RangeTimestampTz | WireKind::String | WireKind::TimeChrono | WireKind::TimeTime | WireKind::Timestamp | WireKind::TimestampTz | WireKind::Uuid => proc_macro2::TokenStream::new(),
         };
         let impl_frontend_type_contract_token_stream = quote::quote! {
             impl frontend_contract::HasTypeContract for #identifier {
-                const TYPE_CONTRACT: frontend_contract::TypeContract = frontend_contract::TypeContract::new(#frontend_input_kind_token_stream, #frontend_value_format_token_stream, #frontend_nullability_token_stream)
-                    .with_step(#frontend_step_token_stream)
-                    .with_example(#frontend_example_token_stream)
-                    #frontend_bounds_token_stream;
+                fn type_contract() -> frontend_contract::TypeContract {
+                    frontend_contract::TypeContract::new(#frontend_input_kind_token_stream, #frontend_value_format_token_stream, #frontend_nullability_token_stream)
+                        .with_step(#frontend_step_token_stream)
+                        .with_example(#frontend_example_token_stream)
+                        #frontend_bounds_token_stream
+                }
             }
         };
         let impl_pg_column_schema_token_stream = quote::quote! {

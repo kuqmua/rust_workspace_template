@@ -47,6 +47,11 @@ impl TryFrom<i64> for ListTotal {
         }
     }
 }
+impl From<u32> for ListTotal {
+    fn from(value: u32) -> Self {
+        Self(i64::from(value))
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ListItems<Item>(Vec<Item>);
@@ -114,8 +119,8 @@ where
     };
     let total = match list_total_source(offset, rows_presence, window_presence) {
         ListTotalSource::CountQuery => fetch_count().await?,
-        ListTotalSource::Window => rows.window_total.unwrap_or(ListTotal::from(0i64)),
-        ListTotalSource::Zero => ListTotal::from(0i64),
+        ListTotalSource::Window => rows.window_total.unwrap_or_else(|| ListTotal::from(0u32)),
+        ListTotalSource::Zero => ListTotal::from(0u32),
     };
     Ok(ListPage {
         items: rows.items,

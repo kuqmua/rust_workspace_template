@@ -1,8 +1,9 @@
 #![allow(clippy::single_call_fn)] // stable root token API delegates to the private cryptographic responsibility module
 pub(super) fn generate_token() -> super::AdminGeneratedToken {
-    let token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
-        Box::new(format!("{}.{}", uuid::Uuid::new_v4(), uuid::Uuid::new_v4())),
-    )));
+    let token =
+        super::AdminOpaqueToken::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
+            Box::new(format!("{}.{}", uuid::Uuid::new_v4(), uuid::Uuid::new_v4())),
+        )));
     let hash = hash_opaque_token(&token);
     super::AdminGeneratedToken { hash, token }
 }

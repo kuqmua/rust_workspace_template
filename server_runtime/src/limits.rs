@@ -43,7 +43,7 @@ impl From<std::num::NonZeroUsize> for StdSemaphorePermitCount {
 impl StdArcTokioSemaphore {
     #[must_use]
     pub fn new(permit_count: StdSemaphorePermitCount) -> Self {
-        Self(std::sync::Arc::new(tokio::sync::Semaphore::new(
+        Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             permit_count.0.get(),
         )))
     }

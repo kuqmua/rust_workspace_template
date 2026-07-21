@@ -14,11 +14,9 @@ pub struct AxumBody(axum::body::Body);
 )]
 #[serde(from = "usize")]
 pub struct BodySizeLimitBytes(usize);
-#[derive(Debug, newtype::ToErrString)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::ToErrString, newtype::FromInner)]
 pub struct AxumBodySizeError(axum::Error);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
@@ -26,8 +24,9 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::DerefTarget)]
-#[derive(newtype::FromInner)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::DerefTarget, newtype::FromInner,
+)]
 pub struct BytesBodyBytes(bytes::Bytes);
 #[location::errors_with_location]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
@@ -43,8 +42,9 @@ pub enum BodySizeError {
     },
 }
 impl crate::GetAxumHttpStatusCode for BodySizeError {
-    const AXUM_HTTP_STATUS_CODE: crate::AxumHttpStatusCode =
-        crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE;
+    fn get_axum_http_status_code(&self) -> crate::AxumHttpStatusCode {
+        crate::AxumHttpStatusCode::payload_too_large()
+    }
 }
 impl BodySizeError {
     #[allow(clippy::single_call_fn)] // keeps body-size error construction reusable and testable in one place
@@ -93,7 +93,7 @@ mod tests {
         crate::test_hlp::assert_err_status_code_variant_ref(
             crate::test_hlp::block_on(super::check_body_size(body, limit)),
             exp_id,
-            crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE,
+            crate::AxumHttpStatusCode::payload_too_large(),
             |v| Some(reached_max_size_fields(v)),
         )
     }
@@ -184,7 +184,7 @@ mod tests {
                 1,
             )),
             str_constants::VALUE_7ED49BA1,
-            crate::AxumHttpStatusCode::PAYLOAD_TOO_LARGE,
+            crate::AxumHttpStatusCode::payload_too_large(),
         );
     }
     #[test]

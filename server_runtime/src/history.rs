@@ -1,25 +1,31 @@
 #[derive(Debug)]
 struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
 impl<RunReport> From<std::collections::VecDeque<RunReport>> for StdVecDequeRunReports<RunReport> {
-    fn from(value: std::collections::VecDeque<RunReport>) -> Self { Self(value) }
+    fn from(value: std::collections::VecDeque<RunReport>) -> Self {
+        Self(value)
+    }
 }
 #[derive(Debug)]
 struct TokioRwLockRunReports<RunReport>(tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>);
 impl<RunReport> From<tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>>
     for TokioRwLockRunReports<RunReport>
 {
-    fn from(value: tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>) -> Self { Self(value) }
+    fn from(value: tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>) -> Self {
+        Self(value)
+    }
 }
 #[derive(Debug)]
 struct StdArcSharedRunReports<RunReport>(std::sync::Arc<TokioRwLockRunReports<RunReport>>);
 impl<RunReport> From<std::sync::Arc<TokioRwLockRunReports<RunReport>>>
     for StdArcSharedRunReports<RunReport>
 {
-    fn from(value: std::sync::Arc<TokioRwLockRunReports<RunReport>>) -> Self { Self(value) }
+    fn from(value: std::sync::Arc<TokioRwLockRunReports<RunReport>>) -> Self {
+        Self(value)
+    }
 }
 impl<RunReport> Clone for StdArcSharedRunReports<RunReport> {
     fn clone(&self) -> Self {
-        Self(std::sync::Arc::clone(&self.0))
+        Self::from(std::sync::Arc::clone(&self.0))
     }
 }
 #[derive(Debug)]
@@ -88,9 +94,9 @@ impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
         ));
         Self {
             maximum_len,
-            reports: StdArcSharedRunReports::from(std::sync::Arc::from(TokioRwLockRunReports::from(
-                tokio::sync::RwLock::new(reports),
-            ))),
+            reports: StdArcSharedRunReports::from(std::sync::Arc::from(
+                TokioRwLockRunReports::from(tokio::sync::RwLock::new(reports)),
+            )),
         }
     }
     pub async fn push(&self, report: RunReport) {

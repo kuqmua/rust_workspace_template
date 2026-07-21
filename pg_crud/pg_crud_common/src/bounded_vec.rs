@@ -115,7 +115,7 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
                 min: BoundedVecLen::from(MIN),
             }))
         } else {
-            Ok(BoundedVec::from(values))
+            BoundedVec::try_from(values).map_err(serde::de::Error::custom)
         }
     }
 }
@@ -126,7 +126,9 @@ impl<'de, T: serde::Deserialize<'de>, const MIN: usize, const MAX: usize> serde:
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdPhantomDataBoundedVecVisitor::from(std::marker::PhantomData))
+        deserializer.deserialize_seq(StdPhantomDataBoundedVecVisitor::from(
+            std::marker::PhantomData,
+        ))
     }
 }
 impl<T: schemars::JsonSchema, const MIN: usize, const MAX: usize> schemars::JsonSchema

@@ -4,12 +4,10 @@ const OPENAPI_CONTRACT_TEXT_MAX_LEN: usize = 1_048_576usize;
 #[bounded_string(max = OPENAPI_CONTRACT_TEXT_MAX_LEN)]
 pub struct OpenApiContractText(String);
 
-#[derive(Clone, Copy, Debug, newtype::Display)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
 pub struct OpenApiContractTextError(OpenApiContractTextTryFromStringError);
 
-#[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
@@ -123,7 +121,9 @@ where
     Document: serde::Serialize,
 {
     let document_value = serde_json::to_value(document).map_err(|error| {
-        OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(error))
+        OpenApiValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
+            error,
+        ))
     })?;
     let schemas = document_value
         .pointer(str_constants::COMPONENTS_SCHEMAS_ALT)
@@ -204,10 +204,14 @@ where
                 else {
                     return Err(OpenApiValidationError::MissingOperationId(
                         OpenApiContractText::try_from(method.clone()).map_err(|error| {
-                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
+                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
+                                error,
+                            ))
                         })?,
                         OpenApiContractText::try_from(path.clone()).map_err(|error| {
-                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(error))
+                            OpenApiValidationError::TextTooLong(OpenApiContractTextError::from(
+                                error,
+                            ))
                         })?,
                     ));
                 };
@@ -281,9 +285,9 @@ where
     Document: serde::Serialize,
 {
     let document_value = serde_json::to_value(document).map_err(|error| {
-        OpenApiOperationValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
-            error,
-        ))
+        OpenApiOperationValidationError::DocumentSerialization(
+            SerdeJsonOpenApiSerializationError::from(error),
+        )
     })?;
     expectations.iter().try_for_each(|expectation| {
         let method = expectation.metadata.method().as_ref().to_ascii_lowercase();
@@ -339,19 +343,19 @@ where
     Document: serde::Serialize,
 {
     let payload_value = serde_json::to_value(payload).map_err(|error| {
-        OpenApiPayloadValidationError::PayloadSerialization(SerdeJsonOpenApiSerializationError::from(
-            error,
-        ))
+        OpenApiPayloadValidationError::PayloadSerialization(
+            SerdeJsonOpenApiSerializationError::from(error),
+        )
     })?;
     let schema_value = serde_json::to_value(schema).map_err(|error| {
-        OpenApiPayloadValidationError::SchemaSerialization(SerdeJsonOpenApiSerializationError::from(
-            error,
-        ))
+        OpenApiPayloadValidationError::SchemaSerialization(
+            SerdeJsonOpenApiSerializationError::from(error),
+        )
     })?;
     let document_value = serde_json::to_value(document).map_err(|error| {
-        OpenApiPayloadValidationError::DocumentSerialization(SerdeJsonOpenApiSerializationError::from(
-            error,
-        ))
+        OpenApiPayloadValidationError::DocumentSerialization(
+            SerdeJsonOpenApiSerializationError::from(error),
+        )
     })?;
 
     if let Some(reference) = schema_value

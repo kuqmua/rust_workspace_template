@@ -1,10 +1,6 @@
 const BASE_GIT_COMMIT_LINK_LEN: usize =
     str_constants::NAMING_GITHUB_URL.len() + str_constants::GIT_INFO_TREE_SEGMENT.len();
 const GIT_INFO_STRING_MAX_LEN: usize = 1_048_576;
-pub const PROJECT_GIT_INFO: ProjectGitInfo<'_> = ProjectGitInfo {
-    commit: GitCommitIdRef(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID),
-};
-const PROJECT_GIT_COMMIT_ID: GitCommitIdRef<'_> = PROJECT_GIT_INFO.commit;
 #[derive(
     Debug,
     Clone,
@@ -83,8 +79,7 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitIdCow<'_> {
         Self(std::borrow::Cow::Owned(value.to_string()))
     }
 }
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(
@@ -158,11 +153,10 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitLinkCow {
     newtype::AsRefInner,
     newtype::Display,
     newtype::IntoInnerFrom,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct ProjectGitCommitLinkRef(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 pub struct IsProjectCommit(bool);
 impl std::ops::Not for IsProjectCommit {
     type Output = bool;
@@ -182,14 +176,25 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
 #[derive(Debug, optml::Optml)]
 struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
 impl<'output_lt> From<&'output_lt mut String> for GitCommitLinkOutputRefMut<'output_lt> {
-    fn from(value: &'output_lt mut String) -> Self { Self(value) }
+    fn from(value: &'output_lt mut String) -> Self {
+        Self(value)
+    }
 }
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::AsRefOwned, newtype::IntoInnerFrom,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefOwned,
+    newtype::IntoInnerFrom,
+    newtype::FromInner,
 )]
-#[derive(newtype::FromInner)]
 pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
-#[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
+#[derive(
+    Debug, serde_derive::Serialize, Clone, Copy, Hash, PartialEq, Eq, Default, optml::Optml,
+)]
 pub struct ProjectGitInfo<'commit_lt> {
     pub commit: GitCommitIdRef<'commit_lt>,
 }
@@ -269,12 +274,18 @@ where
         .map_or_else(|| on_owned(src), on_ref)
 }
 #[must_use]
+pub fn project_git_info() -> ProjectGitInfo<'static> {
+    ProjectGitInfo {
+        commit: GitCommitIdRef::from(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_ID),
+    }
+}
+#[must_use]
 pub fn is_project_commit<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> IsProjectCommit
 where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    IsProjectCommit::from(commit_id_ref.0 == PROJECT_GIT_COMMIT_ID.0)
+    IsProjectCommit::from(commit_id_ref.0 == project_git_info().commit.0)
 }
 pub fn validate_project_commit<'commit_lt, CommitIdTy>(
     commit_id: CommitIdTy,
@@ -285,7 +296,9 @@ where
     if is_project_commit(commit_id).0 {
         return Ok(());
     }
-    Err(ValidateProjectCommitError::from(project_git_commit_link_ref()))
+    Err(ValidateProjectCommitError::from(
+        project_git_commit_link_ref(),
+    ))
 }
 #[must_use]
 pub fn project_git_commit_link() -> GitCommitLink {
@@ -293,8 +306,8 @@ pub fn project_git_commit_link() -> GitCommitLink {
         .unwrap_or_else(GitCommitLink::from)
 }
 #[must_use]
-pub const fn project_git_commit_link_ref() -> ProjectGitCommitLinkRef {
-    ProjectGitCommitLinkRef(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_LINK)
+pub fn project_git_commit_link_ref() -> ProjectGitCommitLinkRef {
+    ProjectGitCommitLinkRef::from(str_constants::GIT_INFO_PROJECT_GIT_COMMIT_LINK)
 }
 #[must_use]
 pub fn git_commit_link<'commit_lt, CommitIdTy>(commit_id: CommitIdTy) -> GitCommitLink
@@ -366,7 +379,7 @@ mod tests {
         fn get_git_commit_id(&self) -> super::GitCommitId {
             let calls = self.fallback_calls.get().saturating_add(1);
             self.fallback_calls.set(calls);
-            super::GitCommitId::from(self.commit.to_owned())
+            super::GitCommitId::try_from(self.commit.to_owned()).expect("45a9c31d")
         }
         fn get_git_commit_id_ref(&self) -> Option<super::GitCommitIdRef<'_>> {
             self.borrow_commit_ref
@@ -492,7 +505,7 @@ mod tests {
     }
     #[test]
     fn git_commit_link_cow_borrows_static_project_link_for_project_commit() {
-        let project_commit = super::PROJECT_GIT_COMMIT_ID;
+        let project_commit = super::project_git_info().commit;
         let actual = super::git_commit_link_cow(project_commit);
         assert!(
             matches!(actual.0, std::borrow::Cow::Borrowed(v) if std::ptr::eq(v, super::project_git_commit_link_ref().0))
@@ -500,7 +513,7 @@ mod tests {
     }
     #[test]
     fn git_commit_link_uses_static_project_link_for_project_commit() {
-        let project_commit = super::PROJECT_GIT_COMMIT_ID;
+        let project_commit = super::project_git_info().commit;
         let actual = super::git_commit_link(project_commit);
         assert_eq!(actual, super::project_git_commit_link_ref());
     }
@@ -513,7 +526,7 @@ mod tests {
     }
     #[test]
     fn is_project_commit_returns_true_for_project_commit() {
-        assert!(super::is_project_commit(super::PROJECT_GIT_COMMIT_ID));
+        assert!(super::is_project_commit(super::project_git_info().commit));
     }
     #[test]
     fn is_project_commit_returns_false_for_other_commit() {
@@ -522,7 +535,7 @@ mod tests {
     #[test]
     fn validate_project_commit_returns_ok_for_project_commit() {
         assert_eq!(
-            super::validate_project_commit(super::PROJECT_GIT_COMMIT_ID),
+            super::validate_project_commit(super::project_git_info().commit),
             Ok(())
         );
     }
@@ -546,7 +559,7 @@ mod tests {
     fn project_git_commit_link_matches_project_commit() {
         assert_eq!(
             super::project_git_commit_link(),
-            expected_git_commit_link(super::PROJECT_GIT_COMMIT_ID)
+            expected_git_commit_link(super::project_git_info().commit)
         );
     }
     #[test]
@@ -617,7 +630,7 @@ mod tests {
     #[test]
     fn get_git_commit_link_cow_borrows_project_link_for_project_commit() {
         let git_info = super::ProjectGitInfo {
-            commit: super::PROJECT_GIT_COMMIT_ID,
+            commit: super::project_git_info().commit,
         };
         let link = super::GetGitCommitLink::get_git_commit_link_cow(&git_info);
         assert!(

@@ -26,7 +26,9 @@ impl From<std::num::NonZeroUsize> for StdChildProcessSetMaximum {
 struct StdCollectionsChildProcessMap(
     std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>,
 );
-impl From<std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>> for StdCollectionsChildProcessMap {
+impl From<std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>>
+    for StdCollectionsChildProcessMap
+{
     fn from(value: std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>) -> Self {
         Self(value)
     }
@@ -192,7 +194,9 @@ impl From<tokio::process::Child> for TokioChildProcess {
 struct TokioChildDiagnosticTask(
     tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
 );
-impl From<tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>> for TokioChildDiagnosticTask {
+impl From<tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>>
+    for TokioChildDiagnosticTask
+{
     fn from(value: tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>) -> Self {
         Self(value)
     }

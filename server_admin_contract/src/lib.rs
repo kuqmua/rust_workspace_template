@@ -8,8 +8,7 @@ pub const ADMIN_PASSWORD_MIN_CHARS: usize = 1usize;
 pub const ADMIN_NEW_PASSWORD_MIN_CHARS: usize = 12usize;
 pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
 pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct AdminApiBodyMaxBytes(usize);
 impl AdminApiBodyMaxBytes {
     #[must_use]
@@ -17,7 +16,11 @@ impl AdminApiBodyMaxBytes {
         self.0
     }
 }
-pub const ADMIN_API_BODY_MAX_BYTES: AdminApiBodyMaxBytes = AdminApiBodyMaxBytes(65_536usize);
+const ADMIN_API_BODY_MAX_BYTES_VALUE: usize = 65_536usize;
+#[must_use]
+pub fn admin_api_body_max_bytes() -> AdminApiBodyMaxBytes {
+    AdminApiBodyMaxBytes::from(ADMIN_API_BODY_MAX_BYTES_VALUE)
+}
 const ADMIN_DISPLAY_NAME_IS_VALID: fn(&str) -> bool = |value| value.trim() == value;
 const ADMIN_LOGIN_IS_VALID: fn(&str) -> bool = |value| {
     value.bytes().all(|byte| {
@@ -334,8 +337,7 @@ pub struct AdminAuditTimestamp(String);
 pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
 impl AdminAuditDetailsTooLarge {
     #[must_use]
@@ -637,9 +639,15 @@ pub struct AdminPageOffset(u32);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
 #[serde(transparent)]
 pub struct AdminPageLimit(u16);
+struct AdminDefaultPageLimit;
+impl From<AdminDefaultPageLimit> for AdminPageLimit {
+    fn from(_value: AdminDefaultPageLimit) -> Self {
+        Self(20u16)
+    }
+}
 impl Default for AdminPageLimit {
     fn default() -> Self {
-        Self(20u16)
+        Self::from(AdminDefaultPageLimit)
     }
 }
 impl TryFrom<u16> for AdminPageLimit {
@@ -901,8 +909,10 @@ impl<'de> serde::Deserialize<'de> for AdminPermissionValues {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminPermissionValue> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded = <AdminBoundedVec<AdminPermissionValue> as serde::Deserialize>::deserialize(
+            deserializer,
+        )?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -921,8 +931,9 @@ impl<'de> serde::Deserialize<'de> for AdminRoleNames {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminRoleName> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminRoleName> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -941,8 +952,9 @@ impl<'de> serde::Deserialize<'de> for AdminRoleIds {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminRoleId> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminRoleId> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -961,8 +973,9 @@ impl<'de> serde::Deserialize<'de> for AdminPermissionIds {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminPermissionId> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminPermissionId> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -981,8 +994,9 @@ impl<'de> serde::Deserialize<'de> for AdminUserSummaries {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminUserSummary> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminUserSummary> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1001,8 +1015,9 @@ impl<'de> serde::Deserialize<'de> for AdminRoleSummaries {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminRoleSummary> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminRoleSummary> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1021,8 +1036,10 @@ impl<'de> serde::Deserialize<'de> for AdminPermissionSummaries {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminPermissionSummary> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded = <AdminBoundedVec<AdminPermissionSummary> as serde::Deserialize>::deserialize(
+            deserializer,
+        )?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1041,8 +1058,9 @@ impl<'de> serde::Deserialize<'de> for AdminAuditViews {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminAuditView> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminAuditView> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1061,8 +1079,9 @@ impl<'de> serde::Deserialize<'de> for AdminTexts {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminText> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminText> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1081,8 +1100,9 @@ impl<'de> serde::Deserialize<'de> for AdminDataRows {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminDataRow> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminDataRow> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1101,8 +1121,9 @@ impl<'de> serde::Deserialize<'de> for AdminDataTables {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminDataTable> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminDataTable> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1121,8 +1142,10 @@ impl<'de> serde::Deserialize<'de> for AdminOptionalSettings {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminOptionalSetting> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded = <AdminBoundedVec<AdminOptionalSetting> as serde::Deserialize>::deserialize(
+            deserializer,
+        )?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[derive(
@@ -1141,8 +1164,9 @@ impl<'de> serde::Deserialize<'de> for AdminSessionViews {
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        <AdminBoundedVec<AdminSessionView> as serde::Deserialize>::deserialize(deserializer)
-            .map(|bounded| Self(bounded.0))
+        let bounded =
+            <AdminBoundedVec<AdminSessionView> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
     }
 }
 #[allow(
@@ -1151,7 +1175,7 @@ impl<'de> serde::Deserialize<'de> for AdminSessionViews {
 )]
 impl Default for AdminRoleIds {
     fn default() -> Self {
-        Self(Vec::new())
+        Self::from(AdminEmptyCollection)
     }
 }
 #[allow(
@@ -1160,6 +1184,17 @@ impl Default for AdminRoleIds {
 )]
 impl Default for AdminPermissionIds {
     fn default() -> Self {
+        Self::from(AdminEmptyCollection)
+    }
+}
+struct AdminEmptyCollection;
+impl From<AdminEmptyCollection> for AdminRoleIds {
+    fn from(_value: AdminEmptyCollection) -> Self {
+        Self(Vec::new())
+    }
+}
+impl From<AdminEmptyCollection> for AdminPermissionIds {
+    fn from(_value: AdminEmptyCollection) -> Self {
         Self(Vec::new())
     }
 }
@@ -2408,7 +2443,7 @@ pub struct AdminUpdateSettingsRoute;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, frontend_contract::RouteCatalog)]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
-    body_limit = ADMIN_API_BODY_MAX_BYTES.get(),
+    body_limit = ADMIN_API_BODY_MAX_BYTES_VALUE,
 )]
 pub enum AdminRoute {
     #[route_catalog_route(AdminAuditLogRoute)]
@@ -2908,7 +2943,7 @@ mod tests {
         assert_eq!(
             <super::AdminAuthenticationRouteFamily as frontend_contract::RouteFamily>::body_limit()
                 .map(frontend_contract::RouteBodyLimit::get),
-            Some(super::ADMIN_API_BODY_MAX_BYTES.get())
+            Some(super::admin_api_body_max_bytes().get())
         );
     }
     #[test]

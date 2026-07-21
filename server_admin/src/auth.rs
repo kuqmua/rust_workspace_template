@@ -1,10 +1,8 @@
 #![allow(clippy::needless_for_each)] // utoipa 4 generated OpenAPI registration uses iterator callbacks
 mod html;
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminEncodingKey(jsonwebtoken::EncodingKey);
-#[derive(newtype::DebugTransparent)]
-#[derive(newtype::FromInner)]
+#[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct JsonwebtokenAdminDecodingKey(jsonwebtoken::DecodingKey);
 #[derive(Debug, newtype::AsRefTarget, newtype::FromInner)]
 struct JsonwebtokenAdminDecodingKeys(Vec<JsonwebtokenAdminDecodingKey>);
@@ -238,25 +236,20 @@ where
             parts
                 .extensions
                 .get::<axum::extract::ConnectInfo<std::net::SocketAddr>>()
-                .map(|value| Self(super::StdAdminSocketAddr::from(value.0)))
+                .map(|value| Self::from(super::StdAdminSocketAddr::from(value.0)))
                 .ok_or(AdminApiError::Authentication),
         )
     }
 }
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AdminSignInJson(server_admin_contract::AdminSignInReq);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumAdminJson<Value>(Value);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumAdminForm<Value>(Value);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumAdminPath<Value>(Value);
-#[derive(Debug)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumAdminQuery<Value>(Value);
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct AdminSessionPath(super::AdminSessionId);
@@ -269,7 +262,7 @@ where
         parts: &mut http::request::Parts,
         _state: &S,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
-        std::future::ready(Ok(Self(parts.headers.clone())))
+        std::future::ready(Ok(Self::from(parts.headers.clone())))
     }
 }
 impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminAuthReq {
@@ -299,7 +292,7 @@ where
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         axum::Json::<server_admin_contract::AdminSignInReq>::from_request(req, state)
             .await
-            .map(|axum::Json(value)| Self(value))
+            .map(|axum::Json(value)| Self::from(value))
             .map_err(|error| {
                 if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
                     AdminApiError::PayloadTooLarge
@@ -318,7 +311,7 @@ where
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         axum::Json::<Value>::from_request(req, state)
             .await
-            .map(|axum::Json(value)| Self(value))
+            .map(|axum::Json(value)| Self::from(value))
             .map_err(|error| {
                 if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
                     AdminApiError::PayloadTooLarge
@@ -337,7 +330,7 @@ where
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
         axum::Form::<Value>::from_request(req, state)
             .await
-            .map(|axum::Form(value)| Self(value))
+            .map(|axum::Form(value)| Self::from(value))
             .map_err(|error| {
                 if error.status() == http::StatusCode::PAYLOAD_TOO_LARGE {
                     AdminApiError::PayloadTooLarge
@@ -359,7 +352,7 @@ where
     ) -> Result<Self, Self::Rejection> {
         axum::extract::Path::<Value>::from_request_parts(parts, state)
             .await
-            .map(|axum::extract::Path(value)| Self(value))
+            .map(|axum::extract::Path(value)| Self::from(value))
             .map_err(|_error| AdminApiError::Validation)
     }
 }
@@ -375,7 +368,7 @@ where
     ) -> Result<Self, Self::Rejection> {
         axum::extract::Query::<Value>::from_request_parts(parts, state)
             .await
-            .map(|axum::extract::Query(value)| Self(value))
+            .map(|axum::extract::Query(value)| Self::from(value))
             .map_err(|_error| AdminApiError::Validation)
     }
 }
@@ -388,7 +381,7 @@ impl axum::extract::FromRequestParts<StdSharedAdminAuthSvcState> for AdminSessio
         axum::extract::Path::<uuid::Uuid>::from_request_parts(parts, state)
             .await
             .map(|axum::extract::Path(value)| {
-                Self(super::AdminSessionId::from(super::UuidAdminValue::from(
+                Self::from(super::AdminSessionId::from(super::UuidAdminValue::from(
                     value,
                 )))
             })
@@ -416,9 +409,9 @@ fn session_context_hash(
         }
         None => context.push_str(str_constants::UNKNOWN_USER_AGENT),
     }
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
-        secrecy::SecretBox::new(Box::new(context)),
-    )))
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(
+        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(context))),
+    ))
 }
 fn hash_refresh_token_with_context(
     token: &super::AdminOpaqueToken,
@@ -430,9 +423,9 @@ fn hash_refresh_token_with_context(
         String::with_capacity(token_text.len().saturating_add(context_hash_text.len()));
     token_with_context.push_str(token_text);
     token_with_context.push_str(context_hash_text);
-    super::hash_opaque_token(&super::AdminOpaqueToken::new(super::SecrecyAdminString::from(
-        secrecy::SecretBox::new(Box::new(token_with_context)),
-    )))
+    super::hash_opaque_token(&super::AdminOpaqueToken::new(
+        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(token_with_context))),
+    ))
 }
 #[allow(clippy::single_call_fn)] // CSRF origin validation stays isolated from token validation
 fn origin_is_present_and_allowed(
@@ -585,8 +578,7 @@ impl From<super::SqlxAdminError> for AdminApiError {
         Self::Pg(value)
     }
 }
-#[derive(Debug, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminResponse(axum::response::Response);
 impl axum::response::IntoResponse for AdminApiError {
     fn into_response(self) -> axum::response::Response {
@@ -661,9 +653,9 @@ enum AdminAuditResourceId {
 impl AdminAuditResourceId {
     fn value(self) -> super::StdAdminString {
         super::StdAdminString::from(match self {
-            Self::User(value) => super::domain::AdminAuditResourceValue::Id(value.get()),
-            Self::Role(value) => super::domain::AdminAuditResourceValue::Id(value.get()),
-            Self::Session(value) => super::domain::AdminAuditResourceValue::Session(value.0.get()),
+            Self::User(value) => super::domain::AdminAuditResourceValue::User(value),
+            Self::Role(value) => super::domain::AdminAuditResourceValue::Role(value),
+            Self::Session(value) => super::domain::AdminAuditResourceValue::Session(value),
             Self::SystemSettings => super::domain::AdminAuditResourceValue::SystemSettings,
         })
     }
@@ -1039,11 +1031,9 @@ async fn list_permissions(
 async fn settings(auth: AdminAuthReq) -> Result<AxumAdminResponse, AdminApiError> {
     handlers::settings(auth).await
 }
-#[derive(Debug, Clone, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumAdminAuthRouter(axum::Router);
-#[derive(Clone, newtype::IntoInnerFrom)]
-#[derive(newtype::FromInner)]
+#[derive(Clone, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct UtoipaAdminAuthOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminAuthOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1115,9 +1105,9 @@ impl AdminAuthSvcState {
                 })
                 .collect::<Vec<_>>()
                 .into(),
-            encoding_key: JsonwebtokenAdminEncodingKey::from(jsonwebtoken::EncodingKey::from_secret(
-                secret.as_bytes(),
-            )),
+            encoding_key: JsonwebtokenAdminEncodingKey::from(
+                jsonwebtoken::EncodingKey::from_secret(secret.as_bytes()),
+            ),
             issuer: issuer.clone(),
             password_hasher: super::AdminPasswordHasher::new(
                 super::AdminPasswordHashConcurrency::from(super::StdAdminNonZeroUsize::from(

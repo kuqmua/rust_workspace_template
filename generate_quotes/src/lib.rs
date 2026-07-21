@@ -1,12 +1,9 @@
 const QUOTED_LITERAL_MAX_LEN: usize = 1_048_576;
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct QuotePrefix(&'static str);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct QuoteChar(char);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct QuotePanicId(&'static str);
 #[derive(
     Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
@@ -110,7 +107,11 @@ pub fn binary_single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix::from(str_constants::B), QuoteChar::from('\''), v)
+    quote_literal(
+        QuotePrefix::from(str_constants::B),
+        QuoteChar::from('\''),
+        v,
+    )
 }
 #[must_use]
 pub fn binary_single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -129,7 +130,11 @@ pub fn binary_double_quoted_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix::from(str_constants::B), QuoteChar::from('\"'), v)
+    quote_literal(
+        QuotePrefix::from(str_constants::B),
+        QuoteChar::from('\"'),
+        v,
+    )
 }
 #[must_use]
 pub fn binary_double_quoted_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream

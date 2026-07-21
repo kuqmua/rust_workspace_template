@@ -40,7 +40,9 @@ impl From<metrics_exporter_prometheus::PrometheusHandle> for MetricsExporterProm
 }
 #[derive(Debug)]
 struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
-impl From<server_runtime::StdRequestTimeoutTryFromDurationError> for ServerRuntimeRequestTimeoutError {
+impl From<server_runtime::StdRequestTimeoutTryFromDurationError>
+    for ServerRuntimeRequestTimeoutError
+{
     fn from(value: server_runtime::StdRequestTimeoutTryFromDurationError) -> Self {
         Self(value)
     }
@@ -54,7 +56,9 @@ impl From<server_runtime::StdRunIntervalTryFromDurationError> for ServerRuntimeR
 }
 #[derive(Debug)]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
-impl From<server_runtime::BackgroundTaskShutdownError> for ServerRuntimeBackgroundTaskShutdownError {
+impl From<server_runtime::BackgroundTaskShutdownError>
+    for ServerRuntimeBackgroundTaskShutdownError
+{
     fn from(value: server_runtime::BackgroundTaskShutdownError) -> Self {
         Self(value)
     }
@@ -134,7 +138,9 @@ impl From<server_admin::auth::AdminAuthSvcStateBuildError> for ServerAdminAuthSv
 }
 #[derive(Debug)]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
-impl From<server_runtime::HttpContentSecurityPolicyError> for ServerRuntimeContentSecurityPolicyError {
+impl From<server_runtime::HttpContentSecurityPolicyError>
+    for ServerRuntimeContentSecurityPolicyError
+{
     fn from(value: server_runtime::HttpContentSecurityPolicyError) -> Self {
         Self(value)
     }
@@ -250,11 +256,13 @@ enum RunServerError {
 }
 #[allow(clippy::single_call_fn)] // keeps validated maintenance policy separate from startup orchestration
 fn mk_admin_cleanup_cfg() -> Result<server_admin::AdminCleanupCfg, RunServerError> {
-    let batch_size = server_admin::AdminCleanupBatchSize::try_from(1_000i64)
-        .map_err(|error| RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error)))?;
+    let batch_size = server_admin::AdminCleanupBatchSize::try_from(1_000i64).map_err(|error| {
+        RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error))
+    })?;
     let retention = |seconds| {
-        server_admin::AdminCleanupRetentionSeconds::try_from(seconds)
-            .map_err(|error| RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error)))
+        server_admin::AdminCleanupRetentionSeconds::try_from(seconds).map_err(|error| {
+            RunServerError::AdminCleanupConfig(ServerAdminCleanupCfgError::from(error))
+        })
     };
     Ok(server_admin::AdminCleanupCfg::new(
         batch_size,
@@ -363,7 +371,7 @@ fn mk_app_state(
             ),
         ),
         pg_pool,
-        project_git_info: &git_info::PROJECT_GIT_INFO,
+        project_git_info: git_info::project_git_info(),
     }))
 }
 #[allow(clippy::single_call_fn)] // tracing initialization is split out so runtime bootstrap stays focused
@@ -675,7 +683,9 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
         .shutdown(request_timeout)
         .await
         .map_err(|error| {
-            RunServerError::AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError::from(error))
+            RunServerError::AdminCleanupShutdown(ServerRuntimeBackgroundTaskShutdownError::from(
+                error,
+            ))
         })?;
     serve_result.map_err(|error| RunServerError::Serve(ServerRuntimeServeError::from(error)))?;
     Ok(())

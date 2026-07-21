@@ -1,13 +1,17 @@
 #[derive(Clone, Copy, Debug)]
 struct ProjectNameRef<'value>(&'value str);
 impl<'value> From<&'value str> for ProjectNameRef<'value> {
-    fn from(value: &'value str) -> Self { Self(value) }
+    fn from(value: &'value str) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
 struct RepositoryUrlRef<'value>(&'value str);
 impl<'value> From<&'value str> for RepositoryUrlRef<'value> {
-    fn from(value: &'value str) -> Self { Self(value) }
+    fn from(value: &'value str) -> Self {
+        Self(value)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -9,22 +9,14 @@ impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
-pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
-    &'header_value_lt axum::http::HeaderValue,
-);
+pub(crate) struct AxumHeaderValueRef<'header_value_lt>(&'header_value_lt axum::http::HeaderValue);
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    newtype::AsRefInner,
-    newtype::DerefTarget,
-    newtype::FromInner,
+    Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::DerefTarget, newtype::FromInner,
 )]
 pub(crate) struct HeaderStrRef<'header_str_lt>(&'header_str_lt str);
 #[cfg(test)]
 impl<'header_str_lt> HeaderStrRef<'header_str_lt> {
+    #[allow(clippy::single_call_fn)] // typed accessor keeps test assertions from exposing the tuple field
     pub(crate) const fn get(self) -> &'header_str_lt str {
         self.0
     }

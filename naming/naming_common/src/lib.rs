@@ -69,16 +69,14 @@ naming_common_macros::case_trait_pair!(
     quote::ToTokens,
     |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct ConvertCaseKind(convert_case::Case<'static>);
 #[derive(
     Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
 )]
 #[bounded_string(max = CASE_STRING_MAX_LEN )]
 struct CaseString(String);
-#[derive(Debug, Clone)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, newtype::FromInner)]
 struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);
 fn to_token_stream_or_panic<T>(v: &T) -> ProcMacro2CaseTokenStream
 where

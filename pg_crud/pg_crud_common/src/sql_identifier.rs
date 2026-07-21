@@ -29,6 +29,11 @@ pub struct SqlQualifiedIdentifier {
 pub struct SqlIdentifiers(Vec<SqlIdentifier>);
 #[derive(Debug)]
 struct SqlQueryText(String);
+impl From<crate::PgCrudStringWrapperTryFromStringError> for SqlQueryText {
+    fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
+        Self(value.to_string())
+    }
+}
 impl TryFrom<String> for SqlQueryText {
     type Error = crate::PgCrudStringWrapperTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -76,7 +81,7 @@ impl SqlSelectBuilder {
             .sum::<usize>();
         let mut query =
             SqlQueryText::try_from(String::with_capacity(columns_len.saturating_add(32usize)))
-                .unwrap_or_else(|_error| SqlQueryText::from(String::new()));
+                .unwrap_or_else(SqlQueryText::from);
         query.0.push_str(str_constants::SELECT);
         self.columns.0.iter().enumerate().for_each(|(idx, column)| {
             if idx != 0usize {

@@ -271,7 +271,10 @@ impl MultipartUploadRequest {
         part: MultipartBytesPart,
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(MultipartValueLength::from(part.bytes().as_ref().len()), maximum)?;
+        self.ensure_additional_part(
+            MultipartValueLength::from(part.bytes().as_ref().len()),
+            maximum,
+        )?;
         self.bytes_parts.0.push(part);
         Ok(self)
     }
@@ -280,7 +283,10 @@ impl MultipartUploadRequest {
         part: MultipartTextPart,
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(MultipartValueLength::from(part.value().as_ref().len()), maximum)?;
+        self.ensure_additional_part(
+            MultipartValueLength::from(part.value().as_ref().len()),
+            maximum,
+        )?;
         self.text_parts.0.push(part);
         Ok(self)
     }

@@ -168,16 +168,18 @@ fn push_identifier_list(
 }
 
 #[must_use]
-pub const fn reconcile_pg_counter(
+pub fn reconcile_pg_counter(
     tracked: PgCounterValue,
     actual: PgCounterValue,
 ) -> PgCounterReconciliation {
-    if actual.0 > tracked.0 {
-        PgCounterReconciliation::ActualAhead(PgCounterValue::from(actual.0.saturating_sub(tracked.0)))
-    } else if tracked.0 > actual.0 {
-        PgCounterReconciliation::TrackedAhead(PgCounterValue::from(tracked.0.saturating_sub(actual.0)))
-    } else {
-        PgCounterReconciliation::InSync
+    match actual.0.cmp(&tracked.0) {
+        std::cmp::Ordering::Greater => PgCounterReconciliation::ActualAhead(PgCounterValue::from(
+            actual.0.saturating_sub(tracked.0),
+        )),
+        std::cmp::Ordering::Less => PgCounterReconciliation::TrackedAhead(PgCounterValue::from(
+            tracked.0.saturating_sub(actual.0),
+        )),
+        std::cmp::Ordering::Equal => PgCounterReconciliation::InSync,
     }
 }
 

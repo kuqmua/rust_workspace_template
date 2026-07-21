@@ -1,5 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::Display, newtype::FromInner)]
 struct TracingLevelName(&'static str);
 #[derive(Debug)]
 struct StdEnvVarResult(Result<String, std::env::VarError>);
@@ -15,14 +14,11 @@ impl TryFrom<Result<String, std::env::VarError>> for StdEnvVarResult {
         }
     }
 }
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarNameRef<'name_lt>(&'name_lt str);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct EnvVarValueRef<'value_lt>(&'value_lt str);
-#[derive(Debug, Clone, Copy)]
-#[derive(newtype::FromInner)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct ParseCtxRef(&'static str);
 #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
 struct EnvParseError(String);

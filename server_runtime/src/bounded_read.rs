@@ -80,7 +80,7 @@ impl From<std::num::NonZeroUsize> for StdBoundedReadConcurrencyMaximum {
 impl StdBoundedReadConcurrency {
     #[must_use]
     pub fn new(maximum_concurrent_reads: StdBoundedReadConcurrencyMaximum) -> Self {
-        Self(std::sync::Arc::new(tokio::sync::Semaphore::new(
+        Self::from(std::sync::Arc::new(tokio::sync::Semaphore::new(
             maximum_concurrent_reads.0.get(),
         )))
     }
@@ -452,7 +452,8 @@ mod tests {
                 .to_vec(),
         );
         let _json = super::parse_bounded_json(&valid).expect("712a0ea9");
-        let invalid = super::BoundedBytes::from(str_constants::TEST_INVALID_JSON.as_bytes().to_vec());
+        let invalid =
+            super::BoundedBytes::from(str_constants::TEST_INVALID_JSON.as_bytes().to_vec());
         assert!(matches!(
             super::parse_bounded_json(&invalid),
             Err(super::BoundedJsonReadError::SerdeJson(_))

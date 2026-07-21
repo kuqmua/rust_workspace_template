@@ -7,14 +7,6 @@ mod runtime_policy;
 mod snapshot;
 mod source_policy;
 mod types;
-fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 1] {
-    [ExternalLeafWrapperNameException {
-        identifier: types::StaticStr::from(
-            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
-        ),
-        reason: types::StaticStr::from(str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON),
-    }]
-}
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
     reason: types::StaticStr,
@@ -1093,13 +1085,14 @@ struct DirectDeserializeTupleWrapperVisitor {
     ers: types::DiagnosticMsgs,
 }
 struct TupleWrapperConversionCollector {
-    names: types::StdSourceTextSet,
     converted_names: types::StdSourceTextSet,
+    names: types::StdSourceTextSet,
 }
 struct DirectTupleWrapperConstructorVisitor<'names> {
-    names: &'names types::StdSourceTextSet,
-    inside_conversion_impl: types::AnalyzerBool,
+    current_wrapper_name: Option<String>,
     ers: types::DiagnosticMsgs,
+    inside_conversion_impl: types::AnalyzerBool,
+    names: &'names types::StdSourceTextSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
@@ -1129,6 +1122,14 @@ impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
     }
 }
 impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        if item_impl_is_from_or_try_from(types::SynItemImplRef::from(i)).get()
+            && let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
+        {
+            let _: bool = self.converted_names.insert(name.as_ref().to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
         if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get() {
             let name = i.ident.to_string();
@@ -1139,37 +1140,40 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
         }
         syn::visit::visit_item_struct(self, i);
     }
-    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        if item_impl_is_from_or_try_from(types::SynItemImplRef::from(i)).get()
-            && let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
-        {
-            let _: bool = self.converted_names.insert(name.as_ref().to_owned());
-        }
-        syn::visit::visit_item_impl(self, i);
-    }
 }
 impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> {
-    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
-        let previous = self.inside_conversion_impl;
-        self.inside_conversion_impl = item_impl_is_from_or_try_from(types::SynItemImplRef::from(i));
-        syn::visit::visit_item_impl(self, i);
-        self.inside_conversion_impl = previous;
-    }
     fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
         if !self.inside_conversion_impl.get()
             && let syn::Expr::Path(path) = i.func.as_ref()
             && let Some(segment) = path.path.segments.last()
-            && self.names.contains(segment.ident.to_string().as_str())
+            && (self.names.contains(segment.ident.to_string().as_str())
+                || (segment.ident == str_constants::SELF && self.current_wrapper_name.is_some()))
         {
             let span = syn::spanned::Spanned::span(i.func.as_ref());
             let start = span.start();
             let end = span.end();
+            let wrapper_name = self
+                .current_wrapper_name
+                .as_deref()
+                .filter(|_| segment.ident == str_constants::SELF)
+                .map_or_else(|| segment.ident.to_string(), str::to_owned);
             self.ers.push(format!(
                 "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
-                segment.ident, start.line, start.column, end.line, end.column
+                wrapper_name, start.line, start.column, end.line, end.column
             ));
         }
         syn::visit::visit_expr_call(self, i);
+    }
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let previous = self.inside_conversion_impl;
+        let previous_wrapper_name = self.current_wrapper_name.take();
+        self.inside_conversion_impl = item_impl_is_from_or_try_from(types::SynItemImplRef::from(i));
+        self.current_wrapper_name = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
+            .map(|name| name.as_ref().to_owned())
+            .filter(|name| self.names.contains(name));
+        syn::visit::visit_item_impl(self, i);
+        self.inside_conversion_impl = previous;
+        self.current_wrapper_name = previous_wrapper_name;
     }
 }
 struct DeclaredDomainTypeVisitor {
@@ -1928,6 +1932,17 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         })
     }
 }
+#[allow(clippy::single_call_fn)] // named exception source keeps policy data separate from its validation loop
+fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 1] {
+    [ExternalLeafWrapperNameException {
+        identifier: types::StaticStr::from(
+            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
+        ),
+        reason: types::StaticStr::from(
+            str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON,
+        ),
+    }]
+}
 #[allow(clippy::single_call_fn)] // validates every external wrapper naming exception has an explicit reason before matching idents
 fn is_external_leaf_wrapper_name_exception(
     identifier: types::SourceTextRef<'_>,
@@ -2654,42 +2669,49 @@ fn item_struct_single_field_is_non_private(
         syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
     })
 }
+#[allow(clippy::single_call_fn)] // isolated serde derive detection keeps the visitor condition declarative
 fn item_struct_derives_deserialize(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        attr.path().is_ident("derive")
+        attr.path().is_ident(str_constants::DERIVE)
             && match &attr.meta {
-                syn::Meta::List(list) => list.tokens.to_string().contains("Deserialize"),
+                syn::Meta::List(list) => list
+                    .tokens
+                    .to_string()
+                    .contains(str_constants::CODE_STYLE_DESERIALIZE_DERIVE_NAME),
                 syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
             }
     }))
 }
+#[allow(clippy::single_call_fn)] // isolated serde conversion detection keeps attribute parsing reusable and testable
 fn item_struct_deserialize_uses_conversion(
     item: types::SynItemStructRef<'_>,
 ) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        if !attr.path().is_ident("serde") {
+        if !attr.path().is_ident(str_constants::SERDE) {
             return false;
         }
         match &attr.meta {
             syn::Meta::List(list) => {
                 let tokens = list.tokens.to_string();
-                tokens.contains("from =") || tokens.contains("try_from =")
+                tokens.contains(str_constants::CODE_STYLE_SERDE_FROM_ATTR_FRAGMENT)
+                    || tokens.contains(str_constants::CODE_STYLE_SERDE_TRY_FROM_ATTR_FRAGMENT)
             }
             syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
         }
     }))
 }
+#[allow(clippy::single_call_fn)] // conversion derive recognition is kept separate from wrapper collection
 fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
-        if !attr.path().is_ident("derive") {
+        if !attr.path().is_ident(str_constants::DERIVE) {
             return false;
         }
         match &attr.meta {
             syn::Meta::List(list) => {
                 let tokens = list.tokens.to_string();
-                tokens.contains("FromInner")
-                    || tokens.contains("BoundedString")
-                    || tokens.contains("TryFrom")
+                tokens.contains(str_constants::NEWTYPE_FROM_INNER_DERIVE_NAME)
+                    || tokens.contains(str_constants::BOUNDEDSTRING)
+                    || tokens.contains(str_constants::TRYFROM)
             }
             syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
         }
@@ -2698,7 +2720,7 @@ fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::A
 fn item_impl_is_from_or_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
     types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
         path.segments.last().is_some_and(|segment| {
-            segment.ident == "From" || segment.ident == "TryFrom"
+            segment.ident == str_constants::FROM_ALT_3 || segment.ident == str_constants::TRYFROM
         })
     }))
 }
