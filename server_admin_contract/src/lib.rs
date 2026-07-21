@@ -1815,6 +1815,85 @@ impl AdminAuditHtmlQuery {
     }
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
+pub struct AdminDataColumn {
+    input_kind: AdminDataInputKind,
+    label: AdminText,
+    name: AdminText,
+}
+impl AdminDataColumn {
+    #[must_use]
+    pub const fn new(input_kind: AdminDataInputKind, label: AdminText, name: AdminText) -> Self {
+        Self {
+            input_kind,
+            label,
+            name,
+        }
+    }
+    #[must_use]
+    pub const fn input_kind(&self) -> AdminDataInputKind {
+        self.input_kind
+    }
+    #[must_use]
+    pub const fn label(&self) -> &AdminText {
+        &self.label
+    }
+    #[must_use]
+    pub const fn name(&self) -> &AdminText {
+        &self.name
+    }
+}
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum AdminDataInputKind {
+    Checkbox,
+    Date,
+    DateTime,
+    Number,
+    Text,
+    Time,
+    Uuid,
+}
+impl From<frontend_contract::InputKind> for AdminDataInputKind {
+    fn from(value: frontend_contract::InputKind) -> Self {
+        match value {
+            frontend_contract::InputKind::Checkbox => Self::Checkbox,
+            frontend_contract::InputKind::Date => Self::Date,
+            frontend_contract::InputKind::DateTime => Self::DateTime,
+            frontend_contract::InputKind::Number => Self::Number,
+            frontend_contract::InputKind::Text => Self::Text,
+            frontend_contract::InputKind::Time => Self::Time,
+            frontend_contract::InputKind::Uuid => Self::Uuid,
+        }
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, utoipa::ToSchema)]
+#[serde(transparent)]
+pub struct AdminDataColumns(#[schema(max_items = 10000)] Vec<AdminDataColumn>);
+impl TryFrom<Vec<AdminDataColumn>> for AdminDataColumns {
+    type Error = AdminCollectionError;
+    fn try_from(value: Vec<AdminDataColumn>) -> Result<Self, Self::Error> {
+        AdminBoundedVec::try_from(value).map(|bounded| Self(bounded.0))
+    }
+}
+impl AdminDataColumns {
+    #[must_use]
+    pub const fn as_slice(&self) -> &[AdminDataColumn] {
+        self.0.as_slice()
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminDataColumns {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        let bounded =
+            <AdminBoundedVec<AdminDataColumn> as serde::Deserialize>::deserialize(deserializer)?;
+        Self::try_from(bounded.0).map_err(serde::de::Error::custom)
+    }
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataRow {
     values: AdminTexts,
 }
@@ -1830,7 +1909,7 @@ impl AdminDataRow {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema)]
 pub struct AdminDataTableView {
-    columns: AdminTexts,
+    columns: AdminDataColumns,
     items: AdminDataRows,
     table: AdminDataTable,
     #[schema(value_type = u64)]
@@ -1839,7 +1918,7 @@ pub struct AdminDataTableView {
 impl AdminDataTableView {
     #[must_use]
     pub const fn new(
-        columns: AdminTexts,
+        columns: AdminDataColumns,
         items: AdminDataRows,
         table: AdminDataTable,
         total: AdminPageTotal,
@@ -1852,7 +1931,7 @@ impl AdminDataTableView {
         }
     }
     #[must_use]
-    pub const fn columns(&self) -> &[AdminText] {
+    pub const fn columns(&self) -> &[AdminDataColumn] {
         self.columns.0.as_slice()
     }
     #[must_use]

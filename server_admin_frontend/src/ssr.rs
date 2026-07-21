@@ -282,6 +282,29 @@ fn table_pagination(
     }
 }
 
+#[allow(clippy::single_call_fn)] // isolates the metadata-driven grid for focused SSR contract testing
+fn data_table_grid(
+    view: &server_admin_contract::AdminDataTableView,
+) -> impl leptos::prelude::IntoView {
+    leptos::view! {
+        <div class="table-scroll"><table>
+            <thead><tr>{view.columns().iter().map(|column| {
+                let field = column.name().to_string();
+                leptos::view! { <th data-field=field>{column.label().to_string()}</th> }
+            }).collect::<Vec<_>>()}</tr></thead>
+            <tbody>{view.items().iter().map(|row| leptos::view! {
+                <tr>{row.values().iter().enumerate().map(|(index, value)| {
+                    let column = view.columns().get(index);
+                    let label = column.map_or_else(String::new, |item| item.label().to_string());
+                    let field = column.map_or_else(String::new, |item| item.name().to_string());
+                    let numeric = column.is_some_and(|item| matches!(item.input_kind(), server_admin_contract::AdminDataInputKind::Number));
+                    leptos::view! { <td class=("numeric-cell", numeric) data-field=field data-label=label>{value.to_string()}</td> }
+                }).collect::<Vec<_>>()}</tr>
+            }).collect::<Vec<_>>()}</tbody>
+        </table></div>
+    }
+}
+
 #[must_use]
 pub fn render_users(
     page: &server_admin_contract::AdminUsersPage,
@@ -403,15 +426,7 @@ pub fn render_data_tables(
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section class="table-page">
-                <div class="table-scroll"><table>
-                    <thead><tr>{view.columns().iter().map(|column| leptos::view! { <th>{column.to_string()}</th> }).collect::<Vec<_>>()}</tr></thead>
-                    <tbody>{view.items().iter().map(|row| leptos::view! {
-                        <tr>{row.values().iter().enumerate().map(|(index, value)| {
-                            let label = view.columns().get(index).map_or_else(String::new, ToString::to_string);
-                            leptos::view! { <td data-label=label>{value.to_string()}</td> }
-                        }).collect::<Vec<_>>()}</tr>
-                    }).collect::<Vec<_>>()}</tbody>
-                </table></div>
+                {data_table_grid(view)}
                 {table_pagination(server_admin_contract::AdminPage::Tables, query, view.total(), Some(view.table()), None)}
             </section>
         })}
@@ -593,6 +608,48 @@ pub fn render_text_page_with_access(
 #[cfg(test)]
 mod tests {
     use super::AdminSsrViewExt;
+
+    #[test]
+    fn generated_column_metadata_drives_data_table_markup() {
+        let columns = server_admin_contract::AdminDataColumns::try_from(vec![
+            server_admin_contract::AdminDataColumn::new(
+                server_admin_contract::AdminDataInputKind::Number,
+                server_admin_contract::AdminText::try_from(String::from("User identifier"))
+                    .expect("f707908b"),
+                server_admin_contract::AdminText::try_from(String::from("id")).expect("694184c1"),
+            ),
+            server_admin_contract::AdminDataColumn::new(
+                server_admin_contract::AdminDataInputKind::Text,
+                server_admin_contract::AdminText::try_from(String::from("Login name"))
+                    .expect("0336b6ad"),
+                server_admin_contract::AdminText::try_from(String::from("login"))
+                    .expect("fdcaa4d2"),
+            ),
+        ])
+        .expect("57462ad9");
+        let values = server_admin_contract::AdminTexts::try_from(vec![
+            server_admin_contract::AdminText::try_from(String::from("42")).expect("32862269"),
+            server_admin_contract::AdminText::try_from(String::from("alice")).expect("77e6370f"),
+        ])
+        .expect("58fed1d1");
+        let rows = server_admin_contract::AdminDataRows::try_from(vec![
+            server_admin_contract::AdminDataRow::new(values),
+        ])
+        .expect("ac944ccc");
+        let view = server_admin_contract::AdminDataTableView::new(
+            columns,
+            rows,
+            server_admin_contract::AdminDataTable::Users,
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+
+        let html = super::data_table_grid(&view).render_admin_ssr();
+
+        assert!(html.as_ref().contains("data-field=\"id\""));
+        assert!(html.as_ref().contains(">User identifier</th>"));
+        assert!(html.as_ref().contains("class=\"numeric-cell\""));
+        assert!(html.as_ref().contains("data-label=\"Login name\""));
+    }
 
     #[test]
     fn server_rendered_pages_contain_forms_and_no_scripts() {
