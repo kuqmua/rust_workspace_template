@@ -439,7 +439,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     let html_metrics_handle = metrics_handle.clone();
     let admin_metrics_routes = axum::Router::new()
         .route(
-            str_constants::METRICS,
+            server_admin_contract::AdminFrontendPath::Metrics.get(),
             axum::routing::get(async move || {
                 server_runtime::MetricsResponseBody::try_from(html_metrics_handle.0.render())
                     .map_or_else(
@@ -520,10 +520,7 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
                             )
                             .merge(axum::Router::from(server_admin_frontend::routes()))
                             .merge(axum::Router::from(admin_html_routes))
-                            .nest(
-                                server_admin_contract::AdminFrontendPath::Root.get(),
-                                admin_metrics_routes,
-                            )
+                            .merge(admin_metrics_routes)
                             .merge(axum::Router::from(frontend_fallback_routes()))
                             .layer(
                                 tower_http::compression::CompressionLayer::new()
