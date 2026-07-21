@@ -158,7 +158,7 @@ impl CursorCodec {
         if cursor_text.len() > self.maximum_length.0 {
             return Err(CursorEncodeError::MaximumLengthExceeded);
         }
-        Ok(SignedCursor(cursor_text))
+        Ok(SignedCursor::from(cursor_text))
     }
 
     pub fn decode(&self, cursor: &SignedCursor) -> Result<CursorPayload, CursorDecodeError> {

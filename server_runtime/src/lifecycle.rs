@@ -5,6 +5,11 @@ pub enum BackgroundTaskOutcome {
 }
 #[derive(Debug)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
+impl From<tokio::task::JoinError> for TokioTaskJoinError {
+    fn from(value: tokio::task::JoinError) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for TokioTaskJoinError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -70,7 +75,7 @@ impl BackgroundTask {
             Some(handle) => handle
                 .0
                 .await
-                .map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError(error))),
+                .map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error))),
             None => Ok(BackgroundTaskOutcome::Completed),
         };
         drop(shutdown_tx);
@@ -88,7 +93,7 @@ impl BackgroundTask {
         };
         match tokio::time::timeout(timeout.get(), &mut handle).await {
             Ok(result) => {
-                result.map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError(error)))
+                result.map_err(|error| BackgroundTaskShutdownError::Join(TokioTaskJoinError::from(error)))
             }
             Err(_elapsed) => {
                 handle.abort();

@@ -49,8 +49,16 @@ impl From<usize> for HttpAcceptHeaderMaximumBytes {
 }
 #[derive(Clone, Copy)]
 struct HttpMediaRangeRef<'value_lt>(&'value_lt str);
+impl<'value_lt> From<&'value_lt str> for HttpMediaRangeRef<'value_lt> {
+    fn from(value: &'value_lt str) -> Self { Self(value) }
+}
 #[derive(Clone, Copy)]
 struct AcceptsApplicationJson(bool);
+impl From<bool> for AcceptsApplicationJson {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 
 #[must_use]
 pub fn fallback_response_mode(
@@ -80,7 +88,7 @@ pub fn fallback_response_mode(
                 .enumerate()
                 .any(|(index, range)| {
                     index < MAXIMUM_ACCEPT_MEDIA_RANGE_COUNT
-                        && media_range_accepts_json(HttpMediaRangeRef(range)).0
+                        && media_range_accepts_json(HttpMediaRangeRef::from(range)).0
                 })
         });
     if accepts_json {
@@ -92,7 +100,7 @@ pub fn fallback_response_mode(
 
 fn media_range_accepts_json(range: HttpMediaRangeRef<'_>) -> AcceptsApplicationJson {
     let mut segments = range.0.split(';').map(str::trim);
-    AcceptsApplicationJson(
+    AcceptsApplicationJson::from(
         segments.next().is_some_and(|media_type| {
             media_type.eq_ignore_ascii_case(str_constants::APPLICATION_JSON)
         }) && !segments.any(|parameter| {

@@ -30,7 +30,7 @@ pub enum ApiProblemKind {
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-#[serde(transparent)]
+#[serde(from = "u16")]
 pub struct ApiProblemStatus(u16);
 #[derive(
     Clone,

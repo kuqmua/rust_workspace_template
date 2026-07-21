@@ -8,12 +8,27 @@ impl<'headers_lt> From<&'headers_lt crate::test_hlp::AxumTestHeaders>
         Self(value.as_ref())
     }
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub(crate) struct AxumHeaderValueRef<'header_value_lt>(
-    pub &'header_value_lt axum::http::HeaderValue,
+    &'header_value_lt axum::http::HeaderValue,
 );
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefInner, newtype::DerefTarget)]
-pub(crate) struct HeaderStrRef<'header_str_lt>(pub &'header_str_lt str);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    newtype::AsRefInner,
+    newtype::DerefTarget,
+    newtype::FromInner,
+)]
+pub(crate) struct HeaderStrRef<'header_str_lt>(&'header_str_lt str);
+#[cfg(test)]
+impl<'header_str_lt> HeaderStrRef<'header_str_lt> {
+    pub(crate) const fn get(self) -> &'header_str_lt str {
+        self.0
+    }
+}
 #[allow(clippy::single_call_fn)] // shared helper centralizes required-header extraction and no-header error mapping
 fn get_required_header_value<E>(
     headers: AxumHeadersRef<'_>,
@@ -23,7 +38,7 @@ fn get_required_header_value<E>(
     headers
         .0
         .get(header_name)
-        .map(AxumHeaderValueRef)
+        .map(AxumHeaderValueRef::from)
         .ok_or_else(no_header_error)
 }
 #[allow(clippy::single_call_fn)] // shared helper keeps HeaderValue->str conversion and error mapping centralized for header parsers

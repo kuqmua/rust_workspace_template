@@ -225,6 +225,11 @@ impl From<AxumRouter> for axum::Router {
 }
 #[derive(Clone, Debug)]
 pub struct ReqwestClient(reqwest::Client);
+impl From<reqwest::Client> for ReqwestClient {
+    fn from(value: reqwest::Client) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Copy, Debug)]
 pub struct StdReqwestConnectTimeout(std::time::Duration);
 #[derive(Clone, Copy, Debug)]
@@ -271,6 +276,11 @@ impl ReqwestClientPolicy {
 }
 #[derive(Debug)]
 pub struct ReqwestClientBuildError(reqwest::Error);
+impl From<reqwest::Error> for ReqwestClientBuildError {
+    fn from(value: reqwest::Error) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for ReqwestClientBuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -332,7 +342,7 @@ pub struct RequestIdLayer;
 impl RequestIdLayer {
     #[must_use]
     pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter(router.0.layer(RequestIdTowerLayer))
+        AxumRouter::from(router.0.layer(RequestIdTowerLayer))
     }
 }
 #[derive(Clone, Copy, Debug)]
@@ -426,6 +436,11 @@ impl From<StdRequestTimeout> for RequestTimeoutLayer {
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[serde(transparent)]
 struct StdRequestTimeoutMessage(&'static str);
+impl From<&'static str> for StdRequestTimeoutMessage {
+    fn from(value: &'static str) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, serde::Serialize)]
 struct RequestTimeoutBody {
     error: StdRequestTimeoutMessage,
@@ -433,11 +448,16 @@ struct RequestTimeoutBody {
 impl RequestTimeoutLayer {
     #[must_use]
     pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter(router.0.layer(RequestTimeoutTowerLayer(self.0)))
+        AxumRouter::from(router.0.layer(RequestTimeoutTowerLayer::from(self.0)))
     }
 }
 #[derive(Clone, Copy, Debug)]
 struct RequestTimeoutTowerLayer(StdRequestTimeout);
+impl From<StdRequestTimeout> for RequestTimeoutTowerLayer {
+    fn from(value: StdRequestTimeout) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug)]
 struct RequestTimeoutService<Service> {
     inner: Service,
@@ -475,7 +495,7 @@ where
                     let mut response = axum::response::IntoResponse::into_response((
                         http::StatusCode::SERVICE_UNAVAILABLE,
                         axum::Json(RequestTimeoutBody {
-                            error: StdRequestTimeoutMessage(str_constants::REQUEST_TIMEOUT),
+                            error: StdRequestTimeoutMessage::from(str_constants::REQUEST_TIMEOUT),
                         }),
                     ));
                     if let Ok(value) = http::HeaderValue::from_str(retry_after.as_str()) {
@@ -532,7 +552,7 @@ impl From<ForwardedProtoTrust> for SecurityHeadersLayer {
 impl SecurityHeadersLayer {
     #[must_use]
     pub fn apply(self, router: AxumRouter) -> AxumRouter {
-        AxumRouter(router.0.layer(SecurityHeadersTowerLayer {
+        AxumRouter::from(router.0.layer(SecurityHeadersTowerLayer {
             content_security_policy: self.content_security_policy,
             forwarded_proto_trust: self.forwarded_proto_trust,
         }))
@@ -649,6 +669,11 @@ where
 }
 #[derive(Debug)]
 pub struct StdServeIoError(std::io::Error);
+impl From<std::io::Error> for StdServeIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for StdServeIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -682,7 +707,7 @@ impl std::error::Error for ServeWithGracefulShutdownError {
 }
 #[must_use]
 pub fn add_status_route(router: AxumRouter) -> AxumRouter {
-    AxumRouter(router.0.route(
+    AxumRouter::from(router.0.route(
         str_constants::STATUS,
         axum::routing::get(async || http::StatusCode::OK),
     ))

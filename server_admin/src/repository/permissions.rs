@@ -73,7 +73,7 @@ pub(crate) async fn replace_role_permissions(
 ) -> Result<super::ReplaceRolePermissionsOutcome, crate::SqlxAdminError> {
     let optional_is_system =
         sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL)
-            .bind(role_id.0)
+            .bind(role_id.get())
             .fetch_optional(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
@@ -85,7 +85,7 @@ pub(crate) async fn replace_role_permissions(
     }
     let current_permission_ids =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
-            .bind(role_id.0)
+            .bind(role_id.get())
             .fetch_all(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
@@ -114,13 +114,13 @@ pub(crate) async fn replace_role_permissions(
     }
     let _delete_result =
         sqlx::query(str_constants::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL)
-            .bind(role_id.0)
+            .bind(role_id.get())
             .execute(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
     let _insert_result =
         sqlx::query(str_constants::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
-            .bind(role_id.0)
+            .bind(role_id.get())
             .bind(&raw_ids)
             .execute(connection.0)
             .await

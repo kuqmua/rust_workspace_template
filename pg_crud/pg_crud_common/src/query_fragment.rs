@@ -12,7 +12,7 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the private parent module assembles query fragments without widening public API"
 )]
-pub struct QueryPartFragment(pub(super) String);
+pub struct QueryPartFragment(String);
 impl QueryPartFragment {
     #[must_use]
     pub fn into_inner(self) -> String {

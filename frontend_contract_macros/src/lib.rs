@@ -21,6 +21,11 @@ impl From<syn::Ident> for SynIdent {
     }
 }
 struct StdBool(bool);
+impl From<bool> for StdBool {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 struct RouteCatalogArgs {
     body_limit: SynExpr,
     family: SynIdent,
@@ -148,12 +153,12 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if input.peek(syn::Ident) && input.peek2(syn::Token![=]) {
             let mut contract = None;
-            let mut exclude_from_family = StdBool(false);
+            let mut exclude_from_family = StdBool::from(false);
             let mut path = None;
             while !input.is_empty() {
                 let name = input.parse::<syn::Ident>()?;
                 if name == str_constants::ROUTE_CATALOG_EXCLUDE_FROM_FAMILY {
-                    exclude_from_family = StdBool(true);
+                    exclude_from_family = StdBool::from(true);
                 } else {
                     let _equals = input.parse::<syn::Token![=]>()?;
                     if name == str_constants::ROUTE_CATALOG_CONTRACT {
@@ -185,7 +190,7 @@ impl syn::parse::Parse for RouteCatalogRouteArgs {
         } else {
             Ok(Self {
                 contract: None,
-                exclude_from_family: StdBool(false),
+                exclude_from_family: StdBool::from(false),
                 path: None,
                 route: Some(SynType::from(input.parse::<syn::Type>()?)),
             })
@@ -212,16 +217,36 @@ struct RouteRegistryBinding {
     route: SynRouteRegistryRoute,
 }
 struct SynRouteRegistryHandler(syn::Path);
+impl From<syn::Path> for SynRouteRegistryHandler {
+    fn from(value: syn::Path) -> Self {
+        Self(value)
+    }
+}
 struct SynRouteRegistryRoute(syn::Type);
+impl From<syn::Type> for SynRouteRegistryRoute {
+    fn from(value: syn::Type) -> Self {
+        Self(value)
+    }
+}
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
+impl From<syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>> for SynRouteRegistryBindings {
+    fn from(value: syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>) -> Self {
+        Self(value)
+    }
+}
 struct SynRouteRegistryState(syn::Type);
+impl From<syn::Type> for SynRouteRegistryState {
+    fn from(value: syn::Type) -> Self {
+        Self(value)
+    }
+}
 impl syn::parse::Parse for RouteRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
         let _parenthesis = syn::parenthesized!(content in input);
-        let route = SynRouteRegistryRoute(content.parse::<syn::Type>()?);
+        let route = SynRouteRegistryRoute::from(content.parse::<syn::Type>()?);
         let _comma = content.parse::<syn::Token![,]>()?;
-        let handler = SynRouteRegistryHandler(content.parse::<syn::Path>()?);
+        let handler = SynRouteRegistryHandler::from(content.parse::<syn::Path>()?);
         Ok(Self { handler, route })
     }
 }
@@ -262,7 +287,7 @@ impl syn::parse::Parse for RouteRegistryArgs {
             ));
         }
         let _equals = input.parse::<syn::Token![=]>()?;
-        let state = SynRouteRegistryState(input.parse::<syn::Type>()?);
+        let state = SynRouteRegistryState::from(input.parse::<syn::Type>()?);
         let _security_semicolon = input.parse::<syn::Token![;]>()?;
         let security_content;
         let _parenthesis = syn::parenthesized!(security_content in input);
@@ -279,7 +304,7 @@ impl syn::parse::Parse for RouteRegistryArgs {
         }
         Ok(Self {
             authenticated_security,
-            bindings: SynRouteRegistryBindings(bindings),
+            bindings: SynRouteRegistryBindings::from(bindings),
             csrf_security,
             state,
         })

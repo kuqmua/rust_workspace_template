@@ -62,10 +62,25 @@ mod tests {
     struct UsizeValue(usize);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::ToErrStringDebug)]
     struct DebugValue(Vec<u8>);
+    impl From<Vec<u8>> for DebugValue {
+        fn from(value: Vec<u8>) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRef, newtype::IntoInner)]
     struct InnerValue(u16);
+    impl From<u16> for InnerValue {
+        fn from(value: u16) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Debug, Clone, PartialEq, Eq, newtype::AsSlice, newtype::IntoVec)]
     struct VecValue<T>(Vec<T>);
+    impl<T> From<Vec<T>> for VecValue<T> {
+        fn from(value: Vec<T>) -> Self {
+            Self(value)
+        }
+    }
     #[derive(
         Debug,
         Clone,
@@ -79,6 +94,11 @@ mod tests {
     struct InnerVecValue<T>(Vec<T>);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::DerefMutTarget, newtype::DerefTarget)]
     struct TargetVecValue(Vec<u8>);
+    impl From<Vec<u8>> for TargetVecValue {
+        fn from(value: Vec<u8>) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
     struct DescribedValue(String);
@@ -104,12 +124,32 @@ mod tests {
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
     #[derive(newtype::DebugTransparent)]
     struct TransparentDebugValue(u16);
+    impl From<u16> for TransparentDebugValue {
+        fn from(value: u16) -> Self {
+            Self(value)
+        }
+    }
     #[derive(newtype::DebugRedacted)]
     struct RedactedDebugValue(Vec<u8>);
+    impl From<Vec<u8>> for RedactedDebugValue {
+        fn from(value: Vec<u8>) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
     struct StdTransparentErrorValue(std::io::Error);
+    impl From<std::io::Error> for StdTransparentErrorValue {
+        fn from(value: std::io::Error) -> Self {
+            Self(value)
+        }
+    }
     #[derive(newtype::AsMut)]
     struct MutableValueRef<'value_lt>(&'value_lt mut u16);
+    impl<'value_lt> From<&'value_lt mut u16> for MutableValueRef<'value_lt> {
+        fn from(value: &'value_lt mut u16) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum CheckedTextError {
         TooLong,
@@ -143,7 +183,7 @@ mod tests {
     }
     #[test]
     fn string_newtype_impls_are_generated() {
-        let v = StringValue(String::from(str_constants::ABC_ALT_3));
+        let v = StringValue::try_from(String::from(str_constants::ABC_ALT_3)).expect("9d27b01c");
         assert_eq!(v.to_string(), "abc");
         assert_eq!(v.as_ref(), "abc");
         assert_eq!(&*v, "abc");
@@ -187,7 +227,7 @@ mod tests {
     }
     #[test]
     fn debug_to_err_string_impl_is_generated() {
-        let v = DebugValue(vec![1, 2]);
+        let v = DebugValue::from(vec![1, 2]);
         assert_eq!(
             to_err_string::ToErrString::to_err_string(&v).as_ref(),
             "[1, 2]"
@@ -195,13 +235,13 @@ mod tests {
     }
     #[test]
     fn inner_accessors_are_generated() {
-        let v = InnerValue(7);
+        let v = InnerValue::from(7);
         assert_eq!(*v.as_ref(), 7);
         assert_eq!(v.into_inner(), 7);
     }
     #[test]
     fn vec_accessors_are_generated() {
-        let v = VecValue(vec![1i32, 2i32]);
+        let v = VecValue::from(vec![1i32, 2i32]);
         assert_eq!(v.as_slice(), [1i32, 2i32]);
         assert_eq!(v.into_vec(), vec![1i32, 2i32]);
     }
@@ -214,13 +254,13 @@ mod tests {
     }
     #[test]
     fn target_deref_impls_are_generated() {
-        let mut v = TargetVecValue(Vec::from(*b"lower"));
+        let mut v = TargetVecValue::from(Vec::from(*b"lower"));
         v.make_ascii_uppercase();
         assert_eq!(&*v, b"LOWER");
     }
     #[test]
     fn redacted_debug_does_not_expose_inner_value() {
-        let value = RedactedDebugValue(str_constants::SECRET.as_bytes().to_vec());
+        let value = RedactedDebugValue::from(str_constants::SECRET.as_bytes().to_vec());
         let output = format!("{value:?}");
         assert!(output.contains(str_constants::REDACTED_ALT_3));
         assert!(!output.contains(str_constants::SECRET));
@@ -228,7 +268,7 @@ mod tests {
     }
     #[test]
     fn transparent_error_exposes_inner_source() {
-        let value = StdTransparentErrorValue(std::io::Error::other(str_constants::ERROR));
+        let value = StdTransparentErrorValue::from(std::io::Error::other(str_constants::ERROR));
         assert_eq!(
             std::error::Error::source(&value).map(ToString::to_string),
             Some(String::from(str_constants::ERROR))
@@ -237,7 +277,7 @@ mod tests {
     #[test]
     fn mutable_reference_as_mut_is_generated() {
         let mut inner = 1u16;
-        let mut value = MutableValueRef(&mut inner);
+        let mut value = MutableValueRef::from(&mut inner);
         *AsMut::<u16>::as_mut(&mut value) = 2u16;
         assert_eq!(inner, 2u16);
     }

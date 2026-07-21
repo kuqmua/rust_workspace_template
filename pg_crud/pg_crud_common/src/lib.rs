@@ -162,7 +162,12 @@ impl Operator {
     #[must_use]
     pub fn to_query_part(&self, add_operator: AddOperator) -> QueryPartFragment {
         let fragment = match (bool::from(add_operator), *self) {
-            (false, Self::And | Self::Or) => return QueryPartFragment(String::new()),
+            (false, Self::And | Self::Or) => {
+                return match QueryPartFragment::try_from(String::new()) {
+                    Ok(value) => value,
+                    Err(error) => QueryPartFragment::from(error),
+                };
+            }
             (false, Self::AndNot | Self::OrNot) => str_constants::NOT,
             (true, Self::And) => str_constants::AND_ALT,
             (true, Self::AndNot) => str_constants::AND_NOT,
@@ -182,13 +187,13 @@ mod tests_operator_to_query_part {
         assert_eq!(
             super::Operator::And
                 .to_query_part(super::AddOperator::from(true))
-                .0,
+                .as_ref(),
             format!("{} ", naming::AndSnakeCase)
         );
         assert_eq!(
             super::Operator::Or
                 .to_query_part(super::AddOperator::from(true))
-                .0,
+                .as_ref(),
             format!("{} ", naming::OrSnakeCase)
         );
     }
@@ -197,13 +202,13 @@ mod tests_operator_to_query_part {
         assert_eq!(
             super::Operator::AndNot
                 .to_query_part(super::AddOperator::from(true))
-                .0,
+                .as_ref(),
             format!("{} {} ", naming::AndSnakeCase, naming::NotSnakeCase)
         );
         assert_eq!(
             super::Operator::OrNot
                 .to_query_part(super::AddOperator::from(true))
-                .0,
+                .as_ref(),
             format!("{} {} ", naming::OrSnakeCase, naming::NotSnakeCase)
         );
     }
@@ -212,25 +217,25 @@ mod tests_operator_to_query_part {
         assert_eq!(
             super::Operator::And
                 .to_query_part(super::AddOperator::from(false))
-                .0,
+                .as_ref(),
             ""
         );
         assert_eq!(
             super::Operator::Or
                 .to_query_part(super::AddOperator::from(false))
-                .0,
+                .as_ref(),
             ""
         );
         assert_eq!(
             super::Operator::AndNot
                 .to_query_part(super::AddOperator::from(false))
-                .0,
+                .as_ref(),
             format!("{} ", naming::NotSnakeCase)
         );
         assert_eq!(
             super::Operator::OrNot
                 .to_query_part(super::AddOperator::from(false))
-                .0,
+                .as_ref(),
             format!("{} ", naming::NotSnakeCase)
         );
     }
@@ -525,6 +530,7 @@ pub trait PgTypeWhereFilter<'query_lt> {
     schemars::JsonSchema,
     optml::Optml,
 )]
+#[serde(from = "Option<NotEmptyUniqueVec<T>>")]
 pub struct NullableJsonObjPgTypeWhereFilter<
     T: std::fmt::Debug
         + PartialEq
@@ -1115,7 +1121,7 @@ impl<'query_lt> PgTypeWhereFilter<'query_lt> for PaginationBase {
                 location: location_macros::location!(),
             });
         }
-        Ok(QueryPartFragment(query_part))
+        Ok(QueryPartFragment::try_from(query_part)?)
     }
 }
 impl Default for PaginationBase {
@@ -1311,6 +1317,7 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     optml::Optml,
     newtype::IntoVec,
 )]
+#[derive(newtype::FromInner)]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
     for NotEmptyUniqueVec<T>
@@ -1493,13 +1500,14 @@ impl<T1> NotEmptyUniqueVec<T1> {
     where
         T2: From<T1>,
     {
-        NotEmptyUniqueVec(v.0.into_iter().map(T2::from).collect::<Vec<T2>>())
+        NotEmptyUniqueVec::from(v.0.into_iter().map(T2::from).collect::<Vec<T2>>())
     }
 }
 #[cfg(test)]
 mod tests_not_empty_unique_vec {
     #[derive(Debug, PartialEq, Eq)]
-    struct NonClone(u8);
+#[derive(newtype::FromInner)]
+struct NonClone(u8);
     #[test]
     fn not_empty_unique_vec_try_new_supports_non_clone_values() {
         let error =
@@ -1634,13 +1642,14 @@ where
                     AddOperator::from(true)
                 },
             )?;
-            accumulator.push_str(&v.0);
+            accumulator.push_str(v.as_ref());
             Ok::<(), QueryPartError>(())
         })?;
-        Ok(QueryPartFragment(accumulator))
+        Ok(QueryPartFragment::try_from(accumulator)?)
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
+#[serde(from = "V<Option<()>>")]
 pub struct NonPrimaryKeyPgTypeReadIds(V<Option<()>>);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> (
@@ -1760,6 +1769,7 @@ pub enum UnsignedPartOfI32TryFromI32Error {
     newtype::Display,
     newtype::FromInner,
 )]
+#[serde(from = "i32")]
 pub struct UnsignedPartOfI32Raw(i32);
 impl UnsignedPartOfI32Raw {
     #[must_use]

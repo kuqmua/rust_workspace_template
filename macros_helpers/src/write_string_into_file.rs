@@ -204,7 +204,7 @@ mod tests {
     }
     fn txt_path(name: &str) -> std::path::PathBuf {
         crate::test_hlp::test_path(crate::test_hlp::TestPathStem::new(name))
-            .0
+            .as_ref()
             .with_extension(str_constants::TXT)
     }
     fn cleanup(path: &std::path::Path) {
@@ -241,7 +241,7 @@ mod tests {
         ));
         let path = crate::rs_file_path::rs_file_path(&base);
         super::write_string_into_file(&base, cnt(str_constants::XYZ));
-        assert_content_and_cleanup(path.0.as_path(), str_constants::XYZ);
+        assert_content_and_cleanup(path.as_ref(), str_constants::XYZ);
     }
     #[test]
     fn try_write_string_into_file_returns_path() {
@@ -354,7 +354,7 @@ mod tests {
         let path = crate::rs_file_path::rs_file_path(crate::test_hlp::test_path(
             crate::test_hlp::TestPathStem::new(str_constants::MACROS_HELPERS_RS_EXT_PATH),
         ));
-        assert_eq!(path.0.extension().and_then(|v| v.to_str()), Some("rs"));
+        assert_eq!(path.as_ref().extension().and_then(|v| v.to_str()), Some("rs"));
     }
     #[test]
     fn try_write_string_into_file_skips_rewrite_when_cnt_is_unchanged() {
@@ -368,7 +368,7 @@ mod tests {
             super::try_write_string_into_file(&base, cnt(str_constants::SAME)).expect("07d9fd90");
         let metadata_after = std::fs::metadata(&path).expect("83087942");
         assert_eq!(metadata_before.len(), metadata_after.len());
-        assert_content_and_cleanup(path.0.as_path(), str_constants::SAME);
+        assert_content_and_cleanup(path.as_ref(), str_constants::SAME);
     }
     #[test]
     fn try_write_string_into_file_writes_when_cnt_differs() {
@@ -379,7 +379,7 @@ mod tests {
         std::fs::write(&path, str_constants::OLD).expect("d870b82e");
         let _path =
             super::try_write_string_into_file(&base, cnt(str_constants::NEW)).expect("c6fd2bc8");
-        assert_content_and_cleanup(path.0.as_path(), str_constants::NEW);
+        assert_content_and_cleanup(path.as_ref(), str_constants::NEW);
     }
     #[test]
     fn try_write_string_into_path_with_outcome_returns_changed_for_new_content() {
@@ -411,9 +411,9 @@ mod tests {
         let outcome =
             super::try_write_string_into_file_with_outcome(&base, cnt(str_constants::ABC_ALT_3))
                 .expect("57cf209a");
-        assert_eq!(outcome.path().as_ref(), path.0.as_path());
+        assert_eq!(outcome.path().as_ref(), path.as_ref());
         assert!(bool::from(outcome.is_changed()));
-        assert_content_and_cleanup(path.0.as_path(), str_constants::ABC_ALT_3);
+        assert_content_and_cleanup(path.as_ref(), str_constants::ABC_ALT_3);
     }
     #[test]
     fn try_write_string_into_file_with_outcome_returns_unchanged_for_same_content() {
@@ -425,9 +425,9 @@ mod tests {
         let outcome =
             super::try_write_string_into_file_with_outcome(&base, cnt(str_constants::ABC_ALT_3))
                 .expect("f60721a2");
-        assert_eq!(outcome.path().as_ref(), path.0.as_path());
+        assert_eq!(outcome.path().as_ref(), path.as_ref());
         assert!(!bool::from(outcome.is_changed()));
-        cleanup(path.0.as_path());
+        cleanup(path.as_ref());
     }
     #[test]
     fn write_path_outcome_into_path_returns_owned_path() {

@@ -12,6 +12,11 @@ impl From<usize> for MultipartPayloadMaximum {
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct MultipartValueLength(usize);
+impl From<usize> for MultipartValueLength {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for MultipartValueLength {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -159,8 +164,18 @@ pub struct MultipartBytesPart {
 }
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct MultipartBytesParts(Vec<MultipartBytesPart>);
+impl From<Vec<MultipartBytesPart>> for MultipartBytesParts {
+    fn from(value: Vec<MultipartBytesPart>) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct MultipartTextParts(Vec<MultipartTextPart>);
+impl From<Vec<MultipartTextPart>> for MultipartTextParts {
+    fn from(value: Vec<MultipartTextPart>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<[MultipartBytesPart]> for MultipartBytesParts {
     fn as_ref(&self) -> &[MultipartBytesPart] {
         self.0.as_slice()
@@ -240,7 +255,7 @@ impl MultipartUploadRequest {
         if payload_bytes > maximum.0 {
             return Err(MultipartRequestError::PayloadTooLarge);
         }
-        self.payload_bytes = MultipartValueLength(payload_bytes);
+        self.payload_bytes = MultipartValueLength::from(payload_bytes);
         Ok(())
     }
     #[must_use]
@@ -256,7 +271,7 @@ impl MultipartUploadRequest {
         part: MultipartBytesPart,
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(MultipartValueLength(part.bytes().as_ref().len()), maximum)?;
+        self.ensure_additional_part(MultipartValueLength::from(part.bytes().as_ref().len()), maximum)?;
         self.bytes_parts.0.push(part);
         Ok(self)
     }
@@ -265,7 +280,7 @@ impl MultipartUploadRequest {
         part: MultipartTextPart,
         maximum: MultipartPayloadMaximum,
     ) -> Result<Self, MultipartRequestError> {
-        self.ensure_additional_part(MultipartValueLength(part.value().as_ref().len()), maximum)?;
+        self.ensure_additional_part(MultipartValueLength::from(part.value().as_ref().len()), maximum)?;
         self.text_parts.0.push(part);
         Ok(self)
     }
@@ -332,6 +347,11 @@ impl AsRef<str> for StoragePathSegment {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
+impl From<std::path::PathBuf> for StdStorageRelativePath {
+    fn from(value: std::path::PathBuf) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<std::path::Path> for StdStorageRelativePath {
     fn as_ref(&self) -> &std::path::Path {
         self.0.as_path()
@@ -350,7 +370,7 @@ pub fn identifier_file_storage_relative_path(
         || unique_file_identifier.as_ref().to_owned(),
         |value| format!("{}.{value}", unique_file_identifier.as_ref()),
     );
-    StdStorageRelativePath(std::path::Path::new(identifier.as_ref()).join(stored_file_name))
+    StdStorageRelativePath::from(std::path::Path::new(identifier.as_ref()).join(stored_file_name))
 }
 
 #[cfg(test)]

@@ -7,13 +7,14 @@ mod runtime_policy;
 mod snapshot;
 mod source_policy;
 mod types;
-const EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS: &[ExternalLeafWrapperNameException] =
-    &[ExternalLeafWrapperNameException {
-        identifier: types::StaticStr(
+fn external_leaf_wrapper_name_exceptions() -> [ExternalLeafWrapperNameException; 1] {
+    [ExternalLeafWrapperNameException {
+        identifier: types::StaticStr::from(
             str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_IDENTIFIER,
         ),
-        reason: types::StaticStr(str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON),
-    }];
+        reason: types::StaticStr::from(str_constants::CODE_STYLE_GENERATED_RUST_TOKEN_STREAM_REASON),
+    }]
+}
 struct ExternalLeafWrapperNameException {
     identifier: types::StaticStr,
     reason: types::StaticStr,
@@ -24,10 +25,10 @@ enum ExpectOrPanic {
     Panic,
 }
 impl ExpectOrPanic {
-    const fn method_name(self) -> types::StaticStr {
+    fn method_name(self) -> types::StaticStr {
         match self {
-            Self::Expect => types::StaticStr(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
-            Self::Panic => types::StaticStr(str_constants::CODE_STYLE_PANIC_METHOD_NAME),
+            Self::Expect => types::StaticStr::from(str_constants::CODE_STYLE_EXPECT_METHOD_NAME),
+            Self::Panic => types::StaticStr::from(str_constants::CODE_STYLE_PANIC_METHOD_NAME),
         }
     }
 }
@@ -39,8 +40,8 @@ enum RustOrClippy {
 impl RustOrClippy {
     fn name(self) -> types::StaticStr {
         match self {
-            Self::Rust => types::StaticStr(str_constants::RUST),
-            Self::Clippy => types::StaticStr(str_constants::CLIPPY),
+            Self::Rust => types::StaticStr::from(str_constants::RUST),
+            Self::Clippy => types::StaticStr::from(str_constants::CLIPPY),
         }
     }
 }
@@ -1088,18 +1089,87 @@ impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
 struct PublicTupleWrapperFieldVisitor {
     ers: types::DiagnosticMsgs,
 }
+struct DirectDeserializeTupleWrapperVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct TupleWrapperConversionCollector {
+    names: types::StdSourceTextSet,
+    converted_names: types::StdSourceTextSet,
+}
+struct DirectTupleWrapperConstructorVisitor<'names> {
+    names: &'names types::StdSourceTextSet,
+    inside_conversion_impl: types::AnalyzerBool,
+    ers: types::DiagnosticMsgs,
+}
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
-        if item_struct_vis_is_public(types::SynItemStructRef::from(i)).get()
-            && item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get()
-            && item_struct_single_field_is_public(types::SynItemStructRef::from(i)).get()
+        if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get()
+            && item_struct_single_field_is_non_private(types::SynItemStructRef::from(i)).get()
         {
             self.ers.push(format!(
-                "public tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
+                "tuple wrapper `{}` exposes its inner field; make the field private and initialize through From/TryFrom",
                 i.ident
                     ));
         }
         syn::visit::visit_item_struct(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get()
+            && item_struct_derives_deserialize(types::SynItemStructRef::from(i)).get()
+            && !item_struct_deserialize_uses_conversion(types::SynItemStructRef::from(i)).get()
+        {
+            self.ers.push(format!(
+                "tuple wrapper `{}` derives Deserialize directly; route deserialization through From/TryFrom with serde(from/try_from)",
+                i.ident
+            ));
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if item_struct_is_single_field_tuple_wrapper(types::SynItemStructRef::from(i)).get() {
+            let name = i.ident.to_string();
+            let _: bool = self.names.insert(name.clone());
+            if item_struct_derives_conversion(types::SynItemStructRef::from(i)).get() {
+                let _: bool = self.converted_names.insert(name);
+            }
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        if item_impl_is_from_or_try_from(types::SynItemImplRef::from(i)).get()
+            && let Some(name) = item_impl_self_ty_identifier(types::SynItemImplRef::from(i))
+        {
+            let _: bool = self.converted_names.insert(name.as_ref().to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let previous = self.inside_conversion_impl;
+        self.inside_conversion_impl = item_impl_is_from_or_try_from(types::SynItemImplRef::from(i));
+        syn::visit::visit_item_impl(self, i);
+        self.inside_conversion_impl = previous;
+    }
+    fn visit_expr_call(&mut self, i: &'ast syn::ExprCall) {
+        if !self.inside_conversion_impl.get()
+            && let syn::Expr::Path(path) = i.func.as_ref()
+            && let Some(segment) = path.path.segments.last()
+            && self.names.contains(segment.ident.to_string().as_str())
+        {
+            let span = syn::spanned::Spanned::span(i.func.as_ref());
+            let start = span.start();
+            let end = span.end();
+            self.ers.push(format!(
+                "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
+                segment.ident, start.line, start.column, end.line, end.column
+            ));
+        }
+        syn::visit::visit_expr_call(self, i);
     }
 }
 struct DeclaredDomainTypeVisitor {
@@ -1863,7 +1933,7 @@ fn is_external_leaf_wrapper_name_exception(
     identifier: types::SourceTextRef<'_>,
 ) -> types::AnalyzerBool {
     types::AnalyzerBool::from(
-        EXTERNAL_LEAF_WRAPPER_NAME_EXCEPTIONS
+        external_leaf_wrapper_name_exceptions()
             .iter()
             .any(|exception| {
                 assert!(!exception.reason.get().is_empty(), "c7ab0f62");
@@ -1962,8 +2032,8 @@ fn lints_from_help_cmd(
     .unwrap_or_else(|_| panic!("{}", exp_id.get()));
     assert_cmd_output_ok(
         types::StdProcessOutputRef::from(output.as_ref()),
-        types::StaticStr(str_constants::VALUE_95D4595A),
-        types::StaticStr(str_constants::CC4670A2),
+        types::StaticStr::from(str_constants::VALUE_95D4595A),
+        types::StaticStr::from(str_constants::CC4670A2),
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let regex = if parse_only_clippy.get() {
@@ -2000,7 +2070,7 @@ fn normalize_lint_name(v: types::SourceTextRef<'_>) -> types::SourceText {
 }
 #[allow(clippy::single_call_fn)] // keeps workspace-dependency shape checks reusable and focused in one helper
 fn validate_workspace_dep_spec(v: types::TomlValueRef<'_>) {
-    let v_table = toml_val_as_table_ref(v, types::StaticStr(str_constants::CB693A3F));
+    let v_table = toml_val_as_table_ref(v, types::StaticStr::from(str_constants::CB693A3F));
     if let Some(path_v) = v_table.get().get(str_constants::PATH_ALT_5) {
         match path_v {
             toml::Value::String(_) => {
@@ -2258,7 +2328,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
                 .get(str_constants::LINTS)
                 .expect("82eaea37"),
         ),
-        types::StaticStr(str_constants::CAE226CD),
+        types::StaticStr::from(str_constants::CAE226CD),
     );
     let toml_v_table = toml_val_as_table_ref(
         types::TomlValueRef::from(
@@ -2267,7 +2337,7 @@ fn lints_vec_from_cargo_toml_workspace(rust_or_clippy: RustOrClippy) -> types::S
                 .get(rust_or_clippy.name().get())
                 .expect("dbd02f72"),
         ),
-        types::StaticStr(str_constants::VALUE_6F4580CE),
+        types::StaticStr::from(str_constants::VALUE_6F4580CE),
     );
     toml_v_table
         .as_ref()
@@ -2572,19 +2642,65 @@ fn item_struct_is_single_field_tuple_wrapper(
         matches!(&item.as_ref().fields, syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1),
     )
 }
-#[allow(clippy::single_call_fn)] // keeps public API visibility matching explicit for wrapper field policy
-fn item_struct_vis_is_public(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
-    types::AnalyzerBool::from(matches!(item.as_ref().vis, syn::Visibility::Public(_)))
-}
 #[allow(clippy::single_call_fn)] // isolates tuple field visibility parsing from policy diagnostics
-fn item_struct_single_field_is_public(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+fn item_struct_single_field_is_non_private(
+    item: types::SynItemStructRef<'_>,
+) -> types::AnalyzerBool {
     types::AnalyzerBool::from(match &item.as_ref().fields {
         syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => fields
             .unnamed
             .first()
-            .is_some_and(|field| matches!(field.vis, syn::Visibility::Public(_))),
+            .is_some_and(|field| !matches!(field.vis, syn::Visibility::Inherited)),
         syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
     })
+}
+fn item_struct_derives_deserialize(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+        attr.path().is_ident("derive")
+            && match &attr.meta {
+                syn::Meta::List(list) => list.tokens.to_string().contains("Deserialize"),
+                syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+            }
+    }))
+}
+fn item_struct_deserialize_uses_conversion(
+    item: types::SynItemStructRef<'_>,
+) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+        if !attr.path().is_ident("serde") {
+            return false;
+        }
+        match &attr.meta {
+            syn::Meta::List(list) => {
+                let tokens = list.tokens.to_string();
+                tokens.contains("from =") || tokens.contains("try_from =")
+            }
+            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+        }
+    }))
+}
+fn item_struct_derives_conversion(item: types::SynItemStructRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().attrs.iter().any(|attr| {
+        if !attr.path().is_ident("derive") {
+            return false;
+        }
+        match &attr.meta {
+            syn::Meta::List(list) => {
+                let tokens = list.tokens.to_string();
+                tokens.contains("FromInner")
+                    || tokens.contains("BoundedString")
+                    || tokens.contains("TryFrom")
+            }
+            syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,
+        }
+    }))
+}
+fn item_impl_is_from_or_try_from(item: types::SynItemImplRef<'_>) -> types::AnalyzerBool {
+    types::AnalyzerBool::from(item.as_ref().trait_.as_ref().is_some_and(|(_, path, _)| {
+        path.segments.last().is_some_and(|segment| {
+            segment.ident == "From" || segment.ident == "TryFrom"
+        })
+    }))
 }
 #[allow(clippy::single_call_fn)] // diagnostic conversion errors intentionally carry raw length metadata
 fn identifier_is_diagnostic_try_from_string_error(
@@ -3126,8 +3242,8 @@ fn raw_text_return_ty(ty: types::SynTypeRef<'_>) -> Option<(types::StaticStr, ty
         syn::Type::Paren(ty_paren) => raw_text_return_ty(types::SynTypeRef::from(&*ty_paren.elem)),
         syn::Type::Path(ty_path) => raw_text_return_ty_path(types::SynTypePathRef::from(ty_path)),
         syn::Type::Reference(_) if type_is_str_ref(ty).get() => Some((
-            types::StaticStr(str_constants::STR),
-            types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTREF),
+            types::StaticStr::from(str_constants::STR),
+            types::StaticStr::from(str_constants::TYPES_PATH_SOURCETEXTREF),
         )),
         syn::Type::Reference(ty_reference) => {
             raw_text_return_ty(types::SynTypeRef::from(&*ty_reference.elem))
@@ -3155,16 +3271,16 @@ fn raw_text_return_ty_path(
     let identifier = segment.ident.to_string();
     match identifier.as_str() {
         str_constants::STRING => Some((
-            types::StaticStr(str_constants::STRING),
-            types::StaticStr(str_constants::TYPES_PATH_SOURCETEXT),
+            types::StaticStr::from(str_constants::STRING),
+            types::StaticStr::from(str_constants::TYPES_PATH_SOURCETEXT),
         )),
         str_constants::VEC
             if single_angle_type_arg(types::SynPathArgumentsRef::from(&segment.arguments))
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::VEC_STRING),
-                types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTLIST),
+                types::StaticStr::from(str_constants::VEC_STRING),
+                types::StaticStr::from(str_constants::TYPES_PATH_SOURCETEXTLIST),
             ))
         }
         str_constants::OPTION
@@ -3172,8 +3288,8 @@ fn raw_text_return_ty_path(
                 .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::OPTION_STR),
-                types::StaticStr(str_constants::OPTION_TYPES_PATH_SOURCETEXTREF),
+                types::StaticStr::from(str_constants::OPTION_STR),
+                types::StaticStr::from(str_constants::OPTION_TYPES_PATH_SOURCETEXTREF),
             ))
         }
         str_constants::OPTION
@@ -3231,8 +3347,8 @@ fn analyzer_state_raw_container_ty_path(
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::VEC_STRING),
-                types::StaticStr(str_constants::TYPES_PATH_SOURCETEXTLIST),
+                types::StaticStr::from(str_constants::VEC_STRING),
+                types::StaticStr::from(str_constants::TYPES_PATH_SOURCETEXTLIST),
             ))
         }
         str_constants::BTREESET
@@ -3240,8 +3356,8 @@ fn analyzer_state_raw_container_ty_path(
                 .is_some_and(|ty| type_is_string(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::BTREESET_STRING),
-                types::StaticStr(str_constants::TYPES_PATH_STDSOURCETEXTSET),
+                types::StaticStr::from(str_constants::BTREESET_STRING),
+                types::StaticStr::from(str_constants::TYPES_PATH_STDSOURCETEXTSET),
             ))
         }
         str_constants::HASHSET
@@ -3249,8 +3365,8 @@ fn analyzer_state_raw_container_ty_path(
                 .is_some_and(|ty| type_is_str_ref(types::SynTypeRef::from(ty.get())).get()) =>
         {
             Some((
-                types::StaticStr(str_constants::HASHSET_STR),
-                types::StaticStr(str_constants::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET),
+                types::StaticStr::from(str_constants::HASHSET_STR),
+                types::StaticStr::from(str_constants::TYPES_PATH_STDSOURCETEXTHASHSET_OR_TYPES_PATH_STDSOURCETEXTREFSET),
             ))
         }
         str_constants::OPTION
@@ -3621,7 +3737,7 @@ fn workspace_table_from_cargo_toml() -> types::TomlTable {
         .expect("beb11586");
     toml_val_as_table(
         types::TomlValue::from(table.remove(str_constants::WORKSPACE).expect("f728192d")),
-        types::StaticStr(str_constants::VALUE_2BFB0B62),
+        types::StaticStr::from(str_constants::VALUE_2BFB0B62),
     )
 }
 #[allow(clippy::single_call_fn)] // shared owned-value table extractor keeps table-shape validation reusable where ownership is required

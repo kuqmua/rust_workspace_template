@@ -679,6 +679,7 @@ pub enum BoundedVecTryNewError {
     newtype::Display,
     newtype::FromInner,
 )]
+#[serde(from = "usize")]
 pub struct BoundedVecLen(usize);
 impl BoundedVecLen {
     #[must_use]
@@ -800,7 +801,8 @@ impl<T: Clone + pg_crud_common::DefaultSomeOneElement, const LENGTH: usize>
 #[cfg(test)]
 mod tests {
     #[derive(Debug, PartialEq, Eq)]
-    struct NonClone(u8);
+#[derive(newtype::FromInner)]
+struct NonClone(u8);
     #[test]
     fn pg_type_not_empty_unique_vec_try_from_ok() {
         let rslt = super::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![1i32, 2i32, 3i32]);

@@ -48,6 +48,7 @@ impl<T: PartialEq, const MIN: usize, const MAX: usize> TryFrom<Vec<T>>
     }
 }
 
+#[derive(newtype::FromInner)]
 struct StdBoundedUniqueVecVisitor<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );
@@ -81,7 +82,7 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
                 min: MIN.into(),
             }))
         } else {
-            Ok(BoundedUniqueVec(values))
+            Ok(BoundedUniqueVec::from(values))
         }
     }
 }
@@ -92,14 +93,14 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdBoundedUniqueVecVisitor(std::marker::PhantomData))
+        deserializer.deserialize_seq(StdBoundedUniqueVecVisitor::from(std::marker::PhantomData))
     }
 }
 const fn validate_bounds<const MIN: usize, const MAX: usize>() -> Result<(), UniqueVecError> {
     if MIN > MAX {
         Err(UniqueVecError::InvalidBounds {
-            min: UniqueVecLen(MIN),
-            max: UniqueVecLen(MAX),
+            min: UniqueVecLen::from(MIN),
+            max: UniqueVecLen::from(MAX),
         })
     } else {
         Ok(())

@@ -1,9 +1,19 @@
 struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2GenerateTpInput {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
 struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2GenerateTpOutput {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
 fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     let mut iter = input.0.into_iter();
     let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {
-        return ProcMacro2GenerateTpOutput(
+        return ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::compile_error_token_stream(
                 str_constants::COMPILE_ERROR_CE_076,
             )
@@ -11,7 +21,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
         );
     };
     if !workspace_macro_helpers::strip_first_comma(&mut iter) {
-        return ProcMacro2GenerateTpOutput(
+        return ProcMacro2GenerateTpOutput::from(
             workspace_macro_helpers::compile_error_token_stream(
                 str_constants::COMPILE_ERROR_CE_075,
             )
@@ -20,7 +30,7 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     }
     let body = iter.collect::<proc_macro2::TokenStream>();
     let name_identifier = quote::format_ident!("{name}");
-    ProcMacro2GenerateTpOutput(quote::quote! {
+    ProcMacro2GenerateTpOutput::from(quote::quote! {
         #[derive(Debug, Clone, Copy, optml::Optml)]
         pub struct #name_identifier;
         impl quote::ToTokens for #name_identifier {
@@ -32,7 +42,9 @@ fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
 }
 #[proc_macro]
 pub fn tp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    generate_tp(ProcMacro2GenerateTpInput(input.into()))
+    generate_tp(ProcMacro2GenerateTpInput::from(
+        proc_macro2::TokenStream::from(input),
+    ))
         .0
         .into()
 }
@@ -103,7 +115,7 @@ pub fn tp_batch(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             proc_macro2::TokenTree::Group(group)
                 if group.delimiter() == proc_macro2::Delimiter::Parenthesis =>
             {
-                Some(generate_tp(ProcMacro2GenerateTpInput(group.stream())).0)
+                Some(generate_tp(ProcMacro2GenerateTpInput::from(group.stream())).0)
             }
             proc_macro2::TokenTree::Group(_)
             | proc_macro2::TokenTree::Ident(_)

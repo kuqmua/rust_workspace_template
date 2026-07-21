@@ -1,12 +1,16 @@
 const COMMIT_HEADER_NAME: axum::http::HeaderName =
     axum::http::HeaderName::from_static(str_constants::ROUTE_VALIDATORS_COMMIT_HEADER_NAME);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
+#[derive(newtype::FromInner)]
 pub struct CommitNotEqMessage(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
+#[derive(newtype::FromInner)]
 pub struct CommitToUse(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::ToErrStringAsRefStr)]
+#[derive(newtype::FromInner)]
 pub struct NoCommitHeaderMessage(&'static str);
 #[derive(Debug, newtype::ToErrString)]
+#[derive(newtype::FromInner)]
 pub struct AxumCommitToStrConversionError(axum::http::header::ToStrError);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 pub struct EnableApiGitCommitCheck(bool);
@@ -37,7 +41,7 @@ impl CommitError {
     #[allow(clippy::single_call_fn)] // keeps mismatch error construction reusable and explicit
     fn commit_not_eq(commit_to_use: CommitToUse) -> Self {
         Self::CommitNotEq {
-            commit_not_eq: CommitNotEqMessage(str_constants::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG),
+            commit_not_eq: CommitNotEqMessage::from(str_constants::ROUTE_VALIDATORS_COMMIT_NOT_EQ_MSG),
             commit_to_use,
             location: location_macros::location!(),
         }
@@ -52,7 +56,7 @@ impl CommitError {
     #[allow(clippy::single_call_fn)] // keeps missing-commit-header error construction reusable
     fn no_commit_header() -> Self {
         Self::NoCommitHeader {
-            no_commit_header: NoCommitHeaderMessage(
+            no_commit_header: NoCommitHeaderMessage::from(
                 str_constants::ROUTE_VALIDATORS_NO_COMMIT_HEADER_MSG,
             ),
             location: location_macros::location!(),
@@ -63,9 +67,9 @@ impl CommitError {
 fn validate_commit_header_value(
     commit: crate::hdr_val::HeaderStrRef<'_>,
 ) -> Result<(), CommitError> {
-    git_info::validate_project_commit(commit.0)
+    git_info::validate_project_commit(commit.as_ref())
         .map_err(|error| {
-            CommitToUse(<&'static str>::from(
+            CommitToUse::from(<&'static str>::from(
                 git_info::ProjectGitCommitLinkRef::from(error),
             ))
         })
@@ -79,7 +83,7 @@ fn read_commit_header_str(
         headers,
         COMMIT_HEADER_NAME,
         CommitError::no_commit_header,
-        |error| CommitError::commit_to_str_conversion(AxumCommitToStrConversionError(error)),
+        |error| CommitError::commit_to_str_conversion(AxumCommitToStrConversionError::from(error)),
     )
 }
 #[allow(clippy::single_call_fn)] // reusable validator keeps check_commit focused on feature-toggle behavior
@@ -262,7 +266,7 @@ mod tests {
         let headers = mk_headers_with_project_commit();
         crate::test_hlp::assert_ok_eq(
             super::read_commit_header_str(crate::hdr_val::AxumHeadersRef::from(&headers))
-                .map(|v| v.0),
+                .map(crate::hdr_val::HeaderStrRef::get),
             str_constants::E1D07F53,
             &git_info::PROJECT_GIT_INFO.commit.as_ref(),
         );
@@ -318,7 +322,7 @@ mod tests {
     #[test]
     fn validate_commit_header_value_returns_mismatch_for_wrong_commit() {
         let fields = crate::test_hlp::expect_error_variant_ref(
-            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
+            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef::from(
                 str_constants::TEST_VALUES_WRONG_COMMIT,
             )),
             str_constants::VALUE_6804382F,
@@ -329,7 +333,7 @@ mod tests {
     #[test]
     fn validate_commit_header_value_accepts_project_commit() {
         crate::test_hlp::expect_ok(
-            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef(
+            super::validate_commit_header_value(crate::hdr_val::HeaderStrRef::from(
                 git_info::PROJECT_GIT_INFO.commit.as_ref(),
             )),
             str_constants::VALUE_5EF927D2,

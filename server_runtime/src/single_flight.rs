@@ -47,7 +47,7 @@ impl SingleFlight {
     pub fn acquire(&self, key: SingleFlightKey) -> SingleFlightAcquire {
         let mut inner = write_inner(&self.inner);
         if let Some(sender) = inner.flights.get(&key) {
-            return SingleFlightAcquire::Waiter(SingleFlightWaiter(TokioSingleFlightReceiver(
+            return SingleFlightAcquire::Waiter(SingleFlightWaiter::from(TokioSingleFlightReceiver::from(
                 sender.0.subscribe(),
             )));
         }
@@ -58,7 +58,7 @@ impl SingleFlight {
         drop(receiver);
         let _previous = inner
             .flights
-            .insert(key.clone(), TokioSingleFlightSender(sender));
+            .insert(key.clone(), TokioSingleFlightSender::from(sender));
         drop(inner);
         SingleFlightAcquire::Owner(SingleFlightOwner {
             inner: self.inner.clone(),
@@ -102,6 +102,11 @@ impl Drop for SingleFlightOwner {
 
 #[derive(Debug)]
 pub struct SingleFlightWaiter(TokioSingleFlightReceiver);
+impl From<TokioSingleFlightReceiver> for SingleFlightWaiter {
+    fn from(value: TokioSingleFlightReceiver) -> Self {
+        Self(value)
+    }
+}
 impl SingleFlightWaiter {
     pub async fn wait(mut self) -> SingleFlightWaitOutcome {
         match self.0.0.changed().await {
@@ -122,14 +127,31 @@ struct SingleFlightInner {
 
 #[derive(Clone, Debug, Default)]
 struct StdArcStdSingleFlightRwLock(std::sync::Arc<StdSingleFlightRwLock>);
+impl From<std::sync::Arc<StdSingleFlightRwLock>> for StdArcStdSingleFlightRwLock {
+    fn from(value: std::sync::Arc<StdSingleFlightRwLock>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug, Default)]
 struct StdSingleFlightRwLock(std::sync::RwLock<SingleFlightInner>);
+impl From<std::sync::RwLock<SingleFlightInner>> for StdSingleFlightRwLock {
+    fn from(value: std::sync::RwLock<SingleFlightInner>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 struct StdSingleFlightWriteGuard<'value_lt>(
     std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>,
 );
+impl<'value_lt> From<std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>>
+    for StdSingleFlightWriteGuard<'value_lt>
+{
+    fn from(value: std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>) -> Self {
+        Self(value)
+    }
+}
 impl std::ops::Deref for StdSingleFlightWriteGuard<'_> {
     type Target = SingleFlightInner;
     fn deref(&self) -> &Self::Target {
@@ -150,14 +172,24 @@ enum SingleFlightSignal {
 
 #[derive(Clone, Debug)]
 struct TokioSingleFlightReceiver(tokio::sync::watch::Receiver<SingleFlightSignal>);
+impl From<tokio::sync::watch::Receiver<SingleFlightSignal>> for TokioSingleFlightReceiver {
+    fn from(value: tokio::sync::watch::Receiver<SingleFlightSignal>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Debug)]
 struct TokioSingleFlightSender(tokio::sync::watch::Sender<SingleFlightSignal>);
+impl From<tokio::sync::watch::Sender<SingleFlightSignal>> for TokioSingleFlightSender {
+    fn from(value: tokio::sync::watch::Sender<SingleFlightSignal>) -> Self {
+        Self(value)
+    }
+}
 
 fn write_inner(inner: &StdArcStdSingleFlightRwLock) -> StdSingleFlightWriteGuard<'_> {
     match inner.0.0.write() {
-        Ok(guard) => StdSingleFlightWriteGuard(guard),
-        Err(poisoned) => StdSingleFlightWriteGuard(poisoned.into_inner()),
+        Ok(guard) => StdSingleFlightWriteGuard::from(guard),
+        Err(poisoned) => StdSingleFlightWriteGuard::from(poisoned.into_inner()),
     }
 }
 

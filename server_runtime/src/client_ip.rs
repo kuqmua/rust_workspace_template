@@ -17,6 +17,11 @@ impl From<std::net::SocketAddr> for StdSocketAddr {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdResolvedClientIp(std::net::IpAddr);
+impl From<std::net::IpAddr> for StdResolvedClientIp {
+    fn from(value: std::net::IpAddr) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<std::net::IpAddr> for StdResolvedClientIp {
     fn as_ref(&self) -> &std::net::IpAddr {
         &self.0
@@ -41,6 +46,11 @@ impl From<std::net::IpAddr> for StdIpAddr {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct StdRangeContains(bool);
+impl From<bool> for StdRangeContains {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl StdRangeContains {
     const fn get(self) -> bool {
         self.0
@@ -142,7 +152,7 @@ impl TryFrom<Vec<TrustedProxyRange>> for TrustedProxyRanges {
 }
 impl TrustedProxyRange {
     fn contains(self, candidate_ip: StdIpAddr) -> StdRangeContains {
-        StdRangeContains(match (self.network.0, candidate_ip.0) {
+        StdRangeContains::from(match (self.network.0, candidate_ip.0) {
             (std::net::IpAddr::V4(network), std::net::IpAddr::V4(candidate_v4)) => {
                 let shift = 32u32.saturating_sub(u32::from(self.prefix_bits.0));
                 let mask = u32::MAX.checked_shl(shift).unwrap_or(0u32);
@@ -159,7 +169,7 @@ impl TrustedProxyRange {
 }
 impl TrustedProxyRanges {
     fn contains(&self, candidate: StdIpAddr) -> StdRangeContains {
-        StdRangeContains(self.0.iter().any(|range| range.contains(candidate).get()))
+        StdRangeContains::from(self.0.iter().any(|range| range.contains(candidate).get()))
     }
 }
 #[must_use]
@@ -173,7 +183,7 @@ pub fn resolve_client_ip(
         .contains(StdIpAddr::from(peer_ip))
         .get()
     {
-        return StdResolvedClientIp(peer_ip);
+        return StdResolvedClientIp::from(peer_ip);
     }
     let parsed_forwarded_ip = || {
         let values = headers
@@ -216,7 +226,7 @@ pub fn resolve_client_ip(
         }
         value.to_str().ok()?.trim().parse::<std::net::IpAddr>().ok()
     };
-    StdResolvedClientIp(
+    StdResolvedClientIp::from(
         parsed_forwarded_ip()
             .or_else(parsed_real_ip)
             .unwrap_or(peer_ip),

@@ -82,12 +82,18 @@ impl LocationFieldAttr {
         .parse::<proc_macro2::TokenStream>()
         {
             Ok(v) => crate::generated_rust_token_stream::GeneratedRustTokenStream::from(v),
-            Err(error) => compile_error_token_stream(CompileErrorMessage(&error.to_string())),
+            Err(error) => compile_error_token_stream(CompileErrorMessage::from(&error.to_string())),
         }
     }
 }
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
+impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
+    fn from(value: &'message_lt String) -> Self {
+        Self(value.as_str())
+    }
+}
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub struct SynVariantRef<'variant_lt>(&'variant_lt syn::Variant);
 fn compile_error_token_stream(
@@ -111,13 +117,13 @@ pub fn generate_serde_version_of_named_syn_variant(
     let fields = if let syn::Fields::Named(fields) = &variant.fields {
         &fields.named
     } else {
-        return compile_error_token_stream(CompileErrorMessage(
+        return compile_error_token_stream(CompileErrorMessage::from(
             str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
         ));
     };
     let fields_with_serde_token_stream = fields.iter().map(|element| {
         let Some(element_c25b655e_identifier) = element.ident.as_ref() else {
-            return compile_error_token_stream(CompileErrorMessage(
+            return compile_error_token_stream(CompileErrorMessage::from(
                 str_constants::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
             ));
         };
@@ -148,7 +154,7 @@ pub fn generate_serde_version_of_named_syn_variant(
             };
             let location_field_attr = match LocationFieldAttr::try_from(element) {
                 Ok(parsed_attr) => parsed_attr,
-                Err(error) => return compile_error_token_stream(CompileErrorMessage(
+                Err(error) => return compile_error_token_stream(CompileErrorMessage::from(
                     &str_constants::COMPILE_ERROR_CE_010.replace(
                         str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
                         &error,
@@ -165,7 +171,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 {
                     Ok(parsed_token_stream) => parsed_token_stream,
                     Err(error) => {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             &str_constants::COMPILE_ERROR_CE_005
                                 .replace(
                                     str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
@@ -183,11 +189,11 @@ pub fn generate_serde_version_of_named_syn_variant(
                     let segments = if let syn::Type::Path(v0) = &element.ty {
                         &v0.path.segments
                     } else {
-                        return compile_error_token_stream(CompileErrorMessage(str_constants::COMPILE_ERROR_CE_024));
+                        return compile_error_token_stream(CompileErrorMessage::from(str_constants::COMPILE_ERROR_CE_024));
                     };
                     assert!(segments.len() == 1, "0c65bbaa");
                     let Some(first_segment) = segments.iter().next() else {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
@@ -212,7 +218,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(
+                                return compile_error_token_stream(CompileErrorMessage::from(
                                     &str_constants::COMPILE_ERROR_CE_007
                                         .replace(
                                             str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,
@@ -222,7 +228,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                             }
                         }
                     } else {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
                         ));
                     };
@@ -232,7 +238,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 }
                 LocationFieldAttr::EoHashMapKStringVToErrString => {
                     if get_hashmap_args().is_none() {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
                         ));
                     }
@@ -242,7 +248,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 }
                 LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR,
                         ));
                     };
@@ -252,7 +258,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 }
                 LocationFieldAttr::EoHashMapKStringVLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
-                        return compile_error_token_stream(CompileErrorMessage(
+                        return compile_error_token_stream(CompileErrorMessage::from(
                             str_constants::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR,
                         ));
                     };
@@ -262,7 +268,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         {
                             Ok(parsed_token_stream) => parsed_token_stream,
                             Err(error) => {
-                                return compile_error_token_stream(CompileErrorMessage(
+                                return compile_error_token_stream(CompileErrorMessage::from(
                                     &str_constants::COMPILE_ERROR_CE_020
                                         .replace(
                                             str_constants::COMPILE_ERROR_ERROR_PLACEHOLDER,

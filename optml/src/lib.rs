@@ -1,5 +1,6 @@
 struct ReplaceLts;
 #[derive(newtype::ToTokens)]
+#[derive(newtype::FromInner)]
 struct SynFieldTyWithStaticLts(syn::Type);
 impl syn::visit_mut::VisitMut for ReplaceLts {
     fn visit_lifetime_mut(&mut self, i: &mut syn::Lifetime) {
@@ -32,7 +33,7 @@ pub fn optml(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenSt
             let mut field_ty = field.ty.clone();
             let mut visitor = ReplaceLts;
             syn::visit_mut::VisitMut::visit_type_mut(&mut visitor, &mut field_ty);
-            let field_ty_with_static_lts = SynFieldTyWithStaticLts(field_ty);
+            let field_ty_with_static_lts = SynFieldTyWithStaticLts::from(field_ty);
             quote::quote! {align_of::<#field_ty_with_static_lts>()}
         });
         let variant_info = variant.map_or_else(String::new, |variant_identifier| {

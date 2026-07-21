@@ -3,6 +3,7 @@ pub struct SynMacroAttrRef<'lt>(&'lt syn::Attribute);
 #[derive(Debug, Clone, Copy, newtype::DerefTarget, newtype::FromInner, newtype::ToTokens)]
 pub struct ProcMacro2MacroAttrMetaListTokenStreamRef<'lt>(&'lt proc_macro2::TokenStream);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(newtype::FromInner)]
 struct AttrPathMatches(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum MacroAttrError {
@@ -26,14 +27,14 @@ where
         match (attr_segments.next(), expected_segments.next()) {
             (Some(attr_segment), Some(expected_segment)) => {
                 if attr_segment.ident != expected_segment {
-                    return AttrPathMatches(false);
+                    return AttrPathMatches::from(false);
                 }
             }
             (None, None) => {
-                return AttrPathMatches(true);
+                return AttrPathMatches::from(true);
             }
             (Some(_), None) | (None, Some(_)) => {
-                return AttrPathMatches(false);
+                return AttrPathMatches::from(false);
             }
         }
     }

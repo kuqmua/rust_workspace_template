@@ -3,10 +3,13 @@
 static PANIC_HOOK_ONCE: std::sync::Once = std::sync::Once::new();
 const PANIC_WITH_LOCATION_MSG_MAX_LEN: usize = 1_048_576;
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct PanicFile<'file_lt>(&'file_lt str);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct PanicLine(u32);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct PanicColumn(u32);
 #[derive(newtype::BoundedString)]
 #[bounded_string(

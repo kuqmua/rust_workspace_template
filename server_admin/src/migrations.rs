@@ -72,7 +72,7 @@ pub(super) async fn bootstrap_admin(
     .await
     .map_err(super::AdminBootstrapError::Pg)?;
     let _role_link_result = sqlx::query(str_constants::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
-        .bind(user_id.0)
+        .bind(user_id.get())
         .execute(&mut *tx)
         .await
         .map_err(|error| super::AdminBootstrapError::Pg(super::SqlxAdminError::from(error)))?;

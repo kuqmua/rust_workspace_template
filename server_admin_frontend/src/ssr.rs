@@ -17,9 +17,8 @@ where
     View: IntoAny,
 {
     fn render_admin_ssr(self) -> AdminSsrHtml {
-        AdminSsrHtml(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(
-            self,
-        )))
+        AdminSsrHtml::try_from(leptos::prelude::RenderHtml::to_html(IntoAny::into_any(self)))
+            .unwrap_or_else(AdminSsrHtml::from)
     }
 }
 
@@ -30,9 +29,19 @@ pub struct AdminSsrErrorMessageTryFromStringError;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("administrator SSR HTML exceeds the size limit")]
 pub struct AdminSsrHtmlTryFromStringError;
+impl From<AdminSsrHtmlTryFromStringError> for AdminSsrHtml {
+    fn from(value: AdminSsrHtmlTryFromStringError) -> Self {
+        Self(value.to_string())
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::ADMIN_SSR_TITLE_TOO_LONG)]
 pub struct AdminSsrTextTryFromStringError;
+impl From<AdminSsrTextTryFromStringError> for AdminSsrText {
+    fn from(value: AdminSsrTextTryFromStringError) -> Self {
+        Self(value.to_string())
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdminSsrErrorMessage(String);
@@ -71,10 +80,11 @@ impl TryFrom<String> for AdminSsrHtml {
 
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
-    AdminSsrHtml(format!(
+    AdminSsrHtml::try_from(format!(
         "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-11\"></head><body>{}</body></html>",
         rendered_body.0
     ))
+    .unwrap_or_else(AdminSsrHtml::from)
 }
 
 #[must_use]
@@ -92,7 +102,7 @@ pub fn render_sign_in(
         .and_then(server_admin_contract::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
     render_document(
-        &AdminSsrText(tab_title),
+        &AdminSsrText::try_from(tab_title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
                 <section class="auth-card">
@@ -144,7 +154,7 @@ fn render_admin_page_with_table_access(
         .and_then(server_admin_contract::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
     render_document(
-        &AdminSsrText(document_title),
+        &AdminSsrText::try_from(document_title).unwrap_or_else(AdminSsrText::from),
         leptos::view! {
             <div class="app-shell" style=primary_color>
                 <header class="topbar">

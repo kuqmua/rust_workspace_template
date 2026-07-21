@@ -10,6 +10,11 @@ impl<'text_lt> From<&'text_lt str> for HttpCorsAllowOriginTextRef<'text_lt> {
 }
 #[derive(Debug)]
 pub struct HttpCorsAllowOriginHeaderValues(Vec<http::HeaderValue>);
+impl From<Vec<http::HeaderValue>> for HttpCorsAllowOriginHeaderValues {
+    fn from(value: Vec<http::HeaderValue>) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpCorsAllowOriginHeaderValuesError {
     #[error("CORS allow-origin configuration exceeds its maximum byte length")]
@@ -44,7 +49,7 @@ pub fn parse_cors_allow_origin(
             .split(CORS_ALLOW_ORIGIN_SPLIT_CH)
             .filter_map(|part| part.trim().parse::<http::HeaderValue>().ok()),
     );
-    Ok(HttpCorsAllowOriginHeaderValues(parsed))
+    Ok(HttpCorsAllowOriginHeaderValues::from(parsed))
 }
 #[cfg(test)]
 mod tests {

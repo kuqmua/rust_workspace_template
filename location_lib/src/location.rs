@@ -40,6 +40,7 @@ impl<'de> serde::Deserialize<'de> for LocationFile {
     newtype::Display,
     newtype::FromInner,
 )]
+#[serde(from = "u32")]
 pub struct LocationLine(u32);
 #[derive(
     Debug,
@@ -55,6 +56,7 @@ pub struct LocationLine(u32);
     newtype::Display,
     newtype::FromInner,
 )]
+#[serde(from = "u32")]
 pub struct LocationColumn(u32);
 #[derive(
     Debug,
@@ -91,6 +93,7 @@ impl<'de> serde::Deserialize<'de> for LocationCommit {
     optml::Optml,
     newtype::FromInner,
 )]
+#[serde(from = "std::time::Duration")]
 pub struct StdLocationDuration(std::time::Duration);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
     fn schema() -> (
@@ -126,12 +129,16 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for StdLocationDuration {
     }
 }
 #[derive(Debug, Clone, Copy)]
-struct LocationFileRef<'file_lt>(pub &'file_lt str);
-struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(pub &'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
+#[derive(newtype::FromInner)]
+struct LocationFileRef<'file_lt>(&'file_lt str);
+#[derive(newtype::FromInner)]
+struct StdFmtRefMut<'fmt_ref_lt, 'fmt_lt>(&'fmt_ref_lt mut std::fmt::Formatter<'fmt_lt>);
 #[derive(Debug, Clone, Copy)]
-struct ChronoLocationDisplayTimezone(pub chrono::FixedOffset);
+#[derive(newtype::FromInner)]
+struct ChronoLocationDisplayTimezone(chrono::FixedOffset);
 #[derive(Debug, Clone, Copy)]
-struct ChronoLocationDateTime(pub chrono::DateTime<chrono::FixedOffset>);
+#[derive(newtype::FromInner)]
+struct ChronoLocationDateTime(chrono::DateTime<chrono::FixedOffset>);
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(
     Debug,
@@ -204,7 +211,7 @@ impl Location {
     fn datetime_with_tz(&self) -> Option<ChronoLocationDateTime> {
         let epoch = std::time::UNIX_EPOCH.checked_add(self.duration.0)?;
         let offset = Self::location_display_timezone()?;
-        Some(ChronoLocationDateTime(
+        Some(ChronoLocationDateTime::from(
             chrono::DateTime::<chrono::Utc>::from(epoch).with_timezone(&offset.0),
         ))
     }
@@ -218,13 +225,17 @@ impl Location {
     }
     fn fmt_github_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
         self.fmt_github_location(
-            StdFmtRefMut(f.0),
-            LocationFileRef(self.file.as_ref()),
+            StdFmtRefMut::from(&mut *f.0),
+            LocationFileRef::from(self.file.as_ref()),
             self.line,
         )?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(str_constants::TEXT)?;
-            self.fmt_github_location(StdFmtRefMut(f.0), LocationFileRef(v.file.as_ref()), v.line)?;
+            self.fmt_github_location(
+                StdFmtRefMut::from(&mut *f.0),
+                LocationFileRef::from(v.file.as_ref()),
+                v.line,
+            )?;
             f.0.write_str(str_constants::TEXT_ALT_5)
         } else {
             Ok(())
@@ -242,16 +253,16 @@ impl Location {
     }
     fn fmt_src_place(&self, f: StdFmtRefMut<'_, '_>) -> std::fmt::Result {
         Self::fmt_src_location(
-            StdFmtRefMut(f.0),
-            LocationFileRef(self.file.as_ref()),
+            StdFmtRefMut::from(&mut *f.0),
+            LocationFileRef::from(self.file.as_ref()),
             self.line,
             self.column,
         )?;
         if let Some(v) = self.occr.as_ref() {
             f.0.write_str(str_constants::TEXT)?;
             Self::fmt_src_location(
-                StdFmtRefMut(f.0),
-                LocationFileRef(v.file.as_ref()),
+                StdFmtRefMut::from(&mut *f.0),
+                LocationFileRef::from(v.file.as_ref()),
                 v.line,
                 v.column,
             )?;
@@ -279,7 +290,7 @@ impl Location {
             column: column.into(),
             commit: LocationCommit::try_from(git_info::PROJECT_GIT_INFO.commit.as_ref().to_owned())
                 .unwrap_or_else(LocationCommit::from),
-            duration: StdLocationDuration(
+            duration: StdLocationDuration::from(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default(),
@@ -306,10 +317,10 @@ impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.fmt_place(
             config_lib::types::SrcPlaceType::from_env_or_default(),
-            StdFmtRefMut(f),
+            StdFmtRefMut::from(&mut *f),
         )?;
         f.write_str(str_constants::SPACE)?;
-        self.fmt_datetime(StdFmtRefMut(f))
+        self.fmt_datetime(StdFmtRefMut::from(&mut *f))
     }
 }
 #[cfg(test)]
@@ -320,7 +331,7 @@ mod tests {
     }
     impl std::fmt::Display for DatetimeFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            self.location.fmt_datetime(super::StdFmtRefMut(f))
+            self.location.fmt_datetime(super::StdFmtRefMut::from(f))
         }
     }
     struct PlaceFmt<'location_lt> {
@@ -330,7 +341,7 @@ mod tests {
     impl std::fmt::Display for PlaceFmt<'_> {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             self.location
-                .fmt_place(self.src_place_type, super::StdFmtRefMut(f))
+                .fmt_place(self.src_place_type, super::StdFmtRefMut::from(f))
         }
     }
     fn test_location(duration: std::time::Duration, occr: Option<super::Occr>) -> super::Location {
@@ -341,18 +352,18 @@ mod tests {
                 str_constants::TEST_VALUES_COMMIT,
             ))
             .unwrap_or_else(super::LocationCommit::from),
-            duration: super::StdLocationDuration(duration),
+            duration: super::StdLocationDuration::from(duration),
             occr,
-            line: super::LocationLine(10),
-            column: super::LocationColumn(20),
+            line: super::LocationLine::from(10),
+            column: super::LocationColumn::from(20),
         }
     }
     fn test_occr() -> super::Occr {
         super::Occr {
             file: super::LocationFile::try_from(String::from(str_constants::SRC_ERROR_RS))
                 .unwrap_or_else(super::LocationFile::from),
-            line: super::LocationLine(30),
-            column: super::LocationColumn(40),
+            line: super::LocationLine::from(30),
+            column: super::LocationColumn::from(40),
         }
     }
     fn fmt_place(

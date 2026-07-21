@@ -1,6 +1,11 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling emitters read the private descriptor directly while it remains hidden outside the generator
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct GeneratePgTableFieldCount(usize);
+impl From<usize> for GeneratePgTableFieldCount {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 impl From<GeneratePgTableFieldCount> for usize {
     fn from(value: GeneratePgTableFieldCount) -> Self {
         value.0
@@ -43,7 +48,7 @@ impl GeneratePgTableModel {
             syn::Data::Enum(_) | syn::Data::Union(_) => 0usize,
         };
         Self {
-            field_count: GeneratePgTableFieldCount(field_count),
+            field_count: GeneratePgTableFieldCount::from(field_count),
             input,
         }
     }

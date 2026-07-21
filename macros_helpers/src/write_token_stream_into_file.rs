@@ -11,8 +11,10 @@ pub enum ShouldWriteTokenStreamIntoFile {
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct StdRustfmtPath<'path_lt>(&'path_lt std::path::Path);
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ShouldWriteTokenStreamFlag(bool);
 #[allow(clippy::single_call_fn)] // rustfmt execution is isolated so io/process errors stay localized and easy to test
 fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
@@ -33,10 +35,10 @@ fn try_run_rustfmt(path: StdRustfmtPath<'_>) -> std::io::Result<()> {
     }
 }
 #[allow(clippy::single_call_fn)] // keeps ShouldWriteTokenStreamIntoFile flag interpretation centralized
-const fn should_write_token_stream_flag(
+fn should_write_token_stream_flag(
     v: ShouldWriteTokenStreamIntoFile,
 ) -> ShouldWriteTokenStreamFlag {
-    ShouldWriteTokenStreamFlag(matches!(v, ShouldWriteTokenStreamIntoFile::True))
+    ShouldWriteTokenStreamFlag::from(matches!(v, ShouldWriteTokenStreamIntoFile::True))
 }
 #[allow(clippy::single_call_fn)] // centralizes token-to-file write mapping and outcome extraction
 fn try_write_token_stream_into_file<P>(
@@ -68,7 +70,7 @@ where
     if bool::from(wr_outcome.is_changed())
         && matches!(format_with_cargofmt, FormatWithCargofmt::True)
     {
-        try_run_rustfmt(StdRustfmtPath(wr_outcome.path().as_ref()))?;
+        try_run_rustfmt(StdRustfmtPath::from(wr_outcome.path().as_ref()))?;
     }
     Ok(())
 }
@@ -124,7 +126,7 @@ mod tests {
             &super::FormatWithCargofmt::False,
         );
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -155,7 +157,7 @@ mod tests {
         )
         .expect("6fee9f6f");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -177,7 +179,7 @@ mod tests {
         )
         .expect("f341cde7");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(&expected),
         );
         crate::test_hlp::cleanup_test_file(path);
@@ -198,7 +200,7 @@ mod tests {
         )
         .expect("00a995a4");
         crate::test_hlp::assert_file_content(
-            crate::test_hlp::StdAssertFilePath::new(path.0.as_path()),
+            crate::test_hlp::StdAssertFilePath::new(path.as_ref()),
             crate::test_hlp::ExpectedFileContent::new(str_constants::STRUCT_A_NEWLINE),
         );
         crate::test_hlp::cleanup_test_file(path);

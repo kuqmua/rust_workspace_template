@@ -1,14 +1,17 @@
 #[derive(newtype::ToTokens)]
+#[derive(newtype::FromInner)]
 struct ProcMacro2GeneratedNamingTokenStream(proc_macro2::TokenStream);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct SynEnumIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ProcMacro2VariantMatchingTokensRef<'tokens_lt>(&'tokens_lt [proc_macro2::TokenStream]);
 fn generate_impl_to_tokens_token_stream(
     ts0: &dyn quote::ToTokens,
     ts1: &dyn quote::ToTokens,
 ) -> ProcMacro2GeneratedNamingTokenStream {
-    ProcMacro2GeneratedNamingTokenStream(quote::quote! {
+    ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
         impl quote::ToTokens for #ts0 {
             fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
                 #ts1
@@ -276,7 +279,7 @@ fn generate_impl_trait_for_identifier_token_stream(
     let string_token_stream = token_patterns::StringTokenStream;
     let identifier_ref = identifier.0;
     let variant_tokens = vrts_matching_token_stream.0;
-    ProcMacro2GeneratedNamingTokenStream(quote::quote! {
+    ProcMacro2GeneratedNamingTokenStream::from(quote::quote! {
         impl naming_common::#name_token_stream for #identifier_ref {
             fn case(&self) -> #string_token_stream {//todo maybe write duplicate Trait with &str instead of String
                 match self {#(#variant_tokens),*}
@@ -297,9 +300,9 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToUpperCamelCaseStr},
-        SynEnumIdentifierRef(identifier),
-        ProcMacro2VariantMatchingTokensRef(
-            &data_enum
+        SynEnumIdentifierRef::from(identifier),
+        ProcMacro2VariantMatchingTokensRef::from(
+            data_enum
                 .variants
                 .iter()
                 .map(|element| match element.fields {
@@ -313,7 +316,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
                         panic!("4955c50d")
                     }
                 })
-                .collect::<Vec<proc_macro2::TokenStream>>(),
+                .collect::<Vec<proc_macro2::TokenStream>>()
+                .as_slice(),
         ),
     );
     // println!("{generated}");
@@ -332,9 +336,9 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToSnakeCaseStr},
-        SynEnumIdentifierRef(identifier),
-        ProcMacro2VariantMatchingTokensRef(
-            &data_enum
+        SynEnumIdentifierRef::from(identifier),
+        ProcMacro2VariantMatchingTokensRef::from(
+            data_enum
                 .variants
                 .iter()
                 .map(|element| match element.fields {
@@ -348,7 +352,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_snake_case_str(
                         panic!("b3ef2657")
                     }
                 })
-                .collect::<Vec<proc_macro2::TokenStream>>(),
+                .collect::<Vec<proc_macro2::TokenStream>>()
+                .as_slice(),
         ),
     );
     // println!("{generated}");
@@ -367,9 +372,9 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
     let string_token_stream = token_patterns::StringTokenStream;
     let generated = generate_impl_trait_for_identifier_token_stream(
         &quote::quote! {AsRefStrToUpperSnakeCaseStr},
-        SynEnumIdentifierRef(identifier),
-        ProcMacro2VariantMatchingTokensRef(
-            &data_enum
+        SynEnumIdentifierRef::from(identifier),
+        ProcMacro2VariantMatchingTokensRef::from(
+            data_enum
                 .variants
                 .iter()
                 .map(|element| match element.fields {
@@ -381,7 +386,8 @@ pub fn as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
                     }
                     syn::Fields::Named(_) | syn::Fields::Unnamed(_) => panic!("b6fedcff"),
                 })
-                .collect::<Vec<proc_macro2::TokenStream>>(),
+                .collect::<Vec<proc_macro2::TokenStream>>()
+                .as_slice(),
         ),
     );
     // println!("{generated}");

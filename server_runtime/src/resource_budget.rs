@@ -9,8 +9,18 @@ impl From<usize> for ResourceBudgetAmount {
 }
 #[derive(Debug)]
 struct StdAtomicUsize(std::sync::atomic::AtomicUsize);
+impl From<std::sync::atomic::AtomicUsize> for StdAtomicUsize {
+    fn from(value: std::sync::atomic::AtomicUsize) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug)]
 struct StdSharedAtomicUsize(std::sync::Arc<StdAtomicUsize>);
+impl From<std::sync::Arc<StdAtomicUsize>> for StdSharedAtomicUsize {
+    fn from(value: std::sync::Arc<StdAtomicUsize>) -> Self {
+        Self(value)
+    }
+}
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {
@@ -70,7 +80,7 @@ impl ResourceBudget {
     pub fn new(maximum: ResourceBudgetMaximum) -> Self {
         Self {
             maximum,
-            reserved: StdSharedAtomicUsize(std::sync::Arc::from(StdAtomicUsize(
+            reserved: StdSharedAtomicUsize::from(std::sync::Arc::from(StdAtomicUsize::from(
                 std::sync::atomic::AtomicUsize::new(0usize),
             ))),
         }

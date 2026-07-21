@@ -9,9 +9,9 @@ pub(crate) async fn record_login_attempt(
 ) -> Result<(), crate::SqlxAdminError> {
     sqlx::query(str_constants::SERVER_ADMIN_RECORD_LOGIN_ATTEMPT_SQL)
         .bind(login.as_ref())
-        .bind(peer.socket_addr().0.ip())
-        .bind(succeeded.0)
-        .bind(request_id.0)
+        .bind(peer.socket_addr().get().ip())
+        .bind(succeeded.get())
+        .bind(request_id.get())
         .execute(pool.0)
         .await
         .map_err(crate::SqlxAdminError::from)
@@ -29,12 +29,12 @@ pub(crate) async fn insert_audit_success(
     details: &server_admin_contract::SerdeJsonAdminAuditDetails,
 ) -> Result<(), crate::SqlxAdminError> {
     sqlx::query(str_constants::SERVER_ADMIN_INSERT_AUDIT_SUCCESS_SQL)
-        .bind(user_id.0)
+        .bind(user_id.get())
         .bind(login.as_ref())
         .bind(action.as_str().as_ref())
         .bind(resource.as_str().as_ref())
         .bind(resource_id.as_ref())
-        .bind(request_id.0)
+        .bind(request_id.get())
         .bind(details.as_ref())
         .execute(connection.0)
         .await
@@ -53,7 +53,7 @@ pub(crate) async fn query_audit_log(
         .map_err(|_error| super::AdminRepositoryError::InvalidStoredValue)?;
     let total =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_COUNT_FILTERED_AUDIT_LOG_SQL)
-            .bind(parts.user_id.map(|value| value.0))
+            .bind(parts.user_id.map(|value| value.get()))
             .bind(action_text.map(|value| value.as_ref().to_owned()))
             .bind(resource_text.map(|value| value.as_ref().to_owned()))
             .bind(
@@ -98,7 +98,7 @@ pub(crate) async fn query_audit_log(
             String,
         ),
     >(str_constants::SERVER_ADMIN_PAGE_AUDIT_LOG_SQL)
-    .bind(parts.user_id.map(|value| value.0))
+    .bind(parts.user_id.map(|value| value.get()))
     .bind(action_text.map(|value| value.as_ref().to_owned()))
     .bind(resource_text.map(|value| value.as_ref().to_owned()))
     .bind(

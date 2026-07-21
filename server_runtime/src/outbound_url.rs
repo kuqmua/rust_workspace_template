@@ -21,6 +21,11 @@ impl<'value_lt> From<&'value_lt str> for OutboundUrlTextRef<'value_lt> {
 
 #[derive(Clone)]
 pub struct ReqwestOutboundUrl(reqwest::Url);
+impl From<reqwest::Url> for ReqwestOutboundUrl {
+    fn from(value: reqwest::Url) -> Self {
+        Self(value)
+    }
+}
 impl ReqwestOutboundUrl {
     #[must_use]
     pub fn scheme(&self) -> OutboundUrlScheme {
@@ -160,13 +165,13 @@ impl OutboundUrlPolicy {
         }
         if self.host_policy == OutboundHostPolicy::RejectPrivate
             && host.parse::<std::net::IpAddr>().is_ok_and(|address| {
-                outbound_address_disposition(StdOutboundIpAddr(address))
+                outbound_address_disposition(StdOutboundIpAddr::from(address))
                     == OutboundAddressDisposition::Forbidden
             })
         {
             return Err(OutboundUrlError::ForbiddenHost);
         }
-        Ok(ReqwestOutboundUrl(url))
+        Ok(ReqwestOutboundUrl::from(url))
     }
 
     pub fn validate_resolved_addresses(
@@ -244,7 +249,7 @@ fn outbound_address_disposition(address: StdOutboundIpAddr) -> OutboundAddressDi
                     || ipv6_address.is_unspecified()
             },
             |mapped| {
-                outbound_address_disposition(StdOutboundIpAddr(std::net::IpAddr::V4(mapped)))
+                outbound_address_disposition(StdOutboundIpAddr::from(std::net::IpAddr::V4(mapped)))
                     == OutboundAddressDisposition::Forbidden
             },
         ),

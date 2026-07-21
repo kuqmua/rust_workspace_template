@@ -7,10 +7,14 @@
     clippy::field_scoped_visibility_modifiers,
     reason = "the sibling descriptor validates bind count without exposing a primitive boundary"
 )]
-pub(super) struct FilterPlaceholderCount(pub(super) usize);
+#[derive(newtype::FromInner)]
+pub(super) struct FilterPlaceholderCount(usize);
 impl FilterPlaceholderCount {
     pub(super) const fn one() -> Self {
         Self(1usize)
+    }
+    pub(super) const fn get(self) -> usize {
+        self.0
     }
 }
 pub(super) const fn bind_count_matches(

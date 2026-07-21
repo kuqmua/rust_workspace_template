@@ -94,6 +94,11 @@ pub enum PgRateLimitValidationError {
 
 #[derive(Debug)]
 pub struct SqlxPgRateLimitError(sqlx::Error);
+impl From<sqlx::Error> for SqlxPgRateLimitError {
+    fn from(value: sqlx::Error) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for SqlxPgRateLimitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -138,7 +143,7 @@ pub async fn enforce_pg_rate_limit(
                 PgRateLimitDecision::Limited(window_seconds)
             }
         })
-        .map_err(|error| PgRateLimitError::Sqlx(SqlxPgRateLimitError(error)))
+        .map_err(|error| PgRateLimitError::Sqlx(SqlxPgRateLimitError::from(error)))
 }
 
 #[cfg(test)]

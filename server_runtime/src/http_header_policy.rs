@@ -14,6 +14,11 @@ impl<'value_lt> From<&'value_lt str> for HttpAttachmentFileNameRef<'value_lt> {
 
 #[derive(Clone, Debug)]
 pub struct HttpContentDisposition(http::HeaderValue);
+impl From<http::HeaderValue> for HttpContentDisposition {
+    fn from(value: http::HeaderValue) -> Self {
+        Self(value)
+    }
+}
 impl From<HttpContentDisposition> for http::HeaderValue {
     fn from(value: HttpContentDisposition) -> Self {
         value.0

@@ -56,6 +56,7 @@ impl TryFrom<Vec<AdminRoleName>> for AdminRoleNames {
     }
 }
 #[derive(Clone, Debug)]
+#[derive(newtype::FromInner)]
 pub struct StdAdminSharedSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct TokioAdminJoinError(tokio::task::JoinError);
@@ -66,6 +67,7 @@ pub struct Argon2AdminPasswordHashError(argon2::password_hash::Error);
 #[derive(newtype::DebugTransparent, newtype::FromInner)]
 pub struct SqlxAdminError(sqlx::Error);
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminPassword(SecrecyAdminString);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for AdminPassword {
     fn schema() -> (
@@ -99,7 +101,7 @@ impl<'de> serde::Deserialize<'de> for AdminPassword {
                 str_constants::ADMINISTRATOR_PASSWORD_LENGTH_IS_INVALID,
             ));
         }
-        Ok(Self(SecrecyAdminString(secrecy::SecretBox::new(Box::new(
+        Ok(Self(SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
             value,
         )))))
     }
@@ -114,6 +116,7 @@ impl AdminPassword {
     }
 }
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminPasswordHash(pg_types_text_misc::StringAsNonNullTextSecret);
 impl AdminPasswordHash {
     #[must_use]
@@ -122,6 +125,7 @@ impl AdminPasswordHash {
     }
 }
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminJwtSecret(SecrecyAdminString);
 impl AdminJwtSecret {
     #[must_use]
@@ -130,6 +134,7 @@ impl AdminJwtSecret {
     }
 }
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminOpaqueToken(SecrecyAdminString);
 impl AdminOpaqueToken {
     #[must_use]
@@ -138,6 +143,7 @@ impl AdminOpaqueToken {
     }
 }
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminRefreshToken(AdminOpaqueToken);
 impl AdminRefreshToken {
     #[must_use]
@@ -150,6 +156,7 @@ impl AdminRefreshToken {
     }
 }
 #[derive(newtype::DebugRedacted)]
+#[derive(newtype::FromInner)]
 pub struct AdminTokenHash(SecrecyAdminString);
 impl AdminTokenHash {
     #[must_use]
@@ -224,7 +231,7 @@ pub fn build_admin_cookie(
     max_age: AdminCookieMaxAgeSeconds,
     secure: AdminCookieSecure,
 ) -> StdAdminCookie {
-    let http_only = if kind.is_http_only().0 {
+    let http_only = if kind.is_http_only().get() {
         str_constants::HTTPONLY
     } else {
         str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
@@ -234,7 +241,7 @@ pub fn build_admin_cookie(
     } else {
         str_constants::PG_CRUD_EMPTY_SQL_SUFFIX
     };
-    StdAdminCookie(format!(
+    StdAdminCookie::from(format!(
         "{}={}; Path=/; Max-Age={}; SameSite=Strict{http_only}{secure_attr}",
         kind.name().as_ref(),
         value.as_ref(),
@@ -272,6 +279,7 @@ pub struct AdminPasswordHashConcurrency(StdAdminNonZeroUsize);
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
 )]
+#[serde(from = "u64")]
 pub struct AdminUnixTokenStream(u64);
 #[derive(
     Debug,
@@ -284,6 +292,7 @@ pub struct AdminUnixTokenStream(u64);
     utoipa::ToSchema,
     newtype::FromInner,
 )]
+#[serde(from = "UuidAdminValue")]
 pub struct AdminSessionId(UuidAdminValue);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AdminAccessClaims {
@@ -339,6 +348,7 @@ pub struct AdminPasswordHasher {
 pub struct JsonwebtokenAdminError(jsonwebtoken::errors::Error);
 #[derive(Debug, thiserror::Error)]
 #[error("administrator access token operation failed: {0:?}")]
+#[derive(newtype::FromInner)]
 pub struct AdminAccessTokenError(JsonwebtokenAdminError);
 #[derive(
     Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefOwned, newtype::IntoInner,
@@ -410,6 +420,7 @@ enum AdminMigrateErrorInner {
 }
 #[derive(Debug, thiserror::Error)]
 #[error("failed to prepare administrator schema: {0}")]
+#[derive(newtype::FromInner)]
 pub struct AdminMigrateError(AdminMigrateErrorInner);
 pub async fn prep_pg(pool: app_state::SqlxPgPoolRef<'_>) -> Result<(), AdminMigrateError> {
     migrations::prep_pg(pool).await
@@ -597,7 +608,7 @@ mod tests {
         );
     }
     fn secret(value: &str) -> super::SecrecyAdminString {
-        super::SecrecyAdminString(secrecy::SecretBox::new(Box::new(value.to_owned())))
+        super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(value.to_owned())))
     }
     fn password_hasher() -> super::AdminPasswordHasher {
         super::AdminPasswordHasher::new(super::AdminPasswordHashConcurrency::from(
@@ -668,7 +679,7 @@ mod tests {
                 .verify(password("correct password"), hash)
                 .await
                 .expect("604f40be")
-                .0
+                .get()
         );
         let other_hash = hasher
             .hash(password(str_constants::CORRECT_PASSWORD_ALT))
@@ -679,7 +690,7 @@ mod tests {
                 .verify(password("wrong password"), other_hash)
                 .await
                 .expect("ed6b499a")
-                .0
+                .get()
         );
     }
     #[test]

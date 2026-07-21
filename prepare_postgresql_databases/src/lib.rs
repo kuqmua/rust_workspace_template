@@ -50,6 +50,7 @@ pub enum ProcessArgument {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(newtype::FromInner)]
 pub struct ProcessStaticArgument(&'static str);
 
 impl From<DatabaseUrl> for ProcessArgument {
@@ -81,11 +82,13 @@ impl AsRef<str> for ProcessArgument {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(newtype::FromInner)]
 pub struct ProcessArguments(Vec<ProcessArgument>);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ProcessCommands(Vec<ProcessCommand>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner)]
+#[derive(newtype::FromInner)]
 pub struct ProcessProgram(&'static str);
 
 impl ProcessCommand {
@@ -135,14 +138,14 @@ where
     specs
         .into_iter()
         .map(|spec| ProcessCommand {
-            arguments: ProcessArguments(vec![
+            arguments: ProcessArguments::from(vec![
                 ProcessArgument::from(str_constants::DATABASE_URL_FLAG),
                 ProcessArgument::from(spec.url),
                 ProcessArgument::from(str_constants::SOURCE_FLAG),
                 ProcessArgument::from(spec.migrations_source),
                 ProcessArgument::from(str_constants::RUN),
             ]),
-            program: ProcessProgram(str_constants::SQLX),
+            program: ProcessProgram::from(str_constants::SQLX),
         })
         .collect::<Vec<_>>()
         .into()

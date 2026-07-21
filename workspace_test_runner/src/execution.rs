@@ -1,5 +1,6 @@
 static RUN_COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
 #[derive(Clone, Copy, Debug)]
+#[derive(newtype::FromInner)]
 struct CommandIdx(usize);
 impl CommandIdx {
     const fn get(self) -> usize {
@@ -7,6 +8,7 @@ impl CommandIdx {
     }
 }
 #[derive(Clone, Copy, Debug)]
+#[derive(newtype::FromInner)]
 struct CommandStartedAt(std::time::Instant);
 impl CommandStartedAt {
     fn elapsed(self) -> std::time::Duration {
@@ -14,9 +16,26 @@ impl CommandStartedAt {
     }
 }
 #[derive(Debug)]
+#[derive(newtype::FromInner)]
 struct RunDir(std::path::PathBuf);
-#[derive(Debug)]
+const SUMMARY_MAX_BYTES: usize = 1_048_576usize;
+#[derive(Debug, newtype::BoundedString, newtype::AsRefStr)]
+#[bounded_string(max = SUMMARY_MAX_BYTES)]
 struct SummaryText(String);
+impl SummaryText {
+    fn push_str(&mut self, value: &str) -> Result<(), ()> {
+        if self
+            .0
+            .len()
+            .checked_add(value.len())
+            .is_none_or(|len| len > SUMMARY_MAX_BYTES)
+        {
+            return Err(());
+        }
+        self.0.push_str(value);
+        Ok(())
+    }
+}
 #[derive(Debug)]
 struct CommandRun {
     duration: std::time::Duration,
@@ -74,7 +93,7 @@ fn create_run_dir() -> Result<RunDir, std::io::Error> {
             RUN_COUNTER.fetch_add(1u64, std::sync::atomic::Ordering::Relaxed)
         ));
     std::fs::create_dir_all(path.as_path())?;
-    Ok(RunDir(path))
+    Ok(RunDir::from(path))
 }
 #[allow(clippy::single_call_fn)] // log parsing stays independently unit-testable
 fn failed_test_names(log_text: &str) -> Vec<String> {
@@ -111,7 +130,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
             .enumerate()
             .map(|(idx, (program, args))| {
                 scope.spawn(move || {
-                    let started_at = CommandStartedAt(std::time::Instant::now());
+                    let started_at = CommandStartedAt::from(std::time::Instant::now());
                     let output = macros_helpers::tool_command::ToolCommand::new(
                         macros_helpers::tool_command::ToolProgramRef::from(*program),
                     )
@@ -136,7 +155,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
                         ),
                     };
                     CommandRun {
-                        idx: CommandIdx(idx),
+                        idx: CommandIdx::from(idx),
                         log_text,
                         status_text,
                         succeeded,
@@ -149,7 +168,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
             .map(std::thread::ScopedJoinHandle::join)
             .collect::<Vec<_>>()
     });
-    let mut summary = SummaryText(String::new());
+    let mut summary = SummaryText::try_from(String::new()).map_err(|_error| ())?;
     let mut succeeded = true;
     command_runs.sort_by_key(|command_run_result| match command_run_result {
         Ok(command_run) => command_run.idx.get(),
@@ -160,9 +179,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
             Ok(command_run) => command_run,
             Err(_panic) => {
                 succeeded = false;
-                summary
-                    .0
-                    .push_str(str_constants::COMMAND_THREAD_PANICKED_SUMMARY);
+                summary.push_str(str_constants::COMMAND_THREAD_PANICKED_SUMMARY)?;
                 return Ok(());
             }
         };
@@ -178,7 +195,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
         }
         let failed_names =
             failed_test_names(command_run.log_text.as_str()).join(str_constants::TEXT_ALT_7);
-        summary.0.push_str(
+        summary.push_str(
             format!(
                 "command={program} args={args:?} duration_ms={} status={} log={} failed_tests={failed_names}\n",
                 command_run.duration.as_millis(),
@@ -186,7 +203,7 @@ pub(super) fn run_commands(commands: &[(&str, &[&str])]) -> Result<(), ()> {
                 log_path.display()
             )
             .as_str(),
-        );
+        )?;
         if !command_run.succeeded {
             succeeded = false;
         }

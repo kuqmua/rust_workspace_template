@@ -13,6 +13,11 @@ impl From<u64> for ResourceAmount {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ResourceUtilizationPercent(u8);
+impl From<u8> for ResourceUtilizationPercent {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
 
 impl ResourceUtilizationPercent {
     #[must_use]
@@ -80,8 +85,8 @@ pub fn calculate_resource_utilization(
         .div_euclid(u128::from(maximum.0))
         .min(100u128);
     let percent = match u8::try_from(percent_u128) {
-        Ok(value) => ResourceUtilizationPercent(value),
-        Err(_error) => ResourceUtilizationPercent(100u8),
+        Ok(value) => ResourceUtilizationPercent::from(value),
+        Err(_error) => ResourceUtilizationPercent::from(100u8),
     };
     let status = match percent.0 {
         REJECT_NON_ESSENTIAL_WRITES_PERCENT..=u8::MAX => {

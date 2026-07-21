@@ -58,7 +58,7 @@ impl<'de> serde::Deserialize<'de> for NotificationMessage {
     newtype::IntoInnerFrom,
     utoipa::ToSchema,
 )]
-#[serde(transparent)]
+#[serde(from = "uuid::Uuid")]
 pub struct UuidNotificationId(uuid::Uuid);
 
 #[derive(Clone, Copy, Debug, frontend_contract::TypedRoute)]

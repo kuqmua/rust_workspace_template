@@ -1,8 +1,18 @@
 #[derive(Debug)]
 pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
+impl From<syn::DeriveInput> for SynParsedGeneratePgTableInput {
+    fn from(value: syn::DeriveInput) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
+impl From<crate::model::GeneratePgTableModel> for SynBuiltGeneratePgTableInput {
+    fn from(value: crate::model::GeneratePgTableModel) -> Self {
+        Self(value)
+    }
+}
 
 impl SynBuiltGeneratePgTableInput {
     #[must_use]
@@ -13,6 +23,11 @@ impl SynBuiltGeneratePgTableInput {
 
 #[derive(Debug)]
 pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
+impl From<crate::model::GeneratePgTableModel> for SynValidatedGeneratePgTableInput {
+    fn from(value: crate::model::GeneratePgTableModel) -> Self {
+        Self(value)
+    }
+}
 
 impl SynValidatedGeneratePgTableInput {
     pub(crate) fn into_model(self) -> crate::model::GeneratePgTableModel {
@@ -22,6 +37,11 @@ impl SynValidatedGeneratePgTableInput {
 
 #[derive(Debug)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
+impl From<syn::Error> for SynGeneratePgTablePipelineError {
+    fn from(value: syn::Error) -> Self {
+        Self(value)
+    }
+}
 
 impl From<SynGeneratePgTablePipelineError> for syn::Error {
     fn from(value: SynGeneratePgTablePipelineError) -> Self {
@@ -52,7 +72,7 @@ pub fn parse_generate_pg_table(
     syn::parse2(input.as_ref().clone())
         .map(SynParsedGeneratePgTableInput)
         .map_err(|error| {
-            GeneratePgTablePipelineError::Parse(SynGeneratePgTablePipelineError(error))
+            GeneratePgTablePipelineError::Parse(SynGeneratePgTablePipelineError::from(error))
         })
 }
 
@@ -62,9 +82,9 @@ pub fn build_generate_pg_table(
     let _shape =
         crate::parse::struct_shape(workspace_macro_helpers::SynDeriveInputRef::from(&parsed.0))
             .map_err(|error| {
-                GeneratePgTablePipelineError::Build(SynGeneratePgTablePipelineError(error))
+                GeneratePgTablePipelineError::Build(SynGeneratePgTablePipelineError::from(error))
             })?;
-    Ok(SynBuiltGeneratePgTableInput(
+    Ok(SynBuiltGeneratePgTableInput::from(
         crate::model::GeneratePgTableModel::from_struct(parsed.0.into()),
     ))
 }
@@ -77,7 +97,7 @@ pub fn validate_generate_pg_table(
         .validate()
         .map(SynValidatedGeneratePgTableInput)
         .map_err(|error| {
-            GeneratePgTablePipelineError::Validate(SynGeneratePgTablePipelineError(
+            GeneratePgTablePipelineError::Validate(SynGeneratePgTablePipelineError::from(
                 syn::Error::from(error),
             ))
         })

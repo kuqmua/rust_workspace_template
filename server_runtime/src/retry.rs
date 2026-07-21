@@ -18,6 +18,12 @@ impl TryFrom<usize> for StdRetryAttempts {
     }
 }
 
+impl From<std::num::NonZeroUsize> for StdRetryAttempts {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("retry attempts must be greater than zero")]
 pub struct StdRetryAttemptsError;
@@ -89,7 +95,7 @@ where
             .is_err_and(|error| attempt < maximum_attempts && is_retryable(error));
         if !should_retry {
             return RetryOutcome {
-                attempts: StdRetryAttempts(
+                attempts: StdRetryAttempts::from(
                     std::num::NonZeroUsize::new(attempt).unwrap_or(std::num::NonZeroUsize::MIN),
                 ),
                 result,

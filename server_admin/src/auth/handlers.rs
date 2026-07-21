@@ -54,7 +54,7 @@ async fn authenticate_mutation(
         auth.peer,
     )
     .await?;
-    let subject = super::super::StdAdminString::try_from(actor.id.0.to_string())
+    let subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
         .map_err(|_error| super::AdminApiError::Validation)?;
     super::rate_limit::enforce_rate_limit(
         auth.state.as_ref(),
@@ -83,7 +83,7 @@ pub(super) async fn sign_in(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
-    .0
+    .get()
     {
         return Err(super::AdminApiError::Authentication);
     }
@@ -124,7 +124,7 @@ pub(super) async fn sign_in(
     .map_err(super::AdminApiError::from)?;
     if recent_failures
         .reached(state.as_ref().policy.failure_threshold)
-        .0
+        .get()
     {
         return Err(super::AdminApiError::RateLimited);
     }
@@ -159,7 +159,7 @@ pub(super) async fn sign_in(
         .verify(password, password_hash)
         .await
         .map_err(|_error| super::AdminApiError::Authentication)?;
-    if !verified.0 || is_banned.0 {
+    if !verified.get() || is_banned.get() {
         super::record_login_attempt(
             state.as_ref(),
             &login,
@@ -228,7 +228,7 @@ pub(super) async fn refresh(
         state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
     )
-    .0
+    .get()
     {
         apply_refresh_failure_delay(state.as_ref().policy.failure_delay).await;
         return Err(super::AdminApiError::Authentication);
@@ -250,7 +250,7 @@ pub(super) async fn refresh(
         apply_refresh_failure_delay(state.as_ref().policy.failure_delay).await;
         return Err(super::AdminApiError::Authentication);
     };
-    let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(
+    let token = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
         secrecy::SecretBox::new(Box::new(raw_token.as_ref().to_owned())),
     ));
     let context_hash = super::session_context_hash(
@@ -360,7 +360,7 @@ pub(super) async fn sign_out(
         super::super::HttpAdminHeaderMapRef::from(headers.as_ref()),
         super::super::AdminCookieKind::Refresh,
     ) {
-        let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(
+        let refresh = super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
             secrecy::SecretBox::new(Box::new(raw_refresh.as_ref().to_owned())),
         ));
         let context_hash = super::session_context_hash(
@@ -439,7 +439,7 @@ pub(super) async fn change_own_password(
         )
         .await
         .map_err(super::AdminApiError::PasswordHash)?
-        .0
+        .get()
     {
         return Err(super::AdminApiError::Validation);
     }
@@ -465,7 +465,7 @@ pub(super) async fn change_own_password(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     if bool::from(revoke_other_sessions) {
@@ -647,7 +647,7 @@ pub(super) async fn update_settings(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::record_audit_success_in_connection(
@@ -707,7 +707,7 @@ pub(super) async fn create_user(
             login: &actor.login,
             resource: super::super::AdminAuditResource::User,
             resource_id: super::AdminAuditResourceId::User(super::super::AdminUserId::from(
-                user_id.0,
+                user_id.get(),
             )),
             user_id: actor.id,
         },
@@ -718,7 +718,7 @@ pub(super) async fn create_user(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(server_admin_contract::AdminCreateUserRes::new(
-                server_admin_contract::AdminUserId::from(user_id.0),
+                server_admin_contract::AdminUserId::from(user_id.get()),
             )),
         )),
     ))
@@ -757,7 +757,7 @@ pub(super) async fn update_user(
     )
     .await
     .map_err(|error| map_unique_violation(error.0))?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::record_audit_success_in_connection(
@@ -805,7 +805,7 @@ pub(super) async fn set_user_password(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::super::repository::sessions::revoke_user_sessions(
@@ -860,7 +860,7 @@ pub(super) async fn set_user_ban(
         )
         .await
         .map_err(super::AdminApiError::from)?;
-        if last_admin_state.would_remove_last().0 {
+        if last_admin_state.would_remove_last().get() {
             return Err(super::AdminApiError::Conflict);
         }
     }
@@ -871,7 +871,7 @@ pub(super) async fn set_user_ban(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     if is_banned {
@@ -920,7 +920,7 @@ pub(super) async fn delete_user(
     )
     .await
     .map_err(super::AdminApiError::from)?;
-    if last_admin_state.would_remove_last().0 {
+    if last_admin_state.would_remove_last().get() {
         return Err(super::AdminApiError::Conflict);
     }
     super::super::repository::users::delete_user(
@@ -929,7 +929,7 @@ pub(super) async fn delete_user(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::record_audit_success_in_connection(
@@ -985,7 +985,7 @@ pub(super) async fn create_role(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(server_admin_contract::AdminCreateRoleRes::new(
-                server_admin_contract::AdminRoleId::from(role_id.0),
+                server_admin_contract::AdminRoleId::from(role_id.get()),
             )),
         )),
     ))
@@ -1013,7 +1013,7 @@ pub(super) async fn update_role(
     )
     .await
     .map_err(|error| map_unique_violation(error.0))?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::record_audit_success_in_connection(
@@ -1051,7 +1051,7 @@ pub(super) async fn delete_role(
     )
     .await
     .map_err(super::AdminApiError::from)?
-    .0
+    .get()
     .then_some(())
     .ok_or(super::AdminApiError::Conflict)?;
     super::record_audit_success_in_connection(

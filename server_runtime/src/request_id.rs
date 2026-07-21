@@ -25,6 +25,11 @@ impl std::fmt::Display for RequestIdTryFromStringError {
 impl std::error::Error for RequestIdTryFromStringError {}
 #[derive(Debug)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
+impl From<http::header::ToStrError> for HttpHeaderToStrError {
+    fn from(value: http::header::ToStrError) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for HttpHeaderToStrError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

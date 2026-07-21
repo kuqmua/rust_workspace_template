@@ -15,6 +15,7 @@
     newtype::FromInner,
     newtype::ToErrString,
 )]
+#[serde(from = "i64")]
 pub struct PaginationLimit(i64);
 impl PaginationLimit {
     #[must_use]
@@ -33,7 +34,7 @@ pub struct PaginationPolicy {
 }
 impl PaginationPolicy {
     pub const DEFAULT: Self = Self {
-        default_limit: PaginationLimit(5i64),
+        default_limit: PaginationLimit::from(5i64),
     };
     #[must_use]
     pub const fn default_limit(self) -> PaginationLimit {
@@ -65,6 +66,7 @@ mod policy_tests {
     newtype::FromInner,
     newtype::ToErrString,
 )]
+#[serde(from = "i64")]
 pub struct PaginationOffset(i64);
 impl PaginationOffset {
     #[must_use]

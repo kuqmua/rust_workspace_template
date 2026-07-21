@@ -180,6 +180,9 @@ token_patterns_macros::ts_path_fn!(
     ::all_variants_default_some_one_element()
 );
 struct ProcMacro2TokensMut<'tokens_lt>(&'tokens_lt mut proc_macro2::TokenStream);
+impl<'tokens_lt> From<&'tokens_lt mut proc_macro2::TokenStream> for ProcMacro2TokensMut<'tokens_lt> {
+    fn from(value: &'tokens_lt mut proc_macro2::TokenStream) -> Self { Self(value) }
+}
 fn append_tokens(tokens: &mut ProcMacro2TokensMut<'_>, part: impl quote::ToTokens) {
     part.to_tokens(&mut *tokens.0);
 }

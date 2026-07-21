@@ -1133,8 +1133,8 @@ mod tests {
         let values = (0usize..=super::ADMIN_HTML_FORM_SELECTED_MAX_ITEMS)
             .map(|idx| {
                 (
-                    super::AdminHtmlFormKey(idx.to_string()),
-                    super::AdminHtmlFormText(String::new()),
+                    super::AdminHtmlFormKey::from(idx.to_string()),
+                    super::AdminHtmlFormText::from(String::new()),
                 )
             })
             .collect::<std::collections::BTreeMap<_, _>>();

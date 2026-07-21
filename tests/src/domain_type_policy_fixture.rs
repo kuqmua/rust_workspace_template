@@ -1,3 +1,4 @@
+#[derive(newtype::FromInner)]
 struct DomainId(u32);
 struct DomainName(String);
 const DOMAIN_NAME_MAX_LEN: usize = 1_048_576;
@@ -38,12 +39,13 @@ struct DomainEntity {
 enum DomainEvent {
     Created(DomainEntity),
 }
+#[derive(newtype::FromInner)]
 struct DomainEvents(Vec<DomainEvent>);
 fn mk_domain_entity(id: DomainId, name: DomainName) -> DomainEntity {
     DomainEntity { id, name }
 }
 fn domain_events(entity: DomainEntity) -> DomainEvents {
-    DomainEvents(vec![DomainEvent::Created(entity)])
+    DomainEvents::from(vec![DomainEvent::Created(entity)])
 }
 #[cfg(test)]
 fn raw_type_test_only(v: u32) -> u32 {

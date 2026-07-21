@@ -9,22 +9,67 @@ struct NotificationState {
 }
 #[derive(Clone, Debug)]
 struct AxumNotificationState(NotificationState);
+impl From<NotificationState> for AxumNotificationState {
+    fn from(value: NotificationState) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct AxumNotificationJson(notification_service_contract::CreateNotificationReq);
+impl From<notification_service_contract::CreateNotificationReq> for AxumNotificationJson {
+    fn from(value: notification_service_contract::CreateNotificationReq) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct AxumNotificationResponse(axum::response::Response);
+impl From<axum::response::Response> for AxumNotificationResponse {
+    fn from(value: axum::response::Response) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct AxumNotificationRouter(axum::Router);
+impl From<axum::Router> for AxumNotificationRouter {
+    fn from(value: axum::Router) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Copy, Debug)]
 struct HttpNotificationStatusCode(http::StatusCode);
+impl From<http::StatusCode> for HttpNotificationStatusCode {
+    fn from(value: http::StatusCode) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct HttpNotificationApiProblem(http::StatusCode);
+impl From<http::StatusCode> for HttpNotificationApiProblem {
+    fn from(value: http::StatusCode) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
+impl From<metrics_exporter_prometheus::PrometheusHandle> for MetricsExporterPrometheusHandle {
+    fn from(value: metrics_exporter_prometheus::PrometheusHandle) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Copy, Debug)]
 struct NotificationBodyMaximumBytes(usize);
+impl From<usize> for NotificationBodyMaximumBytes {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Copy, Debug)]
 struct StdNotificationExitCode(std::process::ExitCode);
+impl From<std::process::ExitCode> for StdNotificationExitCode {
+    fn from(value: std::process::ExitCode) -> Self {
+        Self(value)
+    }
+}
 
 impl axum::response::IntoResponse for AxumNotificationResponse {
     fn into_response(self) -> axum::response::Response {
@@ -70,7 +115,7 @@ impl axum::extract::FromRequest<NotificationState> for AxumNotificationJson {
         <axum::Json<notification_service_contract::CreateNotificationReq> as axum::extract::FromRequest<NotificationState>>::from_request(req, state)
             .await
             .map(|axum::Json(value)| Self(value))
-            .map_err(|_error| HttpNotificationApiProblem(http::StatusCode::UNPROCESSABLE_ENTITY))
+            .map_err(|_error| HttpNotificationApiProblem::from(http::StatusCode::UNPROCESSABLE_ENTITY))
     }
 }
 
@@ -93,16 +138,46 @@ enum NotificationServiceError {
 }
 #[derive(Debug)]
 struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
+impl From<notification_service_config::ConfigTryFromEnvError> for NotificationConfigError {
+    fn from(value: notification_service_config::ConfigTryFromEnvError) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct SqlxNotificationDatabaseError(sqlx::Error);
+impl From<sqlx::Error> for SqlxNotificationDatabaseError {
+    fn from(value: sqlx::Error) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
+impl From<sqlx::migrate::MigrateError> for SqlxNotificationMigrationError {
+    fn from(value: sqlx::migrate::MigrateError) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct StdNotificationIoError(std::io::Error);
+impl From<std::io::Error> for StdNotificationIoError {
+    fn from(value: std::io::Error) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
+impl From<server_runtime::ServeWithGracefulShutdownError> for NotificationServeError {
+    fn from(value: server_runtime::ServeWithGracefulShutdownError) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
+impl From<metrics_exporter_prometheus::BuildError> for MetricsExporterPrometheusNotificationBuildError {
+    fn from(value: metrics_exporter_prometheus::BuildError) -> Self {
+        Self(value)
+    }
+}
 
 impl std::fmt::Display for NotificationConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -148,9 +223,9 @@ async fn create_notification(
         .await
         .map_err(|error| {
             tracing::error!(error = %error, "notification persistence failed");
-            HttpNotificationApiProblem(http::StatusCode::INTERNAL_SERVER_ERROR)
+            HttpNotificationApiProblem::from(http::StatusCode::INTERNAL_SERVER_ERROR)
         })?;
-    Ok(AxumNotificationResponse(
+    Ok(AxumNotificationResponse::from(
         axum::response::IntoResponse::into_response((
             http::StatusCode::CREATED,
             axum::Json(notification_service_contract::CreateNotificationRes::new(
@@ -164,7 +239,7 @@ async fn metrics(
     state: AxumNotificationState,
 ) -> Result<server_runtime::MetricsResponseBody, HttpNotificationApiProblem> {
     server_runtime::MetricsResponseBody::try_from(state.0.metrics.0.render())
-        .map_err(|_error| HttpNotificationApiProblem(http::StatusCode::INTERNAL_SERVER_ERROR))
+        .map_err(|_error| HttpNotificationApiProblem::from(http::StatusCode::INTERNAL_SERVER_ERROR))
 }
 
 async fn readiness(state: AxumNotificationState) -> HttpNotificationStatusCode {
@@ -172,10 +247,10 @@ async fn readiness(state: AxumNotificationState) -> HttpNotificationStatusCode {
         .execute(state.0.pool.as_ref())
         .await
     {
-        Ok(_result) => HttpNotificationStatusCode(http::StatusCode::OK),
+        Ok(_result) => HttpNotificationStatusCode::from(http::StatusCode::OK),
         Err(error) => {
             tracing::error!(error = %error, "notification readiness probe failed");
-            HttpNotificationStatusCode(http::StatusCode::SERVICE_UNAVAILABLE)
+            HttpNotificationStatusCode::from(http::StatusCode::SERVICE_UNAVAILABLE)
         }
     }
 }
@@ -184,7 +259,7 @@ fn router(
     state: NotificationState,
     body_maximum_bytes: NotificationBodyMaximumBytes,
 ) -> AxumNotificationRouter {
-    AxumNotificationRouter(
+    AxumNotificationRouter::from(
         axum::Router::new()
             .route(
                 str_constants::COMMON_ROUTES_HEALTH_LIVE,
@@ -258,7 +333,7 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
         .install_recorder()
         .map(MetricsExporterPrometheusHandle)
         .map_err(|error| {
-            NotificationServiceError::Metrics(MetricsExporterPrometheusNotificationBuildError(
+            NotificationServiceError::Metrics(MetricsExporterPrometheusNotificationBuildError::from(
                 error,
             ))
         })?;
@@ -269,17 +344,17 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
         ))
         .await
         .map_err(|error| {
-            NotificationServiceError::Database(SqlxNotificationDatabaseError(error))
+            NotificationServiceError::Database(SqlxNotificationDatabaseError::from(error))
         })?;
     sqlx::migrate!("./migrations")
         .run(&pool)
         .await
         .map_err(|error| {
-            NotificationServiceError::Migration(SqlxNotificationMigrationError(error))
+            NotificationServiceError::Migration(SqlxNotificationMigrationError::from(error))
         })?;
     let listener = tokio::net::TcpListener::bind(config.notification_service_socket_address().0)
         .await
-        .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError(error)))?;
+        .map_err(|error| NotificationServiceError::Socket(StdNotificationIoError::from(error)))?;
     let timeout = server_runtime::StdRequestTimeout::try_from(std::time::Duration::from_secs(
         config.request_timeout_seconds().get(),
     ))
@@ -294,7 +369,7 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
                                 metrics,
                                 pool: app_state::SqlxPgPool::from(pool),
                             },
-                            NotificationBodyMaximumBytes(
+                            NotificationBodyMaximumBytes::from(
                                 (**config.maximum_size_of_http_body_in_bytes()).min(
                                     notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
                                 ),
@@ -312,7 +387,7 @@ async fn run(config: notification_service_config::Config) -> Result<(), Notifica
         timeout,
     )
     .await
-    .map_err(|error| NotificationServiceError::Serve(NotificationServeError(error)))
+    .map_err(|error| NotificationServiceError::Serve(NotificationServeError::from(error)))
 }
 
 #[tokio::main]
@@ -324,7 +399,7 @@ async fn main() -> StdNotificationExitCode {
                 "{}",
                 NotificationServiceError::Config(NotificationConfigError(error))
             );
-            return StdNotificationExitCode(std::process::ExitCode::FAILURE);
+            return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
         }
     };
     let tracing_format = if *config.tracing_format() == config_lib::types::TracingFormat::Json {
@@ -334,13 +409,13 @@ async fn main() -> StdNotificationExitCode {
     };
     if let Err(error) = server_runtime::initialize_service_tracing(tracing_format) {
         eprintln!("notification service tracing initialization failed: {error}");
-        return StdNotificationExitCode(std::process::ExitCode::FAILURE);
+        return StdNotificationExitCode::from(std::process::ExitCode::FAILURE);
     }
     match run(config).await {
-        Ok(()) => StdNotificationExitCode(std::process::ExitCode::SUCCESS),
+        Ok(()) => StdNotificationExitCode::from(std::process::ExitCode::SUCCESS),
         Err(error) => {
             eprintln!("{error}");
-            StdNotificationExitCode(std::process::ExitCode::FAILURE)
+            StdNotificationExitCode::from(std::process::ExitCode::FAILURE)
         }
     }
 }
@@ -349,7 +424,7 @@ async fn main() -> StdNotificationExitCode {
 mod tests {
     fn state(pool: sqlx::PgPool) -> super::NotificationState {
         super::NotificationState {
-            metrics: super::MetricsExporterPrometheusHandle(
+            metrics: super::MetricsExporterPrometheusHandle::from(
                 metrics_exporter_prometheus::PrometheusBuilder::new()
                     .build_recorder()
                     .handle(),
@@ -367,7 +442,7 @@ mod tests {
             .expect("52a25be1");
         let _router = super::router(
             state(pool),
-            super::NotificationBodyMaximumBytes(
+            super::NotificationBodyMaximumBytes::from(
                 notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
         );
@@ -439,7 +514,7 @@ mod tests {
         let response = tower::ServiceExt::oneshot(
             super::router(
                 state(pool),
-                super::NotificationBodyMaximumBytes(
+                super::NotificationBodyMaximumBytes::from(
                     notification_service_contract::NOTIFICATION_API_BODY_MAX_BYTES,
                 ),
             )

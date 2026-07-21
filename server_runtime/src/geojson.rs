@@ -22,6 +22,11 @@ impl TryFrom<String> for GeoJsonDocumentText {
 
 #[derive(Debug)]
 pub struct SerdeJsonGeoJsonError(serde_json::Error);
+impl From<serde_json::Error> for SerdeJsonGeoJsonError {
+    fn from(value: serde_json::Error) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for SerdeJsonGeoJsonError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

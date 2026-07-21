@@ -2,6 +2,7 @@ static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
 pub(crate) struct TestPathStemRef<'stem_lt>(&'stem_lt str);
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 pub(crate) struct TestPathStem<'stem_lt>(&'stem_lt str);
 impl<'stem_lt> TestPathStem<'stem_lt> {
     pub(crate) fn new<T>(v: T) -> Self
@@ -19,6 +20,7 @@ impl<'path_lt> From<&'path_lt std::path::PathBuf> for StdAssertFilePathRef<'path
     }
 }
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 pub(crate) struct StdAssertFilePath<'path_lt>(&'path_lt std::path::Path);
 impl<'path_lt> StdAssertFilePath<'path_lt> {
     pub(crate) fn new<T>(v: T) -> Self
@@ -36,6 +38,7 @@ impl<'content_lt> From<&'content_lt String> for ExpectedFileContentRef<'content_
     }
 }
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 pub(crate) struct ExpectedFileContent<'content_lt>(&'content_lt str);
 impl<'content_lt> ExpectedFileContent<'content_lt> {
     pub(crate) fn new<T>(v: T) -> Self
@@ -47,7 +50,7 @@ impl<'content_lt> ExpectedFileContent<'content_lt> {
 }
 pub(crate) fn test_path(stem: TestPathStem<'_>) -> crate::rs_file_path::StdRsFilePath {
     let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    crate::rs_file_path::StdRsFilePath(std::env::temp_dir().join(format!(
+    crate::rs_file_path::StdRsFilePath::from(std::env::temp_dir().join(format!(
         "{}_{}_{}",
         stem.0,
         std::process::id(),

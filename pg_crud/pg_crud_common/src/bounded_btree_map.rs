@@ -3,6 +3,7 @@ pub struct StdBoundedBTreeMapLen(usize);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("bounded map length exceeds limit {0}")]
+#[derive(newtype::FromInner)]
 pub struct BoundedBTreeMapError(StdBoundedBTreeMapLen);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -40,6 +41,7 @@ impl<K: serde::Serialize, V: serde::Serialize, const MAX: usize> serde::Serializ
     }
 }
 
+#[derive(newtype::FromInner)]
 struct StdBoundedBTreeMapVisitor<K, V, const MAX: usize>(std::marker::PhantomData<(K, V)>);
 
 impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MAX: usize>
@@ -58,13 +60,13 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
         let mut values = std::collections::BTreeMap::new();
         while let Some((key, value)) = map.next_entry()? {
             if values.len() == MAX {
-                return Err(serde::de::Error::custom(BoundedBTreeMapError(
+                return Err(serde::de::Error::custom(BoundedBTreeMapError::from(
                     StdBoundedBTreeMapLen::from(MAX),
                 )));
             }
             let _previous = values.insert(key, value);
         }
-        Ok(StdBoundedBTreeMap(values))
+        Ok(StdBoundedBTreeMap::from(values))
     }
 }
 
@@ -75,7 +77,7 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_map(StdBoundedBTreeMapVisitor(std::marker::PhantomData))
+        deserializer.deserialize_map(StdBoundedBTreeMapVisitor::from(std::marker::PhantomData))
     }
 }
 

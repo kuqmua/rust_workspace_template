@@ -45,6 +45,12 @@ impl TryFrom<usize> for HttpMetricsPathCacheMaximum {
     }
 }
 
+impl From<std::num::NonZeroUsize> for HttpMetricsPathCacheMaximum {
+    fn from(value: std::num::NonZeroUsize) -> Self {
+        Self(value.get())
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{message}", message = str_constants::HTTP_METRICS_PATH_CACHE_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct HttpMetricsPathCacheMaximumTryFromUsizeError;
@@ -60,9 +66,19 @@ struct HttpMetricsPathCache {
 struct StdHttpMetricsPathEntries(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
+impl From<std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>> for StdHttpMetricsPathEntries {
+    fn from(value: std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Debug)]
 struct MetricsSharedString(metrics::SharedString);
+impl From<metrics::SharedString> for MetricsSharedString {
+    fn from(value: metrics::SharedString) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct HttpMetricsPathText(String);
@@ -111,13 +127,13 @@ impl HttpMetricsPathCache {
     #[allow(clippy::single_call_fn)] // cache construction owns its capacity invariant
     fn new(maximum: HttpMetricsPathCacheMaximum) -> Self {
         Self {
-            entries: StdHttpMetricsPathEntries(std::sync::RwLock::new(
+            entries: StdHttpMetricsPathEntries::from(std::sync::RwLock::new(
                 std::collections::HashMap::with_capacity(
                     maximum.0.min(DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM),
                 ),
             )),
             maximum,
-            unmatched: MetricsSharedString(metrics::SharedString::const_str(
+            unmatched: MetricsSharedString::from(metrics::SharedString::const_str(
                 str_constants::HTTP_METRICS_UNMATCHED_PATH,
             )),
         }
@@ -150,7 +166,7 @@ impl HttpMetricsPathCache {
         let Ok(path_text) = HttpMetricsPathText::try_from(path.0.to_owned()) else {
             return self.unmatched.clone();
         };
-        let label = MetricsSharedString(metrics::SharedString::from(path_text.0.clone()));
+        let label = MetricsSharedString::from(metrics::SharedString::from(path_text.0.clone()));
         let _previous = write_entries.insert(path_text, label.clone());
         label
     }
@@ -163,8 +179,8 @@ pub struct HttpMetricsLayer {
 
 impl Default for HttpMetricsLayer {
     fn default() -> Self {
-        Self::new(HttpMetricsPathCacheMaximum(
-            DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM,
+        Self::new(HttpMetricsPathCacheMaximum::from(
+            std::num::NonZeroUsize::MIN.saturating_add(DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM - 1),
         ))
     }
 }
@@ -252,7 +268,7 @@ where
         let response_future = tower::Service::call(&mut self.inner, req);
         Box::pin(async move {
             let response = response_future.await?;
-            let status = MetricsSharedString(metrics::SharedString::from(
+            let status = MetricsSharedString::from(metrics::SharedString::from(
                 response.status().as_str().to_owned(),
             ));
             let labels = vec![
@@ -300,7 +316,9 @@ mod tests {
 
     #[test]
     fn cache_is_bounded_and_reuses_labels() {
-        let cache = super::HttpMetricsPathCache::new(super::HttpMetricsPathCacheMaximum(1usize));
+        let cache = super::HttpMetricsPathCache::new(super::HttpMetricsPathCacheMaximum::from(
+            std::num::NonZeroUsize::MIN,
+        ));
         assert_eq!(
             cache
                 .label(super::HttpMetricsPathTextRef::from(str_constants::ROOT))

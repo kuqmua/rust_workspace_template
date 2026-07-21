@@ -168,6 +168,7 @@ pub struct AdminSystemSettings {
         pg_types_chrono_net::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
 #[derive(Clone, newtype::IntoInnerFrom)]
+#[derive(newtype::FromInner)]
 pub struct UtoipaAdminOpenApi(utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaAdminOpenApi {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -221,7 +222,7 @@ pub fn generated_open_api() -> UtoipaAdminOpenApi {
             }
         });
     }
-    UtoipaAdminOpenApi(document)
+    UtoipaAdminOpenApi::from(document)
 }
 #[cfg(test)]
 mod tests {

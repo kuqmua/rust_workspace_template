@@ -1,11 +1,22 @@
 #[derive(Clone, Copy, Debug)]
 struct ProjectNameRef<'value>(&'value str);
+impl<'value> From<&'value str> for ProjectNameRef<'value> {
+    fn from(value: &'value str) -> Self { Self(value) }
+}
 
 #[derive(Clone, Copy, Debug)]
 struct RepositoryUrlRef<'value>(&'value str);
+impl<'value> From<&'value str> for RepositoryUrlRef<'value> {
+    fn from(value: &'value str) -> Self { Self(value) }
+}
 
 #[derive(Clone, Copy, Debug)]
 struct ServicePort(u16);
+impl From<u16> for ServicePort {
+    fn from(value: u16) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 enum ScaffoldError {
@@ -309,8 +320,8 @@ fn run() -> Result<(), ScaffoldError> {
             if arguments.next().is_some() {
                 return Err(ScaffoldError::Arguments);
             }
-            let name_ref = ProjectNameRef(name.as_str());
-            let repository_url_ref = RepositoryUrlRef(repository_url.as_str());
+            let name_ref = ProjectNameRef::from(name.as_str());
+            let repository_url_ref = RepositoryUrlRef::from(repository_url.as_str());
             validate_project_name(name_ref)?;
             validate_repository_url(repository_url_ref)?;
             rename_identity(workspace_root()?, name_ref, repository_url_ref)
@@ -326,7 +337,7 @@ fn run() -> Result<(), ScaffoldError> {
             if arguments.next().is_some() {
                 return Err(ScaffoldError::Arguments);
             }
-            scaffold_service(workspace_root()?, ProjectNameRef(name.as_str()), port)
+            scaffold_service(workspace_root()?, ProjectNameRef::from(name.as_str()), port)
         }
         Some(_) | None => Err(ScaffoldError::Arguments),
     }
@@ -350,7 +361,7 @@ mod tests {
 
     #[test]
     fn validates_and_converts_project_names() {
-        let valid = super::ProjectNameRef("order_platform");
+        let valid = super::ProjectNameRef::from("order_platform");
         super::validate_project_name(valid).expect("96de3a80");
         assert_eq!(super::kebab_case(valid), "order-platform");
         assert_eq!(super::title_case(valid), "Order Platform");
@@ -360,7 +371,7 @@ mod tests {
 
     #[test]
     fn requires_https_repository_url() {
-        super::validate_repository_url(super::RepositoryUrlRef(
+        super::validate_repository_url(super::RepositoryUrlRef::from(
             "https://example.com/team/order_platform",
         ))
         .expect("28c1e7a4");
@@ -409,8 +420,8 @@ mod tests {
         write(root.join("str_constants/src/lib.rs").as_path(), "");
         super::scaffold_service(
             root.as_path(),
-            super::ProjectNameRef("order_service"),
-            super::ServicePort(8082u16),
+            super::ProjectNameRef::from("order_service"),
+            super::ServicePort::from(8082u16),
         )
         .expect("4bff1d79");
         assert!(root.join("order_service/src/main.rs").is_file());

@@ -56,7 +56,7 @@ impl<Key, Record, InvalidItem> BatchValidationReport<Key, Record, InvalidItem> {
 
     #[must_use]
     pub const fn invalid_item_count(&self) -> BatchInvalidItemCount {
-        BatchInvalidItemCount(self.invalid_items.0.len())
+        BatchInvalidItemCount::from(self.invalid_items.0.len())
     }
 
     #[must_use]

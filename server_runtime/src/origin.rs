@@ -117,6 +117,11 @@ struct ParsedHttpOriginRef<'text> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RequestOriginAllowed(bool);
+impl From<bool> for RequestOriginAllowed {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 
 impl From<RequestOriginAllowed> for bool {
     fn from(value: RequestOriginAllowed) -> Self {
@@ -153,9 +158,9 @@ fn request_origin_value_is_allowed(
     allowed_origins: &AllowedOrigins,
 ) -> RequestOriginAllowed {
     let Some(parsed) = parse_request_origin(value, allow_suffix) else {
-        return RequestOriginAllowed(false);
+        return RequestOriginAllowed::from(false);
     };
-    RequestOriginAllowed(allowed_origins.0.iter().any(|allowed_origin| {
+    RequestOriginAllowed::from(allowed_origins.0.iter().any(|allowed_origin| {
         allowed_origin
             .scheme
             .0
@@ -197,7 +202,7 @@ pub fn request_origin_allowed(
             })
         },
     );
-    RequestOriginAllowed(allowed)
+    RequestOriginAllowed::from(allowed)
 }
 
 #[cfg(test)]

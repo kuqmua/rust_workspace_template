@@ -39,9 +39,9 @@ impl syn::parse::Parse for WireEnumAttrs {
             let name = input.parse::<syn::Ident>()?;
             let _equals = input.parse::<syn::Token![=]>()?;
             if name == str_constants::WIRE_ENUM_REF_TYPE {
-                ref_type = Some(SynIdentifier(input.parse::<syn::Ident>()?));
+                ref_type = Some(SynIdentifier::from(input.parse::<syn::Ident>()?));
             } else if name == str_constants::WIRE_ENUM_ERROR_MESSAGE {
-                error_message = Some(SynExpr(input.parse::<syn::Expr>()?));
+                error_message = Some(SynExpr::from(input.parse::<syn::Expr>()?));
             } else {
                 return Err(syn::Error::new_spanned(
                     name,
@@ -100,6 +100,11 @@ enum ToErrStringMode {
     Display,
 }
 struct ProcMacro2GeneratedTokenStream(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2GeneratedTokenStream {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
 struct ProcMacroInputTokenStream(proc_macro::TokenStream);
 impl From<proc_macro::TokenStream> for ProcMacroInputTokenStream {
     fn from(value: proc_macro::TokenStream) -> Self {
@@ -122,6 +127,11 @@ impl quote::ToTokens for ProcMacro2GeneratedTokenStream {
     }
 }
 struct NewtypeBool(bool);
+impl From<bool> for NewtypeBool {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl NewtypeBool {
     const fn get(&self) -> bool {
         self.0
@@ -137,6 +147,11 @@ impl From<usize> for SnakeIdentifierifierLen {
 }
 #[derive(Debug)]
 struct SnakeIdentifierifierTryFromStringError(SnakeIdentifierifierLen);
+impl From<SnakeIdentifierifierLen> for SnakeIdentifierifierTryFromStringError {
+    fn from(value: SnakeIdentifierifierLen) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for SnakeIdentifierifierTryFromStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -199,6 +214,11 @@ impl AsRef<syn::DeriveInput> for SynDeriveInputRef<'_> {
 #[derive(Clone, Copy)]
 struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
 struct SynIdentifier(syn::Ident);
+impl From<syn::Ident> for SynIdentifier {
+    fn from(value: syn::Ident) -> Self {
+        Self(value)
+    }
+}
 impl<'syn_lt> From<&'syn_lt syn::Ident> for SynIdentifierRef<'syn_lt> {
     fn from(value: &'syn_lt syn::Ident) -> Self {
         Self(value)
@@ -223,6 +243,11 @@ impl AsRef<syn::Type> for SynTypeRef<'_> {
 }
 #[derive(Debug)]
 struct SynType(syn::Type);
+impl From<syn::Type> for SynType {
+    fn from(value: syn::Type) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug)]
 struct SynExpr(syn::Expr);
 impl From<syn::Expr> for SynExpr {
@@ -242,7 +267,7 @@ impl quote::ToTokens for SynExpr {
 }
 impl NewtypeAttrs {
     fn contains(&self, option: NewtypeOption) -> NewtypeBool {
-        NewtypeBool(self.options.contains(option).get())
+        NewtypeBool::from(self.options.contains(option).get())
     }
 }
 fn derive_newtype_option(
@@ -252,7 +277,7 @@ fn derive_newtype_option(
 ) -> ProcMacro2GeneratedTokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
         Ok(v) => v,
-        Err(error) => return ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+        Err(error) => return ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
     };
     let mut attrs = NewtypeAttrs {
         options: workspace_macro_helpers::StdUniqueOptionSet::default(),
@@ -265,11 +290,11 @@ fn derive_newtype_option(
             str_constants::DUPLICATE_NEWTYPE_OPTION,
         )
     }) {
-        return ProcMacro2GeneratedTokenStream(error.into_compile_error());
+        return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
     }
     match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
         Ok(v) => v,
-        Err(error) => ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+        Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
     }
 }
 #[allow(clippy::single_call_fn)] // keeps TryFrom attribute parsing separate from its proc-macro entry point
@@ -278,7 +303,7 @@ fn derive_newtype_try_from(
 ) -> ProcMacro2GeneratedTokenStream {
     let input = match syn::parse::<syn::DeriveInput>(input_token_stream.0) {
         Ok(v) => v,
-        Err(error) => return ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+        Err(error) => return ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
     };
     let mut error_opt = None;
     let mut validator_opt = None;
@@ -292,7 +317,7 @@ fn derive_newtype_try_from(
                     if error_opt.is_some() {
                         return Err(meta.error(str_constants::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
                     }
-                    error_opt = Some(SynType(meta.value()?.parse::<syn::Type>()?));
+                    error_opt = Some(SynType::from(meta.value()?.parse::<syn::Type>()?));
                     return Ok(());
                 }
                 if meta
@@ -309,10 +334,10 @@ fn derive_newtype_try_from(
             })
         });
     if let Err(error) = parse_result {
-        return ProcMacro2GeneratedTokenStream(error.into_compile_error());
+        return ProcMacro2GeneratedTokenStream::from(error.into_compile_error());
     }
     let Some(validator) = validator_opt else {
-        return ProcMacro2GeneratedTokenStream(
+        return ProcMacro2GeneratedTokenStream::from(
             syn::Error::new_spanned(&input, str_constants::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
                 .into_compile_error(),
         );
@@ -327,7 +352,7 @@ fn derive_newtype_try_from(
     };
     match generate_newtype_token_stream_with_attrs(SynDeriveInputRef::from(&input), &attrs) {
         Ok(v) => v,
-        Err(error) => ProcMacro2GeneratedTokenStream(error.into_compile_error()),
+        Err(error) => ProcMacro2GeneratedTokenStream::from(error.into_compile_error()),
     }
 }
 #[proc_macro_derive(AsMut)]
@@ -989,7 +1014,7 @@ fn generate_newtype_token_stream_with_attrs(
     });
     let to_err_string_token_stream =
         generate_to_err_string_token_stream(attrs, SynIdentifierRef::from(identifier));
-    Ok(ProcMacro2GeneratedTokenStream(quote::quote! {
+    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
         #debug_transparent_token_stream
         #debug_redacted_token_stream
         #display_token_stream
@@ -1134,7 +1159,7 @@ fn generate_bounded_string_token_stream(
         },
         |value| quote::quote! {#value},
     );
-    Ok(ProcMacro2GeneratedTokenStream(quote::quote! {
+    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         #vis enum #error_identifier {
             InvalidBounds { min: usize, max: usize },
@@ -1233,7 +1258,7 @@ fn generate_enum_from_str_token_stream(
             v if v.eq_ignore_ascii_case(#name_ref) => Ok(Self::#variant_identifier),
         }
     });
-    Ok(ProcMacro2GeneratedTokenStream(quote::quote! {
+    Ok(ProcMacro2GeneratedTokenStream::from(quote::quote! {
         impl std::str::FromStr for #identifier {
             type Err = String;
             fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -1402,7 +1427,7 @@ fn tuple_struct_one_field_ty(input: SynDeriveInputRef<'_>) -> syn::Result<SynTyp
 }
 #[allow(clippy::single_call_fn)] // newtype validation only needs terminal path identifier matching for concrete String wrappers
 fn type_path_ends_with_string_identifier(ty: SynTypeRef<'_>) -> NewtypeBool {
-    NewtypeBool(match ty.as_ref() {
+    NewtypeBool::from(match ty.as_ref() {
         syn::Type::Path(v) if v.qself.is_none() => v
             .path
             .segments
@@ -1439,7 +1464,7 @@ fn generate_to_err_string_token_stream(
     let ident_ref = identifier.as_ref();
     attrs.to_err_string_mode.map(|mode| match mode {
         ToErrStringMode::AsRefStr => {
-            ProcMacro2GeneratedTokenStream(quote::quote! {
+            ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
                         to_err_string::ToErrStringValue::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::ToErrStringValue::from)
@@ -1448,7 +1473,7 @@ fn generate_to_err_string_token_stream(
             })
         }
         ToErrStringMode::Debug => {
-            ProcMacro2GeneratedTokenStream(quote::quote! {
+            ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
                         to_err_string::ToErrStringValue::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::ToErrStringValue::from)
@@ -1457,7 +1482,7 @@ fn generate_to_err_string_token_stream(
             })
         }
         ToErrStringMode::Display => {
-            ProcMacro2GeneratedTokenStream(quote::quote! {
+            ProcMacro2GeneratedTokenStream::from(quote::quote! {
                 impl to_err_string::ToErrString for #ident_ref {
                     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
                         to_err_string::ToErrStringValue::try_from(self.0.to_string()).unwrap_or_else(to_err_string::ToErrStringValue::from)

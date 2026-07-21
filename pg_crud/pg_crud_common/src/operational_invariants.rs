@@ -173,9 +173,9 @@ pub const fn reconcile_pg_counter(
     actual: PgCounterValue,
 ) -> PgCounterReconciliation {
     if actual.0 > tracked.0 {
-        PgCounterReconciliation::ActualAhead(PgCounterValue(actual.0.saturating_sub(tracked.0)))
+        PgCounterReconciliation::ActualAhead(PgCounterValue::from(actual.0.saturating_sub(tracked.0)))
     } else if tracked.0 > actual.0 {
-        PgCounterReconciliation::TrackedAhead(PgCounterValue(tracked.0.saturating_sub(actual.0)))
+        PgCounterReconciliation::TrackedAhead(PgCounterValue::from(tracked.0.saturating_sub(actual.0)))
     } else {
         PgCounterReconciliation::InSync
     }

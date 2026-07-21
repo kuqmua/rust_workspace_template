@@ -4,6 +4,11 @@ mod keyword {
 }
 
 struct SynIdent(syn::Ident);
+impl From<syn::Ident> for SynIdent {
+    fn from(value: syn::Ident) -> Self {
+        Self(value)
+    }
+}
 
 impl syn::parse::Parse for SynIdent {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
@@ -12,6 +17,11 @@ impl syn::parse::Parse for SynIdent {
 }
 
 struct SynLitStr(syn::LitStr);
+impl From<syn::LitStr> for SynLitStr {
+    fn from(value: syn::LitStr) -> Self {
+        Self(value)
+    }
+}
 
 impl syn::parse::Parse for SynLitStr {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
@@ -20,6 +30,11 @@ impl syn::parse::Parse for SynLitStr {
 }
 
 struct SynVisibility(syn::Visibility);
+impl From<syn::Visibility> for SynVisibility {
+    fn from(value: syn::Visibility) -> Self {
+        Self(value)
+    }
+}
 
 impl syn::parse::Parse for SynVisibility {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {

@@ -77,7 +77,8 @@ to_err_string_macros::impl_to_err_string_const!(
     tracing::log::SetLoggerError => str_constants::TRACING_PATH_LOG_PATH_TRACING_PATH_LOG_PATH_SETLOGGERERROR,
 );
 #[derive(Debug, Clone, Copy)]
-struct StaticStrToOwnedInput(pub &'static str);
+#[derive(newtype::FromInner)]
+struct StaticStrToOwnedInput(&'static str);
 fn debug_to_string<T>(v: &T) -> ToErrStringValue
 where
     T: std::fmt::Debug,

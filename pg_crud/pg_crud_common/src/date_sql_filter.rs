@@ -29,6 +29,7 @@ impl<'value_lt> DateFilterBounds<'value_lt> {
 pub struct StdDateSqlBindStart(std::num::NonZeroU32);
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(newtype::FromInner)]
 pub struct ChronoUtcDateTimes(Vec<chrono::DateTime<chrono::Utc>>);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -110,7 +111,7 @@ pub fn build_date_sql_filter(
         .map_err(|_error| DateSqlFilterError::FragmentTooLong)?;
     Ok(DateSqlFilter {
         fragment: query_fragment,
-        values: ChronoUtcDateTimes(values),
+        values: ChronoUtcDateTimes::from(values),
     })
 }
 

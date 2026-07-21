@@ -78,7 +78,13 @@ impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for StdGitCommitIdCo
         }
     }
 }
+impl From<GitInfoStringTryFromStringError> for StdGitCommitIdCow<'_> {
+    fn from(value: GitInfoStringTryFromStringError) -> Self {
+        Self(std::borrow::Cow::Owned(value.to_string()))
+    }
+}
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml)]
+#[derive(newtype::FromInner)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::TryFrom)]
 #[try_from(
@@ -137,6 +143,11 @@ impl TryFrom<std::borrow::Cow<'static, str>> for StdGitCommitLinkCow {
         }
     }
 }
+impl From<GitInfoStringTryFromStringError> for StdGitCommitLinkCow {
+    fn from(value: GitInfoStringTryFromStringError) -> Self {
+        Self(std::borrow::Cow::Owned(value.to_string()))
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -148,8 +159,10 @@ impl TryFrom<std::borrow::Cow<'static, str>> for StdGitCommitLinkCow {
     newtype::Display,
     newtype::IntoInnerFrom,
 )]
+#[derive(newtype::FromInner)]
 pub struct ProjectGitCommitLinkRef(&'static str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(newtype::FromInner)]
 pub struct IsProjectCommit(bool);
 impl std::ops::Not for IsProjectCommit {
     type Output = bool;
@@ -167,10 +180,14 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
     }
 }
 #[derive(Debug, optml::Optml)]
-struct GitCommitLinkOutputRefMut<'output_lt>(pub &'output_lt mut String);
+struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
+impl<'output_lt> From<&'output_lt mut String> for GitCommitLinkOutputRefMut<'output_lt> {
+    fn from(value: &'output_lt mut String) -> Self { Self(value) }
+}
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::AsRefOwned, newtype::IntoInnerFrom,
 )]
+#[derive(newtype::FromInner)]
 pub struct ValidateProjectCommitError(ProjectGitCommitLinkRef);
 #[derive(Debug, serde_derive::Serialize, Clone, Hash, PartialEq, Eq, Default, optml::Optml)]
 pub struct ProjectGitInfo<'commit_lt> {
@@ -192,8 +209,14 @@ pub trait GetGitCommitId {
     fn get_git_commit_id_cow(&self) -> StdGitCommitIdCow<'_> {
         with_git_commit_id_ref_or(
             self,
-            |commit_id| StdGitCommitIdCow(std::borrow::Cow::Borrowed(commit_id.0)),
-            |src| StdGitCommitIdCow(std::borrow::Cow::Owned(src.get_git_commit_id().0)),
+            |commit_id| {
+                StdGitCommitIdCow::try_from(std::borrow::Cow::Borrowed(commit_id.0))
+                    .unwrap_or_else(StdGitCommitIdCow::from)
+            },
+            |src| {
+                StdGitCommitIdCow::try_from(std::borrow::Cow::Owned(src.get_git_commit_id().0))
+                    .unwrap_or_else(StdGitCommitIdCow::from)
+            },
         )
     }
     fn get_git_commit_id_or_else<'commit_id_lt>(
@@ -217,7 +240,7 @@ pub trait GetGitCommitId {
         None
     }
     fn with_git_commit_id<R>(&self, f: impl FnOnce(GitCommitIdRef<'_>) -> R) -> R {
-        let mut fallback = GitCommitIdFallback(None);
+        let mut fallback = GitCommitIdFallback::from(None);
         f(self.get_git_commit_id_or_else(&mut fallback))
     }
 }
@@ -226,7 +249,7 @@ impl<T: ?Sized + AsRef<str>> GetGitCommitId for T {
         GitCommitId::try_from(self.as_ref().to_owned()).unwrap_or_else(GitCommitId::from)
     }
     fn get_git_commit_id_ref(&self) -> Option<GitCommitIdRef<'_>> {
-        Some(GitCommitIdRef(self.as_ref()))
+        Some(GitCommitIdRef::from(self.as_ref()))
     }
 }
 impl<T: ?Sized + GetGitCommitId> GetGitCommitLink for T {
@@ -251,7 +274,7 @@ where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    IsProjectCommit(commit_id_ref.0 == PROJECT_GIT_COMMIT_ID.0)
+    IsProjectCommit::from(commit_id_ref.0 == PROJECT_GIT_COMMIT_ID.0)
 }
 pub fn validate_project_commit<'commit_lt, CommitIdTy>(
     commit_id: CommitIdTy,
@@ -262,11 +285,12 @@ where
     if is_project_commit(commit_id).0 {
         return Ok(());
     }
-    Err(ValidateProjectCommitError(project_git_commit_link_ref()))
+    Err(ValidateProjectCommitError::from(project_git_commit_link_ref()))
 }
 #[must_use]
 pub fn project_git_commit_link() -> GitCommitLink {
-    GitCommitLink(project_git_commit_link_ref().0.to_owned())
+    GitCommitLink::try_from(project_git_commit_link_ref().0.to_owned())
+        .unwrap_or_else(GitCommitLink::from)
 }
 #[must_use]
 pub const fn project_git_commit_link_ref() -> ProjectGitCommitLinkRef {
@@ -286,22 +310,27 @@ where
 {
     let commit_id_ref = commit_id.into();
     if commit_id_ref.0.len() > GIT_INFO_STRING_MAX_LEN.saturating_sub(BASE_GIT_COMMIT_LINK_LEN) {
-        return StdGitCommitLinkCow(std::borrow::Cow::Owned(
+        return StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(
             GitInfoStringTryFromStringError::TooLong {
                 len: BASE_GIT_COMMIT_LINK_LEN.saturating_add(commit_id_ref.0.len()),
                 max: GIT_INFO_STRING_MAX_LEN,
             }
             .to_string(),
-        ));
+        ))
+        .unwrap_or_else(StdGitCommitLinkCow::from);
     }
     if is_project_commit(commit_id_ref).0 {
-        return StdGitCommitLinkCow(std::borrow::Cow::Borrowed(project_git_commit_link_ref().0));
+        return StdGitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(
+            project_git_commit_link_ref().0,
+        ))
+        .unwrap_or_else(StdGitCommitLinkCow::from);
     }
     let cap = git_commit_link_capacity(commit_id_ref);
     let mut output = String::with_capacity(cap.0);
-    let mut output_ref = GitCommitLinkOutputRefMut(&mut output);
+    let mut output_ref = GitCommitLinkOutputRefMut::from(&mut output);
     write_git_commit_link(&mut output_ref, commit_id_ref);
-    StdGitCommitLinkCow(std::borrow::Cow::Owned(output))
+    StdGitCommitLinkCow::try_from(std::borrow::Cow::Owned(output))
+        .unwrap_or_else(StdGitCommitLinkCow::from)
 }
 #[allow(clippy::single_call_fn)] // shared writer keeps link assembly consistent across builders and tests
 fn write_git_commit_link<'commit_lt, CommitIdTy>(
@@ -323,7 +352,7 @@ where
     CommitIdTy: Into<GitCommitIdRef<'commit_lt>>,
 {
     let commit_id_ref = commit_id.into();
-    GitCommitLinkCapacity(BASE_GIT_COMMIT_LINK_LEN.saturating_add(commit_id_ref.0.len()))
+    GitCommitLinkCapacity::from(BASE_GIT_COMMIT_LINK_LEN.saturating_add(commit_id_ref.0.len()))
 }
 #[cfg(test)]
 mod tests {
@@ -337,11 +366,11 @@ mod tests {
         fn get_git_commit_id(&self) -> super::GitCommitId {
             let calls = self.fallback_calls.get().saturating_add(1);
             self.fallback_calls.set(calls);
-            super::GitCommitId(self.commit.to_owned())
+            super::GitCommitId::from(self.commit.to_owned())
         }
         fn get_git_commit_id_ref(&self) -> Option<super::GitCommitIdRef<'_>> {
             self.borrow_commit_ref
-                .then_some(super::GitCommitIdRef(self.commit))
+                .then_some(super::GitCommitIdRef::from(self.commit))
         }
     }
     fn mk_test_git_commit(commit: &'static str, borrow_commit_ref: bool) -> TestGitCommit {
@@ -427,9 +456,9 @@ mod tests {
         assert_fallback_calls(v, exp_fallback_calls);
     }
     fn expected_git_commit_link(commit_id_src: impl AsRef<str>) -> String {
-        let commit_id = super::GitCommitIdRef(commit_id_src.as_ref());
+        let commit_id = super::GitCommitIdRef::from(commit_id_src.as_ref());
         let mut output = String::with_capacity(super::git_commit_link_capacity(commit_id).0);
-        let mut output_ref = super::GitCommitLinkOutputRefMut(&mut output);
+        let mut output_ref = super::GitCommitLinkOutputRefMut::from(&mut output);
         super::write_git_commit_link(&mut output_ref, commit_id);
         output
     }
@@ -530,7 +559,7 @@ mod tests {
     #[test]
     fn project_git_info_returns_commit_link() {
         let git_info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef(str_constants::TEST_VALUES_WRONG_COMMIT),
+            commit: super::GitCommitIdRef::from(str_constants::TEST_VALUES_WRONG_COMMIT),
         };
         let link = super::GetGitCommitLink::get_git_commit_link(&git_info);
         assert_expected_git_commit_link(&link, str_constants::TEST_VALUES_WRONG_COMMIT);
@@ -551,7 +580,7 @@ mod tests {
     #[test]
     fn get_git_commit_id_or_else_computes_fallback_once() {
         let test_git_commit = mk_owned_test_git_commit(str_constants::F00DBABE);
-        let mut fallback = super::GitCommitIdFallback(None);
+        let mut fallback = super::GitCommitIdFallback::from(None);
         let first =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
         assert_eq!(first, "f00dbabe");
@@ -563,7 +592,7 @@ mod tests {
     #[test]
     fn get_git_commit_id_or_else_prefers_borrowed_ref_without_fallback() {
         let test_git_commit = mk_borrowed_test_git_commit(str_constants::CAFEBABE);
-        let mut fallback = super::GitCommitIdFallback(None);
+        let mut fallback = super::GitCommitIdFallback::from(None);
         let commit =
             super::GetGitCommitId::get_git_commit_id_or_else(&test_git_commit, &mut fallback);
         assert_eq!(commit, "cafebabe");
@@ -650,7 +679,7 @@ mod tests {
     #[test]
     fn project_git_info_as_ref_returns_commit() {
         let info = super::ProjectGitInfo {
-            commit: super::GitCommitIdRef(str_constants::TEST_VALUES_COMMIT),
+            commit: super::GitCommitIdRef::from(str_constants::TEST_VALUES_COMMIT),
         };
         assert_eq!(info.as_ref(), "abc123");
     }

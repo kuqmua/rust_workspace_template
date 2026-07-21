@@ -20,6 +20,9 @@ pub enum SynStructShapeRef<'shape_lt> {
 }
 #[derive(Debug, Clone, Copy)]
 pub struct SynFieldsNamedRef<'fields_lt>(&'fields_lt syn::FieldsNamed);
+impl<'fields_lt> From<&'fields_lt syn::FieldsNamed> for SynFieldsNamedRef<'fields_lt> {
+    fn from(value: &'fields_lt syn::FieldsNamed) -> Self { Self(value) }
+}
 impl<'fields_lt> SynFieldsNamedRef<'fields_lt> {
     #[must_use]
     pub const fn get(self) -> &'fields_lt syn::FieldsNamed {
@@ -34,6 +37,9 @@ impl std::ops::Deref for SynFieldsNamedRef<'_> {
 }
 #[derive(Debug, Clone, Copy)]
 pub struct SynFieldsUnnamedRef<'fields_lt>(&'fields_lt syn::FieldsUnnamed);
+impl<'fields_lt> From<&'fields_lt syn::FieldsUnnamed> for SynFieldsUnnamedRef<'fields_lt> {
+    fn from(value: &'fields_lt syn::FieldsUnnamed) -> Self { Self(value) }
+}
 impl<'fields_lt> SynFieldsUnnamedRef<'fields_lt> {
     #[must_use]
     pub const fn get(self) -> &'fields_lt syn::FieldsUnnamed {
@@ -130,6 +136,11 @@ impl syn::parse::Parse for ProcMacro2MacroTokens {
 #[must_use]
 #[derive(Debug, Clone)]
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
+impl From<Vec<proc_macro2::TokenStream>> for ProcMacro2TopLevelCommaParts {
+    fn from(value: Vec<proc_macro2::TokenStream>) -> Self {
+        Self(value)
+    }
+}
 impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
     type Target = Vec<proc_macro2::TokenStream>;
     fn deref(&self) -> &Self::Target {
@@ -161,6 +172,11 @@ impl syn::parse::Parse for ProcMacro2TopLevelCommaParts {
     }
 }
 struct TopLevelCommaPart(ProcMacro2MacroTokens);
+impl From<ProcMacro2MacroTokens> for TopLevelCommaPart {
+    fn from(value: ProcMacro2MacroTokens) -> Self {
+        Self(value)
+    }
+}
 impl syn::parse::Parse for TopLevelCommaPart {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let type_fork = input.fork();
@@ -192,7 +208,12 @@ impl syn::parse::Parse for TopLevelCommaPart {
                 tokens.push(token);
                 rest = next;
             }
-            Ok((Self(ProcMacro2MacroTokens(tokens)), rest))
+            Ok((
+                Self(ProcMacro2MacroTokens::from(
+                    tokens.into_iter().collect::<proc_macro2::TokenStream>(),
+                )),
+                rest,
+            ))
         })
     }
 }
@@ -201,6 +222,11 @@ impl syn::parse::Parse for TopLevelCommaPart {
 pub struct FirstIdentifier(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstIdentifierifierTryFromStringError(usize);
+impl From<usize> for FirstIdentifierifierTryFromStringError {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 impl From<FirstIdentifierifierTryFromStringError> for FirstIdentifier {
     fn from(value: FirstIdentifierifierTryFromStringError) -> Self {
         Self(value.to_string())
@@ -231,8 +257,16 @@ impl std::fmt::Display for FirstIdentifierifierTryFromStringError {
 }
 #[derive(Debug, Clone)]
 pub struct StdUniqueOptionSet<OptionValue>(std::collections::BTreeSet<OptionValue>);
+impl<OptionValue> From<std::collections::BTreeSet<OptionValue>> for StdUniqueOptionSet<OptionValue> {
+    fn from(value: std::collections::BTreeSet<OptionValue>) -> Self { Self(value) }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdUniqueOptionSetContains(bool);
+impl From<bool> for StdUniqueOptionSetContains {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl StdUniqueOptionSetContains {
     #[must_use]
     pub const fn get(self) -> bool {
@@ -241,6 +275,11 @@ impl StdUniqueOptionSetContains {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StdUniqueOptionSetIsEmpty(bool);
+impl From<bool> for StdUniqueOptionSetIsEmpty {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl StdUniqueOptionSetIsEmpty {
     #[must_use]
     pub const fn get(self) -> bool {
@@ -258,11 +297,11 @@ where
 {
     #[must_use]
     pub fn contains(&self, value: OptionValue) -> StdUniqueOptionSetContains {
-        StdUniqueOptionSetContains(self.0.contains(&value))
+        StdUniqueOptionSetContains::from(self.0.contains(&value))
     }
     #[must_use]
     pub fn is_empty(&self) -> StdUniqueOptionSetIsEmpty {
-        StdUniqueOptionSetIsEmpty(self.0.is_empty())
+        StdUniqueOptionSetIsEmpty::from(self.0.is_empty())
     }
     pub fn try_insert_with<DuplicateError>(
         &mut self,
@@ -281,6 +320,11 @@ where
 #[must_use]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FirstCommaStripped(bool);
+impl From<bool> for FirstCommaStripped {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl std::ops::Not for FirstCommaStripped {
     type Output = bool;
     fn not(self) -> Self::Output {
@@ -307,7 +351,7 @@ where
     T: Into<ProcMacro2MacroTokens>,
 {
     syn::parse2::<ProcMacro2TopLevelCommaParts>(input.into().into_inner())
-        .unwrap_or_else(|_| ProcMacro2TopLevelCommaParts(Vec::new()))
+        .unwrap_or_else(|_| ProcMacro2TopLevelCommaParts::from(Vec::new()))
 }
 pub fn first_identifier<I>(input: &mut I) -> Option<FirstIdentifier>
 where
@@ -331,7 +375,7 @@ pub fn strip_first_comma<I>(input: &mut I) -> FirstCommaStripped
 where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
-    FirstCommaStripped(
+    FirstCommaStripped::from(
         matches!(input.next(), Some(proc_macro2::TokenTree::Punct(punct)) if punct.as_char() == ','),
     )
 }

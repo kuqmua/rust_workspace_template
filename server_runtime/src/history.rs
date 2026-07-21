@@ -1,9 +1,22 @@
 #[derive(Debug)]
 struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
+impl<RunReport> From<std::collections::VecDeque<RunReport>> for StdVecDequeRunReports<RunReport> {
+    fn from(value: std::collections::VecDeque<RunReport>) -> Self { Self(value) }
+}
 #[derive(Debug)]
 struct TokioRwLockRunReports<RunReport>(tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>);
+impl<RunReport> From<tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>>
+    for TokioRwLockRunReports<RunReport>
+{
+    fn from(value: tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>) -> Self { Self(value) }
+}
 #[derive(Debug)]
 struct StdArcSharedRunReports<RunReport>(std::sync::Arc<TokioRwLockRunReports<RunReport>>);
+impl<RunReport> From<std::sync::Arc<TokioRwLockRunReports<RunReport>>>
+    for StdArcSharedRunReports<RunReport>
+{
+    fn from(value: std::sync::Arc<TokioRwLockRunReports<RunReport>>) -> Self { Self(value) }
+}
 impl<RunReport> Clone for StdArcSharedRunReports<RunReport> {
     fn clone(&self) -> Self {
         Self(std::sync::Arc::clone(&self.0))
@@ -42,6 +55,11 @@ impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeError {
 impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeError {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAsyncRunHistoryReportCount(usize);
+impl From<usize> for StdAsyncRunHistoryReportCount {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AsyncRunHistorySnapshot<RunReport> {
     latest_report: Option<RunReport>,
@@ -65,12 +83,12 @@ impl From<StdAsyncRunHistoryReportCount> for usize {
 impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
     #[must_use]
     pub fn new(maximum_len: StdAsyncRunHistoryMaximumLen) -> Self {
-        let reports = StdVecDequeRunReports(std::collections::VecDeque::with_capacity(
+        let reports = StdVecDequeRunReports::from(std::collections::VecDeque::with_capacity(
             maximum_len.0.get(),
         ));
         Self {
             maximum_len,
-            reports: StdArcSharedRunReports(std::sync::Arc::from(TokioRwLockRunReports(
+            reports: StdArcSharedRunReports::from(std::sync::Arc::from(TokioRwLockRunReports::from(
                 tokio::sync::RwLock::new(reports),
             ))),
         }
@@ -88,7 +106,7 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
         let reports = self.reports.0.0.read().await;
         AsyncRunHistorySnapshot {
             latest_report: reports.0.back().cloned(),
-            report_count: StdAsyncRunHistoryReportCount(reports.0.len()),
+            report_count: StdAsyncRunHistoryReportCount::from(reports.0.len()),
         }
     }
 }

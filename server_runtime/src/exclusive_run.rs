@@ -4,9 +4,9 @@ pub struct ExclusiveRun {
 }
 impl ExclusiveRun {
     #[must_use]
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            active: StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool::new(false)),
+            active: StdExclusiveRunAtomicBool::from(std::sync::atomic::AtomicBool::new(false)),
         }
     }
 
@@ -50,6 +50,11 @@ impl Drop for ExclusiveRunGuard<'_> {
 
 #[derive(Debug)]
 struct StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
+impl From<std::sync::atomic::AtomicBool> for StdExclusiveRunAtomicBool {
+    fn from(value: std::sync::atomic::AtomicBool) -> Self {
+        Self(value)
+    }
+}
 
 #[cfg(test)]
 mod tests {

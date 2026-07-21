@@ -8,8 +8,8 @@ fn unix_now() -> Result<super::super::AdminUnixTokenStream, super::AdminSessionE
 }
 #[allow(clippy::single_call_fn)] // token identifier conversion keeps secret construction explicit
 fn opaque_token_from_uuid(value: super::super::UuidAdminValue) -> super::super::AdminOpaqueToken {
-    super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(secrecy::SecretBox::new(
-        Box::new(value.0.to_string()),
+    super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(secrecy::SecretBox::new(
+        Box::new(value.get().to_string()),
     )))
 }
 pub(super) async fn create_session_in_connection(
@@ -66,7 +66,7 @@ async fn create_session_with_refresh_in_connection(
                 super::hash_refresh_token_with_context(refresh_generated.token(), context_hash);
             let refresh_token =
                 super::super::AdminRefreshToken::new(super::super::AdminOpaqueToken::new(
-                    super::super::SecrecyAdminString(secrecy::SecretBox::new(Box::new(
+                    super::super::SecrecyAdminString::from(secrecy::SecretBox::new(Box::new(
                         secrecy::ExposeSecret::expose_secret(refresh_generated.token().0.as_ref())
                             .to_owned(),
                     ))),
@@ -139,7 +139,7 @@ async fn create_session_with_refresh_in_connection(
     }
     Ok(super::AdminSessionBundle {
         access_token,
-        csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString(
+        csrf_token: super::super::AdminOpaqueToken::new(super::super::SecrecyAdminString::from(
             secrecy::SecretBox::new(Box::new(
                 secrecy::ExposeSecret::expose_secret(csrf_generated.token().0.as_ref()).to_owned(),
             )),

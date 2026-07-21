@@ -1,8 +1,9 @@
 #[derive(Debug, newtype::IntoInnerFrom)]
+#[derive(newtype::FromInner)]
 pub struct SynLocationField(syn::Field);
 #[must_use]
 pub fn location_syn_field() -> SynLocationField {
-    SynLocationField(syn::Field {
+    SynLocationField::from(syn::Field {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         mutability: syn::FieldMutability::None,

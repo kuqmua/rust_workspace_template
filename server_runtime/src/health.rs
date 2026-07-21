@@ -48,8 +48,18 @@ impl HealthSnapshot {
 
 #[derive(Debug)]
 struct StdHealthReadinessAtomicBool(std::sync::atomic::AtomicBool);
+impl From<std::sync::atomic::AtomicBool> for StdHealthReadinessAtomicBool {
+    fn from(value: std::sync::atomic::AtomicBool) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug)]
 struct StdSharedHealthReadiness(std::sync::Arc<StdHealthReadinessAtomicBool>);
+impl From<std::sync::Arc<StdHealthReadinessAtomicBool>> for StdSharedHealthReadiness {
+    fn from(value: std::sync::Arc<StdHealthReadinessAtomicBool>) -> Self {
+        Self(value)
+    }
+}
 #[derive(Clone, Debug)]
 pub struct HealthReadiness {
     shared: StdSharedHealthReadiness,
@@ -57,7 +67,7 @@ pub struct HealthReadiness {
 impl Default for HealthReadiness {
     fn default() -> Self {
         Self {
-            shared: StdSharedHealthReadiness(std::sync::Arc::from(StdHealthReadinessAtomicBool(
+            shared: StdSharedHealthReadiness::from(std::sync::Arc::from(StdHealthReadinessAtomicBool::from(
                 std::sync::atomic::AtomicBool::new(false),
             ))),
         }
@@ -125,7 +135,7 @@ pub async fn run_health_probe<Probe>(
 where
     Probe: Future<Output = bool>,
 {
-    HealthProbeSucceeded(matches!(
+    HealthProbeSucceeded::from(matches!(
         tokio::time::timeout(timeout.0, probe).await,
         Ok(true)
     ))

@@ -69,6 +69,7 @@ pub enum PgRelationLockError {
 }
 
 #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
+#[derive(newtype::FromInner)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
 
 #[derive(Debug, newtype::AsMut)]
@@ -115,7 +116,7 @@ pub fn validate_pg_relation_capacity(
     if projected > maximum.0 {
         Err(PgRelationCapacityError::Exceeded)
     } else {
-        Ok(PgRelationRowCount(projected))
+        Ok(PgRelationRowCount::from(projected))
     }
 }
 

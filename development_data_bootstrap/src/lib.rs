@@ -51,6 +51,7 @@ pub struct DevelopmentBootstrapSummary {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(newtype::FromInner)]
 pub struct DevelopmentIdentityCount(usize);
 
 impl DevelopmentBootstrapSummary {
@@ -77,9 +78,9 @@ where
 {
     reports.into_iter().fold(
         DevelopmentBootstrapSummary {
-            already_exists: DevelopmentIdentityCount(0usize),
-            create: DevelopmentIdentityCount(0usize),
-            missing_role: DevelopmentIdentityCount(0usize),
+            already_exists: DevelopmentIdentityCount::from(0usize),
+            create: DevelopmentIdentityCount::from(0usize),
+            missing_role: DevelopmentIdentityCount::from(0usize),
         },
         |mut summary, decision| {
             match decision {

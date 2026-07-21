@@ -25,7 +25,7 @@ pub(super) async fn query_page(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<server_admin_contract::AdminAuditPage, super::AdminApiError> {
-    if !query.0.cursor_is_complete().0 {
+    if !query.0.cursor_is_complete().get() {
         return Err(super::AdminApiError::Validation);
     }
     let actor = super::authorize_generated_request(
@@ -36,7 +36,7 @@ pub(super) async fn query_page(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let rate_subject = super::super::StdAdminString::try_from(actor.id.0.to_string())
+    let rate_subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
         .map_err(|_error| super::AdminApiError::Validation)?;
     super::rate_limit::enforce_rate_limit(
         auth.state.as_ref(),
@@ -77,7 +77,7 @@ pub(super) async fn export_log(
     auth: super::AdminAuthReq,
     query: super::AxumAdminQuery<super::AdminAuditQuery>,
 ) -> Result<super::AxumAdminResponse, super::AdminApiError> {
-    if !query.0.cursor_is_complete().0 {
+    if !query.0.cursor_is_complete().get() {
         return Err(super::AdminApiError::Validation);
     }
     let actor = super::authorize_generated_request(
@@ -88,7 +88,7 @@ pub(super) async fn export_log(
         super::super::StdAdminBool::from(false),
     )
     .await?;
-    let rate_subject = super::super::StdAdminString::try_from(actor.id.0.to_string())
+    let rate_subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
         .map_err(|_error| super::AdminApiError::Validation)?;
     super::rate_limit::enforce_rate_limit(
         auth.state.as_ref(),

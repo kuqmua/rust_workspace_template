@@ -4,7 +4,7 @@ impl super::AdminPasswordHasher {
     pub fn new(max_concurrent_hashes: super::AdminPasswordHashConcurrency) -> Self {
         Self {
             semaphore: super::StdAdminSharedSemaphore(std::sync::Arc::new(
-                tokio::sync::Semaphore::new(max_concurrent_hashes.0.0.get()),
+                tokio::sync::Semaphore::new(max_concurrent_hashes.0.get().get()),
             )),
         }
     }

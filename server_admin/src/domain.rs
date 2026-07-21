@@ -1,6 +1,11 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling domain modules require raw representations while facade reexports must keep fields externally private
 #[derive(newtype::AsRefOwned)]
-pub struct SecrecyAdminString(pub(super) secrecy::SecretBox<String>);
+pub struct SecrecyAdminString(secrecy::SecretBox<String>);
+impl From<secrecy::SecretBox<String>> for SecrecyAdminString {
+    fn from(value: secrecy::SecretBox<String>) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Debug for SecrecyAdminString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
@@ -18,21 +23,57 @@ impl std::fmt::Debug for SecrecyAdminString {
     newtype::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator internal text")]
-pub struct StdAdminString(pub(super) String);
+pub struct StdAdminString(String);
+pub(super) enum AdminAuditResourceValue {
+    Id(i64),
+    Session(uuid::Uuid),
+    SystemSettings,
+}
+impl From<AdminAuditResourceValue> for StdAdminString {
+    fn from(value: AdminAuditResourceValue) -> Self {
+        Self(match value {
+            AdminAuditResourceValue::Id(value) => value.to_string(),
+            AdminAuditResourceValue::Session(value) => value.to_string(),
+            AdminAuditResourceValue::SystemSettings => str_constants::VALUE_1.to_owned(),
+        })
+    }
+}
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, std::hash::Hash, newtype::AsRefInner, newtype::FromInner,
 )]
-pub struct StdAdminStrRef<'value_lt>(pub(super) &'value_lt str);
+pub struct StdAdminStrRef<'value_lt>(&'value_lt str);
+impl<'value_lt> StdAdminStrRef<'value_lt> {
+    pub const fn get(self) -> &'value_lt str {
+        self.0
+    }
+}
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
 )]
-pub struct StdAdminBool(pub(super) bool);
+#[serde(from = "bool")]
+pub struct StdAdminBool(bool);
+impl StdAdminBool {
+    pub const fn get(self) -> bool {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner, newtype::FromInner)]
-pub struct StdAdminNonZeroUsize(pub(super) std::num::NonZeroUsize);
+pub struct StdAdminNonZeroUsize(std::num::NonZeroUsize);
+impl StdAdminNonZeroUsize {
+    pub const fn get(self) -> std::num::NonZeroUsize {
+        self.0
+    }
+}
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, newtype::FromInner,
 )]
-pub struct UuidAdminValue(pub(super) uuid::Uuid);
+#[serde(from = "uuid::Uuid")]
+pub struct UuidAdminValue(uuid::Uuid);
+impl UuidAdminValue {
+    pub const fn get(self) -> uuid::Uuid {
+        self.0
+    }
+}
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for UuidAdminValue {
     fn schema() -> (
         &'schema_lt str,
@@ -50,7 +91,12 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for UuidAdminValue {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
-pub struct StdAdminSocketAddr(pub(super) std::net::SocketAddr);
+pub struct StdAdminSocketAddr(std::net::SocketAddr);
+impl StdAdminSocketAddr {
+    pub const fn get(self) -> std::net::SocketAddr {
+        self.0
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -65,7 +111,13 @@ pub struct StdAdminSocketAddr(pub(super) std::net::SocketAddr);
     newtype::Display,
     newtype::FromInner,
 )]
-pub struct AdminUserId(pub(super) i64);
+#[serde(from = "i64")]
+pub struct AdminUserId(i64);
+impl AdminUserId {
+    pub const fn get(self) -> i64 {
+        self.0
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -80,7 +132,13 @@ pub struct AdminUserId(pub(super) i64);
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-pub struct AdminRoleId(pub(super) i64);
+#[serde(from = "i64")]
+pub struct AdminRoleId(i64);
+impl AdminRoleId {
+    pub const fn get(self) -> i64 {
+        self.0
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -95,10 +153,21 @@ pub struct AdminRoleId(pub(super) i64);
     utoipa::ToSchema,
     newtype::FromInner,
 )]
-pub struct AdminPermissionId(pub(super) i64);
+#[serde(from = "i64")]
+pub struct AdminPermissionId(i64);
+impl AdminPermissionId {
+    pub const fn get(self) -> i64 {
+        self.0
+    }
+}
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, utoipa::ToSchema, newtype::FromInner,
 )]
-pub struct AdminAuditLogId(pub(super) i64);
+pub struct AdminAuditLogId(i64);
+impl AdminAuditLogId {
+    pub const fn get(self) -> i64 {
+        self.0
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
-pub struct AdminPermissionName(pub(super) super::AdminPermission);
+pub struct AdminPermissionName(super::AdminPermission);

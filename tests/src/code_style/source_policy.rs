@@ -23,7 +23,7 @@ fn all_files_are_english_only() {
     ers.sort();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::VALUE_8DB37A2F),
+        super::types::StaticStr::from(str_constants::VALUE_8DB37A2F),
         super::types::SourceTextRef::from(str_constants::NON_ENGLISH_SYMBOLS),
     );
 }
@@ -50,7 +50,7 @@ fn check_rs_files_contains_only_unique_uuid_v4() {
 #[test]
 fn no_dbg_macro_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::F1C7A4E3),
+        super::types::StaticStr::from(str_constants::F1C7A4E3),
         super::types::SourceTextRef::from(str_constants::DBG_FOUND),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -68,7 +68,7 @@ fn no_dbg_macro_in_source_code() {
 #[test]
 fn no_for_loops_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::F4C2A9E1),
+        super::types::StaticStr::from(str_constants::F4C2A9E1),
         super::types::SourceTextRef::from(
             str_constants::FOR_LOOPS_FOUND_USE_ITERATOR_METHODS_SUCH_AS_MAP_FILTER_FOLD_TRY,
         ),
@@ -189,7 +189,7 @@ fn new_runtime_structs_keep_fields_private() {
 #[test]
 fn spawned_tasks_must_retain_an_owner() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_5D0D5BF0),
+        super::types::StaticStr::from(str_constants::VALUE_5D0D5BF0),
         super::types::SourceTextRef::from(str_constants::SPAWNED_TASK_HANDLES_ARE_DISCARDED),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -210,7 +210,7 @@ fn spawned_tasks_must_retain_an_owner() {
 #[test]
 fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_321360D4),
+        super::types::StaticStr::from(str_constants::VALUE_321360D4),
         super::types::SourceTextRef::from(str_constants::DIRECT_ENVIRONMENT_OR_FILESYSTEM_ACCESS_EXISTS_OUTSIDE_APPROVED_CONFIGURATION_TOOLING_TEST_AND),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
@@ -245,7 +245,7 @@ fn direct_environment_and_filesystem_access_stays_at_owned_boundaries() {
 #[test]
 fn runtime_data_reads_are_bounded() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_37B593CE),
+        super::types::StaticStr::from(str_constants::VALUE_37B593CE),
         super::types::SourceTextRef::from(
             str_constants::RUNTIME_CODE_PERFORMS_AN_UNBOUNDED_FILE_OR_HTTP_RESPONSE_READ,
         ),
@@ -347,7 +347,7 @@ fn production_pg_error_classification_is_centralized() {
 #[test]
 fn direct_process_command_creation_stays_in_shared_tooling() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::F170AA14),
+        super::types::StaticStr::from(str_constants::F170AA14),
         super::types::SourceTextRef::from(str_constants::DIRECT_COMMAND_PATH_NEW_USAGE_EXISTS_OUTSIDE_MACROS_HELPERS_PATH_TOOL_COMMAND),
         |path, ast, ers| {
             if path.ends_with(str_constants::MACROS_HELPERS_SRC_TOOL_COMMAND_RS) {
@@ -407,14 +407,14 @@ fn abort_and_transmute_calls_match_reviewed_baseline() {
     }
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::F87F82B6),
+        super::types::StaticStr::from(str_constants::F87F82B6),
         super::types::SourceTextRef::from(str_constants::ABORT_TRANSMUTE_POLICY_VIOLATIONS),
     );
 }
 #[test]
 fn unit_tests_use_deterministic_time_and_randomness_patterns() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_821D4A76),
+        super::types::StaticStr::from(str_constants::VALUE_821D4A76),
         super::types::SourceTextRef::from(str_constants::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -439,7 +439,7 @@ fn unit_tests_use_deterministic_time_and_randomness_patterns() {
 #[test]
 fn no_todo_or_unimplemented_macro_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::C4E9A2D7),
+        super::types::StaticStr::from(str_constants::C4E9A2D7),
         super::types::SourceTextRef::from(str_constants::TODO_UNIMPLEMENTED_FOUND),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -479,7 +479,7 @@ fn no_macro_rules_in_source_code() {
     });
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::B6E2A9F4),
+        super::types::StaticStr::from(str_constants::B6E2A9F4),
         super::types::SourceTextRef::from(
             str_constants::MACRO_RULES_FOUND_USE_WORKSPACE_PROC_MACRO_CRATES_INSTEAD,
         ),
@@ -488,7 +488,7 @@ fn no_macro_rules_in_source_code() {
 #[test]
 fn no_include_asset_macros_outside_allowlist() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::A6D4F2C9),
+        super::types::StaticStr::from(str_constants::A6D4F2C9),
         super::types::SourceTextRef::from(str_constants::INCLUDE_STR_OR_INCLUDE_BYTES_FOUND_OUTSIDE_EXPLICIT_GENERATED_TEST_FIXTURE_ALLOWLIST),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -509,7 +509,7 @@ fn no_include_asset_macros_outside_allowlist() {
 #[test]
 fn no_non_public_use_imports_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::B4E7C2A9),
+        super::types::StaticStr::from(str_constants::B4E7C2A9),
         super::types::SourceTextRef::from(str_constants::USE_IMPORTS_FOUND_OUTSIDE_EXPLICIT_FACADE_RE_EXPORT_FILES_PREFER_EXPLICIT_PATHS),
         |path, ast, ers| {
             let path_text = path.to_string_lossy();
@@ -565,7 +565,7 @@ fn no_non_public_use_imports_in_rust_sources() {
 #[test]
 fn no_type_aliases_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::C6E4F7A1),
+        super::types::StaticStr::from(str_constants::C6E4F7A1),
         super::types::SourceTextRef::from(
             str_constants::TYPE_ALIASES_FOUND_USE_EXPLICIT_TYPES_AT_USAGE_SITES,
         ),
@@ -588,7 +588,7 @@ fn no_type_aliases_in_rust_sources() {
 #[test]
 fn no_simple_constant_aliases_in_rust_sources() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::A51F0D3B),
+        super::types::StaticStr::from(str_constants::A51F0D3B),
         super::types::SourceTextRef::from(
             str_constants::SIMPLE_CONSTANT_ALIASES_FOUND_USE_THE_SOURCE_CONSTANT_DIRECTLY,
         ),
@@ -645,7 +645,7 @@ fn no_duplicated_string_literals_in_non_policy_test_code() {
         .collect::<Vec<String>>();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::DE729A31),
+        super::types::StaticStr::from(str_constants::DE729A31),
         super::types::SourceTextRef::from(
             str_constants::DUPLICATED_STRING_LITERALS_FOUND_IN_NON_POLICY_TEST_CODE,
         ),
@@ -693,7 +693,7 @@ fn long_production_string_literals_are_reused() {
         .collect::<Vec<String>>();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::VALUE_9D1C7E4A),
+        super::types::StaticStr::from(str_constants::VALUE_9D1C7E4A),
         super::types::SourceTextRef::from(
             str_constants::LONG_PRODUCTION_STRING_LITERALS_MUST_BE_DEFINED_ONCE_AND_REUSED,
         ),
@@ -702,7 +702,7 @@ fn long_production_string_literals_are_reused() {
 #[test]
 fn string_constants_are_declared_only_in_str_constants() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_6F2C8A91),
+        super::types::StaticStr::from(str_constants::VALUE_6F2C8A91),
         super::types::SourceTextRef::from(
             str_constants::STRING_CONSTANTS_FOUND_OUTSIDE_STR_CONSTANTS,
         ),
@@ -762,7 +762,7 @@ fn str_constants_does_not_own_typed_domain_values() {
     .collect::<Vec<_>>();
     super::assert_joined_ers_empty_with_ctx(
         super::types::SourceTextListRef::from(ers.as_slice()),
-        super::types::StaticStr(str_constants::VALUE_6B7E02A4),
+        super::types::StaticStr::from(str_constants::VALUE_6B7E02A4),
         super::types::SourceTextRef::from(
             str_constants::DOMAIN_VALUES_MUST_BE_DECLARED_BY_THEIR_OWNING_TYPED_API,
         ),
@@ -795,7 +795,7 @@ fn string_constant_visitor_detects_expression_and_nested_macro_literals() {
 #[test]
 fn no_unwrap_in_source_code() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::E8B3A6D2),
+        super::types::StaticStr::from(str_constants::E8B3A6D2),
         super::types::SourceTextRef::from(str_constants::UNWRAP_FOUND),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(

@@ -70,6 +70,7 @@ naming_common_macros::case_trait_pair!(
     |self_ref| tokenized_case_str(self_ref, ConvertCaseKind(convert_case::Case::UpperSnake)).0
 );
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ConvertCaseKind(convert_case::Case<'static>);
 #[derive(
     Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
@@ -77,12 +78,13 @@ struct ConvertCaseKind(convert_case::Case<'static>);
 #[bounded_string(max = CASE_STRING_MAX_LEN )]
 struct CaseString(String);
 #[derive(Debug, Clone)]
+#[derive(newtype::FromInner)]
 struct ProcMacro2CaseTokenStream(proc_macro2::TokenStream);
 fn to_token_stream_or_panic<T>(v: &T) -> ProcMacro2CaseTokenStream
 where
     T: std::fmt::Display + ?Sized,
 {
-    ProcMacro2CaseTokenStream(match v.to_string().parse::<proc_macro2::TokenStream>() {
+    ProcMacro2CaseTokenStream::from(match v.to_string().parse::<proc_macro2::TokenStream>() {
         Ok(parsed_token_stream) => parsed_token_stream,
         Err(error) => {
             let message = error.to_string();

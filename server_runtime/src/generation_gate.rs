@@ -1,5 +1,10 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Generation(u64);
+impl From<u64> for Generation {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GenerationCommit {
@@ -14,7 +19,7 @@ pub struct GenerationGate {
 impl GenerationGate {
     #[must_use]
     pub fn begin(&self) -> Generation {
-        Generation(
+        Generation::from(
             self.current
                 .0
                 .fetch_add(1u64, std::sync::atomic::Ordering::AcqRel)
@@ -34,6 +39,11 @@ impl GenerationGate {
 
 #[derive(Debug, Default)]
 struct StdGenerationAtomicU64(std::sync::atomic::AtomicU64);
+impl From<std::sync::atomic::AtomicU64> for StdGenerationAtomicU64 {
+    fn from(value: std::sync::atomic::AtomicU64) -> Self {
+        Self(value)
+    }
+}
 
 #[cfg(test)]
 mod tests {

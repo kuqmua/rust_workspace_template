@@ -24,6 +24,7 @@ pub struct PgTableIdempotencyMethod(String);
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PgTableIdempotencyRoute(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(newtype::FromInner)]
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
@@ -64,6 +65,7 @@ pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);
 #[derive(Debug)]
+#[derive(newtype::FromInner)]
 pub struct StdPgTableRevisionParseIntError(std::num::ParseIntError);
 #[derive(Debug)]
 pub enum PgTableRevisionTryFromStringError {
@@ -202,9 +204,14 @@ impl TryFrom<String> for PgTableIdempotencyKey {
         }
     }
 }
+impl From<uuid::Uuid> for PgTableIdempotencyKey {
+    fn from(value: uuid::Uuid) -> Self {
+        Self(value.to_string())
+    }
+}
 #[must_use]
 pub fn new_pg_table_idempotency_key() -> PgTableIdempotencyKey {
-    PgTableIdempotencyKey(uuid::Uuid::new_v4().to_string())
+    PgTableIdempotencyKey::from(uuid::Uuid::new_v4())
 }
 impl TryFrom<String> for PgTableIdempotencyMethod {
     type Error = PgTableIdempotencyTextError;
@@ -291,7 +298,7 @@ pub fn pg_table_idempotency_request_hash(
     let digest = <sha2::Sha256 as sha2::Digest>::digest(body.0);
     let mut bytes = [0u8; 32usize];
     bytes.copy_from_slice(&digest);
-    PgTableIdempotencyRequestHash(bytes)
+    PgTableIdempotencyRequestHash::from(bytes)
 }
 pub async fn ensure_pg_table_idempotency_schema(
     pool: app_state::SqlxPgPoolRef<'_>,
@@ -393,12 +400,12 @@ pub async fn complete_pg_table_idempotency_in_connection(
     response_body: PgTableIdempotencyBodyRef<'_>,
 ) -> Result<(), SqlxPgTableIdempotencyError> {
     if response_body.0.len() > PG_TBL_IDEMPOTENCY_RESPONSE_MAX_BYTES {
-        return Err(SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
+        return Err(SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
             str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT.to_owned(),
         )));
     }
     let response_status_i16 = i16::try_from(response_status.0).map_err(|_error| {
-        SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
+        SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
             str_constants::IDEMPOTENCY_RESPONSE_STATUS_IS_OUTSIDE_SMALLINT.to_owned(),
         ))
     })?;
@@ -416,7 +423,7 @@ pub async fn complete_pg_table_idempotency_in_connection(
     if result.rows_affected() == 1u64 {
         Ok(())
     } else {
-        Err(SqlxPgTableIdempotencyError(sqlx::Error::Protocol(
+        Err(SqlxPgTableIdempotencyError::from(sqlx::Error::Protocol(
             str_constants::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
         )))
     }

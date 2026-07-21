@@ -62,6 +62,11 @@ impl From<std::sync::Arc<tokio::sync::Semaphore>> for StdArcTokioSemaphore {
 }
 #[derive(Debug)]
 pub struct TokioAcquireError(tokio::sync::AcquireError);
+impl From<tokio::sync::AcquireError> for TokioAcquireError {
+    fn from(value: tokio::sync::AcquireError) -> Self {
+        Self(value)
+    }
+}
 impl std::fmt::Display for TokioAcquireError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -118,7 +123,7 @@ pub async fn acquire_permit(
 ) -> Result<TokioOwnedSemaphorePermit, AcquirePermitError> {
     match tokio::time::timeout(wait_timeout.0, semaphore.0.acquire_owned()).await {
         Ok(Ok(permit)) => Ok(TokioOwnedSemaphorePermit::from(permit)),
-        Ok(Err(error)) => Err(AcquirePermitError::Closed(TokioAcquireError(error))),
+        Ok(Err(error)) => Err(AcquirePermitError::Closed(TokioAcquireError::from(error))),
         Err(_elapsed) => Err(AcquirePermitError::Timeout(retry_after)),
     }
 }

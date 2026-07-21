@@ -9,11 +9,13 @@ pub struct MockNotificationInbox {
 }
 
 #[derive(Clone, Debug)]
+#[derive(newtype::FromInner)]
 struct TokioMockNotificationSender(
     tokio::sync::mpsc::UnboundedSender<server_runtime::NotificationMessage>,
 );
 
 #[derive(Debug)]
+#[derive(newtype::FromInner)]
 struct TokioMockNotificationReceiver(
     tokio::sync::mpsc::UnboundedReceiver<server_runtime::NotificationMessage>,
 );
@@ -52,6 +54,7 @@ impl server_runtime::NotificationSender for MockNotificationProvider {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
+#[derive(newtype::FromInner)]
 pub struct RemoteSyncRequestCount(usize);
 
 #[derive(Clone, Debug)]
@@ -62,10 +65,10 @@ pub struct RemoteSyncSource {
 
 impl RemoteSyncSource {
     #[must_use]
-    pub const fn new(payload: synchronization_service_runtime::SynchronizationPayload) -> Self {
+    pub fn new(payload: synchronization_service_runtime::SynchronizationPayload) -> Self {
         Self {
             payload,
-            request_count: RemoteSyncRequestCount(0usize),
+            request_count: RemoteSyncRequestCount::from(0usize),
         }
     }
 
@@ -93,10 +96,10 @@ pub fn mock_notification_provider() -> (MockNotificationProvider, MockNotificati
     let (sender, receiver) = tokio::sync::mpsc::unbounded_channel();
     (
         MockNotificationProvider {
-            sender: TokioMockNotificationSender(sender),
+            sender: TokioMockNotificationSender::from(sender),
         },
         MockNotificationInbox {
-            receiver: TokioMockNotificationReceiver(receiver),
+            receiver: TokioMockNotificationReceiver::from(receiver),
         },
     )
 }

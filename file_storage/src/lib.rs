@@ -144,10 +144,10 @@ pub enum FileStorageStagingArea {
     Upload,
 }
 impl FileStorageStagingArea {
-    const fn directory_name(self) -> StorageDirectoryNameRef<'static> {
+    fn directory_name(self) -> StorageDirectoryNameRef<'static> {
         match self {
-            Self::Delete => StorageDirectoryNameRef(str_constants::FILE_DELETE_STAGING_DIRECTORY),
-            Self::Upload => StorageDirectoryNameRef(str_constants::FILE_UPLOAD_STAGING_DIRECTORY),
+            Self::Delete => StorageDirectoryNameRef::from(str_constants::FILE_DELETE_STAGING_DIRECTORY),
+            Self::Upload => StorageDirectoryNameRef::from(str_constants::FILE_UPLOAD_STAGING_DIRECTORY),
         }
     }
 }
@@ -591,6 +591,11 @@ impl DiskCacheEntry {
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DiskCacheEvictionPlan(Vec<StdStorageRelativePath>);
+impl From<Vec<StdStorageRelativePath>> for DiskCacheEvictionPlan {
+    fn from(value: Vec<StdStorageRelativePath>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<[StdStorageRelativePath]> for DiskCacheEvictionPlan {
     fn as_ref(&self) -> &[StdStorageRelativePath] {
         self.0.as_slice()
@@ -633,7 +638,7 @@ pub fn plan_disk_cache_eviction(
         current = current.saturating_sub(entry.size.0);
         remove.push(entry.path.clone());
     }
-    Ok(DiskCacheEvictionPlan(remove))
+    Ok(DiskCacheEvictionPlan::from(remove))
 }
 
 #[cfg(test)]

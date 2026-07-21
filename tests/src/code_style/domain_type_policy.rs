@@ -1,7 +1,7 @@
 #[test]
 fn string_wrappers_do_not_use_from_string() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::E2A6B9C4),
+        super::types::StaticStr::from(str_constants::E2A6B9C4),
         super::types::SourceTextRef::from(str_constants::STRING_WRAPPERS_MUST_VALIDATE_LENGTH_USE_TRYFROM_STRING_WITH_A_LENGTH_CHECK),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
@@ -176,9 +176,9 @@ fn newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
     );
 }
 #[test]
-fn public_tuple_wrappers_do_not_expose_inner_field() {
+fn tuple_wrappers_do_not_expose_inner_field() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::B7C84E2A),
+        super::types::StaticStr::from(str_constants::B7C84E2A),
         super::types::SourceTextRef::from(str_constants::PUBLIC_TUPLE_WRAPPERS_MUST_NOT_EXPOSE_INNER_FIELDS_INITIALIZE_THEM_THROUGH_FROM),
         |path, ast, ers| {
             let visitor = super::visit_syn_file(
@@ -197,11 +197,72 @@ fn public_tuple_wrappers_do_not_expose_inner_field() {
     );
 }
 #[test]
+fn tuple_wrapper_deserialization_uses_from_or_try_from() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from(str_constants::B7C84E2A),
+        super::types::SourceTextRef::from(
+            "tuple wrapper Deserialize must initialize through From or TryFrom",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::DirectDeserializeTupleWrapperVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn tuple_wrappers_initialize_only_through_from_or_try_from() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from(str_constants::B7C84E2A),
+        super::types::SourceTextRef::from(
+            "tuple wrappers must initialize only through From or TryFrom",
+        ),
+        |path, ast, ers| {
+            let collector = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::TupleWrapperConversionCollector {
+                    names: super::types::StdSourceTextSet::default(),
+                    converted_names: super::types::StdSourceTextSet::default(),
+                },
+            );
+            ers.extend(collector.names.difference(&collector.converted_names).map(|name| {
+                format!(
+                    "{}: tuple wrapper `{name}` has no From/TryFrom implementation",
+                    path.display()
+                )
+            }));
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::DirectTupleWrapperConstructorVisitor {
+                    names: &collector.names,
+                    inside_conversion_impl: super::types::AnalyzerBool::default(),
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn domain_boundaries_use_repository_declared_types() {
     let repo_crates = super::workspace_crate_names();
     let repo_types = super::declared_domain_type_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::A7F9C3E1),
+        super::types::StaticStr::from(str_constants::A7F9C3E1),
         super::types::SourceTextRef::from(str_constants::RAW_EXTERNAL_OR_PRIMITIVE_TYPES_FOUND_IN_DOMAIN_BOUNDARIES_USE_REPOSITORY_DOMAIN),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
@@ -305,7 +366,7 @@ fn domain_type_policy_allows_only_option_and_result_containers() {
 #[test]
 fn analyzer_state_struct_fields_use_repository_declared_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::F2C7A91B),
+        super::types::StaticStr::from(str_constants::F2C7A91B),
         super::types::SourceTextRef::from(str_constants::RAW_TEXT_CONTAINERS_FOUND_IN_HELPER_STRUCT_FIELDS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
             if !super::domain_type_policy_should_check_path(super::types::StdPathRef::from(path))
@@ -358,7 +419,7 @@ fn analyzer_state_raw_container_field_visitor_reports_helper_fields() {
 #[test]
 fn helper_return_types_use_repository_declared_text_wrappers() {
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::VALUE_6D41C8E2),
+        super::types::StaticStr::from(str_constants::VALUE_6D41C8E2),
         super::types::SourceTextRef::from(str_constants::RAW_TEXT_RETURN_TYPES_FOUND_IN_HELPER_FUNCTIONS_USE_REPOSITORY_WRAPPER_TYPES),
         |path, ast, ers| {
             if !super::is_code_style_meta_harness_source_path(super::types::StdPathRef::from(path))
@@ -420,7 +481,7 @@ fn helper_raw_text_return_visitor_reports_free_and_inherent_helpers() {
 fn external_leaf_tuple_wrappers_include_crate_name() {
     let repo_crates = super::workspace_crate_names();
     super::assert_rs_ast_ers_empty_with_ctx(
-        super::types::StaticStr(str_constants::B93D2A8C),
+        super::types::StaticStr::from(str_constants::B93D2A8C),
         super::types::SourceTextRef::from(
             str_constants::TUPLE_WRAPPERS_OVER_EXTERNAL_TYPES_MUST_INCLUDE_THE_EXTERNAL_CRATE_NAME,
         ),

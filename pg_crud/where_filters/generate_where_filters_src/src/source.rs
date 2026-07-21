@@ -15,8 +15,10 @@ pub struct BuiltGenerateWhereFiltersModel {
     contract_valid: crate::model::FilterSpecValid,
 }
 #[derive(Clone, Copy, Debug)]
+#[derive(newtype::FromInner)]
 pub struct ValidatedGenerateWhereFiltersConfig(ParsedGenerateWhereFiltersConfig);
 #[derive(Debug)]
+#[derive(newtype::FromInner)]
 pub struct SerdeJsonGenerateWhereFiltersError(serde_json::Error);
 #[derive(Debug)]
 pub enum GenerateWhereFiltersPipelineError {
@@ -36,7 +38,7 @@ pub fn parse_generate_where_filters(
     input: ProcMacro2GenerateWhereFiltersInput<'_>,
 ) -> Result<ParsedGenerateWhereFiltersConfig, GenerateWhereFiltersPipelineError> {
     serde_json::from_str(&input.as_ref().to_string()).map_err(|error| {
-        GenerateWhereFiltersPipelineError::Parse(SerdeJsonGenerateWhereFiltersError(error))
+        GenerateWhereFiltersPipelineError::Parse(SerdeJsonGenerateWhereFiltersError::from(error))
     })
 }
 pub fn build_generate_where_filters(
@@ -64,7 +66,7 @@ pub const fn validate_generate_where_filters(
     built: BuiltGenerateWhereFiltersModel,
 ) -> Result<ValidatedGenerateWhereFiltersConfig, GenerateWhereFiltersPipelineError> {
     if built.contract_valid.get() {
-        Ok(ValidatedGenerateWhereFiltersConfig(built.config))
+        Ok(ValidatedGenerateWhereFiltersConfig::from(built.config))
     } else {
         Err(GenerateWhereFiltersPipelineError::InvalidContract)
     }

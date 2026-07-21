@@ -1,12 +1,17 @@
 #![allow(clippy::shadow_reuse)]
 const MAX_BLOCK_ON_POLLS: usize = 4096;
 #[derive(newtype::Display, newtype::FromInner)]
-pub(crate) struct TestExpId(pub &'static str);
+pub(crate) struct TestExpId(&'static str);
 #[derive(newtype::Display, newtype::FromInner)]
-struct TestPanicText(pub &'static str);
+struct TestPanicText(&'static str);
 #[derive(newtype::AsRefOwned, newtype::DerefInner, newtype::DerefMutInner)]
-pub(crate) struct AxumTestHeaders(pub axum::http::HeaderMap);
-pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(pub &'headers_lt mut axum::http::HeaderMap);
+pub(crate) struct AxumTestHeaders(axum::http::HeaderMap);
+impl From<axum::http::HeaderMap> for AxumTestHeaders {
+    fn from(value: axum::http::HeaderMap) -> Self {
+        Self(value)
+    }
+}
+pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(&'headers_lt mut axum::http::HeaderMap);
 impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
     fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
         Self(&mut value.0)
@@ -20,10 +25,11 @@ impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap>
     }
 }
 #[derive(newtype::DerefInner, newtype::FromInner)]
-pub(crate) struct AxumTestHeaderValue(pub axum::http::HeaderValue);
-#[derive(Clone, Copy)]
-struct TestPollCount(pub usize);
-struct TestPollLimitReached(pub bool);
+pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
+#[derive(Clone, Copy, newtype::FromInner)]
+struct TestPollCount(usize);
+#[derive(newtype::FromInner)]
+struct TestPollLimitReached(bool);
 impl std::ops::Not for TestPollLimitReached {
     type Output = bool;
     fn not(self) -> Self::Output {
@@ -43,8 +49,8 @@ fn insert_header_no_prev<'headers_lt, ValueTy>(
     assert!(prev.is_none());
 }
 #[allow(clippy::single_call_fn)] // extracted to keep block_on loop hot path simple and reusable
-const fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLimitReached {
-    TestPollLimitReached(poll_count.0 >= MAX_BLOCK_ON_POLLS)
+fn is_block_on_poll_limit_reached(poll_count: TestPollCount) -> TestPollLimitReached {
+    TestPollLimitReached::from(poll_count.0 >= MAX_BLOCK_ON_POLLS)
 }
 #[allow(clippy::single_call_fn)] // keeps poll-count mutation centralized so block_on loop stays focused on state transitions
 fn increment_block_on_poll_count(poll_count: &mut TestPollCount) {
@@ -54,7 +60,7 @@ pub(crate) fn block_on<T>(input_future: impl Future<Output = T>) -> T {
     let mut future = std::pin::pin!(input_future);
     let waker = std::task::Waker::noop();
     let mut context = std::task::Context::from_waker(waker);
-    let mut poll_count = TestPollCount(0usize);
+    let mut poll_count = TestPollCount::from(0usize);
     loop {
         match future.as_mut().poll(&mut context) {
             std::task::Poll::Ready(output) => {
@@ -293,7 +299,7 @@ where
 {
     let mut headers = axum::http::HeaderMap::new();
     insert_header_no_prev(&mut headers, name, value);
-    AxumTestHeaders(headers)
+    AxumTestHeaders::from(headers)
 }
 #[track_caller]
 pub(crate) fn replace_header_name<'headers_lt>(
@@ -310,7 +316,9 @@ pub(crate) fn replace_header_name<'headers_lt>(
     insert_header_no_prev(headers.0, to_name, value);
 }
 pub(crate) fn non_utf8_header_value() -> AxumTestHeaderValue {
-    AxumTestHeaderValue(axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"))
+    AxumTestHeaderValue::from(
+        axum::http::HeaderValue::from_bytes(&[0x80]).expect("86eb20cf"),
+    )
 }
 #[track_caller]
 pub(crate) fn assert_panics(
@@ -336,16 +344,18 @@ mod tests {
     #[test]
     fn poll_limit_helper_returns_false_below_limit_and_true_at_limit() {
         assert!(!super::is_block_on_poll_limit_reached(
-            super::TestPollCount(0)
+            super::TestPollCount::from(0)
         ));
         assert!(
-            super::is_block_on_poll_limit_reached(super::TestPollCount(super::MAX_BLOCK_ON_POLLS))
+            super::is_block_on_poll_limit_reached(super::TestPollCount::from(
+                super::MAX_BLOCK_ON_POLLS,
+            ))
                 .0
         );
     }
     #[test]
     fn poll_count_increment_helper_increments_once() {
-        let mut poll_count = super::TestPollCount(0usize);
+        let mut poll_count = super::TestPollCount::from(0usize);
         super::increment_block_on_poll_count(&mut poll_count);
         assert_eq!(poll_count.0, 1usize);
     }

@@ -1,6 +1,6 @@
 #![allow(clippy::single_call_fn)] // stable root token API delegates to the private cryptographic responsibility module
 pub(super) fn generate_token() -> super::AdminGeneratedToken {
-    let token = super::AdminOpaqueToken::new(super::SecrecyAdminString(secrecy::SecretBox::new(
+    let token = super::AdminOpaqueToken::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
         Box::new(format!("{}.{}", uuid::Uuid::new_v4(), uuid::Uuid::new_v4())),
     )));
     let hash = hash_opaque_token(&token);
@@ -10,7 +10,7 @@ pub(super) fn hash_opaque_token(token: &super::AdminOpaqueToken) -> super::Admin
     let digest = <sha2::Sha256 as sha2::Digest>::digest(
         secrecy::ExposeSecret::expose_secret(token.0.as_ref()).as_bytes(),
     );
-    super::AdminTokenHash::new(super::SecrecyAdminString(secrecy::SecretBox::new(
+    super::AdminTokenHash::new(super::SecrecyAdminString::from(secrecy::SecretBox::new(
         Box::new(format!("{digest:x}")),
     )))
 }

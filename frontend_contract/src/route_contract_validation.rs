@@ -15,6 +15,7 @@ pub enum RouteContractMismatch {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
+#[derive(newtype::FromInner)]
 pub struct RouteContractMismatches(Vec<RouteContractMismatch>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
@@ -148,7 +149,7 @@ pub fn validate_route_contract_metadata(
     if mismatches.is_empty() {
         Ok(())
     } else {
-        Err(RouteContractMismatches(mismatches))
+        Err(RouteContractMismatches::from(mismatches))
     }
 }
 

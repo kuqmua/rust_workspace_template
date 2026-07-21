@@ -60,16 +60,22 @@ impl TryFrom<String> for EnvVarName {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(newtype::FromInner)]
 pub struct ChronoFixedOffsetError(&'static str);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct StdI32ParsingError(std::num::ParseIntError);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct StdU32ParsingError(std::num::ParseIntError);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct StdUsizeParsingError(std::num::ParseIntError);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(newtype::FromInner)]
 struct TimezoneSeconds(i32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(newtype::FromInner)]
 struct ChronoEastFixedOffset(chrono::FixedOffset);
 pub trait TryFromStdEnvVarOk: Sized {
     type Error;
@@ -171,6 +177,7 @@ pub struct StdParseBoolError(std::str::ParseBoolError);
     newtype::AsRefOwned,
     newtype::DebugRedacted,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminJwtSecret(Vec<SecrecySecretBoxString>);
 impl AdminJwtSecret {
     #[must_use]
@@ -245,7 +252,7 @@ mod admin_jwt_secret_tests {
         let second =
             str_constants::TEST_JWT_SECRET_CHARACTER_B.repeat(super::ADMIN_JWT_SECRET_MIN_LEN);
         let parsed = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk(format!("{first}, {second}")),
+            super::StdEnvVarOk::from(format!("{first}, {second}")),
         )
         .expect("2c18577d");
         assert_eq!(parsed.verification_secrets().len(), 2usize);
@@ -260,7 +267,7 @@ mod admin_jwt_secret_tests {
     #[test]
     fn rejects_empty_effective_secret_list() {
         let result = <super::AdminJwtSecret as super::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            super::StdEnvVarOk(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST)),
+            super::StdEnvVarOk::from(String::from(str_constants::TEST_EMPTY_DELIMITED_LIST)),
         );
         assert!(matches!(
             result,
@@ -277,6 +284,7 @@ mod admin_jwt_secret_tests {
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -287,6 +295,7 @@ pub struct AdminAccessTokenTtlSeconds(StdNonZeroU64);
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
 #[derive(
     Debug,
@@ -297,6 +306,7 @@ pub struct AdminRefreshTokenTtlSeconds(StdNonZeroU64);
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminSignInRateLimit(StdNonZeroU64);
 #[derive(
     Debug,
@@ -307,8 +317,10 @@ pub struct AdminSignInRateLimit(StdNonZeroU64);
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminSessionLimit(StdNonZeroUsize);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct AdminPositiveU64ParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPositiveU64Error {
@@ -324,7 +336,7 @@ fn parse_admin_positive_u64(
 ) -> Result<StdNonZeroU64, TryFromStdEnvVarOkAdminPositiveU64Error> {
     let parsed = v.0.parse::<u64>().map_err(|admin_positive_u64_parsing| {
         TryFromStdEnvVarOkAdminPositiveU64Error::Parse {
-            admin_positive_u64_parsing: AdminPositiveU64ParsingError(StdParseIntError::from(
+            admin_positive_u64_parsing: AdminPositiveU64ParsingError::from(StdParseIntError::from(
                 admin_positive_u64_parsing,
             )),
         }
@@ -372,8 +384,10 @@ impl TryFromStdEnvVarOk for AdminSessionLimit {
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminPasswordHashConcurrency(StdNonZeroUsize);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct AdminPositiveUsizeParsingError(StdParseIntError);
 #[derive(Debug, thiserror::Error)]
 pub enum TryFromStdEnvVarOkAdminPasswordHashConcurrencyError {
@@ -390,7 +404,7 @@ impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
         let parsed =
             v.0.parse::<usize>()
                 .map_err(|admin_positive_usize_parsing| Self::Error::Parse {
-                    admin_positive_usize_parsing: AdminPositiveUsizeParsingError(
+                    admin_positive_usize_parsing: AdminPositiveUsizeParsingError::from(
                         StdParseIntError::from(admin_positive_usize_parsing),
                     ),
                 })?;
@@ -409,6 +423,7 @@ impl TryFromStdEnvVarOk for AdminPasswordHashConcurrency {
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminCookieSecure(bool);
 #[derive(
     Debug,
@@ -419,19 +434,23 @@ pub struct AdminCookieSecure(bool);
     generate_getter_traits_for_struct_fields::GenerateGetterTrait,
     newtype::DerefInner,
 )]
+#[derive(newtype::FromInner)]
 pub struct AdminSwaggerEnabled(bool);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct HttpGzipEnabled(bool);
 #[derive(newtype::DebugTransparent)]
+#[derive(newtype::FromInner)]
 pub struct AdminBoolParsingError(StdParseBoolError);
 #[derive(Debug, thiserror::Error)]
 #[error("{0:?}")]
+#[derive(newtype::FromInner)]
 pub struct TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError);
 impl TryFromStdEnvVarOk for AdminCookieSecure {
     type Error = TryFromStdEnvVarOkAdminCookieSecureError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError(
+            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
                 StdParseBoolError::from(admin_bool_parsing),
             ))
         })
@@ -441,7 +460,7 @@ impl TryFromStdEnvVarOk for AdminSwaggerEnabled {
     type Error = TryFromStdEnvVarOkAdminCookieSecureError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError(
+            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
                 StdParseBoolError::from(admin_bool_parsing),
             ))
         })
@@ -451,7 +470,7 @@ impl TryFromStdEnvVarOk for HttpGzipEnabled {
     type Error = TryFromStdEnvVarOkAdminCookieSecureError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         v.0.parse::<bool>().map(Self).map_err(|admin_bool_parsing| {
-            TryFromStdEnvVarOkAdminCookieSecureError(AdminBoolParsingError(
+            TryFromStdEnvVarOkAdminCookieSecureError::from(AdminBoolParsingError::from(
                 StdParseBoolError::from(admin_bool_parsing),
             ))
         })
@@ -569,9 +588,9 @@ impl TryFromStdEnvVarOk for MaximumSizeOfHttpBodyInBytes {
     type Error = TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
         let parsed: usize =
-            parse_from_str_with_error(StdEnvVarOkRef(v.0.as_str()), |usize_parsing| {
+            parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |usize_parsing| {
                 Self::Error::UsizeParsing {
-                    usize_parsing: StdUsizeParsingError(usize_parsing),
+                    usize_parsing: StdUsizeParsingError::from(usize_parsing),
                 }
             })?;
         Self::try_from(parsed).map_err(|maximum_size_of_http_body_in_bytes| {
@@ -592,14 +611,19 @@ config_lib_macros::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUr
 )]
 pub struct PgPoolMaxConnections(u32);
 #[derive(Debug, Clone, Copy, optml::Optml, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct PgPoolMinConnections(u32);
 #[derive(Debug, Clone, Copy, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct PgPoolAcquireTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct PgPoolIdleTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct PgPoolMaxLifetimeSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, newtype::DerefInner)]
+#[derive(newtype::FromInner)]
 pub struct RequestTimeoutSeconds(StdNonZeroU64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
 pub enum PgPoolConfigParseError {
@@ -706,9 +730,9 @@ pub enum TryFromStdEnvVarOkPgPoolMaxConnectionsError {
 impl TryFromStdEnvVarOk for PgPoolMaxConnections {
     type Error = TryFromStdEnvVarOkPgPoolMaxConnectionsError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let parsed: u32 = parse_from_str_with_error(StdEnvVarOkRef(v.0.as_str()), |u32_parsing| {
+        let parsed: u32 = parse_from_str_with_error(StdEnvVarOkRef::from(v.0.as_str()), |u32_parsing| {
             Self::Error::U32Parsing {
-                u32_parsing: StdU32ParsingError(u32_parsing),
+                u32_parsing: StdU32ParsingError::from(u32_parsing),
             }
         })?;
         Self::try_from(parsed).map_err(|pg_pool_max_connections| {
@@ -767,10 +791,10 @@ pub enum TryFromStdEnvVarOkTimezoneError {
 impl TryFromStdEnvVarOk for ChronoTimezone {
     type Error = TryFromStdEnvVarOkTimezoneError;
     fn try_from_std_env_var_ok(v: StdEnvVarOk) -> Result<Self, Self::Error> {
-        let i32_v = TimezoneSeconds(parse_from_str_with_error(
-            StdEnvVarOkRef(v.0.as_str()),
+        let i32_v = TimezoneSeconds::from(parse_from_str_with_error::<i32, _, _>(
+            StdEnvVarOkRef::from(v.0.as_str()),
             |i32_parsing| Self::Error::I32Parsing {
-                i32_parsing: StdI32ParsingError(i32_parsing),
+                i32_parsing: StdI32ParsingError::from(i32_parsing),
             },
         )?);
         parse_east_fixed_offset(i32_v)
@@ -842,7 +866,7 @@ fn parse_east_fixed_offset(
 ) -> Result<ChronoEastFixedOffset, ChronoFixedOffsetError> {
     chrono::FixedOffset::east_opt(v.0)
         .map(ChronoEastFixedOffset)
-        .ok_or(ChronoFixedOffsetError(
+        .ok_or(ChronoFixedOffsetError::from(
             str_constants::CONFIG_TIMEZONE_NOT_EAST_MSG,
         ))
 }
@@ -1107,12 +1131,12 @@ mod tests {
     }
     #[test]
     fn parse_east_fixed_offset_returns_offset_for_valid_seconds() {
-        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds(3i32 * 3_600i32));
+        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds::from(3i32 * 3_600i32));
         assert!(matches!(parsed, Ok(v) if v.0.local_minus_utc() == 3i32 * 3_600i32));
     }
     #[test]
     fn parse_east_fixed_offset_returns_error_for_out_of_range_seconds() {
-        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds(i32::MAX));
+        let parsed = super::parse_east_fixed_offset(super::TimezoneSeconds::from(i32::MAX));
         assert_eq!(
             parsed,
             Err(super::ChronoFixedOffsetError(
@@ -1132,7 +1156,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_parses_value_when_env_var_exists() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef(str_constants::PATH_ALT),
+            super::EnvVarNameRef::from(str_constants::PATH_ALT),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -1144,7 +1168,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_missing_env_var_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef(str_constants::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21),
+            super::EnvVarNameRef::from(str_constants::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },
@@ -1164,7 +1188,7 @@ mod tests {
     #[test]
     fn parse_required_env_var_maps_parse_error() {
         let parsed = super::parse_required_env_var(
-            super::EnvVarNameRef(str_constants::PATH_ALT),
+            super::EnvVarNameRef::from(str_constants::PATH_ALT),
             |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar {
                 env_var_name,
             },

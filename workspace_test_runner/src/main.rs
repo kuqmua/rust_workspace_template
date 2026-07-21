@@ -48,46 +48,47 @@ const NEXTEST_COMMANDS: [(&str, &[&str]); 3] = [
 ];
 const MACRO_GENERATION_MEASUREMENTS: [(MeasurementName, CargoArgs); 3] = [
     (
-        MeasurementName(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT),
-        CargoArgs(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TBL_ARGS),
+        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_MEASUREMENT),
+        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TBL_ARGS),
     ),
     (
-        MeasurementName(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT),
-        CargoArgs(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TYPES_ARGS),
+        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_MEASUREMENT),
+        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_PG_TYPES_ARGS),
     ),
     (
-        MeasurementName(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT),
-        CargoArgs(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_WH_FLTS_ARGS),
+        MeasurementName::from(str_constants::WORKSPACE_TEST_RUNNER_GENERATE_WHERE_FILTERS_MEASUREMENT),
+        CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_TEST_GEN_WH_FLTS_ARGS),
     ),
 ];
 const CLEAN_ANSI_TEXT_MAX_LEN: usize = 16_777_216;
 const ALLOCATION_TOOLS: [AllocationTool; 6] = [
     AllocationTool {
-        name: ToolName(str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH),
+        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LIBMEMUSAGE_TOOL),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH),
     },
     AllocationTool {
-        name: ToolName(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_TOOL),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_PATH),
+        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_TOOL),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_VALGRIND_PATH),
     },
     AllocationTool {
-        name: ToolName(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_TOOL),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_PATH),
+        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_TOOL),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_HEAPTRACK_PATH),
     },
     AllocationTool {
-        name: ToolName(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_TOOL),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_PATH),
+        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_TOOL),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_LTRACE_PATH),
     },
     AllocationTool {
-        name: ToolName(str_constants::WORKSPACE_TEST_RUNNER_PERF_TOOL),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_PERF_PATH),
+        name: ToolName::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_TOOL),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_PERF_PATH),
     },
     AllocationTool {
-        name: ToolName(str_constants::PG_CRUD_PG_TIME),
-        path: ToolPath(str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH),
+        name: ToolName::from(str_constants::PG_CRUD_PG_TIME),
+        path: ToolPath::from(str_constants::WORKSPACE_TEST_RUNNER_TIME_PATH),
     },
 ];
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MeasurementName(&'static str);
 impl MeasurementName {
     const fn get(self) -> &'static str {
@@ -95,6 +96,7 @@ impl MeasurementName {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct CargoArgs(&'static [&'static str]);
 impl CargoArgs {
     const fn get(self) -> &'static [&'static str] {
@@ -109,6 +111,7 @@ impl<'lt> StderrTextRef<'lt> {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct AnsiTextRef<'lt>(&'lt str);
 impl<'lt> AnsiTextRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -119,6 +122,7 @@ impl<'lt> AnsiTextRef<'lt> {
 #[bounded_string(max = CLEAN_ANSI_TEXT_MAX_LEN)]
 struct CleanAnsiText(String);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MemusageKey(&'static str);
 impl MemusageKey {
     const fn get(self) -> &'static str {
@@ -126,6 +130,7 @@ impl MemusageKey {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MemusageRowName(&'static str);
 impl MemusageRowName {
     const fn get(self) -> &'static str {
@@ -133,6 +138,7 @@ impl MemusageRowName {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MemusageColumnIdx(usize);
 impl MemusageColumnIdx {
     const fn get(self) -> usize {
@@ -140,6 +146,7 @@ impl MemusageColumnIdx {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MemusageValueRef<'lt>(&'lt str);
 impl<'lt> MemusageValueRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -147,6 +154,7 @@ impl<'lt> MemusageValueRef<'lt> {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ProgramPathRef<'lt>(&'lt str);
 impl<'lt> ProgramPathRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -154,6 +162,7 @@ impl<'lt> ProgramPathRef<'lt> {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ProgramArgsRef<'lt>(&'lt [&'lt str]);
 impl<'lt> ProgramArgsRef<'lt> {
     const fn get(self) -> &'lt [&'lt str] {
@@ -161,6 +170,7 @@ impl<'lt> ProgramArgsRef<'lt> {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct MemusageProgNameRef<'lt>(&'lt str);
 impl<'lt> MemusageProgNameRef<'lt> {
     const fn get(self) -> &'lt str {
@@ -168,8 +178,10 @@ impl<'lt> MemusageProgNameRef<'lt> {
     }
 }
 #[derive(Clone, newtype::AsRefOwned)]
+#[derive(newtype::FromInner)]
 struct QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::__private::TokenStream);
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ToolName(&'static str);
 impl ToolName {
     const fn get(self) -> &'static str {
@@ -177,6 +189,7 @@ impl ToolName {
     }
 }
 #[derive(Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct ToolPath(&'static str);
 impl ToolPath {
     const fn get(self) -> &'static str {
@@ -225,10 +238,10 @@ fn strip_ansi_codes(value: AnsiTextRef<'_>) -> CleanAnsiText {
             },
         )
         .0;
-    CleanAnsiText::try_from(clean).unwrap_or_else(|_| CleanAnsiText(String::new()))
+    CleanAnsiText::try_from(clean).unwrap_or_else(|_| CleanAnsiText::from(String::new()))
 }
 fn print_without_memusage_footer(stderr: StderrTextRef<'_>) {
-    let clean = strip_ansi_codes(AnsiTextRef(stderr.get()));
+    let clean = strip_ansi_codes(AnsiTextRef::from(stderr.get()));
     clean
         .0
         .as_str()
@@ -244,7 +257,7 @@ fn memusage_heap_value(text: &CleanAnsiText, key: MemusageKey) -> MemusageValueR
         .find_map(|line| line.split_once(key.get()).map(|(_, tail)| tail.trim()))
         .and_then(|tail| tail.split([',', ' ']).find(|part| !part.is_empty()))
         .map_or(
-            MemusageValueRef(str_constants::UNAVAILABLE),
+            MemusageValueRef::from(str_constants::UNAVAILABLE),
             MemusageValueRef,
         )
 }
@@ -260,7 +273,7 @@ fn memusage_table_value(
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(column_idx.get()))
         .map_or(
-            MemusageValueRef(str_constants::UNAVAILABLE),
+            MemusageValueRef::from(str_constants::UNAVAILABLE),
             MemusageValueRef,
         )
 }
@@ -301,77 +314,77 @@ fn measure_memusage_command(
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             print_without_memusage_footer(StderrTextRef::from(stderr.as_ref()));
-            let clean = strip_ansi_codes(AnsiTextRef(stderr.as_ref()));
+            let clean = strip_ansi_codes(AnsiTextRef::from(stderr.as_ref()));
             let heap_total =
-                memusage_heap_value(&clean, MemusageKey(str_constants::HEAP_TOTAL)).get();
+                memusage_heap_value(&clean, MemusageKey::from(str_constants::HEAP_TOTAL)).get();
             let heap_peak =
-                memusage_heap_value(&clean, MemusageKey(str_constants::HEAP_PEAK)).get();
+                memusage_heap_value(&clean, MemusageKey::from(str_constants::HEAP_PEAK)).get();
             let stack_peak =
-                memusage_heap_value(&clean, MemusageKey(str_constants::STACK_PEAK)).get();
+                memusage_heap_value(&clean, MemusageKey::from(str_constants::STACK_PEAK)).get();
             let malloc_calls = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::MALLOC),
-                MemusageColumnIdx(0),
+                MemusageRowName::from(str_constants::MALLOC),
+                MemusageColumnIdx::from(0),
             )
             .get();
             let malloc_memory = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::MALLOC),
-                MemusageColumnIdx(1),
+                MemusageRowName::from(str_constants::MALLOC),
+                MemusageColumnIdx::from(1),
             )
             .get();
             let malloc_failed = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::MALLOC),
-                MemusageColumnIdx(2),
+                MemusageRowName::from(str_constants::MALLOC),
+                MemusageColumnIdx::from(2),
             )
             .get();
             let realloc_calls = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::REALLOC),
-                MemusageColumnIdx(0),
+                MemusageRowName::from(str_constants::REALLOC),
+                MemusageColumnIdx::from(0),
             )
             .get();
             let realloc_memory = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::REALLOC),
-                MemusageColumnIdx(1),
+                MemusageRowName::from(str_constants::REALLOC),
+                MemusageColumnIdx::from(1),
             )
             .get();
             let realloc_failed = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::REALLOC),
-                MemusageColumnIdx(2),
+                MemusageRowName::from(str_constants::REALLOC),
+                MemusageColumnIdx::from(2),
             )
             .get();
             let calloc_calls = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::CALLOC),
-                MemusageColumnIdx(0),
+                MemusageRowName::from(str_constants::CALLOC),
+                MemusageColumnIdx::from(0),
             )
             .get();
             let calloc_memory = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::CALLOC),
-                MemusageColumnIdx(1),
+                MemusageRowName::from(str_constants::CALLOC),
+                MemusageColumnIdx::from(1),
             )
             .get();
             let calloc_failed = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::CALLOC),
-                MemusageColumnIdx(2),
+                MemusageRowName::from(str_constants::CALLOC),
+                MemusageColumnIdx::from(2),
             )
             .get();
             let free_calls = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::FREE),
-                MemusageColumnIdx(0),
+                MemusageRowName::from(str_constants::FREE),
+                MemusageColumnIdx::from(0),
             )
             .get();
             let free_memory = memusage_table_value(
                 &clean,
-                MemusageRowName(str_constants::FREE),
-                MemusageColumnIdx(1),
+                MemusageRowName::from(str_constants::FREE),
+                MemusageColumnIdx::from(1),
             )
             .get();
             println!(
@@ -488,7 +501,7 @@ fn generate_pg_table_measure_input_token_stream(
 ) -> QuoteTokenStreamGeneratePgTableMeasureInputTokenStream {
     let allow_clippy_arbitrary_src_item_ordering =
         token_patterns::AllowClippyArbitrarySrcItemOrdering;
-    QuoteTokenStreamGeneratePgTableMeasureInputTokenStream(quote::quote! {
+    QuoteTokenStreamGeneratePgTableMeasureInputTokenStream::from(quote::quote! {
         #allow_clippy_arbitrary_src_item_ordering
         #[derive(Debug, Clone, Copy, optml::Optml)]
         #[generate_pg_table::generate_pg_table_config{{
@@ -1090,15 +1103,15 @@ fn main() {
                     str_constants::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
                 );
                 measure_memusage_command(
-                    MeasurementName(str_constants::CODE_STYLE),
-                    ProgramPathRef(str_constants::WORKSPACE_TEST_RUNNER_CARGO),
-                    ProgramArgsRef(&[
+                    MeasurementName::from(str_constants::CODE_STYLE),
+                    ProgramPathRef::from(str_constants::WORKSPACE_TEST_RUNNER_CARGO),
+                    ProgramArgsRef::from(&[
                         str_constants::TEST_ALT_3,
                         str_constants::P,
                         str_constants::TESTS_ALT,
                         str_constants::CODE_STYLE,
                     ]),
-                    MemusageProgNameRef(str_constants::WORKSPACE_TEST_RUNNER_CARGO),
+                    MemusageProgNameRef::from(str_constants::WORKSPACE_TEST_RUNNER_CARGO),
                 )
                 .unwrap_or_else(|()| std::process::exit(1));
                 let current_exe = match std::env::current_exe() {
@@ -1117,19 +1130,19 @@ fn main() {
                     .unwrap_or(str_constants::WORKSPACE_TEST_RUNNER_ALT);
                 [
                     (
-                        MeasurementName(str_constants::GENERATE_PG_TABLE_SRC),
+                        MeasurementName::from(str_constants::GENERATE_PG_TABLE_SRC),
                         str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TABLE_WORKLOAD,
                     ),
                     (
-                        MeasurementName(str_constants::GENERATE_PG_TYPES_SRC),
+                        MeasurementName::from(str_constants::GENERATE_PG_TYPES_SRC),
                         str_constants::WORKSPACE_TEST_RUNNER_GENERATE_PG_TYPES_WORKLOAD,
                     ),
                     (
-                        MeasurementName(str_constants::PG_CRUD_COMMON_QUERY_PART),
+                        MeasurementName::from(str_constants::PG_CRUD_COMMON_QUERY_PART),
                         str_constants::WORKSPACE_TEST_RUNNER_PG_CRUD_COMMON_QUERY_PART_WORKLOAD,
                     ),
                     (
-                        MeasurementName(str_constants::WHERE_FILTERS_QUERY_PART),
+                        MeasurementName::from(str_constants::WHERE_FILTERS_QUERY_PART),
                         str_constants::WORKSPACE_TEST_RUNNER_WHERE_FILTERS_QUERY_PART_WORKLOAD,
                     ),
                 ]
@@ -1137,9 +1150,9 @@ fn main() {
                 .try_fold((), |(), (measurement_name, workload_mode)| {
                     measure_memusage_command(
                         measurement_name,
-                        ProgramPathRef(current_exe_string.as_str()),
-                        ProgramArgsRef(&[workload_mode]),
-                        MemusageProgNameRef(current_exe_prog_name),
+                        ProgramPathRef::from(current_exe_string.as_str()),
+                        ProgramArgsRef::from(&[workload_mode]),
+                        MemusageProgNameRef::from(current_exe_prog_name),
                     )
                 })
                 .unwrap_or_else(|()| std::process::exit(1));
@@ -1149,8 +1162,8 @@ fn main() {
                 );
             }
             measure_cargo_command(
-                MeasurementName(str_constants::CODE_STYLE),
-                CargoArgs(&[
+                MeasurementName::from(str_constants::CODE_STYLE),
+                CargoArgs::from(&[
                     str_constants::TEST_ALT_3,
                     str_constants::P,
                     str_constants::TESTS_ALT,
@@ -1159,8 +1172,8 @@ fn main() {
             )
             .unwrap_or_else(|()| std::process::exit(1));
             measure_cargo_command(
-                MeasurementName(str_constants::CLIPPY),
-                CargoArgs(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS),
+                MeasurementName::from(str_constants::CLIPPY),
+                CargoArgs::from(&str_constants::WORKSPACE_TEST_RUNNER_CARGO_CLIPPY_ARGS),
             )
             .unwrap_or_else(|()| std::process::exit(1));
             let generate_pg_table_input_token_stream =

@@ -1,6 +1,7 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonFixtureRef<'fixture_lt>(&'fixture_lt str);
 #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
+#[derive(newtype::FromInner)]
 pub struct SerdeJsonError(serde_json::Error);
 #[derive(Debug, thiserror::Error)]
 pub enum ContractError {
@@ -20,11 +21,11 @@ where
     Value: Eq + serde::Serialize + serde::de::DeserializeOwned,
 {
     let fixture_value = serde_json::from_str::<Value>(fixture.0)
-        .map_err(|error| ContractError::DeserializeFixture(SerdeJsonError(error)))?;
+        .map_err(|error| ContractError::DeserializeFixture(SerdeJsonError::from(error)))?;
     let serialized = serde_json::to_string(&fixture_value)
-        .map_err(|error| ContractError::Serialize(SerdeJsonError(error)))?;
+        .map_err(|error| ContractError::Serialize(SerdeJsonError::from(error)))?;
     let round_trip_value = serde_json::from_str::<Value>(serialized.as_str())
-        .map_err(|error| ContractError::DeserializeRoundTrip(SerdeJsonError(error)))?;
+        .map_err(|error| ContractError::DeserializeRoundTrip(SerdeJsonError::from(error)))?;
     if fixture_value == round_trip_value {
         Ok(())
     } else {

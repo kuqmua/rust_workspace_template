@@ -1,9 +1,12 @@
 const QUOTED_LITERAL_MAX_LEN: usize = 1_048_576;
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct QuotePrefix(&'static str);
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct QuoteChar(char);
 #[derive(Debug, Clone, Copy)]
+#[derive(newtype::FromInner)]
 struct QuotePanicId(&'static str);
 #[derive(
     Debug, Clone, PartialEq, Eq, newtype::BoundedString, newtype::AsRefStr, newtype::Display,
@@ -62,8 +65,8 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal(
-        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-        QuoteChar('\''),
+        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuoteChar::from('\''),
         v,
     )
 }
@@ -73,10 +76,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-        QuoteChar('\''),
+        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuoteChar::from('\''),
         v,
-        QuotePanicId(str_constants::EC1E77D5),
+        QuotePanicId::from(str_constants::EC1E77D5),
     )
 }
 #[must_use]
@@ -85,8 +88,8 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal(
-        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-        QuoteChar('\"'),
+        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuoteChar::from('\"'),
         v,
     )
 }
@@ -96,10 +99,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
-        QuoteChar('\"'),
+        QuotePrefix::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+        QuoteChar::from('\"'),
         v,
-        QuotePanicId(str_constants::VALUE_0391AC99),
+        QuotePanicId::from(str_constants::VALUE_0391AC99),
     )
 }
 #[must_use]
@@ -107,7 +110,7 @@ pub fn binary_single_quotes_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::B), QuoteChar('\''), v)
+    quote_literal(QuotePrefix::from(str_constants::B), QuoteChar::from('\''), v)
 }
 #[must_use]
 pub fn binary_single_quotes_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -115,10 +118,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::B),
-        QuoteChar('\''),
+        QuotePrefix::from(str_constants::B),
+        QuoteChar::from('\''),
         v,
-        QuotePanicId(str_constants::VALUE_8BCE26E7),
+        QuotePanicId::from(str_constants::VALUE_8BCE26E7),
     )
 }
 #[must_use]
@@ -126,7 +129,7 @@ pub fn binary_double_quoted_str<Dsp>(v: &Dsp) -> QuotedLiteral
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    quote_literal(QuotePrefix(str_constants::B), QuoteChar('\"'), v)
+    quote_literal(QuotePrefix::from(str_constants::B), QuoteChar::from('\"'), v)
 }
 #[must_use]
 pub fn binary_double_quoted_token_stream<Dsp>(v: &Dsp) -> ProcMacro2QuotedLiteralTokenStream
@@ -134,10 +137,10 @@ where
     Dsp: std::fmt::Display + ?Sized,
 {
     quote_literal_token_stream(
-        QuotePrefix(str_constants::B),
-        QuoteChar('\"'),
+        QuotePrefix::from(str_constants::B),
+        QuoteChar::from('\"'),
         v,
-        QuotePanicId(str_constants::VALUE_5DC6F142),
+        QuotePanicId::from(str_constants::VALUE_5DC6F142),
     )
 }
 #[cfg(test)]

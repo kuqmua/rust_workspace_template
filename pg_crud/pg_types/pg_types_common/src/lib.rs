@@ -20,6 +20,7 @@ struct PaginationStartsWithOneRaw {
     newtype::FromInner,
     newtype::ToErrString,
 )]
+#[serde(from = "i64")]
 pub struct PaginationStartsWithOneValue(i64);
 impl PaginationStartsWithOneValue {
     #[must_use]

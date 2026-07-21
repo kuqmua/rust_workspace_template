@@ -81,6 +81,11 @@ impl<'value_lt> From<&'value_lt str> for HttpAllowedPathPrefixRef<'value_lt> {
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HttpProxyPathPrefixMatch(bool);
+impl From<bool> for HttpProxyPathPrefixMatch {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl From<HttpProxyPathPrefixMatch> for bool {
     fn from(value: HttpProxyPathPrefixMatch) -> Self {
         value.0
@@ -91,7 +96,7 @@ pub fn proxy_path_matches_prefix(
     path: &HttpProxyPath,
     prefix: HttpAllowedPathPrefixRef<'_>,
 ) -> HttpProxyPathPrefixMatch {
-    HttpProxyPathPrefixMatch(
+    HttpProxyPathPrefixMatch::from(
         path.as_ref() == prefix.0
             || path
                 .as_ref()

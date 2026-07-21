@@ -11,6 +11,11 @@ impl<'value_lt> From<&'value_lt str> for NotificationApiTokenRef<'value_lt> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct NotificationApiTokenAuthorized(bool);
+impl From<bool> for NotificationApiTokenAuthorized {
+    fn from(value: bool) -> Self {
+        Self(value)
+    }
+}
 impl From<NotificationApiTokenAuthorized> for bool {
     fn from(value: NotificationApiTokenAuthorized) -> Self {
         value.0
@@ -31,7 +36,7 @@ impl NotificationApiToken {
                         ^ candidate.0.as_bytes().get(index).copied().unwrap_or(0u8),
                 )
             });
-        NotificationApiTokenAuthorized(difference == 0usize)
+        NotificationApiTokenAuthorized::from(difference == 0usize)
     }
 }
 
@@ -139,12 +144,22 @@ impl<Sender> NotificationServiceState<Sender> {
 
 #[derive(Debug)]
 pub struct AxumNotificationRouter(axum::Router);
+impl From<axum::Router> for AxumNotificationRouter {
+    fn from(value: axum::Router) -> Self {
+        Self(value)
+    }
+}
 impl From<AxumNotificationRouter> for axum::Router {
     fn from(value: AxumNotificationRouter) -> Self {
         value.0
     }
 }
 struct HttpNotificationHeaderMap(http::HeaderMap);
+impl From<http::HeaderMap> for HttpNotificationHeaderMap {
+    fn from(value: http::HeaderMap) -> Self {
+        Self(value)
+    }
+}
 struct AxumNotificationState<Sender> {
     headers: HttpNotificationHeaderMap,
     state: NotificationServiceState<Sender>,
@@ -160,12 +175,17 @@ where
         state: &NotificationServiceState<Sender>,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(Ok(Self {
-            headers: HttpNotificationHeaderMap(parts.headers.clone()),
+            headers: HttpNotificationHeaderMap::from(parts.headers.clone()),
             state: state.clone(),
         }))
     }
 }
 struct AxumNotificationJson(NotificationRequest);
+impl From<NotificationRequest> for AxumNotificationJson {
+    fn from(value: NotificationRequest) -> Self {
+        Self(value)
+    }
+}
 impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
 where
     State: Send + Sync,
@@ -223,7 +243,7 @@ pub fn notification_router<Sender>(
 where
     Sender: NotificationSender,
 {
-    AxumNotificationRouter(
+    AxumNotificationRouter::from(
         axum::Router::new()
             .route(
                 str_constants::NOTIFICATIONS_PATH,

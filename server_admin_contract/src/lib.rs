@@ -9,6 +9,7 @@ pub const ADMIN_NEW_PASSWORD_MIN_CHARS: usize = 12usize;
 pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
 pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(newtype::FromInner)]
 pub struct AdminApiBodyMaxBytes(usize);
 impl AdminApiBodyMaxBytes {
     #[must_use]
@@ -334,6 +335,7 @@ pub const ADMIN_AUDIT_DETAILS_MAX_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct AdminAuditDetailsBytes(usize);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(newtype::FromInner)]
 pub struct AdminAuditDetailsTooLarge(AdminAuditDetailsBytes);
 impl AdminAuditDetailsTooLarge {
     #[must_use]
@@ -549,6 +551,7 @@ impl AdminTableSortField {
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
+#[serde(from = "i64")]
 pub struct AdminUserId(i64);
 #[derive(
     Clone,
@@ -564,6 +567,7 @@ pub struct AdminUserId(i64);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
+#[serde(from = "i64")]
 pub struct AdminRoleId(i64);
 #[derive(
     Clone,
@@ -579,6 +583,7 @@ pub struct AdminRoleId(i64);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
+#[serde(from = "i64")]
 pub struct AdminPermissionId(i64);
 #[derive(
     Clone,
@@ -593,6 +598,7 @@ pub struct AdminPermissionId(i64);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
+#[serde(from = "i64")]
 pub struct AdminAuditLogId(i64);
 #[derive(
     Clone,
@@ -608,6 +614,7 @@ pub struct AdminAuditLogId(i64);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
+#[serde(from = "bool")]
 pub struct AdminBool(bool);
 
 #[derive(
@@ -624,7 +631,7 @@ pub struct AdminBool(bool);
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-#[serde(transparent)]
+#[serde(from = "u32")]
 pub struct AdminPageOffset(u32);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
@@ -682,7 +689,7 @@ impl std::error::Error for AdminPageLimitError {}
     newtype::FromInner,
     newtype::IntoInnerFrom,
 )]
-#[serde(transparent)]
+#[serde(from = "u64")]
 pub struct AdminPageTotal(u64);
 
 #[derive(Clone, Debug, Default, newtype::BoundedString, newtype::AsRefStr)]
@@ -838,6 +845,7 @@ impl<T> TryFrom<Vec<T>> for AdminBoundedVec<T> {
         }
     }
 }
+#[derive(newtype::FromInner)]
 struct StdPhantomDataAdminBoundedVecVisitor<T>(std::marker::PhantomData<T>);
 impl<'de, T: serde::Deserialize<'de>> serde::de::Visitor<'de>
     for StdPhantomDataAdminBoundedVecVisitor<T>
@@ -864,7 +872,7 @@ impl<'de, T: serde::Deserialize<'de>> serde::de::Visitor<'de>
             }
             values.push(value);
         }
-        Ok(AdminBoundedVec(values))
+        AdminBoundedVec::try_from(values).map_err(serde::de::Error::custom)
     }
 }
 impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVec<T> {
@@ -872,7 +880,7 @@ impl<'de, T: serde::Deserialize<'de>> serde::Deserialize<'de> for AdminBoundedVe
     where
         Deserializer: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_seq(StdPhantomDataAdminBoundedVecVisitor(
+        deserializer.deserialize_seq(StdPhantomDataAdminBoundedVecVisitor::from(
             std::marker::PhantomData,
         ))
     }

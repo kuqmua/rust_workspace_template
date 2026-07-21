@@ -10,7 +10,7 @@ pub(crate) struct LastAdminState {
 }
 impl LastAdminState {
     pub(crate) fn would_remove_last(self) -> crate::StdAdminBool {
-        crate::StdAdminBool::from(self.target_is_admin.0 && self.active_count.0 <= 1i64)
+        crate::StdAdminBool::from(self.target_is_admin.get() && self.active_count.0 <= 1i64)
     }
 }
 
@@ -32,7 +32,7 @@ pub(crate) async fn update_role(
     name: &server_admin_contract::AdminRoleName,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
     sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_UPDATE_ROLE_SQL)
-        .bind(role_id.0)
+        .bind(role_id.get())
         .bind(name.as_ref())
         .fetch_optional(connection.0)
         .await
@@ -45,7 +45,7 @@ pub(crate) async fn delete_role(
     role_id: crate::AdminRoleId,
 ) -> Result<crate::StdAdminBool, crate::SqlxAdminError> {
     sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_DELETE_ROLE_SQL)
-        .bind(role_id.0)
+        .bind(role_id.get())
         .fetch_optional(connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)
@@ -170,7 +170,7 @@ pub(crate) async fn replace_user_roles(
     .await?;
     let optional_target_is_active =
         sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_LOCK_USER_ACTIVE_STATE_SQL)
-            .bind(user_id.0)
+            .bind(user_id.get())
             .fetch_optional(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
@@ -179,7 +179,7 @@ pub(crate) async fn replace_user_roles(
     };
     let current_role_ids =
         sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
-            .bind(user_id.0)
+            .bind(user_id.get())
             .fetch_all(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;
@@ -208,7 +208,7 @@ pub(crate) async fn replace_user_roles(
             .map_err(crate::SqlxAdminError::from)?;
     let target_was_admin =
         sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_USER_HAS_ROLE_SQL)
-            .bind(user_id.0)
+            .bind(user_id.get())
             .bind(admin_role_id)
             .fetch_one(&mut *connection.0)
             .await
@@ -225,12 +225,12 @@ pub(crate) async fn replace_user_roles(
         }
     }
     let _delete_result = sqlx::query(str_constants::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
-        .bind(user_id.0)
+        .bind(user_id.get())
         .execute(&mut *connection.0)
         .await
         .map_err(crate::SqlxAdminError::from)?;
     let _insert_result = sqlx::query(str_constants::SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL)
-        .bind(user_id.0)
+        .bind(user_id.get())
         .bind(&raw_ids)
         .execute(&mut *connection.0)
         .await
@@ -267,7 +267,7 @@ pub(crate) async fn read_last_admin_state(
 ) -> Result<LastAdminState, crate::SqlxAdminError> {
     let target_is_admin =
         sqlx::query_scalar::<_, bool>(str_constants::SERVER_ADMIN_USER_IS_ADMIN_SQL)
-            .bind(user_id.0)
+            .bind(user_id.get())
             .fetch_one(&mut *connection.0)
             .await
             .map_err(crate::SqlxAdminError::from)?;

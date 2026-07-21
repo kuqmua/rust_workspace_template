@@ -309,13 +309,13 @@ pub struct FieldContract {
 pub struct FieldContracts(Vec<FieldContract>);
 impl FieldContract {
     #[must_use]
-    pub const fn new(name: ContractStr, label: ContractStr, type_contract: TypeContract) -> Self {
+    pub fn new(name: ContractStr, label: ContractStr, type_contract: TypeContract) -> Self {
         Self {
             creatable: FieldCapability::Disabled,
             filterable: FieldCapability::Disabled,
             label,
             name,
-            order: FieldOrder(0usize),
+            order: FieldOrder::from(0usize),
             placeholder: FieldPlaceholder::None,
             primary_key: PrimaryKeyKind::NonPrimary,
             readable: FieldCapability::Disabled,
@@ -448,8 +448,8 @@ pub enum RouteErrorStatus {
 }
 impl RouteErrorStatus {
     #[must_use]
-    pub const fn transport_status(self) -> TransportStatus {
-        TransportStatus(match self {
+    pub fn transport_status(self) -> TransportStatus {
+        TransportStatus::from(match self {
             Self::Authentication => 401u16,
             Self::Authorization => 403u16,
             Self::Conflict => 409u16,
@@ -517,8 +517,8 @@ pub const AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES: &[RouteErrorStatus] = &[
 ];
 impl SuccessStatus {
     #[must_use]
-    pub const fn transport_status(self) -> TransportStatus {
-        TransportStatus(match self {
+    pub fn transport_status(self) -> TransportStatus {
+        TransportStatus::from(match self {
             Self::Code200 => 200u16,
             Self::Code201 => 201u16,
             Self::Code204 => 204u16,

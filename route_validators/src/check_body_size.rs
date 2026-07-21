@@ -12,10 +12,13 @@ pub struct AxumBody(axum::body::Body);
     newtype::FromInner,
     newtype::ToErrString,
 )]
+#[serde(from = "usize")]
 pub struct BodySizeLimitBytes(usize);
 #[derive(Debug, newtype::ToErrString)]
+#[derive(newtype::FromInner)]
 pub struct AxumBodySizeError(axum::Error);
 #[derive(Debug)]
+#[derive(newtype::FromInner)]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 impl to_err_string::ToErrString for HttpBodySizeHint {
     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
@@ -24,6 +27,7 @@ impl to_err_string::ToErrString for HttpBodySizeHint {
     }
 }
 #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::DerefTarget)]
+#[derive(newtype::FromInner)]
 pub struct BytesBodyBytes(bytes::Bytes);
 #[location::errors_with_location]
 #[derive(Debug, thiserror::Error, location::Location, optml::Optml)]
@@ -73,9 +77,9 @@ where
         .map(BytesBodyBytes)
         .map_err(|error| {
             BodySizeError::reached_maximum_size_of_body(
-                AxumBodySizeError(error),
+                AxumBodySizeError::from(error),
                 limit_value,
-                HttpBodySizeHint(size_hint),
+                HttpBodySizeHint::from(size_hint),
             )
         })
 }

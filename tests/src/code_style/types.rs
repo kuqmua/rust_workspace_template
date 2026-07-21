@@ -52,7 +52,7 @@ pub(super) struct StdCargoPackageIdRefSet<'metadata_lt>(
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdProcessOutputRef<'output_lt>(&'output_lt std::process::Output);
 #[derive(Debug, Clone, Copy, newtype::FromInner)]
-pub(super) struct StaticStr(pub &'static str);
+pub(super) struct StaticStr(&'static str);
 impl StaticStr {
     pub(super) const fn get(self) -> &'static str {
         self.0
@@ -79,7 +79,14 @@ pub(super) struct StdSourceTextRefSet<'text_lt>(&'text_lt std::collections::Hash
 pub(super) struct StdSourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_lt str>);
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
-#[derive(Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner)]
+#[derive(
+    Debug,
+    Clone,
+    Default,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
+)]
 pub(super) struct DiagnosticMsgs(Vec<String>);
 impl IntoIterator for DiagnosticMsgs {
     type IntoIter = std::vec::IntoIter<String>;

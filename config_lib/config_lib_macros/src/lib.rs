@@ -1,6 +1,21 @@
 struct ProcMacro2TryFromParseInput(proc_macro2::TokenStream);
+impl From<proc_macro2::TokenStream> for ProcMacro2TryFromParseInput {
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value)
+    }
+}
 struct ProcMacro2TryFromParseFixedErrorTy(Option<proc_macro2::TokenStream>);
+impl From<Option<proc_macro2::TokenStream>> for ProcMacro2TryFromParseFixedErrorTy {
+    fn from(value: Option<proc_macro2::TokenStream>) -> Self {
+        Self(value)
+    }
+}
 struct ProcMacroTryFromParseTokenStream(proc_macro::TokenStream);
+impl From<proc_macro::TokenStream> for ProcMacroTryFromParseTokenStream {
+    fn from(value: proc_macro::TokenStream) -> Self {
+        Self(value)
+    }
+}
 #[proc_macro]
 pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(
@@ -98,16 +113,16 @@ pub fn impl_try_from_secret_url(input: proc_macro::TokenStream) -> proc_macro::T
 #[proc_macro]
 pub fn impl_try_from_parse(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     impl_try_from_parse_with_error_ty(
-        ProcMacro2TryFromParseInput(input.into()),
-        ProcMacro2TryFromParseFixedErrorTy(None),
+        ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
+        ProcMacro2TryFromParseFixedErrorTy::from(None),
     )
     .0
 }
 #[proc_macro]
 pub fn impl_try_from_parse_string_error(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     impl_try_from_parse_with_error_ty(
-        ProcMacro2TryFromParseInput(input.into()),
-        ProcMacro2TryFromParseFixedErrorTy(Some(quote::quote! {String})),
+        ProcMacro2TryFromParseInput::from(proc_macro2::TokenStream::from(input)),
+        ProcMacro2TryFromParseFixedErrorTy::from(Some(quote::quote! {String})),
     )
     .0
 }
@@ -118,48 +133,53 @@ fn impl_try_from_parse_with_error_ty(
     let parts = workspace_macro_helpers::split_top_level_commas(input.0);
     let min_len = if fixed_error_ty.0.is_some() { 5 } else { 6 };
     if parts.len() < min_len {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_071,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_071,
+                )
+                .into_inner(),
+            ),
         );
     }
     let Some(name_text) = workspace_macro_helpers::first_identifier_at(&parts, 0) else {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_070,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_070,
+                )
+                .into_inner(),
+            ),
         );
     };
     let Some(error_name_text) = workspace_macro_helpers::first_identifier_at(&parts, 1) else {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_067,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_067,
+                )
+                .into_inner(),
+            ),
         );
     };
     let Some(error_variant_text) = workspace_macro_helpers::first_identifier_at(&parts, 3) else {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_068,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_068,
+                )
+                .into_inner(),
+            ),
         );
     };
     let Some(error_field_text) = workspace_macro_helpers::first_identifier_at(&parts, 4) else {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_066,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_066,
+                )
+                .into_inner(),
+            ),
         );
     };
     let name = quote::format_ident!("{name_text}");
@@ -167,12 +187,13 @@ fn impl_try_from_parse_with_error_ty(
     let error_variant = quote::format_ident!("{error_variant_text}");
     let error_field = quote::format_ident!("{error_field_text}");
     let Some(inner) = workspace_macro_helpers::part_at(&parts, 2) else {
-        return ProcMacroTryFromParseTokenStream(
-            workspace_macro_helpers::compile_error_token_stream(
-                str_constants::COMPILE_ERROR_CE_069,
-            )
-            .into_inner()
-            .into(),
+        return ProcMacroTryFromParseTokenStream::from(
+            proc_macro::TokenStream::from(
+                workspace_macro_helpers::compile_error_token_stream(
+                    str_constants::COMPILE_ERROR_CE_069,
+                )
+                .into_inner(),
+            ),
         );
     };
     let (error_ty, derives) = fixed_error_ty.0.map_or_else(
@@ -190,7 +211,7 @@ fn impl_try_from_parse_with_error_ty(
             )
         },
     );
-    ProcMacroTryFromParseTokenStream(quote::quote! {
+    ProcMacroTryFromParseTokenStream::from(proc_macro::TokenStream::from(quote::quote! {
         #[derive(Debug, #(#derives,)* generate_getter_traits_for_struct_fields::GenerateGetterTrait, optml::Optml)]
         pub struct #name(pub #inner);
         #[derive(Debug, thiserror::Error, optml::Optml)]
@@ -204,8 +225,7 @@ fn impl_try_from_parse_with_error_ty(
                 parse_from_str_with_error(StdEnvVarOkRef(v.0.as_str()), |#error_field| Self::Error::#error_variant { #error_field }).map(Self)
             }
         }
-    }
-    .into())
+    }))
 }
 #[proc_macro]
 pub fn assert_parse_ok_matches(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

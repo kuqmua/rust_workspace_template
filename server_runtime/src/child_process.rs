@@ -8,6 +8,11 @@ impl From<std::num::NonZeroUsize> for StdChildDiagnosticMaximum {
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct ChildProcessId(u64);
+impl From<u64> for ChildProcessId {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
@@ -21,6 +26,11 @@ impl From<std::num::NonZeroUsize> for StdChildProcessSetMaximum {
 struct StdCollectionsChildProcessMap(
     std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>,
 );
+impl From<std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>> for StdCollectionsChildProcessMap {
+    fn from(value: std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 pub struct ChildProcessSet {
@@ -37,7 +47,7 @@ impl ChildProcessSet {
             return Err(ChildProcessSetError::Full);
         }
         let id = self.next_id;
-        self.next_id = ChildProcessId(
+        self.next_id = ChildProcessId::from(
             self.next_id
                 .0
                 .checked_add(1u64)
@@ -48,11 +58,11 @@ impl ChildProcessSet {
     }
 
     #[must_use]
-    pub const fn new(maximum: StdChildProcessSetMaximum) -> Self {
+    pub fn new(maximum: StdChildProcessSetMaximum) -> Self {
         Self {
             maximum,
-            next_id: ChildProcessId(0u64),
-            processes: StdCollectionsChildProcessMap(std::collections::BTreeMap::new()),
+            next_id: ChildProcessId::from(0u64),
+            processes: StdCollectionsChildProcessMap::from(std::collections::BTreeMap::new()),
         }
     }
 
@@ -69,12 +79,17 @@ impl ChildProcessSet {
                     .map_err(ChildProcessSetError::Process)?,
             );
         }
-        Ok(ChildProcessReports(reports))
+        Ok(ChildProcessReports::from(reports))
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct ChildProcessReports(Vec<ChildProcessReport>);
+impl From<Vec<ChildProcessReport>> for ChildProcessReports {
+    fn from(value: Vec<ChildProcessReport>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<[ChildProcessReport]> for ChildProcessReports {
     fn as_ref(&self) -> &[ChildProcessReport] {
         self.0.as_slice()
@@ -93,6 +108,11 @@ pub enum ChildProcessSetError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ChildDiagnostic(Vec<u8>);
+impl From<Vec<u8>> for ChildDiagnostic {
+    fn from(value: Vec<u8>) -> Self {
+        Self(value)
+    }
+}
 impl AsRef<[u8]> for ChildDiagnostic {
     fn as_ref(&self) -> &[u8] {
         self.0.as_slice()
@@ -107,6 +127,11 @@ pub enum ChildProcessCompletion {
 
 #[derive(Clone, Copy, Debug)]
 pub struct StdChildExitStatus(std::process::ExitStatus);
+impl From<std::process::ExitStatus> for StdChildExitStatus {
+    fn from(value: std::process::ExitStatus) -> Self {
+        Self(value)
+    }
+}
 impl StdChildExitStatus {
     #[must_use]
     pub fn succeeded(self) -> ChildProcessSucceeded {
@@ -149,6 +174,11 @@ impl ChildProcessReport {
 
 #[derive(Debug)]
 struct TokioManagedChild(tokio::process::Child);
+impl From<tokio::process::Child> for TokioManagedChild {
+    fn from(value: tokio::process::Child) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 pub struct TokioChildProcess(tokio::process::Child);
@@ -162,6 +192,11 @@ impl From<tokio::process::Child> for TokioChildProcess {
 struct TokioChildDiagnosticTask(
     tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
 );
+impl From<tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>> for TokioChildDiagnosticTask {
+    fn from(value: tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 #[must_use]
@@ -172,12 +207,12 @@ pub struct ChildProcessSupervisor {
 impl ChildProcessSupervisor {
     pub fn new(mut child: TokioChildProcess, maximum: StdChildDiagnosticMaximum) -> Self {
         let diagnostic = child.0.stderr.take().map(|stderr| {
-            TokioChildDiagnosticTask(tokio::spawn(async move {
+            TokioChildDiagnosticTask::from(tokio::spawn(async move {
                 read_child_diagnostic(stderr, maximum).await
             }))
         });
         Self {
-            child: Some(TokioManagedChild(child.0)),
+            child: Some(TokioManagedChild::from(child.0)),
             diagnostic,
         }
     }
@@ -212,7 +247,7 @@ impl ChildProcessSupervisor {
         Ok(ChildProcessReport {
             completion,
             diagnostic,
-            status: StdChildExitStatus(status),
+            status: StdChildExitStatus::from(status),
         })
     }
 }
@@ -271,7 +306,7 @@ async fn join_diagnostic(
             .await
             .map_err(TokioChildProcessJoinError::from)
             .map_err(ChildProcessError::Join)?,
-        None => Ok(ChildDiagnostic(Vec::new())),
+        None => Ok(ChildDiagnostic::from(Vec::new())),
     }
 }
 
@@ -303,7 +338,7 @@ where
             .ok_or(ChildProcessError::DiagnosticRange)?;
         output.extend_from_slice(read_bytes);
     }
-    Ok(ChildDiagnostic(output))
+    Ok(ChildDiagnostic::from(output))
 }
 
 #[cfg(test)]

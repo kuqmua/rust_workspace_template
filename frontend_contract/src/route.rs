@@ -467,9 +467,21 @@ where
 #[cfg(test)]
 mod tests {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(from = "u64")]
     struct Request(u64);
+    impl From<u64> for Request {
+        fn from(value: u64) -> Self {
+            Self(value)
+        }
+    }
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+    #[serde(from = "u64")]
     struct Response(u64);
+    impl From<u64> for Response {
+        fn from(value: u64) -> Self {
+            Self(value)
+        }
+    }
     struct Route;
     impl super::TypedRoute for Route {
         type Request = Request;
@@ -485,8 +497,8 @@ mod tests {
     }
     #[test]
     fn matching_request_response_and_metadata_share_one_route_contract() {
-        let request = super::client_request::<Route>(Request(1u64));
-        let response = super::server_response::<Route>(Response(2u64));
+        let request = super::client_request::<Route>(Request::from(1u64));
+        let response = super::server_response::<Route>(Response::from(2u64));
         assert_eq!(request.body(), &Request(1u64));
         assert_eq!(response.body(), &Response(2u64));
         assert_eq!(

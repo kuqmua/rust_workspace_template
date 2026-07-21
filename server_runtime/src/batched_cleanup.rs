@@ -98,9 +98,9 @@ where
     loop {
         if continuation() == CleanupContinuation::Stop {
             return Ok(CleanupReport {
-                batches: CleanupBatchCount(batches),
+                batches: CleanupBatchCount::from(batches),
                 completion: CleanupCompletion::Stopped,
-                rows: CleanupRows(rows),
+                rows: CleanupRows::from(rows),
             });
         }
         let batch_rows = u64::from(cleanup(batch_size).await?);
@@ -108,9 +108,9 @@ where
         rows = rows.saturating_add(batch_rows);
         if batch_rows < batch_size.0 {
             return Ok(CleanupReport {
-                batches: CleanupBatchCount(batches),
+                batches: CleanupBatchCount::from(batches),
                 completion: CleanupCompletion::Drained,
-                rows: CleanupRows(rows),
+                rows: CleanupRows::from(rows),
             });
         }
     }
