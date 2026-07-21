@@ -340,11 +340,6 @@ pub fn decode_access_token(
 pub enum AdminAuditAction {
     Create,
     Delete,
-    MfaChallengeFailed,
-    MfaDisable,
-    MfaEnroll,
-    MfaRecovery,
-    MfaStepUp,
     Refresh,
     SignIn,
     SignOut,
@@ -364,7 +359,6 @@ pub enum AdminAuditAction {
 #[serde(rename_all = "snake_case")]
 pub enum AdminAuditResource {
     AuditLog,
-    Mfa,
     Permission,
     Role,
     Session,

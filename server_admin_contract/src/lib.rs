@@ -192,8 +192,6 @@ pub enum AdminPermission {
     LoginAttemptsRead,
     #[wire("metrics:read")]
     MetricsRead,
-    #[wire("mfa_recovery_codes:read")]
-    MfaRecoveryCodesRead,
     #[wire("openapi:read")]
     OpenApiRead,
     #[wire("permissions:read")]
@@ -224,8 +222,6 @@ pub enum AdminPermission {
     SystemSettingsUpdate,
     #[wire("tables:read")]
     TablesRead,
-    #[wire("user_mfa:read")]
-    UserMfaRead,
     #[wire("user_roles:create")]
     UserRolesCreate,
     #[wire("user_roles:delete")]
@@ -261,8 +257,6 @@ pub enum AdminDataTable {
     CleanupStatus,
     #[wire("login_attempts")]
     LoginAttempts,
-    #[wire("mfa_recovery_codes")]
-    MfaRecoveryCodes,
     #[wire("permissions")]
     Permissions,
     #[wire("rate_limits")]
@@ -275,8 +269,6 @@ pub enum AdminDataTable {
     Roles,
     #[wire("system_settings")]
     SystemSettings,
-    #[wire("user_mfa")]
-    UserMfa,
     #[wire("user_roles")]
     UserRoles,
     #[wire("users")]
@@ -298,14 +290,12 @@ impl AdminDataTable {
             Self::AuditLog => AdminPermission::AuditLogRead,
             Self::CleanupStatus => AdminPermission::CleanupStatusRead,
             Self::LoginAttempts => AdminPermission::LoginAttemptsRead,
-            Self::MfaRecoveryCodes => AdminPermission::MfaRecoveryCodesRead,
             Self::Permissions => AdminPermission::PermissionsRead,
             Self::RateLimits => AdminPermission::RateLimitsRead,
             Self::RefreshTokens => AdminPermission::RefreshTokensRead,
             Self::RolePermissions => AdminPermission::RolePermissionsRead,
             Self::Roles => AdminPermission::RolesRead,
             Self::SystemSettings => AdminPermission::SystemSettingsRead,
-            Self::UserMfa => AdminPermission::UserMfaRead,
             Self::UserRoles => AdminPermission::UserRolesRead,
             Self::Users => AdminPermission::UsersRead,
         }
@@ -2795,7 +2785,7 @@ mod tests {
         reason = "repository source policy requires iterator methods"
     )]
     fn data_tables_round_trip_and_require_read_permissions() {
-        assert_eq!(super::AdminDataTable::ALL.len(), 14usize);
+        assert_eq!(super::AdminDataTable::ALL.len(), 12usize);
         super::AdminDataTable::ALL.into_iter().for_each(|table| {
             assert_eq!(
                 super::AdminDataTable::try_from(table.to_string()).expect("0596134b"),

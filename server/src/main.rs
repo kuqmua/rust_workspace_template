@@ -71,9 +71,6 @@ struct SqlxServerPgConnectError(sqlx::Error);
 struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
-struct ServerPrepPgError(#[from] server_table_example::TableExamplePrepPgError);
-#[derive(Debug, thiserror::Error)]
-#[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
 #[derive(Debug)]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
@@ -140,8 +137,6 @@ enum RunServerError {
     PgPoolConfiguration,
     #[error("failed to prepare administrator schema: {0}")]
     PrepAdminPg(ServerAdminMigrateError),
-    #[error("failed to prepare postgres schema: {0}")]
-    PrepPg(ServerPrepPgError),
     #[error("invalid server runtime interval: {0}")]
     RuntimeInterval(ServerRuntimeRunIntervalError),
     #[error("invalid server runtime timeout: {0}")]
@@ -237,9 +232,6 @@ fn mk_api_routes(
         ));
     AxumApiRoutes(
         axum::Router::new()
-            .merge(server_table_example::TableExample::routes(
-                std::sync::Arc::<server_app_state::ServerAppState<'static>>::clone(app_state),
-            ))
             .nest(
                 server_admin_contract::AdminFrontendPath::Root.get(),
                 axum::Router::from(server_admin::auth::routes(admin_auth_state)),
@@ -349,9 +341,6 @@ async fn run_server(config: server_config::Config) -> Result<(), RunServerError>
     server_admin::prep_pg(app_state::SqlxPgPoolRef::from(pg_pool.as_ref()))
         .await
         .map_err(|error| RunServerError::PrepAdminPg(ServerAdminMigrateError(error)))?;
-    server_table_example::TableExample::prep_pg(pg_pool.as_ref())
-        .await
-        .map_err(|error| RunServerError::PrepPg(ServerPrepPgError::from(error)))?;
     let cleanup_cfg = mk_admin_cleanup_cfg()?;
     let cleanup_interval = server_runtime::StdRunInterval::try_from(
         std::time::Duration::from_secs(ADMIN_CLEANUP_INTERVAL_SECONDS),

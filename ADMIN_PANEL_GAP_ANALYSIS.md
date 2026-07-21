@@ -12,15 +12,13 @@ baseline аудита, а не как описание текущего кода
   устаревшее исходное состояние;
 - users, roles и permissions используют bounded server query/total pagination, audit — стабильный
   keyset cursor; состояние поиска, сортировки, фильтров и страницы хранится в URL;
-- CRUD, destructive confirmations, sessions, audit investigation/export, profile, branding и TOTP
-  MFA/step-up доступны через типизированный UI;
-- recovery codes хранятся как hashes, MFA secret шифруется AES-GCM с ротацией ключа, опасные
-  операции требуют step-up и пишутся в audit;
-- bootstrap, emergency access, MFA recovery, retention и privacy правила описаны в
+- CRUD, destructive confirmations, sessions, audit investigation/export, profile и branding
+  доступны через типизированный UI;
+- bootstrap, emergency access, retention и privacy правила описаны в
   `ADMIN_OPERATIONS_RUNBOOK.md`;
 - production UI теперь рендерится Leptos на сервере и работает через обычные ссылки и формы без
   JavaScript/TypeScript и клиентского WASM; Rust unit/integration tests проверяют CRUD,
-  permissions, sessions, branding, audit и MFA. Упоминания Trunk/Playwright ниже относятся к
+  permissions, sessions, branding и audit. Упоминания Trunk/Playwright ниже относятся к
   историческому baseline и не описывают текущую архитектуру.
 
 Из условного P2 реализованы bounded audit CSV export с отдельным permission/rate limit, cleanup job

@@ -3305,20 +3305,18 @@ async fn postgresql_migration_creates_complete_schema() {
     .fetch_one(&base_pool)
     .await
     .expect("5c10c931");
-    assert_eq!(version, 11i64);
+    assert_eq!(version, 12i64);
     let expected_tables = [
         str_constants::ACCESS_SESSIONS,
         str_constants::AUDIT_LOG_ALT,
         str_constants::CLEANUP_STATUS,
         str_constants::LOGIN_ATTEMPTS,
-        str_constants::MFA_RECOVERY_CODES,
         str_constants::PERMISSIONS_TABLE,
         str_constants::RATE_LIMITS,
         str_constants::REFRESH_TOKENS,
         str_constants::ROLE_PERMISSIONS,
         str_constants::ROLES_TABLE,
         str_constants::SYSTEM_SETTINGS,
-        str_constants::USER_MFA,
         str_constants::USER_ROLES,
         str_constants::USERS_ALT,
     ];

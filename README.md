@@ -21,7 +21,7 @@ reference boundary to follow when adding another service.
 - `frontend_contract` and service-owned contract crates: typed transport values;
 - `config_lib`: validated environment configuration with secret redaction;
 - `pg_crud`: generated PostgreSQL CRUD contracts, handlers, clients and OpenAPI metadata;
-- `server_admin`: sessions, RBAC, audit, rate limits, MFA and operational cleanup;
+- `server_admin`: sessions, RBAC, audit, rate limits and operational cleanup;
 - `text_policy` and `newtype`: reusable validation and domain-wrapper mechanics;
 - `external_service_emulators`: deterministic integration-test doubles.
 
