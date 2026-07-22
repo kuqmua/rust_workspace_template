@@ -81,8 +81,10 @@ enum NewtypeOption {
     BorrowOwned,
     BorrowPath,
     BorrowStr,
+    CloneInner,
     DebugRedacted,
     DebugTransparent,
+    DefaultInner,
     DerefInner,
     DerefMutInner,
     DerefMutTarget,
@@ -95,6 +97,8 @@ enum NewtypeOption {
     IntoInnerFrom,
     IntoIterator,
     IntoVec,
+    NotInner,
+    PartialEqInner,
     Secret,
     ToTokens,
 }
@@ -459,6 +463,64 @@ pub fn borrow_str(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     )
     .into()
 }
+#[proc_macro_derive(CloneInner)]
+pub fn clone_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::CloneInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(CloneFields)]
+pub fn clone_fields(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let syn::Data::Struct(data) = &input.data else {
+        return syn::Error::new_spanned(
+            &input.ident,
+            str_constants::CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS,
+        )
+        .into_compile_error()
+        .into();
+    };
+    let mut generics = input.generics.clone();
+    data.fields.iter().for_each(|field| {
+        let ty = &field.ty;
+        generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote! { #ty: Clone });
+    });
+    let identifier = &input.ident;
+    let (impl_generics, _, where_clause) = generics.split_for_impl();
+    let (_, ty_generics, _) = input.generics.split_for_impl();
+    let initialization = match &data.fields {
+        syn::Fields::Named(fields) => {
+            let identifiers = fields.named.iter().filter_map(|field| field.ident.as_ref());
+            quote::quote! {
+                Self {
+                    #(#identifiers: Clone::clone(&self.#identifiers),)*
+                }
+            }
+        }
+        syn::Fields::Unnamed(fields) => {
+            let indices = (0usize..fields.unnamed.len()).map(syn::Index::from);
+            quote::quote! { Self(#(Clone::clone(&self.#indices),)*) }
+        }
+        syn::Fields::Unit => quote::quote! { Self },
+    };
+    quote::quote! {
+        impl #impl_generics Clone for #identifier #ty_generics #where_clause {
+            fn clone(&self) -> Self {
+                #initialization
+            }
+        }
+    }
+    .into()
+}
 #[proc_macro_derive(DebugRedacted)]
 pub fn debug_redacted(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -522,6 +584,80 @@ pub fn display(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     )
     .into()
 }
+#[proc_macro_derive(DefaultInner)]
+pub fn default_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::DefaultInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(DebugDisplay)]
+pub fn debug_display(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let identifier = &input.ident;
+    let mut generics = input.generics.clone();
+    let (_, ty_generics, _) = input.generics.split_for_impl();
+    generics
+        .make_where_clause()
+        .predicates
+        .push(syn::parse_quote! { #identifier #ty_generics: std::fmt::Debug });
+    let (impl_generics, _, where_clause) = generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::Debug::fmt(self, f)
+            }
+        }
+    }
+    .into()
+}
+#[proc_macro_derive(DisplayConst, attributes(display_const))]
+pub fn display_const(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let mut values = input
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident(str_constants::DISPLAY_CONST))
+        .map(syn::Attribute::parse_args::<syn::Expr>);
+    let value = match values.next() {
+        Some(Ok(value)) => value,
+        Some(Err(error)) => return error.into_compile_error().into(),
+        None => {
+            return syn::Error::new_spanned(
+                &input.ident,
+                str_constants::DISPLAY_CONST_REQUIRES_ATTRIBUTE,
+            )
+            .into_compile_error()
+            .into();
+        }
+    };
+    if values.next().is_some() {
+        return syn::Error::new_spanned(
+            &input.ident,
+            str_constants::DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE,
+        )
+        .into_compile_error()
+        .into();
+    }
+    let identifier = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics std::fmt::Display for #identifier #ty_generics #where_clause {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str(#value)
+            }
+        }
+    }
+    .into()
+}
 #[proc_macro_derive(ErrorTransparent)]
 pub fn error_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
@@ -529,6 +665,19 @@ pub fn error_transparent(input: proc_macro::TokenStream) -> proc_macro::TokenStr
         NewtypeOption::ErrorTransparent,
         None,
     )
+    .into()
+}
+#[proc_macro_derive(Error)]
+pub fn error(input_token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(input_token_stream) {
+        Ok(value) => value,
+        Err(error) => return error.into_compile_error().into(),
+    };
+    let identifier = &input.ident;
+    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    quote::quote! {
+        impl #impl_generics std::error::Error for #identifier #ty_generics #where_clause {}
+    }
     .into()
 }
 #[proc_macro_derive(FromInner)]
@@ -581,6 +730,24 @@ pub fn into_vec(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     derive_newtype_option(
         ProcMacroInputTokenStream::from(input),
         NewtypeOption::IntoVec,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(NotInner)]
+pub fn not_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::NotInner,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(PartialEqInner)]
+pub fn partial_eq_inner(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::PartialEqInner,
         None,
     )
     .into()
@@ -817,6 +984,38 @@ fn generate_newtype_token_stream_with_attrs(
             }
         }
     });
+    let clone_inner_token_stream = attrs.contains(NewtypeOption::CloneInner).get().then(|| {
+        let mut clone_generics = input_ref.generics.clone();
+        clone_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote! { #inner_ty_ref: Clone });
+        let (clone_impl_generics, clone_ty_generics, clone_where_clause) =
+            clone_generics.split_for_impl();
+        quote::quote! {
+            impl #clone_impl_generics Clone for #identifier #clone_ty_generics #clone_where_clause {
+                fn clone(&self) -> Self {
+                    Self(Clone::clone(&self.0))
+                }
+            }
+        }
+    });
+    let default_inner_token_stream = attrs.contains(NewtypeOption::DefaultInner).get().then(|| {
+        let mut default_generics = input_ref.generics.clone();
+        default_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote! { #inner_ty_ref: Default });
+        let (default_impl_generics, default_ty_generics, default_where_clause) =
+            default_generics.split_for_impl();
+        quote::quote! {
+            impl #default_impl_generics Default for #identifier #default_ty_generics #default_where_clause {
+                fn default() -> Self {
+                    Self(Default::default())
+                }
+            }
+        }
+    });
     let error_transparent_token_stream = attrs
         .contains(NewtypeOption::ErrorTransparent)
         .get()
@@ -826,6 +1025,42 @@ fn generate_newtype_token_stream_with_attrs(
                 impl #impl_generics std::error::Error for #identifier #ty_generics #where_clause {
                     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
                         Some(&self.0)
+                    }
+                }
+            }
+        });
+    let not_inner_token_stream = attrs.contains(NewtypeOption::NotInner).get().then(|| {
+        let mut not_generics = input_ref.generics.clone();
+        not_generics
+            .make_where_clause()
+            .predicates
+            .push(syn::parse_quote! { #inner_ty_ref: std::ops::Not });
+        let (not_impl_generics, not_ty_generics, not_where_clause) =
+            not_generics.split_for_impl();
+        quote::quote! {
+            impl #not_impl_generics std::ops::Not for #identifier #not_ty_generics #not_where_clause {
+                type Output = <#inner_ty_ref as std::ops::Not>::Output;
+                fn not(self) -> Self::Output {
+                    std::ops::Not::not(self.0)
+                }
+            }
+        }
+    });
+    let partial_eq_inner_token_stream = attrs
+        .contains(NewtypeOption::PartialEqInner)
+        .get()
+        .then(|| {
+            let mut partial_eq_generics = input_ref.generics.clone();
+            partial_eq_generics
+                .make_where_clause()
+                .predicates
+                .push(syn::parse_quote! { #inner_ty_ref: PartialEq });
+            let (partial_eq_impl_generics, partial_eq_ty_generics, partial_eq_where_clause) =
+                partial_eq_generics.split_for_impl();
+            quote::quote! {
+                impl #partial_eq_impl_generics PartialEq<#inner_ty_ref> for #identifier #partial_eq_ty_generics #partial_eq_where_clause {
+                    fn eq(&self, other: &#inner_ty_ref) -> bool {
+                        self.0.eq(other)
                     }
                 }
             }
@@ -1132,7 +1367,11 @@ fn generate_newtype_token_stream_with_attrs(
         #debug_transparent_token_stream
         #debug_redacted_token_stream
         #display_token_stream
+        #clone_inner_token_stream
+        #default_inner_token_stream
         #error_transparent_token_stream
+        #not_inner_token_stream
+        #partial_eq_inner_token_stream
         #as_mut_token_stream
         #as_ref_str_token_stream
         #as_ref_token_stream

@@ -13,7 +13,7 @@ pub struct SerdeJsonOpenApiSerializationError(serde_json::Error);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RuntimeRoutesRef<'value_lt>(&'value_lt [crate::RouteMetadata]);
 
-#[derive(Debug)]
+#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
 pub enum OpenApiValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingOperationId(OpenApiContractText, OpenApiContractText),
@@ -31,12 +31,6 @@ pub enum OpenApiValidationError {
     TextTooLong(OpenApiContractTextError),
     UnusedSchema(OpenApiContractText),
 }
-impl std::fmt::Display for OpenApiValidationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for OpenApiValidationError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct OpenApiResponseStatus(u16);
@@ -71,7 +65,7 @@ impl OpenApiOperationExpectation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
 pub enum OpenApiOperationValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     MissingContentType,
@@ -80,12 +74,6 @@ pub enum OpenApiOperationValidationError {
     MissingResponseStatus,
     SecurityMismatch,
 }
-impl std::fmt::Display for OpenApiOperationValidationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for OpenApiOperationValidationError {}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpenApiSchemaMismatch {
@@ -99,19 +87,13 @@ pub enum OpenApiSchemaMismatch {
     Type,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::DebugDisplay, newtype::Error)]
 pub enum OpenApiPayloadValidationError {
     DocumentSerialization(SerdeJsonOpenApiSerializationError),
     Mismatch(OpenApiSchemaMismatch),
     PayloadSerialization(SerdeJsonOpenApiSerializationError),
     SchemaSerialization(SerdeJsonOpenApiSerializationError),
 }
-impl std::fmt::Display for OpenApiPayloadValidationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for OpenApiPayloadValidationError {}
 
 pub fn validate_openapi_contract<Document>(
     document: &Document,

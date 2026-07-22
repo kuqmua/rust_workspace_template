@@ -140,6 +140,7 @@ pub trait DefaultSomeOneElementMaxPageSize: Sized {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::DebugDisplay,
 )]
 pub enum Operator {
     And,
@@ -151,11 +152,6 @@ pub enum Operator {
 impl DefaultSomeOneElement for Operator {
     fn default_some_one_element() -> Self {
         Self::default()
-    }
-}
-impl std::fmt::Display for Operator {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
     }
 }
 impl Operator {
@@ -1299,6 +1295,7 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     serde::Serialize,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::DefaultInner,
     newtype::IntoVec,
     newtype::FromInner,
     newtype::IntoInnerFrom,
@@ -1474,11 +1471,6 @@ impl<T: AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize> DefaultSomeOneElem
         Self::from(Vec::from(
             AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size(),
         ))
-    }
-}
-impl<T> Default for NotEmptyUniqueVec<T> {
-    fn default() -> Self {
-        Self::from(Vec::default())
     }
 }
 impl<T1> NotEmptyUniqueVec<T1> {

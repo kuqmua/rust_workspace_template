@@ -11,14 +11,8 @@ const DEVELOPMENT_IDENTITY_SPECS_MAX_LEN: usize = 1_024usize;
 pub struct DevelopmentIdentitySpecs<Login, DisplayName, Role, SecretSource>(
     Vec<server_runtime::IdentitySpec<Login, DisplayName, Role, SecretSource>>,
 );
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub struct DevelopmentIdentitySpecsError;
-impl std::fmt::Display for DevelopmentIdentitySpecsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Debug::fmt(self, f)
-    }
-}
-impl std::error::Error for DevelopmentIdentitySpecsError {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DevelopmentBootstrapPlan<Login, DisplayName, Role, SecretSource> {

@@ -118,7 +118,15 @@ mod tests {
     struct ReferentValue<'value_lt>(&'value_lt str, &'value_lt str);
     #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
     struct ReferentValueRef<'value_lt>(&'value_lt ReferentValue<'value_lt>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefOwned, newtype::FromInner)]
+    #[derive(
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::AsRefOwned,
+        newtype::FromInner,
+        newtype::PartialEqInner,
+    )]
     struct OwnedValue(Vec<u8>);
     #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefTarget, newtype::FromInner)]
     struct OwnedSliceValue(Vec<u8>);
@@ -132,6 +140,26 @@ mod tests {
     struct RedactedDebugValue(Vec<u8>);
     #[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
     struct StdTransparentErrorValue(std::io::Error);
+    #[derive(Debug, newtype::Error)]
+    struct MarkerError;
+    impl std::fmt::Display for MarkerError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str("marker error")
+        }
+    }
+    #[derive(newtype::FromInner, newtype::NotInner)]
+    struct BoolValue(bool);
+    #[derive(Debug, newtype::DebugDisplay)]
+    enum DebugDisplayError {
+        Failed,
+    }
+    #[derive(newtype::DisplayConst)]
+    #[display_const("fixed")]
+    struct ConstDisplayError;
+    #[derive(newtype::CloneInner, newtype::FromInner)]
+    struct StdArcGenericValue<Value>(std::sync::Arc<Value>);
+    #[derive(newtype::DefaultInner, newtype::FromInner)]
+    struct GenericVec<Value>(Vec<Value>);
     #[derive(newtype::AsMut, newtype::FromInner)]
     struct MutableValueRef<'value_lt>(&'value_lt mut u16);
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -156,6 +184,37 @@ mod tests {
         } else {
             Ok(())
         }
+    }
+    #[test]
+    fn marker_error_derive_implements_std_error() {
+        fn assert_error<Error>()
+        where
+            Error: std::error::Error,
+        {
+        }
+        assert_error::<MarkerError>();
+    }
+    #[test]
+    fn not_inner_forwards_to_inner_value() {
+        assert!(!BoolValue(false), "f2b418c7");
+    }
+    #[test]
+    fn debug_display_formats_with_debug() {
+        assert_eq!(DebugDisplayError::Failed.to_string(), "Failed", "a67e3b91");
+    }
+    #[test]
+    fn display_const_formats_configured_expression() {
+        assert_eq!(ConstDisplayError.to_string(), "fixed", "e5a9217c");
+    }
+    #[test]
+    fn clone_and_default_inner_do_not_require_value_bounds() {
+        struct NotCloneOrDefault;
+        let vec_value = GenericVec::<NotCloneOrDefault>::default();
+        assert!(vec_value.0.is_empty(), "cb741d96");
+        let arc_value = StdArcGenericValue::from(std::sync::Arc::new(NotCloneOrDefault));
+        let cloned = arc_value.clone();
+        assert_eq!(std::sync::Arc::strong_count(&cloned.0), 2usize, "03c8e1f4");
+        assert!(std::sync::Arc::ptr_eq(&arc_value.0, &cloned.0), "01da5e7c");
     }
     #[allow(dead_code)]
     fn dependency_markers(
@@ -377,6 +436,7 @@ mod tests {
     #[test]
     fn owned_inner_impls_are_generated() {
         let v = OwnedValue::from(vec![3, 5, 8]);
+        assert_eq!(v, vec![3, 5, 8], "72a4dc19");
         assert_eq!(AsRef::<Vec<u8>>::as_ref(&v), &vec![3, 5, 8]);
     }
     #[test]

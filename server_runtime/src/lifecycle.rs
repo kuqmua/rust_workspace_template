@@ -8,26 +8,12 @@ pub struct TokioTaskJoinError(tokio::task::JoinError);
 #[derive(Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum BackgroundTaskShutdownError {
-    Join(TokioTaskJoinError),
+    #[error("background task failed: {0}")]
+    Join(#[source] TokioTaskJoinError),
+    #[error("{}", str_constants::BACKGROUND_TASK_SHUTDOWN_TIMED_OUT)]
     Timeout,
-}
-impl std::fmt::Display for BackgroundTaskShutdownError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Join(error) => write!(f, "background task failed: {error}"),
-            Self::Timeout => f.write_str(str_constants::BACKGROUND_TASK_SHUTDOWN_TIMED_OUT),
-        }
-    }
-}
-impl std::error::Error for BackgroundTaskShutdownError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Join(error) => Some(error),
-            Self::Timeout => None,
-        }
-    }
 }
 #[derive(Debug)]
 #[must_use]
@@ -98,14 +84,9 @@ impl TryFrom<std::time::Duration> for StdRunInterval {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRunIntervalTryFromDurationError;
-impl std::fmt::Display for StdRunIntervalTryFromDurationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::RUN_INTERVAL_MUST_BE_GREATER_THAN_ZERO)
-    }
-}
-impl std::error::Error for StdRunIntervalTryFromDurationError {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdRequestTimeout(std::time::Duration);
 impl StdRequestTimeout {
@@ -123,14 +104,9 @@ impl TryFrom<std::time::Duration> for StdRequestTimeout {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdRequestTimeoutTryFromDurationError;
-impl std::fmt::Display for StdRequestTimeoutTryFromDurationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REQUEST_TIMEOUT_MUST_BE_GREATER_THAN_ZERO)
-    }
-}
-impl std::error::Error for StdRequestTimeoutTryFromDurationError {}
 pub async fn abort_and_wait_task(task: TokioAbortTask) -> Result<(), TokioTaskJoinError> {
     task.0.abort();
     task.0.await.map_err(TokioTaskJoinError)

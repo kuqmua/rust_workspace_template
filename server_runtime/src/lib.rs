@@ -620,26 +620,12 @@ where
 }
 #[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct StdServeIoError(std::io::Error);
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum ServeWithGracefulShutdownError {
-    Serve(StdServeIoError),
+    #[error("server failed: {0}")]
+    Serve(#[source] StdServeIoError),
+    #[error("{}", str_constants::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT)]
     ShutdownTimeout,
-}
-impl std::fmt::Display for ServeWithGracefulShutdownError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Serve(error) => write!(f, "server failed: {error}"),
-            Self::ShutdownTimeout => f.write_str(str_constants::SERVER_GRACEFUL_SHUTDOWN_TIMED_OUT),
-        }
-    }
-}
-impl std::error::Error for ServeWithGracefulShutdownError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Serve(error) => Some(error),
-            Self::ShutdownTimeout => None,
-        }
-    }
 }
 #[must_use]
 pub fn add_status_route(router: AxumRouter) -> AxumRouter {

@@ -4246,12 +4246,22 @@ pub const APPLICATION_X_WWW_FORM_URLENCODED: &str = "application/x-www-form-urle
 pub const CODE_STYLE_FROM_FN_IDENTIFIER: &str = "from";
 pub const CODE_STYLE_FROM_TRAIT_IDENTIFIER: &str = "From";
 pub const CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER: &str = "Display";
+pub const CODE_STYLE_ERROR_TRAIT_IDENTIFIER: &str = "Error";
 pub const CODE_STYLE_DEREF_FN_IDENTIFIER: &str = "deref";
 pub const CODE_STYLE_DEREF_TRAIT_IDENTIFIER: &str = "Deref";
 pub const CODE_STYLE_BORROW_FN_IDENTIFIER: &str = "borrow";
 pub const CODE_STYLE_BORROW_TRAIT_IDENTIFIER: &str = "Borrow";
 pub const CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER: &str = "into_iter";
 pub const CODE_STYLE_INTO_ITERATOR_TRAIT_IDENTIFIER: &str = "IntoIterator";
+pub const CODE_STYLE_NOT_TRAIT_IDENTIFIER: &str = "Not";
+pub const CODE_STYLE_WRITE_STR_FN_IDENTIFIER: &str = "write_str";
+pub const STR_CONSTANTS_CRATE_IDENTIFIER: &str = "str_constants";
+pub const DISPLAY_CONST_REQUIRES_ATTRIBUTE: &str =
+    "DisplayConst requires #[display_const(expression)]";
+pub const DISPLAY_CONST: &str = "display_const";
+pub const DISPLAY_CONST_REQUIRES_ONE_ATTRIBUTE: &str =
+    "DisplayConst requires exactly one #[display_const(...)] attribute";
+pub const CLONE_FIELDS_SUPPORTS_ONLY_STRUCTS: &str = "CloneFields supports only structs";
 pub const CODE_STYLE_FMT_ARGUMENT_IDENTIFIER: &str = "f";
 pub const CODE_STYLE_FMT_FN_IDENTIFIER: &str = "fmt";
 pub const CODE_STYLE_MANUAL_PASSTHROUGH_FROM: &str =

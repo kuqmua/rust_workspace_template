@@ -81,7 +81,16 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitIdCow<'_> {
 }
 #[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 pub struct GitCommitIdFallback(Option<GitCommitId>);
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::AsRefStr, newtype::TryFrom)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::AsRefStr,
+    newtype::PartialEqInner,
+    newtype::TryFrom,
+)]
 #[try_from(
     error = GitInfoStringTryFromStringError,
     validator = |value: &String| if value.len() > GIT_INFO_STRING_MAX_LEN {
@@ -107,11 +116,6 @@ impl From<GitInfoStringTryFromStringError> for GitCommitLink {
 impl PartialEq<ProjectGitCommitLinkRef> for GitCommitLink {
     fn eq(&self, other: &ProjectGitCommitLinkRef) -> bool {
         self.0 == other.0
-    }
-}
-impl PartialEq<String> for GitCommitLink {
-    fn eq(&self, other: &String) -> bool {
-        &self.0 == other
     }
 }
 #[derive(
@@ -156,23 +160,22 @@ impl From<GitInfoStringTryFromStringError> for StdGitCommitLinkCow {
     newtype::FromInner,
 )]
 pub struct ProjectGitCommitLinkRef(&'static str);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
-pub struct IsProjectCommit(bool);
-impl std::ops::Not for IsProjectCommit {
-    type Output = bool;
-    fn not(self) -> Self::Output {
-        !self.0
-    }
-}
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::DerefInner, newtype::FromInner,
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::NotInner,
+)]
+pub struct IsProjectCommit(bool);
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    optml::Optml,
+    newtype::DerefInner,
+    newtype::FromInner,
+    newtype::PartialEqInner,
 )]
 pub struct GitCommitLinkCapacity(usize);
-impl PartialEq<usize> for GitCommitLinkCapacity {
-    fn eq(&self, other: &usize) -> bool {
-        self.0 == *other
-    }
-}
 #[derive(Debug, optml::Optml, newtype::FromInner)]
 struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
 

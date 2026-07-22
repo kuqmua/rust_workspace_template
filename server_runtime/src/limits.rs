@@ -13,14 +13,9 @@ impl TryFrom<u64> for RetryAfterSecs {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)]
 pub struct RetryAfterSecsTryFromU64Error;
-impl std::fmt::Display for RetryAfterSecsTryFromU64Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::RETRY_AFTER_SECONDS_MUST_BE_GREATER_THAN_ZERO)
-    }
-}
-impl std::error::Error for RetryAfterSecsTryFromU64Error {}
 impl TryFrom<RetryAfterSecs> for http::HeaderValue {
     type Error = http::header::InvalidHeaderValue;
     fn try_from(value: RetryAfterSecs) -> Result<Self, Self::Error> {
@@ -50,9 +45,11 @@ impl StdArcTokioSemaphore {
 
 #[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct TokioAcquireError(tokio::sync::AcquireError);
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum AcquirePermitError {
-    Closed(TokioAcquireError),
+    #[error("concurrency limiter is closed: {0}")]
+    Closed(#[source] TokioAcquireError),
+    #[error("concurrency limit reached; retry after {} seconds", .0.0)]
     Timeout(RetryAfterSecs),
 }
 #[derive(Debug, newtype::FromInner)]
@@ -61,28 +58,6 @@ pub struct TokioOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
 impl TokioOwnedSemaphorePermit {
     pub fn forget(self) {
         self.0.forget();
-    }
-}
-impl std::fmt::Display for AcquirePermitError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Closed(error) => write!(f, "concurrency limiter is closed: {error}"),
-            Self::Timeout(retry_after) => {
-                write!(
-                    f,
-                    "concurrency limit reached; retry after {} seconds",
-                    retry_after.0
-                )
-            }
-        }
-    }
-}
-impl std::error::Error for AcquirePermitError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Closed(error) => Some(error),
-            Self::Timeout(_) => None,
-        }
     }
 }
 pub async fn acquire_permit(

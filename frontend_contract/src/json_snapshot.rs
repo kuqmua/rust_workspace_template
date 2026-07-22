@@ -11,7 +11,7 @@ pub struct JsonContractSnapshot(String);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct JsonSnapshotDynamicFieldRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
 pub enum JsonContractSnapshotError {
     TooLong,
     Serialization,
@@ -24,7 +24,6 @@ impl std::fmt::Display for JsonContractSnapshotError {
         }
     }
 }
-impl std::error::Error for JsonContractSnapshotError {}
 
 pub fn canonical_json_contract_snapshot<Payload>(
     value: &Payload,

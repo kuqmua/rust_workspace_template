@@ -27,14 +27,9 @@ pub struct PgTableIdempotencyRoute(String);
 pub struct PgTableIdempotencyRequestHash([u8; 32usize]);
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct PgTableIdempotencyBody(Vec<u8>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
 pub struct PgTableIdempotencyBodyError;
-impl std::fmt::Display for PgTableIdempotencyBodyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)
-    }
-}
-impl std::error::Error for PgTableIdempotencyBodyError {}
 impl TryFrom<Vec<u8>> for PgTableIdempotencyBody {
     type Error = PgTableIdempotencyBodyError;
 
@@ -123,7 +118,7 @@ pub enum PgTableIdempotencyBegin {
     InProgress,
     Replay(PgTableIdempotencyReplay),
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
 pub enum PgTableIdempotencyTextError {
     Empty,
     InvalidMethod,
@@ -153,14 +148,9 @@ impl std::fmt::Display for PgTableIdempotencyTextError {
         }
     }
 }
-impl std::error::Error for PgTableIdempotencyTextError {}
-#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner)]
+#[derive(Debug, newtype::DisplayConst, newtype::ErrorTransparent, newtype::FromInner)]
+#[display_const(str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)]
 pub struct SqlxPgTableIdempotencyError(sqlx::Error);
-impl std::fmt::Display for SqlxPgTableIdempotencyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED)
-    }
-}
 impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
     fn to_err_string(&self) -> to_err_string::ToErrStringValue {
         to_err_string::ToErrStringValue::try_from(self.to_string())

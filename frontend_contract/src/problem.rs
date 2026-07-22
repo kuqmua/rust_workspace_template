@@ -100,14 +100,8 @@ pub struct ApiProblemViolation {
 })]
 #[serde(try_from = "Vec<ApiProblemViolation>")]
 pub(crate) struct ApiProblemViolations(Vec<ApiProblemViolation>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DebugDisplay, newtype::Error)]
 pub(crate) struct ApiProblemViolationsError;
-impl std::fmt::Display for ApiProblemViolationsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Debug::fmt(self, f)
-    }
-}
-impl std::error::Error for ApiProblemViolationsError {}
 #[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize, utoipa::ToSchema)]
 pub struct ApiProblem {
     detail: ApiProblemDetail,

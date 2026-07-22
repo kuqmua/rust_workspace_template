@@ -7,13 +7,10 @@ pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSocketAddr(std::net::SocketAddr);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::FromInner)]
+#[derive(
+    Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::Display, newtype::FromInner,
+)]
 pub struct StdResolvedClientIp(std::net::IpAddr);
-impl std::fmt::Display for StdResolvedClientIp {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TrustedProxyRange {
     network: StdIpAddr,
@@ -33,23 +30,11 @@ impl StdRangeContains {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdTrustedProxyPrefixBits(u8);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 pub struct StdAddrParseError(std::net::AddrParseError);
-impl std::fmt::Display for StdAddrParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
-    }
-}
-impl std::error::Error for StdAddrParseError {}
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 pub struct StdParseIntError(std::num::ParseIntError);
-impl std::fmt::Display for StdParseIntError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
-    }
-}
-impl std::error::Error for StdParseIntError {}
 
 #[derive(Debug, thiserror::Error)]
 pub enum TrustedProxyRangeParseError {

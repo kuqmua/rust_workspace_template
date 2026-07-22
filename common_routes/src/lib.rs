@@ -69,14 +69,9 @@ impl From<[HealthComponent; 2]> for HealthComponents {
         Self(Vec::from(value))
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)]
 pub struct HealthComponentsError;
-impl std::fmt::Display for HealthComponentsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::HEALTH_COMPONENTS_LENGTH_EXCEEDS_LIMIT)
-    }
-}
-impl std::error::Error for HealthComponentsError {}
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
 pub struct HealthReport {
     components: HealthComponents,

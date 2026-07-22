@@ -455,7 +455,7 @@ impl AdminCleanupRows {
         Self::from(self.0.saturating_add(rhs.0))
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
 pub enum AdminCleanupCfgError {
     BatchSizeOutOfRange,
     RetentionMustBePositive,
@@ -472,7 +472,6 @@ impl std::fmt::Display for AdminCleanupCfgError {
         }
     }
 }
-impl std::error::Error for AdminCleanupCfgError {}
 #[derive(Debug)]
 pub enum AdminCleanupError {
     Count,

@@ -1098,6 +1098,78 @@ fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
     );
 }
 #[test]
+fn empty_error_implementations_derive_newtype_error() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("8b7f213d"),
+        super::types::SourceTextRef::from(
+            "empty Error implementations found; derive newtype::Error instead",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::EmptyErrorImplVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn tuple_newtypes_derive_not_inner_instead_of_implementing_not() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("5d3a917e"),
+        super::types::SourceTextRef::from(
+            "manual Not implementations found; derive newtype::NotInner instead",
+        ),
+        |path, ast, ers| {
+            if path.ends_with(std::path::Path::new("workspace_macro_helpers/src/lib.rs")) {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ManualNotImplVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn constant_display_implementations_derive_display_const() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("1e6b4c92"),
+        super::types::SourceTextRef::from(
+            "constant Display implementations found; derive newtype::DisplayConst instead",
+        ),
+        |path, ast, ers| {
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ConstDisplayImplVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn tuple_newtypes_derive_deref_inner_instead_of_implementing_forwarding_deref() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("269004ea"),

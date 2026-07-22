@@ -4,26 +4,12 @@ struct StdVecDequeRunReports<RunReport>(std::collections::VecDeque<RunReport>);
 #[derive(Debug, newtype::FromInner)]
 struct TokioRwLockRunReports<RunReport>(tokio::sync::RwLock<StdVecDequeRunReports<RunReport>>);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::CloneInner, newtype::FromInner)]
 struct StdArcSharedRunReports<RunReport>(std::sync::Arc<TokioRwLockRunReports<RunReport>>);
-
-impl<RunReport> Clone for StdArcSharedRunReports<RunReport> {
-    fn clone(&self) -> Self {
-        Self::from(std::sync::Arc::clone(&self.0))
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::CloneFields)]
 pub struct AsyncRunHistory<RunReport> {
     maximum_len: StdAsyncRunHistoryMaximumLen,
     reports: StdArcSharedRunReports<RunReport>,
-}
-impl<RunReport> Clone for AsyncRunHistory<RunReport> {
-    fn clone(&self) -> Self {
-        Self {
-            maximum_len: self.maximum_len,
-            reports: self.reports.clone(),
-        }
-    }
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdAsyncRunHistoryMaximumLen(std::num::NonZeroUsize);
@@ -35,14 +21,9 @@ impl TryFrom<usize> for StdAsyncRunHistoryMaximumLen {
             .ok_or(StdAsyncRunHistoryMaximumLenTryFromUsizeError)
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)]
 pub struct StdAsyncRunHistoryMaximumLenTryFromUsizeError;
-impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::RUN_HISTORY_MAXIMUM_LENGTH_MUST_BE_GREATER_THAN_ZERO)
-    }
-}
-impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeError {}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAsyncRunHistoryReportCount(usize);
 
@@ -89,5 +70,16 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
             latest_report: reports.0.back().cloned(),
             report_count: StdAsyncRunHistoryReportCount::from(reports.0.len()),
         }
+    }
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn history_clone_does_not_require_report_clone() {
+        struct NotClone;
+        let maximum = super::StdAsyncRunHistoryMaximumLen::try_from(1usize).expect("91f5d3a8");
+        let history = super::AsyncRunHistory::<NotClone>::new(maximum);
+        let cloned = history.clone();
+        assert_eq!(history.maximum_len, cloned.maximum_len, "f1c763a4");
     }
 }

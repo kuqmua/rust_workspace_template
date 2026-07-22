@@ -19,14 +19,8 @@ impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutR
 pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
 #[derive(Clone, Copy, newtype::FromInner)]
 struct TestPollCount(usize);
-#[derive(newtype::FromInner)]
+#[derive(newtype::FromInner, newtype::NotInner)]
 struct TestPollLimitReached(bool);
-impl std::ops::Not for TestPollLimitReached {
-    type Output = bool;
-    fn not(self) -> Self::Output {
-        !self.0
-    }
-}
 #[allow(clippy::single_call_fn)] // shared insertion guard keeps header setup helpers consistent
 fn insert_header_no_prev<'headers_lt, ValueTy>(
     headers: impl Into<AxumTestHeadersMutRef<'headers_lt>>,

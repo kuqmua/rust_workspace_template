@@ -11,36 +11,17 @@ impl TryFrom<String> for RequestId {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES)]
 pub struct RequestIdTryFromStringError;
-impl std::fmt::Display for RequestIdTryFromStringError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REQUEST_ID_MUST_BE_NON_EMPTY_ASCII_UP_TO_128_BYTES)
-    }
-}
-impl std::error::Error for RequestIdTryFromStringError {}
 #[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum RequestIdTryFromHttpHeaderValueError {
+    #[error(transparent)]
     Invalid(RequestIdTryFromStringError),
+    #[error("request id is not a text header: {0}")]
     ToStr(HttpHeaderToStrError),
-}
-impl std::fmt::Display for RequestIdTryFromHttpHeaderValueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Invalid(error) => error.fmt(f),
-            Self::ToStr(error) => write!(f, "request id is not a text header: {error}"),
-        }
-    }
-}
-impl std::error::Error for RequestIdTryFromHttpHeaderValueError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::Invalid(error) => Some(error),
-            Self::ToStr(error) => Some(error),
-        }
-    }
 }
 impl TryFrom<&http::HeaderValue> for RequestId {
     type Error = RequestIdTryFromHttpHeaderValueError;

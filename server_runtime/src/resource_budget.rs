@@ -24,14 +24,9 @@ impl From<std::num::NonZeroUsize> for ResourceBudgetMaximum {
         Self(value.get())
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)]
 pub struct ResourceBudgetConfigError;
-impl std::fmt::Display for ResourceBudgetConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::RESOURCE_BUDGET_MAXIMUM_MUST_BE_GREATER_THAN_ZERO)
-    }
-}
-impl std::error::Error for ResourceBudgetConfigError {}
 #[derive(Clone, Debug)]
 pub struct ResourceBudget {
     maximum: ResourceBudgetMaximum,
@@ -43,7 +38,7 @@ pub trait GetBulkItemResourceBudget {
 pub trait GetIdempotencyResponseResourceBudget {
     fn get_idempotency_response_resource_budget(&self) -> &ResourceBudget;
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
 pub enum ResourceBudgetReserveError {
     Exhausted,
     Overflow,
@@ -56,7 +51,6 @@ impl std::fmt::Display for ResourceBudgetReserveError {
         }
     }
 }
-impl std::error::Error for ResourceBudgetReserveError {}
 #[derive(Debug)]
 #[must_use]
 pub struct ResourceBudgetReservation {

@@ -6,14 +6,10 @@ pub struct StdWrittenFilePathRef<'path_lt>(&'path_lt std::path::Path);
 pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner)]
 struct GeneratedFileMaximumBytes(usize);
-#[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, newtype::FromInner, newtype::IntoInnerFrom, newtype::NotInner,
+)]
 pub struct ShouldWriteString(bool);
-impl std::ops::Not for ShouldWriteString {
-    type Output = bool;
-    fn not(self) -> Self::Output {
-        !self.0
-    }
-}
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WritePathOutcome {
     Changed(StdWrittenFilePath),

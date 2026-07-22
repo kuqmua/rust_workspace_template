@@ -776,6 +776,83 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
 struct ForwardingDisplayVisitor {
     ers: types::DiagnosticMsgs,
 }
+struct EmptyErrorImplVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct ManualNotImplVisitor {
+    ers: types::DiagnosticMsgs,
+}
+struct ConstDisplayImplVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_display_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
+            })
+        });
+        let writes_constant = i.items.len() == 1usize
+            && i.items.first().is_some_and(|item| {
+                let syn::ImplItem::Fn(function) = item else {
+                    return false;
+                };
+                function.block.stmts.len() == 1usize
+                    && function.block.stmts.first().is_some_and(|statement| {
+                        let syn::Stmt::Expr(syn::Expr::MethodCall(call), None) = statement else {
+                            return false;
+                        };
+                        call.method == str_constants::CODE_STYLE_WRITE_STR_FN_IDENTIFIER
+                            && call.args.len() == 1usize
+                            && call.args.first().is_some_and(|argument| {
+                                matches!(argument, syn::Expr::Path(path) if path.path.segments.first().is_some_and(|segment| segment.ident == str_constants::STR_CONSTANTS_CRATE_IDENTIFIER))
+                            })
+                    })
+            });
+        if is_display_impl && writes_constant {
+            let start = syn::spanned::Spanned::span(i).start();
+            self.ers.push(format!(
+                "constant Display implementation at {}:{}; derive newtype::DisplayConst instead",
+                start.line, start.column
+            ));
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_not_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_NOT_TRAIT_IDENTIFIER
+            })
+        });
+        if is_not_impl {
+            let start = syn::spanned::Spanned::span(i).start();
+            self.ers.push(format!(
+                "manual Not implementation at {}:{}; derive newtype::NotInner instead",
+                start.line, start.column
+            ));
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for EmptyErrorImplVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_error_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_ERROR_TRAIT_IDENTIFIER
+            })
+        });
+        if is_error_impl && i.items.is_empty() {
+            let start = syn::spanned::Spanned::span(i).start();
+            self.ers.push(format!(
+                "empty Error implementation at {}:{}; derive newtype::Error instead",
+                start.line, start.column
+            ));
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
 impl ForwardingDisplayVisitor {
     #[allow(
         clippy::single_call_fn,

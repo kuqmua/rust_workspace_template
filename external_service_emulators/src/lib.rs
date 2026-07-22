@@ -18,16 +18,9 @@ struct TokioMockNotificationReceiver(
     tokio::sync::mpsc::UnboundedReceiver<server_runtime::NotificationMessage>,
 );
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)]
 pub struct MockNotificationProviderClosed;
-
-impl std::fmt::Display for MockNotificationProviderClosed {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::MOCK_NOTIFICATION_PROVIDER_CLOSED)
-    }
-}
-
-impl std::error::Error for MockNotificationProviderClosed {}
 
 impl MockNotificationInbox {
     pub async fn receive(&mut self) -> Option<server_runtime::NotificationMessage> {

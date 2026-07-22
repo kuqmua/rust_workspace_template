@@ -8,22 +8,14 @@ struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
-
-impl std::error::Error for ServerRuntimeRequestTimeoutError {}
-
-impl std::error::Error for ServerRuntimeRunIntervalError {}
-
-impl std::error::Error for ServerRuntimeBackgroundTaskShutdownError {}
-
-impl std::error::Error for ServerAdminCleanupCfgError {}
 
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
@@ -37,10 +29,8 @@ struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
-
-impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
 #[derive(Clone, newtype::DerefTarget, newtype::FromInner)]

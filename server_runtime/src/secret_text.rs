@@ -11,7 +11,8 @@ pub enum BoundedSecretTextError {
     SurroundingWhitespace,
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, newtype::DisplayConst)]
+#[display_const(str_constants::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);
 impl TryFrom<String> for BoundedSecretText {
     type Error = BoundedSecretTextError;
@@ -33,11 +34,6 @@ impl TryFrom<String> for BoundedSecretText {
     }
 }
 impl std::fmt::Debug for BoundedSecretText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::REDACTED_ALT_3)
-    }
-}
-impl std::fmt::Display for BoundedSecretText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(str_constants::REDACTED_ALT_3)
     }

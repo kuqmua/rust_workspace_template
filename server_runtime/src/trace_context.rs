@@ -4,7 +4,7 @@ const TRACE_STATE_MAX_LEN: usize = 512;
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceParent(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::Error)]
 pub enum HttpTraceParentError {
     Format,
     ZeroParentId,
@@ -20,8 +20,6 @@ impl std::fmt::Display for HttpTraceParentError {
         }
     }
 }
-
-impl std::error::Error for HttpTraceParentError {}
 
 impl TryFrom<String> for HttpTraceParent {
     type Error = HttpTraceParentError;
@@ -59,16 +57,9 @@ impl TryFrom<String> for HttpTraceParent {
 #[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceState(String);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)]
 pub struct HttpTraceStateError;
-
-impl std::fmt::Display for HttpTraceStateError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::TRACESTATE_PRINTABLE_ASCII_MAX_512)
-    }
-}
-
-impl std::error::Error for HttpTraceStateError {}
 
 impl TryFrom<String> for HttpTraceState {
     type Error = HttpTraceStateError;

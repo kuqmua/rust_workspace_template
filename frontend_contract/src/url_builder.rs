@@ -20,16 +20,11 @@ impl<'value_lt> TryFrom<&'value_lt str> for ApiUrlPathSegmentRef<'value_lt> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ApiUrlQueryComponentRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::DisplayConst, newtype::Error)]
+#[display_const(str_constants::INVALID_API_URL_PATH_SEGMENT)]
 pub enum ApiUrlBuildError {
     InvalidPathSegment,
 }
-impl std::fmt::Display for ApiUrlBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(str_constants::INVALID_API_URL_PATH_SEGMENT)
-    }
-}
-impl std::error::Error for ApiUrlBuildError {}
 
 #[derive(
     Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::BoundedString, newtype::IntoInnerFrom,

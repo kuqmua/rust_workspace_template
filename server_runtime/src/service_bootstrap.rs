@@ -4,18 +4,14 @@ pub enum ServiceTracingFormat {
     Text,
 }
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
-
-impl std::error::Error for TracingSubscriberInitError {}
 
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 pub struct StdServiceRuntimeIoError(std::io::Error);
-
-impl std::error::Error for StdServiceRuntimeIoError {}
 
 pub fn build_service_runtime() -> Result<TokioServiceRuntime, StdServiceRuntimeIoError> {
     tokio::runtime::Builder::new_multi_thread()

@@ -23,7 +23,7 @@ impl SynValidatedGeneratePgTableInput {
 #[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
 
-#[derive(Debug)]
+#[derive(Debug, newtype::Error)]
 pub enum GeneratePgTablePipelineError {
     Build(SynGeneratePgTablePipelineError),
     Parse(SynGeneratePgTablePipelineError),
@@ -37,8 +37,6 @@ impl std::fmt::Display for GeneratePgTablePipelineError {
         }
     }
 }
-
-impl std::error::Error for GeneratePgTablePipelineError {}
 
 pub fn parse_generate_pg_table(
     input: macros_helpers::ts_writer::ProcMacro2TokenStreamRef<'_>,

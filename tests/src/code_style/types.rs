@@ -98,7 +98,7 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs
 }
 #[derive(Debug, Clone, newtype::AsRefStr)]
 pub(super) struct SourceText(Box<str>);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::Error)]
 pub(super) struct SourceTextTryFromStringError {
     len: AnalyzerCount,
 }
@@ -123,7 +123,6 @@ impl std::fmt::Display for SourceTextTryFromStringError {
         )
     }
 }
-impl std::error::Error for SourceTextTryFromStringError {}
 impl From<SourceText> for String {
     fn from(value: SourceText) -> Self {
         value.0.into_string()

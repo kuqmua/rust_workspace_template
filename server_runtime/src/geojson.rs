@@ -15,10 +15,8 @@ impl TryFrom<String> for GeoJsonDocumentText {
     }
 }
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::Display, newtype::Error, newtype::FromInner)]
 pub struct SerdeJsonGeoJsonError(serde_json::Error);
-
-impl std::error::Error for SerdeJsonGeoJsonError {}
 
 #[derive(Debug, thiserror::Error)]
 pub enum GeoJsonValidationError {
