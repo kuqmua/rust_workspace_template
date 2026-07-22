@@ -122,27 +122,6 @@ impl AdminMutationMethod {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-enum AdminHtmlInputType {
-    Date,
-    DateTimeLocal,
-    Number,
-    Text,
-    Time,
-}
-
-impl AdminHtmlInputType {
-    const fn get(self) -> &'static str {
-        match self {
-            Self::Date => str_constants::HTML_DATE_INPUT_TYPE,
-            Self::DateTimeLocal => str_constants::HTML_DATETIME_LOCAL_INPUT_TYPE,
-            Self::Number => str_constants::HTML_NUMBER_INPUT_TYPE,
-            Self::Text => str_constants::HTML_TEXT_INPUT_TYPE,
-            Self::Time => str_constants::HTML_TIME_INPUT_TYPE,
-        }
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 struct AdminCsrQuery {
     action: Option<server_admin_contract::AdminText>,
@@ -510,18 +489,6 @@ async fn fetch_page(
     }
 }
 
-const fn input_type(kind: server_admin_contract::AdminDataInputKind) -> AdminHtmlInputType {
-    match kind {
-        server_admin_contract::AdminDataInputKind::Date => AdminHtmlInputType::Date,
-        server_admin_contract::AdminDataInputKind::DateTime => AdminHtmlInputType::DateTimeLocal,
-        server_admin_contract::AdminDataInputKind::Number => AdminHtmlInputType::Number,
-        server_admin_contract::AdminDataInputKind::Time => AdminHtmlInputType::Time,
-        server_admin_contract::AdminDataInputKind::Checkbox
-        | server_admin_contract::AdminDataInputKind::Text
-        | server_admin_contract::AdminDataInputKind::Uuid => AdminHtmlInputType::Text,
-    }
-}
-
 #[leptos::component]
 fn AdminDataGrid(
     query: AdminCsrQuery,
@@ -529,7 +496,6 @@ fn AdminDataGrid(
 ) -> impl leptos::prelude::IntoView {
     let supports_filters = bool::from(view.table().supports_filters());
     let table_path = view.table().frontend_path();
-    let clear_href = table_path.to_string();
     let total = u64::from(view.total());
     let limit = u16::from(query.limit);
     let limit_text = limit.to_string();
@@ -542,89 +508,44 @@ fn AdminDataGrid(
     let range_end = u64::from(offset)
         .saturating_add(u64::from(limit))
         .min(total);
+    let filter_field = supports_filters
+        .then_some(query.filter_field.as_ref())
+        .flatten();
+    let filter_operation = supports_filters
+        .then_some(query.filter_operation.as_ref())
+        .flatten();
+    let filter_value = supports_filters
+        .then_some(query.filter_value.as_ref())
+        .flatten();
+    let filter_end = supports_filters
+        .then_some(query.filter_end.as_ref())
+        .flatten();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <div class="table-scroll"><table>
-                <thead><tr>{view.columns().iter().map(|column| {
-                    let field = column.name().to_string();
-                    let label = column.label().to_string();
-                    let filter_count = column.filters().len().to_string();
-                    let is_active_field = query.filter_field.as_ref().map(AsRef::<str>::as_ref) == Some(field.as_str());
-                    let filter_label = format!("Filter {label}");
-                    let filter_title = format!("Filter by {label}");
-                    leptos::view! {
-                        <th data-field=field.clone() data-filter-count=filter_count>
-                            <div class="table-column-heading">
-                                <span>{label}</span>
-                                {(supports_filters && !column.filters().is_empty()).then(|| leptos::view! {
-                                    <details class="table-column-filter" open=is_active_field>
-                                        <summary class=("active", is_active_field) aria-label=filter_label.clone()><span class="table-filter-open-label">"Filter"</span><span class="table-filter-close-label">"Close"</span></summary>
-                                        <div class="table-filter-operations" role="dialog" aria-modal="true" aria-label=filter_label>
-                                            <h2>{filter_title}</h2>
-                                            {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
-                                            {column.filters().iter().map(|filter| {
-                                                let operation = filter.operation();
-                                                let operation_key = server_admin_contract::AdminFilterOperationKey::from(operation).to_string();
-                                                let is_active = is_active_field && query.filter_operation.as_ref().map(AsRef::<str>::as_ref) == Some(operation_key.as_str());
-                                                let value = is_active.then(|| query.filter_value.as_ref().map(ToString::to_string)).flatten().unwrap_or_default();
-                                                let end = is_active.then(|| query.filter_end.as_ref().map(ToString::to_string)).flatten().unwrap_or_default();
-                                                let needs_value = bool::from(filter.requires_value());
-                                                let needs_end = bool::from(filter.requires_end());
-                                                leptos::view! {
-                                                    <form class="table-filter-form" method="get" action=table_path.as_ref().to_owned()>
-                                                        <input type="hidden" name="filter_field" value=field.clone() />
-                                                        <input type="hidden" name="filter_operation" value=operation_key />
-                                                        <input type="hidden" name="limit" value=limit_text.clone() />
-                                                        <input type="hidden" name="offset" value="0" />
-                                                        <span>{format!("{operation:?}")}</span>
-                                                    {needs_value.then(|| leptos::view! { <input name="filter_value" type=input_type(column.input_kind()).get() value=value required /> })}
-                                                    {needs_end.then(|| leptos::view! { <input name="filter_end" type=input_type(column.input_kind()).get() value=end required /> })}
-                                                        <button type="submit">"Apply"</button>
-                                                    </form>
-                                                }
-                                            }).collect::<Vec<_>>()}
-                                        </div>
-                                    </details>
-                                })}
-                            </div>
-                        </th>
-                    }
-                }).collect::<Vec<_>>()}</tr></thead>
-                <tbody>{view.items().iter().map(|row| leptos::view! {
-                    <tr>{row.values().iter().enumerate().map(|(index, value)| {
-                        let column = view.columns().get(index);
-                        let label = column.map_or_else(String::new, |item| item.label().to_string());
-                        let field = column.map_or_else(String::new, |item| item.name().to_string());
-                        let numeric = column.is_some_and(|item| matches!(item.input_kind(), server_admin_contract::AdminDataInputKind::Number));
-                        leptos::view! { <td class=("numeric-cell", numeric) data-field=field data-label=label>{value.to_string()}</td> }
-                    }).collect::<Vec<_>>()}</tr>
-                }).collect::<Vec<_>>()}</tbody>
-            </table></div>
+            {crate::shared::admin_data_table_grid(
+                &view,
+                query.filter_field.as_ref(),
+                query.filter_operation.as_ref(),
+                query.filter_value.as_ref(),
+                query.filter_end.as_ref(),
+                query.limit,
+            )}
             <nav class="table-pagination" aria-label="Table pages">
                 <form class="table-page-size" method="get" action=table_path.as_ref().to_owned()>
-                    {supports_filters.then_some(query.filter_field.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
-                    {supports_filters.then_some(query.filter_operation.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
-                    {supports_filters.then_some(query.filter_value.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
-                    {supports_filters.then_some(query.filter_end.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
+                    {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value="0" />
                     <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit_text.clone() /></label>
                     <button type="submit">"Apply"</button>
                 </form>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text.clone() />
-                    {supports_filters.then_some(query.filter_field.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
-                    {supports_filters.then_some(query.filter_operation.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
-                    {supports_filters.then_some(query.filter_value.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
-                    {supports_filters.then_some(query.filter_end.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
+                    {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
                 </form>
                 <span>{format!("{range_start}-{range_end} of {total}")}</span>
                 <form method="get" action=table_path.as_ref().to_owned()>
                     <input type="hidden" name="limit" value=limit_text />
-                    {supports_filters.then_some(query.filter_field).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value.to_string() /> })}
-                    {supports_filters.then_some(query.filter_operation).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value.to_string() /> })}
-                    {supports_filters.then_some(query.filter_value).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value.to_string() /> })}
-                    {supports_filters.then_some(query.filter_end).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value.to_string() /> })}
+                    {crate::shared::admin_filter_hidden_inputs(filter_field, filter_operation, filter_value, filter_end)}
                     <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
                 </form>
             </nav>
@@ -650,27 +571,17 @@ fn AdminPagination(
         .direction
         .map(|value| value.to_string())
         .unwrap_or_default();
-    let audit_action = query.action.map(|value| value.to_string());
-    let resource = query.resource.map(|value| value.to_string());
-    let resource_id = query.resource_id.map(|value| value.to_string());
-    let user_login = query.user_login.map(|value| value.to_string());
     leptos::view! {
         <nav class="table-pagination" aria-label="Table pages">
             <form method="get" action=action.get()>
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() /><input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
-                {audit_action.clone().map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
-                {resource.clone().map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
-                {resource_id.clone().map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
-                {user_login.clone().map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
+                {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=offset == 0u32>"Previous"</button>
             </form>
             <span>{format!("{}-{} of {}", u64::from(offset).saturating_add(1u64).min(total_value), u64::from(offset).saturating_add(u64::from(limit)).min(total_value), total_value)}</span>
             <form method="get" action=action.get()>
                 <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort /><input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
-                {audit_action.map(|value| leptos::view! { <input type="hidden" name="action" value=value /> })}
-                {resource.map(|value| leptos::view! { <input type="hidden" name="resource" value=value /> })}
-                {resource_id.map(|value| leptos::view! { <input type="hidden" name="resource_id" value=value /> })}
-                {user_login.map(|value| leptos::view! { <input type="hidden" name="user_login" value=value /> })}
+                {crate::shared::admin_audit_hidden_inputs(query.action.as_ref(), query.resource.as_ref(), query.resource_id.as_ref(), query.user_login.as_ref())}
                 <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
             </form>
         </nav>
@@ -695,21 +606,9 @@ fn AdminUsersView(
         bool::from(admin.has_permission(server_admin_contract::AdminPermission::UsersUpdate));
     let can_update_roles =
         bool::from(admin.has_permission(server_admin_contract::AdminPermission::UserRolesUpdate));
-    let search = query.search.as_ref().to_owned();
-    let sort = query.sort.as_ref().to_owned();
-    let direction = query
-        .direction
-        .as_ref()
-        .map_or_else(|| String::from(str_constants::ASC_ALT), ToString::to_string);
-    let limit = u16::from(query.limit).to_string();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <form class="table-tools" method="get" action=server_admin_contract::AdminFrontendPath::Users.get()>
-                <label><span>"Search"</span><input name="search" value=search /></label>
-                <label><span>"Sort"</span><select name="sort"><option value="" selected=sort.is_empty()>"Default"</option>{server_admin_contract::AdminTableSortField::USER.into_iter().map(|field| { let key = field.key().as_ref().to_owned(); let selected = sort == key; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}</select></label>
-                <select name="direction"><option value="asc" selected=direction == "asc">"Ascending"</option><option value="desc" selected=direction == "desc">"Descending"</option></select>
-                <input name="limit" type="number" min="1" max="100" value=limit /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-            </form>
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Users, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::USER)}
             {can_create.then(|| leptos::view! { <form class="mutation-form" on:submit=move |event| {
                 event.prevent_default();
                 let request = (
@@ -825,21 +724,9 @@ fn AdminRolesView(
     let can_update_permissions = bool::from(
         admin.has_permission(server_admin_contract::AdminPermission::RolePermissionsUpdate),
     );
-    let search = query.search.as_ref().to_owned();
-    let sort = query.sort.as_ref().to_owned();
-    let direction = query
-        .direction
-        .as_ref()
-        .map_or_else(|| String::from(str_constants::ASC_ALT), ToString::to_string);
-    let limit = u16::from(query.limit).to_string();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <form class="table-tools" method="get" action=server_admin_contract::AdminFrontendPath::Roles.get()>
-                <label><span>"Search"</span><input name="search" value=search /></label>
-                <label><span>"Sort"</span><select name="sort"><option value="" selected=sort.is_empty()>"Default"</option>{server_admin_contract::AdminTableSortField::ROLE.into_iter().map(|field| { let key = field.key().as_ref().to_owned(); let selected = sort == key; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}</select></label>
-                <select name="direction"><option value="asc" selected=direction == "asc">"Ascending"</option><option value="desc" selected=direction == "desc">"Descending"</option></select>
-                <input name="limit" type="number" min="1" max="100" value=limit /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-            </form>
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Roles, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::ROLE)}
             {can_create.then(|| leptos::view! { <form class="mutation-form" on:submit=move |event| {
                 event.prevent_default();
                 if let (Ok(name), Ok(path)) = (
@@ -912,21 +799,9 @@ fn AdminPermissionsView(
     page: server_admin_contract::AdminPermissionsPage,
     query: AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
-    let search = query.search.as_ref().to_owned();
-    let sort = query.sort.as_ref().to_owned();
-    let direction = query
-        .direction
-        .as_ref()
-        .map_or_else(|| String::from(str_constants::ASC_ALT), ToString::to_string);
-    let limit = u16::from(query.limit).to_string();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            <form class="table-tools" method="get" action=server_admin_contract::AdminFrontendPath::Permissions.get()>
-                <label><span>"Search"</span><input name="search" value=search /></label>
-                <label><span>"Sort"</span><select name="sort"><option value="" selected=sort.is_empty()>"Default"</option>{server_admin_contract::AdminTableSortField::PERMISSION.into_iter().map(|field| { let key = field.key().as_ref().to_owned(); let selected = sort == key; leptos::view! { <option value=key selected=selected>{field.label().as_ref().to_owned()}</option> } }).collect::<Vec<_>>()}</select></label>
-                <select name="direction"><option value="asc" selected=direction == "asc">"Ascending"</option><option value="desc" selected=direction == "desc">"Descending"</option></select>
-                <input name="limit" type="number" min="1" max="100" value=limit /><input name="offset" type="hidden" value="0" /><button type="submit">"Apply"</button>
-            </form>
+            {crate::shared::admin_table_filters(server_admin_contract::AdminFrontendPath::Permissions, &query.search, &query.sort, query.direction.as_ref(), query.limit, &server_admin_contract::AdminTableSortField::PERMISSION)}
             <div class="table-scroll"><table><thead><tr><th>"id"</th><th>"permission"</th></tr></thead>
             <tbody>{page.items().iter().map(|item| leptos::view! {
                 <tr><td data-label="id">{item.id().to_string()}</td><td data-label="permission">{item.name().to_string()}</td></tr>

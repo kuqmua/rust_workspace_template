@@ -2847,6 +2847,7 @@ str_constants_macros::define_str_constants! {
         pub SERVER_ADMIN_SRC_LIB_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_LIB, ".", WORD_RS];
         pub SERVER_ADMIN_SRC_PASSWORD_RS = [WORD_SERVER_ADMIN, "/", WORD_SRC, "/", WORD_PASSWORD, ".", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, ".", WORD_RS];
+        pub SERVER_ADMIN_FRONTEND_SRC_SHARED_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_SHARED, ".", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_FORMS_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/forms.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_PAGES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/pages.", WORD_RS];
         pub SERVER_ADMIN_FRONTEND_SRC_APP_TABLES_RS = [WORD_SERVER_ADMIN_FRONTEND, "/", WORD_SRC, "/", WORD_APP, "/tables.", WORD_RS];
@@ -3463,10 +3464,14 @@ pub const CODE_STYLE_FACADE_REEXPORT_REASONS: [&str; 7] = [
     "server administrator facade exports its public service API",
     "server runtime facade exports shared runtime boundaries",
 ];
-pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 2] =
-    [SERVER_ADMIN_FRONTEND_SRC_APP_RS, SSR_SOURCE_PATH];
-pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 2] = [
+pub const CODE_STYLE_LEPTOS_PRELUDE_SUFFIXES: [&str; 3] = [
+    SERVER_ADMIN_FRONTEND_SRC_APP_RS,
+    SERVER_ADMIN_FRONTEND_SRC_SHARED_RS,
+    SSR_SOURCE_PATH,
+];
+pub const CODE_STYLE_LEPTOS_PRELUDE_REASONS: [&str; 3] = [
     "Leptos CSR view macro expansion requires attribute traits in lexical scope",
+    "shared Leptos view macro expansion requires attribute traits in lexical scope",
     "Leptos SSR view macro expansion requires attribute traits in lexical scope",
 ];
 pub const CODE_STYLE_SINGLE_SOURCE_OWNER_SUFFIXES: [&str; 6] = [
