@@ -1,7 +1,7 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // auth state reads the validated count while the private module owns construction and enforcement
 #[derive(Debug, Clone, Copy)]
 pub(super) enum AdminRateLimitScope {
-    AuditRead,
+    AuditExport,
     Mutation,
     RefreshIp,
     SignInIp,
@@ -11,8 +11,8 @@ impl AdminRateLimitScope {
     #[allow(clippy::single_call_fn)] // scope serialization is shared by persistence and exhaustive contract tests
     pub(super) fn as_str(self) -> super::super::StdAdminStrRef<'static> {
         match self {
-            Self::AuditRead => super::super::StdAdminStrRef::from(
-                str_constants::SERVER_ADMIN_RATE_LIMIT_AUDIT_READ,
+            Self::AuditExport => super::super::StdAdminStrRef::from(
+                str_constants::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT,
             ),
             Self::Mutation => {
                 super::super::StdAdminStrRef::from(str_constants::SERVER_ADMIN_RATE_LIMIT_MUTATION)

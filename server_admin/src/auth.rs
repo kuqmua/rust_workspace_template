@@ -22,8 +22,8 @@ pub(crate) struct StdAdminRateLimitCount(i64);
 pub(crate) struct StdAdminRateLimitWindowSeconds(i32);
 #[derive(Debug, Clone, Copy)]
 pub struct AdminAuthPolicy {
-    audit_limit: StdAdminRateLimitCount,
-    audit_window: StdAdminRateLimitWindowSeconds,
+    audit_export_limit: StdAdminRateLimitCount,
+    audit_export_window: StdAdminRateLimitWindowSeconds,
     failure_delay: StdAdminFailureDelayMillis,
     failure_threshold: StdAdminFailureThreshold,
     mutation_limit: StdAdminRateLimitCount,
@@ -41,8 +41,8 @@ impl AdminAuthPolicy {
     )]
     fn from_sign_in_limit(sign_in_limit: StdAdminRateLimitCount) -> Self {
         Self {
-            audit_limit: StdAdminRateLimitCount::from(60i64),
-            audit_window: StdAdminRateLimitWindowSeconds::from(60i32),
+            audit_export_limit: StdAdminRateLimitCount::from(60i64),
+            audit_export_window: StdAdminRateLimitWindowSeconds::from(60i32),
             failure_delay: StdAdminFailureDelayMillis::from(200u64),
             failure_threshold: StdAdminFailureThreshold::from(10i64),
             mutation_limit: StdAdminRateLimitCount::from(300i64),
@@ -1183,13 +1183,17 @@ mod tests {
     #[test]
     fn rate_limit_scopes_are_distinct() {
         let scopes = [
-            super::rate_limit::AdminRateLimitScope::AuditRead,
+            super::rate_limit::AdminRateLimitScope::AuditExport,
             super::rate_limit::AdminRateLimitScope::Mutation,
             super::rate_limit::AdminRateLimitScope::RefreshIp,
             super::rate_limit::AdminRateLimitScope::SignInIp,
             super::rate_limit::AdminRateLimitScope::SignInIpLogin,
         ]
         .map(super::rate_limit::AdminRateLimitScope::as_str);
+        assert_eq!(
+            scopes[0].as_ref(),
+            str_constants::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
+        );
         let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
         assert_eq!(unique.len(), 5usize);
     }

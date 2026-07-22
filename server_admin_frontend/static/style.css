@@ -129,10 +129,18 @@ p {
 
 .app-shell {
   display: grid;
+  width: 100%;
+  min-width: 0;
   height: 100vh;
   height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: var(--header-height) minmax(0, 1fr);
   overflow: hidden;
+}
+
+#admin-csr-root {
+  width: 100%;
+  min-width: 0;
 }
 
 .topbar {
@@ -164,6 +172,25 @@ p {
   padding: 0;
   scroll-padding-inline: 0;
   scroll-snap-type: inline proximity;
+  scrollbar-color: var(--border-strong) var(--surface-subtle);
+  scrollbar-width: thin;
+}
+
+.topbar nav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.topbar nav::-webkit-scrollbar-track {
+  background: var(--surface-subtle);
+}
+
+.topbar nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+
+.topbar nav::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 .topbar nav a {
@@ -220,6 +247,7 @@ p {
 
 .main-content {
   width: 100%;
+  min-width: 0;
   min-height: 0;
   margin-left: 0;
   overflow-y: auto;
@@ -295,6 +323,57 @@ p {
   gap: 14px;
 }
 
+.profile-grid {
+  display: grid;
+  width: min(100%, 820px);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.profile-card,
+.profile-grid > .security-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.profile-card h2,
+.profile-grid > .security-card h2 {
+  margin: 0 0 18px;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.profile-card dl {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.profile-card dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.profile-card dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 .security-card label,
 .settings-form label,
 .audit-filters label,
@@ -358,7 +437,7 @@ td details form button:hover {
 
 .table-tools {
   display: grid;
-  grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) auto;
+  grid-template-columns: minmax(220px, 2fr) minmax(140px, 1fr) minmax(140px, 1fr) 112px auto;
   align-items: end;
   gap: 12px;
   margin-bottom: 16px;
@@ -464,6 +543,63 @@ th:has(.table-column-filter[open]) {
   position: relative;
   display: inline-block;
   margin: 0 0 14px;
+}
+
+.mutation-form:is(form) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+
+.mutation-form:is(form) button,
+.table-actions button {
+  background: var(--accent);
+  color: #fff;
+  padding: 9px 12px;
+}
+
+.mutation-form:is(form) button:hover,
+.table-actions button:hover {
+  background: var(--accent-hover);
+}
+
+.table-actions,
+.table-options {
+  display: flex;
+  min-width: 220px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.table-actions > input:not([type="checkbox"]),
+.table-options > input:not([type="checkbox"]) {
+  min-width: 150px;
+  min-height: 34px;
+  flex: 1 1 170px;
+  padding: 6px 9px;
+}
+
+.table-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.table-actions button {
+  font-size: 11px;
 }
 
 .mutation-form > summary,
@@ -785,7 +921,8 @@ pre {
 }
 
 @media (max-width: 1080px) {
-  .table-tools {
+  .table-tools,
+  .mutation-form:is(form) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -834,10 +971,6 @@ pre {
     white-space: nowrap;
   }
 
-  .topbar nav a.active {
-    order: -1;
-  }
-
   .topbar nav > form button {
     width: auto;
     min-height: 0;
@@ -852,10 +985,16 @@ pre {
 
   .table-tools,
   .audit-filters,
-  .settings-form {
+  .settings-form,
+  .mutation-form:is(form) {
     grid-template-columns: 1fr;
     gap: 14px;
     padding: 16px;
+  }
+
+  .table-actions,
+  .table-options {
+    min-width: 0;
   }
 
   .settings-form button {
@@ -922,6 +1061,17 @@ pre {
   }
 
   .security-card {
+    padding: 18px;
+  }
+
+  .profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .profile-card,
+  .profile-grid > .security-card {
     padding: 18px;
   }
 

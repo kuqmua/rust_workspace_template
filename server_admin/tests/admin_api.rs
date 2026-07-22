@@ -1550,6 +1550,10 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 std::future::ready(!matches!(
                     path,
                     server_admin_contract::AdminFrontendPath::Metrics
+                        | server_admin_contract::AdminFrontendPath::Permissions
+                        | server_admin_contract::AdminFrontendPath::Roles
+                        | server_admin_contract::AdminFrontendPath::Tables
+                        | server_admin_contract::AdminFrontendPath::Users
                 ))
             },
         ),
@@ -1576,12 +1580,9 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
             if matches!(
                 path,
                 server_admin_contract::AdminFrontendPath::Audit
-                    | server_admin_contract::AdminFrontendPath::Permissions
                     | server_admin_contract::AdminFrontendPath::Profile
-                    | server_admin_contract::AdminFrontendPath::Roles
                     | server_admin_contract::AdminFrontendPath::Sessions
                     | server_admin_contract::AdminFrontendPath::Settings
-                    | server_admin_contract::AdminFrontendPath::Users
             ) {
                 let html = admin_html_body(response).await;
                 assert_admin_csr_shell(&html);
@@ -1593,14 +1594,11 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
         futures::stream::iter(server_admin_contract::AdminDataTable::ALL),
         (),
         async |(), table| {
-            let uri = format!(
-                "{}?table={table}",
-                server_admin_contract::AdminFrontendPath::Tables.get()
-            );
+            let uri = table.frontend_path();
             let response = admin_html_response(
                 fixture_ref,
                 HttpAdminApiTestMethod::from(http::Method::GET),
-                StdAdminApiTestStrRef::from(uri.as_str()),
+                StdAdminApiTestStrRef::from(uri.as_ref()),
                 StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
             )
             .await;
@@ -2714,6 +2712,35 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
     assert!(
         u64::from(audit_page.total()) >= u64::try_from(audit_page.items().len()).expect("03c133e9")
     );
+    futures::StreamExt::fold(
+        futures::stream::iter(0usize..61usize),
+        (),
+        async |(), _index| {
+            let response = tower::ServiceExt::oneshot(
+                router_with_pool(&pool).0,
+                request_with_peer(
+                    HttpAdminApiTestMethod::from(http::Method::GET),
+                    StdAdminApiTestStrRef::from(
+                        format!(
+                            "{}?limit=1&offset=0",
+                            frontend_contract::typed_route_path::<
+                                server_admin_contract::AdminAuditLogRoute,
+                            >()
+                        )
+                        .as_str(),
+                    ),
+                    StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+                    Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+                    None,
+                )
+                .0,
+            )
+            .await
+            .expect("a6fa9aeb");
+            assert_eq!(response.status(), http::StatusCode::OK);
+        },
+    )
+    .await;
 
     let sessions_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,

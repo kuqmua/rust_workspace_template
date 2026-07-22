@@ -226,6 +226,7 @@ str_constants_macros::define_str_constants! {
         WORD_EXPIRED = "expired";
         WORD_EXPIRES_AT = "expires_at";
         WORD_EXPLICIT = "explicit";
+        WORD_EXPORT = "export";
         WORD_EXPR = "expr";
         WORD_EXTERNAL = "external";
         WORD_F = "F";
@@ -1049,7 +1050,7 @@ str_constants_macros::define_str_constants! {
         pub RUNTIME_FORWARDED_FOR_HEADER_NAME = [WORD_X, "-", WORD_FORWARDED, "-", WORD_FOR_2];
         pub RUNTIME_REAL_IP_HEADER_NAME = [WORD_X, "-real-", WORD_IP];
         pub SERVER_ADMIN_ACCESS_COOKIE_NAME = [WORD_ADMIN_ACCESS_TOKEN];
-        pub SERVER_ADMIN_RATE_LIMIT_AUDIT_READ = [WORD_AUDIT_2, "_", WORD_READ];
+        pub SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT = [WORD_AUDIT_2, "_", WORD_EXPORT];
         pub SERVER_ADMIN_RATE_LIMIT_MUTATION = [WORD_MUTATION];
         pub SERVER_ADMIN_RATE_LIMIT_REFRESH_IP = [WORD_REFRESH, "_", WORD_IP];
         pub SERVER_ADMIN_RATE_LIMIT_SIGN_IN_IP = [WORD_SIGN_IN, "_", WORD_IP];
@@ -2971,7 +2972,6 @@ str_constants_macros::define_str_constants! {
         pub UNKNOWN_BOUNDED_STRING_OPTION = [WORD_UNKNOWN, " ", WORD_BOUNDED_STRING, " ", WORD_OPTION_2];
         pub UNKNOWN_ADMINISTRATOR_PERMISSION = [WORD_UNKNOWN, " ", WORD_ADMINISTRATOR, " ", WORD_PERMISSION];
         pub UNKNOWN_ADMINISTRATOR_DATA_TABLE = [WORD_UNKNOWN, " ", WORD_ADMINISTRATOR, " data ", WORD_TABLE_2];
-        pub ADMIN_TABLE_QUERY_PREFIX = ["?table="];
         pub UNKNOWN_NEWTYPE_OPTION = [WORD_UNKNOWN, " ", WORD_NEWTYPE_2, " ", WORD_OPTION_2];
         pub UNKNOWN_ALT = [WORD_UNKNOWN];
         pub UNKNOWN_USER_AGENT = [WORD_UNKNOWN, "-", WORD_USER_2, "-", WORD_AGENT];
@@ -3942,7 +3942,6 @@ pub const ADMIN_RESOURCE_ID_QUERY_KEY: &str = "resource_id";
 pub const ADMIN_RESOURCE_QUERY_KEY: &str = "resource";
 pub const ADMIN_SEARCH_QUERY_KEY: &str = "search";
 pub const ADMIN_SORT_QUERY_KEY: &str = "sort";
-pub const ADMIN_TABLE_QUERY_KEY: &str = "table";
 pub const ADMIN_USER_LOGIN_QUERY_KEY: &str = "user_login";
 pub const HTML_DATE_INPUT_TYPE: &str = "date";
 pub const HTML_DATETIME_LOCAL_INPUT_TYPE: &str = "datetime-local";

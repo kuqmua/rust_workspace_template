@@ -287,6 +287,41 @@ impl<'value_lt> AdminDataTableStrRef<'value_lt> {
     }
 }
 impl AdminDataTable {
+    pub const PG_ORDER: [Self; 12] = [
+        Self::Users,
+        Self::Roles,
+        Self::Permissions,
+        Self::UserRoles,
+        Self::RolePermissions,
+        Self::RefreshTokens,
+        Self::AccessSessions,
+        Self::LoginAttempts,
+        Self::AuditLog,
+        Self::SystemSettings,
+        Self::RateLimits,
+        Self::CleanupStatus,
+    ];
+
+    #[must_use]
+    pub fn supports_filters(self) -> AdminBool {
+        AdminBool::from(matches!(self, Self::RolePermissions))
+    }
+
+    #[must_use]
+    pub fn frontend_path(self) -> AdminDataTableFrontendPath {
+        AdminDataTableFrontendPath::from(self)
+    }
+
+    #[must_use]
+    pub fn from_frontend_path(path: AdminPagePathRef<'_>) -> Option<Self> {
+        let value = path
+            .0
+            .strip_prefix(AdminFrontendPath::Root.get())
+            .and_then(|value| value.strip_prefix('/'))
+            .map(str::to_owned)?;
+        Self::try_from(value).ok()
+    }
+
     #[must_use]
     pub const fn permission(self) -> AdminPermission {
         match self {
@@ -384,7 +419,7 @@ impl TryFrom<serde_json::Value> for SerdeJsonAdminAuditDetails {
     }
 }
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
-#[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| AdminPage::from_path(AdminPagePathRef::from(value.as_str())).is_some(), description = "administrator default route")]
+#[bounded_string(max = 8_192usize, chars, serde, utoipa, validator = |value: &String| { let path = AdminPagePathRef::from(value.as_str()); AdminPage::from_path(path).is_some() || AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
 pub struct AdminDefaultRoute(String);
 #[derive(Clone, Debug, newtype::BoundedString, newtype::AsRefStr)]
 #[bounded_string(max = 8192usize, min = 1usize, chars, serde, utoipa, validator = |value: &String| !value
@@ -2846,6 +2881,8 @@ pub enum AdminRoute {
     )]
     Version,
 }
+#[derive(Clone, Debug, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
+pub struct AdminDataTableFrontendPath(Box<str>);
 #[derive(Clone, Debug, Default, PartialEq, Eq, newtype::AsRefStr, newtype::Display)]
 pub struct AdminRoutePath(Box<str>);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -2897,7 +2934,7 @@ pub enum AdminFrontendPath {
     SignIn,
     #[strum(serialize = "/admin/system-settings")]
     Settings,
-    #[strum(serialize = "/admin/tables")]
+    #[strum(serialize = "/admin/{table}")]
     Tables,
     #[strum(serialize = "/admin/users")]
     Users,
@@ -2979,6 +3016,11 @@ impl AdminFrontendPath {
     #[must_use]
     pub fn get(self) -> &'static str {
         <&'static str>::from(self)
+    }
+}
+impl From<AdminDataTable> for AdminDataTableFrontendPath {
+    fn from(value: AdminDataTable) -> Self {
+        Self(format!("{}/{}", AdminFrontendPath::Root.get(), value).into_boxed_str())
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq, frontend_contract::PageCatalog)]
@@ -3143,6 +3185,15 @@ impl AdminPageSpec {
     }
 }
 impl AdminPage {
+    pub const NAV_ORDER: [Self; 6] = [
+        Self::OpenApi,
+        Self::Metrics,
+        Self::Profile,
+        Self::Sessions,
+        Self::Settings,
+        Self::Version,
+    ];
+
     #[must_use]
     pub fn path(self) -> frontend_contract::ContractStr {
         self.spec().path()
@@ -3268,6 +3319,12 @@ mod tests {
         let _default_route =
             super::AdminDefaultRoute::try_from(super::AdminFrontendPath::Users.get().to_owned())
                 .expect("3582a0ec");
+        let _table_default_route = super::AdminDefaultRoute::try_from(
+            super::AdminDataTable::RolePermissions
+                .frontend_path()
+                .to_string(),
+        )
+        .expect("e3d42017");
         let Err(_invalid_route_error) =
             super::AdminDefaultRoute::try_from(str_constants::ROUTE.to_owned())
         else {
@@ -3512,13 +3569,89 @@ mod tests {
     )]
     fn data_tables_round_trip_and_require_read_permissions() {
         assert_eq!(super::AdminDataTable::ALL.len(), 12usize);
+        assert_eq!(
+            super::AdminDataTable::PG_ORDER,
+            [
+                super::AdminDataTable::Users,
+                super::AdminDataTable::Roles,
+                super::AdminDataTable::Permissions,
+                super::AdminDataTable::UserRoles,
+                super::AdminDataTable::RolePermissions,
+                super::AdminDataTable::RefreshTokens,
+                super::AdminDataTable::AccessSessions,
+                super::AdminDataTable::LoginAttempts,
+                super::AdminDataTable::AuditLog,
+                super::AdminDataTable::SystemSettings,
+                super::AdminDataTable::RateLimits,
+                super::AdminDataTable::CleanupStatus,
+            ]
+        );
+        assert_eq!(
+            super::AdminPage::NAV_ORDER,
+            [
+                super::AdminPage::OpenApi,
+                super::AdminPage::Metrics,
+                super::AdminPage::Profile,
+                super::AdminPage::Sessions,
+                super::AdminPage::Settings,
+                super::AdminPage::Version,
+            ]
+        );
+        assert!(super::AdminPage::NAV_ORDER.iter().all(|page| {
+            let page_label = page.title().as_ref().to_ascii_lowercase().replace(' ', "_");
+            super::AdminDataTable::PG_ORDER
+                .iter()
+                .all(|table| table.to_string() != page_label)
+        }));
+        assert_eq!(
+            super::AdminDataTable::ALL
+                .into_iter()
+                .filter(|table| bool::from(table.supports_filters()))
+                .collect::<Vec<_>>(),
+            vec![super::AdminDataTable::RolePermissions]
+        );
+        assert_eq!(
+            super::AdminDataTable::PG_ORDER.map(|table| table.frontend_path().to_string()),
+            [
+                String::from("/admin/users"),
+                String::from("/admin/roles"),
+                String::from("/admin/permissions"),
+                String::from("/admin/user_roles"),
+                String::from("/admin/role_permissions"),
+                String::from("/admin/refresh_tokens"),
+                String::from("/admin/access_sessions"),
+                String::from("/admin/login_attempts"),
+                String::from("/admin/audit_log"),
+                String::from("/admin/system_settings"),
+                String::from("/admin/rate_limits"),
+                String::from("/admin/cleanup_status"),
+            ]
+        );
         super::AdminDataTable::ALL.into_iter().for_each(|table| {
             assert_eq!(
                 super::AdminDataTable::try_from(table.to_string()).expect("0596134b"),
                 table
             );
+            assert_eq!(
+                super::AdminDataTable::from_frontend_path(super::AdminPagePathRef::from(
+                    table.frontend_path().as_ref(),
+                )),
+                Some(table)
+            );
             assert!(table.permission().as_str().get().ends_with(":read"));
         });
+        assert_eq!(
+            super::AdminDataTable::from_frontend_path(super::AdminPagePathRef::from(
+                "/admin/tables",
+            )),
+            None
+        );
+        assert_eq!(
+            super::AdminDataTable::from_frontend_path(super::AdminPagePathRef::from(
+                "/admin/profile",
+            )),
+            None
+        );
     }
 
     #[test]

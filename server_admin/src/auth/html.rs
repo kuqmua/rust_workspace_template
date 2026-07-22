@@ -163,14 +163,6 @@ struct SettingsForm {
     tab_title: AdminHtmlFormText,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DataTablesQuery {
-    #[serde(flatten)]
-    query: server_admin_contract::AdminDataTableQuery,
-    table: Option<AdminHtmlFormText>,
-}
-
 fn html_response(html: server_admin_frontend::ssr::AdminSsrHtml) -> axum::response::Response {
     axum::response::IntoResponse::into_response(axum::response::Html(String::from(html)))
 }
@@ -339,35 +331,11 @@ async fn csr_page(
     }
 }
 
-async fn users(auth: super::AdminAuthReq) -> axum::response::Response {
-    csr_page(auth, server_admin_contract::AdminPage::Users, None).await
-}
-
 async fn data_tables(
     auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<DataTablesQuery>,
+    super::AxumAdminPath(table): super::AxumAdminPath<server_admin_contract::AdminDataTable>,
 ) -> axum::response::Response {
-    let DataTablesQuery {
-        query: _query,
-        table,
-    } = query;
-    let table = table.map(|value| server_admin_contract::AdminDataTable::try_from(value.0));
-    let table = match table {
-        Some(Ok(value)) => Some(value),
-        Some(Err(_error)) => {
-            return axum::response::IntoResponse::into_response(super::AdminApiError::Validation);
-        }
-        None => None,
-    };
-    csr_page(auth, server_admin_contract::AdminPage::Tables, table).await
-}
-
-async fn roles(auth: super::AdminAuthReq) -> axum::response::Response {
-    csr_page(auth, server_admin_contract::AdminPage::Roles, None).await
-}
-
-async fn permissions(auth: super::AdminAuthReq) -> axum::response::Response {
-    csr_page(auth, server_admin_contract::AdminPage::Permissions, None).await
+    csr_page(auth, server_admin_contract::AdminPage::Tables, Some(table)).await
 }
 
 async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
@@ -900,18 +868,6 @@ pub(super) fn routes(
             .route(
                 server_admin_contract::AdminFrontendPath::SignIn.get(),
                 axum::routing::get(sign_in_page),
-            )
-            .route(
-                server_admin_contract::AdminFrontendPath::Users.get(),
-                axum::routing::get(users),
-            )
-            .route(
-                server_admin_contract::AdminFrontendPath::Roles.get(),
-                axum::routing::get(roles),
-            )
-            .route(
-                server_admin_contract::AdminFrontendPath::Permissions.get(),
-                axum::routing::get(permissions),
             )
             .route(
                 server_admin_contract::AdminFrontendPath::Tables.get(),

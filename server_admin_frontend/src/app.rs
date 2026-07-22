@@ -85,8 +85,6 @@ enum AdminTableLoadError {
     Query,
     #[error("The table response was invalid.")]
     Response,
-    #[error("The selected table is invalid.")]
-    Table,
 }
 
 #[derive(Clone, Copy, Debug, newtype::Display, newtype::FromInner)]
@@ -184,11 +182,13 @@ impl AdminCsrQuery {
             .map_err(|_error| AdminTableLoadError::Fetch)?;
         let params = web_sys::UrlSearchParams::new_with_str(&search)
             .map_err(|_error| AdminTableLoadError::Fetch)?;
-        let table = params
-            .get(str_constants::ADMIN_TABLE_QUERY_KEY)
-            .map(server_admin_contract::AdminDataTable::try_from)
-            .transpose()
-            .map_err(|_error| AdminTableLoadError::Table)?;
+        let pathname = window
+            .location()
+            .pathname()
+            .map_err(|_error| AdminTableLoadError::Fetch)?;
+        let table = server_admin_contract::AdminDataTable::from_frontend_path(
+            server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
+        );
         Ok(Self {
             action: params
                 .get(str_constants::ADMIN_ACTION_QUERY_KEY)
@@ -271,6 +271,13 @@ impl AdminCsrPage {
             .location()
             .pathname()
             .map_err(|_error| AdminTableLoadError::Fetch)?;
+        if server_admin_contract::AdminDataTable::from_frontend_path(
+            server_admin_contract::AdminPagePathRef::from(pathname.as_str()),
+        )
+        .is_some()
+        {
+            return Ok(Self::Tables);
+        }
         server_admin_contract::AdminPage::specs()
             .iter()
             .find(|spec| spec.path().as_ref() == pathname)
@@ -515,13 +522,9 @@ fn AdminDataGrid(
     query: AdminCsrQuery,
     view: server_admin_contract::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {
-    let table = view.table().to_string();
-    let clear_href = format!(
-        "{}{}{}",
-        server_admin_contract::AdminFrontendPath::Tables.get(),
-        str_constants::ADMIN_TABLE_QUERY_PREFIX,
-        table
-    );
+    let supports_filters = bool::from(view.table().supports_filters());
+    let table_path = view.table().frontend_path();
+    let clear_href = table_path.to_string();
     let total = u64::from(view.total());
     let limit = u16::from(query.limit);
     let limit_text = limit.to_string();
@@ -547,7 +550,7 @@ fn AdminDataGrid(
                         <th data-field=field.clone() data-filter-count=filter_count>
                             <div class="table-column-heading">
                                 <span>{label}</span>
-                                {(!column.filters().is_empty()).then(|| leptos::view! {
+                                {(supports_filters && !column.filters().is_empty()).then(|| leptos::view! {
                                     <details class="table-column-filter" open=is_active_field>
                                         <summary class=("active", is_active_field) aria-label=filter_label>"Filter"</summary>
                                         <div class="table-filter-operations">
@@ -561,8 +564,7 @@ fn AdminDataGrid(
                                                 let needs_value = bool::from(filter.requires_value());
                                                 let needs_end = bool::from(filter.requires_end());
                                                 leptos::view! {
-                                                    <form class="table-filter-form" method="get" action=server_admin_contract::AdminFrontendPath::Tables.get()>
-                                                        <input type="hidden" name="table" value=table.clone() />
+                                                    <form class="table-filter-form" method="get" action=table_path.as_ref().to_owned()>
                                                         <input type="hidden" name="filter_field" value=field.clone() />
                                                         <input type="hidden" name="filter_operation" value=operation_key />
                                                         <input type="hidden" name="limit" value=limit_text.clone() />
@@ -592,31 +594,30 @@ fn AdminDataGrid(
                 }).collect::<Vec<_>>()}</tbody>
             </table></div>
             <nav class="table-pagination" aria-label="Table pages">
-                <form class="table-page-size" method="get" action=server_admin_contract::AdminFrontendPath::Tables.get()>
-                    <input type="hidden" name="table" value=table.clone() />
-                    {query.filter_field.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
-                    {query.filter_operation.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
-                    {query.filter_value.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
-                    {query.filter_end.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
+                <form class="table-page-size" method="get" action=table_path.as_ref().to_owned()>
+                    {supports_filters.then_some(query.filter_field.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
+                    {supports_filters.then_some(query.filter_operation.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
+                    {supports_filters.then_some(query.filter_value.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
+                    {supports_filters.then_some(query.filter_end.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
                     <input type="hidden" name="offset" value="0" />
                     <label><span>"Rows"</span><input name="limit" type="number" min="1" max="100" value=limit_text.clone() /></label>
                     <button type="submit">"Apply"</button>
                 </form>
-                <form method="get" action=server_admin_contract::AdminFrontendPath::Tables.get()>
-                    <input type="hidden" name="table" value=table.clone() /><input type="hidden" name="limit" value=limit_text.clone() />
-                    {query.filter_field.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
-                    {query.filter_operation.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
-                    {query.filter_value.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
-                    {query.filter_end.as_ref().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
+                <form method="get" action=table_path.as_ref().to_owned()>
+                    <input type="hidden" name="limit" value=limit_text.clone() />
+                    {supports_filters.then_some(query.filter_field.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
+                    {supports_filters.then_some(query.filter_operation.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
+                    {supports_filters.then_some(query.filter_value.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
+                    {supports_filters.then_some(query.filter_end.as_ref()).flatten().map(ToString::to_string).map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value /> })}
                     <input type="hidden" name="offset" value=previous_offset.to_string() /><button type="submit" disabled=previous_disabled>"Previous"</button>
                 </form>
                 <span>{format!("{range_start}-{range_end} of {total}")}</span>
-                <form method="get" action=server_admin_contract::AdminFrontendPath::Tables.get()>
-                    <input type="hidden" name="table" value=table /><input type="hidden" name="limit" value=limit_text />
-                    {query.filter_field.map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value.to_string() /> })}
-                    {query.filter_operation.map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value.to_string() /> })}
-                    {query.filter_value.map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value.to_string() /> })}
-                    {query.filter_end.map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value.to_string() /> })}
+                <form method="get" action=table_path.as_ref().to_owned()>
+                    <input type="hidden" name="limit" value=limit_text />
+                    {supports_filters.then_some(query.filter_field).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value.to_string() /> })}
+                    {supports_filters.then_some(query.filter_operation).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value.to_string() /> })}
+                    {supports_filters.then_some(query.filter_value).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value.to_string() /> })}
+                    {supports_filters.then_some(query.filter_end).flatten().map(|value| leptos::view! { <input type="hidden" name="filter_end" value=value.to_string() /> })}
                     <input type="hidden" name="offset" value=next_offset.to_string() /><button type="submit" disabled=next_disabled>"Next"</button>
                 </form>
             </nav>
@@ -740,7 +741,7 @@ fn AdminUsersView(
                     <td data-label="login"><input disabled=!can_update value=item.login().to_string() on:input=move |event| leptos::prelude::Set::set(&login, leptos::prelude::event_target_value(&event)) /></td>
                     <td data-label="display_name"><input disabled=!can_update value=item.display_name().to_string() on:input=move |event| leptos::prelude::Set::set(&display_name, leptos::prelude::event_target_value(&event)) /></td>
                     <td data-label="banned">{is_banned.to_string()}</td>
-                    <td data-label="roles">{roles.iter().map(|role| {
+                    <td data-label="roles"><div class="table-options">{roles.iter().map(|role| {
                         let role_id = role.id();
                         let checked = item.role_ids().contains(&role_id);
                         leptos::view! { <label><input type="checkbox" checked=checked disabled=!can_update_roles on:change=move |event| {
@@ -750,8 +751,8 @@ fn AdminUsersView(
                                 } else { ids.retain(|value| *value != role_id); }
                             });
                         } />{role.name().to_string()}</label> }
-                    }).collect::<Vec<_>>()}</td>
-                    <td data-label="actions">
+                    }).collect::<Vec<_>>()}</div></td>
+                    <td data-label="actions"><div class="table-actions">
                         {can_update.then(|| leptos::view! { <button type="button" on:click=move |_event| {
                             let request = server_admin_contract::AdminUpdateUserReq::new(
                                 server_admin_contract::AdminDisplayName::try_from(leptos::prelude::Get::get(&display_name)).ok(),
@@ -791,7 +792,7 @@ fn AdminUsersView(
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
-                    </td>
+                    </div></td>
                 </tr>
             }}).collect::<Vec<_>>()}</tbody></table></div>
             <p>{format!("{} total", page.total())}</p>
@@ -854,7 +855,7 @@ fn AdminRolesView(
                     <td data-label="id">{item.id().to_string()}</td>
                     <td data-label="name"><input disabled=!can_update value=item.name().to_string() on:input=move |event| leptos::prelude::Set::set(&name, leptos::prelude::event_target_value(&event)) /></td>
                     <td data-label="system">{item.is_system().to_string()}</td>
-                    <td data-label="permissions">{permissions.iter().map(|permission| {
+                    <td data-label="permissions"><div class="table-options">{permissions.iter().map(|permission| {
                         let permission_id = permission.id();
                         let checked = item.permission_ids().contains(&permission_id);
                         leptos::view! { <label><input type="checkbox" checked=checked disabled=!can_update_permissions on:change=move |event| {
@@ -864,8 +865,8 @@ fn AdminRolesView(
                                 } else { ids.retain(|value| *value != permission_id); }
                             });
                         } />{permission.name().to_string()}</label> }
-                    }).collect::<Vec<_>>()}</td>
-                    <td data-label="actions">
+                    }).collect::<Vec<_>>()}</div></td>
+                    <td data-label="actions"><div class="table-actions">
                         {can_update.then(|| leptos::view! { <button type="button" on:click=move |_event| {
                             if let (Ok(value), Ok(path)) = (
                                 server_admin_contract::AdminRoleName::try_from(leptos::prelude::Get::get(&name)),
@@ -890,7 +891,7 @@ fn AdminRolesView(
                                 reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                             }
                         }>"Delete"</button> })}
-                    </td>
+                    </div></td>
                 </tr>
             }}).collect::<Vec<_>>()}</tbody></table></div>
             <p>{format!("{} total", page.total())}</p>
@@ -945,11 +946,11 @@ fn AdminSessionsView(
                     <td data-label="created">{item.created_at().to_string()}</td>
                     <td data-label="expires">{item.expires_at().to_string()}</td>
                     <td data-label="current">{item.is_current().to_string()}</td>
-                    <td data-label="actions"><button type="button" on:click=move |_event| {
+                    <td data-label="actions"><div class="table-actions"><button type="button" on:click=move |_event| {
                         if mutation_confirmed("Revoke this session?") && let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}/{}", str_constants::API_V1, str_constants::ADMIN_API_SESSIONS_PATH, revoke_session_id)) {
                             reload_after(AdminMutationMethod::Delete, path, server_admin_contract::AdminNoBody);
                         }
-                    }>"Revoke session"</button></td>
+                    }>"Revoke session"</button></div></td>
                 </tr>
             }}).collect::<Vec<_>>()}</tbody></table></div>
             <p>{format!("{} total", page.total())}</p>
@@ -966,13 +967,13 @@ fn AdminProfileView(
     let revoke_other_sessions = leptos::prelude::RwSignal::new(true);
     leptos::view! {
         <section class="profile-grid" data-renderer="csr">
-            <article class="profile-card"><dl>
+            <article class="profile-card"><h2>"Account"</h2><dl>
                 <dt>"Login"</dt><dd>{admin.login().to_string()}</dd>
                 <dt>"Display name"</dt><dd>{admin.display_name().to_string()}</dd>
                 <dt>"Roles"</dt><dd>{admin.roles().iter().map(ToString::to_string).collect::<Vec<_>>().join(", ")}</dd>
                 <dt>"Permissions"</dt><dd>{admin.permissions().iter().map(ToString::to_string).collect::<Vec<_>>().join(", ")}</dd>
             </dl></article>
-            <article class="security-card"><form on:submit=move |event| {
+            <article class="security-card"><h2>"Change password"</h2><form on:submit=move |event| {
                 event.prevent_default();
                 let request = (
                     server_admin_contract::AdminPassword::try_from(leptos::prelude::Get::get(&current_password)),
@@ -1155,27 +1156,28 @@ fn AdminNav(admin: server_admin_contract::AuthenticatedAdmin) -> impl leptos::pr
         .and_then(|query| query.table);
     leptos::view! {
         <header class="topbar"><nav aria-label="Admin sections">
-            {server_admin_contract::AdminPage::specs().iter().copied().filter(|spec| {
-                !matches!(spec.page(), server_admin_contract::AdminPage::Tables)
-                    && bool::from(admin.can_access(spec.page()))
-            }).map(|spec| {
-                let href = spec.path().as_ref().to_owned();
-                let active = pathname == href;
-                leptos::view! { <a class=("active", active) href=href>{spec.title().as_ref().to_ascii_lowercase().replace(' ', "_")}</a> }
-            }).collect::<Vec<_>>()}
-            {server_admin_contract::AdminDataTable::ALL.into_iter().filter(|table| {
+            {server_admin_contract::AdminDataTable::PG_ORDER.into_iter().filter(|table| {
                 bool::from(admin.has_permission(server_admin_contract::AdminPermission::TablesRead))
                     && bool::from(admin.has_permission(table.permission()))
             }).map(|table| {
                 let name = table.to_string();
-                let href = format!("{}{}{}", server_admin_contract::AdminFrontendPath::Tables.get(), str_constants::ADMIN_TABLE_QUERY_PREFIX, name);
+                let href = table.frontend_path().to_string();
                 leptos::view! { <a class=("active", active_table == Some(table)) href=href>{name}</a> }
             }).collect::<Vec<_>>()}
-            <button type="button" on:click=move |_event| {
+            {server_admin_contract::AdminPage::NAV_ORDER.into_iter().filter(|page| {
+                bool::from(admin.can_access(*page))
+            }).map(|page| {
+                let spec = page.spec();
+                let href = spec.path().as_ref().to_owned();
+                let active = pathname == href;
+                leptos::view! { <a class=("active", active) href=href>{spec.title().as_ref().to_ascii_lowercase().replace(' ', "_")}</a> }
+            }).collect::<Vec<_>>()}
+            <form on:submit=move |event| {
+                event.prevent_default();
                 if let Ok(path) = AdminCsrApiUrl::try_from(format!("{}{}", str_constants::API_V1, str_constants::ADMIN_API_SIGN_OUT_PATH)) {
                     reload_after(AdminMutationMethod::Post, path, server_admin_contract::AdminNoBody);
                 }
-            }>{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button>
+            }><button type="submit">{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button></form>
         </nav></header>
     }
 }

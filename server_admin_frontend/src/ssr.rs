@@ -83,7 +83,7 @@ impl TryFrom<String> for AdminSsrHtml {
 fn render_document(title: &AdminSsrText, body: impl IntoAny) -> AdminSsrHtml {
     let rendered_body = body.render_admin_ssr();
     AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260721-11\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{title}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260722-15\"></head><body>{}</body></html>",
         rendered_body.0
     ))
     .unwrap_or_else(AdminSsrHtml::from)
@@ -161,19 +161,19 @@ fn render_admin_page_with_table_access(
             <div class="app-shell" style=primary_color>
                 <header class="topbar">
                     <nav aria-label="Admin sections">
-                        {server_admin_contract::AdminPage::specs().iter().copied().filter(|item| !matches!(item.page(), server_admin_contract::AdminPage::Audit | server_admin_contract::AdminPage::Permissions | server_admin_contract::AdminPage::Roles | server_admin_contract::AdminPage::Sessions | server_admin_contract::AdminPage::Settings | server_admin_contract::AdminPage::Tables | server_admin_contract::AdminPage::Users) && admin.is_none_or(|value| bool::from(value.can_access(item.page())))).map(|item| {
-                            let item_page = item.page();
+                        {server_admin_contract::AdminDataTable::PG_ORDER.into_iter().filter(|table| admin.is_none_or(|value| bool::from(value.has_permission(server_admin_contract::AdminPermission::TablesRead)) && bool::from(value.has_permission(table.permission())))).map(|table| {
+                            let name = table.to_string();
+                            let href = table.frontend_path().to_string();
+                            leptos::view! {
+                                <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
+                            }
+                        }).collect::<Vec<_>>()}
+                        {server_admin_contract::AdminPage::NAV_ORDER.into_iter().filter(|item_page| admin.is_none_or(|value| bool::from(value.can_access(*item_page)))).map(|item_page| {
+                            let item = item_page.spec();
                             let href = String::from(item.path());
                             let label = item.title().as_ref().to_ascii_lowercase().replace(' ', "_");
                             leptos::view! {
                                 <a class=(item_page == page).then_some("active") href=href>{label}</a>
-                            }
-                        }).collect::<Vec<_>>()}
-                        {server_admin_contract::AdminDataTable::ALL.into_iter().filter(|table| admin.is_none_or(|value| bool::from(value.has_permission(server_admin_contract::AdminPermission::TablesRead)) && bool::from(value.has_permission(table.permission())))).map(|table| {
-                            let name = table.to_string();
-                            let href = format!("{}{}{}", server_admin_contract::AdminFrontendPath::Tables.get(), str_constants::ADMIN_TABLE_QUERY_PREFIX, name);
-                            leptos::view! {
-                                <a class=(active_table == Some(table)).then_some("active") href=href>{name}</a>
                             }
                         }).collect::<Vec<_>>()}
                         <form method="post" action=server_admin_contract::AdminHtmlAction::SignOut.get()><button type="submit">{str_constants::SIGN_OUT.to_ascii_lowercase().replace(' ', "_")}</button></form>
@@ -221,7 +221,10 @@ fn table_pagination(
     table_filter: Option<&server_admin_contract::AdminDataTableFilterQuery>,
     audit: Option<&server_admin_contract::AdminAuditHtmlQuery>,
 ) -> impl leptos::prelude::IntoView {
-    let action = String::from(page.path());
+    let action = table.map_or_else(
+        || String::from(page.path()),
+        |value| value.frontend_path().to_string(),
+    );
     let search = query.search().as_ref().to_owned();
     let sort = query.sort().as_ref().to_owned();
     let direction = query.direction().as_ref().to_owned();
@@ -231,7 +234,6 @@ fn table_pagination(
     let next_offset = offset.saturating_add(u32::from(limit));
     let previous_disabled = offset == 0u32;
     let next_disabled = u64::from(next_offset) >= u64::from(total);
-    let table_name = table.map(|value| value.to_string());
     let filter_field = table_filter
         .and_then(server_admin_contract::AdminDataTableFilterQuery::field)
         .map(ToString::to_string);
@@ -262,7 +264,6 @@ fn table_pagination(
             <form class="table-page-size" method="get" action=action.clone()>
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() />
-                {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
                 {filter_field.clone().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
                 {filter_operation.clone().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
                 {filter_value.clone().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
@@ -278,7 +279,6 @@ fn table_pagination(
             <form method="get" action=action.clone()>
                 <input type="hidden" name="search" value=search.clone() /><input type="hidden" name="sort" value=sort.clone() />
                 <input type="hidden" name="direction" value=direction.clone() /><input type="hidden" name="limit" value=limit.to_string() />
-                {table_name.clone().map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
                 {filter_field.clone().map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
                 {filter_operation.clone().map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
                 {filter_value.clone().map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
@@ -293,7 +293,6 @@ fn table_pagination(
             <form method="get" action=action>
                 <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
                 <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit.to_string() />
-                {table_name.map(|value| leptos::view! { <input type="hidden" name="table" value=value /> })}
                 {filter_field.map(|value| leptos::view! { <input type="hidden" name="filter_field" value=value /> })}
                 {filter_operation.map(|value| leptos::view! { <input type="hidden" name="filter_operation" value=value /> })}
                 {filter_value.map(|value| leptos::view! { <input type="hidden" name="filter_value" value=value /> })}
@@ -313,19 +312,15 @@ fn data_table_grid(
     view: &server_admin_contract::AdminDataTableView,
     query: &server_admin_contract::AdminDataTableQuery,
 ) -> impl leptos::prelude::IntoView {
-    let action = server_admin_contract::AdminFrontendPath::Tables.get();
-    let table = view.table().to_string();
+    let table_path = view.table().frontend_path();
+    let action = table_path.to_string();
+    let supports_filters = bool::from(view.table().supports_filters());
     let limit = u16::from(query.page().limit()).to_string();
     let active_field = query.filter().field().map(ToString::to_string);
     let active_operation = query.filter().operation();
     let active_value = query.filter().value().map(ToString::to_string);
     let active_end = query.filter().end().map(ToString::to_string);
-    let clear_href = format!(
-        "{}{}{}",
-        action,
-        str_constants::ADMIN_TABLE_QUERY_PREFIX,
-        table
-    );
+    let clear_href = table_path.to_string();
     leptos::view! {
         <div class="table-scroll"><table>
             <thead><tr>{view.columns().iter().map(|column| {
@@ -347,7 +342,7 @@ fn data_table_grid(
                     <th data-field=field.clone() data-filter-count=filter_count>
                         <div class="table-column-heading">
                             <span>{label}</span>
-                            {(!column.filters().is_empty()).then(|| leptos::view! {
+                            {(supports_filters && !column.filters().is_empty()).then(|| leptos::view! {
                                 <details class="table-column-filter" open=is_active_field>
                                     <summary class=("active", is_active_field) aria-label=filter_label>"Filter"</summary>
                                     <div class="table-filter-operations">
@@ -361,8 +356,7 @@ fn data_table_grid(
                                             let needs_value = bool::from(filter.requires_value());
                                             let needs_end = bool::from(filter.requires_end());
                                             leptos::view! {
-                                                <form class="table-filter-form" method="get" action=action>
-                                                    <input type="hidden" name="table" value=table.clone() />
+                                                <form class="table-filter-form" method="get" action=action.clone()>
                                                     <input type="hidden" name="filter_field" value=field.clone() />
                                                     <input type="hidden" name="filter_operation" value=operation_key />
                                                     <input type="hidden" name="limit" value=limit.clone() />
@@ -517,7 +511,7 @@ pub fn render_data_tables(
         {table.map(|view| leptos::view! {
             <section class="table-page">
                 {data_table_grid(view, query)}
-                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), Some(query.filter()), None)}
+                {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), bool::from(view.table().supports_filters()).then_some(query.filter()), None)}
             </section>
         })}
     }
@@ -774,9 +768,15 @@ mod tests {
         ])
         .expect("ac944ccc");
         let view = server_admin_contract::AdminDataTableView::new(
+            columns.clone(),
+            rows.clone(),
+            server_admin_contract::AdminDataTable::Users,
+            server_admin_contract::AdminPageTotal::from(1u64),
+        );
+        let filter_view = server_admin_contract::AdminDataTableView::new(
             columns,
             rows,
-            server_admin_contract::AdminDataTable::Users,
+            server_admin_contract::AdminDataTable::RolePermissions,
             server_admin_contract::AdminPageTotal::from(1u64),
         );
 
@@ -789,6 +789,7 @@ mod tests {
         assert!(html.as_ref().contains(">User identifier</span>"));
         assert!(html.as_ref().contains("class=\"numeric-cell\""));
         assert!(html.as_ref().contains("data-label=\"Login name\""));
+        assert!(!html.as_ref().contains("class=\"table-column-filter\""));
 
         let query = server_admin_contract::AdminDataTableQuery::new(
             server_admin_contract::AdminDataTableFilterQuery::new(
@@ -805,7 +806,7 @@ mod tests {
             ),
             server_admin_contract::AdminTableQuery::default(),
         );
-        let filters_html = super::data_table_grid(&view, &query).render_admin_ssr();
+        let filters_html = super::data_table_grid(&filter_view, &query).render_admin_ssr();
         assert!(
             filters_html
                 .as_ref()
@@ -855,6 +856,20 @@ mod tests {
                 .contains("name=\"filter_value\" type=\"text\" value=\"alice\"")
         );
         assert!(filters_html.as_ref().contains(">Clear</a>"));
+        assert_eq!(
+            filters_html
+                .as_ref()
+                .matches("action=\"/admin/role_permissions\"")
+                .count(),
+            2usize
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("href=\"/admin/role_permissions\"")
+        );
+        assert!(!filters_html.as_ref().contains("name=\"table\""));
+        assert!(!filters_html.as_ref().contains("?table="));
         assert_eq!(
             filters_html
                 .as_ref()
@@ -983,7 +998,7 @@ mod tests {
             server_admin_contract::AdminPage::Tables,
             &server_admin_contract::AdminTableQuery::default(),
             server_admin_contract::AdminPageTotal::from(101u64),
-            Some(server_admin_contract::AdminDataTable::Users),
+            Some(server_admin_contract::AdminDataTable::RolePermissions),
             Some(&table_filter),
             None,
         )
@@ -1009,6 +1024,15 @@ mod tests {
                 .count(),
             3usize
         );
+        assert_eq!(
+            filtered_html
+                .as_ref()
+                .matches("action=\"/admin/role_permissions\"")
+                .count(),
+            3usize
+        );
+        assert!(!filtered_html.as_ref().contains("name=\"table\""));
+        assert!(!filtered_html.as_ref().contains("?table="));
 
         let filters = server_admin_contract::AdminAuditHtmlQuery::new(
             Some(
@@ -1078,8 +1102,7 @@ mod tests {
             None,
         );
         assert!(
-            !html
-                .as_ref()
+            html.as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Users.get())
         );
         assert!(
@@ -1103,8 +1126,7 @@ mod tests {
                 .contains(server_admin_contract::AdminFrontendPath::Settings.get())
         );
         assert!(
-            !html
-                .as_ref()
+            html.as_ref()
                 .contains(server_admin_contract::AdminFrontendPath::Sessions.get())
         );
         assert!(
@@ -1113,27 +1135,43 @@ mod tests {
         );
         assert!(
             html.as_ref().contains(
-                format!(
-                    "{}{}{}",
-                    server_admin_contract::AdminFrontendPath::Tables.get(),
-                    str_constants::ADMIN_TABLE_QUERY_PREFIX,
-                    server_admin_contract::AdminDataTable::AccessSessions
-                )
-                .as_str()
+                server_admin_contract::AdminDataTable::AccessSessions
+                    .frontend_path()
+                    .as_ref()
             )
         );
+        let users_table = html
+            .as_ref()
+            .find("href=\"/admin/users\"")
+            .expect("7017fe5d");
+        let sessions_table = html
+            .as_ref()
+            .find("href=\"/admin/access_sessions\"")
+            .expect("9510971f");
+        let profile_page = html
+            .as_ref()
+            .find("href=\"/admin/profile\"")
+            .expect("21570a0c");
+        let sessions_page = html
+            .as_ref()
+            .find("href=\"/admin/sessions\"")
+            .expect("ba431a21");
+        let sign_out = html
+            .as_ref()
+            .find(server_admin_contract::AdminHtmlAction::SignOut.get())
+            .expect("46d23e89");
+        assert!(users_table < sessions_table);
+        assert!(sessions_table < profile_page);
+        assert!(profile_page < sessions_page);
+        assert!(sessions_page < sign_out);
         assert!(
             html.as_ref().contains(
-                format!(
-                    "{}{}{}",
-                    server_admin_contract::AdminFrontendPath::Tables.get(),
-                    str_constants::ADMIN_TABLE_QUERY_PREFIX,
-                    server_admin_contract::AdminDataTable::Users
-                )
-                .as_str()
+                server_admin_contract::AdminDataTable::Users
+                    .frontend_path()
+                    .as_ref()
             )
         );
-        assert!(!html.as_ref().contains("href=\"/admin/tables\""));
+        assert!(!html.as_ref().contains("?table="));
     }
 
     #[test]

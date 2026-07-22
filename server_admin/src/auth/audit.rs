@@ -28,22 +28,12 @@ pub(super) async fn query_page(
     if !query.0.cursor_is_complete().get() {
         return Err(super::AdminApiError::Validation);
     }
-    let actor = super::authorize_generated_request(
+    let _actor = super::authorize_generated_request(
         auth.state.as_ref(),
         super::super::HttpAdminHeaderMapRef::from(auth.headers.as_ref()),
         auth.peer,
         super::super::AdminPermission::AuditLogRead.as_str(),
         super::super::StdAdminBool::from(false),
-    )
-    .await?;
-    let rate_subject = super::super::StdAdminString::try_from(actor.id.get().to_string())
-        .map_err(|_error| super::AdminApiError::Validation)?;
-    super::rate_limit::enforce_rate_limit(
-        auth.state.as_ref(),
-        super::rate_limit::AdminRateLimitScope::AuditRead,
-        &rate_subject,
-        auth.state.as_ref().policy.audit_limit,
-        auth.state.as_ref().policy.audit_window,
     )
     .await?;
     let page = super::super::repository::audit::query_audit_log(
@@ -92,10 +82,10 @@ pub(super) async fn export_log(
         .map_err(|_error| super::AdminApiError::Validation)?;
     super::rate_limit::enforce_rate_limit(
         auth.state.as_ref(),
-        super::rate_limit::AdminRateLimitScope::AuditRead,
+        super::rate_limit::AdminRateLimitScope::AuditExport,
         &rate_subject,
-        auth.state.as_ref().policy.audit_limit,
-        auth.state.as_ref().policy.audit_window,
+        auth.state.as_ref().policy.audit_export_limit,
+        auth.state.as_ref().policy.audit_export_window,
     )
     .await?;
     let page = super::super::repository::audit::query_audit_log(
