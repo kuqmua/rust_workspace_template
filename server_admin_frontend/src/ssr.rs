@@ -311,30 +311,6 @@ fn table_pagination(
 #[allow(clippy::single_call_fn)] // isolates the metadata-driven grid for focused SSR contract testing
 fn data_table_grid(
     view: &server_admin_contract::AdminDataTableView,
-) -> impl leptos::prelude::IntoView {
-    leptos::view! {
-        <div class="table-scroll"><table>
-            <thead><tr>{view.columns().iter().map(|column| {
-                let field = column.name().to_string();
-                let filter_count = column.filters().len().to_string();
-                leptos::view! { <th data-field=field data-filter-count=filter_count>{column.label().to_string()}</th> }
-            }).collect::<Vec<_>>()}</tr></thead>
-            <tbody>{view.items().iter().map(|row| leptos::view! {
-                <tr>{row.values().iter().enumerate().map(|(index, value)| {
-                    let column = view.columns().get(index);
-                    let label = column.map_or_else(String::new, |item| item.label().to_string());
-                    let field = column.map_or_else(String::new, |item| item.name().to_string());
-                    let numeric = column.is_some_and(|item| matches!(item.input_kind(), server_admin_contract::AdminDataInputKind::Number));
-                    leptos::view! { <td class=("numeric-cell", numeric) data-field=field data-label=label>{value.to_string()}</td> }
-                }).collect::<Vec<_>>()}</tr>
-            }).collect::<Vec<_>>()}</tbody>
-        </table></div>
-    }
-}
-
-#[allow(clippy::single_call_fn)] // metadata-driven filter controls stay isolated from table rendering
-fn data_table_filters(
-    view: &server_admin_contract::AdminDataTableView,
     query: &server_admin_contract::AdminDataTableQuery,
 ) -> impl leptos::prelude::IntoView {
     let action = server_admin_contract::AdminFrontendPath::Tables.get();
@@ -351,11 +327,11 @@ fn data_table_filters(
         table
     );
     leptos::view! {
-        <section class="table-filter-tools" aria-label="Table filters">
-            <div class="filter-heading"><strong>"Filters"</strong><a href=clear_href>"Clear"</a></div>
-            {view.columns().iter().filter(|column| !column.filters().is_empty()).map(|column| {
+        <div class="table-scroll"><table>
+            <thead><tr>{view.columns().iter().map(|column| {
                 let field = column.name().to_string();
                 let label = column.label().to_string();
+                let filter_count = column.filters().len().to_string();
                 let input_type = match column.input_kind() {
                     server_admin_contract::AdminDataInputKind::Date => "date",
                     server_admin_contract::AdminDataInputKind::DateTime => "datetime-local",
@@ -365,37 +341,57 @@ fn data_table_filters(
                     | server_admin_contract::AdminDataInputKind::Text
                     | server_admin_contract::AdminDataInputKind::Uuid => "text",
                 };
+                let is_active_field = active_field.as_deref() == Some(field.as_str());
+                let filter_label = format!("Filter {label}");
                 leptos::view! {
-                    <details class="table-filter-field">
-                        <summary>{label}</summary>
-                        <div class="table-filter-operations">
-                            {column.filters().iter().map(|filter| {
-                                let operation = filter.operation();
-                                let operation_key = server_admin_contract::AdminFilterOperationKey::from(operation).to_string();
-                                let is_active = active_field.as_deref() == Some(field.as_str()) && active_operation == Some(operation);
-                                let value = is_active.then(|| active_value.clone()).flatten().unwrap_or_default();
-                                let end = is_active.then(|| active_end.clone()).flatten().unwrap_or_default();
-                                let needs_value = bool::from(filter.requires_value());
-                                let needs_end = bool::from(filter.requires_end());
-                                leptos::view! {
-                                    <form class="table-filter-form" method="get" action=action>
-                                        <input type="hidden" name="table" value=table.clone() />
-                                        <input type="hidden" name="filter_field" value=field.clone() />
-                                        <input type="hidden" name="filter_operation" value=operation_key />
-                                        <input type="hidden" name="limit" value=limit.clone() />
-                                        <input type="hidden" name="offset" value="0" />
-                                        <span>{format!("{operation:?}")}</span>
-                                        {needs_value.then(|| leptos::view! { <input name="filter_value" type=input_type value=value required /> })}
-                                        {needs_end.then(|| leptos::view! { <input name="filter_end" type=input_type value=end required /> })}
-                                        <button type="submit">"Apply"</button>
-                                    </form>
-                                }
-                            }).collect::<Vec<_>>()}
+                    <th data-field=field.clone() data-filter-count=filter_count>
+                        <div class="table-column-heading">
+                            <span>{label}</span>
+                            {(!column.filters().is_empty()).then(|| leptos::view! {
+                                <details class="table-column-filter" open=is_active_field>
+                                    <summary class=("active", is_active_field) aria-label=filter_label>"Filter"</summary>
+                                    <div class="table-filter-operations">
+                                        {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
+                                        {column.filters().iter().map(|filter| {
+                                            let operation = filter.operation();
+                                            let operation_key = server_admin_contract::AdminFilterOperationKey::from(operation).to_string();
+                                            let is_active = is_active_field && active_operation == Some(operation);
+                                            let value = is_active.then(|| active_value.clone()).flatten().unwrap_or_default();
+                                            let end = is_active.then(|| active_end.clone()).flatten().unwrap_or_default();
+                                            let needs_value = bool::from(filter.requires_value());
+                                            let needs_end = bool::from(filter.requires_end());
+                                            leptos::view! {
+                                                <form class="table-filter-form" method="get" action=action>
+                                                    <input type="hidden" name="table" value=table.clone() />
+                                                    <input type="hidden" name="filter_field" value=field.clone() />
+                                                    <input type="hidden" name="filter_operation" value=operation_key />
+                                                    <input type="hidden" name="limit" value=limit.clone() />
+                                                    <input type="hidden" name="offset" value="0" />
+                                                    <span>{format!("{operation:?}")}</span>
+                                                    {needs_value.then(|| leptos::view! { <input name="filter_value" type=input_type value=value required /> })}
+                                                    {needs_end.then(|| leptos::view! { <input name="filter_end" type=input_type value=end required /> })}
+                                                    <button type="submit">"Apply"</button>
+                                                </form>
+                                            }
+                                        }).collect::<Vec<_>>()}
+                                    </div>
+                                </details>
+                            })}
                         </div>
-                    </details>
+                    </th>
                 }
             }).collect::<Vec<_>>()}
-        </section>
+            </tr></thead>
+            <tbody>{view.items().iter().map(|row| leptos::view! {
+                <tr>{row.values().iter().enumerate().map(|(index, value)| {
+                    let column = view.columns().get(index);
+                    let label = column.map_or_else(String::new, |item| item.label().to_string());
+                    let field = column.map_or_else(String::new, |item| item.name().to_string());
+                    let numeric = column.is_some_and(|item| matches!(item.input_kind(), server_admin_contract::AdminDataInputKind::Number));
+                    leptos::view! { <td class=("numeric-cell", numeric) data-field=field data-label=label>{value.to_string()}</td> }
+                }).collect::<Vec<_>>()}</tr>
+            }).collect::<Vec<_>>()}</tbody>
+        </table></div>
     }
 }
 
@@ -520,8 +516,7 @@ pub fn render_data_tables(
     let content = leptos::view! {
         {table.map(|view| leptos::view! {
             <section class="table-page">
-                {data_table_filters(view, query)}
-                {data_table_grid(view)}
+                {data_table_grid(view, query)}
                 {table_pagination(server_admin_contract::AdminPage::Tables, query.page(), view.total(), Some(view.table()), Some(query.filter()), None)}
             </section>
         })}
@@ -533,6 +528,43 @@ pub fn render_data_tables(
         Some(admin),
         Some(branding),
         table.map(server_admin_contract::AdminDataTableView::table),
+    )
+}
+
+#[must_use]
+pub fn render_data_tables_csr(
+    active_table: Option<server_admin_contract::AdminDataTable>,
+    admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    render_admin_csr(
+        server_admin_contract::AdminPage::Tables,
+        active_table,
+        admin,
+        branding,
+    )
+}
+
+#[must_use]
+pub fn render_admin_csr(
+    page: server_admin_contract::AdminPage,
+    _active_table: Option<server_admin_contract::AdminDataTable>,
+    _admin: &server_admin_contract::AuthenticatedAdmin,
+    branding: &server_admin_contract::AdminBrandingView,
+) -> AdminSsrHtml {
+    let title = branding.tab_title().map_or_else(
+        || page.spec().title().as_ref().to_owned(),
+        |value| value.as_ref().to_owned(),
+    );
+    let primary_color = branding
+        .primary_color()
+        .map(|value| format!("--accent:{}", value.as_ref()));
+    render_document(
+        &AdminSsrText::try_from(title).unwrap_or_else(AdminSsrText::from),
+        leptos::view! {
+            <div id=str_constants::ADMIN_CSR_ROOT_ID style=primary_color><p class="loading-state" role="status">"Loading\u{2026}"</p></div>
+            <script type="module" src="/admin/assets/csr-bootstrap.js"></script>
+        },
     )
 }
 
@@ -748,12 +780,13 @@ mod tests {
             server_admin_contract::AdminPageTotal::from(1u64),
         );
 
-        let html = super::data_table_grid(&view).render_admin_ssr();
+        let default_query = server_admin_contract::AdminDataTableQuery::default();
+        let html = super::data_table_grid(&view, &default_query).render_admin_ssr();
 
         assert!(html.as_ref().contains("data-field=\"id\""));
         assert!(html.as_ref().contains("data-filter-count=\"0\""));
         assert!(html.as_ref().contains("data-filter-count=\"2\""));
-        assert!(html.as_ref().contains(">User identifier</th>"));
+        assert!(html.as_ref().contains(">User identifier</span>"));
         assert!(html.as_ref().contains("class=\"numeric-cell\""));
         assert!(html.as_ref().contains("data-label=\"Login name\""));
 
@@ -772,7 +805,35 @@ mod tests {
             ),
             server_admin_contract::AdminTableQuery::default(),
         );
-        let filters_html = super::data_table_filters(&view, &query).render_admin_ssr();
+        let filters_html = super::data_table_grid(&view, &query).render_admin_ssr();
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("class=\"table-column-heading\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("class=\"table-column-filter\"")
+        );
+        assert!(!filters_html.as_ref().contains("table-filter-tools"));
+        let (_before_login, login_tail) = filters_html
+            .as_ref()
+            .split_once("<th data-field=\"login\"")
+            .expect("45b73477");
+        let (login_header, _after_login) = login_tail.split_once("</th>").expect("e8120a92");
+        assert!(login_header.contains("class=\"table-column-filter\""));
+        let (_before_id, id_tail) = filters_html
+            .as_ref()
+            .split_once("<th data-field=\"id\"")
+            .expect("c8a92ef4");
+        let (id_header, _after_id) = id_tail.split_once("</th>").expect("58cdf783");
+        assert!(!id_header.contains("class=\"table-column-filter\""));
+        assert!(
+            filters_html
+                .as_ref()
+                .contains("aria-label=\"Filter Login name\"")
+        );
         assert!(
             filters_html
                 .as_ref()
@@ -839,6 +900,51 @@ mod tests {
             )
         );
         assert!(!page.as_ref().contains("<script"));
+    }
+
+    #[test]
+    fn csr_page_contains_only_bootstrap_shell() {
+        let admin = server_admin_contract::AuthenticatedAdmin::new(
+            server_admin_contract::AdminDisplayName::try_from(str_constants::ADMIN.to_owned())
+                .expect("642357a8"),
+            server_admin_contract::AdminUserId::from(1i64),
+            server_admin_contract::AdminLogin::try_from(str_constants::ROOT.to_owned())
+                .expect("71a3b6e5"),
+            server_admin_contract::AdminPermissionValues::try_from(Vec::new()).expect("8e3cf81f"),
+            server_admin_contract::AdminRoleNames::try_from(Vec::new()).expect("a5677f33"),
+        );
+        let settings = server_admin_contract::AdminSettingsView::new(
+            server_admin_contract::AdminDefaultRoute::try_from(
+                server_admin_contract::AdminFrontendPath::Users
+                    .get()
+                    .to_owned(),
+            )
+            .expect("44758b19"),
+            None,
+            None,
+            None,
+            None,
+            server_admin_contract::AdminSiteName::try_from(String::from("Admin"))
+                .expect("8ba6b381"),
+            None,
+            None,
+        );
+        let branding = server_admin_contract::AdminBrandingView::from_settings(&settings);
+        let html = super::render_admin_csr(
+            server_admin_contract::AdminPage::Users,
+            None,
+            &admin,
+            &branding,
+        );
+
+        assert!(html.as_ref().contains("id=\"admin-csr-root\""));
+        assert!(
+            html.as_ref()
+                .contains("src=\"/admin/assets/csr-bootstrap.js\"")
+        );
+        assert!(!html.as_ref().contains("<nav"));
+        assert!(!html.as_ref().contains("<table"));
+        assert!(!html.as_ref().contains("<form"));
     }
 
     #[test]

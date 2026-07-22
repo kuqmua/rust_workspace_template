@@ -280,6 +280,18 @@ async fn admin_html_body(response: HttpAdminHtmlTestResponse) -> AdminHtmlTestBo
         .map(|body| AdminHtmlTestBody::try_from(body).expect("ec7261cd"))
         .expect("8b54de37")
 }
+fn assert_admin_csr_shell(body: &AdminHtmlTestBody) {
+    assert!(
+        body.0.contains("id=\"admin-csr-root\""),
+        "CSR root is missing"
+    );
+    assert!(
+        body.0.contains("src=\"/admin/assets/csr-bootstrap.js\""),
+        "CSR bootstrap script is missing"
+    );
+    assert!(!body.0.contains("<table"), "server rendered a data table");
+    assert!(!body.0.contains("<form"), "server rendered a data form");
+}
 #[expect(
     clippy::missing_assert_message,
     reason = "the asserted status identifies the failed fixture stage"
@@ -776,19 +788,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(users_response.status(), http::StatusCode::OK);
     let users_html = admin_html_body(users_response).await;
-    assert!(users_html.0.contains(created.0.to_string().as_str()));
-    assert!(users_html.0.contains(login));
-    assert!(users_html.0.contains(display_name));
-    assert!(
-        users_html
-            .0
-            .contains("<td data-label=\"Banned\">false</td>")
-    );
-    assert!(
-        users_html
-            .0
-            .contains("name=\"expected_role_ids\" value=\"\"")
-    );
+    assert_admin_csr_shell(&users_html);
 
     let login_update_body = AdminHtmlTestFormBody::try_from(format!(
         "user_id={}&login={updated_login}&display_name=HTML+CRUD+User",
@@ -939,18 +939,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     )
     .await;
     let final_users_html = admin_html_body(final_users_response).await;
-    assert!(final_users_html.0.contains(updated_login));
-    assert!(final_users_html.0.contains(updated_display_name));
-    assert!(
-        final_users_html
-            .0
-            .contains("<td data-label=\"Banned\">true</td>")
-    );
-    assert!(
-        final_users_html
-            .0
-            .contains(format!("value=\"{role_id}\" checked").as_str())
-    );
+    assert_admin_csr_shell(&final_users_html);
     let unban_body =
         AdminHtmlTestFormBody::try_from(format!("user_id={}&is_banned=false", created.0))
             .expect("9d304db3");
@@ -1007,7 +996,7 @@ async fn postgresql_html_users_crud_covers_every_frontend_field_separately() {
     )
     .await;
     let deleted_users_html = admin_html_body(deleted_users_response).await;
-    assert!(!deleted_users_html.0.contains(updated_login));
+    assert_admin_csr_shell(&deleted_users_html);
     fixture.lock.0.rollback().await.expect("93db561a");
 }
 #[tokio::test]
@@ -1044,18 +1033,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     .await;
     assert_eq!(roles_response.status(), http::StatusCode::OK);
     let roles_html = admin_html_body(roles_response).await;
-    assert!(roles_html.0.contains(created.0.to_string().as_str()));
-    assert!(roles_html.0.contains(role_name));
-    assert!(
-        roles_html
-            .0
-            .contains("<td data-label=\"System\">false</td>")
-    );
-    assert!(
-        roles_html
-            .0
-            .contains("name=\"expected_permission_ids\" value=\"\"")
-    );
+    assert_admin_csr_shell(&roles_html);
 
     let update_body =
         AdminHtmlTestFormBody::try_from(format!("role_id={}&name={updated_role_name}", created.0))
@@ -1109,13 +1087,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     )
     .await;
     let final_roles_html = admin_html_body(final_roles_response).await;
-    assert!(final_roles_html.0.contains(updated_role_name));
-    assert!(final_roles_html.0.contains(permission.1.as_str()));
-    assert!(
-        final_roles_html
-            .0
-            .contains(format!("value=\"{}\" checked", permission.0).as_str())
-    );
+    assert_admin_csr_shell(&final_roles_html);
 
     let delete_body =
         AdminHtmlTestFormBody::try_from(format!("role_id={}&confirmation=true", created.0))
@@ -1142,7 +1114,7 @@ async fn postgresql_html_roles_crud_covers_every_frontend_field_separately() {
     )
     .await;
     let deleted_roles_html = admin_html_body(deleted_roles_response).await;
-    assert!(!deleted_roles_html.0.contains(updated_role_name));
+    assert_admin_csr_shell(&deleted_roles_html);
     fixture.lock.0.rollback().await.expect("674dc2a9");
 }
 #[tokio::test]
@@ -1285,20 +1257,7 @@ async fn postgresql_html_settings_updates_and_reads_every_field_separately() {
         .await;
         assert_eq!(read_response.status(), http::StatusCode::OK);
         let read_html = admin_html_body(read_response).await;
-        assert!(
-            [
-                values.default_admin_route,
-                values.main_logo,
-                values.organization_contacts,
-                values.organization_name,
-                values.primary_color,
-                values.site_name,
-                values.support_url,
-                values.tab_title,
-            ]
-            .into_iter()
-            .all(|value| read_html.0.contains(value.0))
-        );
+        assert_admin_csr_shell(&read_html);
     })
     .await;
     let stored = sqlx::query_as::<
@@ -1471,14 +1430,7 @@ async fn postgresql_html_profile_reads_every_field_and_changes_own_password() {
     .await;
     assert_eq!(profile_response.status(), http::StatusCode::OK);
     let profile_html = admin_html_body(profile_response).await;
-    assert!(profile_html.0.contains(str_constants::ADMIN));
-    assert!(profile_html.0.contains(str_constants::ADMIN_ALT));
-    assert!(!profile_html.0.contains("Multi-factor authentication"));
-    assert!(
-        profile_html
-            .0
-            .contains(server_admin_contract::AdminHtmlAction::ProfilePassword.get())
-    );
+    assert_admin_csr_shell(&profile_html);
 
     let original_password_hash = sqlx::query_scalar::<_, String>(
         str_constants::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
@@ -1537,7 +1489,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
             .fetch_one(&fixture.pool.0)
             .await
             .expect("7f0a7c64");
-    let (session_id, created_at, expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
+    let (session_id, _created_at, _expires_at) = sqlx::query_as::<_, (uuid::Uuid, String, String)>(
         str_constants::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
     )
     .bind(admin_id)
@@ -1555,15 +1507,7 @@ async fn postgresql_html_sessions_reads_every_field_and_revokes_session() {
     .await;
     assert_eq!(sessions_response.status(), http::StatusCode::OK);
     let sessions_html = admin_html_body(sessions_response).await;
-    assert!(sessions_html.0.contains(session_id.to_string().as_str()));
-    assert!(sessions_html.0.contains(created_at.as_str()));
-    assert!(sessions_html.0.contains(expires_at.as_str()));
-    assert!(sessions_html.0.contains("class=\"table-pagination\""));
-    assert!(
-        sessions_html
-            .0
-            .contains("<td data-label=\"Current\">true</td>")
-    );
+    assert_admin_csr_shell(&sessions_html);
 
     let revoke_body =
         AdminHtmlTestFormBody::try_from(format!("session_id={session_id}&confirmation=true"))
@@ -1633,16 +1577,14 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 path,
                 server_admin_contract::AdminFrontendPath::Audit
                     | server_admin_contract::AdminFrontendPath::Permissions
+                    | server_admin_contract::AdminFrontendPath::Profile
                     | server_admin_contract::AdminFrontendPath::Roles
                     | server_admin_contract::AdminFrontendPath::Sessions
+                    | server_admin_contract::AdminFrontendPath::Settings
                     | server_admin_contract::AdminFrontendPath::Users
             ) {
                 let html = admin_html_body(response).await;
-                assert!(
-                    html.0.contains("class=\"table-pagination\""),
-                    "table page {} has no pagination",
-                    path.get()
-                );
+                assert_admin_csr_shell(&html);
             }
         },
     )
@@ -1668,11 +1610,7 @@ async fn postgresql_html_router_registers_every_owned_page_and_action() {
                 "table view {table} failed"
             );
             let html = admin_html_body(response).await;
-            assert!(html.0.contains("class=\"table-pagination\""));
-            assert!(
-                html.0
-                    .contains(format!("name=\"table\" value=\"{table}\"").as_str())
-            );
+            assert_admin_csr_shell(&html);
         },
     )
     .await;
@@ -1804,8 +1742,7 @@ async fn postgresql_html_crud_forms_enforce_auth_csrf_validation_conflict_and_fi
     .await;
     assert_eq!(filtered_response.status(), http::StatusCode::OK);
     let filtered_html = admin_html_body(filtered_response).await;
-    assert!(filtered_html.0.contains(login));
-    assert!(!filtered_html.0.contains("<td>admin</td>"));
+    assert_admin_csr_shell(&filtered_html);
 
     let role_id = sqlx::query_scalar::<_, i64>(str_constants::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
         .fetch_one(&fixture.pool.0)

@@ -1,0 +1,8 @@
+[build]
+dist = "static/csr"
+filehash = false
+public_url = "/admin/assets/csr/"
+target = "csr.html"
+
+[watch]
+ignore = ["static/csr"]

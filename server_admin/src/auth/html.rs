@@ -316,27 +316,42 @@ async fn sign_in_page(auth: super::AdminAuthReq) -> axum::response::Response {
     }
 }
 
-async fn users(
+async fn csr_page(
     auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
+    page: server_admin_contract::AdminPage,
+    active_table: Option<server_admin_contract::AdminDataTable>,
 ) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let page_result = super::handlers::users_page(auth, super::AxumAdminQuery(query.clone())).await;
-    match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => html_response(
-            server_admin_frontend::ssr::render_users(&page, &query, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
+    match page_context(&auth).await {
+        Ok((admin, branding))
+            if bool::from(admin.can_access(page))
+                && active_table
+                    .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
+        {
+            html_response(server_admin_frontend::ssr::render_admin_csr(
+                page,
+                active_table,
+                &admin,
+                &branding,
+            ))
+        }
+        Ok(_context) => html_page_error(super::AdminApiError::Authorization),
+        Err(error) => html_page_error(error),
     }
+}
+
+async fn users(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(auth, server_admin_contract::AdminPage::Users, None).await
 }
 
 async fn data_tables(
     auth: super::AdminAuthReq,
     super::AxumAdminQuery(query): super::AxumAdminQuery<DataTablesQuery>,
 ) -> axum::response::Response {
-    let table = query
-        .table
-        .map(|value| server_admin_contract::AdminDataTable::try_from(value.0));
+    let DataTablesQuery {
+        query: _query,
+        table,
+    } = query;
+    let table = table.map(|value| server_admin_contract::AdminDataTable::try_from(value.0));
     let table = match table {
         Some(Ok(value)) => Some(value),
         Some(Err(_error)) => {
@@ -344,133 +359,31 @@ async fn data_tables(
         }
         None => None,
     };
-    let context_result = page_context(&auth).await;
-    let catalog_result = super::handlers::data_table_catalog(auth.clone()).await;
-    let view_result = match table {
-        Some(value) => super::handlers::data_table_view(auth, value, &query.query)
-            .await
-            .map(Some),
-        None => Ok(None),
-    };
-    match (context_result, catalog_result, view_result) {
-        (Ok((admin, branding)), Ok(_catalog), Ok(view)) => {
-            html_response(server_admin_frontend::ssr::render_data_tables(
-                view.as_ref(),
-                &query.query,
-                &admin,
-                &branding,
-            ))
-        }
-        (Err(error), _, _) | (_, Err(error), _) | (_, _, Err(error)) => html_page_error(error),
-    }
+    csr_page(auth, server_admin_contract::AdminPage::Tables, table).await
 }
 
-async fn roles(
-    auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
-) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let page_result = super::handlers::roles_page(auth, super::AxumAdminQuery(query.clone())).await;
-    match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => html_response(
-            server_admin_frontend::ssr::render_roles(&page, &query, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
+async fn roles(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(auth, server_admin_contract::AdminPage::Roles, None).await
 }
 
-async fn permissions(
-    auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
-) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let page_result =
-        super::handlers::permissions_page(auth, super::AxumAdminQuery(query.clone())).await;
-    match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => html_response(
-            server_admin_frontend::ssr::render_permissions(&page, &query, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
+async fn permissions(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(auth, server_admin_contract::AdminPage::Permissions, None).await
 }
 
-async fn sessions(
-    auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<server_admin_contract::AdminTableQuery>,
-) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let page_result =
-        super::handlers::sessions_view(auth, super::AxumAdminQuery(query.clone())).await;
-    match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => html_response(
-            server_admin_frontend::ssr::render_sessions(&page, &query, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
+async fn sessions(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(auth, server_admin_contract::AdminPage::Sessions, None).await
 }
 
 async fn profile(auth: super::AdminAuthReq) -> axum::response::Response {
-    match page_context(&auth).await {
-        Ok((admin, branding)) => html_response(server_admin_frontend::ssr::render_profile(
-            &admin, &branding,
-        )),
-        Err(error) => html_page_error(error),
-    }
+    csr_page(auth, server_admin_contract::AdminPage::Profile, None).await
 }
 
 async fn settings(auth: super::AdminAuthReq) -> axum::response::Response {
-    let context_result = page_context(&auth).await;
-    let view_result = super::handlers::settings_view(auth).await;
-    match (context_result, view_result) {
-        (Ok((admin, branding)), Ok(view)) => html_response(
-            server_admin_frontend::ssr::render_settings(&view, &admin, &branding),
-        ),
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
+    csr_page(auth, server_admin_contract::AdminPage::Settings, None).await
 }
 
-async fn audit(
-    auth: super::AdminAuthReq,
-    super::AxumAdminQuery(query): super::AxumAdminQuery<super::AdminAuditQuery>,
-) -> axum::response::Response {
-    let filters = match (
-        query
-            .action
-            .map(super::super::AdminAuditAction::as_str)
-            .map(|value| server_admin_contract::AdminText::try_from(value.as_ref().to_owned()))
-            .transpose(),
-        query
-            .resource
-            .map(super::super::AdminAuditResource::as_str)
-            .map(|value| server_admin_contract::AdminText::try_from(value.as_ref().to_owned()))
-            .transpose(),
-    ) {
-        (Ok(action), Ok(resource)) => server_admin_contract::AdminAuditHtmlQuery::new(
-            action,
-            resource,
-            query.resource_id.clone(),
-            query.user_login.clone(),
-        ),
-        (Err(_error), _) | (_, Err(_error)) => {
-            return html_page_error(super::AdminApiError::Validation);
-        }
-    };
-    let context_result = page_context(&auth).await;
-    let pagination =
-        server_admin_contract::AdminTableQuery::pagination(query.limit(), query.offset());
-    let page_result = super::audit::query_page(auth, super::AxumAdminQuery(query)).await;
-    match (context_result, page_result) {
-        (Ok((admin, branding)), Ok(page)) => {
-            html_response(server_admin_frontend::ssr::render_audit(
-                &page,
-                &pagination,
-                &filters,
-                &admin,
-                &branding,
-            ))
-        }
-        (Err(error), _) | (_, Err(error)) => html_page_error(error),
-    }
+async fn audit(auth: super::AdminAuthReq) -> axum::response::Response {
+    csr_page(auth, server_admin_contract::AdminPage::Audit, None).await
 }
 
 async fn version(auth: super::AdminAuthReq) -> axum::response::Response {

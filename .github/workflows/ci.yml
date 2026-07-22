@@ -128,7 +128,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@efcb852328a9f50117170cc43094fb6f09eaf1ae
         with:
           toolchain: nightly-2026-07-12
+          targets: wasm32-unknown-unknown
       - run: cargo test -p server_admin_frontend
+      - run: cargo check -p server_admin_frontend --target wasm32-unknown-unknown
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

@@ -182,12 +182,6 @@ pub(crate) struct AdminAuditQueryParts {
     pub(crate) user_login: Option<server_admin_contract::AdminLogin>,
 }
 impl AdminAuditQuery {
-    pub(crate) const fn limit(&self) -> server_admin_contract::AdminPageLimit {
-        self.limit
-    }
-    pub(crate) const fn offset(&self) -> server_admin_contract::AdminPageOffset {
-        self.offset
-    }
     pub(crate) fn cursor_is_complete(&self) -> super::StdAdminBool {
         super::StdAdminBool::from(self.cursor_created_at.is_some() == self.cursor_id.is_some())
     }
