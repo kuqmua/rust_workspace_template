@@ -7,14 +7,8 @@ pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSocketAddr(std::net::SocketAddr);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefOwned, newtype::FromInner)]
 pub struct StdResolvedClientIp(std::net::IpAddr);
-
-impl AsRef<std::net::IpAddr> for StdResolvedClientIp {
-    fn as_ref(&self) -> &std::net::IpAddr {
-        &self.0
-    }
-}
 impl std::fmt::Display for StdResolvedClientIp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&self.0, f)

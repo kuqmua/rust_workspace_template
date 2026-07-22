@@ -22,7 +22,7 @@ pub enum MultipartValueError {
     TooLong { actual: MultipartValueLength },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartFieldName(String);
 impl TryFrom<String> for MultipartFieldName {
     type Error = MultipartValueError;
@@ -41,13 +41,7 @@ impl TryFrom<String> for MultipartFieldName {
         Ok(Self(value))
     }
 }
-impl AsRef<str> for MultipartFieldName {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartFileName(String);
 impl TryFrom<String> for MultipartFileName {
     type Error = MultipartValueError;
@@ -73,13 +67,7 @@ impl TryFrom<String> for MultipartFileName {
         Ok(Self(value))
     }
 }
-impl AsRef<str> for MultipartFileName {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct MultipartTextValue(String);
 impl TryFrom<String> for MultipartTextValue {
     type Error = MultipartValueError;
@@ -95,13 +83,7 @@ impl TryFrom<String> for MultipartTextValue {
         Ok(Self(value))
     }
 }
-impl AsRef<str> for MultipartTextValue {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget)]
 pub struct MultipartBytes(Vec<u8>);
 impl TryFrom<Vec<u8>> for MultipartBytes {
     type Error = MultipartValueError;
@@ -115,12 +97,6 @@ impl TryFrom<Vec<u8>> for MultipartBytes {
         }
     }
 }
-impl AsRef<[u8]> for MultipartBytes {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MultipartTextPart {
     name: MultipartFieldName,
@@ -147,22 +123,11 @@ pub struct MultipartBytesPart {
     file_name: Option<MultipartFileName>,
     name: MultipartFieldName,
 }
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 struct MultipartBytesParts(Vec<MultipartBytesPart>);
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 struct MultipartTextParts(Vec<MultipartTextPart>);
-
-impl AsRef<[MultipartBytesPart]> for MultipartBytesParts {
-    fn as_ref(&self) -> &[MultipartBytesPart] {
-        self.0.as_slice()
-    }
-}
-impl AsRef<[MultipartTextPart]> for MultipartTextParts {
-    fn as_ref(&self) -> &[MultipartTextPart] {
-        self.0.as_slice()
-    }
-}
 impl MultipartBytesPart {
     #[must_use]
     pub const fn bytes(&self) -> &MultipartBytes {
@@ -275,13 +240,8 @@ pub enum FileStagingAction {
     Upload,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct FileStagingDirectoryName(String);
-impl AsRef<str> for FileStagingDirectoryName {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for FileStagingDirectoryName {
     type Error = MultipartValueError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -303,7 +263,7 @@ pub fn staging_directory_name(
     }))
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct StoragePathSegment(String);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("invalid storage path segment")]
@@ -322,20 +282,8 @@ impl TryFrom<String> for StoragePathSegment {
         Ok(Self(value))
     }
 }
-impl AsRef<str> for StoragePathSegment {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
-
-impl AsRef<std::path::Path> for StdStorageRelativePath {
-    fn as_ref(&self) -> &std::path::Path {
-        self.0.as_path()
-    }
-}
 #[must_use]
 pub fn identifier_file_storage_relative_path(
     identifier: &StoragePathSegment,

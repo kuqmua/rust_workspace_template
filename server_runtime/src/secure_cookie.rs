@@ -56,14 +56,8 @@ pub enum HttpCookieSecure {
     Enabled,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpSetCookieHeaderValue(http::HeaderValue);
-
-impl From<HttpSetCookieHeaderValue> for http::HeaderValue {
-    fn from(value: HttpSetCookieHeaderValue) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpSecureCookieError {

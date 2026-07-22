@@ -1301,6 +1301,7 @@ pub enum NotEmptyUniqueVecTryNewError<T> {
     optml::Optml,
     newtype::IntoVec,
     newtype::FromInner,
+    newtype::IntoInnerFrom,
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<'schema_lt, T: utoipa::ToSchema<'schema_lt>> utoipa::ToSchema<'schema_lt>
@@ -1478,11 +1479,6 @@ impl<T: AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize> DefaultSomeOneElem
 impl<T> Default for NotEmptyUniqueVec<T> {
     fn default() -> Self {
         Self::from(Vec::default())
-    }
-}
-impl<T> From<NotEmptyUniqueVec<T>> for Vec<T> {
-    fn from(v: NotEmptyUniqueVec<T>) -> Self {
-        v.0
     }
 }
 impl<T1> NotEmptyUniqueVec<T1> {
@@ -1942,16 +1938,10 @@ pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUniqueVec<T>),
     Single(T),
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner, newtype::IntoIterator,
+)]
 pub struct UuidUuidTestCases([uuid::Uuid; 1]);
-
-impl IntoIterator for UuidUuidTestCases {
-    type IntoIter = std::array::IntoIter<uuid::Uuid, 1>;
-    type Item = uuid::Uuid;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
 #[cfg(feature = "test-utils")]
 #[must_use]
 pub const fn i8_test_cases_vec() -> [i8; 3] {

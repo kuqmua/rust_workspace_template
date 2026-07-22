@@ -63,14 +63,8 @@ impl ChildProcessSet {
     }
 }
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(Clone, Debug, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChildProcessReports(Vec<ChildProcessReport>);
-
-impl AsRef<[ChildProcessReport]> for ChildProcessReports {
-    fn as_ref(&self) -> &[ChildProcessReport] {
-        self.0.as_slice()
-    }
-}
 
 #[derive(Debug, thiserror::Error)]
 pub enum ChildProcessSetError {
@@ -82,14 +76,8 @@ pub enum ChildProcessSetError {
     Process(#[source] ChildProcessError),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct ChildDiagnostic(Vec<u8>);
-
-impl AsRef<[u8]> for ChildDiagnostic {
-    fn as_ref(&self) -> &[u8] {
-        self.0.as_slice()
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ChildProcessCompletion {

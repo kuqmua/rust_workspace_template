@@ -82,19 +82,10 @@ pub enum PgRateLimitValidationError {
     MustBePositive,
 }
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(
+    Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::IntoInnerFrom, newtype::Display,
+)]
 pub struct SqlxPgRateLimitError(sqlx::Error);
-
-impl std::error::Error for SqlxPgRateLimitError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-impl From<SqlxPgRateLimitError> for sqlx::Error {
-    fn from(value: SqlxPgRateLimitError) -> Self {
-        value.0
-    }
-}
 
 #[derive(Debug, thiserror::Error)]
 pub enum PgRateLimitError {

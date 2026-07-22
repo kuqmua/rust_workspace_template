@@ -79,6 +79,7 @@ mod tests {
         newtype::DerefMutInner,
         newtype::FromInner,
         newtype::IntoInnerFrom,
+        newtype::IntoIterator,
     )]
     struct InnerVecValue<T>(Vec<T>);
     #[derive(
@@ -223,6 +224,11 @@ mod tests {
         v.push(2);
         assert_eq!(&*v, &vec![1, 2]);
         assert_eq!(Vec::<u8>::from(v), vec![1, 2]);
+    }
+    #[test]
+    fn consuming_into_iterator_is_generated() {
+        let value = InnerVecValue::from(vec![1u8, 2u8]);
+        assert_eq!(value.into_iter().collect::<Vec<u8>>(), vec![1u8, 2u8]);
     }
     #[test]
     fn target_deref_impls_are_generated() {

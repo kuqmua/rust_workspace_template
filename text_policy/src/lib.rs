@@ -16,13 +16,8 @@ pub enum BoundedTextPolicyError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct RequiredNulFreeBoundedText(String);
-impl AsRef<str> for RequiredNulFreeBoundedText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -39,13 +34,8 @@ impl TryFrom<String> for RequiredNulFreeBoundedText {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct NonEmptyTrimmedText(String);
-impl AsRef<str> for NonEmptyTrimmedText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for NonEmptyTrimmedText {
     type Error = BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -70,19 +60,8 @@ pub enum FixedLengthAsciiHexTextError {
     #[error("hexadecimal text must contain only lowercase ASCII hexadecimal digits")]
     InvalidSymbol,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
 pub struct FixedLengthAsciiHexText(String);
-impl FixedLengthAsciiHexText {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
-impl AsRef<str> for FixedLengthAsciiHexText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for FixedLengthAsciiHexText {
     type Error = FixedLengthAsciiHexTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -115,13 +94,8 @@ pub enum UrlSafeTokenPartTextError {
     TooLong,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct UrlSafeTokenPartText(String);
-impl AsRef<str> for UrlSafeTokenPartText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for UrlSafeTokenPartText {
     type Error = UrlSafeTokenPartTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

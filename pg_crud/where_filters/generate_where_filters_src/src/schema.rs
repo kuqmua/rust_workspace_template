@@ -15,13 +15,8 @@ pub(super) fn text_search_token_stream(
             .into();
     }
     quote::quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::IntoInnerFrom)]
         pub struct TextSearchMaximumInputBytes(usize);
-        impl From<TextSearchMaximumInputBytes> for usize {
-            fn from(value: TextSearchMaximumInputBytes) -> Self {
-                value.0
-            }
-        }
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub struct TextSearchPolicy {
             maximum_input_bytes: TextSearchMaximumInputBytes,
@@ -41,18 +36,8 @@ pub(super) fn text_search_token_stream(
             EndsWith,
             StartsWith,
         }
-        #[derive(Debug, Clone, PartialEq, Eq)]
+        #[derive(Debug, Clone, PartialEq, Eq, newtype::AsRefStr, newtype::IntoInnerFrom)]
         pub struct TextSearchPattern(String);
-        impl AsRef<str> for TextSearchPattern {
-            fn as_ref(&self) -> &str {
-                self.0.as_str()
-            }
-        }
-        impl From<TextSearchPattern> for String {
-            fn from(value: TextSearchPattern) -> Self {
-                value.0
-            }
-        }
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum TextSearchValueError {
             Empty,

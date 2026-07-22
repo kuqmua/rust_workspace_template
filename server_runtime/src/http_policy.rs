@@ -5,14 +5,8 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
-
-impl AsRef<str> for HttpBearerTokenRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BearerAuthorizationResolution<'value_lt> {
     Invalid,
@@ -48,19 +42,17 @@ pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    newtype::AsRefInner,
+    newtype::FromInner,
+    newtype::IntoInnerFrom,
+)]
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
-
-impl AsRef<str> for HttpCookieValueRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl<'value_lt> From<HttpCookieValueRef<'value_lt>> for &'value_lt str {
-    fn from(value: HttpCookieValueRef<'value_lt>) -> Self {
-        value.0
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CookieResolution<'value_lt> {
     Invalid,

@@ -2,16 +2,10 @@ const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
-
-impl std::error::Error for MetricsExporterPrometheusBuildError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
 #[derive(Debug, newtype::FromInner, newtype::Display)]
@@ -31,11 +25,6 @@ impl std::error::Error for ServerRuntimeBackgroundTaskShutdownError {}
 
 impl std::error::Error for ServerAdminCleanupCfgError {}
 
-impl std::error::Error for ServerRuntimeServeError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerConfigError(server_config::ConfigTryFromEnvError);
@@ -54,17 +43,11 @@ struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecuri
 impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
-#[derive(Clone, newtype::FromInner)]
+#[derive(Clone, newtype::DerefTarget, newtype::FromInner)]
 struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
 impl StdSharedServerAppState {
     const fn get(&self) -> &std::sync::Arc<server_app_state::ServerAppState<'static>> {
         &self.0
-    }
-}
-impl std::ops::Deref for StdSharedServerAppState {
-    type Target = server_app_state::ServerAppState<'static>;
-    fn deref(&self) -> &Self::Target {
-        self.0.as_ref()
     }
 }
 #[derive(newtype::FromInner)]

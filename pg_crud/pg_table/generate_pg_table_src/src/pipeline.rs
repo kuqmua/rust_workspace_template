@@ -20,14 +20,8 @@ impl SynValidatedGeneratePgTableInput {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
-
-impl From<SynGeneratePgTablePipelineError> for syn::Error {
-    fn from(value: SynGeneratePgTablePipelineError) -> Self {
-        value.0
-    }
-}
 
 #[derive(Debug)]
 pub enum GeneratePgTablePipelineError {

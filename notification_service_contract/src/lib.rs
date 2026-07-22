@@ -34,7 +34,7 @@ impl CreateNotificationRes {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, utoipa::ToSchema)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, serde::Serialize, utoipa::ToSchema)]
 #[serde(transparent)]
 pub struct NotificationMessage(String);
 impl<'de> serde::Deserialize<'de> for NotificationMessage {
@@ -104,11 +104,6 @@ impl TryFrom<String> for NotificationMessage {
             return Err(Self::Error::TooLong);
         }
         Ok(Self(value))
-    }
-}
-impl AsRef<str> for NotificationMessage {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
     }
 }
 #[cfg(test)]

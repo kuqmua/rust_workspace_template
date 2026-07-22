@@ -89,6 +89,7 @@ enum NewtypeOption {
     Getter,
     IntoInner,
     IntoInnerFrom,
+    IntoIterator,
     IntoVec,
     Secret,
     ToTokens,
@@ -522,6 +523,15 @@ pub fn into_inner_from(input: proc_macro::TokenStream) -> proc_macro::TokenStrea
     derive_newtype_option(
         ProcMacroInputTokenStream::from(input),
         NewtypeOption::IntoInnerFrom,
+        None,
+    )
+    .into()
+}
+#[proc_macro_derive(IntoIterator)]
+pub fn into_iterator(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    derive_newtype_option(
+        ProcMacroInputTokenStream::from(input),
+        NewtypeOption::IntoIterator,
         None,
     )
     .into()
@@ -992,6 +1002,18 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
+    let into_iterator_token_stream = attrs.contains(NewtypeOption::IntoIterator).get().then(|| {
+        quote::quote! {
+            #[allow(single_use_lifetimes)]
+            impl #impl_generics IntoIterator for #identifier #ty_generics #where_clause {
+                type IntoIter = <#inner_ty_ref as IntoIterator>::IntoIter;
+                type Item = <#inner_ty_ref as IntoIterator>::Item;
+                fn into_iter(self) -> Self::IntoIter {
+                    self.0.into_iter()
+                }
+            }
+        }
+    });
     let into_vec_token_stream = attrs.contains(NewtypeOption::IntoVec).get().then(|| {
         quote::quote! {
             impl #impl_generics #identifier #ty_generics #where_clause {
@@ -1035,6 +1057,7 @@ fn generate_newtype_token_stream_with_attrs(
         #getter_token_stream
         #into_inner_token_stream
         #into_inner_from_token_stream
+        #into_iterator_token_stream
         #into_vec_token_stream
         #to_tokens_token_stream
         #to_err_string_token_stream

@@ -183,13 +183,8 @@ impl FilterOperation {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, newtype::AsRefInner, newtype::FromInner)]
 pub struct FilterContracts(&'static [FilterOperation]);
-impl AsRef<[FilterOperation]> for FilterContracts {
-    fn as_ref(&self) -> &[FilterOperation] {
-        self.0
-    }
-}
 pub trait HasFilterContracts {
     const FILTER_CONTRACTS: &'static [FilterOperation];
     #[must_use]

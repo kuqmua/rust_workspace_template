@@ -80,16 +80,15 @@ pub(super) struct StdSourceTextHashSet<'text_lt>(std::collections::HashSet<&'tex
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
 #[derive(
-    Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner,
+    Debug,
+    Clone,
+    Default,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
+    newtype::IntoIterator,
 )]
 pub(super) struct DiagnosticMsgs(Vec<String>);
-impl IntoIterator for DiagnosticMsgs {
-    type IntoIter = std::vec::IntoIter<String>;
-    type Item = String;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
 #[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
 pub(super) struct DiagnosticMsgsMutRef<'msgs_lt>(&'msgs_lt mut Vec<String>);
 impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMsgsMutRef<'msgs_lt> {
@@ -131,16 +130,15 @@ impl From<SourceText> for String {
     }
 }
 #[derive(
-    Debug, Clone, Default, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner,
+    Debug,
+    Clone,
+    Default,
+    newtype::DerefInner,
+    newtype::DerefMutInner,
+    newtype::FromInner,
+    newtype::IntoIterator,
 )]
 pub(super) struct SourceTextList(Vec<String>);
-impl IntoIterator for SourceTextList {
-    type IntoIter = std::vec::IntoIter<String>;
-    type Item = String;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct SourceTextListRef<'text_lt>(&'text_lt [String]);
 impl<'text_lt> SourceTextListRef<'text_lt> {
@@ -156,26 +154,23 @@ impl<'text_lt> SourceTextListRef<'text_lt> {
     newtype::DerefInner,
     newtype::DerefMutInner,
     newtype::FromInner,
+    newtype::IntoIterator,
 )]
 pub(super) struct StdSourceTextSet(std::collections::BTreeSet<String>);
-impl IntoIterator for StdSourceTextSet {
-    type IntoIter = std::collections::btree_set::IntoIter<String>;
-    type Item = String;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
 #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
 pub(super) struct StdStdSourceTextSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
 #[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, newtype::DerefTarget, newtype::FromInner,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    newtype::AsRefTarget,
+    newtype::DerefTarget,
+    newtype::FromInner,
 )]
 pub(super) struct StdPathBuf(std::path::PathBuf);
-impl AsRef<std::path::Path> for StdPathBuf {
-    fn as_ref(&self) -> &std::path::Path {
-        &self.0
-    }
-}
 impl std::borrow::Borrow<std::path::Path> for StdPathBuf {
     fn borrow(&self) -> &std::path::Path {
         &self.0
@@ -262,19 +257,7 @@ impl<'toml_lt> TomlValueRef<'toml_lt> {
         self.0
     }
 }
-#[derive(Debug, Clone, newtype::FromInner)]
+#[derive(Debug, Clone, newtype::FromInner, newtype::IntoInner)]
 pub(super) struct TomlValue(toml::Value);
-impl TomlValue {
-    pub(super) fn into_inner(self) -> toml::Value {
-        self.0
-    }
-}
-#[derive(newtype::FromInner)]
+#[derive(newtype::FromInner, newtype::IntoIterator)]
 pub(super) struct WalkdirWalkDir(walkdir::WalkDir);
-impl IntoIterator for WalkdirWalkDir {
-    type IntoIter = walkdir::IntoIter;
-    type Item = walkdir::Result<walkdir::DirEntry>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}

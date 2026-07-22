@@ -4,7 +4,7 @@ pub enum FiniteF64Error {
     NotFinite,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
 pub struct FiniteF64(f64);
 
 impl TryFrom<f64> for FiniteF64 {
@@ -18,12 +18,6 @@ impl TryFrom<f64> for FiniteF64 {
     }
 }
 
-impl From<FiniteF64> for f64 {
-    fn from(value: FiniteF64) -> Self {
-        value.0
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, thiserror::Error)]
 pub enum PositiveFiniteF64Error {
     #[error("floating-point value must be finite")]
@@ -32,7 +26,7 @@ pub enum PositiveFiniteF64Error {
     NotPositive,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
 pub struct PositiveFiniteF64(f64);
 
 impl TryFrom<f64> for PositiveFiniteF64 {
@@ -49,12 +43,6 @@ impl TryFrom<f64> for PositiveFiniteF64 {
     }
 }
 
-impl From<PositiveFiniteF64> for f64 {
-    fn from(value: PositiveFiniteF64) -> Self {
-        value.0
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, thiserror::Error)]
 pub enum UnitIntervalF64Error {
     #[error("floating-point value must be finite")]
@@ -63,7 +51,7 @@ pub enum UnitIntervalF64Error {
     OutOfRange,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, newtype::IntoInnerFrom)]
 pub struct UnitIntervalF64(f64);
 
 impl TryFrom<f64> for UnitIntervalF64 {
@@ -77,12 +65,6 @@ impl TryFrom<f64> for UnitIntervalF64 {
             return Err(UnitIntervalF64Error::OutOfRange);
         }
         Ok(Self(value))
-    }
-}
-
-impl From<UnitIntervalF64> for f64 {
-    fn from(value: UnitIntervalF64) -> Self {
-        value.0
     }
 }
 

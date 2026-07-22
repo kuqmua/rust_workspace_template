@@ -990,6 +990,76 @@ fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
     );
 }
 #[test]
+fn tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthrough_from() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("cf02ac17"),
+        super::types::SourceTextRef::from(
+            "manual passthrough From-to-inner implementations found; derive newtype::IntoInnerFrom instead",
+        ),
+        |path, ast, ers| {
+            let is_required_foundation_impl = [
+                (
+                    std::path::Path::new("newtype/src/lib.rs"),
+                    "a proc-macro crate cannot invoke its own derive macro",
+                ),
+                (
+                    std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                    "newtype depends directly on workspace_macro_helpers",
+                ),
+            ]
+            .iter()
+            .any(|(suffix, reason)| !reason.is_empty() && path.ends_with(suffix));
+            if is_required_foundation_impl {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::PassthroughIntoInnerFromVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    inner_types: std::collections::BTreeMap::new(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
+fn tuple_newtypes_derive_into_iterator_instead_of_forwarding_into_iter() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("991ef70d"),
+        super::types::SourceTextRef::from(
+            "manual forwarding IntoIterator implementations found; derive newtype::IntoIterator instead",
+        ),
+        |path, ast, ers| {
+            let required_foundation_impl = (
+                std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                "newtype depends directly on workspace_macro_helpers",
+            );
+            if !required_foundation_impl.1.is_empty() && path.ends_with(required_foundation_impl.0)
+            {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::ForwardingIntoIteratorVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn tuple_newtypes_derive_display_instead_of_implementing_forwarding_display() {
     super::assert_rs_ast_ers_empty_with_ctx(
         super::types::StaticStr::from("6e0cc8df"),

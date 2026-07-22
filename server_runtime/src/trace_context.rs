@@ -1,7 +1,7 @@
 const TRACE_PARENT_LEN: usize = 55;
 const TRACE_STATE_MAX_LEN: usize = 512;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceParent(String);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -56,13 +56,7 @@ impl TryFrom<String> for HttpTraceParent {
     }
 }
 
-impl AsRef<str> for HttpTraceParent {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpTraceState(String);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -90,12 +84,6 @@ impl TryFrom<String> for HttpTraceState {
     }
 }
 
-impl AsRef<str> for HttpTraceState {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OutboundTraceContext {
     request_id: Option<crate::RequestId>,
@@ -103,14 +91,8 @@ pub struct OutboundTraceContext {
     trace_state: Option<HttpTraceState>,
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ReqwestRequestBuilder(reqwest::RequestBuilder);
-
-impl From<ReqwestRequestBuilder> for reqwest::RequestBuilder {
-    fn from(value: ReqwestRequestBuilder) -> Self {
-        value.0
-    }
-}
 
 impl OutboundTraceContext {
     #[must_use]

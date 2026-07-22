@@ -1,12 +1,7 @@
 const LEASE_TEXT_MAXIMUM_BYTES: usize = 1024usize;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
 pub struct LeaseId(String);
-impl AsRef<str> for LeaseId {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for LeaseId {
     type Error = LeaseTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -17,13 +12,8 @@ impl TryFrom<String> for LeaseId {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, newtype::AsRefStr)]
 pub struct LeaseKey(String);
-impl AsRef<str> for LeaseKey {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for LeaseKey {
     type Error = LeaseTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -84,14 +74,8 @@ pub enum LeaseHeartbeat {
     Missing,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::AsRefTarget, newtype::FromInner)]
 pub struct LeaseIds(Vec<LeaseId>);
-
-impl AsRef<[LeaseId]> for LeaseIds {
-    fn as_ref(&self) -> &[LeaseId] {
-        self.0.as_slice()
-    }
-}
 
 #[derive(Debug)]
 struct LeaseEntry {

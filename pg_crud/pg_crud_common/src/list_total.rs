@@ -25,13 +25,8 @@ pub enum ListTotalSource {
     Zero,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct ListTotal(i64);
-impl From<ListTotal> for i64 {
-    fn from(value: ListTotal) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("list total must not be negative")]

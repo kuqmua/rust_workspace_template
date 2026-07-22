@@ -1,15 +1,8 @@
 const DEFAULT_HTTP_METRICS_PATH_CACHE_MAXIMUM: usize = 4_096usize;
 const METRICS_RESPONSE_BODY_MAXIMUM_BYTES: usize = 8 * 1_024 * 1_024usize;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::IntoInner)]
 pub struct MetricsResponseBody(String);
-
-impl MetricsResponseBody {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
 impl axum::response::IntoResponse for MetricsResponseBody {
     fn into_response(self) -> axum::response::Response {
         axum::response::IntoResponse::into_response(self.0)

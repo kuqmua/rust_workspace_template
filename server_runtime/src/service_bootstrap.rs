@@ -9,14 +9,8 @@ pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
 
 impl std::error::Error for TracingSubscriberInitError {}
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
-
-impl From<TokioServiceRuntime> for tokio::runtime::Runtime {
-    fn from(value: TokioServiceRuntime) -> Self {
-        value.0
-    }
-}
 
 #[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct StdServiceRuntimeIoError(std::io::Error);

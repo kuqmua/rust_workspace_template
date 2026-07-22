@@ -775,6 +775,118 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
         syn::visit::visit_item_impl(self, i);
     }
 }
+struct ForwardingIntoIteratorVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_into_iterator_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_INTO_ITERATOR_TRAIT_IDENTIFIER
+            })
+        });
+        let forwards_inner = i.items.iter().any(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return false;
+            };
+            function.sig.ident == str_constants::CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER
+                && function.block.stmts.len() == 1usize
+                && function.block.stmts.first().is_some_and(|statement| {
+                    let syn::Stmt::Expr(syn::Expr::MethodCall(call), None) = statement else {
+                        return false;
+                    };
+                    let syn::Expr::Field(field) = call.receiver.as_ref() else {
+                        return false;
+                    };
+                    let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                        return false;
+                    };
+                    call.method == str_constants::CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER
+                        && receiver
+                            .path
+                            .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+                })
+        });
+        if is_into_iterator_impl && forwards_inner {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_FORWARDING_INTO_ITERATOR.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
+struct PassthroughIntoInnerFromVisitor {
+    ers: types::DiagnosticMsgs,
+    inner_types: std::collections::BTreeMap<String, syn::Type>,
+}
+impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let source_wrapper_name = i.trait_.as_ref().and_then(|(_, path, _)| {
+            let segment = path.segments.last()?;
+            if segment.ident != str_constants::CODE_STYLE_FROM_TRAIT_IDENTIFIER {
+                return None;
+            }
+            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+                return None;
+            };
+            let syn::GenericArgument::Type(syn::Type::Path(source)) = arguments.args.first()?
+            else {
+                return None;
+            };
+            source
+                .path
+                .segments
+                .last()
+                .map(|value| value.ident.to_string())
+        });
+        let targets_inner = source_wrapper_name
+            .as_ref()
+            .and_then(|name| self.inner_types.get(name))
+            .is_some_and(|inner| inner == i.self_ty.as_ref());
+        let forwards_inner = i.items.iter().any(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return false;
+            };
+            let parameter_name = function.sig.inputs.first().and_then(|argument| {
+                let syn::FnArg::Typed(typed_argument) = argument else {
+                    return None;
+                };
+                let syn::Pat::Ident(identifier) = typed_argument.pat.as_ref() else {
+                    return None;
+                };
+                Some(&identifier.ident)
+            });
+            function.sig.ident == str_constants::CODE_STYLE_FROM_FN_IDENTIFIER
+                && function.block.stmts.len() == 1usize
+                && function.block.stmts.first().is_some_and(|statement| {
+                    let syn::Stmt::Expr(syn::Expr::Field(field), None) = statement else {
+                        return false;
+                    };
+                    let syn::Expr::Path(receiver) = field.base.as_ref() else {
+                        return false;
+                    };
+                    parameter_name.is_some_and(|name| receiver.path.is_ident(name))
+                        && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+                })
+        });
+        if targets_inner && forwards_inner {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_PASSTHROUGH_INTO_INNER_FROM.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if let syn::Fields::Unnamed(fields) = &i.fields
+            && fields.unnamed.len() == 1usize
+            && let Some(field) = fields.unnamed.first()
+        {
+            let _previous = self
+                .inner_types
+                .insert(i.ident.to_string(), field.ty.clone());
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 struct PassthroughFromVisitor {
     ers: types::DiagnosticMsgs,
     inner_types: std::collections::BTreeMap<String, syn::Type>,

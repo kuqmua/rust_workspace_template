@@ -4,7 +4,7 @@ const CORS_ALLOW_ORIGIN_MAX_ITEMS: usize = 128usize;
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCorsAllowOriginTextRef<'text_lt>(&'text_lt str);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpCorsAllowOriginHeaderValues(Vec<http::HeaderValue>);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
@@ -13,11 +13,6 @@ pub enum HttpCorsAllowOriginHeaderValuesError {
     TooLong,
     #[error("CORS allow-origin configuration contains too many entries")]
     TooManyItems,
-}
-impl From<HttpCorsAllowOriginHeaderValues> for Vec<http::HeaderValue> {
-    fn from(value: HttpCorsAllowOriginHeaderValues) -> Self {
-        value.0
-    }
 }
 pub fn parse_cors_allow_origin(
     value: HttpCorsAllowOriginTextRef<'_>,

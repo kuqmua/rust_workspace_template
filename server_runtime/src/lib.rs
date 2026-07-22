@@ -211,15 +211,9 @@ pub use trace_context::{
     OutboundTraceContext, ReqwestRequestBuilder,
 };
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumRouter(axum::Router);
-
-impl From<AxumRouter> for axum::Router {
-    fn from(value: AxumRouter) -> Self {
-        value.0
-    }
-}
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct ReqwestClient(reqwest::Client);
 
 #[derive(Clone, Copy, Debug)]
@@ -266,14 +260,8 @@ impl ReqwestClientPolicy {
         }
     }
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct ReqwestClientBuildError(reqwest::Error);
-
-impl std::error::Error for ReqwestClientBuildError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 impl ReqwestClient {
     pub fn try_new(policy: ReqwestClientPolicy) -> Result<Self, ReqwestClientBuildError> {
         reqwest::Client::builder()
@@ -288,11 +276,6 @@ impl ReqwestClient {
             .build()
             .map(Self)
             .map_err(ReqwestClientBuildError)
-    }
-}
-impl From<ReqwestClient> for reqwest::Client {
-    fn from(value: ReqwestClient) -> Self {
-        value.0
     }
 }
 #[derive(Debug)]
@@ -635,14 +618,8 @@ where
         self.inner.poll_ready(cx)
     }
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct StdServeIoError(std::io::Error);
-
-impl std::error::Error for StdServeIoError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug)]
 pub enum ServeWithGracefulShutdownError {
     Serve(StdServeIoError),

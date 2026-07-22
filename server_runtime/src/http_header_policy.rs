@@ -7,14 +7,8 @@ const CONTENT_DISPOSITION_FILE_NAME_MAXIMUM_BYTES: usize = 4096usize;
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(Clone, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpContentDisposition(http::HeaderValue);
-
-impl From<HttpContentDisposition> for http::HeaderValue {
-    fn from(value: HttpContentDisposition) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpContentDispositionError {
@@ -103,13 +97,8 @@ pub enum HttpContentLengthError {
     #[error("Content-Length contains too many digits")]
     TooLong,
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpContentLength(String);
-impl AsRef<str> for HttpContentLength {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for HttpContentLength {
     type Error = HttpContentLengthError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

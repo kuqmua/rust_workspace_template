@@ -4,14 +4,8 @@ pub struct NotificationApiToken(String);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct NotificationApiTokenAuthorized(bool);
-
-impl From<NotificationApiTokenAuthorized> for bool {
-    fn from(value: NotificationApiTokenAuthorized) -> Self {
-        value.0
-    }
-}
 
 impl NotificationApiToken {
     #[must_use]
@@ -59,7 +53,7 @@ impl TryFrom<String> for NotificationApiToken {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, serde::Deserialize, serde::Serialize)]
 #[serde(try_from = "String")]
 pub struct NotificationMessage(String);
 
@@ -82,12 +76,6 @@ impl TryFrom<String> for NotificationMessage {
         } else {
             Ok(Self(value))
         }
-    }
-}
-
-impl AsRef<str> for NotificationMessage {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
     }
 }
 
@@ -133,14 +121,8 @@ impl<Sender> NotificationServiceState<Sender> {
     }
 }
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct AxumNotificationRouter(axum::Router);
-
-impl From<AxumNotificationRouter> for axum::Router {
-    fn from(value: AxumNotificationRouter) -> Self {
-        value.0
-    }
-}
 #[derive(newtype::FromInner)]
 struct HttpNotificationHeaderMap(http::HeaderMap);
 

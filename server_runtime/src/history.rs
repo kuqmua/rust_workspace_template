@@ -43,7 +43,7 @@ impl std::fmt::Display for StdAsyncRunHistoryMaximumLenTryFromUsizeError {
     }
 }
 impl std::error::Error for StdAsyncRunHistoryMaximumLenTryFromUsizeError {}
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct StdAsyncRunHistoryReportCount(usize);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -59,11 +59,6 @@ impl<RunReport> AsyncRunHistorySnapshot<RunReport> {
     #[must_use]
     pub const fn report_count(&self) -> StdAsyncRunHistoryReportCount {
         self.report_count
-    }
-}
-impl From<StdAsyncRunHistoryReportCount> for usize {
-    fn from(value: StdAsyncRunHistoryReportCount) -> Self {
-        value.0
     }
 }
 impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {

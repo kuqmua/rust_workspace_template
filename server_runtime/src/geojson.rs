@@ -1,12 +1,7 @@
 const GEO_JSON_MAXIMUM_BYTES: usize = 16_777_216usize;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct GeoJsonDocumentText(String);
-impl AsRef<str> for GeoJsonDocumentText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = GeoJsonValidationError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

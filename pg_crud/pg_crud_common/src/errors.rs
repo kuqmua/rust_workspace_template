@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display)]
+#[derive(Debug, Clone, PartialEq, Eq, optml::Optml, newtype::Display, newtype::IntoInner)]
 pub struct SqlxPostgresQueryBindError(String);
 #[derive(
     Debug,
@@ -24,12 +24,6 @@ impl to_err_string::ToErrString for PgCrudStringWrapperTryFromStringError {
 impl From<PgCrudStringWrapperTryFromStringError> for SqlxPostgresQueryBindError {
     fn from(value: PgCrudStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())
-    }
-}
-impl SqlxPostgresQueryBindError {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
     }
 }
 impl TryFrom<String> for SqlxPostgresQueryBindError {

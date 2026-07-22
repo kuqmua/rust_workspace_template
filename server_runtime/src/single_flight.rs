@@ -122,22 +122,10 @@ struct StdArcStdSingleFlightRwLock(std::sync::Arc<StdSingleFlightRwLock>);
 #[derive(Debug, Default, newtype::FromInner)]
 struct StdSingleFlightRwLock(std::sync::RwLock<SingleFlightInner>);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::DerefMutTarget, newtype::DerefTarget, newtype::FromInner)]
 struct StdSingleFlightWriteGuard<'value_lt>(
     std::sync::RwLockWriteGuard<'value_lt, SingleFlightInner>,
 );
-
-impl std::ops::Deref for StdSingleFlightWriteGuard<'_> {
-    type Target = SingleFlightInner;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl std::ops::DerefMut for StdSingleFlightWriteGuard<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum SingleFlightSignal {

@@ -19,14 +19,8 @@ impl std::fmt::Display for RequestIdTryFromStringError {
     }
 }
 impl std::error::Error for RequestIdTryFromStringError {}
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
-
-impl std::error::Error for HttpHeaderToStrError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug)]
 pub enum RequestIdTryFromHttpHeaderValueError {
     Invalid(RequestIdTryFromStringError),

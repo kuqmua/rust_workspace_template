@@ -108,14 +108,8 @@ enum AdminMutationMethod {
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct MutationConfirmationMessageRef<'message_lt>(&'message_lt str);
 
-#[derive(Clone, Copy, Debug, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, newtype::FromInner, newtype::IntoInnerFrom)]
 struct MutationConfirmed(bool);
-
-impl From<MutationConfirmed> for bool {
-    fn from(value: MutationConfirmed) -> Self {
-        value.0
-    }
-}
 
 impl AdminMutationMethod {
     const fn get(self) -> &'static str {

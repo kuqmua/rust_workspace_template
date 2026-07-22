@@ -46,6 +46,7 @@ impl pg_crud_common::DefaultSomeOneElement for EncodeFormat {
     optml::Optml,
     newtype::AsRefOwned,
     newtype::Display,
+    newtype::IntoInnerFrom,
 )]
 #[serde(try_from = "String", into = "String")]
 pub struct RegexRegex(String);
@@ -56,14 +57,8 @@ impl From<DefaultRegexPattern> for RegexRegex {
         Self(String::from(str_constants::A_Z_PLUS))
     }
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct RegexError(regex::Error);
-
-impl std::error::Error for RegexError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, thiserror::Error)]
 pub enum RegexRegexTryFromStringError {
     #[error("regular expression pattern is invalid")]
@@ -92,11 +87,6 @@ impl TryFrom<String> for RegexRegex {
         }
         let _validated_regex = regex::Regex::new(&v).map_err(RegexError::from)?;
         Ok(Self(v))
-    }
-}
-impl From<RegexRegex> for String {
-    fn from(v: RegexRegex) -> Self {
-        v.0
     }
 }
 #[allow(unused_qualifications)]

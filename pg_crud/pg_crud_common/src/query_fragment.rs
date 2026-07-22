@@ -7,18 +7,13 @@
     newtype::AsRefStr,
     newtype::DerefTarget,
     newtype::Display,
+    newtype::IntoInner,
 )]
 #[allow(
     clippy::field_scoped_visibility_modifiers,
     reason = "the private parent module assembles query fragments without widening public API"
 )]
 pub struct QueryPartFragment(String);
-impl QueryPartFragment {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
 impl From<crate::PgCrudStringWrapperTryFromStringError> for QueryPartFragment {
     fn from(value: crate::PgCrudStringWrapperTryFromStringError) -> Self {
         Self(value.to_string())

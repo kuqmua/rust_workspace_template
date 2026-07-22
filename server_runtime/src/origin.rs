@@ -97,14 +97,8 @@ struct ParsedHttpOriginRef<'text> {
     scheme: HttpOriginTextRef<'text>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct RequestOriginAllowed(bool);
-
-impl From<RequestOriginAllowed> for bool {
-    fn from(value: RequestOriginAllowed) -> Self {
-        value.0
-    }
-}
 
 #[allow(clippy::single_call_fn)] // parsing is independently testable through origin resolution
 fn parse_request_origin(

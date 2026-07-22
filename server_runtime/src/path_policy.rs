@@ -5,13 +5,8 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpProxyPathRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpProxyPath(String);
-impl AsRef<str> for HttpProxyPath {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum HttpProxyPathError {
     #[error("proxy path must not be empty")]
@@ -71,14 +66,8 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAllowedPathPrefixRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct HttpProxyPathPrefixMatch(bool);
-
-impl From<HttpProxyPathPrefixMatch> for bool {
-    fn from(value: HttpProxyPathPrefixMatch) -> Self {
-        value.0
-    }
-}
 #[must_use]
 pub fn proxy_path_matches_prefix(
     path: &HttpProxyPath,
@@ -96,13 +85,8 @@ pub fn proxy_path_matches_prefix(
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpRequestPathRef<'value_lt>(&'value_lt str);
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct HttpNormalizedPath(String);
-impl AsRef<str> for HttpNormalizedPath {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("normalized HTTP path is too long")]
 pub struct HttpNormalizedPathError;

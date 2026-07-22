@@ -37,15 +37,10 @@ pub trait ToErrString {
     newtype::AsRefStr,
     newtype::DerefTarget,
     newtype::Display,
+    newtype::IntoInner,
 )]
 #[bounded_string( max = TO_ERR_STRING_VALUE_MAX_LEN, description = "to error string value" )]
 pub struct ToErrStringValue(String);
-impl ToErrStringValue {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
 impl<T> ToErrString for &T
 where
     T: ToErrString + ?Sized,

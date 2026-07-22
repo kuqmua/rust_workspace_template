@@ -671,7 +671,9 @@ pub struct AdminBool(bool);
 #[serde(from = "u32")]
 pub struct AdminPageOffset(u32);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, utoipa::ToSchema)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, newtype::IntoInnerFrom, serde::Serialize, utoipa::ToSchema,
+)]
 #[serde(transparent)]
 pub struct AdminPageLimit(u16);
 struct AdminDefaultPageLimit;
@@ -702,11 +704,6 @@ impl<'de> serde::Deserialize<'de> for AdminPageLimit {
     {
         let value = u16::deserialize(deserializer)?;
         Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl From<AdminPageLimit> for u16 {
-    fn from(value: AdminPageLimit) -> Self {
-        value.0
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

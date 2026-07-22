@@ -4248,6 +4248,8 @@ pub const CODE_STYLE_FROM_TRAIT_IDENTIFIER: &str = "From";
 pub const CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER: &str = "Display";
 pub const CODE_STYLE_DEREF_FN_IDENTIFIER: &str = "deref";
 pub const CODE_STYLE_DEREF_TRAIT_IDENTIFIER: &str = "Deref";
+pub const CODE_STYLE_INTO_ITERATOR_FN_IDENTIFIER: &str = "into_iter";
+pub const CODE_STYLE_INTO_ITERATOR_TRAIT_IDENTIFIER: &str = "IntoIterator";
 pub const CODE_STYLE_FMT_ARGUMENT_IDENTIFIER: &str = "f";
 pub const CODE_STYLE_FMT_FN_IDENTIFIER: &str = "fmt";
 pub const CODE_STYLE_MANUAL_PASSTHROUGH_FROM: &str =
@@ -4256,6 +4258,10 @@ pub const CODE_STYLE_MANUAL_FORWARDING_DISPLAY: &str =
     "manual forwarding Display implementation found; derive newtype::Display instead";
 pub const CODE_STYLE_MANUAL_FORWARDING_DEREF: &str =
     "manual forwarding Deref implementation found; derive newtype::DerefInner instead";
+pub const CODE_STYLE_MANUAL_FORWARDING_INTO_ITERATOR: &str =
+    "manual forwarding IntoIterator implementation found; derive newtype::IntoIterator instead";
+pub const CODE_STYLE_MANUAL_PASSTHROUGH_INTO_INNER_FROM: &str =
+    "manual passthrough From-to-inner implementation found; derive newtype::IntoInnerFrom instead";
 pub const CODE_STYLE_SELF_VALUE_IDENTIFIER: &str = "self";
 pub const CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER: &str = "Self";
 pub const CODE_STYLE_VALUE_IDENTIFIER: &str = "value";

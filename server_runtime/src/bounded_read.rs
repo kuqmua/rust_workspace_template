@@ -4,28 +4,10 @@ pub struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::Display)]
 pub struct BoundedReadMaximumBytes(usize);
 
-#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInner)]
 pub struct BoundedBytes(Vec<u8>);
-
-impl BoundedBytes {
-    #[must_use]
-    pub fn into_inner(self) -> Vec<u8> {
-        self.0
-    }
-}
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr, newtype::IntoInner)]
 pub struct BoundedText(String);
-impl BoundedText {
-    #[must_use]
-    pub fn into_inner(self) -> String {
-        self.0
-    }
-}
-impl AsRef<str> for BoundedText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl TryFrom<String> for BoundedText {
     type Error = BoundedReadError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -60,53 +42,24 @@ impl StdBoundedReadConcurrency {
         )))
     }
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct StdIoError(std::io::Error);
-
-impl std::error::Error for StdIoError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug)]
 pub enum IoErrorPresenceDisposition {
     Missing,
     Other(StdIoError),
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct ReqwestError(reqwest::Error);
-
-impl std::error::Error for ReqwestError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct StdFromUtf8Error(std::string::FromUtf8Error);
-
-impl std::error::Error for StdFromUtf8Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
 
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct SerdeJsonError(serde_json::Error);
-
-impl std::error::Error for SerdeJsonError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::AsRefStr)]
 pub struct BoundedJsonText(String);
-impl AsRef<str> for BoundedJsonText {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
-}
 impl BoundedJsonText {
     pub fn compact(&self) -> Result<Self, BoundedJsonReadError> {
         let value = serde_json::from_str::<serde_json::Value>(self.0.as_str())

@@ -1,31 +1,14 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::IntoInnerFrom)]
 pub struct HttpHeaderTextMaximumBytes(usize);
-impl From<HttpHeaderTextMaximumBytes> for usize {
-    fn from(value: HttpHeaderTextMaximumBytes) -> Self {
-        value.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpHeaderTextBytes(usize);
 
-#[derive(Clone, Debug, newtype::FromInner)]
+#[derive(Clone, Debug, newtype::AsRefOwned, newtype::FromInner)]
 pub struct HttpHeaderName(http::HeaderName);
 
-impl AsRef<http::HeaderName> for HttpHeaderName {
-    fn as_ref(&self) -> &http::HeaderName {
-        &self.0
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::AsRefInner, newtype::FromInner)]
 pub struct HttpHeaderTextRef<'header>(&'header str);
-
-impl AsRef<str> for HttpHeaderTextRef<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("HTTP header text maximum must be greater than zero")]

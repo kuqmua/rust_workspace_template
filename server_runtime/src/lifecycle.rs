@@ -3,14 +3,8 @@ pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(Debug, newtype::FromInner, newtype::Display)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner, newtype::Display)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
-
-impl std::error::Error for TokioTaskJoinError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
-}
 #[derive(Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
 

@@ -209,19 +209,8 @@ enum CanBePrimaryKey {
     False,
     True,
 }
-#[derive(Clone, Copy, newtype::FromInner)]
+#[derive(Clone, Copy, newtype::AsRefInner, newtype::FromInner, newtype::ToTokens)]
 struct PgSqlName(&'static str);
-
-impl AsRef<str> for PgSqlName {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-impl quote::ToTokens for PgSqlName {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
 impl PgType {
     fn can_be_nullable(self) -> CanBeNullable {
         crate::sqlx::can_be_nullable(self.spec())
@@ -577,9 +566,9 @@ impl TryFrom<PgTypeRecordRaw> for PgTypeRecord {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::DerefTarget, newtype::IntoInnerFrom)]
 struct GeneratePgTypeRecords(Vec<PgTypeRecord>);
-#[derive(Debug)]
+#[derive(Debug, newtype::DerefTarget)]
 struct GeneratePgTypes(Vec<PgType>);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct GeneratePgTypesLengthError;
@@ -627,23 +616,6 @@ impl<'de> serde::Deserialize<'de> for GeneratePgTypes {
     {
         let value = <Vec<PgType> as serde::Deserialize>::deserialize(deserializer)?;
         Self::try_from(value).map_err(serde::de::Error::custom)
-    }
-}
-impl std::ops::Deref for GeneratePgTypeRecords {
-    type Target = [PgTypeRecord];
-    fn deref(&self) -> &Self::Target {
-        self.0.as_slice()
-    }
-}
-impl std::ops::Deref for GeneratePgTypes {
-    type Target = [PgType];
-    fn deref(&self) -> &Self::Target {
-        self.0.as_slice()
-    }
-}
-impl From<GeneratePgTypeRecords> for Vec<PgTypeRecord> {
-    fn from(value: GeneratePgTypeRecords) -> Self {
-        value.0
     }
 }
 #[derive(Debug, serde::Deserialize, optml::Optml)]
@@ -802,14 +774,8 @@ pub struct ValidatedGeneratePgTypesConfig {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTypesModelEntryCount(usize);
-
-impl From<PgTypesModelEntryCount> for usize {
-    fn from(value: PgTypesModelEntryCount) -> Self {
-        value.0
-    }
-}
 impl ValidatedGeneratePgTypesConfig {
     #[must_use]
     pub const fn entry_count(&self) -> PgTypesModelEntryCount {
