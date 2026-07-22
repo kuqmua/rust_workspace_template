@@ -2893,6 +2893,42 @@ async fn postgresql_auth_rbac_csrf_session_and_audit_flow() {
             .expect("a98d6360");
     assert_eq!(u64::from(empty_data_table.total()), 0u64);
     assert!(empty_data_table.items().is_empty());
+    let unsupported_filter_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::GET),
+            StdAdminApiTestStrRef::from("/tables/users?filter_field=login&filter_operation=between&filter_value=admin&filter_end=root&limit=20&offset=0"),
+            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("dd6d2544");
+    assert_eq!(
+        unsupported_filter_response.status(),
+        http::StatusCode::UNPROCESSABLE_ENTITY
+    );
+    let incomplete_filter_response = tower::ServiceExt::oneshot(
+        router_with_pool(&pool).0,
+        request_with_peer(
+            HttpAdminApiTestMethod::from(http::Method::GET),
+            StdAdminApiTestStrRef::from(
+                "/tables/users?filter_field=login&filter_value=admin&limit=20&offset=0",
+            ),
+            StdAdminApiTestStrRef::from(str_constants::PG_CRUD_EMPTY_SQL_SUFFIX),
+            Some(StdAdminApiTestStrRef::from(active_cookie.as_str())),
+            None,
+        )
+        .0,
+    )
+    .await
+    .expect("e9279b1f");
+    assert_eq!(
+        incomplete_filter_response.status(),
+        http::StatusCode::UNPROCESSABLE_ENTITY
+    );
     let sign_out_response = tower::ServiceExt::oneshot(
         router_with_pool(&pool).0,
         request_with_peer(

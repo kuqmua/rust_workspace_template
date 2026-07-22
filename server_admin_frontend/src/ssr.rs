@@ -786,7 +786,20 @@ mod tests {
         assert!(
             filters_html
                 .as_ref()
+                .contains("name=\"filter_operation\" value=\"regex\"")
+        );
+        assert!(
+            filters_html
+                .as_ref()
                 .contains("name=\"filter_value\" type=\"text\" value=\"alice\"")
+        );
+        assert!(filters_html.as_ref().contains(">Clear</a>"));
+        assert_eq!(
+            filters_html
+                .as_ref()
+                .matches("class=\"table-filter-form\"")
+                .count(),
+            2usize
         );
     }
 
