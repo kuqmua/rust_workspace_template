@@ -5,14 +5,8 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct MultipartPayloadMaximum(usize);
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::Display)]
 pub struct MultipartValueLength(usize);
-
-impl std::fmt::Display for MultipartValueLength {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum MultipartValueError {

@@ -4245,7 +4245,13 @@ pub const SSR_SOURCE_PATH: &str = "server_admin_frontend/src/ssr.rs";
 pub const APPLICATION_X_WWW_FORM_URLENCODED: &str = "application/x-www-form-urlencoded";
 pub const CODE_STYLE_FROM_FN_IDENTIFIER: &str = "from";
 pub const CODE_STYLE_FROM_TRAIT_IDENTIFIER: &str = "From";
+pub const CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER: &str = "Display";
+pub const CODE_STYLE_FMT_ARGUMENT_IDENTIFIER: &str = "f";
+pub const CODE_STYLE_FMT_FN_IDENTIFIER: &str = "fmt";
 pub const CODE_STYLE_MANUAL_PASSTHROUGH_FROM: &str =
     "manual passthrough From implementation found; derive newtype::FromInner instead";
+pub const CODE_STYLE_MANUAL_FORWARDING_DISPLAY: &str =
+    "manual forwarding Display implementation found; derive newtype::Display instead";
+pub const CODE_STYLE_SELF_VALUE_IDENTIFIER: &str = "self";
 pub const CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER: &str = "Self";
 pub const CODE_STYLE_VALUE_IDENTIFIER: &str = "value";

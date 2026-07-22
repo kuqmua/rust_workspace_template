@@ -2,15 +2,11 @@ const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
-impl std::fmt::Display for MetricsExporterPrometheusBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for MetricsExporterPrometheusBuildError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -18,43 +14,23 @@ impl std::error::Error for MetricsExporterPrometheusBuildError {
 }
 #[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
-impl std::fmt::Display for ServerRuntimeRequestTimeoutError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerRuntimeRequestTimeoutError {}
-impl std::fmt::Display for ServerRuntimeRunIntervalError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerRuntimeRunIntervalError {}
-impl std::fmt::Display for ServerRuntimeBackgroundTaskShutdownError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerRuntimeBackgroundTaskShutdownError {}
-impl std::fmt::Display for ServerAdminCleanupCfgError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerAdminCleanupCfgError {}
-impl std::fmt::Display for ServerRuntimeServeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerRuntimeServeError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -72,13 +48,9 @@ struct ServerAdminMigrateError(server_admin::AdminMigrateError);
 #[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
-impl std::fmt::Display for ServerRuntimeContentSecurityPolicyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
 #[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);

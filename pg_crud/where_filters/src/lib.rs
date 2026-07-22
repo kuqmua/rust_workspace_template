@@ -56,14 +56,9 @@ impl From<DefaultRegexPattern> for RegexRegex {
         Self(String::from(str_constants::A_Z_PLUS))
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct RegexError(regex::Error);
 
-impl std::fmt::Display for RegexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for RegexError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)

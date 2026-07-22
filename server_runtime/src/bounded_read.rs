@@ -1,14 +1,9 @@
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::Display)]
 pub struct BoundedReadMaximumBytes(usize);
 
-impl std::fmt::Display for BoundedReadMaximumBytes {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 #[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BoundedBytes(Vec<u8>);
 
@@ -65,14 +60,9 @@ impl StdBoundedReadConcurrency {
         )))
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct StdIoError(std::io::Error);
 
-impl std::fmt::Display for StdIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for StdIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -83,27 +73,17 @@ pub enum IoErrorPresenceDisposition {
     Missing,
     Other(StdIoError),
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct ReqwestError(reqwest::Error);
 
-impl std::fmt::Display for ReqwestError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for ReqwestError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct StdFromUtf8Error(std::string::FromUtf8Error);
 
-impl std::fmt::Display for StdFromUtf8Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for StdFromUtf8Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -112,14 +92,9 @@ impl std::error::Error for StdFromUtf8Error {
 #[derive(Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct SerdeJsonError(serde_json::Error);
 
-impl std::fmt::Display for SerdeJsonError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for SerdeJsonError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)

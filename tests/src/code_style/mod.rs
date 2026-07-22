@@ -630,6 +630,68 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
         syn::visit::visit_item_const(self, i);
     }
 }
+struct ForwardingDisplayVisitor {
+    ers: types::DiagnosticMsgs,
+}
+impl ForwardingDisplayVisitor {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the expression-shape predicate keeps the visitor branch readable"
+    )]
+    fn is_inner_fmt_expr(expr: &syn::Expr) -> bool {
+        let syn::Expr::MethodCall(call) = expr else {
+            return false;
+        };
+        let syn::Expr::Field(field) = call.receiver.as_ref() else {
+            return false;
+        };
+        let syn::Expr::Path(receiver) = field.base.as_ref() else {
+            return false;
+        };
+        receiver
+            .path
+            .is_ident(str_constants::CODE_STYLE_SELF_VALUE_IDENTIFIER)
+            && matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0u32)
+            && call.method == str_constants::CODE_STYLE_FMT_FN_IDENTIFIER
+            && call.args.len() == 1usize
+            && call.args.first().is_some_and(|argument| {
+                let syn::Expr::Path(formatter) = argument else {
+                    return false;
+                };
+                formatter
+                    .path
+                    .is_ident(str_constants::CODE_STYLE_FMT_ARGUMENT_IDENTIFIER)
+            })
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let is_display_impl = i.trait_.as_ref().is_some_and(|(_, path, _)| {
+            path.segments.last().is_some_and(|segment| {
+                segment.ident == str_constants::CODE_STYLE_DISPLAY_TRAIT_IDENTIFIER
+            })
+        });
+        let is_forwarding = i.items.len() == 1usize
+            && i.items.first().is_some_and(|item| {
+                let syn::ImplItem::Fn(function) = item else {
+                    return false;
+                };
+                function.sig.ident == str_constants::CODE_STYLE_FMT_FN_IDENTIFIER
+                    && function.block.stmts.len() == 1usize
+                    && function.block.stmts.first().is_some_and(|statement| {
+                        let syn::Stmt::Expr(expression, None) = statement else {
+                            return false;
+                        };
+                        Self::is_inner_fmt_expr(expression)
+                    })
+            });
+        if is_display_impl && is_forwarding {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_FORWARDING_DISPLAY.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+}
 struct PassthroughFromVisitor {
     ers: types::DiagnosticMsgs,
     inner_types: std::collections::BTreeMap<String, syn::Type>,

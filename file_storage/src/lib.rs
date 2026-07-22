@@ -2,14 +2,9 @@ const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct StdFileStorageIoError(std::io::Error);
 
-impl std::fmt::Display for StdFileStorageIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for StdFileStorageIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -184,17 +179,12 @@ impl StaleStagingCleanupCfg {
 #[error("stale staging cleanup limit must be between 1 and 10000")]
 pub struct StaleStagingCleanupCfgError;
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner, newtype::Display)]
 pub struct StdStaleStagingEntryCount(usize);
 
 impl From<StdStaleStagingEntryCount> for usize {
     fn from(value: StdStaleStagingEntryCount) -> Self {
         value.0
-    }
-}
-impl std::fmt::Display for StdStaleStagingEntryCount {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
     }
 }
 

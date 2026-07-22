@@ -266,14 +266,9 @@ impl ReqwestClientPolicy {
         }
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct ReqwestClientBuildError(reqwest::Error);
 
-impl std::fmt::Display for ReqwestClientBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for ReqwestClientBuildError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
@@ -640,14 +635,9 @@ where
         self.inner.poll_ready(cx)
     }
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct StdServeIoError(std::io::Error);
 
-impl std::fmt::Display for StdServeIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for StdServeIoError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)

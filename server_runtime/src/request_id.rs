@@ -1,10 +1,6 @@
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::Display)]
 pub struct RequestId(String);
-impl std::fmt::Display for RequestId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 impl TryFrom<String> for RequestId {
     type Error = RequestIdTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -23,14 +19,9 @@ impl std::fmt::Display for RequestIdTryFromStringError {
     }
 }
 impl std::error::Error for RequestIdTryFromStringError {}
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct HttpHeaderToStrError(http::header::ToStrError);
 
-impl std::fmt::Display for HttpHeaderToStrError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for HttpHeaderToStrError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)

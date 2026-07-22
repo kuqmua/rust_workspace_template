@@ -19,6 +19,7 @@ struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = 16384)]
+#[derive(newtype::Display)]
 struct StdAdminApiTestCookie(String);
 #[derive(newtype::BoundedString)]
 #[bounded_string(max = 1_048_576)]
@@ -68,11 +69,7 @@ impl AdminHtmlSettingsTestValues<'_> {
         .expect("c2af6158")
     }
 }
-impl std::fmt::Display for StdAdminApiTestCookie {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+
 fn one_admin_role_id(
     value: server_admin_contract::AdminRoleId,
 ) -> server_admin_contract::AdminRoleIds {

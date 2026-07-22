@@ -99,54 +99,23 @@ enum NotificationServiceError {
     #[error("notification service timeout configuration is invalid")]
     Timeout,
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct SqlxNotificationDatabaseError(sqlx::Error);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct StdNotificationIoError(std::io::Error);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
 
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
-
-impl std::fmt::Display for NotificationConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Display for SqlxNotificationDatabaseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Display for SqlxNotificationMigrationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Display for StdNotificationIoError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Display for NotificationServeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-impl std::fmt::Display for MetricsExporterPrometheusNotificationBuildError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 
 async fn create_notification(
     state: AxumNotificationState,

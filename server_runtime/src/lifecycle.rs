@@ -3,14 +3,9 @@ pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(Debug, newtype::FromInner)]
+#[derive(Debug, newtype::FromInner, newtype::Display)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
 
-impl std::fmt::Display for TokioTaskJoinError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
 impl std::error::Error for TokioTaskJoinError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.0)
