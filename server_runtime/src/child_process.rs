@@ -1,38 +1,16 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdChildDiagnosticMaximum(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdChildDiagnosticMaximum {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, newtype::FromInner)]
 pub struct ChildProcessId(u64);
-impl From<u64> for ChildProcessId {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdChildProcessSetMaximum(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdChildProcessSetMaximum {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, newtype::FromInner)]
 struct StdCollectionsChildProcessMap(
     std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>,
 );
-impl From<std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>>
-    for StdCollectionsChildProcessMap
-{
-    fn from(value: std::collections::BTreeMap<ChildProcessId, ChildProcessSupervisor>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Debug)]
 pub struct ChildProcessSet {
@@ -85,13 +63,9 @@ impl ChildProcessSet {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct ChildProcessReports(Vec<ChildProcessReport>);
-impl From<Vec<ChildProcessReport>> for ChildProcessReports {
-    fn from(value: Vec<ChildProcessReport>) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<[ChildProcessReport]> for ChildProcessReports {
     fn as_ref(&self) -> &[ChildProcessReport] {
         self.0.as_slice()
@@ -108,13 +82,9 @@ pub enum ChildProcessSetError {
     Process(#[source] ChildProcessError),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ChildDiagnostic(Vec<u8>);
-impl From<Vec<u8>> for ChildDiagnostic {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<[u8]> for ChildDiagnostic {
     fn as_ref(&self) -> &[u8] {
         self.0.as_slice()
@@ -127,13 +97,9 @@ pub enum ChildProcessCompletion {
     KilledAfterTimeout,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdChildExitStatus(std::process::ExitStatus);
-impl From<std::process::ExitStatus> for StdChildExitStatus {
-    fn from(value: std::process::ExitStatus) -> Self {
-        Self(value)
-    }
-}
+
 impl StdChildExitStatus {
     #[must_use]
     pub fn succeeded(self) -> ChildProcessSucceeded {
@@ -174,33 +140,16 @@ impl ChildProcessReport {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct TokioManagedChild(tokio::process::Child);
-impl From<tokio::process::Child> for TokioManagedChild {
-    fn from(value: tokio::process::Child) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioChildProcess(tokio::process::Child);
-impl From<tokio::process::Child> for TokioChildProcess {
-    fn from(value: tokio::process::Child) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct TokioChildDiagnosticTask(
     tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>,
 );
-impl From<tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>>
-    for TokioChildDiagnosticTask
-{
-    fn from(value: tokio::task::JoinHandle<Result<ChildDiagnostic, ChildProcessError>>) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Debug)]
 #[must_use]
@@ -284,21 +233,13 @@ pub enum ChildProcessError {
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
+#[derive(newtype::FromInner)]
 pub struct StdChildProcessIoError(std::io::Error);
-impl From<std::io::Error> for StdChildProcessIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Debug, thiserror::Error)]
 #[error(transparent)]
+#[derive(newtype::FromInner)]
 pub struct TokioChildProcessJoinError(tokio::task::JoinError);
-impl From<tokio::task::JoinError> for TokioChildProcessJoinError {
-    fn from(value: tokio::task::JoinError) -> Self {
-        Self(value)
-    }
-}
 
 #[allow(clippy::single_call_fn)] // isolates optional diagnostic task joining from process state transitions
 async fn join_diagnostic(

@@ -71,15 +71,8 @@ pub enum PgRelationLockError {
 #[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
 pub struct SqlxPgRelationLockError(sqlx::Error);
 
-#[derive(Debug, newtype::AsMut)]
+#[derive(Debug, newtype::AsMut, newtype::FromInner)]
 pub struct SqlxPgRelationLockConnectionRef<'connection>(&'connection mut sqlx::PgConnection);
-impl<'connection> From<&'connection mut sqlx::PgConnection>
-    for SqlxPgRelationLockConnectionRef<'connection>
-{
-    fn from(value: &'connection mut sqlx::PgConnection) -> Self {
-        Self(value)
-    }
-}
 
 pub async fn lock_pg_relation_resources(
     mut connection: SqlxPgRelationLockConnectionRef<'_>,

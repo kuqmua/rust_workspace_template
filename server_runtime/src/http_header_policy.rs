@@ -4,21 +4,12 @@
 )]
 const CONTENT_DISPOSITION_FILE_NAME_MAXIMUM_BYTES: usize = 4096usize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAttachmentFileNameRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpAttachmentFileNameRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct HttpContentDisposition(http::HeaderValue);
-impl From<http::HeaderValue> for HttpContentDisposition {
-    fn from(value: http::HeaderValue) -> Self {
-        Self(value)
-    }
-}
+
 impl From<HttpContentDisposition> for http::HeaderValue {
     fn from(value: HttpContentDisposition) -> Self {
         value.0

@@ -82,32 +82,14 @@ impl TryFrom<Vec<String>> for AllowedOrigins {
 #[error("{message}", message = str_constants::ALLOWED_HTTP_ORIGIN_LIST_IS_INVALID)]
 pub struct AllowedOriginsError;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOriginHeadersRef<'header>(&'header http::HeaderMap);
 
-impl<'header> From<&'header http::HeaderMap> for HttpOriginHeadersRef<'header> {
-    fn from(value: &'header http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct HttpOriginTextRef<'text>(&'text str);
 
-impl<'text> From<&'text str> for HttpOriginTextRef<'text> {
-    fn from(value: &'text str) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct AllowOriginSuffix(bool);
-
-impl From<bool> for AllowOriginSuffix {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 struct ParsedHttpOriginRef<'text> {
@@ -115,13 +97,8 @@ struct ParsedHttpOriginRef<'text> {
     scheme: HttpOriginTextRef<'text>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct RequestOriginAllowed(bool);
-impl From<bool> for RequestOriginAllowed {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
 impl From<RequestOriginAllowed> for bool {
     fn from(value: RequestOriginAllowed) -> Self {

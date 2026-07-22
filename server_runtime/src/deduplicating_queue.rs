@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdQueueMaximum(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdQueueMaximum {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum QueuePush {
@@ -58,21 +53,11 @@ where
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 struct StdCollectionsHashSet<Item>(std::collections::HashSet<Item>);
-impl<Item> From<std::collections::HashSet<Item>> for StdCollectionsHashSet<Item> {
-    fn from(value: std::collections::HashSet<Item>) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 struct StdCollectionsVecDeque<Item>(std::collections::VecDeque<Item>);
-impl<Item> From<std::collections::VecDeque<Item>> for StdCollectionsVecDeque<Item> {
-    fn from(value: std::collections::VecDeque<Item>) -> Self {
-        Self(value)
-    }
-}
 
 #[cfg(test)]
 mod tests {

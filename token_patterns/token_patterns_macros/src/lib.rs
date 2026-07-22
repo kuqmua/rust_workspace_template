@@ -1,15 +1,9 @@
+#[derive(newtype::FromInner)]
 struct ProcMacro2GenerateTpInput(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GenerateTpInput {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct ProcMacro2GenerateTpOutput(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2GenerateTpOutput {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
+
 fn generate_tp(input: ProcMacro2GenerateTpInput) -> ProcMacro2GenerateTpOutput {
     let mut iter = input.0.into_iter();
     let Some(name) = workspace_macro_helpers::first_identifier(&mut iter) else {

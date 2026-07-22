@@ -947,6 +947,49 @@ fn no_simple_constant_aliases_in_rust_sources() {
     );
 }
 #[test]
+fn tuple_newtypes_derive_from_inner_instead_of_implementing_passthrough_from() {
+    super::assert_rs_ast_ers_empty_with_ctx(
+        super::types::StaticStr::from("ea2406af"),
+        super::types::SourceTextRef::from(
+            "manual passthrough From implementations found; derive newtype::FromInner instead",
+        ),
+        |path, ast, ers| {
+            let is_required_foundation_impl = [
+                (
+                    std::path::Path::new("newtype/src/lib.rs"),
+                    "a proc-macro crate cannot invoke its own derive macro",
+                ),
+                (
+                    std::path::Path::new("str_constants_macros/src/lib.rs"),
+                    "newtype depends transitively on str_constants_macros",
+                ),
+                (
+                    std::path::Path::new("workspace_macro_helpers/src/lib.rs"),
+                    "newtype depends directly on workspace_macro_helpers",
+                ),
+            ]
+            .iter()
+            .any(|(suffix, reason)| !reason.is_empty() && path.ends_with(suffix));
+            if is_required_foundation_impl {
+                return;
+            }
+            let visitor = super::visit_syn_file(
+                super::types::SynFileRef::from(ast),
+                super::PassthroughFromVisitor {
+                    ers: super::types::DiagnosticMsgs::default(),
+                    inner_types: std::collections::BTreeMap::new(),
+                },
+            );
+            ers.extend(
+                visitor
+                    .ers
+                    .into_iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+#[test]
 fn no_duplicated_string_literals_in_non_policy_test_code() {
     let mut literal_locations_by_value = std::collections::BTreeMap::<String, Vec<String>>::new();
     super::for_each_rs_syn_file(|path, ast| {

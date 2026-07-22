@@ -660,15 +660,9 @@ async fn record_audit_success_in_connection(
 ) -> Result<(), AdminApiError> {
     audit::record_success_in_connection(connection, event).await
 }
-#[derive(newtype::AsMut)]
+#[derive(newtype::AsMut, newtype::FromInner)]
 struct SqlxAdminPgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
-impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
-    for SqlxAdminPgConnectionRef<'connection_lt>
-{
-    fn from(value: &'connection_lt mut sqlx::PgConnection) -> Self {
-        Self(value)
-    }
-}
+
 async fn load_authenticated_admin(
     state: &AdminAuthSvcState,
     user_id: super::AdminUserId,

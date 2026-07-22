@@ -1,18 +1,8 @@
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SynParsedGeneratePgTableInput(syn::DeriveInput);
-impl From<syn::DeriveInput> for SynParsedGeneratePgTableInput {
-    fn from(value: syn::DeriveInput) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SynBuiltGeneratePgTableInput(crate::model::GeneratePgTableModel);
-impl From<crate::model::GeneratePgTableModel> for SynBuiltGeneratePgTableInput {
-    fn from(value: crate::model::GeneratePgTableModel) -> Self {
-        Self(value)
-    }
-}
 
 impl SynBuiltGeneratePgTableInput {
     #[must_use]
@@ -21,13 +11,8 @@ impl SynBuiltGeneratePgTableInput {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SynValidatedGeneratePgTableInput(crate::model::GeneratePgTableModel);
-impl From<crate::model::GeneratePgTableModel> for SynValidatedGeneratePgTableInput {
-    fn from(value: crate::model::GeneratePgTableModel) -> Self {
-        Self(value)
-    }
-}
 
 impl SynValidatedGeneratePgTableInput {
     pub(crate) fn into_model(self) -> crate::model::GeneratePgTableModel {
@@ -35,13 +20,8 @@ impl SynValidatedGeneratePgTableInput {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SynGeneratePgTablePipelineError(syn::Error);
-impl From<syn::Error> for SynGeneratePgTablePipelineError {
-    fn from(value: syn::Error) -> Self {
-        Self(value)
-    }
-}
 
 impl From<SynGeneratePgTablePipelineError> for syn::Error {
     fn from(value: SynGeneratePgTablePipelineError) -> Self {

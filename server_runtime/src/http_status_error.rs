@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpErrorStatus(http::StatusCode);
-impl From<http::StatusCode> for HttpErrorStatus {
-    fn from(value: http::StatusCode) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpErrorClass {

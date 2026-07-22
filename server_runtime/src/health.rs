@@ -1,20 +1,11 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdHealthProbeTimeout(std::time::Duration);
-impl From<std::time::Duration> for StdHealthProbeTimeout {
-    fn from(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HealthProbeSucceeded(bool);
 impl From<HealthProbeSucceeded> for bool {
     fn from(value: HealthProbeSucceeded) -> Self {
         value.0
-    }
-}
-impl From<bool> for HealthProbeSucceeded {
-    fn from(value: bool) -> Self {
-        Self(value)
     }
 }
 
@@ -46,20 +37,12 @@ impl HealthSnapshot {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct StdHealthReadinessAtomicBool(std::sync::atomic::AtomicBool);
-impl From<std::sync::atomic::AtomicBool> for StdHealthReadinessAtomicBool {
-    fn from(value: std::sync::atomic::AtomicBool) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Debug)]
+
+#[derive(Clone, Debug, newtype::FromInner)]
 struct StdSharedHealthReadiness(std::sync::Arc<StdHealthReadinessAtomicBool>);
-impl From<std::sync::Arc<StdHealthReadinessAtomicBool>> for StdSharedHealthReadiness {
-    fn from(value: std::sync::Arc<StdHealthReadinessAtomicBool>) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Debug)]
 pub struct HealthReadiness {
     shared: StdSharedHealthReadiness,

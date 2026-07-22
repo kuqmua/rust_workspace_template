@@ -1,27 +1,15 @@
 const MAX_FORWARDED_HEADER_BYTES: usize = 4096;
 const MAX_FORWARDED_ENTRIES: usize = 32;
 const TRUSTED_PROXY_RANGES_MAX_ITEMS: usize = 128usize;
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpHeaderMapRef<'lt>(&'lt http::HeaderMap);
-impl<'lt> From<&'lt http::HeaderMap> for HttpHeaderMapRef<'lt> {
-    fn from(value: &'lt http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSocketAddr(std::net::SocketAddr);
-impl From<std::net::SocketAddr> for StdSocketAddr {
-    fn from(value: std::net::SocketAddr) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdResolvedClientIp(std::net::IpAddr);
-impl From<std::net::IpAddr> for StdResolvedClientIp {
-    fn from(value: std::net::IpAddr) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<std::net::IpAddr> for StdResolvedClientIp {
     fn as_ref(&self) -> &std::net::IpAddr {
         &self.0
@@ -37,33 +25,21 @@ pub struct TrustedProxyRange {
     network: StdIpAddr,
     prefix_bits: StdTrustedProxyPrefixBits,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdIpAddr(std::net::IpAddr);
-impl From<std::net::IpAddr> for StdIpAddr {
-    fn from(value: std::net::IpAddr) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdRangeContains(bool);
-impl From<bool> for StdRangeContains {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
+
 impl StdRangeContains {
     const fn get(self) -> bool {
         self.0
     }
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 struct StdTrustedProxyPrefixBits(u8);
-impl From<u8> for StdTrustedProxyPrefixBits {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 pub struct StdAddrParseError(std::net::AddrParseError);
 impl std::fmt::Display for StdAddrParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -71,12 +47,8 @@ impl std::fmt::Display for StdAddrParseError {
     }
 }
 impl std::error::Error for StdAddrParseError {}
-impl From<std::net::AddrParseError> for StdAddrParseError {
-    fn from(value: std::net::AddrParseError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 pub struct StdParseIntError(std::num::ParseIntError);
 impl std::fmt::Display for StdParseIntError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -84,11 +56,7 @@ impl std::fmt::Display for StdParseIntError {
     }
 }
 impl std::error::Error for StdParseIntError {}
-impl From<std::num::ParseIntError> for StdParseIntError {
-    fn from(value: std::num::ParseIntError) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Debug, thiserror::Error)]
 pub enum TrustedProxyRangeParseError {
     #[error("trusted proxy address is invalid")]

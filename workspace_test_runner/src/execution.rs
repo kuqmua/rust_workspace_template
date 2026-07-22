@@ -31,7 +31,7 @@ impl CommandSucceeded {
         self.0
     }
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::FromInner)]
 pub(super) struct CommandsRef<'commands_lt>(
     &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])],
 );
@@ -45,13 +45,7 @@ impl<'commands_lt, const N: usize>
         Self(value.as_slice())
     }
 }
-impl<'commands_lt> From<&'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])]>
-    for CommandsRef<'commands_lt>
-{
-    fn from(value: &'commands_lt [(&'commands_lt str, &'commands_lt [&'commands_lt str])]) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct CommandProgramRef<'program_lt>(&'program_lt str);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]

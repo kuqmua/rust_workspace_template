@@ -630,6 +630,97 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
         syn::visit::visit_item_const(self, i);
     }
 }
+struct PassthroughFromVisitor {
+    ers: types::DiagnosticMsgs,
+    inner_types: std::collections::BTreeMap<String, syn::Type>,
+}
+impl PassthroughFromVisitor {
+    #[allow(
+        clippy::single_call_fn,
+        reason = "the expression-shape predicate keeps the visitor branch readable"
+    )]
+    fn is_self_value_expr(expr: &syn::Expr) -> bool {
+        let syn::Expr::Call(call) = expr else {
+            return false;
+        };
+        let syn::Expr::Path(constructor) = call.func.as_ref() else {
+            return false;
+        };
+        constructor
+            .path
+            .is_ident(str_constants::CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER)
+            && call.args.len() == 1usize
+            && call.args.first().is_some_and(|argument| {
+                let syn::Expr::Path(value) = argument else {
+                    return false;
+                };
+                value
+                    .path
+                    .is_ident(str_constants::CODE_STYLE_VALUE_IDENTIFIER)
+            })
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
+    fn visit_item_impl(&mut self, i: &'ast syn::ItemImpl) {
+        let from_type = i.trait_.as_ref().and_then(|(_, path, _)| {
+            let segment = path.segments.last()?;
+            if segment.ident != str_constants::CODE_STYLE_FROM_TRAIT_IDENTIFIER {
+                return None;
+            }
+            let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+                return None;
+            };
+            let argument = arguments.args.first()?;
+            let syn::GenericArgument::Type(value) = argument else {
+                return None;
+            };
+            Some(value)
+        });
+        let wrapped_type_name = if let syn::Type::Path(path) = i.self_ty.as_ref() {
+            path.path
+                .segments
+                .last()
+                .map(|segment| segment.ident.to_string())
+        } else {
+            None
+        };
+        let wraps_from_type = wrapped_type_name
+            .as_ref()
+            .and_then(|name| self.inner_types.get(name))
+            .zip(from_type)
+            .is_some_and(|(inner_type, source_type)| inner_type == source_type);
+        let is_passthrough = i.items.len() == 1usize
+            && i.items.first().is_some_and(|item| {
+                let syn::ImplItem::Fn(function) = item else {
+                    return false;
+                };
+                function.sig.ident == str_constants::CODE_STYLE_FROM_FN_IDENTIFIER
+                    && function.block.stmts.len() == 1usize
+                    && function.block.stmts.first().is_some_and(|statement| {
+                        let syn::Stmt::Expr(expression, None) = statement else {
+                            return false;
+                        };
+                        Self::is_self_value_expr(expression)
+                    })
+            });
+        if wraps_from_type && is_passthrough {
+            self.ers
+                .push(str_constants::CODE_STYLE_MANUAL_PASSTHROUGH_FROM.to_owned());
+        }
+        syn::visit::visit_item_impl(self, i);
+    }
+    fn visit_item_struct(&mut self, i: &'ast syn::ItemStruct) {
+        if let syn::Fields::Unnamed(fields) = &i.fields
+            && fields.unnamed.len() == 1usize
+            && let Some(field) = fields.unnamed.first()
+        {
+            let _previous = self
+                .inner_types
+                .insert(i.ident.to_string(), field.ty.clone());
+        }
+        syn::visit::visit_item_struct(self, i);
+    }
+}
 struct TestStringLiteralVisitor {
     values: types::SourceTextList,
 }

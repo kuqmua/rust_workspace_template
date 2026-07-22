@@ -62,29 +62,13 @@ struct HttpMetricsPathCache {
     unmatched: MetricsSharedString,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct StdHttpMetricsPathEntries(
     std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>,
 );
-impl From<std::sync::RwLock<std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>>>
-    for StdHttpMetricsPathEntries
-{
-    fn from(
-        value: std::sync::RwLock<
-            std::collections::HashMap<HttpMetricsPathText, MetricsSharedString>,
-        >,
-    ) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsSharedString(metrics::SharedString);
-impl From<metrics::SharedString> for MetricsSharedString {
-    fn from(value: metrics::SharedString) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct HttpMetricsPathText(String);
@@ -110,14 +94,8 @@ impl TryFrom<String> for HttpMetricsPathText {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct HttpMetricsPathTextError;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct HttpMetricsPathTextRef<'path>(&'path str);
-
-impl<'path> From<&'path str> for HttpMetricsPathTextRef<'path> {
-    fn from(value: &'path str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug)]
 struct StdSharedHttpMetricsPathCache(std::sync::Arc<HttpMetricsPathCache>);

@@ -211,25 +211,17 @@ pub use trace_context::{
     OutboundTraceContext, ReqwestRequestBuilder,
 };
 pub use wire_token::{VersionedUrlSafeWireTokenText, VersionedUrlSafeWireTokenTextError};
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumRouter(axum::Router);
-impl From<axum::Router> for AxumRouter {
-    fn from(value: axum::Router) -> Self {
-        Self(value)
-    }
-}
+
 impl From<AxumRouter> for axum::Router {
     fn from(value: AxumRouter) -> Self {
         value.0
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct ReqwestClient(reqwest::Client);
-impl From<reqwest::Client> for ReqwestClient {
-    fn from(value: reqwest::Client) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug)]
 pub struct StdReqwestConnectTimeout(std::time::Duration);
 #[derive(Clone, Copy, Debug)]
@@ -274,13 +266,9 @@ impl ReqwestClientPolicy {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct ReqwestClientBuildError(reqwest::Error);
-impl From<reqwest::Error> for ReqwestClientBuildError {
-    fn from(value: reqwest::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for ReqwestClientBuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -330,13 +318,9 @@ impl ServiceRuntime {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioTcpListener(tokio::net::TcpListener);
-impl From<tokio::net::TcpListener> for TokioTcpListener {
-    fn from(value: tokio::net::TcpListener) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RequestIdLayer;
 impl RequestIdLayer {
@@ -426,21 +410,14 @@ where
         self.inner.poll_ready(cx)
     }
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RequestTimeoutLayer(StdRequestTimeout);
-impl From<StdRequestTimeout> for RequestTimeoutLayer {
-    fn from(value: StdRequestTimeout) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[serde(transparent)]
+#[derive(newtype::FromInner)]
 struct StdRequestTimeoutMessage(&'static str);
-impl From<&'static str> for StdRequestTimeoutMessage {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Debug, serde::Serialize)]
 struct RequestTimeoutBody {
     error: StdRequestTimeoutMessage,
@@ -451,13 +428,9 @@ impl RequestTimeoutLayer {
         AxumRouter::from(router.0.layer(RequestTimeoutTowerLayer::from(self.0)))
     }
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct RequestTimeoutTowerLayer(StdRequestTimeout);
-impl From<StdRequestTimeout> for RequestTimeoutTowerLayer {
-    fn from(value: StdRequestTimeout) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Debug)]
 struct RequestTimeoutService<Service> {
     inner: Service,
@@ -667,13 +640,9 @@ where
         self.inner.poll_ready(cx)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdServeIoError(std::io::Error);
-impl From<std::io::Error> for StdServeIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for StdServeIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

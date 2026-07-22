@@ -48,13 +48,8 @@ impl Drop for ExclusiveRunGuard<'_> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct StdExclusiveRunAtomicBool(std::sync::atomic::AtomicBool);
-impl From<std::sync::atomic::AtomicBool> for StdExclusiveRunAtomicBool {
-    fn from(value: std::sync::atomic::AtomicBool) -> Self {
-        Self(value)
-    }
-}
 
 #[cfg(test)]
 mod tests {

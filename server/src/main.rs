@@ -1,26 +1,11 @@
 const ADMIN_CLEANUP_INTERVAL_SECONDS: u64 = 300u64;
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct StdServerIoError(std::io::Error);
-impl From<std::io::Error> for StdServerIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerRuntimeServeError(server_runtime::ServeWithGracefulShutdownError);
-impl From<server_runtime::ServeWithGracefulShutdownError> for ServerRuntimeServeError {
-    fn from(value: server_runtime::ServeWithGracefulShutdownError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusBuildError(metrics_exporter_prometheus::BuildError);
-impl From<metrics_exporter_prometheus::BuildError> for MetricsExporterPrometheusBuildError {
-    fn from(value: metrics_exporter_prometheus::BuildError) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for MetricsExporterPrometheusBuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -31,45 +16,16 @@ impl std::error::Error for MetricsExporterPrometheusBuildError {
         Some(&self.0)
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-impl From<metrics_exporter_prometheus::PrometheusHandle> for MetricsExporterPrometheusHandle {
-    fn from(value: metrics_exporter_prometheus::PrometheusHandle) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerRuntimeRequestTimeoutError(server_runtime::StdRequestTimeoutTryFromDurationError);
-impl From<server_runtime::StdRequestTimeoutTryFromDurationError>
-    for ServerRuntimeRequestTimeoutError
-{
-    fn from(value: server_runtime::StdRequestTimeoutTryFromDurationError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerRuntimeRunIntervalError(server_runtime::StdRunIntervalTryFromDurationError);
-impl From<server_runtime::StdRunIntervalTryFromDurationError> for ServerRuntimeRunIntervalError {
-    fn from(value: server_runtime::StdRunIntervalTryFromDurationError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerRuntimeBackgroundTaskShutdownError(server_runtime::BackgroundTaskShutdownError);
-impl From<server_runtime::BackgroundTaskShutdownError>
-    for ServerRuntimeBackgroundTaskShutdownError
-{
-    fn from(value: server_runtime::BackgroundTaskShutdownError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerAdminCleanupCfgError(server_admin::AdminCleanupCfgError);
-impl From<server_admin::AdminCleanupCfgError> for ServerAdminCleanupCfgError {
-    fn from(value: server_admin::AdminCleanupCfgError) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for ServerRuntimeRequestTimeoutError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -104,66 +60,30 @@ impl std::error::Error for ServerRuntimeServeError {
         Some(&self.0)
     }
 }
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerConfigError(server_config::ConfigTryFromEnvError);
-impl From<server_config::ConfigTryFromEnvError> for ServerConfigError {
-    fn from(value: server_config::ConfigTryFromEnvError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct SqlxServerPgConnectError(sqlx::Error);
-impl From<sqlx::Error> for SqlxServerPgConnectError {
-    fn from(value: sqlx::Error) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminMigrateError(server_admin::AdminMigrateError);
-impl From<server_admin::AdminMigrateError> for ServerAdminMigrateError {
-    fn from(value: server_admin::AdminMigrateError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, newtype::FromInner)]
 #[error(transparent)]
 struct ServerAdminAuthSvcStateBuildError(server_admin::auth::AdminAuthSvcStateBuildError);
-impl From<server_admin::auth::AdminAuthSvcStateBuildError> for ServerAdminAuthSvcStateBuildError {
-    fn from(value: server_admin::auth::AdminAuthSvcStateBuildError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct ServerRuntimeContentSecurityPolicyError(server_runtime::HttpContentSecurityPolicyError);
-impl From<server_runtime::HttpContentSecurityPolicyError>
-    for ServerRuntimeContentSecurityPolicyError
-{
-    fn from(value: server_runtime::HttpContentSecurityPolicyError) -> Self {
-        Self(value)
-    }
-}
 impl std::fmt::Display for ServerRuntimeContentSecurityPolicyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
 impl std::error::Error for ServerRuntimeContentSecurityPolicyError {}
+#[derive(newtype::FromInner)]
 struct AxumApiRoutes(axum::Router);
-impl From<axum::Router> for AxumApiRoutes {
-    fn from(value: axum::Router) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone)]
+#[derive(Clone, newtype::FromInner)]
 struct StdSharedServerAppState(std::sync::Arc<server_app_state::ServerAppState<'static>>);
-impl From<std::sync::Arc<server_app_state::ServerAppState<'static>>> for StdSharedServerAppState {
-    fn from(value: std::sync::Arc<server_app_state::ServerAppState<'static>>) -> Self {
-        Self(value)
-    }
-}
 impl StdSharedServerAppState {
     const fn get(&self) -> &std::sync::Arc<server_app_state::ServerAppState<'static>> {
         &self.0
@@ -175,18 +95,10 @@ impl std::ops::Deref for StdSharedServerAppState {
         self.0.as_ref()
     }
 }
+#[derive(newtype::FromInner)]
 struct TokioServerRuntime(tokio::runtime::Runtime);
-impl From<tokio::runtime::Runtime> for TokioServerRuntime {
-    fn from(value: tokio::runtime::Runtime) -> Self {
-        Self(value)
-    }
-}
+#[derive(newtype::FromInner)]
 struct StdServerExitCode(std::process::ExitCode);
-impl From<std::process::ExitCode> for StdServerExitCode {
-    fn from(value: std::process::ExitCode) -> Self {
-        Self(value)
-    }
-}
 impl std::process::Termination for StdServerExitCode {
     fn report(self) -> std::process::ExitCode {
         self.0

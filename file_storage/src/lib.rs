@@ -2,13 +2,9 @@ const MAXIMUM_FILE_BYTES: usize = 104_857_600usize;
 const MAXIMUM_OPERATION_ID_BYTES: usize = 128usize;
 const MAXIMUM_PATH_BYTES: usize = 4_096usize;
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdFileStorageIoError(std::io::Error);
-impl From<std::io::Error> for StdFileStorageIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for StdFileStorageIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -19,20 +15,11 @@ impl std::error::Error for StdFileStorageIoError {
         Some(&self.0)
     }
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct StdStoragePathRef<'value_lt>(&'value_lt std::path::Path);
-impl<'value_lt> From<&'value_lt std::path::Path> for StdStoragePathRef<'value_lt> {
-    fn from(value: &'value_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct StorageDirectoryNameRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for StorageDirectoryNameRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StdFileStorageRoot(std::path::PathBuf);
@@ -169,13 +156,8 @@ impl TryFrom<usize> for StdStaleStagingEntryLimit {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdStaleBefore(std::time::SystemTime);
-impl From<std::time::SystemTime> for StdStaleBefore {
-    fn from(value: std::time::SystemTime) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StaleStagingCleanupCfg {
@@ -202,13 +184,9 @@ impl StaleStagingCleanupCfg {
 #[error("stale staging cleanup limit must be between 1 and 10000")]
 pub struct StaleStagingCleanupCfgError;
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct StdStaleStagingEntryCount(usize);
-impl From<usize> for StdStaleStagingEntryCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 impl From<StdStaleStagingEntryCount> for usize {
     fn from(value: StdStaleStagingEntryCount) -> Self {
         value.0
@@ -556,21 +534,11 @@ pub enum AtomicReplaceDurability {
     SyncAll,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDiskCacheSize(u64);
-impl From<u64> for StdDiskCacheSize {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdDiskCacheModifiedAt(std::time::SystemTime);
-impl From<std::time::SystemTime> for StdDiskCacheModifiedAt {
-    fn from(value: std::time::SystemTime) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DiskCacheEntry {
@@ -593,13 +561,9 @@ impl DiskCacheEntry {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct DiskCacheEvictionPlan(Vec<StdStorageRelativePath>);
-impl From<Vec<StdStorageRelativePath>> for DiskCacheEvictionPlan {
-    fn from(value: Vec<StdStorageRelativePath>) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<[StdStorageRelativePath]> for DiskCacheEvictionPlan {
     fn as_ref(&self) -> &[StdStorageRelativePath] {
         self.0.as_slice()

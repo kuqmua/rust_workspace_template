@@ -2,21 +2,12 @@
     clippy::arbitrary_source_item_ordering,
     reason = "multipart domain declarations stay adjacent to their validation implementations"
 )]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct MultipartPayloadMaximum(usize);
-impl From<usize> for MultipartPayloadMaximum {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct MultipartValueLength(usize);
-impl From<usize> for MultipartValueLength {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for MultipartValueLength {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -162,20 +153,12 @@ pub struct MultipartBytesPart {
     file_name: Option<MultipartFileName>,
     name: MultipartFieldName,
 }
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 struct MultipartBytesParts(Vec<MultipartBytesPart>);
-impl From<Vec<MultipartBytesPart>> for MultipartBytesParts {
-    fn from(value: Vec<MultipartBytesPart>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 struct MultipartTextParts(Vec<MultipartTextPart>);
-impl From<Vec<MultipartTextPart>> for MultipartTextParts {
-    fn from(value: Vec<MultipartTextPart>) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<[MultipartBytesPart]> for MultipartBytesParts {
     fn as_ref(&self) -> &[MultipartBytesPart] {
         self.0.as_slice()
@@ -351,13 +334,9 @@ impl AsRef<str> for StoragePathSegment {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdStorageRelativePath(std::path::PathBuf);
-impl From<std::path::PathBuf> for StdStorageRelativePath {
-    fn from(value: std::path::PathBuf) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<std::path::Path> for StdStorageRelativePath {
     fn as_ref(&self) -> &std::path::Path {
         self.0.as_path()

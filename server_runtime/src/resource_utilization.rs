@@ -2,22 +2,11 @@ const CRITICAL_PERCENT: u8 = 85u8;
 const REJECT_NON_ESSENTIAL_WRITES_PERCENT: u8 = 95u8;
 const WARNING_PERCENT: u8 = 70u8;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct ResourceAmount(u64);
 
-impl From<u64> for ResourceAmount {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, newtype::FromInner)]
 pub struct ResourceUtilizationPercent(u8);
-impl From<u8> for ResourceUtilizationPercent {
-    fn from(value: u8) -> Self {
-        Self(value)
-    }
-}
 
 impl ResourceUtilizationPercent {
     #[must_use]

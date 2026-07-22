@@ -151,7 +151,7 @@ where
 }
 #[derive(Debug, Clone, optml::Optml, newtype::IntoInnerFrom, newtype::FromInner)]
 pub struct AxumCommonRoutes(axum::Router);
-#[derive(Clone, optml::Optml)]
+#[derive(Clone, optml::Optml, newtype::FromInner)]
 pub struct StdArcCommonRoutesAppState(std::sync::Arc<dyn CommonRoutesParameters>);
 #[derive(Clone, Copy, Debug, utoipa::OpenApi)]
 #[openapi(
@@ -195,11 +195,7 @@ where
         Self(value)
     }
 }
-impl From<std::sync::Arc<dyn CommonRoutesParameters>> for StdArcCommonRoutesAppState {
-    fn from(value: std::sync::Arc<dyn CommonRoutesParameters>) -> Self {
-        Self(value)
-    }
-}
+
 pub trait CommonRoutesParameters:
     git_info::GetGitCommitLink + app_state::GetSqlxPgPool + Send + Sync
 {

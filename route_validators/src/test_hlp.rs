@@ -4,26 +4,17 @@ const MAX_BLOCK_ON_POLLS: usize = 4096;
 pub(crate) struct TestExpId(&'static str);
 #[derive(newtype::Display, newtype::FromInner)]
 struct TestPanicText(&'static str);
-#[derive(newtype::AsRefOwned, newtype::DerefInner, newtype::DerefMutInner)]
+#[derive(newtype::AsRefOwned, newtype::DerefInner, newtype::DerefMutInner, newtype::FromInner)]
 pub(crate) struct AxumTestHeaders(axum::http::HeaderMap);
-impl From<axum::http::HeaderMap> for AxumTestHeaders {
-    fn from(value: axum::http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 pub(crate) struct AxumTestHeadersMutRef<'headers_lt>(&'headers_lt mut axum::http::HeaderMap);
 impl<'headers_lt> From<&'headers_lt mut AxumTestHeaders> for AxumTestHeadersMutRef<'headers_lt> {
     fn from(value: &'headers_lt mut AxumTestHeaders) -> Self {
         Self(&mut value.0)
     }
 }
-impl<'headers_lt> From<&'headers_lt mut axum::http::HeaderMap>
-    for AxumTestHeadersMutRef<'headers_lt>
-{
-    fn from(value: &'headers_lt mut axum::http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(newtype::DerefInner, newtype::FromInner)]
 pub(crate) struct AxumTestHeaderValue(axum::http::HeaderValue);
 #[derive(Clone, Copy, newtype::FromInner)]

@@ -17,23 +17,11 @@ impl TryFrom<u64> for CleanupBatchSize {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct CleanupRows(u64);
 
-impl From<u64> for CleanupRows {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct CleanupBatchCount(u64);
-
-impl From<u64> for CleanupBatchCount {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
 impl From<CleanupBatchCount> for u64 {
     fn from(value: CleanupBatchCount) -> Self {

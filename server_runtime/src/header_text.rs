@@ -6,34 +6,21 @@ impl From<HttpHeaderTextMaximumBytes> for usize {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpHeaderTextBytes(usize);
-impl From<usize> for HttpHeaderTextBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct HttpHeaderName(http::HeaderName);
-impl From<http::HeaderName> for HttpHeaderName {
-    fn from(value: http::HeaderName) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<http::HeaderName> for HttpHeaderName {
     fn as_ref(&self) -> &http::HeaderName {
         &self.0
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpHeaderTextRef<'header>(&'header str);
-impl<'header> From<&'header str> for HttpHeaderTextRef<'header> {
-    fn from(value: &'header str) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<str> for HttpHeaderTextRef<'_> {
     fn as_ref(&self) -> &str {
         self.0

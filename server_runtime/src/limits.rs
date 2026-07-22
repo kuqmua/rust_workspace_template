@@ -1,10 +1,6 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdPermitWaitTimeout(std::time::Duration);
-impl From<std::time::Duration> for StdPermitWaitTimeout {
-    fn from(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryAfterSecs(u64);
 impl TryFrom<u64> for RetryAfterSecs {
@@ -31,15 +27,11 @@ impl TryFrom<RetryAfterSecs> for http::HeaderValue {
         Self::from_str(value.0.to_string().as_str())
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct StdArcTokioSemaphore(std::sync::Arc<tokio::sync::Semaphore>);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdSemaphorePermitCount(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdSemaphorePermitCount {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
+
 impl StdArcTokioSemaphore {
     #[must_use]
     pub fn new(permit_count: StdSemaphorePermitCount) -> Self {
@@ -55,18 +47,10 @@ impl StdArcTokioSemaphore {
             .map(TokioOwnedSemaphorePermit::from)
     }
 }
-impl From<std::sync::Arc<tokio::sync::Semaphore>> for StdArcTokioSemaphore {
-    fn from(value: std::sync::Arc<tokio::sync::Semaphore>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioAcquireError(tokio::sync::AcquireError);
-impl From<tokio::sync::AcquireError> for TokioAcquireError {
-    fn from(value: tokio::sync::AcquireError) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for TokioAcquireError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -82,13 +66,9 @@ pub enum AcquirePermitError {
     Closed(TokioAcquireError),
     Timeout(RetryAfterSecs),
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioOwnedSemaphorePermit(tokio::sync::OwnedSemaphorePermit);
-impl From<tokio::sync::OwnedSemaphorePermit> for TokioOwnedSemaphorePermit {
-    fn from(value: tokio::sync::OwnedSemaphorePermit) -> Self {
-        Self(value)
-    }
-}
+
 impl TokioOwnedSemaphorePermit {
     pub fn forget(self) {
         self.0.forget();

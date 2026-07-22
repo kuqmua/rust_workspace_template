@@ -1,21 +1,12 @@
+#[derive(newtype::FromInner)]
 struct ProcMacro2TryFromParseInput(proc_macro2::TokenStream);
-impl From<proc_macro2::TokenStream> for ProcMacro2TryFromParseInput {
-    fn from(value: proc_macro2::TokenStream) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct ProcMacro2TryFromParseFixedErrorTy(Option<proc_macro2::TokenStream>);
-impl From<Option<proc_macro2::TokenStream>> for ProcMacro2TryFromParseFixedErrorTy {
-    fn from(value: Option<proc_macro2::TokenStream>) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct ProcMacroTryFromParseTokenStream(proc_macro::TokenStream);
-impl From<proc_macro::TokenStream> for ProcMacroTryFromParseTokenStream {
-    fn from(value: proc_macro::TokenStream) -> Self {
-        Self(value)
-    }
-}
+
 #[proc_macro]
 pub fn impl_try_from_non_empty_string(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parts = workspace_macro_helpers::split_top_level_commas(

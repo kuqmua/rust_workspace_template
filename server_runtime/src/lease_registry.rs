@@ -51,13 +51,8 @@ pub enum LeaseState {
     Stale,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdLeaseRegistryMaximum(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdLeaseRegistryMaximum {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StdLeaseStaleTimeout(std::time::Duration);
@@ -89,13 +84,9 @@ pub enum LeaseHeartbeat {
     Missing,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, newtype::FromInner)]
 pub struct LeaseIds(Vec<LeaseId>);
-impl From<Vec<LeaseId>> for LeaseIds {
-    fn from(value: Vec<LeaseId>) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<[LeaseId]> for LeaseIds {
     fn as_ref(&self) -> &[LeaseId] {
         self.0.as_slice()
@@ -198,37 +189,17 @@ impl LeaseRegistry {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct LeaseTextRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for LeaseTextRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, newtype::FromInner)]
 struct StdArcTokioLeaseRegistryRwLock(std::sync::Arc<TokioLeaseRegistryRwLock>);
-impl From<std::sync::Arc<TokioLeaseRegistryRwLock>> for StdArcTokioLeaseRegistryRwLock {
-    fn from(value: std::sync::Arc<TokioLeaseRegistryRwLock>) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct TokioLeaseInstant(tokio::time::Instant);
-impl From<tokio::time::Instant> for TokioLeaseInstant {
-    fn from(value: tokio::time::Instant) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, newtype::FromInner)]
 struct TokioLeaseRegistryRwLock(tokio::sync::RwLock<LeaseRegistryInner>);
-impl From<tokio::sync::RwLock<LeaseRegistryInner>> for TokioLeaseRegistryRwLock {
-    fn from(value: tokio::sync::RwLock<LeaseRegistryInner>) -> Self {
-        Self(value)
-    }
-}
 
 #[allow(clippy::single_call_fn)] // keeps the two-index conflict update atomic and locally auditable
 fn remove_conflicting_entries(inner: &mut LeaseRegistryInner, id: &LeaseId, key: &LeaseKey) {

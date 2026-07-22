@@ -3,13 +3,9 @@ pub enum BackgroundTaskOutcome {
     Completed,
     ShutdownRequested,
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioTaskJoinError(tokio::task::JoinError);
-impl From<tokio::task::JoinError> for TokioTaskJoinError {
-    fn from(value: tokio::task::JoinError) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for TokioTaskJoinError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -20,13 +16,9 @@ impl std::error::Error for TokioTaskJoinError {
         Some(&self.0)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioAbortTask(tokio::task::JoinHandle<()>);
-impl From<tokio::task::JoinHandle<()>> for TokioAbortTask {
-    fn from(value: tokio::task::JoinHandle<()>) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Debug)]
 pub enum BackgroundTaskShutdownError {
     Join(TokioTaskJoinError),
@@ -54,20 +46,12 @@ pub struct BackgroundTask {
     handle: Option<TokioBackgroundTaskJoinHandle>,
     shutdown_tx: Option<TokioBackgroundTaskShutdownSender>,
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct TokioBackgroundTaskJoinHandle(tokio::task::JoinHandle<BackgroundTaskOutcome>);
-impl From<tokio::task::JoinHandle<BackgroundTaskOutcome>> for TokioBackgroundTaskJoinHandle {
-    fn from(value: tokio::task::JoinHandle<BackgroundTaskOutcome>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct TokioBackgroundTaskShutdownSender(tokio::sync::oneshot::Sender<()>);
-impl From<tokio::sync::oneshot::Sender<()>> for TokioBackgroundTaskShutdownSender {
-    fn from(value: tokio::sync::oneshot::Sender<()>) -> Self {
-        Self(value)
-    }
-}
+
 impl BackgroundTask {
     pub async fn join(mut self) -> Result<BackgroundTaskOutcome, BackgroundTaskShutdownError> {
         let shutdown_tx = self.shutdown_tx.take();

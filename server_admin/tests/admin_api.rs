@@ -13,6 +13,7 @@ struct SqlxAdminHtmlTestTransaction(sqlx::Transaction<'static, sqlx::Postgres>);
 struct HttpAdminApiTestMethod(http::Method);
 #[derive(newtype::FromInner)]
 struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
+#[derive(newtype::FromInner)]
 struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
 #[derive(Clone, Copy, newtype::FromInner)]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
@@ -43,11 +44,7 @@ struct AdminHtmlSettingsTestValues<'value_lt> {
     support_url: StdAdminApiTestStrRef<'value_lt>,
     tab_title: StdAdminApiTestStrRef<'value_lt>,
 }
-impl From<http::Response<axum::body::Body>> for HttpAdminHtmlTestResponse {
-    fn from(value: http::Response<axum::body::Body>) -> Self {
-        Self(value)
-    }
-}
+
 impl std::ops::Deref for HttpAdminHtmlTestResponse {
     type Target = http::Response<axum::body::Body>;
 

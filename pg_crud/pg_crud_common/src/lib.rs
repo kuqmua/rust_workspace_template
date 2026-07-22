@@ -465,18 +465,11 @@ pub struct PgTypeLenGreaterThanTest<T: PgType> {
     pub variant: PgTypeGreaterThanVariant,
     pub len_greater_than: UnsignedPartOfI32,
 }
+#[derive(newtype::FromInner)]
 pub struct SqlxPostgresQuery<'query_lt>(
     sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
 );
-impl<'query_lt> From<sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>>
-    for SqlxPostgresQuery<'query_lt>
-{
-    fn from(
-        value: sqlx::query::Query<'query_lt, sqlx::Postgres, sqlx::postgres::PgArguments>,
-    ) -> Self {
-        Self(value)
-    }
-}
+
 impl<'query_lt> SqlxPostgresQuery<'query_lt> {
     pub fn into_inner(
         self,
@@ -529,6 +522,7 @@ pub trait PgTypeWhereFilter<'query_lt> {
     utoipa::ToSchema,
     schemars::JsonSchema,
     optml::Optml,
+    newtype::FromInner,
 )]
 #[serde(from = "Option<NotEmptyUniqueVec<T>>")]
 pub struct NullableJsonObjPgTypeWhereFilter<
@@ -553,18 +547,6 @@ where
     #[must_use]
     pub fn into_option(self) -> Option<NotEmptyUniqueVec<T>> {
         self.0
-    }
-}
-impl<T> From<Option<NotEmptyUniqueVec<T>>> for NullableJsonObjPgTypeWhereFilter<T>
-where
-    T: std::fmt::Debug
-        + PartialEq
-        + Clone
-        + for<'t_lt> PgTypeWhereFilter<'t_lt>
-        + AllEnumVariantsArrayDefaultSomeOneElement,
-{
-    fn from(value: Option<NotEmptyUniqueVec<T>>) -> Self {
-        Self(value)
     }
 }
 impl<'query_lt, T> PgTypeWhereFilter<'query_lt> for NullableJsonObjPgTypeWhereFilter<T>
@@ -1148,12 +1130,9 @@ struct PaginationStartsWithZeroRaw {
     optml::Optml,
 )]
 #[serde(try_from = "PaginationStartsWithZeroRaw")]
+#[derive(newtype::FromInner)]
 pub struct PaginationStartsWithZero(PaginationBase);
-impl From<PaginationBase> for PaginationStartsWithZero {
-    fn from(value: PaginationBase) -> Self {
-        Self(value)
-    }
-}
+
 #[location::errors_with_location]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,
@@ -1660,6 +1639,7 @@ where
 }
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, optml::Optml)]
 #[serde(from = "V<Option<()>>")]
+#[derive(newtype::FromInner)]
 pub struct NonPrimaryKeyPgTypeReadIds(V<Option<()>>);
 impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> (
@@ -1679,11 +1659,7 @@ impl<'schema_lt> utoipa::ToSchema<'schema_lt> for NonPrimaryKeyPgTypeReadIds {
         )
     }
 }
-impl From<V<Option<()>>> for NonPrimaryKeyPgTypeReadIds {
-    fn from(value: V<Option<()>>) -> Self {
-        Self(value)
-    }
-}
+
 impl sqlx::Decode<'_, sqlx::Postgres> for NonPrimaryKeyPgTypeReadIds {
     fn decode(value: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
         <sqlx::types::Json<Self> as sqlx::Decode<sqlx::Postgres>>::decode(value).map(|v0| v0.0)
@@ -1966,13 +1942,9 @@ pub enum SingleOrMultiple<T: std::fmt::Debug + PartialEq + Clone> {
     Multiple(NotEmptyUniqueVec<T>),
     Single(T),
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, optml::Optml, newtype::FromInner)]
 pub struct UuidUuidTestCases([uuid::Uuid; 1]);
-impl From<[uuid::Uuid; 1]> for UuidUuidTestCases {
-    fn from(value: [uuid::Uuid; 1]) -> Self {
-        Self(value)
-    }
-}
+
 impl IntoIterator for UuidUuidTestCases {
     type IntoIter = std::array::IntoIter<uuid::Uuid, 1>;
     type Item = uuid::Uuid;

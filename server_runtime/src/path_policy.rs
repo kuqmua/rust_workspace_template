@@ -2,13 +2,9 @@
     clippy::arbitrary_source_item_ordering,
     reason = "path policy types stay grouped with their validation operations"
 )]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpProxyPathRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpProxyPathRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpProxyPath(String);
 impl AsRef<str> for HttpProxyPath {
@@ -72,20 +68,12 @@ impl TryFrom<HttpProxyPathRef<'_>> for HttpProxyPath {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAllowedPathPrefixRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpAllowedPathPrefixRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpProxyPathPrefixMatch(bool);
-impl From<bool> for HttpProxyPathPrefixMatch {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
+
 impl From<HttpProxyPathPrefixMatch> for bool {
     fn from(value: HttpProxyPathPrefixMatch) -> Self {
         value.0
@@ -105,13 +93,9 @@ pub fn proxy_path_matches_prefix(
     )
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpRequestPathRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpRequestPathRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HttpNormalizedPath(String);
 impl AsRef<str> for HttpNormalizedPath {

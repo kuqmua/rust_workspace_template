@@ -51,12 +51,9 @@ impl From<pg_crud_common::IsPrimaryKey> for IsPrimaryKey {
     optml::Optml,
 )]
 #[serde(try_from = "PaginationStartsWithOneRaw")]
+#[derive(newtype::FromInner)]
 pub struct PaginationStartsWithOne(pg_crud_common::PaginationBase);
-impl From<pg_crud_common::PaginationBase> for PaginationStartsWithOne {
-    fn from(value: pg_crud_common::PaginationBase) -> Self {
-        Self(value)
-    }
-}
+
 #[location::errors_with_location]
 #[derive(
     Debug, serde::Serialize, serde::Deserialize, thiserror::Error, location::Location, optml::Optml,

@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdRetryAttempts(std::num::NonZeroUsize);
 
 impl StdRetryAttempts {
@@ -18,23 +18,12 @@ impl TryFrom<usize> for StdRetryAttempts {
     }
 }
 
-impl From<std::num::NonZeroUsize> for StdRetryAttempts {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 #[error("retry attempts must be greater than zero")]
 pub struct StdRetryAttemptsError;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdRetryDelay(std::time::Duration);
-impl From<std::time::Duration> for StdRetryDelay {
-    fn from(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RetryPolicy {

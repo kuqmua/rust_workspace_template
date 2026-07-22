@@ -1,26 +1,14 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ResourceBudgetMaximum(usize);
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct ResourceBudgetAmount(usize);
-impl From<usize> for ResourceBudgetAmount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct StdAtomicUsize(std::sync::atomic::AtomicUsize);
-impl From<std::sync::atomic::AtomicUsize> for StdAtomicUsize {
-    fn from(value: std::sync::atomic::AtomicUsize) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Debug)]
+
+#[derive(Clone, Debug, newtype::FromInner)]
 struct StdSharedAtomicUsize(std::sync::Arc<StdAtomicUsize>);
-impl From<std::sync::Arc<StdAtomicUsize>> for StdSharedAtomicUsize {
-    fn from(value: std::sync::Arc<StdAtomicUsize>) -> Self {
-        Self(value)
-    }
-}
+
 impl TryFrom<usize> for ResourceBudgetMaximum {
     type Error = ResourceBudgetConfigError;
     fn try_from(value: usize) -> Result<Self, Self::Error> {

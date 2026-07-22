@@ -7,69 +7,32 @@ struct NotificationState {
     metrics: MetricsExporterPrometheusHandle,
     pool: app_state::SqlxPgPool,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 struct AxumNotificationState(NotificationState);
-impl From<NotificationState> for AxumNotificationState {
-    fn from(value: NotificationState) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct AxumNotificationJson(notification_service_contract::CreateNotificationReq);
-impl From<notification_service_contract::CreateNotificationReq> for AxumNotificationJson {
-    fn from(value: notification_service_contract::CreateNotificationReq) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct AxumNotificationResponse(axum::response::Response);
-impl From<axum::response::Response> for AxumNotificationResponse {
-    fn from(value: axum::response::Response) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct AxumNotificationRouter(axum::Router);
-impl From<axum::Router> for AxumNotificationRouter {
-    fn from(value: axum::Router) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct HttpNotificationStatusCode(http::StatusCode);
-impl From<http::StatusCode> for HttpNotificationStatusCode {
-    fn from(value: http::StatusCode) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct HttpNotificationApiProblem(http::StatusCode);
-impl From<http::StatusCode> for HttpNotificationApiProblem {
-    fn from(value: http::StatusCode) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Debug)]
+
+#[derive(Clone, Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusHandle(metrics_exporter_prometheus::PrometheusHandle);
-impl From<metrics_exporter_prometheus::PrometheusHandle> for MetricsExporterPrometheusHandle {
-    fn from(value: metrics_exporter_prometheus::PrometheusHandle) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct NotificationBodyMaximumBytes(usize);
-impl From<usize> for NotificationBodyMaximumBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct StdNotificationExitCode(std::process::ExitCode);
-impl From<std::process::ExitCode> for StdNotificationExitCode {
-    fn from(value: std::process::ExitCode) -> Self {
-        Self(value)
-    }
-}
 
 impl axum::response::IntoResponse for AxumNotificationResponse {
     fn into_response(self) -> axum::response::Response {
@@ -136,50 +99,23 @@ enum NotificationServiceError {
     #[error("notification service timeout configuration is invalid")]
     Timeout,
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 struct NotificationConfigError(notification_service_config::ConfigTryFromEnvError);
-impl From<notification_service_config::ConfigTryFromEnvError> for NotificationConfigError {
-    fn from(value: notification_service_config::ConfigTryFromEnvError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct SqlxNotificationDatabaseError(sqlx::Error);
-impl From<sqlx::Error> for SqlxNotificationDatabaseError {
-    fn from(value: sqlx::Error) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct SqlxNotificationMigrationError(sqlx::migrate::MigrateError);
-impl From<sqlx::migrate::MigrateError> for SqlxNotificationMigrationError {
-    fn from(value: sqlx::migrate::MigrateError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct StdNotificationIoError(std::io::Error);
-impl From<std::io::Error> for StdNotificationIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct NotificationServeError(server_runtime::ServeWithGracefulShutdownError);
-impl From<server_runtime::ServeWithGracefulShutdownError> for NotificationServeError {
-    fn from(value: server_runtime::ServeWithGracefulShutdownError) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 struct MetricsExporterPrometheusNotificationBuildError(metrics_exporter_prometheus::BuildError);
-impl From<metrics_exporter_prometheus::BuildError>
-    for MetricsExporterPrometheusNotificationBuildError
-{
-    fn from(value: metrics_exporter_prometheus::BuildError) -> Self {
-        Self(value)
-    }
-}
 
 impl std::fmt::Display for NotificationConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

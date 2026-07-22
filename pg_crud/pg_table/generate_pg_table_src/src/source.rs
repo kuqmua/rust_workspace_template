@@ -1,21 +1,14 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, newtype::FromInner)]
 struct CompileErrorMessage<'message_lt>(&'message_lt str);
-impl<'message_lt> From<&'message_lt str> for CompileErrorMessage<'message_lt> {
-    fn from(value: &'message_lt str) -> Self {
-        Self(value)
-    }
-}
+
 impl<'message_lt> From<&'message_lt String> for CompileErrorMessage<'message_lt> {
     fn from(value: &'message_lt String) -> Self {
         Self(value.as_str())
     }
 }
+#[derive(newtype::FromInner)]
 struct TableTestNames<'value_lt>(Vec<&'value_lt str>);
-impl<'value_lt> From<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
-    fn from(value: Vec<&'value_lt str>) -> Self {
-        Self(value)
-    }
-}
+
 fn compile_error_token_stream(
     message: CompileErrorMessage<'_>,
 ) -> macros_helpers::proc_macro2_tokens::ProcMacro2GeneratedRustTokenStream {
@@ -480,12 +473,9 @@ pub fn emit_generate_pg_table(
     }
     #[derive(Debug, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
+    #[derive(newtype::FromInner)]
     struct GeneratePgTableDbColumns(Vec<String>);
-    impl From<Vec<String>> for GeneratePgTableDbColumns {
-        fn from(value: Vec<String>) -> Self {
-            Self(value)
-        }
-    }
+
     impl std::ops::Deref for GeneratePgTableDbColumns {
         type Target = Vec<String>;
         fn deref(&self) -> &Self::Target {
@@ -503,20 +493,14 @@ pub fn emit_generate_pg_table(
     }
     #[derive(Clone, Copy, Debug, serde::Deserialize)]
     #[serde(from = "usize")]
+    #[derive(newtype::FromInner)]
     struct StdBulkItemsMax(usize);
-    impl From<usize> for StdBulkItemsMax {
-        fn from(value: usize) -> Self {
-            Self(value)
-        }
-    }
+
     #[derive(Debug, Default, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
+    #[derive(newtype::FromInner)]
     struct StdCreateExcludeFields(Vec<String>);
-    impl From<Vec<String>> for StdCreateExcludeFields {
-        fn from(value: Vec<String>) -> Self {
-            Self(value)
-        }
-    }
+
     impl std::ops::Deref for StdCreateExcludeFields {
         type Target = Vec<String>;
         fn deref(&self) -> &Self::Target {
@@ -525,12 +509,9 @@ pub fn emit_generate_pg_table(
     }
     #[derive(Debug, Default, serde::Deserialize)]
     #[serde(from = "Vec<String>")]
+    #[derive(newtype::FromInner)]
     struct StdReadExcludeFields(Vec<String>);
-    impl From<Vec<String>> for StdReadExcludeFields {
-        fn from(value: Vec<String>) -> Self {
-            Self(value)
-        }
-    }
+
     impl std::ops::Deref for StdReadExcludeFields {
         type Target = Vec<String>;
         fn deref(&self) -> &Self::Target {
@@ -544,12 +525,9 @@ pub fn emit_generate_pg_table(
         logic_token_stream_by_attr:
             std::collections::BTreeMap<GeneratePgTableAttr, proc_macro2::TokenStream>,
     }
+    #[derive(newtype::FromInner)]
     struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
-    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableTestsTokenStream {
-        fn from(value: proc_macro2::TokenStream) -> Self {
-            Self(value)
-        }
-    }
+
     impl ProcMacro2GeneratePgTableTestsTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
@@ -558,23 +536,17 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
+    #[derive(newtype::FromInner)]
     struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
-    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableCommonTokenStream {
-        fn from(value: proc_macro2::TokenStream) -> Self {
-            Self(value)
-        }
-    }
+
     impl ProcMacro2GeneratePgTableCommonTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
         }
     }
+    #[derive(newtype::FromInner)]
     struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
-    impl From<proc_macro2::TokenStream> for ProcMacro2GeneratePgTableWholeTokenStream {
-        fn from(value: proc_macro2::TokenStream) -> Self {
-            Self(value)
-        }
-    }
+
     impl ProcMacro2GeneratePgTableWholeTokenStream {
         const fn as_ref(&self) -> &proc_macro2::TokenStream {
             &self.0
@@ -583,12 +555,9 @@ pub fn emit_generate_pg_table(
             self.0
         }
     }
+    #[derive(newtype::FromInner)]
     struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
-    impl From<syn::DeriveInput> for SynGeneratePgTableDeriveInput {
-        fn from(value: syn::DeriveInput) -> Self {
-            Self(value)
-        }
-    }
+
     impl SynGeneratePgTableDeriveInput {
         const fn get(&self) -> &syn::DeriveInput {
             &self.0
@@ -637,13 +606,9 @@ pub fn emit_generate_pg_table(
             }
         }
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct GeneratePgTableFieldIdx(usize);
-    impl From<usize> for GeneratePgTableFieldIdx {
-        fn from(value: usize) -> Self {
-            Self(value)
-        }
-    }
+
     impl GeneratePgTableFieldIdx {
         const fn get(self) -> usize {
             self.0
@@ -656,67 +621,43 @@ pub fn emit_generate_pg_table(
         frontend_fields: Vec<GeneratePgTableFrontendFieldEmission>,
         primary_key_field_idx: GeneratePgTableFieldIdx,
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableFieldRef<'field_lt>(&'field_lt syn::Field);
-    impl<'field_lt> From<&'field_lt syn::Field> for SynGeneratePgTableFieldRef<'field_lt> {
-        fn from(value: &'field_lt syn::Field) -> Self {
-            Self(value)
-        }
-    }
+
     impl<'field_lt> SynGeneratePgTableFieldRef<'field_lt> {
         const fn get(self) -> &'field_lt syn::Field {
             self.0
         }
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
-    impl<'identifier_lt> From<&'identifier_lt syn::Ident>
-        for SynGeneratePgTableIdentifierRef<'identifier_lt>
-    {
-        fn from(value: &'identifier_lt syn::Ident) -> Self {
-            Self(value)
-        }
-    }
+
     impl<'identifier_lt> SynGeneratePgTableIdentifierRef<'identifier_lt> {
         const fn get(self) -> &'identifier_lt syn::Ident {
             self.0
         }
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct SynGeneratePgTableTypeRef<'type_lt>(&'type_lt syn::Type);
-    impl<'type_lt> From<&'type_lt syn::Type> for SynGeneratePgTableTypeRef<'type_lt> {
-        fn from(value: &'type_lt syn::Type) -> Self {
-            Self(value)
-        }
-    }
+
     impl<'type_lt> SynGeneratePgTableTypeRef<'type_lt> {
         const fn get(self) -> &'type_lt syn::Type {
             self.0
         }
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct GeneratePgTableVariantLocationAttr(
         Option<macros_helpers::location_data::LocationFieldAttr>,
     );
-    impl From<Option<macros_helpers::location_data::LocationFieldAttr>>
-        for GeneratePgTableVariantLocationAttr
-    {
-        fn from(value: Option<macros_helpers::location_data::LocationFieldAttr>) -> Self {
-            Self(value)
-        }
-    }
+
     impl GeneratePgTableVariantLocationAttr {
         const fn get(self) -> Option<macros_helpers::location_data::LocationFieldAttr> {
             self.0
         }
     }
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, newtype::FromInner)]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
-    impl<'name_lt> From<&'name_lt str> for GeneratePgTablePrimaryKeyAttrName<'name_lt> {
-        fn from(value: &'name_lt str) -> Self {
-            Self(value)
-        }
-    }
+
     impl<'name_lt> GeneratePgTablePrimaryKeyAttrName<'name_lt> {
         const fn get(self) -> &'name_lt str {
             self.0

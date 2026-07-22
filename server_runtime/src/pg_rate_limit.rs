@@ -1,20 +1,10 @@
 const PG_RATE_LIMIT_KEY_PART_MAX_LEN: usize = 4096usize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct PgRateLimitQueryRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for PgRateLimitQueryRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct SqlxPgRateLimitPoolRef<'value_lt>(&'value_lt sqlx::PgPool);
-impl<'value_lt> From<&'value_lt sqlx::PgPool> for SqlxPgRateLimitPoolRef<'value_lt> {
-    fn from(value: &'value_lt sqlx::PgPool) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PgRateLimitScopeRef<'value_lt>(&'value_lt str);
@@ -92,13 +82,9 @@ pub enum PgRateLimitValidationError {
     MustBePositive,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SqlxPgRateLimitError(sqlx::Error);
-impl From<sqlx::Error> for SqlxPgRateLimitError {
-    fn from(value: sqlx::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for SqlxPgRateLimitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

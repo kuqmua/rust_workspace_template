@@ -1,10 +1,5 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct Generation(u64);
-impl From<u64> for Generation {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GenerationCommit {
@@ -37,13 +32,8 @@ impl GenerationGate {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, newtype::FromInner)]
 struct StdGenerationAtomicU64(std::sync::atomic::AtomicU64);
-impl From<std::sync::atomic::AtomicU64> for StdGenerationAtomicU64 {
-    fn from(value: std::sync::atomic::AtomicU64) -> Self {
-        Self(value)
-    }
-}
 
 #[cfg(test)]
 mod tests {

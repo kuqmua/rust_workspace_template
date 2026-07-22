@@ -10,57 +10,26 @@ pub enum FallbackResponseMode {
     MachineReadable,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackRequestPathRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpFallbackRequestPathRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackApiPrefixRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpFallbackApiPrefixRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpFallbackMetricsPathRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpFallbackMetricsPathRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpOptionalAcceptHeaderRef<'value_lt>(Option<&'value_lt http::HeaderValue>);
-impl<'value_lt> From<Option<&'value_lt http::HeaderValue>>
-    for HttpOptionalAcceptHeaderRef<'value_lt>
-{
-    fn from(value: Option<&'value_lt http::HeaderValue>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAcceptHeaderMaximumBytes(usize);
-impl From<usize> for HttpAcceptHeaderMaximumBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy)]
+
+#[derive(Clone, Copy, newtype::FromInner)]
 struct HttpMediaRangeRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpMediaRangeRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy)]
+
+#[derive(Clone, Copy, newtype::FromInner)]
 struct AcceptsApplicationJson(bool);
-impl From<bool> for AcceptsApplicationJson {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
 
 #[must_use]
 pub fn fallback_response_mode(

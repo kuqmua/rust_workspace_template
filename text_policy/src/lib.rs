@@ -99,21 +99,11 @@ impl TryFrom<String> for FixedLengthAsciiHexText {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct UrlSafeTokenPartMaximumBytes(usize);
-impl From<usize> for UrlSafeTokenPartMaximumBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct UrlSafeTokenPartRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for UrlSafeTokenPartRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
 pub enum UrlSafeTokenPartTextError {
@@ -166,20 +156,12 @@ pub fn validate_url_safe_token_part(
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct PasswordTextRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for PasswordTextRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PasswordLength(usize);
-impl From<usize> for PasswordLength {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PasswordLengthRange {
     minimum: PasswordLength,

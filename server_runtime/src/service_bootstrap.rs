@@ -4,13 +4,9 @@ pub enum ServiceTracingFormat {
     Text,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TracingSubscriberInitError(tracing_subscriber::util::TryInitError);
-impl From<tracing_subscriber::util::TryInitError> for TracingSubscriberInitError {
-    fn from(value: tracing_subscriber::util::TryInitError) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for TracingSubscriberInitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -18,26 +14,18 @@ impl std::fmt::Display for TracingSubscriberInitError {
 }
 impl std::error::Error for TracingSubscriberInitError {}
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct TokioServiceRuntime(tokio::runtime::Runtime);
-impl From<tokio::runtime::Runtime> for TokioServiceRuntime {
-    fn from(value: tokio::runtime::Runtime) -> Self {
-        Self(value)
-    }
-}
+
 impl From<TokioServiceRuntime> for tokio::runtime::Runtime {
     fn from(value: TokioServiceRuntime) -> Self {
         value.0
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdServiceRuntimeIoError(std::io::Error);
-impl From<std::io::Error> for StdServiceRuntimeIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for StdServiceRuntimeIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

@@ -173,13 +173,9 @@ impl PartialEq<usize> for GitCommitLinkCapacity {
         self.0 == *other
     }
 }
-#[derive(Debug, optml::Optml)]
+#[derive(Debug, optml::Optml, newtype::FromInner)]
 struct GitCommitLinkOutputRefMut<'output_lt>(&'output_lt mut String);
-impl<'output_lt> From<&'output_lt mut String> for GitCommitLinkOutputRefMut<'output_lt> {
-    fn from(value: &'output_lt mut String) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(
     Debug,
     Clone,

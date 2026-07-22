@@ -1,11 +1,7 @@
 #![allow(clippy::field_scoped_visibility_modifiers)] // sibling emitters read the private descriptor directly while it remains hidden outside the generator
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct GeneratePgTableFieldCount(usize);
-impl From<usize> for GeneratePgTableFieldCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 impl From<GeneratePgTableFieldCount> for usize {
     fn from(value: GeneratePgTableFieldCount) -> Self {
         value.0
@@ -17,19 +13,15 @@ pub struct GeneratePgTableModel {
     field_count: GeneratePgTableFieldCount,
     input: SynGeneratePgTableModelInput,
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub(super) struct SynGeneratePgTableModelInput(syn::DeriveInput);
-impl From<syn::DeriveInput> for SynGeneratePgTableModelInput {
-    fn from(value: syn::DeriveInput) -> Self {
-        Self(value)
-    }
-}
+
 impl From<SynGeneratePgTableModelInput> for syn::DeriveInput {
     fn from(value: SynGeneratePgTableModelInput) -> Self {
         value.0
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub(super) struct SynGeneratePgTableModelError(syn::Error);
 impl From<SynGeneratePgTableModelError> for syn::Error {
     fn from(value: SynGeneratePgTableModelError) -> Self {
@@ -65,11 +57,6 @@ impl GeneratePgTableModel {
         } else {
             Ok(self)
         }
-    }
-}
-impl From<syn::Error> for SynGeneratePgTableModelError {
-    fn from(value: syn::Error) -> Self {
-        Self(value)
     }
 }
 

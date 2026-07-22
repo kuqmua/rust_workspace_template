@@ -468,20 +468,14 @@ where
 mod tests {
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(from = "u64")]
+    #[derive(newtype::FromInner)]
     struct Request(u64);
-    impl From<u64> for Request {
-        fn from(value: u64) -> Self {
-            Self(value)
-        }
-    }
+
     #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
     #[serde(from = "u64")]
+    #[derive(newtype::FromInner)]
     struct Response(u64);
-    impl From<u64> for Response {
-        fn from(value: u64) -> Self {
-            Self(value)
-        }
-    }
+
     struct Route;
     impl super::TypedRoute for Route {
         type Request = Request;

@@ -103,14 +103,8 @@ pub struct OutboundTraceContext {
     trace_state: Option<HttpTraceState>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct ReqwestRequestBuilder(reqwest::RequestBuilder);
-
-impl From<reqwest::RequestBuilder> for ReqwestRequestBuilder {
-    fn from(value: reqwest::RequestBuilder) -> Self {
-        Self(value)
-    }
-}
 
 impl From<ReqwestRequestBuilder> for reqwest::RequestBuilder {
     fn from(value: ReqwestRequestBuilder) -> Self {

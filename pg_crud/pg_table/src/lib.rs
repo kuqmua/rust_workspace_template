@@ -58,7 +58,7 @@ pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
 pub struct PgTableIdempotencyCleanupBatchSize(i64);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner, newtype::IntoInnerFrom)]
 pub struct PgTableIdempotencyCleanupRows(u64);
-#[derive(Debug, newtype::AsMut)]
+#[derive(Debug, newtype::AsMut, newtype::FromInner)]
 pub struct SqlxPgTablePgConnectionRef<'connection_lt>(&'connection_lt mut sqlx::PgConnection);
 #[derive(Clone, Copy, Debug, Eq, PartialEq, sqlx::Type, newtype::Display)]
 #[sqlx(transparent)]
@@ -154,7 +154,7 @@ impl std::fmt::Display for PgTableIdempotencyTextError {
     }
 }
 impl std::error::Error for PgTableIdempotencyTextError {}
-#[derive(Debug, newtype::ErrorTransparent)]
+#[derive(Debug, newtype::ErrorTransparent, newtype::FromInner)]
 pub struct SqlxPgTableIdempotencyError(sqlx::Error);
 impl std::fmt::Display for SqlxPgTableIdempotencyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -167,11 +167,7 @@ impl to_err_string::ToErrString for SqlxPgTableIdempotencyError {
             .unwrap_or_else(to_err_string::ToErrStringValue::from)
     }
 }
-impl From<sqlx::Error> for SqlxPgTableIdempotencyError {
-    fn from(value: sqlx::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl TryFrom<String> for PgTableIdempotencyActor {
     type Error = PgTableIdempotencyTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -443,13 +439,7 @@ pub async fn release_pg_table_idempotency(
     .map_err(SqlxPgTableIdempotencyError::from)?;
     Ok(())
 }
-impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
-    for SqlxPgTablePgConnectionRef<'connection_lt>
-{
-    fn from(value: &'connection_lt mut sqlx::PgConnection) -> Self {
-        Self(value)
-    }
-}
+
 pub async fn cleanup_pg_table_idempotency(
     pool: app_state::SqlxPgPoolRef<'_>,
     completed_retention_seconds: PgTableIdempotencyCleanupRetentionSeconds,

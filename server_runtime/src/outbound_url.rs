@@ -11,21 +11,12 @@ pub enum OutboundUrlScheme {
     Rtsp,
     Rtsps,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct OutboundUrlTextRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for OutboundUrlTextRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone)]
+#[derive(Clone, newtype::FromInner)]
 pub struct ReqwestOutboundUrl(reqwest::Url);
-impl From<reqwest::Url> for ReqwestOutboundUrl {
-    fn from(value: reqwest::Url) -> Self {
-        Self(value)
-    }
-}
+
 impl ReqwestOutboundUrl {
     #[must_use]
     pub fn scheme(&self) -> OutboundUrlScheme {
@@ -108,13 +99,8 @@ impl std::fmt::Debug for ReqwestOutboundUrl {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdOutboundIpAddr(std::net::IpAddr);
-impl From<std::net::IpAddr> for StdOutboundIpAddr {
-    fn from(value: std::net::IpAddr) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 pub struct OutboundUrlPolicy {

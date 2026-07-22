@@ -2,20 +2,12 @@
     clippy::arbitrary_source_item_ordering,
     reason = "HTTP policy types stay grouped with their corresponding resolver functions"
 )]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpAuthorizationHeaderTextRef<'value_lt>(Option<&'value_lt str>);
-impl<'value_lt> From<Option<&'value_lt str>> for HttpAuthorizationHeaderTextRef<'value_lt> {
-    fn from(value: Option<&'value_lt str>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpBearerTokenRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<str> for HttpBearerTokenRef<'_> {
     fn as_ref(&self) -> &str {
         self.0
@@ -50,27 +42,15 @@ pub fn resolve_bearer_authorization(
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCookieHeadersRef<'value_lt>(&'value_lt http::HeaderMap);
-impl<'value_lt> From<&'value_lt http::HeaderMap> for HttpCookieHeadersRef<'value_lt> {
-    fn from(value: &'value_lt http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpCookieNameRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpCookieNameRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for HttpCookieValueRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<str> for HttpCookieValueRef<'_> {
     fn as_ref(&self) -> &str {
         self.0
@@ -131,13 +111,9 @@ pub fn resolve_unique_cookie<'value_lt>(
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct HttpContentTypeTextRef<'value_lt>(Option<&'value_lt str>);
-impl<'value_lt> From<Option<&'value_lt str>> for HttpContentTypeTextRef<'value_lt> {
-    fn from(value: Option<&'value_lt str>) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OptionalJsonContentType {
     ApplicationJson,

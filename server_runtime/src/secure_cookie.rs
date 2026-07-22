@@ -41,13 +41,8 @@ impl TryFrom<String> for HttpCookieValue {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct StdCookieMaxAgeSeconds(u64);
-impl From<u64> for StdCookieMaxAgeSeconds {
-    fn from(value: u64) -> Self {
-        Self(value)
-    }
-}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HttpCookieAccess {
@@ -61,13 +56,9 @@ pub enum HttpCookieSecure {
     Enabled,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct HttpSetCookieHeaderValue(http::HeaderValue);
-impl From<http::HeaderValue> for HttpSetCookieHeaderValue {
-    fn from(value: http::HeaderValue) -> Self {
-        Self(value)
-    }
-}
+
 impl From<HttpSetCookieHeaderValue> for http::HeaderValue {
     fn from(value: HttpSetCookieHeaderValue) -> Self {
         value.0

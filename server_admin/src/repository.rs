@@ -99,17 +99,11 @@ impl From<super::SqlxAdminError> for AdminRepositoryError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub(crate) struct SqlxAdminRepositoryConnectionMutRef<'connection_lt>(
     &'connection_lt mut sqlx::PgConnection,
 );
-impl<'connection_lt> From<&'connection_lt mut sqlx::PgConnection>
-    for SqlxAdminRepositoryConnectionMutRef<'connection_lt>
-{
-    fn from(value: &'connection_lt mut sqlx::PgConnection) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub(crate) struct SqlxAdminRepositoryPoolRef<'pool_lt>(&'pool_lt sqlx::PgPool);
 #[derive(Clone, Copy, Debug, newtype::FromInner)]

@@ -237,12 +237,9 @@ categories = ["category"]
 #[cfg(feature = "test-utils")]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    #[derive(newtype::FromInner)]
     struct StdTmpDir(std::path::PathBuf);
-    impl From<std::path::PathBuf> for StdTmpDir {
-        fn from(value: std::path::PathBuf) -> Self {
-            Self(value)
-        }
-    }
+
     impl StdTmpDir {
         fn new() -> Self {
             let seq = TEST_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);

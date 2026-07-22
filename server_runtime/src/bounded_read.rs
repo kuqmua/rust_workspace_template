@@ -1,29 +1,17 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdPathRef<'path_lt>(&'path_lt std::path::Path);
-impl<'path_lt> From<&'path_lt std::path::Path> for StdPathRef<'path_lt> {
-    fn from(value: &'path_lt std::path::Path) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BoundedReadMaximumBytes(usize);
-impl From<usize> for BoundedReadMaximumBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for BoundedReadMaximumBytes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
 }
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct BoundedBytes(Vec<u8>);
-impl From<Vec<u8>> for BoundedBytes {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
-    }
-}
+
 impl BoundedBytes {
     #[must_use]
     pub fn into_inner(self) -> Vec<u8> {
@@ -63,20 +51,12 @@ impl TryFrom<BoundedBytes> for BoundedText {
         Self::try_from(text)
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, newtype::FromInner)]
 pub struct StdBoundedReadConcurrency(std::sync::Arc<tokio::sync::Semaphore>);
-impl From<std::sync::Arc<tokio::sync::Semaphore>> for StdBoundedReadConcurrency {
-    fn from(value: std::sync::Arc<tokio::sync::Semaphore>) -> Self {
-        Self(value)
-    }
-}
-#[derive(Clone, Copy, Debug)]
+
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct StdBoundedReadConcurrencyMaximum(std::num::NonZeroUsize);
-impl From<std::num::NonZeroUsize> for StdBoundedReadConcurrencyMaximum {
-    fn from(value: std::num::NonZeroUsize) -> Self {
-        Self(value)
-    }
-}
+
 impl StdBoundedReadConcurrency {
     #[must_use]
     pub fn new(maximum_concurrent_reads: StdBoundedReadConcurrencyMaximum) -> Self {
@@ -85,13 +65,9 @@ impl StdBoundedReadConcurrency {
         )))
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdIoError(std::io::Error);
-impl From<std::io::Error> for StdIoError {
-    fn from(value: std::io::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for StdIoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -107,13 +83,9 @@ pub enum IoErrorPresenceDisposition {
     Missing,
     Other(StdIoError),
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct ReqwestError(reqwest::Error);
-impl From<reqwest::Error> for ReqwestError {
-    fn from(value: reqwest::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for ReqwestError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -124,13 +96,9 @@ impl std::error::Error for ReqwestError {
         Some(&self.0)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct StdFromUtf8Error(std::string::FromUtf8Error);
-impl From<std::string::FromUtf8Error> for StdFromUtf8Error {
-    fn from(value: std::string::FromUtf8Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for StdFromUtf8Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -141,20 +109,12 @@ impl std::error::Error for StdFromUtf8Error {
         Some(&self.0)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct ReqwestResponse(reqwest::Response);
-impl From<reqwest::Response> for ReqwestResponse {
-    fn from(value: reqwest::Response) -> Self {
-        Self(value)
-    }
-}
-#[derive(Debug)]
+
+#[derive(Debug, newtype::FromInner)]
 pub struct SerdeJsonError(serde_json::Error);
-impl From<serde_json::Error> for SerdeJsonError {
-    fn from(value: serde_json::Error) -> Self {
-        Self(value)
-    }
-}
+
 impl std::fmt::Display for SerdeJsonError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -235,13 +195,9 @@ pub enum BoundedReadError {
         source: StdFromUtf8Error,
     },
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 struct BoundedReadObservedBytes(usize);
-impl From<usize> for BoundedReadObservedBytes {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 #[must_use]
 pub fn classify_not_found_io_error(error: StdIoError) -> IoErrorPresenceDisposition {
     if error.0.kind() == std::io::ErrorKind::NotFound {

@@ -21,6 +21,7 @@ config_lib = { workspace = true }
 frontend_contract = { workspace = true }
 http = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
+newtype = { workspace = true }
 notification_service_config = { workspace = true }
 notification_service_contract = { workspace = true }
 secrecy = { workspace = true }

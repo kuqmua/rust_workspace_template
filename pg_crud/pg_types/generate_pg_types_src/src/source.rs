@@ -209,13 +209,9 @@ enum CanBePrimaryKey {
     False,
     True,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, newtype::FromInner)]
 struct PgSqlName(&'static str);
-impl From<&'static str> for PgSqlName {
-    fn from(value: &'static str) -> Self {
-        Self(value)
-    }
-}
+
 impl AsRef<str> for PgSqlName {
     fn as_ref(&self) -> &str {
         self.0
@@ -658,12 +654,9 @@ enum GeneratePgTypesConfigVariant {
 }
 #[derive(Clone, Copy, Debug, Default, serde::Deserialize)]
 #[serde(from = "bool")]
+#[derive(newtype::FromInner)]
 struct GenerateSecretText(bool);
-impl From<bool> for GenerateSecretText {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
+
 #[allow(clippy::arbitrary_source_item_ordering)]
 #[derive(Debug, serde::Deserialize, optml::Optml)]
 struct GeneratePgTypesConfig {
@@ -796,13 +789,9 @@ impl From<&PgType> for PgTypeDeserialize {
             }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct ParsedGeneratePgTypesConfig(GeneratePgTypesConfig);
-impl From<GeneratePgTypesConfig> for ParsedGeneratePgTypesConfig {
-    fn from(value: GeneratePgTypesConfig) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Debug)]
 pub struct BuiltGeneratePgTypesModel {
     config: GeneratePgTypesConfig,
@@ -813,13 +802,9 @@ pub struct ValidatedGeneratePgTypesConfig {
     config: GeneratePgTypesConfig,
     entry_count: PgTypesModelEntryCount,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct PgTypesModelEntryCount(usize);
-impl From<usize> for PgTypesModelEntryCount {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
+
 impl From<PgTypesModelEntryCount> for usize {
     fn from(value: PgTypesModelEntryCount) -> Self {
         value.0
@@ -831,13 +816,9 @@ impl ValidatedGeneratePgTypesConfig {
         self.entry_count
     }
 }
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct SerdeJsonGeneratePgTypesError(serde_json::Error);
-impl From<serde_json::Error> for SerdeJsonGeneratePgTypesError {
-    fn from(value: serde_json::Error) -> Self {
-        Self(value)
-    }
-}
+
 #[derive(Debug)]
 pub enum GeneratePgTypesPipelineError {
     Parse(SerdeJsonGeneratePgTypesError),
@@ -5637,16 +5618,17 @@ pub fn emit_generate_pg_types(
             /// ```
             #[derive(Clone, PartialEq, Eq)]
             pub struct StringAsNonNullTextSecret(String);
-            impl std::fmt::Debug for StringAsNonNullTextSecret {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    f.write_str("[REDACTED]")
-                }
-            }
             impl From<String> for StringAsNonNullTextSecret {
                 fn from(value: String) -> Self {
                     Self(value)
                 }
             }
+            impl std::fmt::Debug for StringAsNonNullTextSecret {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.write_str("[REDACTED]")
+                }
+            }
+
             impl AsRef<str> for StringAsNonNullTextSecret {
                 fn as_ref(&self) -> &str {
                     self.0.as_str()

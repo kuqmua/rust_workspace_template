@@ -1,21 +1,12 @@
 #[derive(Clone, Eq, PartialEq)]
 pub struct NotificationApiToken(String);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct NotificationApiTokenRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for NotificationApiTokenRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, newtype::FromInner)]
 pub struct NotificationApiTokenAuthorized(bool);
-impl From<bool> for NotificationApiTokenAuthorized {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
+
 impl From<NotificationApiTokenAuthorized> for bool {
     fn from(value: NotificationApiTokenAuthorized) -> Self {
         value.0
@@ -142,24 +133,17 @@ impl<Sender> NotificationServiceState<Sender> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, newtype::FromInner)]
 pub struct AxumNotificationRouter(axum::Router);
-impl From<axum::Router> for AxumNotificationRouter {
-    fn from(value: axum::Router) -> Self {
-        Self(value)
-    }
-}
+
 impl From<AxumNotificationRouter> for axum::Router {
     fn from(value: AxumNotificationRouter) -> Self {
         value.0
     }
 }
+#[derive(newtype::FromInner)]
 struct HttpNotificationHeaderMap(http::HeaderMap);
-impl From<http::HeaderMap> for HttpNotificationHeaderMap {
-    fn from(value: http::HeaderMap) -> Self {
-        Self(value)
-    }
-}
+
 struct AxumNotificationState<Sender> {
     headers: HttpNotificationHeaderMap,
     state: NotificationServiceState<Sender>,
@@ -180,12 +164,9 @@ where
         }))
     }
 }
+#[derive(newtype::FromInner)]
 struct AxumNotificationJson(NotificationRequest);
-impl From<NotificationRequest> for AxumNotificationJson {
-    fn from(value: NotificationRequest) -> Self {
-        Self(value)
-    }
-}
+
 impl<State> axum::extract::FromRequest<State> for AxumNotificationJson
 where
     State: Send + Sync,

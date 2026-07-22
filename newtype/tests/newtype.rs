@@ -60,27 +60,16 @@ mod tests {
         Debug, Clone, PartialEq, Eq, newtype::Display, newtype::FromInner, newtype::ToErrString,
     )]
     struct UsizeValue(usize);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::ToErrStringDebug)]
+    #[derive(Debug, Clone, PartialEq, Eq, newtype::FromInner, newtype::ToErrStringDebug)]
     struct DebugValue(Vec<u8>);
-    impl From<Vec<u8>> for DebugValue {
-        fn from(value: Vec<u8>) -> Self {
-            Self(value)
-        }
-    }
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, newtype::AsRef, newtype::IntoInner)]
+    #[derive(
+        Debug, Clone, Copy, PartialEq, Eq, newtype::AsRef, newtype::FromInner, newtype::IntoInner,
+    )]
     struct InnerValue(u16);
-    impl From<u16> for InnerValue {
-        fn from(value: u16) -> Self {
-            Self(value)
-        }
-    }
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::AsSlice, newtype::IntoVec)]
+    #[derive(
+        Debug, Clone, PartialEq, Eq, newtype::AsSlice, newtype::FromInner, newtype::IntoVec,
+    )]
     struct VecValue<T>(Vec<T>);
-    impl<T> From<Vec<T>> for VecValue<T> {
-        fn from(value: Vec<T>) -> Self {
-            Self(value)
-        }
-    }
     #[derive(
         Debug,
         Clone,
@@ -92,13 +81,16 @@ mod tests {
         newtype::IntoInnerFrom,
     )]
     struct InnerVecValue<T>(Vec<T>);
-    #[derive(Debug, Clone, PartialEq, Eq, newtype::DerefMutTarget, newtype::DerefTarget)]
+    #[derive(
+        Debug,
+        Clone,
+        PartialEq,
+        Eq,
+        newtype::DerefMutTarget,
+        newtype::DerefTarget,
+        newtype::FromInner,
+    )]
     struct TargetVecValue(Vec<u8>);
-    impl From<Vec<u8>> for TargetVecValue {
-        fn from(value: Vec<u8>) -> Self {
-            Self(value)
-        }
-    }
     #[derive(Debug, Clone, PartialEq, Eq, newtype::BoundedString)]
     #[bounded_string(max = DESCRIBED_VALUE_MAX_LEN, description = "described value")]
     struct DescribedValue(String);
@@ -122,34 +114,14 @@ mod tests {
     struct OwnedSliceValue(Vec<u8>);
     #[derive(Debug, Clone, Copy, newtype::AsRefInner, newtype::FromInner)]
     struct SliceValueRef<'value_lt>(&'value_lt [u8]);
-    #[derive(newtype::DebugTransparent)]
+    #[derive(newtype::DebugTransparent, newtype::FromInner)]
     struct TransparentDebugValue(u16);
-    impl From<u16> for TransparentDebugValue {
-        fn from(value: u16) -> Self {
-            Self(value)
-        }
-    }
-    #[derive(newtype::DebugRedacted)]
+    #[derive(newtype::DebugRedacted, newtype::FromInner)]
     struct RedactedDebugValue(Vec<u8>);
-    impl From<Vec<u8>> for RedactedDebugValue {
-        fn from(value: Vec<u8>) -> Self {
-            Self(value)
-        }
-    }
-    #[derive(Debug, newtype::Display, newtype::ErrorTransparent)]
+    #[derive(Debug, newtype::Display, newtype::ErrorTransparent, newtype::FromInner)]
     struct StdTransparentErrorValue(std::io::Error);
-    impl From<std::io::Error> for StdTransparentErrorValue {
-        fn from(value: std::io::Error) -> Self {
-            Self(value)
-        }
-    }
-    #[derive(newtype::AsMut)]
+    #[derive(newtype::AsMut, newtype::FromInner)]
     struct MutableValueRef<'value_lt>(&'value_lt mut u16);
-    impl<'value_lt> From<&'value_lt mut u16> for MutableValueRef<'value_lt> {
-        fn from(value: &'value_lt mut u16) -> Self {
-            Self(value)
-        }
-    }
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     enum CheckedTextError {
         TooLong,

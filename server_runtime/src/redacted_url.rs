@@ -1,10 +1,5 @@
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, newtype::FromInner)]
 pub struct RedactedUrl(Option<crate::RequiredNulFreeBoundedText>);
-impl From<Option<crate::RequiredNulFreeBoundedText>> for RedactedUrl {
-    fn from(value: Option<crate::RequiredNulFreeBoundedText>) -> Self {
-        Self(value)
-    }
-}
 
 impl AsRef<str> for RedactedUrl {
     fn as_ref(&self) -> &str {
@@ -26,13 +21,8 @@ impl std::fmt::Debug for RedactedUrl {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, newtype::FromInner)]
 pub struct RedactedUrlTextRef<'value_lt>(&'value_lt str);
-impl<'value_lt> From<&'value_lt str> for RedactedUrlTextRef<'value_lt> {
-    fn from(value: &'value_lt str) -> Self {
-        Self(value)
-    }
-}
 
 #[must_use]
 pub fn redact_url_userinfo(value: RedactedUrlTextRef<'_>) -> RedactedUrl {

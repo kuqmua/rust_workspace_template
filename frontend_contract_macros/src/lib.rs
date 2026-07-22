@@ -2,30 +2,18 @@
     clippy::arbitrary_source_item_ordering,
     reason = "proc-macro parser models precede their entrypoints while related derive parsers remain adjacent"
 )]
+#[derive(newtype::FromInner)]
 struct SynExpr(syn::Expr);
-impl From<syn::Expr> for SynExpr {
-    fn from(value: syn::Expr) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct SynType(syn::Type);
-impl From<syn::Type> for SynType {
-    fn from(value: syn::Type) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct SynIdent(syn::Ident);
-impl From<syn::Ident> for SynIdent {
-    fn from(value: syn::Ident) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct StdBool(bool);
-impl From<bool> for StdBool {
-    fn from(value: bool) -> Self {
-        Self(value)
-    }
-}
+
 struct RouteCatalogArgs {
     body_limit: SynExpr,
     family: SynIdent,
@@ -216,32 +204,18 @@ struct RouteRegistryBinding {
     handler: SynRouteRegistryHandler,
     route: SynRouteRegistryRoute,
 }
+#[derive(newtype::FromInner)]
 struct SynRouteRegistryHandler(syn::Path);
-impl From<syn::Path> for SynRouteRegistryHandler {
-    fn from(value: syn::Path) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct SynRouteRegistryRoute(syn::Type);
-impl From<syn::Type> for SynRouteRegistryRoute {
-    fn from(value: syn::Type) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct SynRouteRegistryBindings(syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>);
-impl From<syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>>
-    for SynRouteRegistryBindings
-{
-    fn from(value: syn::punctuated::Punctuated<RouteRegistryBinding, syn::Token![,]>) -> Self {
-        Self(value)
-    }
-}
+
+#[derive(newtype::FromInner)]
 struct SynRouteRegistryState(syn::Type);
-impl From<syn::Type> for SynRouteRegistryState {
-    fn from(value: syn::Type) -> Self {
-        Self(value)
-    }
-}
+
 impl syn::parse::Parse for RouteRegistryBinding {
     fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let content;
